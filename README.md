@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-  <img alt="Xarpite Logo" src="assets/fluorite12-logo.svg" />
+  <img alt="Xarpite Logo" src="assets/xarpite-logo.svg" />
 </div>
 
 <br>
