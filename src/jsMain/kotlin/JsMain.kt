@@ -1,12 +1,12 @@
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
-import mirrg.fluorite12.Evaluator
-import mirrg.fluorite12.compilers.objects.FluoriteStream
-import mirrg.fluorite12.compilers.objects.FluoriteValue
-import mirrg.fluorite12.compilers.objects.collect
-import mirrg.fluorite12.compilers.objects.toFluoriteString
-import mirrg.fluorite12.mounts.createCommonMounts
+import mirrg.xarpite.Evaluator
+import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.mounts.createCommonMounts
 import kotlin.js.Promise
 
 private val scope = MainScope()

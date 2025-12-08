@@ -1,5 +1,5 @@
 import kotlinx.coroutines.runBlocking
-import mirrg.fluorite12.cli.cliMain
+import mirrg.xarpite.cli.cliMain
 
 fun main(args: Array<String>) {
     cliMain(args) {

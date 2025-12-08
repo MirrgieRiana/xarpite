@@ -4,21 +4,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.promise
-import mirrg.fluorite12.OperatorMethod
-import mirrg.fluorite12.compilers.objects.FluoriteArray
-import mirrg.fluorite12.compilers.objects.FluoriteBoolean
-import mirrg.fluorite12.compilers.objects.FluoriteDouble
-import mirrg.fluorite12.compilers.objects.FluoriteFunction
-import mirrg.fluorite12.compilers.objects.FluoriteInt
-import mirrg.fluorite12.compilers.objects.FluoriteNull
-import mirrg.fluorite12.compilers.objects.FluoriteNumber
-import mirrg.fluorite12.compilers.objects.FluoriteObject
-import mirrg.fluorite12.compilers.objects.FluoriteString
-import mirrg.fluorite12.compilers.objects.FluoriteValue
-import mirrg.fluorite12.compilers.objects.invoke
-import mirrg.fluorite12.compilers.objects.toFluoriteArray
-import mirrg.fluorite12.compilers.objects.toFluoriteBoolean
-import mirrg.fluorite12.compilers.objects.toFluoriteString
+import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBoolean
+import mirrg.xarpite.compilers.objects.FluoriteDouble
+import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteNumber
+import mirrg.xarpite.compilers.objects.FluoriteObject
+import mirrg.xarpite.compilers.objects.FluoriteString
+import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteBoolean
+import mirrg.xarpite.compilers.objects.toFluoriteString
 
 class FluoriteJsObject(val value: dynamic) : FluoriteValue {
     companion object {

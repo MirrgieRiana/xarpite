@@ -1,7 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.fluorite12.compilers.objects.FluoriteInt
-import mirrg.fluorite12.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.invoke
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

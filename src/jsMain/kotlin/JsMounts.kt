@@ -1,9 +1,9 @@
 import kotlinx.browser.window
 import kotlinx.coroutines.await
-import mirrg.fluorite12.compilers.objects.FluoriteFunction
-import mirrg.fluorite12.compilers.objects.FluoriteNull
-import mirrg.fluorite12.compilers.objects.FluoriteValue
-import mirrg.fluorite12.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.toFluoriteString
 import kotlin.js.Promise
 
 fun createJsMounts(): List<Map<String, FluoriteValue>> {

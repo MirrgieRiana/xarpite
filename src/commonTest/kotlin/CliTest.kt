@@ -1,10 +1,10 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.fluorite12.Evaluator
-import mirrg.fluorite12.cli.createCliMounts
-import mirrg.fluorite12.compilers.objects.FluoriteValue
-import mirrg.fluorite12.mounts.createCommonMounts
+import mirrg.xarpite.Evaluator
+import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.mounts.createCommonMounts
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals

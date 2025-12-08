@@ -1,7 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.fluorite12.Evaluator
-import mirrg.fluorite12.mounts.createCommonMounts
+import mirrg.xarpite.Evaluator
+import mirrg.xarpite.mounts.createCommonMounts
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

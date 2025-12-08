@@ -1,10 +1,10 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.fluorite12.Evaluator
-import mirrg.fluorite12.compilers.objects.FluoriteNull
-import mirrg.fluorite12.compilers.objects.FluoriteStream
-import mirrg.fluorite12.mounts.createCommonMounts
-import mirrg.fluorite12.operations.FluoriteException
+import mirrg.xarpite.Evaluator
+import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
