@@ -189,7 +189,7 @@ $ xa -q '
 パフォーマンスのためにjvm版で起動します。
 
 ```bash
-$ FLC_ENGINE=jvm xa -q '
+$ XARPITE_ENGINE=jvm xa -q '
   LifeGame := {
     init     : this -> this.b = [0 ~ this.h | [0 ~ this.w | RAND(2)]]
     get      : this, x, y -> this.b(y % this.h)(x % this.w)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONFIG_FILE=$SCRIPT_DIR/default_engine
-ENGINE="$FLC_ENGINE"
+ENGINE="$XARPITE_ENGINE"
 if [ -z "$ENGINE" ] && [ -f "$CONFIG_FILE" ]
 then
   ENGINE="$(cat "$CONFIG_FILE")"
