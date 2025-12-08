@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class Fluorite12Test {
+class XarpiteTest {
 
     @Test
     fun cacheTest() = runTest {

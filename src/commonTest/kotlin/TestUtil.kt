@@ -2,8 +2,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
-import mirrg.xarpite.Fluorite12Grammar
 import mirrg.xarpite.Frame
+import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
@@ -18,7 +18,7 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.parser.parseAllOrThrow
 
 fun parse(src: String): String {
-    val parseResult = Fluorite12Grammar.rootParser.parseAllOrThrow(src)
+    val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code

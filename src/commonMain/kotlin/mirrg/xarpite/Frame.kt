@@ -135,7 +135,7 @@ class Evaluator {
     }
 
     suspend fun get(src: String): FluoriteValue {
-        val parseResult = Fluorite12Grammar.rootParser.parseAllOrThrow(src)
+        val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
@@ -145,7 +145,7 @@ class Evaluator {
     }
 
     suspend fun run(src: String) {
-        val parseResult = Fluorite12Grammar.rootParser.parseAllOrThrow(src)
+        val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
