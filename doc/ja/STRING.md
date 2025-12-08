@@ -16,7 +16,7 @@
 生文字列内で `'` を記述するには `''` と書きます。
 
 ```shell
-$ flc " 'abc''def' "
+$ xa " 'abc''def' "
 # abc'def
 ```
 
@@ -27,7 +27,7 @@ $ flc " 'abc''def' "
 この性質は、ソースコードの改行コードが変更されてもプログラムの動作が変わらないことを保証します。
 
 ```shell
-$ flc " 'abc
+$ xa " 'abc
 def' "
 # abc
 # def
@@ -40,7 +40,7 @@ def' "
 これは `$` や ` \ ` も例外ではありません。
 
 ```shell
-$ flc \''abc$def\nop'\'
+$ xa \''abc$def\nop'\'
 # abc$def\nop
 ```
 
@@ -75,7 +75,7 @@ $ flc \''abc$def\nop'\'
 ` \ ` で始まるシーケンスは将来の機能のために予約されており、不正なシーケンスは構文エラーとなります。
 
 ```shell
-$ flc ' "abc\"def\\ghi\njkl" '
+$ xa ' "abc\"def\\ghi\njkl" '
 # abc"def\ghi
 # jkl
 ```
@@ -85,7 +85,7 @@ $ flc ' "abc\"def\\ghi\njkl" '
 Unicodeの1文字を指定するエスケープシーケンス（文字参照）も利用できます。
 
 ```shell
-$ flc ' "\u3042" '
+$ xa ' "\u3042" '
 # あ
 ```
 
@@ -100,10 +100,10 @@ $ flc ' "\u3042" '
 最も一般的な利用形態は、丸括弧によって任意の式を埋め込むことや、単一の識別子を埋め込むことです。
 
 ```shell
-$ flc ' "value is $(100 + 20 + 3)" '
+$ xa ' "value is $(100 + 20 + 3)" '
 # value is 123
 
-$ flc '
+$ xa '
   value := 123
   "value is $value"
 '
@@ -118,7 +118,7 @@ $ flc '
 - 識別子などを直接埋め込むことはできず、括弧類に限られます。
 
 ```shell
-$ flc ' "[$%+09.2f(123)]" '
+$ xa ' "[$%+09.2f(123)]" '
 # [+00123.00]
 ```
 
@@ -185,7 +185,7 @@ $ flc ' "[$%+09.2f(123)]" '
 埋め込み文字列リテラルは、特にHTMLコードの生成と相性がよいです。
 
 ```shell
-$ flc '
+$ xa '
   %>
     <table>
       <tr style="color: red;"><th>x</th><th>x×10</th></tr>
@@ -219,7 +219,7 @@ $ flc '
 埋め込み文字列内で `<%` を記述するには `<%%` と書きます。
 
 ```shell
-$ flc '%>[ <%% ]<%'
+$ xa '%>[ <%% ]<%'
 # [ <% ]
 ```
 
@@ -234,7 +234,7 @@ $ flc '%>[ <%% ]<%'
 丸括弧と同様、内部で宣言された変数が外部に出ない効果があります。
 
 ```shell
-$ flc ' %>value is <%= 100 + 20 + 3 %><% '
+$ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
 ```
 
@@ -247,7 +247,7 @@ $ flc ' %>value is <%= 100 + 20 + 3 %><% '
 文字列の各文字を順番にイテレートするストリームを返します。
 
 ```shell
-$ flc '"abc"()'
+$ xa '"abc"()'
 # a
 # b
 # c
@@ -258,13 +258,13 @@ $ flc '"abc"()'
 配列と同様、文字列の要素にインデックスでアクセスできます。
 
 ```shell
-$ flc '"abc"(1)'
+$ xa '"abc"(1)'
 # b
 
-$ flc '"abc"(-1)'
+$ xa '"abc"(-1)'
 # c
 
-$ flc '"abc"(2, 0)'
+$ xa '"abc"(2, 0)'
 # c
 # a
 ```
@@ -274,7 +274,7 @@ $ flc '"abc"(2, 0)'
 `.` 演算子で文字列の要素にアクセスできます。
 
 ```shell
-$ flc '"abc".1'
+$ xa '"abc".1'
 # b
 ```
 
@@ -283,7 +283,7 @@ $ flc '"abc".1'
 オブジェクトの要素アクセスと同様に、 `.` の右辺を式にすることができます。
 
 ```shell
-$ flc '"abc".(1 + 1)'
+$ xa '"abc".(1 + 1)'
 # c
 ```
 
@@ -292,7 +292,7 @@ $ flc '"abc".(1 + 1)'
 添え字が負数であった場合は `NULL` が返されます。
 
 ```shell
-$ flc '"abc".(-1)'
+$ xa '"abc".(-1)'
 # NULL
 ```
 
@@ -301,7 +301,7 @@ $ flc '"abc".(-1)'
 インデックスは数値化されたあと、四捨五入されて評価されます。
 
 ```shell
-$ flc '"abc".("0.95")'
+$ xa '"abc".("0.95")'
 # b
 ```
 
@@ -310,7 +310,7 @@ $ flc '"abc".("0.95")'
 前置 `&` 演算子は、値の文字列表現を得るのに使います。
 
 ```shell
-$ flc '&[1..3]'
+$ xa '&[1..3]'
 # [1;2;3]
 ```
 
@@ -332,7 +332,7 @@ $ flc '&[1..3]'
 オブジェクトの `&_` メソッドをオーバーライドすることで、文字列化の処理を変更することができます。
 
 ```shell
-$ flc '&{`&_`: this -> "The value is $(this.value)"}{value: 100}'
+$ xa '&{`&_`: this -> "The value is $(this.value)"}{value: 100}'
 # The value is 100
 ```
 
@@ -341,7 +341,7 @@ $ flc '&{`&_`: this -> "The value is $(this.value)"}{value: 100}'
 文字列の連結を行うには `&` 演算子を使います。
 
 ```shell
-$ flc '"abc" & "def"'
+$ xa '"abc" & "def"'
 # abcdef
 ```
 
@@ -350,7 +350,7 @@ $ flc '"abc" & "def"'
 `string[indices]` で部分文字列を取得できます。
 
 ```shell
-$ flc '"abcde"[1..3]'
+$ xa '"abcde"[1..3]'
 # bcd
 ```
 
@@ -365,7 +365,7 @@ $ flc '"abcde"[1..3]'
 `old` に文字列が渡された場合、その文字列のすべての出現個所を置換します。
 
 ```shell
-$ flc '"-ab--ab-"::replace("ab"; "AB")'
+$ xa '"-ab--ab-"::replace("ab"; "AB")'
 # -AB--AB-
 ```
 
@@ -376,10 +376,10 @@ $ flc '"-ab--ab-"::replace("ab"; "AB")'
 正規表現オブジェクトがグローバルでない場合、最初にマッチした部分のみが置換対象となります。
 
 ```shell
-$ flc '"-ab--ab-"::replace(/[a-z]{2}/; "xx")'
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/; "xx")'
 # -xx--ab-
 
-$ flc '"-ab--ab-"::replace(/[a-z]{2}/g; "xx")'
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; "xx")'
 # -xx--xx-
 ```
 
@@ -388,10 +388,10 @@ $ flc '"-ab--ab-"::replace(/[a-z]{2}/g; "xx")'
 `new` に関数が渡された場合、マッチした各部分に対してその関数が呼び出され、その戻り値で置換されます。
 
 ```shell
-$ flc '"-ab--ab-"::replace("ab"; m -> m.0 * 2)'
+$ xa '"-ab--ab-"::replace("ab"; m -> m.0 * 2)'
 # -abab--abab-
 
-$ flc '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 # -abab--abab-
 ```
 
@@ -408,10 +408,10 @@ $ flc '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 ストリームを渡した場合は、各要素を大文字に変換するストリームを返します。
 
 ```shell
-$ flc 'UC("Ab")'
+$ xa 'UC("Ab")'
 # AB
 
-$ flc '"Ab", "Cd" >> UC'
+$ xa '"Ab", "Cd" >> UC'
 # AB
 # CD
 ```
@@ -421,7 +421,7 @@ $ flc '"Ab", "Cd" >> UC'
 `string::UC()` で呼び出すことができる拡張関数版もあります。
 
 ```shell
-$ flc '"Ab"::UC()'
+$ xa '"Ab"::UC()'
 # AB
 ```
 
@@ -436,10 +436,10 @@ $ flc '"Ab"::UC()'
 その他の仕様は `UC` と共通です。
 
 ```shell
-$ flc 'LC("Ab")'
+$ xa 'LC("Ab")'
 # ab
 
-$ flc '"Ab", "Cd" >> LC'
+$ xa '"Ab", "Cd" >> LC'
 # ab
 # cd
 ```
@@ -449,6 +449,6 @@ $ flc '"Ab", "Cd" >> LC'
 `string::LC()` で呼び出すことができる拡張関数版もあります。
 
 ```shell
-$ flc '"Ab"::LC()'
+$ xa '"Ab"::LC()'
 # ab
 ```

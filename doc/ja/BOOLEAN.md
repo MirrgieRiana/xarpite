@@ -5,10 +5,10 @@
 それぞれ、組み込み定数 `TRUE` および `FALSE` によって参照されます。
 
 ```shell
-$ flc 'TRUE'
+$ xa 'TRUE'
 # TRUE
 
-$ flc 'FALSE'
+$ xa 'FALSE'
 # FALSE
 ```
 
@@ -17,10 +17,10 @@ $ flc 'FALSE'
 論理値化演算子 `?value` は、値の論理値化を行います。
 
 ```shell
-$ flc '?1'
+$ xa '?1'
 # TRUE
 
-$ flc '?0'
+$ xa '?0'
 # FALSE
 ```
 
@@ -56,7 +56,7 @@ $ flc '?0'
 オブジェクトの `?_` メソッドをオーバーライドすることで、論理値化の処理を変更することができます。
 
 ```shell
-$ flc '
+$ xa '
   Class := {
     `?_`: this -> this.value > 100
   }
@@ -73,13 +73,13 @@ $ flc '
 否定論理値化演算子 `!value` は、値の論理値化を行い、その否定を返します。
 
 ```shell
-$ flc '!TRUE'
+$ xa '!TRUE'
 # FALSE
 
-$ flc '!FALSE'
+$ xa '!FALSE'
 # TRUE
 
-$ flc '!1'
+$ xa '!1'
 # FALSE
 ```
 
@@ -127,7 +127,7 @@ $ flc '!1'
 | `condition \|\| else` | `condition` の論理値化が `FALSE` である場合 |
 
 ```shell
-$ flc -q '
+$ xa -q '
   check := value -> (
     value %% 2 && OUT("$value is divisible by 2")
     value %% 3 || OUT("$value is not divisible by 3")
@@ -149,10 +149,10 @@ $ flc -q '
 `condition` の論理値化が `TRUE` として評価される場合は `then` 、そうでない場合は `else` を返します。
 
 ```shell
-$ flc 'TRUE ? "Yes" : "No"'
+$ xa 'TRUE ? "Yes" : "No"'
 # Yes
 
-$ flc 'FALSE ? "Yes" : "No"'
+$ xa 'FALSE ? "Yes" : "No"'
 # No
 ```
 
@@ -161,7 +161,7 @@ $ flc 'FALSE ? "Yes" : "No"'
 三項演算子も論理演算子と同様に不要な項は評価自体が行われないため、if文のように使うことができます。
 
 ```shell
-$ flc -q '
+$ xa -q '
   check := value -> (
     value %% 2 ? (
       OUT << "$value is even"
@@ -182,7 +182,7 @@ $ flc -q '
 三項演算子は入れ子にしたり、演算子の前で改行することができます。
 
 ```shell
-$ flc '
+$ xa '
   get_name := is_parent, is_man ->
     is_parent
       ? is_man
@@ -208,10 +208,10 @@ $ flc '
 エルビス演算子 `value ?: default` は、 `value` が `NULL` である場合に `default` 、そうでなければ `value` を返す演算子です。
 
 ```shell
-$ flc '"Orange" ?: "Apple"'
+$ xa '"Orange" ?: "Apple"'
 # Orange
 
-$ flc 'NULL ?: "Apple"'
+$ xa 'NULL ?: "Apple"'
 # Apple
 ```
 
@@ -222,10 +222,10 @@ $ flc 'NULL ?: "Apple"'
 スローされる値は、どのようなタイプの値である可能性もあります。
 
 ```shell
-$ flc '"OK" !? "Failed"'
+$ xa '"OK" !? "Failed"'
 # OK
 
-$ flc '!!"Error" !? "Failed"'
+$ xa '!!"Error" !? "Failed"'
 # Failed
 ```
 
@@ -234,7 +234,7 @@ $ flc '!!"Error" !? "Failed"'
 `try !? (error => catch)` により、スローされた値を受け取ることができます。
 
 ```shell
-$ flc '!!12345 !? (e => "Error: #$e")'
+$ xa '!!12345 !? (e => "Error: #$e")'
 # Error: #12345
 ```
 

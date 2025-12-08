@@ -47,7 +47,7 @@ fun parseArguments(args: Array<String>): Options {
 }
 
 fun showUsage() {
-    println("Usage: flc [-h|--help] [-q] [--] <code> <arguments...>")
+    println("Usage: xa [-h|--help] [-q] [--] <code> <arguments...>")
     println("Options:")
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")

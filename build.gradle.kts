@@ -39,13 +39,13 @@ kotlin {
     }
     linuxX64 {
         binaries {
-            executable("flc")
+            executable("xa")
         }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
     //mingwX64 {
     //    binaries {
-    //        executable("flc")
+    //        executable("xa")
     //    }
     //}
 
@@ -77,7 +77,7 @@ tasks.named("jsNodeProductionLibraryDistribution") { dependsOn("jsProductionExec
 val releaseExecutable = kotlin.targets
     .getByName<KotlinNativeTarget>("linuxX64")
     .binaries
-    .getExecutable("flc", "RELEASE")
+    .getExecutable("xa", "RELEASE")
 
 
 // Executable Jar
@@ -135,14 +135,14 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     from(generateInstallJvm)
     from(releaseExecutable.linkTaskProvider) {
         into("bin")
-        rename("flc.kexe", "flc")
+        rename("xa.kexe", "xa")
     }
     from(tasks.named("jvmJar")) { into("libs") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 
     doLast {
-        outputDirectory.get().asFile.resolve("flc").setExecutable(true)
+        outputDirectory.get().asFile.resolve("xa").setExecutable(true)
     }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }

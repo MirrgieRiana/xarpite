@@ -28,13 +28,13 @@ fi
 echo "@ENGINE@" > "$SCRIPT_DIR/default_engine" || exit
 
 # /usr/local/bin にインストール
-echo "Updating /usr/local/bin/flc"
-destination=/usr/local/bin/flc
+echo "Updating /usr/local/bin/xa"
+destination=/usr/local/bin/xa
 rm -f "$destination" || exit
-ln -s "$SCRIPT_DIR"/flc "$destination" || exit
-chmod +x "$SCRIPT_DIR"/flc || exit
-echo "Updating /usr/local/bin/flc-update"
-destination=/usr/local/bin/flc-update
+ln -s "$SCRIPT_DIR"/xa "$destination" || exit
+chmod +x "$SCRIPT_DIR"/xa || exit
+echo "Updating /usr/local/bin/xa-update"
+destination=/usr/local/bin/xa-update
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/@SCRIPT_NAME@ "$destination" || exit
 

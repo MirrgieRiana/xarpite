@@ -1,18 +1,18 @@
-# `flc` fluorite12コードを実行する
+# `xa` fluorite12コードを実行する
 
 ```
-Usage: flc [-h|--help] [-q] [--] <code> <arguments...>
+Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
 Options:
   -h, --help               Show this help
   -q                       Run script as a runner
 ```
 
-`flc` はコマンドライン引数に渡されたfluorite12のコードをその場で実行するコマンドです。
+`xa` はコマンドライン引数に渡されたfluorite12のコードをその場で実行するコマンドです。
 
-`flc` コマンドは標準の動作としてコードの戻り値を出力するため、結果の出力のために明示的に `OUT` 関数などを使う必要はありません。
+`xa` コマンドは標準の動作としてコードの戻り値を出力するため、結果の出力のために明示的に `OUT` 関数などを使う必要はありません。
 
 ```shell
-$ flc '1 + 2'
+$ xa '1 + 2'
 # 3
 ```
 
@@ -21,7 +21,7 @@ $ flc '1 + 2'
 戻り値の出力の際には文字列化が行われます。
 
 ```shell
-$ flc '{`&_`: _ -> "Hello, World"}{}'
+$ xa '{`&_`: _ -> "Hello, World"}{}'
 # Hello, World
 ```
 
@@ -30,7 +30,7 @@ $ flc '{`&_`: _ -> "Hello, World"}{}'
 コードの値がストリームだった場合、各要素を1行ずつ出力します。
 
 ```shell
-$ flc '1 .. 3'
+$ xa '1 .. 3'
 # 1
 # 2
 # 3
@@ -41,7 +41,7 @@ $ flc '1 .. 3'
 コードの戻り値が空ストリームである場合、何も出力されません。
 
 ```shell
-$ flc '1 + 2; ,'
+$ xa '1 + 2; ,'
 ```
 
 ## 戻り値の出力の抑制
@@ -51,7 +51,7 @@ $ flc '1 + 2; ,'
 出力を行うには `OUT` 関数などを使う必要があります。
 
 ```shell
-$ flc -q '
+$ xa -q '
   OUT << "apple"
   OUT << "banana"
   "orange"
@@ -68,10 +68,10 @@ CLI版fluorite12でのみ利用可能な定数および関数です。
 
 コマンドライン引数が配列で格納されています。
 
-`flc` コマンドやワンライナーのソースコードは含まれません。
+`xa` コマンドやワンライナーのソースコードは含まれません。
 
 ```shell
-$ flc 'ARGS' 1 2 3
+$ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
@@ -80,7 +80,7 @@ $ flc 'ARGS' 1 2 3
 環境変数がオブジェクトで格納されています。
 
 ```shell
-$ FOO=bar flc 'ENV.FOO'
+$ FOO=bar xa 'ENV.FOO'
 # bar
 ```
 
@@ -91,7 +91,7 @@ $ FOO=bar flc 'ENV.FOO'
 標準入力を1行ずつストリームとして取得します。
 
 ```shell
-$ { echo 123; echo 456; } | flc 'IN'
+$ { echo 123; echo 456; } | xa 'IN'
 # 123
 # 456
 ```
@@ -101,7 +101,7 @@ $ { echo 123; echo 456; } | flc 'IN'
 ストリームは逐次的であるため、非常に大きな反復も少ないメモリ消費で行うことができます。
 
 ```shell
-$ flc '1 .. 10000 | "#" * 10000' | flc 'IN | $#_ >> SUM'
+$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
 # 100000000
 ```
 
@@ -110,7 +110,7 @@ $ flc '1 .. 10000 | "#" * 10000' | flc 'IN | $#_ >> SUM'
 標準出力に出力します。
 
 ```shell
-$ flc -q '
+$ xa -q '
   OUT(123)
   OUT(456)
 '
@@ -123,7 +123,7 @@ $ flc -q '
 ストリームが指定された場合、各要素を1行ずつ出力します。
 
 ```shell
-$ flc -q '
+$ xa -q '
   OUT(1 .. 3)
 '
 # 1
@@ -140,7 +140,7 @@ $ flc -q '
 この関数はしばしば左実行パイプによって書かれます。
 
 ```shell
-$ flc -q '
+$ xa -q '
   OUT << "Hello, world!"
 '
 # Hello, world!
@@ -158,7 +158,7 @@ $ flc -q '
 $ {
   echo "apple" > tmp.txt
   echo "banana" >> tmp.txt
-  flc 'READ("tmp.txt")'
+  xa 'READ("tmp.txt")'
 }
 # apple
 # banana

@@ -25,7 +25,7 @@
 これらの操作は、 `container` の `_._` メソッドおよび `_._=` メソッドをオーバーライドすることでカスタマイズできます。
 
 ```shell
-$ flc -q '
+$ xa -q '
   globalVariableTable := {}
   DelegatedObject := {
     `_._` : this, key        -> globalVariableTable."item_$key"

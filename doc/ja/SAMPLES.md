@@ -8,7 +8,7 @@
 - それ以外の場合、その数を出力。
 
 ```shell
-$ flc '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
+$ xa '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
 # 1
 # 2
 # Fizz
@@ -69,7 +69,7 @@ $ flc '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
 # フィボナッチ数列
 
 ```shell
-$ flc '
+$ xa '
   fib := n -> n < 2 ? n : fib(n - 1) + fib(n - 2)
   fib(10)
 '
@@ -79,7 +79,7 @@ $ flc '
 # クイックソート
 
 ```shell
-$ flc '
+$ xa '
   quicksort := list -> $#list < 2 ? list : (
     pivot  := list.0
     high   := [list() >> FILTER [ _ => _ >  pivot ]]
@@ -95,7 +95,7 @@ $ flc '
 # マージソート
 
 ```shell
-$ flc '
+$ xa '
   m := a, b -> (
     ai := 0
     bi := 0
@@ -128,7 +128,7 @@ $ flc '
 # 編集距離
 
 ```shell
-$ flc '
+$ xa '
   edit_distance := a, b -> (
     dp := [0 .. $#a + 1 | [0 .. $#b + 1 | 0]]
     0 .. $#a | i => 0 .. $#b | j => (
@@ -166,7 +166,7 @@ $ flc '
 # 素数判定
 
 ```shell
-$ flc -q '
+$ xa -q '
   is_prime := n ->
       n < 2 ? FALSE
     : n == 2 ? TRUE
@@ -189,7 +189,7 @@ $ flc -q '
 パフォーマンスのためにjvm版で起動します。
 
 ```bash
-$ FLC_ENGINE=jvm flc -q '
+$ FLC_ENGINE=jvm xa -q '
   LifeGame := {
     init     : this -> this.b = [0 ~ this.h | [0 ~ this.w | RAND(2)]]
     get      : this, x, y -> this.b(y % this.h)(x % this.w)
