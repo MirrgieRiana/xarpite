@@ -85,8 +85,8 @@
 </div>
 <script src="playground.js"></script>
 <script type="module">
-    import * as fluorite12 from "./fluorite12.mjs";
-    window.fluorite12 = fluorite12;
+    import * as xarpite from "./xarpite.mjs";
+    window.xarpite = xarpite;
 </script>
 <script>
     async function run() {
@@ -111,13 +111,13 @@
         const src = window.input.state.doc.toString();
         clearOutput();
         try {
-            const value = await fluorite12.evaluate(src, document.getElementById("quiet_mode").checked, async value => {
-                await fluorite12.log(value);
-                addOutput(await fluorite12.stringify(value));
+            const value = await xarpite.evaluate(src, document.getElementById("quiet_mode").checked, async value => {
+                await xarpite.log(value);
+                addOutput(await xarpite.stringify(value));
             });
             if (value !== undefined) {
-                await fluorite12.log(value);
-                addOutput(await fluorite12.stringify(value));
+                await xarpite.log(value);
+                addOutput(await xarpite.stringify(value));
             }
         } catch (e) {
             console.log(e);

@@ -31,7 +31,7 @@ kotlin {
         }
         binaries.executable()
         binaries.library()
-        outputModuleName = "fluorite12"
+        outputModuleName = "xarpite"
         compilerOptions {
             moduleKind = JsModuleKind.MODULE_ES
             sourceMapEmbedSources = JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS
