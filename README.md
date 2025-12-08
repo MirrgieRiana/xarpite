@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-  <img alt="fluorite12 Logo" src="assets/fluorite12-logo.svg" />
+  <img alt="Xarpite Logo" src="assets/fluorite12-logo.svg" />
 </div>
 
 <br>
@@ -14,7 +14,7 @@
 
 # NAME
 
-fluorite12(flc) - Interpreted language for one-liners
+Xarpite(xa) - Interpreted language for one-liners
 
 # SYNOPSIS
 
@@ -42,7 +42,7 @@ $ xa '(f -> f(f))(f -> n -> n <= 0 ? 1 : n * f(f)(n - 1))(5)'
 
 # DESCRIPTION
 
-fluorite12 is an interpreter language designed for one-liner scripts.
+Xarpite is an interpreter language designed for one-liner scripts.
 It aims to allow flexibility and functionality in a minimal amount of code
 with most basic features accessible through operators.
 Its command-line interface is optimized to enable writing executable programs with minimal code.
@@ -50,9 +50,9 @@ For example, the command `$ xa ' "Hello, World" '` will display `Hello, World`.
 
 # PLAYGROUND
 
-There is a web tool available online that can run fluorite12.
+There is a web tool available online that can run Xarpite.
 
-[fluorite12 Playground](https://mirrgieriana.github.io/fluorite12/playground/)
+[Xarpite Playground](https://mirrgieriana.github.io/fluorite12/playground/)
 
 # INSTALL
 
@@ -78,4 +78,4 @@ Download the `xa` binary to `./fluorite12` and register it in `/usr/local/bin`.
 
 ---
 
-*The fluorite12 logo uses the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
+*The Xarpite logo uses the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
