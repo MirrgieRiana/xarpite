@@ -78,4 +78,4 @@ Download the `xa` binary to `./xarpite` and register it in `/usr/local/bin`.
 
 ---
 
-*The Xarpite logo uses the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
+*The Xarpite logo and icon uses the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
