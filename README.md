@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-  <img alt="fluorite12 Logo" src="assets/logo.svg" />
+  <img alt="fluorite12 Logo" src="assets/fluorite12-logo.svg" />
 </div>
 
 <br>
