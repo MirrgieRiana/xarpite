@@ -4,7 +4,7 @@
 if [ "${BASH_SOURCE[0]}" = "" ]
 then
   # パイプで渡された
-  SCRIPT_DIR=$(pwd)/fluorite12
+  SCRIPT_DIR=$(pwd)/xarpite
 else
   # ファイルを実行した
   SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
@@ -22,7 +22,7 @@ then
   git -C "$SCRIPT_DIR" reset --hard origin/release || exit
 else
   echo "Cloning repository"
-  git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/fluorite12.git "$SCRIPT_DIR" || exit
+  git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/xarpite.git "$SCRIPT_DIR" || exit
 fi
 
 echo "@ENGINE@" > "$SCRIPT_DIR/default_engine" || exit

@@ -8,8 +8,8 @@
 <br>
 
 <div align="center">
-  <a href="https://github.com/MirrgieRiana/fluorite12/actions/workflows/release.yml"><img alt=".github/workflows/release.yml" src="https://github.com/MirrgieRiana/fluorite12/actions/workflows/release.yml/badge.svg" /></a>
-  <img alt="" src="https://img.shields.io/github/v/tag/MirrgieRiana/fluorite12.svg?label=Latest%20Version" />
+  <a href="https://github.com/MirrgieRiana/xarpite/actions/workflows/release.yml"><img alt=".github/workflows/release.yml" src="https://github.com/MirrgieRiana/xarpite/actions/workflows/release.yml/badge.svg" /></a>
+  <img alt="" src="https://img.shields.io/github/v/tag/MirrgieRiana/xarpite.svg?label=Latest%20Version" />
 </div>
 
 # NAME
@@ -52,7 +52,7 @@ For example, the command `$ xa ' "Hello, World" '` will display `Hello, World`.
 
 There is a web tool available online that can run Xarpite.
 
-[Xarpite Playground](https://mirrgieriana.github.io/fluorite12/playground/)
+[Xarpite Playground](https://mirrgieriana.github.io/xarpite/playground/)
 
 # INSTALL
 
@@ -60,21 +60,21 @@ Linux:
 
 ```shell
 # Using the native binary by default
-curl -s https://raw.githubusercontent.com/MirrgieRiana/fluorite12/release/install-native.sh | sudo bash
+curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-native.sh | sudo bash
 ```
 
 or
 
 ```shell
 # Using the JVM version by default
-curl -s https://raw.githubusercontent.com/MirrgieRiana/fluorite12/release/install-jvm.sh | sudo bash
+curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-jvm.sh | sudo bash
 ```
 
-Download the `xa` binary to `./fluorite12` and register it in `/usr/local/bin`.
+Download the `xa` binary to `./xarpite` and register it in `/usr/local/bin`.
 
 # DOCUMENTATION
 
-- [Japanese](https://mirrgieriana.github.io/fluorite12/doc/ja/INDEX)
+- [Japanese](https://mirrgieriana.github.io/xarpite/doc/ja/INDEX)
 
 ---
 
