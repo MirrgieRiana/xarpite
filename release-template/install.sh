@@ -33,8 +33,8 @@ destination=/usr/local/bin/xa
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/xa "$destination" || exit
 chmod +x "$SCRIPT_DIR"/xa || exit
-echo "Updating /usr/local/bin/xa-update"
-destination=/usr/local/bin/xa-update
+echo "Updating /usr/local/bin/xarpite-update"
+destination=/usr/local/bin/xarpite-update
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/@SCRIPT_NAME@ "$destination" || exit
 
