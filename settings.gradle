@@ -11,4 +11,4 @@ dependencyResolutionManagement {
 
 include(":playground")
 
-rootProject.name = "fluorite12"
+rootProject.name = "xarpite"

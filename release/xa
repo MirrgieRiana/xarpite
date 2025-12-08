@@ -15,9 +15,9 @@ then
   # JAVA_HOME is set by the system or user environment
   if [ -z "$JAVA_HOME" ]
   then
-    exec java -jar "$SCRIPT_DIR/libs/fluorite12-jvm.jar" "$@"
+    exec java -jar "$SCRIPT_DIR/libs/xarpite-jvm.jar" "$@"
   else
-    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/libs/fluorite12-jvm.jar" "$@"
+    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/libs/xarpite-jvm.jar" "$@"
   fi
 else
   echo "Unsupported engine: $ENGINE" 1>&2
