@@ -133,6 +133,13 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from("release") {
         rename("gitignore", ".gitignore")
+        eachFile {
+            if (relativePath.pathString == "xarpite") {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
     }
     from(generateInstallNative)
     from(generateInstallJvm)
@@ -143,10 +150,6 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     from(tasks.named("jvmJar")) { into("libs") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
-
-    doLast {
-        outputDirectory.get().asFile.resolve("xarpite").setExecutable(true)
-    }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
 
