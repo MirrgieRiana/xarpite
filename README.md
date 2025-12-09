@@ -14,16 +14,18 @@
 
 # NAME
 
-Xarpite(xa) - Interpreted language for one-liners
+Xarpite (xa) - An interpreted language for one-liners
 
 # SYNOPSIS
 
 ```shell
-$ xa ' "Hello, World" '
-# Hello, World
+$ xa ' "Hello, World!" '
+# Hello, World!
 
-$ xa '[1 .. 3 | x => [1 .. 3 | x * _]]'
-# [[1;2;3];[2;4;6];[3;6;9]]
+$ xa '1 .. 3 | x => [1 .. 3 | x * _] >> CSV'
+# 1,2,3
+# 2,4,6
+# 3,6,9
 
 $ seq 1 3 | xa 'IN | +_ * 10'
 # 10
@@ -42,35 +44,47 @@ $ xa '(f -> f(f))(f -> n -> n <= 0 ? 1 : n * f(f)(n - 1))(5)'
 
 # DESCRIPTION
 
-Xarpite is an interpreter language designed for one-liner scripts.
-It aims to allow flexibility and functionality in a minimal amount of code
-with most basic features accessible through operators.
-Its command-line interface is optimized to enable writing executable programs with minimal code.
-For example, the command `$ xa ' "Hello, World" '` will display `Hello, World`.
+Xarpite is an interpreted language designed for one-liner scripts.
+It aims to provide flexibility and functionality in a minimal amount of code
+with most of the basic features accessible through operators.
+Its command-line interface is optimized for writing executable programs with minimal code.
+For example, the command `$ xa ' "Hello, World!" '` will display `Hello, World!`.
 
 # PLAYGROUND
 
-There is a web tool available online that can run Xarpite.
+An online playground is available for running Xarpite and trying examples interactively.
 
 [Xarpite Playground](https://mirrgieriana.github.io/xarpite/playground/)
 
 # INSTALL
 
-Linux:
+## Install in a Linux environment
+
+Download the Xarpite release into `./xarpite` and install it in `/usr/local/bin/xarpite`, `/usr/local/bin/xa` and `/usr/local/bin/xarpite-update`.
+
+Using the native binary by default:
 
 ```shell
-# Using the native binary by default
 curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-native.sh | sudo bash
 ```
 
 or
 
+Using the JVM version by default:
+
 ```shell
-# Using the JVM version by default
 curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-jvm.sh | sudo bash
 ```
 
-Download the Xarpite binary to `./xarpite` and install it in `/usr/local/bin/xa`.
+## Download into the current directory
+
+Download the Xarpite release into `./xarpite`.
+
+```shell
+git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/xarpite.git ./xarpite
+```
+
+This is useful if you want to place Xarpite in the current directory without installing commands into `/usr/local/bin`.
 
 # DOCUMENTATION
 
@@ -78,4 +92,4 @@ Download the Xarpite binary to `./xarpite` and install it in `/usr/local/bin/xa`
 
 ---
 
-*The Xarpite logo and icon uses the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
+*The Xarpite logo and icon use the font [Monaspace Krypton](https://monaspace.githubnext.com/).*
