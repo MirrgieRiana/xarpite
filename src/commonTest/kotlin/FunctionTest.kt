@@ -69,6 +69,10 @@ class FunctionTest {
         assertEquals(123, evaluator.get("obj::register [ event => 100 + event ]()").int) // クロージャ付きメソッドの部分適用
 
         assertEquals(123, evaluator.get("register ( event => 9; 9; 9; 100 + event )").int) // クロージャは ; を文の区切りとして解釈する
+
+        // クロージャがフレームを正しく生成することのテスト
+        // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
+        assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
     }
 
     @Test

@@ -364,8 +364,7 @@ fun Frame.compileFunctionBodyToGetter(arguments: Node, body: Node): Getter {
     val argumentsVariableIndex = newFrame.defineVariable("__")
     val variableIndices = variables.map { newFrame.defineVariable(it) }
     val getter = newFrame.compileToGetter(body)
-    val getter2 = FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
-    return NewEnvironmentGetter(newFrame.nextVariableIndex, newFrame.mountCount, getter2)
+    return FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
 }
 
 private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
