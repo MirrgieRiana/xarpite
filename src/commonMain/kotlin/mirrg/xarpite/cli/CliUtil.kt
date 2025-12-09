@@ -1,5 +1,8 @@
 package mirrg.xarpite.cli
 
+import getEnv
+import getProgramName
+
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
 object ShowUsage : Throwable()
@@ -47,7 +50,8 @@ fun parseArguments(args: Array<String>): Options {
 }
 
 fun showUsage() {
-    println("Usage: xa [-h|--help] [-q] [--] <code> <arguments...>")
+    val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xa"
+    println("Usage: $programName [-h|--help] [-q] [--] <code> <arguments...>")
     println("Options:")
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")

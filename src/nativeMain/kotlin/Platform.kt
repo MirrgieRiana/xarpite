@@ -2,6 +2,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.cinterop.toKString
 import platform.posix.__environ
+import kotlin.experimental.ExperimentalNativeApi
+
+@OptIn(ExperimentalNativeApi::class)
+actual fun getProgramName(): String? = Platform.programName
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun getEnv(): Map<String, String> {

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+if [ -z "$XARPITE_PROGRAM_NAME" ]; then
+  XARPITE_PROGRAM_NAME="${0##*/}"
+  export XARPITE_PROGRAM_NAME
+fi
 SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONFIG_FILE=$SCRIPT_DIR/default_engine
 ENGINE="$XARPITE_ENGINE"
