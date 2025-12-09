@@ -23,6 +23,9 @@ then
   else
     exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   fi
+elif [ "$ENGINE" = "node" ]
+then
+  exec node "$SCRIPT_DIR/bin/node/xarpite.mjs" "$@"
 else
   echo "Unsupported engine: $ENGINE" 1>&2
   exit 1

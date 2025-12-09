@@ -1,7 +1,12 @@
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.promise
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.cli.ShowUsage
+import mirrg.xarpite.cli.main
+import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
@@ -10,6 +15,18 @@ import mirrg.xarpite.mounts.createCommonMounts
 import kotlin.js.Promise
 
 private val scope = MainScope()
+
+suspend fun main() {
+    val options = try {
+        parseArguments(process.argv.drop(2))
+    } catch (_: ShowUsage) {
+        showUsage()
+        return
+    }
+    coroutineScope {
+        main(options, this)
+    }
+}
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport

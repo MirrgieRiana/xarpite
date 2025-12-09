@@ -66,6 +66,12 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
+        jsMain {
+            dependencies {
+                // TODO node
+                //implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
+            }
+        }
     }
 
 }
@@ -115,6 +121,8 @@ fun registerGenerateInstallTask(engine: String): TaskProvider<Sync> {
 
 val generateInstallNative = registerGenerateInstallTask("native")
 val generateInstallJvm = registerGenerateInstallTask("jvm")
+val generateInstallNode = registerGenerateInstallTask("node")
+
 
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
     group = "build"
@@ -135,11 +143,13 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(generateInstallNative)
     from(generateInstallJvm)
+    from(generateInstallNode)
     from(releaseExecutable.linkTaskProvider) {
         into("bin/native")
         rename("xarpite.kexe", "xarpite")
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
+    from(tasks.named("jsProductionExecutableCompileSync")) { into("bin/node") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
