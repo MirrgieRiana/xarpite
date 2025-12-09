@@ -51,7 +51,6 @@ jobs:
         run: |
           mv release-dir/.git tmp92758927523654
           rsync -av --delete build-dir/build/bundleRelease/ release-dir/
-          chmod a+x release-dir/*.sh
           mv tmp92758927523654 release-dir/.git
 
       - name: コミット準備

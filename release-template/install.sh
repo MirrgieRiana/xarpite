@@ -32,7 +32,6 @@ echo "Updating /usr/local/bin/xa"
 destination=/usr/local/bin/xa
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
-chmod +x "$SCRIPT_DIR"/xarpite || exit
 echo "Updating /usr/local/bin/xarpite-update"
 destination=/usr/local/bin/xarpite-update
 rm -f "$destination" || exit
