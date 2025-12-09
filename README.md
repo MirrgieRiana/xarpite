@@ -70,7 +70,7 @@ or
 curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-jvm.sh | sudo bash
 ```
 
-Download the `xa` binary to `./xarpite` and register it in `/usr/local/bin`.
+Download the Xarpite binary to `./xarpite` and install it in `/usr/local/bin/xa`.
 
 # DOCUMENTATION
 

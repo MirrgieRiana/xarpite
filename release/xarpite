@@ -13,7 +13,7 @@ fi
 ENGINE="${ENGINE:-native}"
 if [ "$ENGINE" = "native" ]
 then
-  exec "$SCRIPT_DIR/bin/xa" "$@"
+  exec "$SCRIPT_DIR/bin/xarpite" "$@"
 elif [ "$ENGINE" = "jvm" ]
 then
   # JAVA_HOME is set by the system or user environment

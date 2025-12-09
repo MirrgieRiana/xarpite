@@ -39,13 +39,13 @@ kotlin {
     }
     linuxX64 {
         binaries {
-            executable("xa")
+            executable("xarpite")
         }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
     //mingwX64 {
     //    binaries {
-    //        executable("xa")
+    //        executable("xarpite")
     //    }
     //}
 
@@ -77,7 +77,7 @@ tasks.named("jsNodeProductionLibraryDistribution") { dependsOn("jsProductionExec
 val releaseExecutable = kotlin.targets
     .getByName<KotlinNativeTarget>("linuxX64")
     .binaries
-    .getExecutable("xa", "RELEASE")
+    .getExecutable("xarpite", "RELEASE")
 
 
 // Executable Jar
@@ -135,14 +135,14 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     from(generateInstallJvm)
     from(releaseExecutable.linkTaskProvider) {
         into("bin")
-        rename("xa.kexe", "xa")
+        rename("xarpite.kexe", "xarpite")
     }
     from(tasks.named("jvmJar")) { into("libs") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 
     doLast {
-        outputDirectory.get().asFile.resolve("xa").setExecutable(true)
+        outputDirectory.get().asFile.resolve("xarpite").setExecutable(true)
     }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }

@@ -50,7 +50,7 @@ fun parseArguments(args: Array<String>): Options {
 }
 
 fun showUsage() {
-    val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xa"
+    val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
     println("Usage: $programName [-h|--help] [-q] [--] <code> <arguments...>")
     println("Options:")
     println("  -h, --help               Show this help")
