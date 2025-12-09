@@ -44,7 +44,7 @@ $ xa '(f -> f(f))(f -> n -> n <= 0 ? 1 : n * f(f)(n - 1))(5)'
 
 # DESCRIPTION
 
-Xarpite is an interpreted language designed for one-liner scripts.
+Xarpite (/ˈʃɑrpaɪt/) is an interpreted language designed for one-liner scripts.
 It aims to provide flexibility and functionality in a minimal amount of code
 with most of the basic features accessible through operators.
 Its command-line interface is optimized for writing executable programs with minimal code.
