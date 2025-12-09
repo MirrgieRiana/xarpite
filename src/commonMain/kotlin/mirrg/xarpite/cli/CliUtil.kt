@@ -7,7 +7,7 @@ class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
 object ShowUsage : Throwable()
 
-fun parseArguments(args: Array<String>): Options {
+fun parseArguments(args: Iterable<String>): Options {
     val list = args.toMutableList()
     var src: String? = null
     val arguments = mutableListOf<String>()

@@ -1,10 +1,17 @@
 import kotlinx.coroutines.runBlocking
-import mirrg.xarpite.cli.cliMain
+import mirrg.xarpite.cli.ShowUsage
+import mirrg.xarpite.cli.main
+import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showUsage
 
 fun main(args: Array<String>) {
-    cliMain(args) {
-        runBlocking {
-            it()
-        }
+    val options = try {
+        parseArguments(args.asIterable())
+    } catch (_: ShowUsage) {
+        showUsage()
+        return
+    }
+    runBlocking {
+        main(options, this)
     }
 }
