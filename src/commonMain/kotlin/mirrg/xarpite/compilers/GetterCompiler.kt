@@ -309,8 +309,16 @@ private fun Frame.compileUnaryMinusToGetter(main: Node): Getter {
 }
 
 fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): List<Getter> {
-    val getter = compileFunctionBodyToGetter(node.arguments, node.body)
-    return listOf(getter)
+    val functionNewFrame = Frame(this)
+    val argumentsVariableIndex = functionNewFrame.defineVariable("__")
+    val variables = parseArguments(node.arguments)
+    val variableIndices = variables.map { functionNewFrame.defineVariable(it) }
+    val functionBodyGetter = run {
+        val bracketsNewFrame = Frame(functionNewFrame)
+        val bracketsBodyGetter = bracketsNewFrame.compileToGetter(node.body)
+        NewEnvironmentGetter(bracketsNewFrame.nextVariableIndex, bracketsNewFrame.mountCount, bracketsBodyGetter)
+    }
+    return listOf(FunctionGetter(functionNewFrame.frameIndex, argumentsVariableIndex, variableIndices, functionBodyGetter))
 }
 
 fun Frame.createSimpleArgumentGetters(node: BracketsRightSimpleNode): List<Getter> {
@@ -356,15 +364,6 @@ fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBin
             FunctionBindGetter(functionGetter, argumentGetters)
         }
     }
-}
-
-fun Frame.compileFunctionBodyToGetter(arguments: Node, body: Node): Getter {
-    val variables = parseArguments(arguments)
-    val newFrame = Frame(this)
-    val argumentsVariableIndex = newFrame.defineVariable("__")
-    val variableIndices = variables.map { newFrame.defineVariable(it) }
-    val getter = newFrame.compileToGetter(body)
-    return FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
 }
 
 private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {

@@ -73,6 +73,9 @@ class FunctionTest {
         // クロージャがフレームを正しく生成することのテスト
         // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
         assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
+
+        // クロージャ直下で変数を宣言するテスト
+        assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
     }
 
     @Test
