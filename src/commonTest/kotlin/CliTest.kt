@@ -13,6 +13,14 @@ val baseDir = "build/test".toPath()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CliTest {
+
+    @Test
+    fun args() = runTest {
+        assertEquals("[1]", cliEval("ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
+        assertEquals("[]", cliEval("ARGS").array()) // 空の場合
+        assertEquals("[1;2;3]", cliEval("ARGS", "1", "2", "3").array()) // 複数の場合
+    }
+
     @Test
     fun read() = runTest {
         if (getFileSystem().isFailure) return@runTest
@@ -24,6 +32,7 @@ class CliTest {
         }
         assertEquals("123,456", cliEval("READ(ARGS.0)", file.toString()).stream())
     }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
