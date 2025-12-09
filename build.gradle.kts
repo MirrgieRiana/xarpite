@@ -128,6 +128,9 @@ val generateInstallJvm = tasks.register<Sync>("generateInstallJvm") {
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
     into(outputDirectory)
+    from(file(project.layout.projectDirectory.file("README.md"))) {
+        rename("README.md", "index.md")
+    }
     from("release") {
         rename("gitignore", ".gitignore")
     }
