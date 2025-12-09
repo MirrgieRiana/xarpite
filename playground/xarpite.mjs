@@ -4698,8 +4698,24 @@ function compileUnaryMinusToGetter(_this__u8e3s4, main) {
   return tmp;
 }
 function createArrowedArgumentGetters(_this__u8e3s4, node) {
-  var getter = compileFunctionBodyToGetter(_this__u8e3s4, node.b2b_1, node.u2a_1);
-  return listOf_0(getter);
+  var functionNewFrame = new Frame(_this__u8e3s4);
+  var argumentsVariableIndex = defineVariable(functionNewFrame, '__');
+  var variables = parseArguments(node.b2b_1);
+  // Inline function 'kotlin.collections.map' call
+  // Inline function 'kotlin.collections.mapTo' call
+  var destination = ArrayList_init_$Create$_0(collectionSizeOrDefault(variables, 10));
+  var _iterator__ex2g4s = variables.q();
+  while (_iterator__ex2g4s.r()) {
+    var item = _iterator__ex2g4s.s();
+    var tmp$ret$0 = defineVariable(functionNewFrame, item);
+    destination.l(tmp$ret$0);
+  }
+  var variableIndices = destination;
+  // Inline function 'kotlin.run' call
+  var bracketsNewFrame = new Frame(functionNewFrame);
+  var bracketsBodyGetter = compileToGetter(bracketsNewFrame, node.u2a_1);
+  var functionBodyGetter = new NewEnvironmentGetter(bracketsNewFrame.b24_1, bracketsNewFrame.c24_1, bracketsBodyGetter);
+  return listOf_0(new FunctionGetter(functionNewFrame.z23_1, argumentsVariableIndex, variableIndices, functionBodyGetter));
 }
 function createSimpleArgumentGetters(_this__u8e3s4, node) {
   var tmp0_subject = node.u2a_1;
@@ -4767,24 +4783,6 @@ function compileFunctionalAccessToGetter(_this__u8e3s4, node, isBinding, argumen
     }
   }
   return tmp;
-}
-function compileFunctionBodyToGetter(_this__u8e3s4, arguments_0, body) {
-  var variables = parseArguments(arguments_0);
-  var newFrame = new Frame(_this__u8e3s4);
-  var argumentsVariableIndex = defineVariable(newFrame, '__');
-  // Inline function 'kotlin.collections.map' call
-  // Inline function 'kotlin.collections.mapTo' call
-  var destination = ArrayList_init_$Create$_0(collectionSizeOrDefault(variables, 10));
-  var _iterator__ex2g4s = variables.q();
-  while (_iterator__ex2g4s.r()) {
-    var item = _iterator__ex2g4s.s();
-    var tmp$ret$0 = defineVariable(newFrame, item);
-    destination.l(tmp$ret$0);
-  }
-  var variableIndices = destination;
-  var getter = compileToGetter(newFrame, body);
-  var getter2 = new FunctionGetter(newFrame.z23_1, argumentsVariableIndex, variableIndices, getter);
-  return new NewEnvironmentGetter(newFrame.b24_1, newFrame.c24_1, getter2);
 }
 function compileInfixOperatorToGetter(_this__u8e3s4, node) {
   var tmp;
