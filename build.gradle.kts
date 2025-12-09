@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -95,35 +96,25 @@ tasks.named<Jar>("jvmJar") {
 
 // Release
 
-val generateInstallNative = tasks.register<Sync>("generateInstallNative") {
-    from(file("release-template/install.sh"))
-    filteringCharset = "UTF-8"
-    filter {
-        it
-            .replace("@ENGINE@", "native")
-            .replace("@SCRIPT_NAME@", "install-native.sh")
+fun registerGenerateInstallTask(engine: String): TaskProvider<Sync> {
+    return tasks.register<Sync>("generateInstall${engine.uppercaseFirstChar()}") {
+        from(file("release-template/install.sh"))
+        filteringCharset = "UTF-8"
+        filter {
+            it
+                .replace("@ENGINE@", engine)
+                .replace("@SCRIPT_NAME@", "install-$engine.sh")
+        }
+        filePermissions {
+            unix("rwxr-xr-x")
+        }
+        rename("install.sh", "install-$engine.sh")
+        into(project.layout.buildDirectory.dir("generateInstall${engine.uppercaseFirstChar()}"))
     }
-    filePermissions {
-        unix("rwxr-xr-x")
-    }
-    rename("install.sh", "install-native.sh")
-    into(project.layout.buildDirectory.dir("generateInstallNative"))
-}
-val generateInstallJvm = tasks.register<Sync>("generateInstallJvm") {
-    from(file("release-template/install.sh"))
-    filteringCharset = "UTF-8"
-    filter {
-        it
-            .replace("@ENGINE@", "jvm")
-            .replace("@SCRIPT_NAME@", "install-jvm.sh")
-    }
-    filePermissions {
-        unix("rwxr-xr-x")
-    }
-    rename("install.sh", "install-jvm.sh")
-    into(project.layout.buildDirectory.dir("generateInstallJvm"))
 }
 
+val generateInstallNative = registerGenerateInstallTask("native")
+val generateInstallJvm = registerGenerateInstallTask("jvm")
 
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
@@ -144,10 +135,10 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     from(generateInstallNative)
     from(generateInstallJvm)
     from(releaseExecutable.linkTaskProvider) {
-        into("bin")
+        into("bin/native")
         rename("xarpite.kexe", "xarpite")
     }
-    from(tasks.named("jvmJar")) { into("libs") }
+    from(tasks.named("jvmJar")) { into("bin/jvm") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
