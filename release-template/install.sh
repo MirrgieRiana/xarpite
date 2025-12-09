@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# インストールディレクトリの判定
+# このスクリプトの実行場所の判定
 if [ "${BASH_SOURCE[0]}" = "" ]
 then
-  # パイプで渡された
+  # パイプでbashに渡されて実行された
   SCRIPT_DIR=$(pwd)/xarpite
 else
-  # ファイルを実行した
+  # ファイルに保存された状態で実行された
   SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 fi
 
-# インストールディレクトリの準備
+# インストール先ディレクトリの生成
 echo "Preparing install directory: $SCRIPT_DIR"
 mkdir -p "$SCRIPT_DIR" || exit
 
@@ -27,13 +27,21 @@ fi
 
 echo "@ENGINE@" > "$SCRIPT_DIR/default_engine" || exit
 
-# /usr/local/bin にインストール
-echo "Updating /usr/local/bin/xa"
-destination=/usr/local/bin/xa
+# /usr/local/bin/xarpite にインストール
+destination=/usr/local/bin/xarpite
+echo "Updating $destination"
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
-echo "Updating /usr/local/bin/xarpite-update"
+
+# /usr/local/bin/xa にインストール
+destination=/usr/local/bin/xa
+echo "Updating $destination"
+rm -f "$destination" || exit
+ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
+
+# /usr/local/bin/xarpite-update にインストール
 destination=/usr/local/bin/xarpite-update
+echo "Updating $destination"
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/@SCRIPT_NAME@ "$destination" || exit
 
