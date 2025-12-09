@@ -24,7 +24,9 @@ suspend fun main() {
         return
     }
     coroutineScope {
-        main(options, this)
+        main(options, this) {
+            createJsMounts()
+        }
     }
 }
 
