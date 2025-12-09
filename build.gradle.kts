@@ -117,6 +117,7 @@ val generateInstallNative = registerGenerateInstallTask("native")
 val generateInstallJvm = registerGenerateInstallTask("jvm")
 
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
+    group = "build"
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
     into(outputDirectory)
     from(file(project.layout.projectDirectory.file("README.md"))) {
