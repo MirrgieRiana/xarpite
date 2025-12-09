@@ -1,4 +1,4 @@
-# fluorite12ドキュメント
+# Xarpiteドキュメント
 
 - [文法](SYNTAX.md)
 - [文・式](STATEMENT.md)

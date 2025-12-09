@@ -1,6 +1,6 @@
 # 正規表現の概要
 
-fluorite12では、文字列と正規表現オブジェクトを組み合わせた検索や抽出ができます。
+Xarpiteでは、文字列と正規表現オブジェクトを組み合わせた検索や抽出ができます。
 
 正規表現オブジェクトは一般的なオブジェクトの一形態ではなく、数値や文字列などと並ぶ、プリミティブな値です。
 
@@ -20,10 +20,10 @@ fluorite12では、文字列と正規表現オブジェクトを組み合わせ�
 - `/pattern/`
 
 ```shell
-$ flc ' /apple/ '
+$ xa ' /apple/ '
 # /apple/
 
-$ flc ' /apple/i '
+$ xa ' /apple/i '
 # /apple/i
 ```
 
@@ -69,10 +69,10 @@ $ flc ' /apple/i '
 この関数は、正規表現リテラル `/pattern/flags` と丁度同じように動作します。
 
 ```shell
-$ flc 'REGEX.new("apple")'
+$ xa 'REGEX.new("apple")'
 # /apple/
 
-$ flc 'REGEX.new("apple"; "i")'
+$ xa 'REGEX.new("apple"; "i")'
 # /apple/i
 ```
 
@@ -84,13 +84,13 @@ $ flc 'REGEX.new("apple"; "i")'
 - `flags`
 
 ```shell
-$ flc '/apple/i.pattern'
+$ xa '/apple/i.pattern'
 # apple
 
-$ flc '/apple/i.flags'
+$ xa '/apple/i.flags'
 # i
 
-$ flc '/apple/.flags'
+$ xa '/apple/.flags'
 # NULL
 ```
 
@@ -99,10 +99,10 @@ $ flc '/apple/.flags'
 `regex @ string` 演算子で、文字列に正規表現が部分一致するか否かを判定できます。
 
 ```shell
-$ flc ' /pp/ @ "apple" '
+$ xa ' /pp/ @ "apple" '
 # TRUE
 
-$ flc ' /xy/ @ "apple" '
+$ xa ' /xy/ @ "apple" '
 # FALSE
 ```
 
@@ -117,7 +117,7 @@ $ flc ' /xy/ @ "apple" '
 `result[]` は、マッチ全体と各グループを含む配列に変換します。
 
 ```shell
-$ flc -q '
+$ xa -q '
   result := "apple" =~ /pp(.)/
 
   OUT << result.0
@@ -130,7 +130,7 @@ $ flc -q '
 ```
 
 ```shell
-$ flc -q '
+$ xa -q '
   result := "apple" =~ /xy(.)/
 
   OUT << result
@@ -143,7 +143,7 @@ $ flc -q '
 `g` フラグを付与した正規表現によるマッチでは、すべてのマッチ結果からなるストリームが返されます。
 
 ```shell
-$ flc ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
+$ xa ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
 # apple
 # people
 ```
@@ -153,6 +153,6 @@ $ flc ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
 正規表現オブジェクトを関数として呼び出した場合、マッチ演算子と同じ動作をします。
 
 ```shell
-$ flc ' /pp(.)/("apple").1 '
+$ xa ' /pp(.)/("apple").1 '
 # l
 ```

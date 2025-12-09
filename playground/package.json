@@ -1,7 +1,7 @@
 {
-  "name": "fluorite12",
+  "name": "xarpite",
   "version": "0.0.0-unspecified",
-  "main": "fluorite12.mjs",
+  "main": "xarpite.mjs",
   "devDependencies": {
     "webpack": "5.100.2",
     "webpack-cli": "6.0.1",

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# インストールディレクトリの判定
+# このスクリプトの実行場所の判定
 if [ "${BASH_SOURCE[0]}" = "" ]
 then
-  # パイプで渡された
-  SCRIPT_DIR=$(pwd)/fluorite12
+  # パイプでbashに渡されて実行された
+  SCRIPT_DIR=$(pwd)/xarpite
 else
-  # ファイルを実行した
+  # ファイルに保存された状態で実行された
   SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 fi
 
-# インストールディレクトリの準備
+# インストール先ディレクトリの生成
 echo "Preparing install directory: $SCRIPT_DIR"
 mkdir -p "$SCRIPT_DIR" || exit
 
@@ -22,19 +22,26 @@ then
   git -C "$SCRIPT_DIR" reset --hard origin/release || exit
 else
   echo "Cloning repository"
-  git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/fluorite12.git "$SCRIPT_DIR" || exit
+  git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/xarpite.git "$SCRIPT_DIR" || exit
 fi
 
 echo "jvm" > "$SCRIPT_DIR/default_engine" || exit
 
-# /usr/local/bin にインストール
-echo "Updating /usr/local/bin/flc"
-destination=/usr/local/bin/flc
+# /usr/local/bin/xarpite にインストール
+destination=/usr/local/bin/xarpite
+echo "Updating $destination"
 rm -f "$destination" || exit
-ln -s "$SCRIPT_DIR"/flc "$destination" || exit
-chmod +x "$SCRIPT_DIR"/flc || exit
-echo "Updating /usr/local/bin/flc-update"
-destination=/usr/local/bin/flc-update
+ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
+
+# /usr/local/bin/xa にインストール
+destination=/usr/local/bin/xa
+echo "Updating $destination"
+rm -f "$destination" || exit
+ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
+
+# /usr/local/bin/xarpite-update にインストール
+destination=/usr/local/bin/xarpite-update
+echo "Updating $destination"
 rm -f "$destination" || exit
 ln -s "$SCRIPT_DIR"/install-jvm.sh "$destination" || exit
 

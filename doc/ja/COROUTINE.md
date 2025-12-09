@@ -17,7 +17,7 @@
 この関数は `function` の戻り値もしくは `function` 内でスローされた例外が格納される `PROMISE` を返します。
 
 ```shell
-$ flc '
+$ xa '
   promise := LAUNCH ( =>
     "apple"
   )
@@ -31,7 +31,7 @@ $ flc '
 `function` は呼び出し元とは独立して起動され、呼び出し元スレッドがサスペンドされ次第実行されます。
 
 ```shell
-$ flc '
+$ xa '
   result := PROMISE.new()
   LAUNCH ( =>
     result::complete("apple")
@@ -76,7 +76,7 @@ $ flc '
 `PROMISE` が失敗として完了した場合、 `await` はその例外をスローします。
 
 ```shell
-$ flc '
+$ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
   promise::await() !? (e => e)
@@ -105,7 +105,7 @@ $ flc '
 以下のサンプルコードでは、実行後1秒おいてから `Hello, world!` が出力されます。
 
 ```shell
-$ flc '
+$ xa '
   SLEEP(1000)
   "Hello, world!"
 '
@@ -123,7 +123,7 @@ $ flc '
 `yield` 関数は呼び出されるとサスペンドします。
 
 ```shell
-$ flc '
+$ xa '
   GENERATE(yield -> (
     yield << 1
     yield << 2

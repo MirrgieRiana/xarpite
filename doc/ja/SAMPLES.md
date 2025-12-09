@@ -8,7 +8,7 @@
 - それ以外の場合、その数を出力。
 
 ```shell
-$ flc '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
+$ xa '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
 # 1
 # 2
 # Fizz
@@ -69,7 +69,7 @@ $ flc '1~17|&(_%3?E:"Fizz",_%5?E:"Buzz")||_'
 # フィボナッチ数列
 
 ```shell
-$ flc '
+$ xa '
   fib := n -> n < 2 ? n : fib(n - 1) + fib(n - 2)
   fib(10)
 '
@@ -79,7 +79,7 @@ $ flc '
 # クイックソート
 
 ```shell
-$ flc '
+$ xa '
   quicksort := list -> $#list < 2 ? list : (
     pivot  := list.0
     high   := [list() >> FILTER [ _ => _ >  pivot ]]
@@ -95,7 +95,7 @@ $ flc '
 # マージソート
 
 ```shell
-$ flc '
+$ xa '
   m := a, b -> (
     ai := 0
     bi := 0
@@ -128,7 +128,7 @@ $ flc '
 # 編集距離
 
 ```shell
-$ flc '
+$ xa '
   edit_distance := a, b -> (
     dp := [0 .. $#a + 1 | [0 .. $#b + 1 | 0]]
     0 .. $#a | i => 0 .. $#b | j => (
@@ -166,7 +166,7 @@ $ flc '
 # 素数判定
 
 ```shell
-$ flc -q '
+$ xa -q '
   is_prime := n ->
       n < 2 ? FALSE
     : n == 2 ? TRUE
@@ -189,7 +189,7 @@ $ flc -q '
 パフォーマンスのためにjvm版で起動します。
 
 ```bash
-$ FLC_ENGINE=jvm flc -q '
+$ XARPITE_ENGINE=jvm xa -q '
   LifeGame := {
     init     : this -> this.b = [0 ~ this.h | [0 ~ this.w | RAND(2)]]
     get      : this, x, y -> this.b(y % this.h)(x % this.w)
@@ -210,7 +210,7 @@ $ FLC_ENGINE=jvm flc -q '
 ' 40 40 200
 ```
 
-# [HTML上でテーブルを表示](https://mirrgieriana.github.io/fluorite12/playground/?s=eJxdkctOwzAURPf9ilFQJEAkacUK57FAIFGJxwap6yQ2iYWpI8dpEwH%2FjlM3NelufOdo7uh6s359eNuEVJbdF9tqQiqmHwUb9f2wppee7HTTae8qNIKpp%2FeXZ6TwswWQUL4Dp%2BmEoNWDYKlXSEWZCkopRN60jGBSMWrGq1oTrJZLP4bcMfUh5D4YCNpSGSr2xmATfYiyGriwC6DpjdM1vo82sOdU1wS3rI9Ps2nVbGirmf1Nj1YKTlGIvPx0gGa9DnLBq62pbW7A1OT92mLRv2aJzgvXMvFTrBCGuMMPeqSZvdLR1Mo9ztjhjLU8zUaox7Xx%2FSyJzGAWMEuPXLxzbL3o8FWR%2BatskfiLP%2BeugP4%3D&d=53.63)
+# [HTML上でテーブルを表示](https://mirrgieriana.github.io/xarpite/playground/?s=eJxdkctOwzAURPf9ilFQJEAkacUK57FAIFGJxwap6yQ2iYWpI8dpEwH%2FjlM3NelufOdo7uh6s359eNuEVJbdF9tqQiqmHwUb9f2wppee7HTTae8qNIKpp%2FeXZ6TwswWQUL4Dp%2BmEoNWDYKlXSEWZCkopRN60jGBSMWrGq1oTrJZLP4bcMfUh5D4YCNpSGSr2xmATfYiyGriwC6DpjdM1vo82sOdU1wS3rI9Ps2nVbGirmf1Nj1YKTlGIvPx0gGa9DnLBq62pbW7A1OT92mLRv2aJzgvXMvFTrBCGuMMPeqSZvdLR1Mo9ztjhjLU8zUaox7Xx%2FSyJzGAWMEuPXLxzbL3o8FWR%2BatskfiLP%2BeugP4%3D&d=53.63)
 
 ```
 WINDOW.document::getElementById("output").outerHTML = %>
@@ -236,7 +236,7 @@ WINDOW.document::getElementById("output").outerHTML = %>
 <%
 ```
 
-# [Canvas上でアニメーション](https://mirrgieriana.github.io/fluorite12/playground/?s=eJx1UG1rwjAQ%2Ft5fcWSI7cDaioLUth%2B2CRP2xhT8OGpzalhsJUl9gf34JU3rhG0hhCd39zx3zx0ZVVuIEhgEgbNFttmq9rc6fzBqPvrtpbCcvTy8Ln1a5tUOCxVFG1RTjgbfnWfUZdSzFJeUldpXini%2BBigeF89PkEAnjSk7aLGkzUPOMykTsipPJI37OpvGnV8arCiuNfKsOGSylrGQwNF4SEjcSSzUZQSsFxttfJmwVGeOpqWgKCII9yeQJdcOb8b1mRAzQ65OxngzStPHqy3fl4XCk3LJgBLPcQLwfQgDe%2BALGCQpuA7A%2FGk6fXMHgaexlosigRLVQmSFXJdi517iOcdMvGOu3GAC%2BurV18%2BlQBkOzxS6oUmFVylRKhNn0IdwHMAtDP9g9Wpa74fnrxnnc7MIvdLuilfYbVkmU88y0pSR7Xbd0pdKlJ94IQukDdfnrMBlvf4Ehq2eLf9H0XO%2BAT1rupg%3D&d=71.02)
+# [Canvas上でアニメーション](https://mirrgieriana.github.io/xarpite/playground/?s=eJx1UG1rwjAQ%2Ft5fcWSI7cDaioLUth%2B2CRP2xhT8OGpzalhsJUl9gf34JU3rhG0hhCd39zx3zx0ZVVuIEhgEgbNFttmq9rc6fzBqPvrtpbCcvTy8Ln1a5tUOCxVFG1RTjgbfnWfUZdSzFJeUldpXini%2BBigeF89PkEAnjSk7aLGkzUPOMykTsipPJI37OpvGnV8arCiuNfKsOGSylrGQwNF4SEjcSSzUZQSsFxttfJmwVGeOpqWgKCII9yeQJdcOb8b1mRAzQ65OxngzStPHqy3fl4XCk3LJgBLPcQLwfQgDe%2BALGCQpuA7A%2FGk6fXMHgaexlosigRLVQmSFXJdi517iOcdMvGOu3GAC%2BurV18%2BlQBkOzxS6oUmFVylRKhNn0IdwHMAtDP9g9Wpa74fnrxnnc7MIvdLuilfYbVkmU88y0pSR7Xbd0pdKlJ94IQukDdfnrMBlvf4Ehq2eLf9H0XO%2BAT1rupg%3D&d=71.02)
 
 ```
 width := 200

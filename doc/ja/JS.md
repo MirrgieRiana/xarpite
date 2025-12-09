@@ -1,6 +1,6 @@
 # JavaScript上での動作
 
-fluorite12はJavaScript上での動作をサポートしています。
+XarpiteはJavaScript上での動作をサポートしています。
 
 ## JavaScriptオブジェクトの扱い
 
@@ -8,9 +8,9 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 
 ## 暗黙の型変換
 
-関数呼び出しなどいくつかの状況では、fluorite12とJavaScriptの間で自動的に変換が行われます。
+関数呼び出しなどいくつかの状況では、XarpiteとJavaScriptの間で自動的に変換が行われます。
 
-| 変換元<br>fluorite12 | 変換先<br>JavaScript |
+| 変換元<br>Xarpite | 変換先<br>JavaScript |
 |-------------------|-------------------|
 | `JS_OBJECT`       | そのままの値            |
 | `INT`             | `Number`          |
@@ -22,7 +22,7 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 | `FUNCTION`        | `Function`        |
 | それ以外              | 非対応による例外          |
 
-| 変換元<br>JavaScript | 変換先<br>fluorite12 |
+| 変換元<br>JavaScript | 変換先<br>Xarpite |
 |-------------------|-------------------|
 | そのままの値            | `JS_OBJECT`       |
 | 整数 `Number`       | `INT`             |
@@ -38,7 +38,7 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 
 ## 関数呼び出し
 
-JavaScriptの関数は、fluorite12の関数のように呼び出すことができます。
+JavaScriptの関数は、Xarpiteの関数のように呼び出すことができます。
 
 引数と戻り値の間で暗黙の型変換が行われます。
 
@@ -71,7 +71,7 @@ date::getFullYear()
 
 # JavaScript版限定組み込み定数・関数
 
-JavaScript版fluorite12でのみ利用可能な定数および関数です。
+JavaScript版Xarpiteでのみ利用可能な定数および関数です。
 
 ## `JS_OBJECT` JavaScriptオブジェクトのクラス
 
@@ -135,9 +135,9 @@ JS('(function(a, b) {
 
 `ASYNC(function: FUNCTION): JS_OBJECT`
 
-第1引数のfluorite12関数をJavaScriptのasync関数に変換します。
+第1引数のXarpite関数をJavaScriptのasync関数に変換します。
 
-通常、fluorite12の関数は暗黙の型変換によって非asyncなJavaScript関数に変換されます。
+通常、Xarpiteの関数は暗黙の型変換によって非asyncなJavaScript関数に変換されます。
 
 この関数を使うことで明示的にasync関数を生成することができます。
 

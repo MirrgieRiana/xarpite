@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="icon-128.png">
-    <title>fluorite12 Playground</title>
+    <link rel="icon" href="xarpite-icon-128.png">
+    <title>Xarpite Playground</title>
     <style>
         @keyframes highlight {
             0% {
@@ -75,8 +75,8 @@
                     <label title="Auto run" for="auto_run">Auto run</label>
                 </td>
                 <td style="padding: 0.1em; text-align: right;">
-                    <span style="font-size: 70%; color: #888;">v0.62.2</span>
-                    <a href="https://github.com/MirrgieRiana/fluorite12/blob/main/README.md" target="_blank" style="text-decoration: none;">About <img src="icon.svg" style="height: 0.8em;">fluorite12</a>
+                    <span style="font-size: 70%; color: #888;">v1.63.0</span>
+                    <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" style="text-decoration: none;"><img src="xarpite-icon.svg" style="height: 0.8em;">Xarpite</a>
                 </td>
             </tr>
         </table>
@@ -85,8 +85,8 @@
 </div>
 <script src="playground.js"></script>
 <script type="module">
-    import * as fluorite12 from "./fluorite12.mjs";
-    window.fluorite12 = fluorite12;
+    import * as xarpite from "./xarpite.mjs";
+    window.xarpite = xarpite;
 </script>
 <script>
     async function run() {
@@ -111,13 +111,13 @@
         const src = window.input.state.doc.toString();
         clearOutput();
         try {
-            const value = await fluorite12.evaluate(src, document.getElementById("quiet_mode").checked, async value => {
-                await fluorite12.log(value);
-                addOutput(await fluorite12.stringify(value));
+            const value = await xarpite.evaluate(src, document.getElementById("quiet_mode").checked, async value => {
+                await xarpite.log(value);
+                addOutput(await xarpite.stringify(value));
             });
             if (value !== undefined) {
-                await fluorite12.log(value);
-                addOutput(await fluorite12.stringify(value));
+                await xarpite.log(value);
+                addOutput(await xarpite.stringify(value));
             }
         } catch (e) {
             console.log(e);
