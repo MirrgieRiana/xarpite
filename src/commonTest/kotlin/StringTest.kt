@@ -1,5 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

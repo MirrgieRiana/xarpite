@@ -5,6 +5,8 @@ import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.test.int
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

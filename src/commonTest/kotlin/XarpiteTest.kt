@@ -5,6 +5,16 @@ import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.test.array
+import mirrg.xarpite.test.boolean
+import mirrg.xarpite.test.double
+import mirrg.xarpite.test.empty
+import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
+import mirrg.xarpite.test.obj
+import mirrg.xarpite.test.parse
+import mirrg.xarpite.test.stream
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

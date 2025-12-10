@@ -1,3 +1,5 @@
+package mirrg.xarpite.test
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList

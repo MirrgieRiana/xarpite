@@ -1,6 +1,12 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.array
+import mirrg.xarpite.test.boolean
+import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

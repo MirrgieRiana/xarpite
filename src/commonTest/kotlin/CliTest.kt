@@ -5,6 +5,8 @@ import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.test.array
+import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
