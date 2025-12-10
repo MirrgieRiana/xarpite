@@ -7,4 +7,4 @@ external class Process {
     val argv: Array<String>
 }
 
-val process get() = js("process").unsafeCast<Process>()
+val process by lazy { js("process").unsafeCast<Process>() }
