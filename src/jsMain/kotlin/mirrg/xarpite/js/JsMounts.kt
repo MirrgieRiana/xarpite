@@ -1,3 +1,5 @@
+package mirrg.xarpite.js
+
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import mirrg.xarpite.compilers.objects.FluoriteFunction

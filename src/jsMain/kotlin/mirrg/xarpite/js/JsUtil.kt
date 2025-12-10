@@ -1,3 +1,5 @@
+package mirrg.xarpite.js
+
 import kotlin.js.Json
 
 external class Process {

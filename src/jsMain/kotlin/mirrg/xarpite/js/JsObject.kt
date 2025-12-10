@@ -1,3 +1,5 @@
+package mirrg.xarpite.js
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers

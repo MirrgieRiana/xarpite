@@ -1,9 +1,12 @@
+package mirrg.xarpite.js.test
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string

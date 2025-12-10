@@ -1,3 +1,5 @@
+package mirrg.xarpite.js
+
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.coroutineScope
