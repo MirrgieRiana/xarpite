@@ -36,7 +36,7 @@ jobs:
       - name: ビルド
         run: |
           cd build-dir
-          bash gradlew clean :build --stacktrace
+          bash gradlew clean build --stacktrace
         env:
           APP_VERSION: ${{ github.ref_name }}
 
