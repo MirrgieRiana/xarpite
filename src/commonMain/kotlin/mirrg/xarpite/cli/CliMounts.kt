@@ -10,6 +10,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
+import readLineFromStdin
 
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -17,7 +18,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         "IN" to FluoriteStream {
             while (true) {
-                val line = readlnOrNull() ?: break
+                val line = readLineFromStdin() ?: break
                 emit(line.toFluoriteString())
             }
         },

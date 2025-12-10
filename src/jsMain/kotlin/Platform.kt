@@ -16,3 +16,6 @@ actual fun getFileSystem(): Result<FileSystem> {
         Result.failure(IllegalStateException("Does not support file system operations on JS Browser platform"))
     }
 }
+
+var readLineFromStdinImpl: (suspend () -> String?)? = null
+actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()

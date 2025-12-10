@@ -1,6 +1,9 @@
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.cinterop.toKString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import platform.posix.__environ
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -26,3 +29,5 @@ actual fun getEnv(): Map<String, String> {
 }
 
 actual fun hasFreeze() = true
+
+actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
