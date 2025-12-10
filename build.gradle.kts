@@ -123,7 +123,6 @@ val generateInstallNative = registerGenerateInstallTask("native")
 val generateInstallJvm = registerGenerateInstallTask("jvm")
 val generateInstallNode = registerGenerateInstallTask("node")
 
-
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
     group = "build"
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
