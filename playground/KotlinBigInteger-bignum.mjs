@@ -3520,10 +3520,10 @@ protoOf(BigInteger32Arithmetic).y21 = function (first, second) {
   while (_iterator__ex2g4s.r()) {
     var element = _iterator__ex2g4s.s().tk_1;
     if (element === _UInt___init__impl__l7qpdl(0)) {
-      destination.l(new UInt(element));
+      destination.f(new UInt(element));
     }
   }
-  if (destination.i()) {
+  if (destination.k()) {
     return this.e21_1;
   }
   // Inline function 'kotlin.collections.indexOfLast' call

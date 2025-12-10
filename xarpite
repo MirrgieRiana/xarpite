@@ -13,16 +13,19 @@ fi
 ENGINE="${ENGINE:-native}"
 if [ "$ENGINE" = "native" ]
 then
-  exec "$SCRIPT_DIR/bin/xarpite" "$@"
+  exec "$SCRIPT_DIR/bin/native/xarpite" "$@"
 elif [ "$ENGINE" = "jvm" ]
 then
   # JAVA_HOME is set by the system or user environment
   if [ -z "$JAVA_HOME" ]
   then
-    exec java -jar "$SCRIPT_DIR/libs/xarpite-jvm.jar" "$@"
+    exec java -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   else
-    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/libs/xarpite-jvm.jar" "$@"
+    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   fi
+elif [ "$ENGINE" = "node" ]
+then
+  exec node "$SCRIPT_DIR/bin/node/xarpite-node.mjs" "$@"
 else
   echo "Unsupported engine: $ENGINE" 1>&2
   exit 1

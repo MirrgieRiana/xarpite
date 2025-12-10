@@ -76,6 +76,14 @@ Using the JVM version by default:
 curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-jvm.sh | sudo bash
 ```
 
+or
+
+Using the Node.js version by default:
+
+```shell
+curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-node.sh | sudo bash
+```
+
 ## Download into the current directory
 
 Download the Xarpite release into `./xarpite`.
