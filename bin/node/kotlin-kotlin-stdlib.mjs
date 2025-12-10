@@ -53,6 +53,12 @@ if (typeof Math.clz32 === 'undefined') {
     };
   }(Math.log, Math.LN2);
 }
+if (typeof String.prototype.startsWith === 'undefined') {
+  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
+    position = position || 0;
+    return this.lastIndexOf(searchString, position) === position;
+  }});
+}
 if (typeof String.prototype.endsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'endsWith', {value: function (searchString, position) {
     var subjectString = this.toString();
@@ -62,12 +68,6 @@ if (typeof String.prototype.endsWith === 'undefined') {
     position -= searchString.length;
     var lastIndex = subjectString.indexOf(searchString, position);
     return lastIndex !== -1 && lastIndex === position;
-  }});
-}
-if (typeof String.prototype.startsWith === 'undefined') {
-  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
-    position = position || 0;
-    return this.lastIndexOf(searchString, position) === position;
   }});
 }
 //endregion
@@ -211,6 +211,7 @@ initMetadataForObject(NothingKClassImpl, 'NothingKClassImpl', VOID, KClassImpl);
 initMetadataForClass(PrimitiveKClassImpl, 'PrimitiveKClassImpl', VOID, KClassImpl);
 initMetadataForClass(SimpleKClassImpl, 'SimpleKClassImpl', VOID, KClassImpl);
 initMetadataForInterface(KProperty1, 'KProperty1');
+initMetadataForInterface(KProperty0, 'KProperty0');
 initMetadataForClass(KTypeImpl, 'KTypeImpl');
 initMetadataForObject(PrimitiveClasses, 'PrimitiveClasses');
 initMetadataForClass(CharacterCodingException, 'CharacterCodingException', CharacterCodingException_init_$Create$, Exception);
@@ -4854,10 +4855,6 @@ function println(message) {
   _init_properties_console_kt__rfg7jv();
   get_output().c8(message);
 }
-function readlnOrNull() {
-  _init_properties_console_kt__rfg7jv();
-  throw UnsupportedOperationException_init_$Create$_0('readlnOrNull is not supported in Kotlin/JS');
-}
 var properties_initialized_console_kt_gll9dl;
 function _init_properties_console_kt__rfg7jv() {
   if (!properties_initialized_console_kt_gll9dl) {
@@ -5010,6 +5007,11 @@ function CancellationException_init_$Init$_1(message, cause, $this) {
   IllegalStateException_init_$Init$_1(message, cause, $this);
   CancellationException.call($this);
   return $this;
+}
+function CancellationException_init_$Create$_1(message, cause) {
+  var tmp = CancellationException_init_$Init$_1(message, cause, objectCreate(protoOf(CancellationException)));
+  captureStack(tmp, CancellationException_init_$Create$_1);
+  return tmp;
 }
 function CancellationException() {
   captureStack(this, CancellationException);
@@ -5685,6 +5687,8 @@ protoOf(SimpleKClassImpl).x9 = function (value) {
   return jsIsType(value, this.ca_1);
 };
 function KProperty1() {
+}
+function KProperty0() {
 }
 function createKType(classifier, arguments_0, isMarkedNullable) {
   return new KTypeImpl(classifier, asList(arguments_0), isMarkedNullable);
@@ -13331,6 +13335,7 @@ export {
   CancellationException_init_$Init$_0 as CancellationException_init_$Init$2avhmkaa5k89d,
   CancellationException_init_$Create$_0 as CancellationException_init_$Create$2cv5nayrc39hr,
   CancellationException_init_$Init$_1 as CancellationException_init_$Init$1ieejj57c468h,
+  CancellationException_init_$Create$_1 as CancellationException_init_$Create$1muhzgve35v78,
   Regex_init_$Create$ as Regex_init_$Create$20u56movc9c5j,
   StringBuilder_init_$Create$ as StringBuilder_init_$Create$2ujvu6cqvzuyn,
   StringBuilder_init_$Create$_1 as StringBuilder_init_$Create$2qsge4ydj6bin,
@@ -13346,10 +13351,13 @@ export {
   IllegalArgumentException_init_$Init$_0 as IllegalArgumentException_init_$Init$1ke5df1bctk2y,
   IllegalArgumentException_init_$Create$_0 as IllegalArgumentException_init_$Create$3ewkh27kzt8z8,
   IllegalArgumentException_init_$Init$_1 as IllegalArgumentException_init_$Init$jyc1udwa6hs3,
+  IllegalStateException_init_$Init$_0 as IllegalStateException_init_$Init$28k6zlhbptery,
   IllegalStateException_init_$Create$_0 as IllegalStateException_init_$Create$2w9444nebyjns,
   IllegalStateException_init_$Create$_1 as IllegalStateException_init_$Create$12oloagvd20rx,
   IndexOutOfBoundsException_init_$Init$_0 as IndexOutOfBoundsException_init_$Init$3rj4wwb4w6z4p,
   IndexOutOfBoundsException_init_$Create$_0 as IndexOutOfBoundsException_init_$Create$2w5dv25cjssuw,
+  NoSuchElementException_init_$Create$ as NoSuchElementException_init_$Create$keivgb96udi6,
+  NoSuchElementException_init_$Init$_0 as NoSuchElementException_init_$Init$8big512cht7b,
   NoSuchElementException_init_$Create$_0 as NoSuchElementException_init_$Create$4w03vct39ryy,
   NumberFormatException_init_$Create$_0 as NumberFormatException_init_$Create$361k2w325ylq7,
   RuntimeException_init_$Init$_0 as RuntimeException_init_$Init$1tdhpyy2sm4eb,
@@ -13545,7 +13553,6 @@ export {
   startCoroutine as startCoroutine327fwvtqvedik,
   enumEntries as enumEntries20mr21zbe3az4,
   println as println2shhhgwwt4c61,
-  readlnOrNull as readlnOrNullskbd728o0gbx,
   get_ONE as get_ONEazvfdh9ju3d4,
   add as add85si75olwt6n,
   bitwiseAnd as bitwiseAnd2g7wmsfd45l12,
@@ -13564,6 +13571,7 @@ export {
   numberToLong as numberToLong345n6tb1n1i71,
   shiftLeft as shiftLeft1ck77p6vapyra,
   shiftRightUnsigned as shiftRightUnsigned1kzopyqvwpisb,
+  shiftRight as shiftRight2cr6y79ufiihy,
   subtract as subtract16cg4lfi29fq9,
   toNumber as toNumberlmbpvqo27r53,
   FunctionAdapter as FunctionAdapter3lcrrz3moet5b,
@@ -13629,6 +13637,7 @@ export {
   getKClassFromExpression as getKClassFromExpression348iqjl4fnx2f,
   getKClass as getKClass3t8tygqu4lcxf,
   KClass as KClass1cc9rfeybg8hs,
+  KProperty0 as KProperty02ce7r476m8633,
   KProperty1 as KProperty1ca4yb4wlo496,
   KTypeParameter as KTypeParameter1s8efufd4mbj5,
   SequenceScope as SequenceScope1coiso86pqzq2,
@@ -13692,8 +13701,10 @@ export {
   Error_0 as Error3ofk6owajcepa,
   Exception as Exceptiondt2hlxn7j7vw,
   IllegalArgumentException as IllegalArgumentException2asla15b5jaob,
+  IllegalStateException as IllegalStateExceptionkoljg5n0nrlr,
   IndexOutOfBoundsException as IndexOutOfBoundsException1qfr429iumro0,
   Long as Long2qws0ah9gnpki,
+  NoSuchElementException as NoSuchElementException679xzhnp5bpj,
   Pair as Paire9pteg33gng7,
   Result as Result3t1vadv16kmzk,
   RuntimeException as RuntimeException1r3t0zl97011n,

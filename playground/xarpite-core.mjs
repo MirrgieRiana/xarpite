@@ -27740,6 +27740,7 @@ function unit$lambda($value) {
 }
 var envGetter;
 var fileSystemGetter;
+var readLineFromStdinImpl;
 function hasFreeze() {
   _init_properties_Platform_kt__37ezn1();
   return false;
@@ -27754,6 +27755,7 @@ function _init_properties_Platform_kt__37ezn1() {
     properties_initialized_Platform_kt_qdcgvf = true;
     envGetter = envGetter$lambda;
     fileSystemGetter = null;
+    readLineFromStdinImpl = null;
   }
 }
 function get_scope() {
