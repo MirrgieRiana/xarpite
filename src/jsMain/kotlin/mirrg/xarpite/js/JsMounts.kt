@@ -1,9 +1,7 @@
 package mirrg.xarpite.js
 
-import kotlinx.browser.window
 import kotlinx.coroutines.await
 import mirrg.xarpite.compilers.objects.FluoriteFunction
-import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import kotlin.js.Promise
@@ -11,11 +9,6 @@ import kotlin.js.Promise
 fun createJsMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "JS_OBJECT" to FluoriteJsObject.fluoriteClass,
-        "WINDOW" to try {
-            FluoriteJsObject(window)
-        } catch (_: Throwable) {
-            FluoriteNull
-        },
         "ASYNC" to FluoriteFunction { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
             val function = arguments[0] as FluoriteFunction

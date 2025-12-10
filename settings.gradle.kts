@@ -10,5 +10,7 @@ dependencyResolutionManagement {
 }
 
 include(":playground")
+include(":node")
+include(":browser")
 
 rootProject.name = "xarpite"

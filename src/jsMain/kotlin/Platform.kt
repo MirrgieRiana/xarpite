@@ -1,19 +1,18 @@
-import mirrg.xarpite.js.Object_keys
-import mirrg.xarpite.js.process
 import okio.FileSystem
-
-// TODO node
-//import okio.NodeJsFileSystem
 
 actual fun getProgramName(): String? = null
 
-actual fun getEnv(): Map<String, String> {
-    val env = process.env
-    return Object_keys(env).associateWith { env[it].unsafeCast<String>() }
-}
+var envGetter: () -> Map<String, String> = { emptyMap() }
+actual fun getEnv(): Map<String, String> = envGetter()
 
 actual fun hasFreeze() = false
 
-// TODO node
-actual fun getFileSystem(): Result<FileSystem> = Result.failure(UnsupportedOperationException("Does not support file system operations on JS platform"))
-//actual fun getFileSystem(): Result<FileSystem> = Result.success(NodeJsFileSystem)
+var fileSystemGetter: (() -> FileSystem)? = null
+actual fun getFileSystem(): Result<FileSystem> {
+    val fileSystemGetter = fileSystemGetter
+    return if (fileSystemGetter != null) {
+        Result.success(fileSystemGetter())
+    } else {
+        Result.failure(IllegalStateException("Does not support file system operations on JS Browser platform"))
+    }
+}

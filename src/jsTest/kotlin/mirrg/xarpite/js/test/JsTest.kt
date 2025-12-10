@@ -1,13 +1,9 @@
 package mirrg.xarpite.js.test
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.js.createJsMounts
-import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
 import kotlin.test.Test
@@ -15,12 +11,6 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class JsTest {
-
-    @Test
-    fun window() = runTest {
-        // テスト環境では動作しない
-        //assertEquals("[object Window]", runJs("+WINDOW").string)
-    }
 
     @Test
     fun js() = runTest {
@@ -97,18 +87,4 @@ class JsTest {
         assertEquals(123, evalJs("AWAIT(JS('async () => 123')())").int) // async関数を実行した結果も同様
     }
 
-}
-
-
-fun CoroutineScope.createDefaultBuiltinMounts(): List<Map<String, FluoriteValue>> {
-    return listOf(
-        createCommonMounts(this) {},
-        createJsMounts(),
-    ).flatten()
-}
-
-suspend fun CoroutineScope.evalJs(src: String): FluoriteValue {
-    val evaluator = Evaluator()
-    evaluator.defineMounts(createDefaultBuiltinMounts())
-    return evaluator.get(src)
 }

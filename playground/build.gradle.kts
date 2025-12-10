@@ -35,10 +35,7 @@ tasks.named<Copy>("jsProcessResources") {
 val bundleRelease = tasks.register<Sync>("bundleRelease") {
     group = "build"
     from(tasks.named("jsBrowserDistribution"))
-    from(rootProject.tasks.named("jsBrowserProductionLibraryDistribution"))
+    from(rootProject.project(":browser").tasks.named("jsBrowserProductionLibraryDistribution"))
     into(project.layout.buildDirectory.dir("bundleRelease"))
-
-    // browserとnodejsで異なるタスクが同じディレクトリに出力するKotlin Multiplatformの構造的問題のための苦肉の対策のために書かされている
-    mustRunAfter(rootProject.tasks.named("jsNodeProductionLibraryDistribution"))
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }

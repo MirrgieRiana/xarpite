@@ -16,23 +16,9 @@ kotlin {
 
     jvm()
     js {
-        browser {
-            testTask {
-                useMocha {
-                    timeout = "10s"
-                }
-            }
-        }
-        nodejs {
-            testTask {
-                useMocha {
-                    timeout = "10s"
-                }
-            }
-        }
-        binaries.executable()
+        nodejs()
         binaries.library()
-        outputModuleName = "xarpite"
+        outputModuleName = "xarpite-core"
         compilerOptions {
             moduleKind = JsModuleKind.MODULE_ES
             sourceMapEmbedSources = JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS
@@ -66,20 +52,9 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
-        jsMain {
-            dependencies {
-                // TODO node
-                //implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
-            }
-        }
     }
 
 }
-
-// browserとnodejsで異なるタスクが同じディレクトリに出力するKotlin Multiplatformの構造的問題のための苦肉の対策のために書かされている
-tasks.named("jsBrowserProductionWebpack") { dependsOn("jsProductionLibraryCompileSync") }
-tasks.named("jsBrowserProductionLibraryDistribution") { dependsOn("jsProductionExecutableCompileSync") }
-tasks.named("jsNodeProductionLibraryDistribution") { dependsOn("jsProductionExecutableCompileSync") }
 
 val releaseExecutable = kotlin.targets
     .getByName<KotlinNativeTarget>("linuxX64")
@@ -148,7 +123,7 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
         rename("xarpite.kexe", "xarpite")
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
-    from(tasks.named("jsProductionExecutableCompileSync")) { into("bin/node") }
+    from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
     from("doc") { into("doc") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
