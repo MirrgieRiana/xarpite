@@ -1,5 +1,8 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.boolean
+import mirrg.xarpite.test.double
 import mirrg.xarpite.test.empty
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -29,6 +32,31 @@ class DataConversionTest {
         assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい
         assertTrue(eval(""" " " >> JSONSD """).empty()) // ブランク文字列しかない場合、空ストリームになる
         assertTrue(eval(""" , >> JSONSD """).empty()) // 空ストリームの場合、空ストリームになる
+    }
+
+    @Test
+    fun json() = runTest {
+        // $& でFluoriteValueがjson文字列になる
+        assertEquals("10", eval("$&10").string) // トップレベルがJsonArrayやJsonObjectでなくてもよい
+        assertEquals("10.5", eval("$&10.5").string)
+        assertEquals("\"abc\"", eval("$&'abc'").string)
+        assertEquals(""""a\"b\nc\\d"""", eval(""" $&"a\"b\nc\\d" """).string)
+        assertEquals("true", eval("$&TRUE").string)
+        assertEquals("false", eval("$&FALSE").string)
+        assertEquals("null", eval("$&NULL").string)
+        assertEquals("[1,2,3]", eval("$&[1; 2; 3]").string)
+        assertEquals("{\"a\":1,\"b\":2}", eval("$&{a: 1; b: 2}").string)
+
+        // $* でjson文字列がFluoriteValueになる
+        assertEquals(10, eval("$*'10'").int)
+        assertEquals(10.5, eval("$*'10.5'").double, 0.001)
+        assertEquals("abc", eval("$*'\"abc\"'").string)
+        assertEquals("a\"b\nc\\d", eval(""" $*'"a\"b\nc\\d"' """).string)
+        assertEquals(true, eval("$*'true'").boolean)
+        assertEquals(false, eval("$*'false'").boolean)
+        assertEquals(FluoriteNull, eval("$*'null'"))
+        assertEquals("[1;2;3]", eval("&$*'[1,2,3]'").string)
+        assertEquals("{a:1;b:2}", eval("&$*'{\"a\":1,\"b\":2}'").string)
     }
 
     @Test

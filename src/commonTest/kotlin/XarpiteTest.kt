@@ -397,31 +397,6 @@ class XarpiteTest {
     }
 
     @Test
-    fun jsonTest() = runTest {
-        // $& でFluoriteValueがjson文字列になる
-        assertEquals("10", eval("$&10").string) // トップレベルがJsonArrayやJsonObjectでなくてもよい
-        assertEquals("10.5", eval("$&10.5").string)
-        assertEquals("\"abc\"", eval("$&'abc'").string)
-        assertEquals(""""a\"b\nc\\d"""", eval(""" $&"a\"b\nc\\d" """).string)
-        assertEquals("true", eval("$&TRUE").string)
-        assertEquals("false", eval("$&FALSE").string)
-        assertEquals("null", eval("$&NULL").string)
-        assertEquals("[1,2,3]", eval("$&[1; 2; 3]").string)
-        assertEquals("{\"a\":1,\"b\":2}", eval("$&{a: 1; b: 2}").string)
-
-        // $* でjson文字列がFluoriteValueになる
-        assertEquals(10, eval("$*'10'").int)
-        assertEquals(10.5, eval("$*'10.5'").double, 0.001)
-        assertEquals("abc", eval("$*'\"abc\"'").string)
-        assertEquals("a\"b\nc\\d", eval(""" $*'"a\"b\nc\\d"' """).string)
-        assertEquals(true, eval("$*'true'").boolean)
-        assertEquals(false, eval("$*'false'").boolean)
-        assertEquals(FluoriteNull, eval("$*'null'"))
-        assertEquals("[1;2;3]", eval("&$*'[1,2,3]'").string)
-        assertEquals("{a:1;b:2}", eval("&$*'{\"a\":1,\"b\":2}'").string)
-    }
-
-    @Test
     fun exceptionTest() = runTest {
         // !! でオブジェクトをスローするとFluoriteExceptionになって出てくる
         try {
