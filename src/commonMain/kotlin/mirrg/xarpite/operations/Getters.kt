@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
@@ -743,7 +744,7 @@ class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, priv
     override suspend fun evaluate(env: Environment): FluoriteValue {
         try {
             val newEnv = Environment(env, 0, 0)
-            return getter.evaluate(newEnv)
+            return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
             if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
                 val value = returner.value
