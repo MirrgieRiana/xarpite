@@ -13,6 +13,7 @@ import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 
@@ -87,12 +88,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                     emit(value)
                     FluoriteNull
                 }
-                val result = generator.invoke(arrayOf(yieldFunction))
-                if (result is FluoriteStream) {
-                    result.collect {
-                        // イテレーションは行うがその結果は握りつぶす
-                    }
-                }
+                generator.invoke(arrayOf(yieldFunction)).consume()
             }
         },
         "OUT" to FluoriteFunction { arguments ->

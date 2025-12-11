@@ -3,18 +3,12 @@ package mirrg.xarpite.operations
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.compilers.objects.FluoriteObject
-import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.consume
 
 class GetterRunner(private val getter: Getter) : Runner {
     override suspend fun evaluate(env: Environment) {
-        val result = getter.evaluate(env)
-        if (result is FluoriteStream) {
-            result.collect {
-                // イテレーションは行うがその結果は握りつぶす
-            }
-        }
+        getter.evaluate(env).consume()
     }
 
     override val code get() = "GetterRunner[${getter.code}]"

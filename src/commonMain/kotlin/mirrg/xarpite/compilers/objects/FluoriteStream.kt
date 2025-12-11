@@ -110,3 +110,11 @@ suspend fun FluoriteStream.toMutableList(): MutableList<FluoriteValue> {
     }
     return list
 }
+
+suspend fun FluoriteValue.consume() {
+    if (this is FluoriteStream) {
+        this.collect {
+            // イテレーションは行うがその結果は握りつぶす
+        }
+    }
+}
