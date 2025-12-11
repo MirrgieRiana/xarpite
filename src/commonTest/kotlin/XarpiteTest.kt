@@ -806,16 +806,16 @@ class XarpiteTest {
         assertEquals("""{"a":[1,2.5,"3",true,false,null]}""", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
         assertEquals("1", eval("1 >> JSON").string) // プリミティブを直接指定できる
         assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
-        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSON").stream()) // ストリームを指定するとJsonのストリームになる
+        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONS").stream()) // ストリームを指定するとJsonのストリームになる
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
         assertEquals(1, eval(""" "1" >> JSOND """).int) // プリミティブを直接指定できる
-        assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSOND """).stream()) // Jsonのストリームを指定するとストリームになる
-        assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSOND """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
-        assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSOND """).stream()) // 余分な空白文字列があってもよい
-        assertTrue(eval(""" " " >> JSOND """).empty()) // ブランク文字列しかない場合、空ストリームになる
-        assertTrue(eval(""" , >> JSOND """).empty()) // 空ストリームの場合、空ストリームになる
+        assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONSD """).stream()) // Jsonのストリームを指定するとストリームになる
+        assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONSD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+        assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい
+        assertTrue(eval(""" " " >> JSONSD """).empty()) // ブランク文字列しかない場合、空ストリームになる
+        assertTrue(eval(""" , >> JSONSD """).empty()) // 空ストリームの場合、空ストリームになる
     }
 
     @Test
@@ -856,7 +856,7 @@ class XarpiteTest {
 
         // ストリームは各要素が変換される
         assertEquals("""a,b,c,d""", eval(""" ["a","b"],["c","d"] >> CSV """).stream())
-        assertEquals("""["a","b"],["c","d"]""", eval(""" "a,b","c,d" >> CSVD >> JSON """).stream())
+        assertEquals("""["a","b"],["c","d"]""", eval(""" "a,b","c,d" >> CSVD >> JSONS """).stream())
 
         // 空文字列は空文字列を1個含む配列になる
         assertEquals("", eval(""" [""] >> CSV """).string)

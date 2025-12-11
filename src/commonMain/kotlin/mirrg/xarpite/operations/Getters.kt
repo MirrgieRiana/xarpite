@@ -34,8 +34,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
-import mirrg.xarpite.toFluoriteValueAsJson
-import mirrg.xarpite.toJsonFluoriteValue
+import mirrg.xarpite.toFluoriteValueAsSingleJson
+import mirrg.xarpite.toSingleJsonFluoriteValue
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -315,12 +315,12 @@ class GetLengthGetter(private val getter: Getter) : Getter {
 }
 
 class ToJsonGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toJsonFluoriteValue()
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toSingleJsonFluoriteValue(null)
     override val code get() = "ToJsonGetter[${getter.code}]"
 }
 
 class FromJsonGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteValueAsJson()
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteValueAsSingleJson()
     override val code get() = "FromJsonGetter[${getter.code}]"
 }
 
