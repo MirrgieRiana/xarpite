@@ -39,6 +39,7 @@ suspend fun FluoriteValue.toSingleJson(indent: String?): String {
         is FluoriteString -> JsonPrimitive(this.value)
         is FluoriteBoolean -> JsonPrimitive(this.value)
         FluoriteNull -> JsonNull
+        is FluoriteStream -> throw IllegalArgumentException("Cannot convert FluoriteStream to single JSON")
         else -> this.callMethod("$&_").toJsonElement()
     }
 
