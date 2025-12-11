@@ -1,5 +1,6 @@
 package mirrg.xarpite.parser
 
+import mirrg.kotlin.helium.truncate
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.parser.parsers.normalize
 
@@ -40,7 +41,7 @@ fun <T : Any> Parser<T>.parseAllOrThrow(src: String, useCache: Boolean = true): 
     val context = ParseContext(src, useCache)
     val result = this.parseOrNull(context, 0) ?: throw UnmatchedInputParseException("Failed to parse.", 0) // TODO 候補
     if (result.end != src.length) {
-        val string = src.drop(result.end).let { if (it.length > 10) "${it.take(10)}..." else it }.escapeJsonString()
+        val string = src.drop(result.end).truncate(10, "...").escapeJsonString()
         throw ExtraCharactersParseException("""Extra characters found after position ${result.end}: "$string"""", result.end)
     }
     return result.value
