@@ -155,6 +155,7 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
 }
 
 tasks.register<Exec>("runDocShellTests") {
+    group = "verification"
     dependsOn(generateDocShellTests, releaseExecutable.linkTaskProvider)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
     commandLine("bash", "ja.sh", releaseExecutable.outputFile.relativeTo(workingDir).invariantSeparatorsPath)
