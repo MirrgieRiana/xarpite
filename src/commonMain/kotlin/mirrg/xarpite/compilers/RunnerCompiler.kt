@@ -6,14 +6,17 @@ import mirrg.xarpite.IdentifierNode
 import mirrg.xarpite.InfixColonEqualNode
 import mirrg.xarpite.InfixEqualGreaterNode
 import mirrg.xarpite.InfixEqualNode
+import mirrg.xarpite.InfixExclamationColonNode
 import mirrg.xarpite.InfixExclamationQuestionNode
 import mirrg.xarpite.Node
 import mirrg.xarpite.SemicolonsNode
 import mirrg.xarpite.UnaryAtNode
+import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
 import mirrg.xarpite.mount
 import mirrg.xarpite.operations.AssignmentRunner
 import mirrg.xarpite.operations.GetterRunner
+import mirrg.xarpite.operations.LabelRunner
 import mirrg.xarpite.operations.MountRunner
 import mirrg.xarpite.operations.Runner
 import mirrg.xarpite.operations.TryCatchRunner
@@ -49,6 +52,13 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             val newFrame = Frame(this)
             val argumentVariableIndex = newFrame.defineVariable(name)
             listOf(TryCatchRunner(compileToRunner(node.left), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
+        }
+
+        is InfixExclamationColonNode -> {
+            require(node.right is IdentifierNode)
+            val newFrame = Frame(this)
+            val labelIndex = newFrame.defineLabel(node.right.string)
+            listOf(LabelRunner(newFrame.frameIndex, labelIndex, newFrame.compileToRunner(node.left)))
         }
 
         is UnaryAtNode -> {

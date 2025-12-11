@@ -42,6 +42,27 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val newFrame
     override val code get() = "TryCatchRunner[${leftRunners.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
 }
 
+class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
+    override suspend fun evaluate(env: Environment) {
+        try {
+            val newEnv = Environment(env, 0, 0)
+            runners.forEach {
+                it.evaluate(newEnv)
+            }
+        } catch (returner: Returner) {
+            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+                val value = returner.value
+                Returner.recycle(returner)
+                value.consume()
+            } else {
+                throw returner
+            }
+        }
+    }
+
+    override val code get() = "LabelRunner[$frameIndex;$labelIndex;${runners.code}]"
+}
+
 class MountRunner(private val frameIndex: Int, private val mountIndex: Int, private val getter: Getter) : Runner {
     override suspend fun evaluate(env: Environment) {
         env.mountTable[frameIndex][mountIndex] = (getter.evaluate(env) as FluoriteObject).map.toMap()

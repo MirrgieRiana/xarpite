@@ -1021,13 +1021,58 @@ class XarpiteTest {
     @Test
     fun returnTest() = runTest {
 
-        // label !! value でreturnできる
+        // getter label !! value でreturnできる
         """
             (
                 label !! 123
                 456
             ) !: label
         """.let { assertEquals(123, eval(it).int) }
+
+        // getterラベルブロックの末尾式のgetterストリームからの脱出
+        // getterラベルブロックは戻り値のストリームを素通りさせず、1度その場で一通り評価してキャッシュする
+        """
+            (
+                1 .. 3 | label !! 123
+            ) !: label
+        """.let { assertEquals(123, eval(it).int) }
+
+        // getterラベルブロックの戻り値がストリームであり、returnされないパターン
+        """
+            (
+                1 .. 3 | _
+            ) !: label
+        """.let { assertEquals("1,2,3", eval(it).stream()) }
+
+        // getterラベルブロックの戻り値のストリームは1度だけ評価される
+        """
+            t := 0
+            stream := (
+                1 .. 3 | (
+                    t = t + 1
+                    t
+                )
+            ) !: label
+            [stream; stream; stream; t]
+        """.let { assertEquals("[1;2;3;1;2;3;1;2;3;3]", eval(it).array()) }
+
+        // runner label !! value でreturnできる
+        """
+            (
+                label !! 123
+                !! "fail"
+            ) !: label
+            NULL
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // runnerラベルは戻り値のストリームを1度だけ評価する
+        """
+            t := 0
+            (
+                1 .. 3 | t = t + 1
+            ) !: label
+            t
+        """.let { assertEquals(3, eval(it).int) }
 
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
