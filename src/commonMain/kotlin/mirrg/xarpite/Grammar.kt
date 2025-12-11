@@ -43,6 +43,7 @@ object XarpiteGrammar {
 
     val quotedIdentifierContent: Parser<String> = or(
         +Regex("""[^`\\]+""") map { it.value.normalize() }, // ' \ 以外の文字
+        +Regex("""\\x[0-9a-fA-F]{2}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 16進1バイト参照
         +Regex("""\\u[0-9a-fA-F]{4}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 文字参照
         +Regex("""\\[^\r\n]""") map { it.value[1].toString() }, // エスケープされた改行以外の文字
         +Regex("""\\(?:\n|\r\n?)""") map { "\n" }, // エスケープされた改行
@@ -68,6 +69,7 @@ object XarpiteGrammar {
         -"\\t" map { "\t" },
         -"\\r" map { "\r" },
         -"\\n" map { "\n" },
+        +Regex("""\\x[0-9a-fA-F]{2}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 16進1バイト参照
         +Regex("""\\u[0-9a-fA-F]{4}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 文字参照
     )
     val formatterFlag: Parser<FormatterFlag> = or(

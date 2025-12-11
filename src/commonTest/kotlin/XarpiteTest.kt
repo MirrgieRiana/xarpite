@@ -165,6 +165,7 @@ class XarpiteTest {
         assertEquals("あ", eval(""" "あ" """).string) // マルチバイト文字
         assertEquals("㎡", eval(""" "㎡" """).string) // MS932
         assertEquals("🍰", eval(""" "🍰" """).string) // サロゲートペア
+        assertEquals("'", eval(""" "\x27" """).string) // 1バイト文字参照
         assertEquals("あ", eval(""" "\u3042" """).string) // 文字参照
 
         assertEquals(""" " $ \ """, eval(""" " \" \$ \\ " """).string) // エスケープが必要な記号
@@ -837,6 +838,7 @@ class XarpiteTest {
         assertEquals(123, eval("{`abc`: 123}.abc").int) // エントリーキーのクォート識別子
         assertEquals(123, eval("{abc: 123}.`abc`").int) // プロパティアクセスのクォート識別子
         assertEquals(123, eval("{abc: this -> 123}{}::`abc`()").int) // メソッドのクォート識別子
+        assertEquals(123, eval("""`\x27` := 123; `'`""").int) // 1バイト文字参照
         assertEquals(123, eval("""`\u3042` := 123; あ""").int) // 文字参照
     }
 
