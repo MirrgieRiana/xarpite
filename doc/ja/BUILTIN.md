@@ -20,6 +20,7 @@
 - `FUNCTION`
 - `STREAM`
 - `PROMISE`
+- `BLOB`
 
 # 定数
 
