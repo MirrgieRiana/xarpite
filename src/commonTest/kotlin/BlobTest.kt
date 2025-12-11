@@ -23,14 +23,14 @@ class BlobTest {
     }
 
     @Test
-    fun to_array() = runTest {
-        assertEquals("[1;2;3]", (eval("BLOB.of([1,2,3])::to_array()").array())) // 配列への変換
-        assertEquals("[]", (eval("BLOB.of([])::to_array()").array())) // 空の場合
-        assertEquals("[1]", (eval("BLOB.of([1])::to_array()").array())) // 1要素の場合
+    fun toArray() = runTest {
+        assertEquals("[1;2;3]", (eval("BLOB.of([1,2,3])::toArray()").array())) // 配列への変換
+        assertEquals("[]", (eval("BLOB.of([])::toArray()").array())) // 空の場合
+        assertEquals("[1]", (eval("BLOB.of([1])::toArray()").array())) // 1要素の場合
 
-        assertEquals("[0]", (eval("BLOB.of([256])::to_array()").array())) // オーバーフローして戻す
-        assertEquals("[255]", (eval("BLOB.of([-1])::to_array()").array())) // 負の領域も正の数として取り出される
-        assertEquals("[1]", (eval("BLOB.of([257])::to_array()").array())) // 一旦下位8バイトになり、戻ってきたもの
+        assertEquals("[0]", (eval("BLOB.of([256])::toArray()").array())) // オーバーフローして戻す
+        assertEquals("[255]", (eval("BLOB.of([-1])::toArray()").array())) // 負の領域も正の数として取り出される
+        assertEquals("[1]", (eval("BLOB.of([257])::toArray()").array())) // 一旦下位8バイトになり、戻ってきたもの
     }
 
     companion object {

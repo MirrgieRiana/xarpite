@@ -38,8 +38,8 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                         sb.append(']')
                         sb.toString().toFluoriteString()
                     },
-                    // BLOB::to_array(): ARRAY<INT>
-                    "to_array" to FluoriteFunction { arguments ->
+                    // BLOB::toArray(): ARRAY<INT>
+                    "toArray" to FluoriteFunction { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val byteArray = (arguments[0] as FluoriteBlob).value
                         @OptIn(ExperimentalUnsignedTypes::class)
