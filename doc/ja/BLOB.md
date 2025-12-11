@@ -12,14 +12,14 @@ BLOBは `BLOB.new(array)` で生成します。
 
 ```shell
 $ xa 'BLOB.of([1, 0, -1, 256, 257, 1.4, 1.6])'
-# [1;0;255;0;1;1;2]
+# BLOB[1;0;255;0;1;1;2]
 ```
 
 ## 配列への変換
 
-BLOBは `blob::to_array()` で直接配列に変換できます。
+BLOBは `blob::toArray()` で直接配列に変換できます。
 
 ```shell
-$ xa 'BLOB.of([1, 2, 3])::to_array()'
+$ xa 'BLOB.of([1, 2, 3])::toArray()'
 # [1;2;3]
 ```
