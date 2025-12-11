@@ -27,6 +27,7 @@ fun String.escapeJsonString() = this
     .replace("\n", "\\n")
     .replace("\"", "\\\"")
 
+
 private val jsons = mutableMapOf<String, Json>()
 
 suspend fun FluoriteValue.toJsonFluoriteValue(indent: String? = null): FluoriteValue {
@@ -65,6 +66,22 @@ suspend fun FluoriteValue.toJsonFluoriteValue(indent: String? = null): FluoriteV
         }
         json.encodeToString(jsonElement).toFluoriteString()
     }
+}
+
+
+fun String.toFluoriteValueAsJson(): FluoriteValue {
+    fun JsonElement.toFluoriteValue(): FluoriteValue = when (this) {
+        is JsonObject -> FluoriteObject(FluoriteObject.fluoriteClass, this.mapValues { it.value.toFluoriteValue() }.toMutableMap())
+        is JsonArray -> this.map { it.toFluoriteValue() }.toFluoriteArray()
+        JsonNull -> FluoriteNull
+        is JsonPrimitive -> when {
+            this.isString -> this.content.toFluoriteString()
+            this.content == "true" -> FluoriteBoolean.TRUE
+            this.content == "false" -> FluoriteBoolean.FALSE
+            else -> this.content.toFluoriteNumber()
+        }
+    }
+    return Json.decodeFromString<JsonElement>(this).toFluoriteValue()
 }
 
 class JsonSplitter(private val listener: suspend (String) -> Unit) {
@@ -138,20 +155,6 @@ suspend fun FluoriteValue.toFluoriteValueAsJson(): FluoriteValue {
     }
 }
 
-fun String.toFluoriteValueAsJson(): FluoriteValue {
-    fun JsonElement.toFluoriteValue(): FluoriteValue = when (this) {
-        is JsonObject -> FluoriteObject(FluoriteObject.fluoriteClass, this.mapValues { it.value.toFluoriteValue() }.toMutableMap())
-        is JsonArray -> this.map { it.toFluoriteValue() }.toFluoriteArray()
-        JsonNull -> FluoriteNull
-        is JsonPrimitive -> when {
-            this.isString -> this.content.toFluoriteString()
-            this.content == "true" -> FluoriteBoolean.TRUE
-            this.content == "false" -> FluoriteBoolean.FALSE
-            else -> this.content.toFluoriteNumber()
-        }
-    }
-    return Json.decodeFromString<JsonElement>(this).toFluoriteValue()
-}
 
 /**
  * 指数表記の文字列を小数表記の文字列にします。
