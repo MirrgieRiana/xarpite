@@ -20,6 +20,7 @@
 - `FUNCTION`
 - `STREAM`
 - `PROMISE`
+- `BLOB`
 
 # 定数
 
@@ -675,11 +676,9 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 ## `JSON` 値をJSON文字列に変換
 
-`JSON(["indent": indent: STRING; ]value: VALUE | STREAM<VALUE>): STRING | STREAM<STRING>`
+`JSON(["indent": indent: STRING; ]value: VALUE): STRING`
 
 `value` をJSON形式の文字列に変換します。
-
-ストリームを渡した場合、各要素を変換したストリームを返します。
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
@@ -689,22 +688,37 @@ $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 # }
 ```
 
+## `JSOND` JSON文字列を値に変換
+
+`JSOND(json: STRING): VALUE`
+
+`json` を対応する値に変換します。
+
 ```shell
-$ xa '{a: 1}, {b: 2} >> JSON'
+$ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
+# {a:1;b:2}
+```
+
+## `JSONS` 値のストリームをJSON文字列のストリームに変換
+
+`JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+
+`values` の各要素をJSON形式の文字列に変換するストリームを返します。
+
+```shell
+$ xa '{a: 1}, {b: 2} >> JSONS'
 # {"a":1}
 # {"b":2}
 ```
 
-## `JSOND` JSON文字列を値に変換
+## `JSONSD` JSON文字列のストリームを値のストリームに変換
 
-`JSOND(json: STRING | STREAM<STRING>): VALUE | STREAM<VALUE>`
+`JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
-`json` を対応する値に変換します。
-
-ストリームを渡した場合、各要素を変換したストリームを返します。
+`jsons` の各要素を対応する値に変換するストリームを返します。
 
 ```shell
-$ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSOND '
+$ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
 # {a:1}
 # {b:2}
 ```
@@ -720,7 +734,7 @@ $ xa '
   "}",
   "{",
   "  \"b\": 2",
-  "}" >> JSOND
+  "}" >> JSONSD
 '
 # {a:1}
 # {b:2}

@@ -37,11 +37,6 @@ if (typeof Array.prototype.fill === 'undefined') {
     Object.defineProperty(TypedArray.prototype, 'fill', {value: Array.prototype.fill});
   }
 });
-if (typeof Math.log10 === 'undefined') {
-  Math.log10 = function (x) {
-    return Math.log(x) * Math.LOG10E;
-  };
-}
 if (typeof Math.clz32 === 'undefined') {
   Math.clz32 = function (log, LN2) {
     return function (x) {
@@ -52,6 +47,11 @@ if (typeof Math.clz32 === 'undefined') {
       return 31 - (log(asUint) / LN2 | 0) | 0; // the "| 0" acts like math.floor
     };
   }(Math.log, Math.LN2);
+}
+if (typeof Math.log10 === 'undefined') {
+  Math.log10 = function (x) {
+    return Math.log(x) * Math.LOG10E;
+  };
 }
 if (typeof String.prototype.startsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
@@ -1034,6 +1034,12 @@ function drop_0(_this__u8e3s4, n) {
 function getOrNull_1(_this__u8e3s4, index) {
   return (0 <= index ? index <= (charSequenceLength(_this__u8e3s4) - 1 | 0) : false) ? charSequenceGet(_this__u8e3s4, index) : null;
 }
+function first_1(_this__u8e3s4) {
+  // Inline function 'kotlin.text.isEmpty' call
+  if (charSequenceLength(_this__u8e3s4) === 0)
+    throw NoSuchElementException_init_$Create$_0('Char sequence is empty.');
+  return charSequenceGet(_this__u8e3s4, 0);
+}
 function take_1(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
   if (!(n >= 0)) {
@@ -1041,12 +1047,6 @@ function take_1(_this__u8e3s4, n) {
     throw IllegalArgumentException_init_$Create$_0(toString_1(message));
   }
   return substring(_this__u8e3s4, 0, coerceAtMost(n, _this__u8e3s4.length));
-}
-function first_1(_this__u8e3s4) {
-  // Inline function 'kotlin.text.isEmpty' call
-  if (charSequenceLength(_this__u8e3s4) === 0)
-    throw NoSuchElementException_init_$Create$_0('Char sequence is empty.');
-  return charSequenceGet(_this__u8e3s4, 0);
 }
 function dropLast_1(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
@@ -13382,6 +13382,7 @@ export {
   _UByteArray___init__impl__ip4y9n as _UByteArray___init__impl__ip4y9ndqanl1uze050,
   _UByteArray___init__impl__ip4y9n_0 as _UByteArray___init__impl__ip4y9n23n7lz0x7gq72,
   UByteArray__get_impl_t5f3hv as UByteArray__get_impl_t5f3hvz1l7xhrol2kb,
+  UByteArray__iterator_impl_509y1p as UByteArray__iterator_impl_509y1p1i8dt8fm4jnd6,
   UByteArray__set_impl_jvcicn as UByteArray__set_impl_jvcicnym486up0f2lk,
   _UByteArray___get_size__impl__h6pkdv as _UByteArray___get_size__impl__h6pkdv1cve284ztupz4,
   _UByteArray___get_storage__impl__d4kctt as _UByteArray___get_storage__impl__d4kctt25iva2n6yox0m,

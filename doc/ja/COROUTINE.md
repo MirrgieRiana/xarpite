@@ -41,6 +41,44 @@ $ xa '
 # apple
 ```
 
+---
+
+`function` の戻り値がストリームだった場合、自動的に1度だけイテレートし、その要素列のコピーを保持し、 `await` 時にはコピーされたストリームが返されます。
+
+このため、 `LAUNCH` ブロックの末尾の処理はどのような状況でも必ず丁度1回だけ実行されます。
+
+```shell
+$ xa '
+  promises := [PROMISE.new(), PROMISE.new(), PROMISE.new()]
+  LAUNCH ( =>
+    0 .. 2 | (
+      promises(_)::complete(_ * 10)
+    )
+  )
+  promises(0)::await(), promises(1)::await(), promises(2)::await()
+'
+# 0
+# 10
+# 20
+```
+
+```shell
+$ xa '
+  counter := 0
+  promise := LAUNCH ( =>
+    1 .. 3 | (
+      counter = counter + 1
+      counter
+    )
+  )
+  [promise::await()], [promise::await()], [promise::await()], counter
+'
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# 3
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。
