@@ -29,7 +29,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val byteArray = (arguments[0] as FluoriteBlob).value
                         val sb = StringBuilder()
-                        sb.append('[')
+                        sb.append("BLOB[")
                         @OptIn(ExperimentalUnsignedTypes::class)
                         byteArray.forEachIndexed { i, value ->
                             if (i != 0) sb.append(';')
