@@ -12,7 +12,7 @@ fun createCommonMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteVal
         createMathMounts(),
         createConvertMounts(),
         createStreamMounts(),
-        createDataConvertMounts(),
+        createDataConversionMounts(),
         createStringMounts(),
     ).flatten()
 }

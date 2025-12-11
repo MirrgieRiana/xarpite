@@ -14,7 +14,7 @@ import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
 
-fun createDataConvertMounts(): List<Map<String, FluoriteValue>> {
+fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
