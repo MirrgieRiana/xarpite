@@ -12,10 +12,10 @@ import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
-import mirrg.xarpite.compilers.objects.toFluoriteStream
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -62,16 +62,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             val promise = FluoritePromise()
             coroutineScope.launch {
                 try {
-                    val value = function.invoke(emptyArray())
-                    if (value is FluoriteStream) {
-                        val list = mutableListOf<FluoriteValue>()
-                        value.collect { item ->
-                            list += item
-                        }
-                        promise.deferred.complete(list.toFluoriteStream())
-                    } else {
-                        promise.deferred.complete(value)
-                    }
+                    promise.deferred.complete(function.invoke(emptyArray()).cache())
                 } catch (e: Throwable) {
                     promise.deferred.completeExceptionally(e)
                 }

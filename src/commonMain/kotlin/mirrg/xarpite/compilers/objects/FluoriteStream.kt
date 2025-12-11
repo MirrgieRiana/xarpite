@@ -118,3 +118,15 @@ suspend fun FluoriteValue.consume() {
         }
     }
 }
+
+suspend fun FluoriteValue.cache(): FluoriteValue {
+    return if (this is FluoriteStream) {
+        val list = mutableListOf<FluoriteValue>()
+        this.collect { item ->
+            list += item
+        }
+        list.toFluoriteStream()
+    } else {
+        this
+    }
+}
