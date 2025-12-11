@@ -101,6 +101,48 @@ class CoroutineTest {
     }
 
     @Test
+    fun streamLaunch() = runTest {
+
+        // LAUNCH ラムダの戻り値のストリームは、awaitされなくても1度だけイテレートされる
+        """
+            promises := [PROMISE.new(), PROMISE.new()]
+            LAUNCH ( =>
+                0 .. 1 | promises(_)::complete()
+            )
+            promises(0)::await()
+            promises(1)::await()
+            TRUE
+        """.let { assertTrue(eval(it).boolean) }
+
+        // LAUNCH ラムダの戻り値のストリームは、何度awaitしても必ず1度だけ評価される
+        """
+            counter := 0
+            promise := LAUNCH ( =>
+                1 .. 10 | counter = counter + _
+            )
+            promise::await()
+            promise::await()
+            promise::await()
+            promise::await()
+            promise::await()
+            counter
+        """.let { assertEquals(55, eval(it).int) }
+
+        // LAUNCH ラムダの戻り値のストリームは、何度awaitしても最初に評価されたときと同じシーケンスを返す
+        """
+            counter := 0
+            promise := LAUNCH ( =>
+                0 ~ 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            promise::await(), promise::await(), promise::await(), counter
+        """.let { assertEquals("1,2,3,1,2,3,1,2,3,3", eval(it).stream()) }
+
+    }
+
+    @Test
     fun sleep() = runTest {
         // runTestを使うとdelayが即終了するので待機時間のテストは行わない
 
