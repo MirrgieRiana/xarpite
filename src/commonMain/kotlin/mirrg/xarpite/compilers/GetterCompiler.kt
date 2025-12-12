@@ -193,13 +193,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val getters = node.stringContents.map {
                 when (it) {
                     is LiteralStringContent -> LiteralStringGetter(it.string)
-
-                    is NodeStringContent -> {
-                        val frame = Frame(this)
-                        val newNode = frame.compileToGetter(it.main)
-                        ConversionStringGetter(NewEnvironmentGetter(frame.nextVariableIndex, frame.mountCount, newNode))
-                    }
-
+                    is NodeStringContent -> ConversionStringGetter(compileToGetter(it.main))
                     is FormattedStringContent -> FormattedStringGetter(it.formatter, compileToGetter(it.main))
                 }
             }

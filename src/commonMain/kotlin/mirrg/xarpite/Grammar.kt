@@ -107,10 +107,12 @@ object XarpiteGrammar {
     val embeddedStringContent: Parser<StringContent> by lazy {
         or(
             embeddedStringCharacter.oneOrMore map { LiteralStringContent(it.join("")) },
-            -"<%=" * -b * parser { expression } * -b * -"%>" map { NodeStringContent(it) }, // <%= expression %>
+            // %> が開始と埋め込みの終端を兼ねているため、expressionには出来ない
+            // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
+            -"<%=" * -b * parser { stream } * -b * -"%>" map { NodeStringContent(it) },
         )
     }
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" map { EmbeddedStringNode(it) } // %>string<%
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !(+'%' * +'=') map { EmbeddedStringNode(it) } // %>string<%
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字

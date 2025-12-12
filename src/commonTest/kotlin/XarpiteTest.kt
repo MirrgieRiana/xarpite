@@ -285,9 +285,16 @@ class XarpiteTest {
         assertEquals(" 10 ", eval(" %> <%= 1 < 2 ? 10 : 100 %> <% ").string) // 式の埋め込み
         assertEquals(" abc ", eval(" %> <%= %>abc<% %> <% ").string) // 入れ子状の埋め込み
 
-        assertEquals("_30_10_10", eval(" a := 10; b := %>_<%= a := 20; a = 30; a %>_<%= a %>_<%; b & a ").string) // スコープを作る
+        assertEquals("_30_10_10", eval(" a := 10; b := %>_<%= (a := 20; a = 30; a) %>_<%= a %>_<%; b & a ").string) // expressionは置けない
 
         assertEquals("\n \n \n", eval(" %>\n \r \r\n<% ").string) // 改行は \n に統一される
+
+        """
+             %> <%=
+                 123
+             %> <%
+        """.let { assertEquals("123", eval(it).string.trim()) } // <%= の後で改行しても正しくパースされる
+
     }
 
     @Test
