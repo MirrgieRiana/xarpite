@@ -29,20 +29,14 @@ fun createMathMounts(): List<Map<String, FluoriteValue>> {
         "PI" to FluoriteDouble(3.141592653589793), // TODO kotlinアップデート時に定数に置換し直す
         "ABS" to FluoriteFunction { arguments ->
             when (arguments.size) {
-                1 -> {
-                    val number = arguments[0].toFluoriteNumber()
-                    when (number) {
-                        is FluoriteInt -> {
-                            // INT_MINの場合、absが存在しないのでDoubleにフォールバック
-                            if (number.value == Int.MIN_VALUE) {
-                                FluoriteDouble(abs(number.value.toDouble()))
-                            } else {
-                                FluoriteInt(abs(number.value))
-                            }
-                        }
-                        is FluoriteDouble -> FluoriteDouble(abs(number.value))
-                        else -> throw IllegalStateException("Unexpected FluoriteNumber type: ${number::class}")
+                1 -> when (val number = arguments[0].toFluoriteNumber()) {
+                    is FluoriteInt -> if (number.value == Int.MIN_VALUE) {
+                        FluoriteDouble(abs(number.value.toDouble()))
+                    } else {
+                        FluoriteInt(abs(number.value))
                     }
+                    is FluoriteDouble -> FluoriteDouble(abs(number.value))
+                    else -> throw IllegalStateException("Unexpected FluoriteNumber type: ${number::class}")
                 }
 
                 else -> usage("ABS(value: NUMBER): NUMBER")

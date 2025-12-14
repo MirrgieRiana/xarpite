@@ -21,26 +21,13 @@ class MathTest {
 
     @Test
     fun abs() = runTest {
-        // 正の整数の絶対値
-        assertEquals(10, eval("ABS(10)").int)
-        
-        // 負の整数の絶対値
-        assertEquals(10, eval("ABS(-10)").int)
-        
-        // 0の絶対値
-        assertEquals(0, eval("ABS(0)").int)
-        
-        // 正の浮動小数点数の絶対値
-        assertEquals(10.5, eval("ABS(10.5)").double, 0.001)
-        
-        // 負の浮動小数点数の絶対値
-        assertEquals(10.5, eval("ABS(-10.5)").double, 0.001)
-        
-        // INT_MINの場合はDoubleにフォールバック
-        assertEquals(2147483648.0, eval("ABS(-2147483648)").double, 0.001)
-        
-        // 文字列からの変換もテスト
-        assertEquals(10, eval("ABS('-10')").int)
+        assertEquals(10, eval("ABS(10)").int) // 正の整数
+        assertEquals(10, eval("ABS(-10)").int) // 負の整数
+        assertEquals(0, eval("ABS(0)").int) // 0
+        assertEquals(10.5, eval("ABS(10.5)").double, 0.001) // 正の浮動小数点数
+        assertEquals(10.5, eval("ABS(-10.5)").double, 0.001) // 負の浮動小数点数
+        assertEquals(2147483648.0, eval("ABS(-2147483648)").double, 0.001) // INT_MINはDoubleにフォールバック
+        assertEquals(10, eval("ABS('-10')").int) // 文字列からの変換
     }
 
     @Test
