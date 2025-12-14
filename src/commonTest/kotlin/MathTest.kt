@@ -20,6 +20,17 @@ class MathTest {
     }
 
     @Test
+    fun abs() = runTest {
+        assertEquals(10, eval("ABS(10)").int) // 正の整数
+        assertEquals(10, eval("ABS(-10)").int) // 負の整数
+        assertEquals(0, eval("ABS(0)").int) // 0
+        assertEquals(10.5, eval("ABS(10.5)").double, 0.001) // 正の浮動小数点数
+        assertEquals(10.5, eval("ABS(-10.5)").double, 0.001) // 負の浮動小数点数
+        assertEquals(2147483648.0, eval("ABS(-2147483648)").double, 0.001) // INT_MINはDoubleにフォールバック
+        assertEquals(10, eval("ABS('-10')").int) // 文字列からの変換
+    }
+
+    @Test
     fun div() = runTest {
         assertEquals(3, eval("DIV(10; 3)").int) // DIV関数は小数点以下を絶対値の小さい方に切り捨てる
 

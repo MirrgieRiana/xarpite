@@ -45,6 +45,17 @@
 
 # 数学系関数
 
+## `ABS` 絶対値の取得
+
+`ABS(value: NUMBER): NUMBER`
+
+第1引数の絶対値を返します。
+
+```shell
+$ xa 'ABS(-10)'
+# 10
+```
+
 ## `FLOOR` 小数点以下切り捨て
 
 `FLOOR(number: NUMBER): INTEGER`
