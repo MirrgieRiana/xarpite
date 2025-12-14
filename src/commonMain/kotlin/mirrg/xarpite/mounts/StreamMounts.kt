@@ -54,23 +54,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> SHUFFLE(stream: T,): T,")
             }
         },
-        "DISTINCT" to FluoriteFunction { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                if (stream is FluoriteStream) {
-                    FluoriteStream {
-                        val set = mutableSetOf<FluoriteValue>()
-                        stream.collect { item ->
-                            if (set.add(item)) emit(item)
-                        }
-                    }
-                } else {
-                    stream
-                }
-            } else {
-                usage("DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>")
-            }
-        },
+        "DISTINCT" to createDistinctFunction(),
         "JOIN" to FluoriteFunction { arguments ->
             val separator: String
             val stream: FluoriteValue
