@@ -1,12 +1,15 @@
-name: Build
+name: Check
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
 
@@ -22,8 +25,13 @@ jobs:
           java-version: 17
           distribution: adopt
 
-      - name: ビルド
-        run: bash gradlew clean build --stacktrace
+      - name: Gradleキャッシュの設定
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: ビルドとテスト
+        run: bash gradlew clean build --stacktrace --info
 
       - name: レポートをアップロード
         if: failure()
