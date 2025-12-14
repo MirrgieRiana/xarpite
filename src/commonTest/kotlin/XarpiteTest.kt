@@ -418,7 +418,21 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
         assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
-        assertEquals("1,2,3", eval("1, 2, 3 !? 'error'").stream()) // !? は左辺のストリームを解決する
+        
+        // !? は左辺のストリームを解決する（副作用が1度だけ生じる）
+        // ストリームが消費された場合
+        """
+            count := 0
+            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
+            [[stream], [stream], [stream], count]
+        """.let { assertEquals("[[1;2;3];[1;2;3];[1;2;3];3]", eval(it).array()) }
+        
+        // ストリームが消費されない場合でも副作用が生じる
+        """
+            count := 0
+            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
+            count
+        """.let { assertEquals(3, eval(it).int) }
     }
 
     @Test
@@ -816,6 +830,13 @@ class XarpiteTest {
     @Test
     fun tryRunnerTest() = runTest {
         assertEquals("end", eval("(1 .. 3 | !!'error') !? 'ignore'; 'end'").string) // パイプRunnerの中でエラーが発生してもキャッチできる
+        
+        // !? を文として使用した場合でも、左辺のストリームが解決される（副作用が1度だけ生じる）
+        """
+            count := 0
+            (1 .. 3 | (count = count + 1; count)) !? "error";
+            count
+        """.let { assertEquals(3, eval(it).int) }
     }
 
     @Test
