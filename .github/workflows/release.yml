@@ -9,29 +9,22 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - name: Javaのセットアップ
-        uses: actions/setup-java@v3
-        with:
-          java-version: 21
-          distribution: temurin
-
-      - name: Gradleキャッシュの復元
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: gradle
-
       - name: リポジトリのチェックアウト（ビルド用）
         uses: actions/checkout@v4
         with:
           path: build-dir
           fetch-depth: 1
 
-      - name: validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
+      - name: Javaのセットアップ
+        uses: actions/setup-java@v4
         with:
-          path: build-dir
+          java-version: 21
+          distribution: temurin
+
+      - name: Gradleキャッシュの設定
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: build-dir
 
       - name: ビルド
         run: |
