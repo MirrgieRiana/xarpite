@@ -22,8 +22,8 @@ jobs:
       - name: Javaのセットアップ
         uses: actions/setup-java@v3
         with:
-          java-version: 17
-          distribution: adopt
+          java-version: 21
+          distribution: temurin
 
       - name: Gradleキャッシュの設定
         uses: gradle/actions/setup-gradle@v3
