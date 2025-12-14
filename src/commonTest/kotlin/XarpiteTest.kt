@@ -418,6 +418,7 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
         assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
+        assertEquals("1,2,3", eval("1, 2, 3 !? 'error'").stream()) // !? は左辺のストリームを解決する
     }
 
     @Test
