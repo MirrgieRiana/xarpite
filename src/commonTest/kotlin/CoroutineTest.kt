@@ -23,10 +23,10 @@ class CoroutineTest {
             trigger := PROMISE.new()
             sb::push << "A"
             job := LAUNCH ( =>
-                sb::push << "C"
-                trigger::await()
-                sb::push << "F"
-                123
+              sb::push << "C"
+              trigger::await()
+              sb::push << "F"
+              123
             )
             sb::push << "B" // LAUNCHは遅延して開始する
             SLEEP() // ここで一旦サスペンドして次のイベントに回す
@@ -47,10 +47,10 @@ class CoroutineTest {
         """
             trigger := PROMISE.new()
             job := LAUNCH ( =>
-                (
-                    trigger::await()
-                    !!"Fail"
-                ) !? TRUE
+              (
+                trigger::await()
+                !!"Fail"
+              ) !? TRUE
             )
             SLEEP()
             trigger::fail()
@@ -61,7 +61,7 @@ class CoroutineTest {
         """
             trigger := PROMISE.new()
             job := LAUNCH ( =>
-                trigger::await()
+              trigger::await()
             )
             SLEEP()
             trigger::complete()
@@ -72,7 +72,7 @@ class CoroutineTest {
         """
             trigger := PROMISE.new()
             job := LAUNCH ( =>
-                trigger::await()
+              trigger::await()
             )
             SLEEP()
             trigger::complete(123)
@@ -83,10 +83,10 @@ class CoroutineTest {
         """
             trigger := PROMISE.new()
             job := LAUNCH ( =>
-                (
-                    trigger::await()
-                    !!"Fail"
-                ) !? (e => e)
+              (
+                trigger::await()
+                !!"Fail"
+              ) !? (e => e)
             )
             SLEEP()
             trigger::fail("ERROR")
@@ -107,7 +107,7 @@ class CoroutineTest {
         """
             promises := [PROMISE.new(), PROMISE.new()]
             LAUNCH ( =>
-                0 .. 1 | promises(_)::complete()
+              0 .. 1 | promises(_)::complete()
             )
             promises(0)::await()
             promises(1)::await()
@@ -118,7 +118,7 @@ class CoroutineTest {
         """
             counter := 0
             promise := LAUNCH ( =>
-                1 .. 10 | counter = counter + _
+              1 .. 10 | counter = counter + _
             )
             promise::await()
             promise::await()
@@ -132,10 +132,10 @@ class CoroutineTest {
         """
             counter := 0
             promise := LAUNCH ( =>
-                0 ~ 3 | (
-                    counter = counter + 1
-                    counter
-                )
+              0 ~ 3 | (
+                counter = counter + 1
+                counter
+              )
             )
             promise::await(), promise::await(), promise::await(), counter
         """.let { assertEquals("1,2,3,1,2,3,1,2,3,3", eval(it).stream()) }

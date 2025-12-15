@@ -1115,8 +1115,8 @@ class XarpiteTest {
         """
             run := block -> block()
             run ( =>
-                return !! 123
-                456
+              return !! 123
+              456
             ) !: return
         """.let { assertEquals(123, eval(it).int) }
 
