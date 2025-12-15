@@ -25,7 +25,7 @@ fun createDistinctFunction(): FluoriteFunction {
                 stream
             }
         }
-        run { // DISTINCT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+        run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
             if (arguments.size != 2) return@run
             val entry = arguments[0]
             if (entry !is FluoriteArray) return@run
@@ -50,7 +50,7 @@ fun createDistinctFunction(): FluoriteFunction {
         }
         usage(
             "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
-            "DISTINCT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+            "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
         )
     }
 }

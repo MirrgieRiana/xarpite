@@ -213,9 +213,9 @@ $ xa '1, 2, 3, 3, 3, 2, 1, 0 >> DISTINCT'
 
 ### キー取得関数による重複判定
 
-`DISTINCT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-第1引数が `by` パラメータである場合、第2引数の各要素に対して `key_getter` 関数を適用し、その結果で重複を判定します。
+第1引数が `by` パラメータである場合、第2引数の各要素に対して `keyGetter` 関数を適用し、その結果で重複を判定します。
 
 以下の例では、各要素を10で割った余りで重複を判定しています。
 
