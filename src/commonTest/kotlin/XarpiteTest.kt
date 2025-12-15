@@ -419,20 +419,20 @@ class XarpiteTest {
         assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
         
-        // !? は左辺のストリームを解決する（副作用が1度だけ生じる）
-        // ストリームが消費された場合
+        // !? は左辺のストリームを遅延評価で返す（キャッシュしない）
+        // ストリームが複数回消費された場合、副作用は複数回発生する
         """
             count := 0
             stream := (1 .. 3 | (count = count + 1; count)) !? "error"
             [[stream], [stream], [stream], count]
-        """.let { assertEquals("[[1;2;3];[1;2;3];[1;2;3];3]", eval(it).array()) }
+        """.let { assertEquals("[[1;2;3];[4;5;6];[7;8;9];9]", eval(it).array()) }
         
-        // ストリームが消費されない場合でも副作用が生じる
+        // ストリームが消費されない場合は副作用も発生しない
         """
             count := 0
             stream := (1 .. 3 | (count = count + 1; count)) !? "error"
             count
-        """.let { assertEquals(3, eval(it).int) }
+        """.let { assertEquals(0, eval(it).int) }
     }
 
     @Test
