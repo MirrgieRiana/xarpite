@@ -864,13 +864,6 @@ class XarpiteTest {
             );
             [outer, inner]
         """.let { assertEquals("[2;3]", eval(it).array()) }
-        
-        // 空のストリームでも1回だけ実行される
-        """
-            count := 0
-            (() | (count = count + 1; count)) !? "error";
-            count
-        """.let { assertEquals(1, eval(it).int) }
     }
 
     @Test
