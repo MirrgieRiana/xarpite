@@ -49,10 +49,9 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             } else {
                 Pair("_", node.right)
             }
-            val leftGetter = compileToGetter(node.left)
             val newFrame = Frame(this)
             val argumentVariableIndex = newFrame.defineVariable(name)
-            listOf(TryCatchRunner(listOf(GetterRunner(leftGetter)), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
+            listOf(TryCatchRunner(compileToRunner(node.left), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
         }
 
         is InfixExclamationColonNode -> {
