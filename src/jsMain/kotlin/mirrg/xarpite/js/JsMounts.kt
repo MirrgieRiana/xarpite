@@ -9,7 +9,7 @@ import kotlin.js.Promise
 fun createJsMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "JS_OBJECT" to FluoriteJsObject.fluoriteClass,
-        "WINDOW" to convertToFluoriteValue(js("typeof window === 'undefined' ? null : window")),
+        "WINDOW" to convertToFluoriteValue(getWindowObject()),
         "ASYNC" to FluoriteFunction { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
             val function = arguments[0] as FluoriteFunction
@@ -27,3 +27,5 @@ fun createJsMounts(): List<Map<String, FluoriteValue>> {
         },
     ).let { listOf(it) }
 }
+
+private fun getWindowObject(): dynamic = js("typeof window === 'undefined' ? null : window")
