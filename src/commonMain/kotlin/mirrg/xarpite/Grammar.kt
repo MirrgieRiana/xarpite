@@ -139,6 +139,7 @@ object XarpiteGrammar {
         -'?' map { ::UnaryQuestionNode },
         -'!' * !'!' map { ::UnaryExclamationNode },
         -'&' map { ::UnaryAmpersandNode },
+        -'*' map { ::UnaryAsteriskNode },
         -"$#" map { ::UnaryDollarSharpNode },
         -"$&" map { ::UnaryDollarAmpersandNode },
         -"$*" map { ::UnaryDollarAsteriskNode },
