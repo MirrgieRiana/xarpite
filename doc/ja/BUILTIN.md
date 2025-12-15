@@ -494,7 +494,7 @@ $ xa '
   {category: "fruit" ; value: "apple" },
   {category: "fruit" ; value: "banana"},
   {category: "animal"; value: "cat"   },
->> GROUP[by: x -> x.category]
+  >> GROUP[by: x -> x.category]
 '
 # [fruit;[{category:fruit;value:apple};{category:fruit;value:banana}]]
 # [animal;[{category:animal;value:cat}]]
@@ -510,8 +510,8 @@ $ xa '
     {category: "fruit" ; value: "apple" },
     {category: "fruit" ; value: "banana"},
     {category: "animal"; value: "cat"   },
->> GROUP[by: x -> x.category]
->> TO_OBJECT
+    >> GROUP[by: x -> x.category]
+    >> TO_OBJECT
   )
   object.fruit() | _.value
 '
