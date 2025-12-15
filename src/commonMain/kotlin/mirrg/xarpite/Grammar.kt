@@ -143,6 +143,7 @@ object XarpiteGrammar {
         -"$&" map { ::UnaryDollarAmpersandNode },
         -"$*" map { ::UnaryDollarAsteriskNode },
         -'@' map { ::UnaryAtNode },
+        -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
         -s * -'(' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },

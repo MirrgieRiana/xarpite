@@ -70,6 +70,7 @@ import mirrg.xarpite.TemplateStringNode
 import mirrg.xarpite.ThrowNode
 import mirrg.xarpite.UnaryAmpersandNode
 import mirrg.xarpite.UnaryAtNode
+import mirrg.xarpite.UnaryBackslashNode
 import mirrg.xarpite.UnaryDollarAmpersandNode
 import mirrg.xarpite.UnaryDollarAsteriskNode
 import mirrg.xarpite.UnaryDollarSharpNode
@@ -226,6 +227,14 @@ fun Frame.compileToGetter(node: Node): Getter {
         is UnaryDollarAmpersandNode -> ToJsonGetter(compileToGetter(node.main))
         is UnaryDollarAsteriskNode -> FromJsonGetter(compileToGetter(node.main))
         is UnaryAtNode -> throw IllegalArgumentException("Unknown operator: $node")
+        is UnaryBackslashNode -> {
+            // Transform body into lambda: _ -> body
+            val newFrame = Frame(this)
+            val argumentsVariableIndex = newFrame.defineVariable("__")
+            val variableIndex = newFrame.defineVariable("_")
+            val getter = newFrame.compileToGetter(node.main)
+            FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+        }
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))
 
         is ReturnNode -> {
