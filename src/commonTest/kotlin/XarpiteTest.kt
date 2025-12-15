@@ -831,12 +831,46 @@ class XarpiteTest {
     fun tryRunnerTest() = runTest {
         assertEquals("end", eval("(1 .. 3 | !!'error') !? 'ignore'; 'end'").string) // パイプRunnerの中でエラーが発生してもキャッチできる
         
-        // !? を文として使用した場合でも、左辺のストリームが解決される（副作用が1度だけ生じる）
+        // !? を文として使用した場合、左辺のストリームが必ず1回だけ実行される（副作用が1度だけ生じる）
         """
             count := 0
             (1 .. 3 | (count = count + 1; count)) !? "error";
             count
         """.let { assertEquals(3, eval(it).int) }
+        
+        // エラーが発生しない場合でも、左辺のストリームは1回だけ実行される
+        """
+            count := 0
+            (1 .. 3 | (count = count + 1; count)) !? "error";
+            count
+        """.let { assertEquals(3, eval(it).int) }
+        
+        // 複数の文が続く場合でも、それぞれのストリームは1回だけ実行される
+        """
+            count1 := 0
+            (1 .. 2 | (count1 = count1 + 1; count1)) !? "error";
+            count2 := 0
+            (1 .. 3 | (count2 = count2 + 1; count2)) !? "error";
+            [count1, count2]
+        """.let { assertEquals("[2;3]", eval(it).array()) }
+        
+        // ネストした場合でも、各ストリームは1回だけ実行される
+        """
+            outer := 0
+            inner := 0
+            (
+                (1 .. 2 | (outer = outer + 1; outer)) !? "error";
+                (1 .. 3 | (inner = inner + 1; inner)) !? "error"
+            );
+            [outer, inner]
+        """.let { assertEquals("[2;3]", eval(it).array()) }
+        
+        // 空のストリームでも1回だけ実行される
+        """
+            count := 0
+            (() | (count = count + 1; count)) !? "error";
+            count
+        """.let { assertEquals(1, eval(it).int) }
     }
 
     @Test
