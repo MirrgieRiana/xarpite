@@ -32,9 +32,9 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.j6z_1 = fd;
-  this.k6z_1 = new Long(0, 0);
-  this.l6z_1 = false;
+  this.y6z_1 = fd;
+  this.z6z_1 = new Long(0, 0);
+  this.a70_1 = false;
 }
 protoOf(FileSource).y1i = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
@@ -43,29 +43,29 @@ protoOf(FileSource).y1i = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.l6z_1) {
+  if (!!this.a70_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.j6z_1;
+  var tmp0_fd = this.y6z_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.k6z_1);
+  var tmp2_position = toNumber(this.z6z_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.k6z_1;
-  tmp.k6z_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.z6z_1;
+  tmp.z6z_1 = add(this_0, fromInt(readByteCount));
   sink.a1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).v1h = function () {
-  if (this.l6z_1)
+  if (this.a70_1)
     return Unit_instance;
-  this.l6z_1 = true;
-  closeSync(this.j6z_1);
+  this.a70_1 = true;
+  closeSync(this.y6z_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -89,10 +89,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.m6z_1 = 61440;
-  this.n6z_1 = 32768;
-  this.o6z_1 = 16384;
-  this.p6z_1 = 40960;
+  this.b70_1 = 61440;
+  this.c70_1 = 32768;
+  this.d70_1 = 16384;
+  this.e70_1 = 40960;
 }
 protoOf(NodeJsFileSystem).u1h = function (file) {
   var fd = openFd(this, file, 'r');
