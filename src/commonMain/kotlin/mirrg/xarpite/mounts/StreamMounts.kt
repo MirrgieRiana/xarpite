@@ -55,9 +55,11 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "DISTINCT" to FluoriteFunction { arguments ->
-            if (arguments.size == 1) {
+            run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
+                if (arguments.size != 1) return@run
                 val stream = arguments[0]
-                if (stream is FluoriteStream) {
+
+                return@FluoriteFunction if (stream is FluoriteStream) {
                     FluoriteStream {
                         val set = mutableSetOf<FluoriteValue>()
                         stream.collect { item ->
@@ -67,9 +69,34 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 } else {
                     stream
                 }
-            } else {
-                usage("DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>")
             }
+            run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                if (arguments.size != 2) return@run
+                val entry = arguments[0]
+                if (entry !is FluoriteArray) return@run
+                if (entry.values.size != 2) return@run
+                val parameterName = entry.values[0]
+                if (parameterName !is FluoriteString) return@run
+                if (parameterName.value != "by") return@run
+                val keyGetter = entry.values[1]
+                val stream = arguments[1]
+
+                return@FluoriteFunction if (stream is FluoriteStream) {
+                    FluoriteStream {
+                        val set = mutableSetOf<FluoriteValue>()
+                        stream.collect { item ->
+                            val key = keyGetter.invoke(arrayOf(item))
+                            if (set.add(key)) emit(item)
+                        }
+                    }
+                } else {
+                    stream
+                }
+            }
+            usage(
+                "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
+                "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+            )
         },
         "JOIN" to FluoriteFunction { arguments ->
             val separator: String
