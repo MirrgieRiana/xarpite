@@ -42,6 +42,22 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val newFrame
     override val code get() = "TryCatchRunner[${leftRunners.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
 }
 
+class TryCatchWithConsumeRunner(private val leftGetter: Getter, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightRunners: List<Runner>) : Runner {
+    override suspend fun evaluate(env: Environment) {
+        try {
+            leftGetter.evaluate(env).consume()
+        } catch (e: FluoriteException) {
+            val newEnv = Environment(env, 1, 0)
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
+            rightRunners.forEach {
+                it.evaluate(newEnv)
+            }
+        }
+    }
+
+    override val code get() = "TryCatchWithConsumeRunner[${leftGetter.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
+}
+
 class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         try {
