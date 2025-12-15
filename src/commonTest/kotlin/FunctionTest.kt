@@ -124,21 +124,21 @@ class FunctionTest {
     @Test
     fun backslashOperator() = runTest {
         // 前置 \ 演算子は _ -> body という1引数のラムダ式を作る
-        assertEquals(10, eval("(\\10)(5)").int) // 引数を無視して定数を返す
-        assertEquals(5, eval("(\\_)(5)").int) // 引数をそのまま返す
-        assertEquals(15, eval("(\\(_ + 10))(5)").int) // 引数を使った計算
-        assertEquals(50, eval("(\\(_ * 10))(5)").int) // 引数を使った乗算
-        assertEquals(3, eval("(\\(_ - 2))(5)").int) // 引数から減算
+        assertEquals(10, eval("""(\10)(5)""").int) // 引数を無視して定数を返す
+        assertEquals(5, eval("""(\(_))(5)""").int) // 引数をそのまま返す
+        assertEquals(15, eval("""(\(_ + 10))(5)""").int) // 引数を使った計算
+        assertEquals(50, eval("""(\(_ * 10))(5)""").int) // 引数を使った乗算
+        assertEquals(3, eval("""(\(_ - 2))(5)""").int) // 引数から減算
         
         // 後置 \ 演算子も同様に動作する
-        assertEquals(10, eval("10.\\(5)").int) // 後置版: 定数を返す
-        assertEquals(5, eval("_.\\(5)").int) // 後置版: 引数をそのまま返す
-        assertEquals(15, eval("(_ + 10).\\(5)").int) // 後置版: 引数を使った計算
-        assertEquals(3, eval("(_ - 2).\\(5)").int) // 後置版: 引数から減算
+        assertEquals(10, eval("""10.\(5)""").int) // 後置版: 定数を返す
+        assertEquals(5, eval("""_.\(5)""").int) // 後置版: 引数をそのまま返す
+        assertEquals(15, eval("""(_ + 10).\(5)""").int) // 後置版: 引数を使った計算
+        assertEquals(3, eval("""(_ - 2).\(5)""").int) // 後置版: 引数から減算
         
         // 関数を変数に代入して使用
-        assertEquals(15, eval("f := \\(_ + 10); f(5)").int) // 変数に代入して使用
-        assertEquals(20, eval("g := \\(_ * 2); g(10)").int) // 別の変数で使用
+        assertEquals(15, eval("""f := \(_ + 10); f(5)""").int) // 変数に代入して使用
+        assertEquals(20, eval("""g := \(_ * 2); g(10)""").int) // 別の変数で使用
     }
 
 }
