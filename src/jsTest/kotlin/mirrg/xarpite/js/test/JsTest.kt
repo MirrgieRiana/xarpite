@@ -18,6 +18,11 @@ class JsTest {
     }
 
     @Test
+    fun window() = runTest {
+        assertEquals(FluoriteNull, evalJs("WINDOW")) // WINDOW は利用できない場合 NULL
+    }
+
+    @Test
     fun property() = runTest {
         val evaluator = Evaluator()
         evaluator.defineMounts(createDefaultBuiltinMounts())
