@@ -145,8 +145,8 @@ class FunctionTest {
     fun asteriskOperator() = runTest {
         // 前置 * 演算子は、 `_` を唯一の引数として関数を呼び出す
         assertEquals(10, eval("10 | *(x -> 10)").int) // 引数を無視して定数を返す
-        assertEquals(10, eval("10 | *(x -> x)").int) // `_` の値を引数 x としてそのまま返す
-        assertEquals(15, eval("10 | *(x -> x + 5)").int) // `_` を使った計算
+        assertEquals(10, eval("10 | *(x -> x)").int) // パイプで渡された値をそのまま返す
+        assertEquals(15, eval("10 | *(x -> x + 5)").int) // パイプで渡された値に計算を行う
 
         // ストリームに対しても各要素を引数に呼び出せる
         assertEquals("[2;1;0;1;2]", eval("[ -2 .. 2 | *ABS ]").array())
