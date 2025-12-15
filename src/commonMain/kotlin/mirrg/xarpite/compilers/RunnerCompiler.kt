@@ -20,7 +20,6 @@ import mirrg.xarpite.operations.LabelRunner
 import mirrg.xarpite.operations.MountRunner
 import mirrg.xarpite.operations.Runner
 import mirrg.xarpite.operations.TryCatchRunner
-import mirrg.xarpite.operations.TryCatchWithConsumeRunner
 import mirrg.xarpite.operations.VariableDefinitionSetter
 
 fun Frame.compileToRunner(node: Node): List<Runner> {
@@ -53,7 +52,7 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             val leftGetter = compileToGetter(node.left)
             val newFrame = Frame(this)
             val argumentVariableIndex = newFrame.defineVariable(name)
-            listOf(TryCatchWithConsumeRunner(leftGetter, newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
+            listOf(TryCatchRunner(listOf(GetterRunner(leftGetter)), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
         }
 
         is InfixExclamationColonNode -> {
