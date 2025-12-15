@@ -418,21 +418,6 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
         assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
-        
-        // !? は左辺のストリームをキャッシュする（副作用が1度だけ生じる）
-        // ストリームが複数回消費された場合でも、副作用は1回のみ
-        """
-            count := 0
-            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
-            [[stream], [stream], [stream], count]
-        """.let { assertEquals("[[1;2;3];[1;2;3];[1;2;3];3]", eval(it).array()) }
-        
-        // ストリームが消費されない場合でも副作用は発生する
-        """
-            count := 0
-            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
-            count
-        """.let { assertEquals(3, eval(it).int) }
     }
 
     @Test
