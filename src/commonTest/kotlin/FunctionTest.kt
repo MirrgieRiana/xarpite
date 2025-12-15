@@ -143,7 +143,7 @@ class FunctionTest {
 
     @Test
     fun asteriskOperator() = runTest {
-        // 前置 * 演算子は、 `_` を唯一の引数として関数を呼び出す
+        // 前置 * 演算子は、 `_` の値を引数として関数を呼び出す
         assertEquals(10, eval("10 | *(x -> 10)").int) // 引数を無視して定数を返す
         assertEquals(10, eval("10 | *(x -> x)").int) // パイプで渡された値をそのまま返す
         assertEquals(15, eval("10 | *(x -> x + 5)").int) // パイプで渡された値に計算を行う
