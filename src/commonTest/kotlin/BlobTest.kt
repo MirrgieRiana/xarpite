@@ -23,6 +23,19 @@ class BlobTest {
     }
 
     @Test
+    fun ofFromNumber() = runTest {
+        // 数値が直接渡された場合：小数点以下の四捨五入と下位8ビット以外のビットの削除
+        assertEquals("123", (eval("BLOB.of(123)").blob)) // 整数
+        assertEquals("1", (eval("BLOB.of(1.4)").blob)) // 小数点以下切り捨て（四捨五入）
+        assertEquals("2", (eval("BLOB.of(1.6)").blob)) // 小数点以下切り上げ（四捨五入）
+        assertEquals("0", (eval("BLOB.of(256)").blob)) // 256で0にオーバーフローする
+        assertEquals("255", (eval("BLOB.of(-1)").blob)) // -1でも255にオーバーフローする
+        assertEquals("1", (eval("BLOB.of(257)").blob)) // 下位8ビットだけが使われる
+        assertEquals("0", (eval("BLOB.of(0)").blob)) // 0
+        assertEquals("255", (eval("BLOB.of(255)").blob)) // 255
+    }
+
+    @Test
     fun ofFromBlob() = runTest {
         assertEquals("1,2,3", (eval("BLOB.of(BLOB.of([1,2,3]))").blob)) // BLOBからの生成
         assertEquals("", (eval("BLOB.of(BLOB.of([]))").blob)) // 空BLOBの場合
@@ -62,6 +75,35 @@ class BlobTest {
             BLOB.of(
                 [],
                 [],
+            )
+        """).blob))
+
+        // ストリームから生成：数値、配列、BLOBの混在
+        assertEquals("10,20,30,40,50,60", (eval("""
+            BLOB.of(
+                10,
+                [20, 30],
+                BLOB.of([40, 50]),
+                60,
+            )
+        """).blob))
+
+        // ストリームから生成：数値のみ
+        assertEquals("1,2,3", (eval("""
+            BLOB.of(
+                1,
+                2,
+                3,
+            )
+        """).blob))
+
+        // ストリームから生成：数値と小数の混在（四捨五入確認）
+        assertEquals("1,2,2,4", (eval("""
+            BLOB.of(
+                1.4,
+                1.6,
+                2.4,
+                3.5,
             )
         """).blob))
     }
