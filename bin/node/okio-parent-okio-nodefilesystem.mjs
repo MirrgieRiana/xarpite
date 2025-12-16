@@ -1,6 +1,7 @@
 import {
   readSync as readSync,
   closeSync as closeSync,
+  opendirSync as opendirSync,
   openSync as openSync,
 } from 'fs';
 import {
@@ -17,6 +18,9 @@ import {
   add85si75olwt6n as add,
   protoOf180f3jzyo7rfj as protoOf,
   initMetadataForClassbxx6q50dy2s7 as initMetadataForClass,
+  ArrayList_init_$Create$149jv2ovkkvnt as ArrayList_init_$Create$,
+  sort15ai02l4kxbfa as sort,
+  ensureNotNull1e947j3ixpazm as ensureNotNull,
   initMetadataForObject1cxne3s9w65el as initMetadataForObject,
   VOID3gxj6tk5isa35 as VOID,
 } from './kotlin-kotlin-stdlib.mjs';
@@ -32,44 +36,81 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.e71_1 = fd;
-  this.f71_1 = new Long(0, 0);
-  this.g71_1 = false;
+  this.b72_1 = fd;
+  this.c72_1 = new Long(0, 0);
+  this.d72_1 = false;
 }
-protoOf(FileSource).y1i = function (sink, byteCount) {
+protoOf(FileSource).k1j = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.g71_1) {
+  if (!!this.d72_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.e71_1;
+  var tmp0_fd = this.b72_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.f71_1);
+  var tmp2_position = toNumber(this.c72_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.f71_1;
-  tmp.f71_1 = add(this_0, fromInt(readByteCount));
-  sink.a1h(data, 0, readByteCount);
+  var this_0 = this.c72_1;
+  tmp.c72_1 = add(this_0, fromInt(readByteCount));
+  sink.b1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
-protoOf(FileSource).v1h = function () {
-  if (this.g71_1)
+protoOf(FileSource).d1i = function () {
+  if (this.d72_1)
     return Unit_instance;
-  this.g71_1 = true;
-  closeSync(this.e71_1);
+  this.d72_1 = true;
+  closeSync(this.b72_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
   return _this__u8e3s4.code;
+}
+function list($this, dir, throwOnFailure) {
+  try {
+    var opendir = opendirSync(dir.toString());
+    try {
+      // Inline function 'kotlin.collections.mutableListOf' call
+      var result = ArrayList_init_$Create$();
+      $l$loop: while (true) {
+        var tmp0_elvis_lhs = opendir.readSync();
+        var tmp;
+        if (tmp0_elvis_lhs == null) {
+          break $l$loop;
+        } else {
+          tmp = tmp0_elvis_lhs;
+        }
+        var dirent = tmp;
+        // Inline function 'kotlin.collections.plusAssign' call
+        var element = dir.s1j(dirent.name);
+        result.j(element);
+      }
+      sort(result);
+      return result;
+    }finally {
+      opendir.closeSync();
+    }
+  } catch ($p) {
+    if ($p instanceof Error) {
+      var e = $p;
+      if (throwOnFailure) {
+        throw toIOException($this, e);
+      } else {
+        return null;
+      }
+    } else {
+      throw $p;
+    }
+  }
 }
 function openFd($this, file, flags) {
   try {
@@ -89,12 +130,15 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.h71_1 = 61440;
-  this.i71_1 = 32768;
-  this.j71_1 = 16384;
-  this.k71_1 = 40960;
+  this.e72_1 = 61440;
+  this.f72_1 = 32768;
+  this.g72_1 = 16384;
+  this.h72_1 = 40960;
 }
-protoOf(NodeJsFileSystem).u1h = function (file) {
+protoOf(NodeJsFileSystem).b1i = function (dir) {
+  return ensureNotNull(list(this, dir, true));
+};
+protoOf(NodeJsFileSystem).c1i = function (file) {
   var fd = openFd(this, file, 'r');
   return new FileSource(fd);
 };

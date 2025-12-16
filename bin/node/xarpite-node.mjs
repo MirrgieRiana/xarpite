@@ -89,14 +89,14 @@ function readLineFromStdinIterator$delegate$lambda() {
 function readLineFromStdinIterator$delegate$lambda$slambda(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).b72 = function ($this$flow, $completion) {
-  var tmp = this.c72($this$flow, $completion);
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).y72 = function ($this$flow, $completion) {
+  var tmp = this.z72($this$flow, $completion);
   tmp.l8_1 = Unit_instance;
   tmp.m8_1 = null;
   return tmp.r8();
 };
 protoOf(readLineFromStdinIterator$delegate$lambda$slambda).a9 = function (p1, $completion) {
-  return this.b72((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
+  return this.y72((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
   var suspendResult = this.l8_1;
@@ -107,11 +107,11 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
         case 0:
           this.k8_1 = 11;
           get_process().stdin.setEncoding('utf8');
-          this.a72_1 = function (x) {
+          this.x72_1 = function (x) {
             return x[Symbol.asyncIterator]();
           }(get_process().stdin);
-          this.u71_1 = StringBuilder_init_$Create$();
-          this.v71_1 = false;
+          this.r72_1 = StringBuilder_init_$Create$();
+          this.s72_1 = false;
           this.j8_1 = 1;
           continue $sm;
         case 1:
@@ -121,7 +121,7 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
           }
 
           this.j8_1 = 2;
-          var this_0 = this.a72_1.next();
+          var this_0 = this.x72_1.next();
           suspendResult = await_0(this_0, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
@@ -129,12 +129,12 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
 
           continue $sm;
         case 2:
-          this.z71_1 = suspendResult;
-          if (this.z71_1.done) {
-            var this_1 = this.u71_1;
+          this.w72_1 = suspendResult;
+          if (this.w72_1.done) {
+            var this_1 = this.r72_1;
             if (charSequenceLength(this_1) > 0) {
               this.j8_1 = 9;
-              suspendResult = this.t71_1.w21(this.u71_1.toString(), this);
+              suspendResult = this.q72_1.k22(this.r72_1.toString(), this);
               if (suspendResult === get_COROUTINE_SUSPENDED()) {
                 return suspendResult;
               }
@@ -150,19 +150,19 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
 
         case 3:
           var tmp_0 = this;
-          tmp_0.x71_1 = this.z71_1.value;
-          this.y71_1 = 0;
+          tmp_0.u72_1 = this.w72_1.value;
+          this.v72_1 = 0;
           this.j8_1 = 4;
           continue $sm;
         case 4:
-          if (!(this.y71_1 < this.x71_1.length)) {
+          if (!(this.v72_1 < this.u72_1.length)) {
             this.j8_1 = 8;
             continue $sm;
           }
 
-          if (this.v71_1 && charCodeAt(this.x71_1, this.y71_1) === _Char___init__impl__6a9atx(10)) {
-            this.y71_1 = this.y71_1 + 1 | 0;
-            this.v71_1 = false;
+          if (this.s72_1 && charCodeAt(this.u72_1, this.v72_1) === _Char___init__impl__6a9atx(10)) {
+            this.v72_1 = this.v72_1 + 1 | 0;
+            this.s72_1 = false;
             this.j8_1 = 4;
             continue $sm;
           } else {
@@ -171,8 +171,8 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
           }
 
         case 5:
-          var r = indexOf(this.x71_1, _Char___init__impl__6a9atx(13), this.y71_1);
-          var n = indexOf(this.x71_1, _Char___init__impl__6a9atx(10), this.y71_1);
+          var r = indexOf(this.u72_1, _Char___init__impl__6a9atx(13), this.v72_1);
+          var n = indexOf(this.u72_1, _Char___init__impl__6a9atx(10), this.v72_1);
           var tmp_1 = this;
           var tmp_2;
           if (r === -1) {
@@ -183,17 +183,17 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
             tmp_2 = Math.min(r, n);
           }
 
-          tmp_1.w71_1 = tmp_2;
-          if (this.w71_1 === -1) {
-            this.u71_1.q7(substring_0(this.x71_1, this.y71_1));
-            this.y71_1 = this.x71_1.length;
-            this.v71_1 = false;
+          tmp_1.t72_1 = tmp_2;
+          if (this.t72_1 === -1) {
+            this.r72_1.q7(substring_0(this.u72_1, this.v72_1));
+            this.v72_1 = this.u72_1.length;
+            this.s72_1 = false;
             this.j8_1 = 7;
             continue $sm;
           } else {
-            this.u71_1.q7(substring(this.x71_1, this.y71_1, this.w71_1));
+            this.r72_1.q7(substring(this.u72_1, this.v72_1, this.t72_1));
             this.j8_1 = 6;
-            suspendResult = this.t71_1.w21(this.u71_1.toString(), this);
+            suspendResult = this.q72_1.k22(this.r72_1.toString(), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -201,9 +201,9 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
           }
 
         case 6:
-          this.u71_1.ob();
-          this.y71_1 = this.w71_1 + 1 | 0;
-          this.v71_1 = charCodeAt(this.x71_1, this.w71_1) === _Char___init__impl__6a9atx(13);
+          this.r72_1.ob();
+          this.v72_1 = this.t72_1 + 1 | 0;
+          this.s72_1 = charCodeAt(this.u72_1, this.t72_1) === _Char___init__impl__6a9atx(13);
           this.j8_1 = 7;
           continue $sm;
         case 7:
@@ -213,7 +213,7 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
           this.j8_1 = 1;
           continue $sm;
         case 9:
-          this.u71_1.ob();
+          this.r72_1.ob();
           this.j8_1 = 10;
           continue $sm;
         case 10:
@@ -235,15 +235,15 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
     }
    while (true);
 };
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).c72 = function ($this$flow, completion) {
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).z72 = function ($this$flow, completion) {
   var i = new readLineFromStdinIterator$delegate$lambda$slambda(completion);
-  i.t71_1 = $this$flow;
+  i.q72_1 = $this$flow;
   return i;
 };
 function readLineFromStdinIterator$delegate$lambda$slambda_0(resultContinuation) {
   var i = new readLineFromStdinIterator$delegate$lambda$slambda(resultContinuation);
   var l = function ($this$flow, $completion) {
-    return i.b72($this$flow, $completion);
+    return i.y72($this$flow, $completion);
   };
   l.$arity = 1;
   return l;
@@ -279,14 +279,14 @@ function main$lambda_0() {
 function main$slambda(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(main$slambda).l72 = function ($completion) {
-  var tmp = this.p4h($completion);
+protoOf(main$slambda).i73 = function ($completion) {
+  var tmp = this.m4i($completion);
   tmp.l8_1 = Unit_instance;
   tmp.m8_1 = null;
   return tmp.r8();
 };
-protoOf(main$slambda).q4h = function ($completion) {
-  return this.l72($completion);
+protoOf(main$slambda).n4i = function ($completion) {
+  return this.i73($completion);
 };
 protoOf(main$slambda).r8 = function () {
   var suspendResult = this.l8_1;
@@ -297,7 +297,7 @@ protoOf(main$slambda).r8 = function () {
         case 0:
           this.k8_1 = 3;
           this.j8_1 = 1;
-          suspendResult = get_readLineFromStdinIterator().q1z(this);
+          suspendResult = get_readLineFromStdinIterator().e20(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -305,12 +305,12 @@ protoOf(main$slambda).r8 = function () {
           this.j8_1 = 2;
           continue $sm;
         case 1:
-          var unboxed = suspendResult.k1x_1;
+          var unboxed = suspendResult.y1x_1;
           suspendResult = new ChannelResult(unboxed);
           this.j8_1 = 2;
           continue $sm;
         case 2:
-          var ARGUMENT = suspendResult.k1x_1;
+          var ARGUMENT = suspendResult.y1x_1;
           return ChannelResult__getOrNull_impl_f5e07h(ARGUMENT);
         case 3:
           throw this.m8_1;
@@ -326,13 +326,13 @@ protoOf(main$slambda).r8 = function () {
     }
    while (true);
 };
-protoOf(main$slambda).p4h = function (completion) {
+protoOf(main$slambda).m4i = function (completion) {
   return new main$slambda(completion);
 };
 function main$slambda_0(resultContinuation) {
   var i = new main$slambda(resultContinuation);
   var l = function ($completion) {
-    return i.l72($completion);
+    return i.i73($completion);
   };
   l.$arity = 0;
   return l;
@@ -341,17 +341,17 @@ function main$slambda$lambda() {
   return createJsMounts();
 }
 function main$slambda_1($options, resultContinuation) {
-  this.u72_1 = $options;
+  this.r73_1 = $options;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(main$slambda_1).k23 = function ($this$coroutineScope, $completion) {
-  var tmp = this.l23($this$coroutineScope, $completion);
+protoOf(main$slambda_1).y23 = function ($this$coroutineScope, $completion) {
+  var tmp = this.z23($this$coroutineScope, $completion);
   tmp.l8_1 = Unit_instance;
   tmp.m8_1 = null;
   return tmp.r8();
 };
 protoOf(main$slambda_1).a9 = function (p1, $completion) {
-  return this.k23((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.y23((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(main$slambda_1).r8 = function () {
   var suspendResult = this.l8_1;
@@ -362,7 +362,7 @@ protoOf(main$slambda_1).r8 = function () {
         case 0:
           this.k8_1 = 2;
           this.j8_1 = 1;
-          suspendResult = main(this.u72_1, this.v72_1, main$slambda$lambda, this);
+          suspendResult = main(this.r73_1, this.s73_1, main$slambda$lambda, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -384,15 +384,15 @@ protoOf(main$slambda_1).r8 = function () {
     }
    while (true);
 };
-protoOf(main$slambda_1).l23 = function ($this$coroutineScope, completion) {
-  var i = new main$slambda_1(this.u72_1, completion);
-  i.v72_1 = $this$coroutineScope;
+protoOf(main$slambda_1).z23 = function ($this$coroutineScope, completion) {
+  var i = new main$slambda_1(this.r73_1, completion);
+  i.s73_1 = $this$coroutineScope;
   return i;
 };
 function main$slambda_2($options, resultContinuation) {
   var i = new main$slambda_1($options, resultContinuation);
   var l = function ($this$coroutineScope, $completion) {
-    return i.k23($this$coroutineScope, $completion);
+    return i.y23($this$coroutineScope, $completion);
   };
   l.$arity = 1;
   return l;
