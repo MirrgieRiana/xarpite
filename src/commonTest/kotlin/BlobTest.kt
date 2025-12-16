@@ -26,8 +26,8 @@ class BlobTest {
     fun ofFromNumber() = runTest {
         // 数値が直接渡された場合：小数点以下の四捨五入と下位8ビット以外のビットの削除
         assertEquals("123", (eval("BLOB.of(123)").blob)) // 整数
-        assertEquals("1", (eval("BLOB.of(1.4)").blob)) // 小数点以下切り捨て（四捨五入）
-        assertEquals("2", (eval("BLOB.of(1.6)").blob)) // 小数点以下切り上げ（四捨五入）
+        assertEquals("1", (eval("BLOB.of(1.4)").blob)) // 1.4 -> 1 (四捨五入)
+        assertEquals("2", (eval("BLOB.of(1.6)").blob)) // 1.6 -> 2 (四捨五入)
         assertEquals("0", (eval("BLOB.of(256)").blob)) // 256で0にオーバーフローする
         assertEquals("255", (eval("BLOB.of(-1)").blob)) // -1でも255にオーバーフローする
         assertEquals("1", (eval("BLOB.of(257)").blob)) // 下位8ビットだけが使われる
