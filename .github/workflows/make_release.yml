@@ -1,0 +1,70 @@
+name: Make Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'リリースタグ (例: v1.0.0)'
+        required: true
+        type: string
+      commit_hash:
+        description: 'コミットハッシュ'
+        required: true
+        type: string
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: タグフォーマットの検証
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "エラー: タグは v~ 形式（例: v1.0.0）である必要があります"
+            exit 1
+          fi
+          echo "タグフォーマットは正しいです: $TAG"
+
+      - name: コミットの検証
+        run: |
+          COMMIT="${{ github.event.inputs.commit_hash }}"
+
+          # コミットが存在するか確認
+          if ! git cat-file -e "$COMMIT^{commit}" 2>/dev/null; then
+            echo "エラー: コミット $COMMIT が見つかりません"
+            exit 1
+          fi
+
+          # コミットがmainブランチの経路上にあるか確認
+          if ! git merge-base --is-ancestor "$COMMIT" origin/main; then
+            echo "エラー: コミット $COMMIT はmainブランチの経路上にありません"
+            exit 1
+          fi
+
+          echo "コミットは有効です: $COMMIT"
+
+      - name: タグの作成とプッシュ
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          COMMIT="${{ github.event.inputs.commit_hash }}"
+
+          # タグが既に存在するか確認
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "エラー: タグ $TAG は既に存在します"
+            exit 1
+          fi
+
+          # タグを作成
+          git tag "$TAG" "$COMMIT"
+
+          # タグをプッシュ
+          git push origin "$TAG"
+
+          echo "タグ $TAG をコミット $COMMIT に作成してプッシュしました"
