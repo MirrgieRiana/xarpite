@@ -23,6 +23,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -287,6 +288,24 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             } else {
                 usage("LAST(stream: STREAM<VALUE>): VALUE")
+            }
+        },
+        "SINGLE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    var result: FluoriteValue? = null
+                    value.collect { item ->
+                        if (result != null) throw FluoriteException("Stream has multiple elements".toFluoriteString())
+                        result = item
+                    }
+                    if (result == null) throw FluoriteException("Stream is empty".toFluoriteString())
+                    result
+                } else {
+                    value
+                }
+            } else {
+                usage("SINGLE(stream: STREAM<VALUE>): VALUE")
             }
         },
         "REDUCE" to FluoriteFunction { arguments ->
