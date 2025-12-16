@@ -123,6 +123,18 @@ class DataConversionTest {
             >> UTF8D
         """).string) // ストリームのBLOBを連結してデコード
 
+        // BLOBの境界がUTF-8文字の途中で分割されている場合でも正しく動作する
+        assertEquals("αβγ", eval("""
+            BLOB.of([206]),
+            BLOB.of([177, 206, 178]),
+            BLOB.of([206, 179])
+            >> UTF8D
+        """).string) // UTF-8文字の途中で分割されたBLOBを正しくデコード
+
+        // UTF8D は改行文字の正規化を行わない
+        assertEquals("a\r\nb\nc\rd", eval(""" BLOB.of([97, 13, 10, 98, 10, 99, 13, 100]) >> UTF8D """).string) // \r\n, \n, \r がそのまま保持される
+        assertEquals("line1\r\nline2\nline3\r", eval(""" "line1\r\nline2\nline3\r" >> UTF8 >> UTF8D """).string) // 改行文字は変換されない
+
         // UTF8とUTF8Dは逆変換の関係
         assertEquals("Hello, World!", eval(""" "Hello, World!" >> UTF8 >> UTF8D """).string)
         assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> UTF8D """).string)
