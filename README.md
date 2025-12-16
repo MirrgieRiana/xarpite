@@ -96,7 +96,7 @@ This is useful if you want to place Xarpite in the current directory without ins
 
 # DOCUMENTATION
 
-- [Japanese](https://mirrgieriana.github.io/xarpite/doc/ja/INDEX)
+- [Japanese](https://mirrgieriana.github.io/xarpite/docs/ja/index)
 
 ---
 
