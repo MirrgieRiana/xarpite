@@ -1,0 +1,80 @@
+name: Make Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Tag (/^v[0-9.+\-a-zA-Z]+$/)'
+        required: true
+        type: string
+      commit_hash:
+        description: 'Commit Hash'
+        required: true
+        type: string
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: タグフォーマットの検証
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! echo "$TAG" | grep -Eq '^v[0-9.+\-a-zA-Z]+$'; then
+            echo "Error: Invalid tag format: $TAG" >&2
+            exit 1
+          fi
+          echo "Tag: $TAG"
+
+      - name: コミットの検証
+        env:
+          COMMIT: ${{ inputs.commit_hash }}
+        run: |
+
+          # コミットが存在するか確認
+          if ! git cat-file -e "$COMMIT^{commit}" 2>/dev/null; then
+            echo "Error: No such commit: $COMMIT" >&2
+            exit 1
+          fi
+
+          # コミットがmainブランチの経路上にあるか確認
+          if ! git merge-base --is-ancestor "$COMMIT" main; then
+            echo "Error: Commit is not in main: $COMMIT" >&2
+            exit 1
+          fi
+
+          echo "Commit Hash: $COMMIT"
+
+      - name: タグの作成とプッシュ
+        env:
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit_hash }}
+        run: |
+
+          # リモートのタグをフェッチ
+          git fetch --tags
+
+          # タグが既に存在するか確認（ローカルとリモート両方）
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Error: Duplicated tag: $TAG" >&2
+            exit 1
+          fi
+
+          # タグを作成
+          git tag "$TAG" "$COMMIT"
+
+          # タグをプッシュ
+          if ! git push origin "$TAG"; then
+            echo "Error: Can not push" >&2
+            exit 1
+          fi
+
+          echo "OK: $TAG -> $COMMIT"
