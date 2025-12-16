@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release Tag (/^v[0-9.+\-a-zA-Z]+$/)'
+        description: 'Release Tag (/^v[0-9.a-zA-Z+-]+$/)'
         required: true
         type: string
       commit_hash:
@@ -28,7 +28,7 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
         run: |
-          if ! echo "$TAG" | grep -Eq '^v[0-9.+\-a-zA-Z]+$'; then
+          if ! echo "$TAG" | grep -Eq '^v[0-9.a-zA-Z+-]+$'; then
             echo "Error: Invalid tag format: $TAG" >&2
             exit 1
           fi
