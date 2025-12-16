@@ -1,3 +1,4 @@
+import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.get
@@ -39,7 +40,7 @@ actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun readBytesFromStdin(maxSize: Int): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
-        val buffer = allocArray<kotlinx.cinterop.ByteVar>(maxSize)
+        val buffer = allocArray<ByteVar>(maxSize)
         val bytesRead = fread(buffer, 1u, maxSize.toULong(), stdin)
         if (bytesRead <= 0u) null else ByteArray(bytesRead.toInt()) { buffer[it] }
     }
