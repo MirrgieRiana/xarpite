@@ -124,7 +124,7 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("doc") { into("doc") }
+    from("docs") { into("docs") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
@@ -133,7 +133,7 @@ tasks.named("build").configure { dependsOn(bundleRelease) }
 // Doc Shell Tests
 
 val generateDocShellTests = tasks.register("generateDocShellTests") {
-    val docsDir = file("doc/ja")
+    val docsDir = file("docs/ja")
     val outFile = project.layout.buildDirectory.file("docShellTests/ja.sh")
 
     inputs.dir(docsDir)
