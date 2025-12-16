@@ -38,6 +38,7 @@ import mirrg.xarpite.InfixEqualNode
 import mirrg.xarpite.InfixEqualTildeNode
 import mirrg.xarpite.InfixExclamationColonNode
 import mirrg.xarpite.InfixExclamationIdentifierNode
+import mirrg.xarpite.InfixExclamationPercentPercentNode
 import mirrg.xarpite.InfixExclamationQuestionNode
 import mirrg.xarpite.InfixGreaterGreaterNode
 import mirrg.xarpite.InfixIdentifierNode
@@ -127,6 +128,7 @@ import mirrg.xarpite.operations.ModGetter
 import mirrg.xarpite.operations.MountGetter
 import mirrg.xarpite.operations.NewEnvironmentGetter
 import mirrg.xarpite.operations.NotContainsComparator
+import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
@@ -407,6 +409,7 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixAsteriskNode -> TimesGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixSlashNode -> DivGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixPercentPercentNode -> DivisibleGetter(compileToGetter(node.left), compileToGetter(node.right))
+        is InfixExclamationPercentPercentNode -> NotDivisibleGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixPercentNode -> ModGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixCircumflexNode -> PowerGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixPeriodPeriodNode -> RangeGetter(compileToGetter(node.left), compileToGetter(node.right))

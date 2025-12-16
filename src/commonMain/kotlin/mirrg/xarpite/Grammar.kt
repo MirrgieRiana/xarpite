@@ -171,6 +171,7 @@ object XarpiteGrammar {
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
         -'/' map { ::InfixSlashNode },
+        -"!%%" map { ::InfixExclamationPercentPercentNode },
         -"%%" map { ::InfixPercentPercentNode },
         -'%' map { ::InfixPercentNode },
     )
