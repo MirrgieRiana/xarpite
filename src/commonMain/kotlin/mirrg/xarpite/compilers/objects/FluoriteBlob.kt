@@ -3,6 +3,9 @@ package mirrg.xarpite.compilers.objects
 import mirrg.kotlin.helium.truncate
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.mounts.usage
+import mirrg.xarpite.operations.FluoriteException
+import okio.Buffer
+import okio.use
 
 class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val value: UByteArray) : FluoriteValue {
     companion object {
@@ -10,39 +13,42 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     "of" to FluoriteFunction { arguments ->
-                        @OptIn(ExperimentalUnsignedTypes::class)
-                        suspend fun processItem(item: FluoriteValue): UByteArray {
-                            return when (item) {
-                                is FluoriteArray -> {
-                                    UByteArray(item.values.size) { i ->
-                                        val number = item.values[i]
-                                        number as? FluoriteNumber ?: throw IllegalArgumentException("Invalid element for BLOB: array[$i]: ${"$number".truncate(20)}")
-                                        number.roundToInt().toUByte()
+                        if (arguments.size == 1) {
+                            val array = arguments[0]
+                            Buffer().use { buffer ->
+                                fun processItem(item: FluoriteValue) {
+                                    when (item) {
+                                        is FluoriteNumber -> {
+                                            buffer.writeByte(item.roundToInt())
+                                        }
+
+                                        is FluoriteArray -> {
+                                            item.values.forEach { value ->
+                                                value as? FluoriteNumber ?: throw FluoriteException("Invalid element for BLOB: ${"$value".truncate(20)}".toFluoriteString())
+                                                buffer.writeByte(value.roundToInt())
+                                            }
+                                        }
+
+                                        is FluoriteBlob -> {
+                                            @OptIn(ExperimentalUnsignedTypes::class)
+                                            buffer.write(item.value.asByteArray())
+                                        }
+
+                                        else -> throw FluoriteException("Invalid element for BLOB: ${"$item".truncate(20)}".toFluoriteString())
                                     }
                                 }
-                                is FluoriteBlob -> {
-                                    item.value.copyOf()
+                                if (array is FluoriteStream) {
+                                    array.collect { item ->
+                                        processItem(item)
+                                    }
+                                } else {
+                                    processItem(array)
                                 }
-                                else -> throw IllegalArgumentException("Invalid argument for BLOB.of: ${"$item".truncate(20)}")
-                            }
-                        }
-
-                        @OptIn(ExperimentalUnsignedTypes::class)
-                        if (arguments.size == 1) {
-                            val arg = arguments[0]
-                            // Handle stream case
-                            if (arg is FluoriteStream) {
-                                val allBytes = mutableListOf<UByte>()
-                                arg.collect { item ->
-                                    allBytes.addAll(processItem(item).toList())
-                                }
-                                allBytes.toUByteArray().asFluoriteBlob()
-                            } else {
-                                // Handle single array or BLOB
-                                processItem(arg).asFluoriteBlob()
+                                @OptIn(ExperimentalUnsignedTypes::class)
+                                buffer.readByteArray().asUByteArray().asFluoriteBlob()
                             }
                         } else {
-                            usage("BLOB.of(array: STREAM<BLOB | ARRAY<NUMBER>>): BLOB")
+                            usage("BLOB.of(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB")
                         }
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->

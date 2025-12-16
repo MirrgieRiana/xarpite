@@ -6,15 +6,14 @@ BLOBが格納するバイト列は符号なし8bit整数として管理されま
 
 ## `BLOB.of` 配列からのBLOBの生成
 
-`BLOB.of(array: STREAM<BLOB | ARRAY<NUMBER>>): BLOB`
+`BLOB.of(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB`
 
 `array` から新しいBLOBを生成します。
 
-`array` が配列の場合、各要素は数値からなる配列でなければならず、変換時に小数点以下の四捨五入と下位8ビット以外のビットの削除が行われます。
-
-`array` がBLOBの場合、そのまま新しいBLOBインスタンスにコピーされます。
-
-`array` がストリームの場合、各要素を結合したBLOBを生成します。
+- `array` が数値の場合、小数点以下の四捨五入と下位8ビット以外のビットの削除が行われた状態で新しいBLOBに追加されます。
+- `array` が配列の場合、各要素は数値として処理されます。
+- `array` がBLOBの場合、そのまま新しいBLOBインスタンスにコピーされます。
+- `array` がストリームの場合、各要素が上記の方法で新しいBLOBに追加されます。
 
 ```shell
 $ xa '
