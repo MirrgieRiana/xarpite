@@ -35,5 +35,19 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
         },
+        "FILES" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
+            val dir = arguments[0].toFluoriteString().value
+            val fileSystem = getFileSystem().getOrThrow()
+            FluoriteStream {
+                val entries = fileSystem.list(dir.toPath())
+                    .map { it.name }
+                    .filter { it != "." && it != ".." }
+                    .sorted()
+                for (entry in entries) {
+                    emit(entry.toFluoriteString())
+                }
+            }
+        },
     ).let { listOf(it) }
 }

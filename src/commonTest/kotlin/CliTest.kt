@@ -35,6 +35,31 @@ class CliTest {
         assertEquals("123,456", cliEval("READ(ARGS.0)", file.toString()).stream())
     }
 
+    @Test
+    fun files() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("files.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+        
+        // ディレクトリとファイルを準備
+        fileSystem.createDirectory(dir)
+        fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("banana"))
+        
+        // FILES 関数でファイル一覧を取得
+        val result = cliEval("FILES(ARGS.0)", dir.toString()).stream()
+        
+        // アルファベット順にソートされ、ファイル名のみが返される
+        assertEquals("apple.txt,banana,zebra.txt", result)
+        
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("zebra.txt"))
+        fileSystem.delete(dir.resolve("apple.txt"))
+        fileSystem.delete(dir.resolve("banana"))
+        fileSystem.delete(dir)
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
