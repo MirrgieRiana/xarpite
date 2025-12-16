@@ -8,6 +8,7 @@ import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamMountsTest {
@@ -126,13 +127,13 @@ class StreamMountsTest {
     @Test
     fun single() = runTest {
         // SINGLE with multiple elements should throw error
-        assertEquals("Error", eval("SINGLE(4, 5, 6) !? 'Error'").string)
+        assertFails { eval("SINGLE(4, 5, 6)") }
         
         // SINGLE with single element should return that element
         assertEquals(6, eval("SINGLE(6)").int)
         
         // SINGLE with empty stream should throw error
-        assertEquals("Error", eval("SINGLE(,) !? 'Error'").string)
+        assertFails { eval("SINGLE(,)") }
         
         // SINGLE with single element stream should return that element
         assertEquals(7, eval("SINGLE(7,)").int)
