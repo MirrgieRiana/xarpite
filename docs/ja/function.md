@@ -328,12 +328,12 @@ $ xa -q '
 
 ---
 
-この動作は、 `_()=_` メソッドをオーバーライドすることでカスタマイズできます。
+この動作は、 `_(__)=_` メソッドをオーバーライドすることでカスタマイズできます。
 
 ```shell
 $ xa -q '
   Properties := {
-    `_()=_`: this, key, value -> this.map.(key) = value
+    `_(__)=_`: this, key, value -> this.map.(key) = value
     new: () -> Properties{map: {}}
   }
 
