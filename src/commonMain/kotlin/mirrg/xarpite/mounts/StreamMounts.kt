@@ -289,6 +289,28 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("LAST(stream: STREAM<VALUE>): VALUE")
             }
         },
+        "SINGLE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    var result: FluoriteValue? = null
+                    var count = 0
+                    value.collect { item ->
+                        result = item
+                        count++
+                    }
+                    when (count) {
+                        0 -> throw IllegalArgumentException("Stream is empty")
+                        1 -> result!!
+                        else -> throw IllegalArgumentException("Stream has multiple elements")
+                    }
+                } else {
+                    value
+                }
+            } else {
+                usage("SINGLE(stream: STREAM<VALUE>): VALUE")
+            }
+        },
         "REDUCE" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
                 val function = arguments[0]
