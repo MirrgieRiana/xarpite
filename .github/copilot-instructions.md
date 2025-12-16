@@ -31,7 +31,7 @@ Xarpiteにはテストコードが存在します。
 
 ## GitHub Copilot実装プルリクエスト規定
 
-以下の条件に適合する場合、あなたの命令は[copilot-implementation-pr-instructions.md]にある通りです。
+以下の条件に適合する場合、あなたの命令は [copilot-implementation-pr-instructions.md] にある通りです。
 
 - あなたはGitHub CopilotのAIである。
 - あなたはプルリクエストにアサインされた。
