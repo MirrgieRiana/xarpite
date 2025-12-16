@@ -725,43 +725,6 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 # 変換系関数
 
-## `UTF8` 文字列をUTF-8でエンコードされたBLOBのストリームに変換
-
-`UTF8(string: STRING): STREAM<BLOB>`
-
-`string` をUTF-8でエンコードされたバイト列として表現するBLOBのストリームを返します。
-
-各BLOBのサイズは最大で8192バイトに制限されます。
-
-その境界はUTF-8文字の途中で分割される場合があります。
-
-```shell
-$ xa ' "abc123αβγ" >> UTF8 '
-# BLOB[97, 98, 99, 49, 50, 51, 3, 177, 3, 178, 3, 179]
-```
-
-## `UTF8D` UTF-8でエンコードされたBLOBを文字列に変換
-
-`UTF8D(blob: STREAM<BLOB>): STRING`
-
-`blob` をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
-
-`blob` がストリームであった場合、すべてのBLOBを連結したバイト列をUTF-8文字列に変換します。
-
-したがって、この関数はBLOBの境界がUTF-8文字の途中で分割されている場合でも正しく動作します。
-
-この関数は改行文字の正規化を行いません。
-
-```shell
-$ xa '
-  BLOB.of([H#61, H#62, H#63]),
-  BLOB.of([H#31, H#32, H#33]),
-  BLOB.of([H#03, H#B1, H#03]),
-  BLOB.of([H#B2, H#03, H#B3]),
-  >> UTF8'
-# abc123αβγ
-```
-
 ## `JSON` 値をJSON文字列に変換
 
 `JSON(["indent": indent: STRING; ]value: VALUE): STRING`
