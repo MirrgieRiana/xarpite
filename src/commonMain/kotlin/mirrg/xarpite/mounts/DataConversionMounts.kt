@@ -19,19 +19,13 @@ import mirrg.xarpite.toSingleJsonFluoriteValue
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "UTF8" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
-            fun usage(): Nothing = usage("UTF8(string: STRING): STREAM<BLOB>")
+            fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
             
-            // Convert string to UTF-8 bytes
+            // Convert string to UTF-8 bytes and return as a single BLOB
             val utf8Bytes = string.encodeToByteArray().asUByteArray()
-            
-            // Return as a stream of BLOBs
-            // Note: The documentation mentions 8192 byte chunks, but for typical use cases
-            // a single BLOB is sufficient. Chunking can be implemented if needed for very large strings.
-            FluoriteStream {
-                emit(utf8Bytes.asFluoriteBlob())
-            }
+            utf8Bytes.asFluoriteBlob()
         },
         "UTF8D" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
             fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")

@@ -104,7 +104,7 @@ class DataConversionTest {
 
     @Test
     fun utf8() = runTest {
-        // UTF8 で文字列をUTF-8 BLOBのストリームに変換
+        // UTF8 で文字列をUTF-8 BLOBに変換
         assertEquals("BLOB[97;98;99]", eval(""" "abc" >> UTF8 >> TO_STRING """).string) // ASCII文字列
         assertEquals("BLOB[97;98;99;49;50;51;206;177;206;178;206;179]", eval(""" "abc123αβγ" >> UTF8 >> TO_STRING """).string) // マルチバイト文字を含む文字列
         assertEquals("BLOB[]", eval(""" "" >> UTF8 >> TO_STRING """).string) // 空文字列は空BLOB
