@@ -294,16 +294,18 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 val value = arguments[0]
                 if (value is FluoriteStream) {
                     var result: FluoriteValue? = null
-                    var count = 0
+                    var hasElement = false
                     value.collect { item ->
+                        if (hasElement) {
+                            throw IllegalArgumentException("Stream has multiple elements")
+                        }
                         result = item
-                        count++
+                        hasElement = true
                     }
-                    when (count) {
-                        0 -> throw IllegalArgumentException("Stream is empty")
-                        1 -> result!!
-                        else -> throw IllegalArgumentException("Stream has multiple elements")
+                    if (!hasElement) {
+                        throw IllegalArgumentException("Stream is empty")
                     }
+                    result!!
                 } else {
                     value
                 }
