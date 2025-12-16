@@ -538,6 +538,15 @@ class XarpiteTest {
         assertEquals(true, eval("1.75 %% 0.25").boolean) // 2進数で割り切れるのであれば小数でもよい
         assertEquals(true, eval("25 %% 0.25").boolean) // 右側だけが浮動小数点数でもよい
         assertEquals(true, eval("25.0 %% 5").boolean) // 左側だけが浮動小数点数でもよい
+
+        assertEquals(true, eval("7 !%% 4").boolean) // !%% は割り切れない場合にTRUE
+        assertEquals(false, eval("10 !%% 2").boolean) // !%% は割り切れる場合にFALSE
+        assertEquals(false, eval("-3 !%% 3").boolean) // !%% も負に対応
+        assertEquals(false, eval("10.0 !%% 2.0").boolean) // 浮動小数点数として表現されていてもよい
+        assertEquals(false, eval("1.75 !%% 0.25").boolean) // 2進数で割り切れるのであれば小数でもよい
+        assertEquals(true, eval("1.75 !%% 0.5").boolean) // 割り切れない場合
+        assertEquals(true, eval("7 !%% 4").boolean) // !%% は !(x %% y) と等価
+        assertEquals(eval("!(7 %% 4)").boolean, eval("7 !%% 4").boolean) // !%% と !(x %% y) は同じ結果
     }
 
     @Test

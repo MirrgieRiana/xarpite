@@ -492,6 +492,30 @@ class DivisibleGetter(private val leftGetter: Getter, private val rightGetter: G
     override val code get() = "DivisibleGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
+class NotDivisibleGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val left = leftGetter.evaluate(env)
+        val right = rightGetter.evaluate(env)
+        return when (left) {
+            is FluoriteInt -> when (right) {
+                is FluoriteInt -> (left.value % right.value != 0).toFluoriteBoolean()
+                is FluoriteDouble -> (left.value.toDouble() % right.value != 0.0).toFluoriteBoolean()
+                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+            }
+
+            is FluoriteDouble -> when (right) {
+                is FluoriteInt -> (left.value % right.value.toDouble() != 0.0).toFluoriteBoolean()
+                is FluoriteDouble -> (left.value % right.value != 0.0).toFluoriteBoolean()
+                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+            }
+
+            else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
+        }
+    }
+
+    override val code get() = "NotDivisibleGetter[${leftGetter.code};${rightGetter.code}]"
+}
+
 // TODO to method
 class ModGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
