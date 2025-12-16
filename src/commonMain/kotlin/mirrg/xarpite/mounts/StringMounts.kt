@@ -12,6 +12,13 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 fun createStringMounts(): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
 
+    // String constants for special characters
+    mounts["LT"] = "<".toFluoriteString()
+    mounts["GT"] = ">".toFluoriteString()
+    mounts["AMP"] = "&".toFluoriteString()
+    mounts["APOS"] = "'".toFluoriteString()
+    mounts["QUOT"] = "\"".toFluoriteString()
+
     FluoriteFunction { arguments ->
         if (arguments.size == 1) {
             val argument = arguments[0]

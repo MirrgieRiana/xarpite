@@ -19,4 +19,13 @@ class StringMountsTest {
         assertEquals("AB", eval("'Ab'::UC()").string)
         assertEquals("ab", eval("'Ab'::LC()").string)
     }
+
+    @Test
+    fun stringConstants() = runTest {
+        assertEquals("<", eval("LT").string) // LT定数は < を返す
+        assertEquals(">", eval("GT").string) // GT定数は > を返す
+        assertEquals("&", eval("AMP").string) // AMP定数は & を返す
+        assertEquals("'", eval("APOS").string) // APOS定数は ' を返す
+        assertEquals("\"", eval("QUOT").string) // QUOT定数は " を返す
+    }
 }
