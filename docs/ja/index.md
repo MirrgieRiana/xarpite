@@ -17,6 +17,7 @@
 - [関数](function.md)
 - [ストリーム・代入・パイプ系演算子](stream.md)
 - [組み込み定数・関数](builtin.md)
+- [データ変換系関数](data_conversion.md)
 - [サンプル](samples.md)
 - [コマンドラインツール](cli.md)
 - [JavaScript版](js.md)

@@ -113,7 +113,7 @@ class FunctionTest {
         """
             value := NULL
             function := {
-                `_()=_`: this, new -> value = new
+                `_(__)=_`: this, new -> value = new
             }{}
             function() = 123
             value

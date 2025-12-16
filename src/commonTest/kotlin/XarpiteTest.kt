@@ -478,10 +478,10 @@ class XarpiteTest {
     @Test
     fun invokeTest() = runTest {
         assertEquals(123, eval("(a -> a + 23)(100)").int) // function() で関数を呼び出せる
-        assertEquals(123, eval("(a -> a + 23)::`_()`(100)").int) // INVOKEメソッドでも関数を呼び出せる
-        assertEquals(123, eval("{`_()`: this, a, b -> a + b + 3}{}(100; 20)").int) // INVOKEメソッドを定義したオブジェクトも関数として呼び出せる
-        assertEquals(123, eval("{`_()`: this, a, b -> a + b + 3}{}[100](20)").int) // INVOKEメソッドを定義したオブジェクトも部分適用できる
-        assertEquals(123, eval("{`_()`: {`_()`: this2, this1, a, b -> a + b}{}}{}(100; 23)").int) // INVOKEの多重追跡
+        assertEquals(123, eval("(a -> a + 23)::`_(__)`(100)").int) // INVOKEメソッドでも関数を呼び出せる
+        assertEquals(123, eval("{`_(__)`: this, a, b -> a + b + 3}{}(100; 20)").int) // INVOKEメソッドを定義したオブジェクトも関数として呼び出せる
+        assertEquals(123, eval("{`_(__)`: this, a, b -> a + b + 3}{}[100](20)").int) // INVOKEメソッドを定義したオブジェクトも部分適用できる
+        assertEquals(123, eval("{`_(__)`: {`_(__)`: this2, this1, a, b -> a + b}{}}{}(100; 23)").int) // INVOKEの多重追跡
     }
 
     @Test
