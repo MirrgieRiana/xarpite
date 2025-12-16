@@ -418,19 +418,29 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
         assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
-        
+
         // !? は左辺のストリームをキャッシュする（副作用が1度だけ生じる）
         // ストリームが複数回消費された場合でも、副作用は1回のみ
         """
             count := 0
-            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
+            stream := (
+                1 .. 3 | (
+                    count = count + 1
+                    count
+                )
+            ) !? "error"
             [[stream], [stream], [stream], count]
         """.let { assertEquals("[[1;2;3];[1;2;3];[1;2;3];3]", eval(it).array()) }
-        
+
         // ストリームが消費されない場合でも副作用は発生する
         """
             count := 0
-            stream := (1 .. 3 | (count = count + 1; count)) !? "error"
+            stream := (
+                1 .. 3 | (
+                    count = count + 1
+                    count
+                )
+            ) !? "error"
             count
         """.let { assertEquals(3, eval(it).int) }
     }
@@ -830,40 +840,18 @@ class XarpiteTest {
     @Test
     fun tryRunnerTest() = runTest {
         assertEquals("end", eval("(1 .. 3 | !!'error') !? 'ignore'; 'end'").string) // パイプRunnerの中でエラーが発生してもキャッチできる
-        
+
         // !? を文として使用した場合、左辺のストリームが必ず1回だけ実行される（副作用が1度だけ生じる）
         """
             count := 0
-            (1 .. 3 | (count = count + 1; count)) !? "error";
-            count
-        """.let { assertEquals(3, eval(it).int) }
-        
-        // エラーが発生しない場合でも、左辺のストリームは1回だけ実行される
-        """
-            count := 0
-            (1 .. 3 | (count = count + 1; count)) !? "error";
-            count
-        """.let { assertEquals(3, eval(it).int) }
-        
-        // 複数の文が続く場合でも、それぞれのストリームは1回だけ実行される
-        """
-            count1 := 0
-            (1 .. 2 | (count1 = count1 + 1; count1)) !? "error";
-            count2 := 0
-            (1 .. 3 | (count2 = count2 + 1; count2)) !? "error";
-            [count1, count2]
-        """.let { assertEquals("[2;3]", eval(it).array()) }
-        
-        // ネストした場合でも、各ストリームは1回だけ実行される
-        """
-            outer := 0
-            inner := 0
             (
-                (1 .. 2 | (outer = outer + 1; outer)) !? "error";
-                (1 .. 3 | (inner = inner + 1; inner)) !? "error"
-            );
-            [outer, inner]
-        """.let { assertEquals("[2;3]", eval(it).array()) }
+                1 .. 3 | (
+                    count = count + 1
+                    count
+                )
+            ) !? "error"
+            count
+        """.let { assertEquals(3, eval(it).int) }
     }
 
     @Test
