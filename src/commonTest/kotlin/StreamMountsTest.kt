@@ -124,6 +124,21 @@ class StreamMountsTest {
     }
 
     @Test
+    fun single() = runTest {
+        // SINGLE with multiple elements should throw error
+        assertEquals("Error", eval("SINGLE(4, 5, 6) !? 'Error'").string)
+        
+        // SINGLE with single element should return that element
+        assertEquals(6, eval("SINGLE(6)").int)
+        
+        // SINGLE with empty stream should throw error
+        assertEquals("Error", eval("SINGLE(,) !? 'Error'").string)
+        
+        // SINGLE with single element stream should return that element
+        assertEquals(7, eval("SINGLE(7,)").int)
+    }
+
+    @Test
     fun group() = runTest {
         assertEquals("[1;[14]],[2;[25]]", eval("14, 25 >> GROUP[by: _ -> _.&.0]").stream()) // GROUPでグループのストリームになる
         assertEquals("[1;[14]]", eval("14 >> GROUP[by: _ -> _.&.0]").stream()) // 要素が1個でもよい
