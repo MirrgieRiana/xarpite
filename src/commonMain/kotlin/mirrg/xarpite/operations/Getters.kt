@@ -717,7 +717,7 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
 class TryCatchWithVariableGetter(private val leftGetter: Getter, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
-            leftGetter.evaluate(env)
+            leftGetter.evaluate(env).cache()
         } catch (e: FluoriteException) {
             val newEnv = Environment(env, 1, 0)
             newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
@@ -731,7 +731,7 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
 class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
-            leftGetter.evaluate(env)
+            leftGetter.evaluate(env).cache()
         } catch (e: FluoriteException) {
             rightGetter.evaluate(env)
         }
