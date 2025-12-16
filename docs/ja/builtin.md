@@ -725,15 +725,11 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 # 変換系関数
 
-## `UTF8` 文字列をUTF-8でエンコードされたBLOBのストリームに変換
+## `UTF8` 文字列をUTF-8でエンコードされたBLOBに変換
 
-`UTF8(string: STRING): STREAM<BLOB>`
+`UTF8(string: STRING): BLOB`
 
-`string` をUTF-8でエンコードされたバイト列として表現するBLOBのストリームを返します。
-
-各BLOBのサイズは最大で8192バイトに制限されます。
-
-その境界はUTF-8文字の途中で分割される場合があります。
+`string` をUTF-8でエンコードしたBLOBを返します。
 
 ```shell
 $ xa ' "abc123αβγ" >> UTF8 '
