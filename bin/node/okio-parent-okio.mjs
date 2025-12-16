@@ -2021,7 +2021,7 @@ protoOf(ByteString).i1i = function () {
   }
   return concatToString_0(result);
 };
-protoOf(ByteString).mb = function (beginIndex, endIndex) {
+protoOf(ByteString).nb = function (beginIndex, endIndex) {
   var tmp$ret$6;
   $l$block: {
     // Inline function 'okio.internal.commonSubstring' call
@@ -2053,7 +2053,7 @@ protoOf(ByteString).mb = function (beginIndex, endIndex) {
 protoOf(ByteString).j1i = function (beginIndex, endIndex, $super) {
   beginIndex = beginIndex === VOID ? 0 : beginIndex;
   endIndex = endIndex === VOID ? get_DEFAULT__ByteString_size() : endIndex;
-  return $super === VOID ? this.mb(beginIndex, endIndex) : $super.mb.call(this, beginIndex, endIndex);
+  return $super === VOID ? this.nb(beginIndex, endIndex) : $super.nb.call(this, beginIndex, endIndex);
 };
 protoOf(ByteString).k1i = function (pos) {
   if (pos >= this.u() || pos < 0)
@@ -2272,7 +2272,7 @@ function SegmentedByteString(segments, directory) {
 protoOf(SegmentedByteString).i1i = function () {
   return toByteString(this).i1i();
 };
-protoOf(SegmentedByteString).mb = function (beginIndex, endIndex) {
+protoOf(SegmentedByteString).nb = function (beginIndex, endIndex) {
   var tmp$ret$6;
   $l$block_0: {
     // Inline function 'okio.internal.commonSubstring' call
@@ -2745,7 +2745,7 @@ protoOf(Buffer).g1j = function (sink, offset, byteCount) {
   }
   return tmp$ret$0;
 };
-protoOf(Buffer).d2 = function () {
+protoOf(Buffer).e2 = function () {
   // Inline function 'okio.internal.commonClear' call
   this.a1h(this.x1g_1);
   return Unit_instance;
@@ -3856,7 +3856,7 @@ protoOf(RealBufferedSource).d1i = function () {
     }
     this.v1j_1 = true;
     this.u1j_1.d1i();
-    this.w1j_1.d2();
+    this.w1j_1.e2();
     tmp$ret$0 = Unit_instance;
   }
   return tmp$ret$0;

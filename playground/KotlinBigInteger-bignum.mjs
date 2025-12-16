@@ -251,8 +251,8 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
     tmp = new Pair(significand, discarded);
   }
   var _destruct__k2r9zo = tmp;
-  var result = _destruct__k2r9zo.pe();
-  var remainder = _destruct__k2r9zo.qe();
+  var result = _destruct__k2r9zo.qe();
+  var remainder = _destruct__k2r9zo.re();
   var tmp_0;
   if (significand.equals(Companion_getInstance_1().s1u_1)) {
     tmp_0 = discarded.y1u_1;
@@ -270,7 +270,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
     }
   }
   var decider = determineDecider($this, remainder);
-  switch (decimalMode.n1u_1.p2_1) {
+  switch (decimalMode.n1u_1.q2_1) {
     case 2:
       if (sign.equals(Sign_POSITIVE_getInstance())) {
         result = result.k1v();
@@ -294,7 +294,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
 
       break;
     case 5:
-      switch (sign.p2_1) {
+      switch (sign.q2_1) {
         case 0:
           if (!decider.equals(SignificantDecider_LESS_THAN_FIVE_getInstance())) {
             result = result.k1v();
@@ -316,7 +316,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
 
       break;
     case 6:
-      switch (sign.p2_1) {
+      switch (sign.q2_1) {
         case 0:
           if (decider.equals(SignificantDecider_MORE_THAN_FIVE_getInstance())) {
             result = result.k1v();
@@ -338,7 +338,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
 
       break;
     case 7:
-      switch (sign.p2_1) {
+      switch (sign.q2_1) {
         case 0:
           if (!decider.equals(SignificantDecider_LESS_THAN_FIVE_getInstance())) {
             result = result.k1v();
@@ -360,7 +360,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
 
       break;
     case 8:
-      switch (sign.p2_1) {
+      switch (sign.q2_1) {
         case 0:
           if (decider.equals(SignificantDecider_MORE_THAN_FIVE_getInstance())) {
             result = result.k1v();
@@ -384,7 +384,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
     case 9:
       if (decider.equals(SignificantDecider_FIVE_getInstance())) {
         if (significand.k1u(2).g1v().equals(Companion_getInstance_1().t1u_1)) {
-          switch (sign.p2_1) {
+          switch (sign.q2_1) {
             case 0:
               result = result.k1v();
               break;
@@ -411,7 +411,7 @@ function roundDiscarded($this, significand, discarded, decimalMode) {
     case 10:
       if (decider.equals(SignificantDecider_FIVE_getInstance())) {
         if (significand.k1u(2).equals(Companion_getInstance_1().s1u_1)) {
-          switch (sign.p2_1) {
+          switch (sign.q2_1) {
             case 0:
               result = result.k1v();
               break;
@@ -588,7 +588,7 @@ protoOf(Companion).w1v = function (significand, exponent, decimalMode) {
   var tmp;
   if (significand.y1u_1.equals(Sign_POSITIVE_getInstance())) {
     var tmp_0;
-    switch (decimalMode.n1u_1.p2_1) {
+    switch (decimalMode.n1u_1.q2_1) {
       case 1:
       case 2:
         var increasedSignificand = significand.k1v();
@@ -602,7 +602,7 @@ protoOf(Companion).w1v = function (significand, exponent, decimalMode) {
     tmp = tmp_0;
   } else if (significand.y1u_1.equals(Sign_NEGATIVE_getInstance())) {
     var tmp_1;
-    switch (decimalMode.n1u_1.p2_1) {
+    switch (decimalMode.n1u_1.q2_1) {
       case 0:
       case 2:
         var increasedSignificand_0 = significand.j1v();
@@ -1021,7 +1021,7 @@ function computeMode($this, other, op) {
     var tmp_1;
     if ($this.b1w_1.q1u_1 && other.b1w_1.q1u_1) {
       var tmp_2;
-      switch (op.p2_1) {
+      switch (op.q2_1) {
         case 0:
           var tmp0_0 = $this.b1w_1.o1u_1;
           // Inline function 'kotlin.math.max' call
@@ -1111,7 +1111,7 @@ function bringSignificandToSameExponent($this, first, second) {
         tmp_4 = new Triple(first.z1v_1, movedSecond_1, firstPreparedExponent);
       } else {
         // Inline function 'kotlin.Long.compareTo' call
-        if (delta.x2(fromInt(0)) === 0) {
+        if (delta.y2(fromInt(0)) === 0) {
           tmp_4 = new Triple(first.z1v_1, second.z1v_1, firstPreparedExponent);
         } else {
           throw RuntimeException_init_$Create$('Invalid delta: ' + delta.toString());
@@ -1250,8 +1250,8 @@ protoOf(BigDecimal).c1x = function (other, decimalMode) {
     return roundOrDont(Companion_getInstance(), this.z1v_1, this.a1w_1, resolvedDecimalMode);
   }
   var _destruct__k2r9zo = bringSignificandToSameExponent(this, this, other);
-  var first = _destruct__k2r9zo.pe();
-  var second = _destruct__k2r9zo.qe();
+  var first = _destruct__k2r9zo.qe();
+  var second = _destruct__k2r9zo.re();
   var firstNumOfDigits = first.b1v();
   var secondNumOfDigits = second.b1v();
   var newSignificand = first.y1t(second);
@@ -1292,8 +1292,8 @@ protoOf(BigDecimal).e1x = function (other, decimalMode) {
     return roundOrDont(Companion_getInstance(), this.z1v_1, this.a1w_1, resolvedDecimalMode);
   }
   var _destruct__k2r9zo = bringSignificandToSameExponent(this, this, other);
-  var first = _destruct__k2r9zo.pe();
-  var second = _destruct__k2r9zo.qe();
+  var first = _destruct__k2r9zo.qe();
+  var second = _destruct__k2r9zo.re();
   var firstNumOfDigits = first.b1v();
   var secondNumOfDigits = second.b1v();
   var newSignificand = first.a1u(second);
@@ -1402,7 +1402,7 @@ protoOf(BigDecimal).i1x = function (other, decimalMode) {
   }
 };
 protoOf(BigDecimal).j1x = function (other) {
-  return this.k1x(other).oe_1;
+  return this.k1x(other).pe_1;
 };
 protoOf(BigDecimal).l1u = function (other) {
   return this.j1x(other instanceof BigDecimal ? other : THROW_CCE());
@@ -1461,7 +1461,7 @@ protoOf(BigDecimal).q1x = function (places) {
 protoOf(BigDecimal).r1x = function () {
   if (compare(this.a1w_1, new Long(0, 0)) < 0) {
     var tmp;
-    switch (this.z1v_1.y1u_1.p2_1) {
+    switch (this.z1v_1.y1u_1.q2_1) {
       case 0:
         tmp = Companion_getInstance().l1v_1;
         break;
@@ -1529,7 +1529,7 @@ protoOf(BigDecimal).h1v = function (exactRequired) {
 };
 protoOf(BigDecimal).y1w = function () {
   var res = this.g1v().t1x(Companion_getInstance().m1v_1);
-  var isWholeNumber = res.oe_1.i1v();
+  var isWholeNumber = res.pe_1.i1v();
   return isWholeNumber;
 };
 protoOf(BigDecimal).k1w = function (decimalMode) {
@@ -1595,8 +1595,8 @@ protoOf(BigDecimal).z1w = function (other) {
     tmp = this.z1v_1.w1x(other.z1v_1);
   } else {
     var _destruct__k2r9zo = bringSignificandToSameExponent(this, this, other);
-    var preparedFirst = _destruct__k2r9zo.pe();
-    var preparedSecond = _destruct__k2r9zo.qe();
+    var preparedFirst = _destruct__k2r9zo.qe();
+    var preparedSecond = _destruct__k2r9zo.re();
     tmp = preparedFirst.w1x(preparedSecond);
   }
   return tmp;
@@ -1629,7 +1629,7 @@ protoOf(BigDecimal).l1x = function (other) {
               if (typeof other === 'number') {
                 tmp = this.z1w(Companion_getInstance().h1w(other));
               } else {
-                throw RuntimeException_init_$Create$('Invalid comparison type for BigDecimal: ' + getKClassFromExpression(other).v9());
+                throw RuntimeException_init_$Create$('Invalid comparison type for BigDecimal: ' + getKClassFromExpression(other).w9());
               }
             }
           }
@@ -1639,7 +1639,7 @@ protoOf(BigDecimal).l1x = function (other) {
   }
   return tmp;
 };
-protoOf(BigDecimal).v1 = function (other) {
+protoOf(BigDecimal).w1 = function (other) {
   return this.l1x(!(other == null) ? other : THROW_CCE());
 };
 protoOf(BigDecimal).equals = function (other) {
@@ -1792,7 +1792,7 @@ protoOf(BigDecimal).b1y = function (_this__u8e3s4, char) {
   var counter = _this__u8e3s4;
   var stringBuilder = StringBuilder_init_$Create$();
   while (compare(counter, new Long(0, 0)) > 0) {
-    stringBuilder.r7(char);
+    stringBuilder.s7(char);
     var _unary__edvuaz = counter;
     counter = subtract(_unary__edvuaz, get_ONE());
   }
@@ -1942,26 +1942,26 @@ function BigInteger_init_$Init$(long, $this) {
       THROW_CCE();
     var tmp_1;
     // Inline function 'kotlin.Long.compareTo' call
-    if (long.x2(fromInt(0)) < 0) {
+    if (long.y2(fromInt(0)) < 0) {
       tmp_1 = Sign_NEGATIVE_getInstance();
     } else {
       // Inline function 'kotlin.Long.compareTo' call
-      if (long.x2(fromInt(0)) > 0) {
+      if (long.y2(fromInt(0)) > 0) {
         tmp_1 = Sign_POSITIVE_getInstance();
       } else {
         tmp_1 = Sign_ZERO_getInstance();
       }
     }
     tmp_0 = tmp_1;
+  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().qa())) {
+    if (typeof long !== 'number')
+      THROW_CCE();
+    tmp_0 = compareTo(long, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(long, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().pa())) {
     if (typeof long !== 'number')
       THROW_CCE();
     tmp_0 = compareTo(long, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(long, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().oa())) {
-    if (typeof long !== 'number')
-      THROW_CCE();
-    tmp_0 = compareTo(long, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(long, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
-  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().na())) {
     if (typeof long !== 'number')
       THROW_CCE();
     tmp_0 = compareTo(long, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(long, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
@@ -1979,24 +1979,28 @@ function BigInteger_init_$Init$_0(int, $this) {
   var tmp = Companion_getInstance_1().r1u_1.e1y(int);
   // Inline function 'com.ionspin.kotlin.bignum.integer.Companion.determinSignFromNumber' call
   Companion_getInstance_1();
-  var tmp22_subject = PrimitiveClasses_getInstance().pa();
+  var tmp22_subject = PrimitiveClasses_getInstance().qa();
   var tmp_0;
   if (tmp22_subject.equals(getKClass(Long))) {
     if (!(int instanceof Long))
       THROW_CCE();
     var tmp_1;
     // Inline function 'kotlin.Long.compareTo' call
-    if (int.x2(fromInt(0)) < 0) {
+    if (int.y2(fromInt(0)) < 0) {
       tmp_1 = Sign_NEGATIVE_getInstance();
     } else {
       // Inline function 'kotlin.Long.compareTo' call
-      if (int.x2(fromInt(0)) > 0) {
+      if (int.y2(fromInt(0)) > 0) {
         tmp_1 = Sign_POSITIVE_getInstance();
       } else {
         tmp_1 = Sign_ZERO_getInstance();
       }
     }
     tmp_0 = tmp_1;
+  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().qa())) {
+    if (typeof int !== 'number')
+      THROW_CCE();
+    tmp_0 = compareTo(int, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(int, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().pa())) {
     if (typeof int !== 'number')
       THROW_CCE();
@@ -2005,12 +2009,8 @@ function BigInteger_init_$Init$_0(int, $this) {
     if (typeof int !== 'number')
       THROW_CCE();
     tmp_0 = compareTo(int, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(int, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
-  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().na())) {
-    if (typeof int !== 'number')
-      THROW_CCE();
-    tmp_0 = compareTo(int, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(int, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else {
-    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().pa()));
+    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().qa()));
   }
   var tmp$ret$2 = tmp_0;
   BigInteger.call($this, tmp, tmp$ret$2);
@@ -2023,24 +2023,28 @@ function BigInteger_init_$Init$_1(short, $this) {
   var tmp = Companion_getInstance_1().r1u_1.f1y(short);
   // Inline function 'com.ionspin.kotlin.bignum.integer.Companion.determinSignFromNumber' call
   Companion_getInstance_1();
-  var tmp22_subject = PrimitiveClasses_getInstance().oa();
+  var tmp22_subject = PrimitiveClasses_getInstance().pa();
   var tmp_0;
   if (tmp22_subject.equals(getKClass(Long))) {
     if (!(short instanceof Long))
       THROW_CCE();
     var tmp_1;
     // Inline function 'kotlin.Long.compareTo' call
-    if (short.x2(fromInt(0)) < 0) {
+    if (short.y2(fromInt(0)) < 0) {
       tmp_1 = Sign_NEGATIVE_getInstance();
     } else {
       // Inline function 'kotlin.Long.compareTo' call
-      if (short.x2(fromInt(0)) > 0) {
+      if (short.y2(fromInt(0)) > 0) {
         tmp_1 = Sign_POSITIVE_getInstance();
       } else {
         tmp_1 = Sign_ZERO_getInstance();
       }
     }
     tmp_0 = tmp_1;
+  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().qa())) {
+    if (typeof short !== 'number')
+      THROW_CCE();
+    tmp_0 = compareTo(short, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(short, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().pa())) {
     if (typeof short !== 'number')
       THROW_CCE();
@@ -2049,12 +2053,8 @@ function BigInteger_init_$Init$_1(short, $this) {
     if (typeof short !== 'number')
       THROW_CCE();
     tmp_0 = compareTo(short, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(short, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
-  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().na())) {
-    if (typeof short !== 'number')
-      THROW_CCE();
-    tmp_0 = compareTo(short, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(short, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else {
-    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().oa()));
+    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().pa()));
   }
   var tmp$ret$2 = tmp_0;
   BigInteger.call($this, tmp, tmp$ret$2);
@@ -2067,24 +2067,28 @@ function BigInteger_init_$Init$_2(byte, $this) {
   var tmp = Companion_getInstance_1().r1u_1.g1y(byte);
   // Inline function 'com.ionspin.kotlin.bignum.integer.Companion.determinSignFromNumber' call
   Companion_getInstance_1();
-  var tmp22_subject = PrimitiveClasses_getInstance().na();
+  var tmp22_subject = PrimitiveClasses_getInstance().oa();
   var tmp_0;
   if (tmp22_subject.equals(getKClass(Long))) {
     if (!(byte instanceof Long))
       THROW_CCE();
     var tmp_1;
     // Inline function 'kotlin.Long.compareTo' call
-    if (byte.x2(fromInt(0)) < 0) {
+    if (byte.y2(fromInt(0)) < 0) {
       tmp_1 = Sign_NEGATIVE_getInstance();
     } else {
       // Inline function 'kotlin.Long.compareTo' call
-      if (byte.x2(fromInt(0)) > 0) {
+      if (byte.y2(fromInt(0)) > 0) {
         tmp_1 = Sign_POSITIVE_getInstance();
       } else {
         tmp_1 = Sign_ZERO_getInstance();
       }
     }
     tmp_0 = tmp_1;
+  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().qa())) {
+    if (typeof byte !== 'number')
+      THROW_CCE();
+    tmp_0 = compareTo(byte, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(byte, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().pa())) {
     if (typeof byte !== 'number')
       THROW_CCE();
@@ -2093,12 +2097,8 @@ function BigInteger_init_$Init$_2(byte, $this) {
     if (typeof byte !== 'number')
       THROW_CCE();
     tmp_0 = compareTo(byte, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(byte, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
-  } else if (tmp22_subject.equals(PrimitiveClasses_getInstance().na())) {
-    if (typeof byte !== 'number')
-      THROW_CCE();
-    tmp_0 = compareTo(byte, 0) < 0 ? Sign_NEGATIVE_getInstance() : compareTo(byte, 0) > 0 ? Sign_POSITIVE_getInstance() : Sign_ZERO_getInstance();
   } else {
-    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().na()));
+    throw RuntimeException_init_$Create$('Unsupported type ' + toString(PrimitiveClasses_getInstance().oa()));
   }
   var tmp$ret$2 = tmp_0;
   BigInteger.call($this, tmp, tmp$ret$2);
@@ -2373,7 +2373,7 @@ protoOf(BigInteger).y1z = function (other) {
   if (other.i1v()) {
     throw ArithmeticException_init_$Create$('Division by zero! ' + this.toString() + ' / ' + other.toString());
   }
-  var result = Companion_getInstance_1().r1u_1.z1z(this.x1u_1, other.x1u_1).ne_1.hl_1;
+  var result = Companion_getInstance_1().r1u_1.z1z(this.x1u_1, other.x1u_1).oe_1.hl_1;
   var tmp;
   if (equals(result, Companion_getInstance_1().r1u_1.h1y())) {
     tmp = Companion_getInstance_1().s1u_1;
@@ -2403,7 +2403,7 @@ protoOf(BigInteger).a20 = function (other) {
     tmp = Sign_POSITIVE_getInstance();
   }
   var sign = tmp;
-  var result = Companion_getInstance_1().r1u_1.z1z(this.x1u_1, other.x1u_1).oe_1.hl_1;
+  var result = Companion_getInstance_1().r1u_1.z1z(this.x1u_1, other.x1u_1).pe_1.hl_1;
   if (equals(result, Companion_getInstance_1().r1u_1.h1y())) {
     sign = Sign_ZERO_getInstance();
   }
@@ -2425,17 +2425,17 @@ protoOf(BigInteger).b20 = function (other) {
   var sign = tmp;
   var result = Companion_getInstance_1().r1u_1.z1z(this.x1u_1, other.x1u_1);
   var tmp_0;
-  if (equals(result.ne_1, new ULongArray(Companion_getInstance_1().r1u_1.h1y()))) {
+  if (equals(result.oe_1, new ULongArray(Companion_getInstance_1().r1u_1.h1y()))) {
     tmp_0 = Companion_getInstance_1().s1u_1;
   } else {
-    tmp_0 = new BigInteger(result.ne_1.hl_1, sign);
+    tmp_0 = new BigInteger(result.oe_1.hl_1, sign);
   }
   var quotient = tmp_0;
   var tmp_1;
-  if (equals(result.oe_1, new ULongArray(Companion_getInstance_1().r1u_1.h1y()))) {
+  if (equals(result.pe_1, new ULongArray(Companion_getInstance_1().r1u_1.h1y()))) {
     tmp_1 = Companion_getInstance_1().s1u_1;
   } else {
-    tmp_1 = new BigInteger(result.oe_1.hl_1, this.y1u_1);
+    tmp_1 = new BigInteger(result.pe_1.hl_1, this.y1u_1);
   }
   var remainder = tmp_1;
   return new Pair(quotient, remainder);
@@ -2505,7 +2505,7 @@ protoOf(BigInteger).d20 = function (exponent) {
 };
 protoOf(BigInteger).x1v = function () {
   var tmp;
-  switch (this.y1u_1.p2_1) {
+  switch (this.y1u_1.q2_1) {
     case 0:
       tmp = 1;
       break;
@@ -2568,7 +2568,7 @@ protoOf(BigInteger).k1v = function () {
 };
 protoOf(BigInteger).d1v = function (other) {
   var result = this.b20(other);
-  return new QuotientAndRemainder(result.ne_1, result.oe_1);
+  return new QuotientAndRemainder(result.oe_1, result.pe_1);
 };
 protoOf(BigInteger).l1x = function (other) {
   if (isNumber(other)) {
@@ -2602,7 +2602,7 @@ protoOf(BigInteger).l1x = function (other) {
                   tmp = this.w1x(Companion_getInstance_1().q1y(other.ml_1));
                 } else {
                   if (other instanceof UByte) {
-                    tmp = this.w1x(Companion_getInstance_1().s1y(other.jk_1));
+                    tmp = this.w1x(Companion_getInstance_1().s1y(other.j1_1));
                   } else {
                     if (typeof other === 'number') {
                       tmp = this.v1y(other, BigInteger$compareTo$lambda(this));
@@ -2624,7 +2624,7 @@ protoOf(BigInteger).l1x = function (other) {
   }
   return tmp;
 };
-protoOf(BigInteger).v1 = function (other) {
+protoOf(BigInteger).w1 = function (other) {
   return this.l1x(!(other == null) ? other : THROW_CCE());
 };
 protoOf(BigInteger).v1y = function (float, comparisonBlock) {
@@ -2692,7 +2692,7 @@ protoOf(BigInteger).equals = function (other) {
                   tmp = this.w1x(Companion_getInstance_1().q1y(other.ml_1));
                 } else {
                   if (other instanceof UByte) {
-                    tmp = this.w1x(Companion_getInstance_1().s1y(other.jk_1));
+                    tmp = this.w1x(Companion_getInstance_1().s1y(other.j1_1));
                   } else {
                     tmp = -1;
                   }
@@ -2760,7 +2760,7 @@ function Sign(name, ordinal) {
 }
 protoOf(Sign).v1z = function () {
   var tmp;
-  switch (this.p2_1) {
+  switch (this.q2_1) {
     case 0:
       tmp = Sign_NEGATIVE_getInstance();
       break;
@@ -2840,13 +2840,13 @@ function Sextuple(a, b, c, d, e, f) {
   this.l20_1 = e;
   this.m20_1 = f;
 }
-protoOf(Sextuple).pe = function () {
+protoOf(Sextuple).qe = function () {
   return this.h20_1;
 };
-protoOf(Sextuple).qe = function () {
+protoOf(Sextuple).re = function () {
   return this.i20_1;
 };
-protoOf(Sextuple).zj = function () {
+protoOf(Sextuple).ak = function () {
   return this.j20_1;
 };
 protoOf(Sextuple).n20 = function () {
@@ -2896,13 +2896,13 @@ function Quadruple(a, b, c, d) {
   this.s20_1 = c;
   this.t20_1 = d;
 }
-protoOf(Quadruple).pe = function () {
+protoOf(Quadruple).qe = function () {
   return this.q20_1;
 };
-protoOf(Quadruple).qe = function () {
+protoOf(Quadruple).re = function () {
   return this.r20_1;
 };
-protoOf(Quadruple).zj = function () {
+protoOf(Quadruple).ak = function () {
   return this.s20_1;
 };
 protoOf(Quadruple).n20 = function () {
@@ -3297,9 +3297,9 @@ protoOf(BigInteger32Arithmetic).x21 = function (first, second) {
     tmp = new Quadruple(_UIntArray___get_size__impl__r6l8ci(second), _UIntArray___get_size__impl__r6l8ci(first), new UIntArray(second), new UIntArray(first));
   }
   var _destruct__k2r9zo = tmp;
-  var maxLength = _destruct__k2r9zo.pe();
-  var minLength = _destruct__k2r9zo.qe();
-  var largerData = _destruct__k2r9zo.zj().yk_1;
+  var maxLength = _destruct__k2r9zo.qe();
+  var minLength = _destruct__k2r9zo.re();
+  var largerData = _destruct__k2r9zo.ak().yk_1;
   var smallerData = _destruct__k2r9zo.n20().yk_1;
   // Inline function 'kotlin.UIntArray' call
   var tmp_0 = 0;
@@ -3417,9 +3417,9 @@ protoOf(BigInteger32Arithmetic).y21 = function (first, second) {
     tmp = new Quadruple(_UIntArray___get_size__impl__r6l8ci(secondWithoutLeadingZeroes), _UIntArray___get_size__impl__r6l8ci(firstWithoutLeadingZeroes), new UIntArray(secondWithoutLeadingZeroes), new UIntArray(firstWithoutLeadingZeroes));
   }
   var _destruct__k2r9zo = tmp;
-  var largerLength = _destruct__k2r9zo.pe();
-  var smallerLength = _destruct__k2r9zo.qe();
-  var largerData = _destruct__k2r9zo.zj().yk_1;
+  var largerLength = _destruct__k2r9zo.qe();
+  var smallerLength = _destruct__k2r9zo.re();
+  var largerData = _destruct__k2r9zo.ak().yk_1;
   var smallerData = _destruct__k2r9zo.n20().yk_1;
   // Inline function 'kotlin.UIntArray' call
   var tmp_0 = 0;
@@ -3662,9 +3662,9 @@ protoOf(BigInteger32Arithmetic).b22 = function (unnormalizedDividend, unnormaliz
     return new Pair(new UIntArray(tmp$ret$4), new UIntArray(this.d22(unnormalizedDividend, unnormalizedDivisor)));
   }
   var _destruct__k2r9zo = this.s21(unnormalizedDividend, unnormalizedDivisor);
-  var dividend = _destruct__k2r9zo.pe().yk_1;
-  var divisor = _destruct__k2r9zo.qe().yk_1;
-  var normalizationShift = _destruct__k2r9zo.zj();
+  var dividend = _destruct__k2r9zo.qe().yk_1;
+  var divisor = _destruct__k2r9zo.re().yk_1;
+  var normalizationShift = _destruct__k2r9zo.ak();
   var dividendSize = _UIntArray___get_size__impl__r6l8ci(dividend);
   var divisorSize = _UIntArray___get_size__impl__r6l8ci(divisor);
   var wordPrecision = dividendSize - divisorSize | 0;
@@ -4491,9 +4491,9 @@ protoOf(BigInteger63Arithmetic).f23 = function (resultArray, resultArrayStart, f
     tmp_1 = new Sextuple(_ULongArray___get_size__impl__ju6dtr(second), _ULongArray___get_size__impl__ju6dtr(first), new ULongArray(second), new ULongArray(first), secondStart, firstStart);
   }
   var _destruct__k2r9zo = tmp_1;
-  var largerLength = _destruct__k2r9zo.pe();
-  var smallerLength = _destruct__k2r9zo.qe();
-  var largerData = _destruct__k2r9zo.zj().hl_1;
+  var largerLength = _destruct__k2r9zo.qe();
+  var smallerLength = _destruct__k2r9zo.re();
+  var largerData = _destruct__k2r9zo.ak().hl_1;
   var smallerData = _destruct__k2r9zo.n20().hl_1;
   var largerStart = _destruct__k2r9zo.o20();
   var smallerStart = _destruct__k2r9zo.p20();
@@ -4560,9 +4560,9 @@ protoOf(BigInteger63Arithmetic).r1z = function (first, second) {
     tmp = new Sextuple(_ULongArray___get_size__impl__ju6dtr(second), _ULongArray___get_size__impl__ju6dtr(first), new ULongArray(second), new ULongArray(first), secondStart, firstStart);
   }
   var _destruct__k2r9zo = tmp;
-  var largerLength = _destruct__k2r9zo.pe();
-  var smallerLength = _destruct__k2r9zo.qe();
-  var largerData = _destruct__k2r9zo.zj().hl_1;
+  var largerLength = _destruct__k2r9zo.qe();
+  var smallerLength = _destruct__k2r9zo.re();
+  var largerData = _destruct__k2r9zo.ak().hl_1;
   var smallerData = _destruct__k2r9zo.n20().hl_1;
   var largerStart = _destruct__k2r9zo.o20();
   var smallerStart = _destruct__k2r9zo.p20();
@@ -4640,9 +4640,9 @@ protoOf(BigInteger63Arithmetic).g23 = function (first, second, firstStart, secon
     tmp = new Quadruple(new ULongArray(second), new ULongArray(first), secondStart, firstStart);
   }
   var _destruct__k2r9zo = tmp;
-  var largerData = _destruct__k2r9zo.pe().hl_1;
-  var smallerData = _destruct__k2r9zo.qe().hl_1;
-  var largerStart = _destruct__k2r9zo.zj();
+  var largerData = _destruct__k2r9zo.qe().hl_1;
+  var smallerData = _destruct__k2r9zo.re().hl_1;
+  var largerStart = _destruct__k2r9zo.ak();
   var smallerStart = _destruct__k2r9zo.n20();
   // Inline function 'kotlin.ULongArray' call
   var tmp_0 = 0;
@@ -4781,8 +4781,8 @@ protoOf(BigInteger63Arithmetic).g22 = function (firstUnchecked, secondUnchecked)
     tmp_9 = new Pair(new ULongArray(first), new ULongArray(second));
   }
   var _destruct__k2r9zo = tmp_9;
-  var firstPrepared = _destruct__k2r9zo.pe().hl_1;
-  var secondPrepared = _destruct__k2r9zo.qe().hl_1;
+  var firstPrepared = _destruct__k2r9zo.qe().hl_1;
+  var secondPrepared = _destruct__k2r9zo.re().hl_1;
   var tmp0 = _ULongArray___get_size__impl__ju6dtr(first);
   // Inline function 'kotlin.math.max' call
   var b = _ULongArray___get_size__impl__ju6dtr(second);
@@ -5003,9 +5003,9 @@ protoOf(BigInteger63Arithmetic).n23 = function (unnormalizedDividend, unnormaliz
     return new Pair(new ULongArray(this.y1y_1), new ULongArray(this.w22(unnormalizedDividend, unnormalizedDivisor)));
   }
   var _destruct__k2r9zo = this.k23(unnormalizedDividend, unnormalizedDivisor);
-  var dividend = _destruct__k2r9zo.pe().hl_1;
-  var divisor = _destruct__k2r9zo.qe().hl_1;
-  var normalizationShift = _destruct__k2r9zo.zj();
+  var dividend = _destruct__k2r9zo.qe().hl_1;
+  var divisor = _destruct__k2r9zo.re().hl_1;
+  var normalizationShift = _destruct__k2r9zo.ak();
   var dividendSize = _ULongArray___get_size__impl__ju6dtr(dividend);
   var divisorSize = _ULongArray___get_size__impl__ju6dtr(divisor);
   var divisorCorrectedSize = _ULongArray___get_size__impl__ju6dtr(divisor) - this.t22(divisor) | 0;
@@ -5045,7 +5045,7 @@ protoOf(BigInteger63Arithmetic).n23 = function (unnormalizedDividend, unnormaliz
       // Inline function 'kotlin.ulongArrayOf' call
       var tmp$ret$6 = _ULongArray___init__impl__twm1l3(longArrayOf([ULongArray__get_impl_pr71q9(divisor, divisorSize - 1 | 0)]));
       var convertedResult = tmp_2.a22(tmp_3, this.p23(tmp$ret$6));
-      qjhat = this.q23(convertedResult.ne_1.yk_1);
+      qjhat = this.q23(convertedResult.oe_1.yk_1);
       var tmp_4 = quotient;
       var tmp_5;
       var tmp_6 = qjhat;
@@ -5453,12 +5453,12 @@ protoOf(BigInteger63Arithmetic).g20 = function (operand, base) {
   var stringBuilder = StringBuilder_init_$Create$();
   while (!equals(copy, this.x1y_1)) {
     var divremResult = this.x23(copy, baseArray);
-    if (ULongArray__isEmpty_impl_c3yngu(divremResult.oe_1.hl_1)) {
-      stringBuilder.hb(0);
+    if (ULongArray__isEmpty_impl_c3yngu(divremResult.pe_1.hl_1)) {
+      stringBuilder.ib(0);
     } else {
-      stringBuilder.q7(toString_1(ULongArray__get_impl_pr71q9(divremResult.oe_1.hl_1, 0), base));
+      stringBuilder.r7(toString_1(ULongArray__get_impl_pr71q9(divremResult.pe_1.hl_1, 0), base));
     }
-    copy = divremResult.ne_1.hl_1;
+    copy = divremResult.oe_1.hl_1;
   }
   // Inline function 'kotlin.text.reversed' call
   var this_0 = stringBuilder.toString();
@@ -5472,8 +5472,8 @@ protoOf(BigInteger63Arithmetic).v23 = function (operand, mask) {
     tmp = new Pair(new ULongArray(mask), new ULongArray(operand));
   }
   var _destruct__k2r9zo = tmp;
-  var bigger = _destruct__k2r9zo.pe().hl_1;
-  var smaller = _destruct__k2r9zo.qe().hl_1;
+  var bigger = _destruct__k2r9zo.qe().hl_1;
+  var smaller = _destruct__k2r9zo.re().hl_1;
   // Inline function 'kotlin.ULongArray' call
   var tmp_0 = 0;
   var tmp_1 = _ULongArray___get_size__impl__ju6dtr(smaller);
@@ -5519,7 +5519,7 @@ protoOf(BigInteger63Arithmetic).w23 = function (_this__u8e3s4, other) {
   return this.h22(_this__u8e3s4, other);
 };
 protoOf(BigInteger63Arithmetic).y22 = function (_this__u8e3s4, other) {
-  return this.z1z(_this__u8e3s4, other).ne_1.hl_1;
+  return this.z1z(_this__u8e3s4, other).oe_1.hl_1;
 };
 protoOf(BigInteger63Arithmetic).x23 = function (_this__u8e3s4, other) {
   return this.z1z(_this__u8e3s4, other);

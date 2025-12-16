@@ -59,7 +59,7 @@ function get_readLineFromStdinIterator() {
   var tmp = KProperty0;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('readLineFromStdinIterator', 0, tmp, _get_readLineFromStdinIterator_$ref_1patxe(), null);
-  return tmp0.l2();
+  return tmp0.m2();
 }
 var readLineFromStdinIterator$delegate;
 function main_0($completion) {
@@ -89,39 +89,39 @@ function readLineFromStdinIterator$delegate$lambda() {
 function readLineFromStdinIterator$delegate$lambda$slambda(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).y72 = function ($this$flow, $completion) {
-  var tmp = this.z72($this$flow, $completion);
-  tmp.l8_1 = Unit_instance;
-  tmp.m8_1 = null;
-  return tmp.r8();
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).c74 = function ($this$flow, $completion) {
+  var tmp = this.d74($this$flow, $completion);
+  tmp.m8_1 = Unit_instance;
+  tmp.n8_1 = null;
+  return tmp.s8();
 };
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).a9 = function (p1, $completion) {
-  return this.y72((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).b9 = function (p1, $completion) {
+  return this.c74((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
 };
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
-  var suspendResult = this.l8_1;
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).s8 = function () {
+  var suspendResult = this.m8_1;
   $sm: do
     try {
-      var tmp = this.j8_1;
+      var tmp = this.k8_1;
       switch (tmp) {
         case 0:
-          this.k8_1 = 11;
+          this.l8_1 = 11;
           get_process().stdin.setEncoding('utf8');
-          this.x72_1 = function (x) {
+          this.b74_1 = function (x) {
             return x[Symbol.asyncIterator]();
           }(get_process().stdin);
-          this.r72_1 = StringBuilder_init_$Create$();
-          this.s72_1 = false;
-          this.j8_1 = 1;
+          this.v73_1 = StringBuilder_init_$Create$();
+          this.w73_1 = false;
+          this.k8_1 = 1;
           continue $sm;
         case 1:
           if (!true) {
-            this.j8_1 = 12;
+            this.k8_1 = 12;
             continue $sm;
           }
 
-          this.j8_1 = 2;
-          var this_0 = this.x72_1.next();
+          this.k8_1 = 2;
+          var this_0 = this.b74_1.next();
           suspendResult = await_0(this_0, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
@@ -129,50 +129,50 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
 
           continue $sm;
         case 2:
-          this.w72_1 = suspendResult;
-          if (this.w72_1.done) {
-            var this_1 = this.r72_1;
+          this.a74_1 = suspendResult;
+          if (this.a74_1.done) {
+            var this_1 = this.v73_1;
             if (charSequenceLength(this_1) > 0) {
-              this.j8_1 = 9;
-              suspendResult = this.q72_1.k22(this.r72_1.toString(), this);
+              this.k8_1 = 9;
+              suspendResult = this.u73_1.k22(this.v73_1.toString(), this);
               if (suspendResult === get_COROUTINE_SUSPENDED()) {
                 return suspendResult;
               }
               continue $sm;
             } else {
-              this.j8_1 = 10;
+              this.k8_1 = 10;
               continue $sm;
             }
           } else {
-            this.j8_1 = 3;
+            this.k8_1 = 3;
             continue $sm;
           }
 
         case 3:
           var tmp_0 = this;
-          tmp_0.u72_1 = this.w72_1.value;
-          this.v72_1 = 0;
-          this.j8_1 = 4;
+          tmp_0.y73_1 = this.a74_1.value;
+          this.z73_1 = 0;
+          this.k8_1 = 4;
           continue $sm;
         case 4:
-          if (!(this.v72_1 < this.u72_1.length)) {
-            this.j8_1 = 8;
+          if (!(this.z73_1 < this.y73_1.length)) {
+            this.k8_1 = 8;
             continue $sm;
           }
 
-          if (this.s72_1 && charCodeAt(this.u72_1, this.v72_1) === _Char___init__impl__6a9atx(10)) {
-            this.v72_1 = this.v72_1 + 1 | 0;
-            this.s72_1 = false;
-            this.j8_1 = 4;
+          if (this.w73_1 && charCodeAt(this.y73_1, this.z73_1) === _Char___init__impl__6a9atx(10)) {
+            this.z73_1 = this.z73_1 + 1 | 0;
+            this.w73_1 = false;
+            this.k8_1 = 4;
             continue $sm;
           } else {
-            this.j8_1 = 5;
+            this.k8_1 = 5;
             continue $sm;
           }
 
         case 5:
-          var r = indexOf(this.u72_1, _Char___init__impl__6a9atx(13), this.v72_1);
-          var n = indexOf(this.u72_1, _Char___init__impl__6a9atx(10), this.v72_1);
+          var r = indexOf(this.y73_1, _Char___init__impl__6a9atx(13), this.z73_1);
+          var n = indexOf(this.y73_1, _Char___init__impl__6a9atx(10), this.z73_1);
           var tmp_1 = this;
           var tmp_2;
           if (r === -1) {
@@ -183,17 +183,17 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
             tmp_2 = Math.min(r, n);
           }
 
-          tmp_1.t72_1 = tmp_2;
-          if (this.t72_1 === -1) {
-            this.r72_1.q7(substring_0(this.u72_1, this.v72_1));
-            this.v72_1 = this.u72_1.length;
-            this.s72_1 = false;
-            this.j8_1 = 7;
+          tmp_1.x73_1 = tmp_2;
+          if (this.x73_1 === -1) {
+            this.v73_1.r7(substring_0(this.y73_1, this.z73_1));
+            this.z73_1 = this.y73_1.length;
+            this.w73_1 = false;
+            this.k8_1 = 7;
             continue $sm;
           } else {
-            this.r72_1.q7(substring(this.u72_1, this.v72_1, this.t72_1));
-            this.j8_1 = 6;
-            suspendResult = this.q72_1.k22(this.r72_1.toString(), this);
+            this.v73_1.r7(substring(this.y73_1, this.z73_1, this.x73_1));
+            this.k8_1 = 6;
+            suspendResult = this.u73_1.k22(this.v73_1.toString(), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -201,49 +201,49 @@ protoOf(readLineFromStdinIterator$delegate$lambda$slambda).r8 = function () {
           }
 
         case 6:
-          this.r72_1.ob();
-          this.v72_1 = this.t72_1 + 1 | 0;
-          this.s72_1 = charCodeAt(this.u72_1, this.t72_1) === _Char___init__impl__6a9atx(13);
-          this.j8_1 = 7;
+          this.v73_1.pb();
+          this.z73_1 = this.x73_1 + 1 | 0;
+          this.w73_1 = charCodeAt(this.y73_1, this.x73_1) === _Char___init__impl__6a9atx(13);
+          this.k8_1 = 7;
           continue $sm;
         case 7:
-          this.j8_1 = 4;
+          this.k8_1 = 4;
           continue $sm;
         case 8:
-          this.j8_1 = 1;
+          this.k8_1 = 1;
           continue $sm;
         case 9:
-          this.r72_1.ob();
-          this.j8_1 = 10;
+          this.v73_1.pb();
+          this.k8_1 = 10;
           continue $sm;
         case 10:
-          this.j8_1 = 12;
+          this.k8_1 = 12;
           continue $sm;
         case 11:
-          throw this.m8_1;
+          throw this.n8_1;
         case 12:
           return Unit_instance;
       }
     } catch ($p) {
       var e = $p;
-      if (this.k8_1 === 11) {
+      if (this.l8_1 === 11) {
         throw e;
       } else {
-        this.j8_1 = this.k8_1;
-        this.m8_1 = e;
+        this.k8_1 = this.l8_1;
+        this.n8_1 = e;
       }
     }
    while (true);
 };
-protoOf(readLineFromStdinIterator$delegate$lambda$slambda).z72 = function ($this$flow, completion) {
+protoOf(readLineFromStdinIterator$delegate$lambda$slambda).d74 = function ($this$flow, completion) {
   var i = new readLineFromStdinIterator$delegate$lambda$slambda(completion);
-  i.q72_1 = $this$flow;
+  i.u73_1 = $this$flow;
   return i;
 };
 function readLineFromStdinIterator$delegate$lambda$slambda_0(resultContinuation) {
   var i = new readLineFromStdinIterator$delegate$lambda$slambda(resultContinuation);
   var l = function ($this$flow, $completion) {
-    return i.y72($this$flow, $completion);
+    return i.c74($this$flow, $completion);
   };
   l.$arity = 1;
   return l;
@@ -268,7 +268,7 @@ function main$lambda() {
     // Inline function 'kotlin.js.unsafeCast' call
     // Inline function 'kotlin.js.asDynamic' call
     var tmp$ret$2 = env[element];
-    result.a2(element, tmp$ret$2);
+    result.b2(element, tmp$ret$2);
   }
   return result;
 }
@@ -279,60 +279,60 @@ function main$lambda_0() {
 function main$slambda(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(main$slambda).i73 = function ($completion) {
-  var tmp = this.m4i($completion);
-  tmp.l8_1 = Unit_instance;
-  tmp.m8_1 = null;
-  return tmp.r8();
+protoOf(main$slambda).m74 = function ($completion) {
+  var tmp = this.q4j($completion);
+  tmp.m8_1 = Unit_instance;
+  tmp.n8_1 = null;
+  return tmp.s8();
 };
-protoOf(main$slambda).n4i = function ($completion) {
-  return this.i73($completion);
+protoOf(main$slambda).r4j = function ($completion) {
+  return this.m74($completion);
 };
-protoOf(main$slambda).r8 = function () {
-  var suspendResult = this.l8_1;
+protoOf(main$slambda).s8 = function () {
+  var suspendResult = this.m8_1;
   $sm: do
     try {
-      var tmp = this.j8_1;
+      var tmp = this.k8_1;
       switch (tmp) {
         case 0:
-          this.k8_1 = 3;
-          this.j8_1 = 1;
+          this.l8_1 = 3;
+          this.k8_1 = 1;
           suspendResult = get_readLineFromStdinIterator().e20(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
-          this.j8_1 = 2;
+          this.k8_1 = 2;
           continue $sm;
         case 1:
           var unboxed = suspendResult.y1x_1;
           suspendResult = new ChannelResult(unboxed);
-          this.j8_1 = 2;
+          this.k8_1 = 2;
           continue $sm;
         case 2:
           var ARGUMENT = suspendResult.y1x_1;
           return ChannelResult__getOrNull_impl_f5e07h(ARGUMENT);
         case 3:
-          throw this.m8_1;
+          throw this.n8_1;
       }
     } catch ($p) {
       var e = $p;
-      if (this.k8_1 === 3) {
+      if (this.l8_1 === 3) {
         throw e;
       } else {
-        this.j8_1 = this.k8_1;
-        this.m8_1 = e;
+        this.k8_1 = this.l8_1;
+        this.n8_1 = e;
       }
     }
    while (true);
 };
-protoOf(main$slambda).m4i = function (completion) {
+protoOf(main$slambda).q4j = function (completion) {
   return new main$slambda(completion);
 };
 function main$slambda_0(resultContinuation) {
   var i = new main$slambda(resultContinuation);
   var l = function ($completion) {
-    return i.i73($completion);
+    return i.m74($completion);
   };
   l.$arity = 0;
   return l;
@@ -341,28 +341,28 @@ function main$slambda$lambda() {
   return createJsMounts();
 }
 function main$slambda_1($options, resultContinuation) {
-  this.r73_1 = $options;
+  this.v74_1 = $options;
   CoroutineImpl.call(this, resultContinuation);
 }
 protoOf(main$slambda_1).y23 = function ($this$coroutineScope, $completion) {
   var tmp = this.z23($this$coroutineScope, $completion);
-  tmp.l8_1 = Unit_instance;
-  tmp.m8_1 = null;
-  return tmp.r8();
+  tmp.m8_1 = Unit_instance;
+  tmp.n8_1 = null;
+  return tmp.s8();
 };
-protoOf(main$slambda_1).a9 = function (p1, $completion) {
+protoOf(main$slambda_1).b9 = function (p1, $completion) {
   return this.y23((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
-protoOf(main$slambda_1).r8 = function () {
-  var suspendResult = this.l8_1;
+protoOf(main$slambda_1).s8 = function () {
+  var suspendResult = this.m8_1;
   $sm: do
     try {
-      var tmp = this.j8_1;
+      var tmp = this.k8_1;
       switch (tmp) {
         case 0:
-          this.k8_1 = 2;
-          this.j8_1 = 1;
-          suspendResult = main(this.r73_1, this.s73_1, main$slambda$lambda, this);
+          this.l8_1 = 2;
+          this.k8_1 = 1;
+          suspendResult = main(this.v74_1, this.w74_1, main$slambda$lambda, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -371,22 +371,22 @@ protoOf(main$slambda_1).r8 = function () {
         case 1:
           return Unit_instance;
         case 2:
-          throw this.m8_1;
+          throw this.n8_1;
       }
     } catch ($p) {
       var e = $p;
-      if (this.k8_1 === 2) {
+      if (this.l8_1 === 2) {
         throw e;
       } else {
-        this.j8_1 = this.k8_1;
-        this.m8_1 = e;
+        this.k8_1 = this.l8_1;
+        this.n8_1 = e;
       }
     }
    while (true);
 };
 protoOf(main$slambda_1).z23 = function ($this$coroutineScope, completion) {
-  var i = new main$slambda_1(this.r73_1, completion);
-  i.s73_1 = $this$coroutineScope;
+  var i = new main$slambda_1(this.v74_1, completion);
+  i.w74_1 = $this$coroutineScope;
   return i;
 };
 function main$slambda_2($options, resultContinuation) {
@@ -413,7 +413,7 @@ function get_process() {
   var tmp = KProperty0;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('process', 0, tmp, _get_process_$ref_b90brj(), null);
-  return tmp0.l2();
+  return tmp0.m2();
 }
 var process$delegate;
 function process$delegate$lambda() {
