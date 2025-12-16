@@ -10,20 +10,40 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     "of" to FluoriteFunction { arguments ->
-                        if (arguments.size == 1) {
-                            val array = arguments[0]
-                            if (array is FluoriteArray) {
-                                @OptIn(ExperimentalUnsignedTypes::class)
-                                val byteArray = UByteArray(array.values.size) { i ->
-                                    val number = array.values[i]
-                                    number as? FluoriteNumber ?: throw IllegalArgumentException("Invalid element for BLOB: array[$i]: ${"$number".truncate(20)}")
-                                    number.roundToInt().toUByte()
+                        @OptIn(ExperimentalUnsignedTypes::class)
+                        suspend fun processItem(item: FluoriteValue): UByteArray {
+                            return when (item) {
+                                is FluoriteArray -> {
+                                    UByteArray(item.values.size) { i ->
+                                        val number = item.values[i]
+                                        number as? FluoriteNumber ?: throw IllegalArgumentException("Invalid element for BLOB: array[$i]: ${"$number".truncate(20)}")
+                                        number.roundToInt().toUByte()
+                                    }
                                 }
-                                @OptIn(ExperimentalUnsignedTypes::class)
-                                return@FluoriteFunction byteArray.asFluoriteBlob()
+                                is FluoriteBlob -> {
+                                    item.value.copyOf()
+                                }
+                                else -> throw IllegalArgumentException("Invalid argument for BLOB.of: ${"$item".truncate(20)}")
                             }
                         }
-                        usage("BLOB.of(array: ARRAY<NUMBER>): BLOB")
+
+                        @OptIn(ExperimentalUnsignedTypes::class)
+                        if (arguments.size == 1) {
+                            val arg = arguments[0]
+                            // Handle stream case
+                            if (arg is FluoriteStream) {
+                                val allBytes = mutableListOf<UByte>()
+                                arg.collect { item ->
+                                    allBytes.addAll(processItem(item).toList())
+                                }
+                                allBytes.toUByteArray().asFluoriteBlob()
+                            } else {
+                                // Handle single array or BLOB
+                                processItem(arg).asFluoriteBlob()
+                            }
+                        } else {
+                            usage("BLOB.of(array: STREAM<BLOB | ARRAY<NUMBER>>): BLOB")
+                        }
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
