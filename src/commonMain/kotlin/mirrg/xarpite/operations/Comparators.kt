@@ -47,3 +47,8 @@ object ContainsComparator : Comparator {
     override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> b.contains(a).value }
     override val code get() = "ContainsComparator"
 }
+
+object NotContainsComparator : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> !b.contains(a).value }
+    override val code get() = "NotContainsComparator"
+}

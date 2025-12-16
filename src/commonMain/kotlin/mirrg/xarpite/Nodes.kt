@@ -95,6 +95,7 @@ enum class ComparisonOperatorType {
     LESS_EQUAL,
     QUESTION_EQUAL,
     AT,
+    EXCLAMATION_AT,
 }
 
 sealed class StringContent
