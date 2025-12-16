@@ -6,11 +6,13 @@ import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
+import readBytesFromStdin
 import readLineFromStdin
 
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
@@ -21,6 +23,13 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             while (true) {
                 val line = readLineFromStdin() ?: break
                 emit(line.toFluoriteString())
+            }
+        },
+        "INB" to FluoriteStream {
+            while (true) {
+                val bytes = readBytesFromStdin(8192) ?: break
+                @OptIn(ExperimentalUnsignedTypes::class)
+                emit(bytes.asUByteArray().asFluoriteBlob())
             }
         },
         "READ" to FluoriteFunction { arguments ->

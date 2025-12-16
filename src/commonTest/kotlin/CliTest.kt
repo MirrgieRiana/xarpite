@@ -60,6 +60,13 @@ class CliTest {
         fileSystem.delete(dir)
     }
 
+    @Test
+    fun inb() = runTest {
+        // INB はストリームとして存在することを確認
+        val inb = cliEval("INB")
+        assertEquals("mirrg.xarpite.compilers.objects.FluoriteStream", inb::class.qualifiedName)
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
