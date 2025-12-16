@@ -7,6 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
@@ -39,15 +40,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
             val dir = arguments[0].toFluoriteString().value
             val fileSystem = getFileSystem().getOrThrow()
-            FluoriteStream {
-                val entries = fileSystem.list(dir.toPath())
-                    .map { it.name }
-                    .filter { it != "." && it != ".." }
-                    .sorted()
-                for (entry in entries) {
-                    emit(entry.toFluoriteString())
-                }
-            }
+            fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
     ).let { listOf(it) }
 }
