@@ -22,14 +22,14 @@
 
 ## プロパティアクセスのオーバーライド
 
-これらの操作は、 `container` の `_._` メソッドおよび `_._=` メソッドをオーバーライドすることでカスタマイズできます。
+これらの操作は、 `container` の `_._` メソッドおよび `_._=_` メソッドをオーバーライドすることでカスタマイズできます。
 
 ```shell
 $ xa -q '
   globalVariableTable := {}
   DelegatedObject := {
     `_._` : this, key        -> globalVariableTable."item_$key"
-    `_._=`: this, key, value -> globalVariableTable."item_$key" = value
+    `_._=_`: this, key, value -> globalVariableTable."item_$key" = value
   }
   delegatedObject := DelegatedObject{}
 
