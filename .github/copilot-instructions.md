@@ -1,3 +1,11 @@
+# 会話
+
+## Follow the user’s natural language
+
+When replying to a user, or when setting natural-language text for something attributable to a specific user, you must first determine the natural language that user speaks and follow it, unless the user provides explicit language instructions.
+
+If the pull request includes the original prompt, use it as a clue for determining the user’s natural language.
+
 # プロジェクトの一貫性
 
 ## テスト
