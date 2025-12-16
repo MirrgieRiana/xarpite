@@ -102,4 +102,31 @@ class DataConversionTest {
         assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSON """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
     }
 
+    @Test
+    fun utf8() = runTest {
+        // UTF8 で文字列をUTF-8 BLOBのストリームに変換
+        assertEquals("BLOB[97;98;99]", eval(""" "abc" >> UTF8 >> TO_STRING """).string) // ASCII文字列
+        assertEquals("BLOB[97;98;99;49;50;51;206;177;206;178;206;179]", eval(""" "abc123αβγ" >> UTF8 >> TO_STRING """).string) // マルチバイト文字を含む文字列
+        assertEquals("BLOB[]", eval(""" "" >> UTF8 >> TO_STRING """).string) // 空文字列は空BLOB
+
+        // UTF8D でUTF-8 BLOBを文字列に変換
+        assertEquals("abc", eval(""" BLOB.of([97, 98, 99]) >> UTF8D """).string) // ASCII
+        assertEquals("abc123αβγ", eval(""" BLOB.of([97, 98, 99, 49, 50, 51, 206, 177, 206, 178, 206, 179]) >> UTF8D """).string) // マルチバイト文字
+        assertEquals("", eval(""" BLOB.of([]) >> UTF8D """).string) // 空BLOB
+
+        // UTF8D はストリームからも変換できる
+        assertEquals("abc123αβγ", eval("""
+            BLOB.of([97, 98, 99]),
+            BLOB.of([49, 50, 51]),
+            BLOB.of([206, 177, 206]),
+            BLOB.of([178, 206, 179])
+            >> UTF8D
+        """).string) // ストリームのBLOBを連結してデコード
+
+        // UTF8とUTF8Dは逆変換の関係
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> UTF8 >> UTF8D """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> UTF8D """).string)
+        assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> UTF8 >> UTF8D """).string) // 絵文字も正しく変換される
+    }
+
 }

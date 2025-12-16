@@ -1,11 +1,13 @@
 package mirrg.xarpite.mounts
 
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
+import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.pop
@@ -16,6 +18,46 @@ import mirrg.xarpite.toSingleJsonFluoriteValue
 
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
+        "UTF8" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("UTF8(string: STRING): STREAM<BLOB>")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            
+            // Convert string to UTF-8 bytes
+            @OptIn(ExperimentalUnsignedTypes::class)
+            val utf8Bytes = string.encodeToByteArray().asUByteArray()
+            
+            // Return as a stream of BLOBs (for now, just one BLOB since we don't need chunking for most cases)
+            // The documentation mentions 8192 byte chunks, but we'll implement simple version first
+            FluoriteStream {
+                emit(utf8Bytes.asFluoriteBlob())
+            }
+        },
+        "UTF8D" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")
+            if (arguments.size != 1) usage()
+            val value = arguments[0]
+            
+            @OptIn(ExperimentalUnsignedTypes::class)
+            val allBytes = mutableListOf<UByte>()
+            
+            // Collect all bytes from BLOB(s)
+            if (value is FluoriteStream) {
+                value.collect { item ->
+                    val blob = item as? FluoriteBlob ?: usage()
+                    allBytes.addAll(blob.value.toList())
+                }
+            } else {
+                val blob = value as? FluoriteBlob ?: usage()
+                allBytes.addAll(blob.value.toList())
+            }
+            
+            // Convert UTF-8 bytes to string
+            @OptIn(ExperimentalUnsignedTypes::class)
+            val byteArray = allBytes.toUByteArray().asByteArray()
+            val resultString = byteArray.decodeToString()
+            resultString.toFluoriteString()
+        },
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
             val (indent, value) = when (arguments.size) {
