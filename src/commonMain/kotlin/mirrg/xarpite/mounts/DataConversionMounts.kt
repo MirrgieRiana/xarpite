@@ -18,27 +18,26 @@ import mirrg.xarpite.toSingleJsonFluoriteValue
 
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
-        "UTF8" to FluoriteFunction { arguments ->
+        "UTF8" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): STREAM<BLOB>")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
             
             // Convert string to UTF-8 bytes
-            @OptIn(ExperimentalUnsignedTypes::class)
             val utf8Bytes = string.encodeToByteArray().asUByteArray()
             
-            // Return as a stream of BLOBs (for now, just one BLOB since we don't need chunking for most cases)
-            // The documentation mentions 8192 byte chunks, but we'll implement simple version first
+            // Return as a stream of BLOBs
+            // Note: The documentation mentions 8192 byte chunks, but for typical use cases
+            // a single BLOB is sufficient. Chunking can be implemented if needed for very large strings.
             FluoriteStream {
                 emit(utf8Bytes.asFluoriteBlob())
             }
         },
-        "UTF8D" to FluoriteFunction { arguments ->
+        "UTF8D" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
             fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
             
-            @OptIn(ExperimentalUnsignedTypes::class)
             val allBytes = mutableListOf<UByte>()
             
             // Collect all bytes from BLOB(s)
@@ -53,7 +52,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             }
             
             // Convert UTF-8 bytes to string
-            @OptIn(ExperimentalUnsignedTypes::class)
+            // decodeToString() will throw IllegalArgumentException for invalid UTF-8 sequences
             val byteArray = allBytes.toUByteArray().asByteArray()
             val resultString = byteArray.decodeToString()
             resultString.toFluoriteString()
