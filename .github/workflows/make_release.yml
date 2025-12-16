@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'リリースタグ (例: v1.0.0)'
+        description: 'Release Tag (/^v[0-9.+\-a-zA-Z]+$/)'
         required: true
         type: string
       commit_hash:
-        description: 'コミットハッシュ'
+        description: 'Commit Hash'
         required: true
         type: string
 
@@ -18,49 +18,53 @@ jobs:
     permissions:
       contents: write
     steps:
+
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: タグフォーマットの検証
+        env:
+          TAG: ${{ inputs.tag }}
         run: |
-          TAG="${{ github.event.inputs.tag }}"
-          if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "エラー: タグは v~ 形式（例: v1.0.0）である必要があります"
+          if ! echo "$TAG" | grep -Eq '^v[0-9.+\-a-zA-Z]+$'; then
+            echo "Error: Invalid tag format: $TAG" >&2
             exit 1
           fi
-          echo "タグフォーマットは正しいです: $TAG"
+          echo "Tag: $TAG"
 
       - name: コミットの検証
+        env:
+          COMMIT: ${{ inputs.commit_hash }}
         run: |
-          COMMIT="${{ github.event.inputs.commit_hash }}"
 
           # コミットが存在するか確認
           if ! git cat-file -e "$COMMIT^{commit}" 2>/dev/null; then
-            echo "エラー: コミット $COMMIT が見つかりません"
+            echo "Error: No such commit: $COMMIT" >&2
             exit 1
           fi
 
           # コミットがmainブランチの経路上にあるか確認
           if ! git merge-base --is-ancestor "$COMMIT" main; then
-            echo "エラー: コミット $COMMIT はmainブランチの経路上にありません"
+            echo "Error: Commit is not in main: $COMMIT" >&2
             exit 1
           fi
 
-          echo "コミットは有効です: $COMMIT"
+          echo "Commit Hash: $COMMIT"
 
       - name: タグの作成とプッシュ
+        env:
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ inputs.commit_hash }}
         run: |
-          TAG="${{ github.event.inputs.tag }}"
-          COMMIT="${{ github.event.inputs.commit_hash }}"
 
           # リモートのタグをフェッチ
           git fetch --tags
 
           # タグが既に存在するか確認（ローカルとリモート両方）
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "エラー: タグ $TAG は既に存在します"
+            echo "Error: Duplicated tag: $TAG" >&2
             exit 1
           fi
 
@@ -69,8 +73,8 @@ jobs:
 
           # タグをプッシュ
           if ! git push origin "$TAG"; then
-            echo "エラー: タグのプッシュに失敗しました"
+            echo "Error: Can not push" >&2
             exit 1
           fi
 
-          echo "タグ $TAG をコミット $COMMIT に作成してプッシュしました"
+          echo "OK: $TAG -> $COMMIT"
