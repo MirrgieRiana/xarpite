@@ -146,6 +146,32 @@ $ xa -q '
 # Hello, world!
 ```
 
+## `FILES` ディレクトリ内のファイルの一覧を取得
+
+`FILES(dir: STRING): STREAM<STRING>`
+
+`dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+ファイル名にはディレクトリのパスは含まれません。
+
+返されるファイルには `.` や `..` は含まれず、ディレクトリやその他の特殊なファイルは含まれます。
+
+返されるファイル名は辞書順にソートされます。
+
+```shell
+$ {
+  mkdir tmp 
+  touch tmp/file
+  mkdir tmp/dir
+  xa 'FILES("tmp")'
+  rm tmp/file
+  rmdir tmp/dir
+  rmdir tmp
+}
+# dir
+# file
+```
+
 ## `READ' ファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
@@ -159,6 +185,7 @@ $ {
   echo "apple" > tmp.txt
   echo "banana" >> tmp.txt
   xa 'READ("tmp.txt")'
+  rm tmp.txt
 }
 # apple
 # banana
