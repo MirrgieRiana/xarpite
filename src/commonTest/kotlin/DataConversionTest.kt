@@ -133,12 +133,12 @@ class DataConversionTest {
 
         // UTF8D は改行文字の正規化を行わない
         assertEquals("a\r\nb\nc\rd", eval(""" BLOB.of([97, 13, 10, 98, 10, 99, 13, 100]) >> UTF8D """).string) // \r\n, \n, \r がそのまま保持される
-        assertEquals("line1\r\nline2\nline3\r", eval(""" "line1\r\nline2\nline3\r" >> UTF8 >> UTF8D """).string) // 改行文字は変換されない
 
         // UTF8とUTF8Dは逆変換の関係
         assertEquals("Hello, World!", eval(""" "Hello, World!" >> UTF8 >> UTF8D """).string)
         assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> UTF8D """).string)
         assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> UTF8 >> UTF8D """).string) // 絵文字も正しく変換される
+        assertEquals("a\r\nb\nc\rd", eval(""" "a\r\nb\nc\rd" >> UTF8 >> UTF8D """).string) // 改行文字も正規化されずに保持される
     }
 
 }
