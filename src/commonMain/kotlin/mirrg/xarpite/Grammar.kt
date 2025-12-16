@@ -203,6 +203,7 @@ object XarpiteGrammar {
         -"<=" map { ComparisonOperatorType.LESS_EQUAL }, // <=
         -'<' * !'<' map { ComparisonOperatorType.LESS }, // <
         -"?=" map { ComparisonOperatorType.QUESTION_EQUAL }, // ?=
+        -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )
     val comparison: Parser<Node> = spaceship * (-s * comparisonOperator * -b * spaceship).zeroOrMore map {

@@ -612,6 +612,25 @@ class XarpiteTest {
     }
 
     @Test
+    fun notContainsTest() = runTest {
+        // string !@ string で部分一致しないことを確認
+        assertEquals(false, eval("'bcd' !@ 'abcde'").boolean)
+        assertEquals(true, eval("'123' !@ 'abcde'").boolean)
+
+        // value !@ array で要素が含まれていないことを確認
+        assertEquals(false, eval("30 !@ [10, 20, 30]").boolean)
+        assertEquals(true, eval("40 !@ [10, 20, 30]").boolean)
+
+        // key !@ object でキーが含まれていないことを確認
+        assertEquals(false, eval("'a' !@ {a: 10; b: 20}").boolean)
+        assertEquals(true, eval("'c' !@ {a: 10; b: 20}").boolean)
+
+        // !(left @ right) と等価であることを確認
+        assertEquals(true, eval("!('abc' @ '---abc---') == ('abc' !@ '---abc---')").boolean)
+        assertEquals(true, eval("!('123' @ '---abc---') == ('123' !@ '---abc---')").boolean)
+    }
+
+    @Test
     fun andOrTest() = runTest {
         // && は左辺がTRUEの場合に右辺を、 || は左辺がFALSEの場合に右辺を返す
         assertEquals(0, eval("0 && 2").int)

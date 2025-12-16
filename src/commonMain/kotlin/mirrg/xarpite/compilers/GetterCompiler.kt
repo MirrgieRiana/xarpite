@@ -126,6 +126,7 @@ import mirrg.xarpite.operations.MinusGetter
 import mirrg.xarpite.operations.ModGetter
 import mirrg.xarpite.operations.MountGetter
 import mirrg.xarpite.operations.NewEnvironmentGetter
+import mirrg.xarpite.operations.NotContainsComparator
 import mirrg.xarpite.operations.NotEqualComparator
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
@@ -274,6 +275,7 @@ fun Frame.compileToGetter(node: Node): Getter {
                     ComparisonOperatorType.LESS_EQUAL -> LessEqualComparator
                     ComparisonOperatorType.QUESTION_EQUAL -> InstanceOfComparator
                     ComparisonOperatorType.AT -> ContainsComparator
+                    ComparisonOperatorType.EXCLAMATION_AT -> NotContainsComparator
                 }
             }
             ComparisonChainGetter(termGetters, operators)
