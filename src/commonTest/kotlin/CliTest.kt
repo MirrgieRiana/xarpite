@@ -3,6 +3,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
@@ -64,7 +65,7 @@ class CliTest {
     fun inb() = runTest {
         // INB はストリームとして存在することを確認
         val inb = cliEval("INB")
-        assertEquals("mirrg.xarpite.compilers.objects.FluoriteStream", inb::class.qualifiedName)
+        assertEquals(true, inb is FluoriteStream)
     }
 
 }
