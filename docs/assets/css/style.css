@@ -77,21 +77,20 @@ body {
 
 /* ===== Header ===== */
 .site-header {
-  background: linear-gradient(135deg, var(--xarpite-red-primary-transparent) 0%, var(--xarpite-red-dark-transparent) 100%);
-  color: white;
-  box-shadow: var(--shadow-md);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
+  padding: 0.75rem 0;
 }
 
 .logo-link {
@@ -99,29 +98,29 @@ body {
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: white;
-  transition: transform var(--transition-fast);
+  color: var(--text-primary);
+  transition: opacity var(--transition-fast);
 }
 
 .logo-link:hover {
-  transform: translateY(-2px);
+  opacity: 0.8;
 }
 
 .logo-icon {
-  width: 40px;
-  height: 40px;
-  filter: brightness(0) invert(100%);
-  transition: filter var(--transition-normal);
+  width: 36px;
+  height: 36px;
+  transition: transform var(--transition-normal);
 }
 
 .logo-link:hover .logo-icon {
-  transform: rotate(-5deg) scale(1.05);
+  transform: scale(1.05);
 }
 
 .logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .main-nav {
@@ -131,30 +130,32 @@ body {
 }
 
 .nav-link {
-  color: white;
+  color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
   position: relative;
+  font-size: 0.9375rem;
 }
 
 .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--xarpite-red-primary);
+  background-color: var(--xarpite-red-subtle);
 }
 
 .nav-link.playground-link {
-  background-color: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  background: linear-gradient(135deg, var(--xarpite-red-primary), var(--xarpite-red-dark));
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 4px rgba(229, 0, 0, 0.2);
 }
 
 .nav-link.playground-link:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 8px rgba(229, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 /* ===== Main Content ===== */
