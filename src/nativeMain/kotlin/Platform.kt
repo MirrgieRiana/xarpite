@@ -58,3 +58,13 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
         if (readSize == 0uL) null else ByteArray(readSize.toInt()) { buffer[it] }
     }
 }
+
+actual suspend fun executeProcess(
+    command: List<String>,
+    env: Map<String, String>?,
+    dir: String?,
+    input: suspend () -> List<String>
+): List<String> {
+    // TODO: Implement native process execution using posix functions
+    throw UnsupportedOperationException("Process execution is not yet implemented on Native platform")
+}

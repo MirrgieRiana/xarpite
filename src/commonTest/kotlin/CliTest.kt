@@ -68,6 +68,26 @@ class CliTest {
         assertEquals(true, inb is FluoriteStream)
     }
 
+    @Test
+    fun exec() = runTest {
+        // EXEC で外部プロセスを実行できる
+        assertEquals("Hello, World!", cliEval("""EXEC("echo", "Hello, World!")""").stream())
+    }
+
+    @Test
+    fun execWithEnv() = runTest {
+        // EXEC で環境変数を指定できる
+        val result = cliEval("""EXEC("sh", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
+        assertEquals("apple", result)
+    }
+
+    @Test
+    fun execWithInput() = runTest {
+        // EXEC で標準入力を指定できる
+        val result = cliEval("""EXEC("wc", "-l"; in: "line1", "line2", "line3")""").stream().trim()
+        assertEquals("3", result)
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {

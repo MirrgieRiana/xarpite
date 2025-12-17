@@ -22,3 +22,12 @@ actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()
 
 var readBytesFromStdinImpl: (suspend () -> ByteArray?)? = null
 actual suspend fun readBytesFromStdin(): ByteArray? = readBytesFromStdinImpl!!()
+
+actual suspend fun executeProcess(
+    command: List<String>,
+    env: Map<String, String>?,
+    dir: String?,
+    input: suspend () -> List<String>
+): List<String> {
+    throw UnsupportedOperationException("Process execution is not supported on JS platform")
+}
