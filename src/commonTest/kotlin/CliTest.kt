@@ -71,20 +71,23 @@ class CliTest {
     @Test
     fun exec() = runTest {
         // EXEC で外部プロセスを実行できる
-        assertEquals("Hello, World!", cliEval("""EXEC("echo", "Hello, World!")""").stream())
+        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
+        assertEquals("Hello, World!", cliEval("""EXEC("bash", "-c", "echo 'Hello, World!'")""").stream())
     }
 
     @Test
     fun execWithEnv() = runTest {
         // EXEC で環境変数を指定できる
-        val result = cliEval("""EXEC("sh", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
+        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
+        val result = cliEval("""EXEC("bash", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
         assertEquals("apple", result)
     }
 
     @Test
     fun execWithInput() = runTest {
         // EXEC で標準入力を指定できる
-        val result = cliEval("""EXEC("wc", "-l"; in: "line1", "line2", "line3")""").stream().trim()
+        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
+        val result = cliEval("""EXEC("bash", "-c", "wc -l"; in: "line1", "line2", "line3")""").stream().trim()
         assertEquals("3", result)
     }
 
