@@ -162,11 +162,11 @@ $ xa '
 
 ```shell
 $ xa '
-  GENERATE(yield -> (
+  GENERATE ( yield =>
     yield << 1
     yield << 2
     yield << 3
-  ))
+  )
 '
 # 1
 # 2

@@ -36,9 +36,9 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.u74_1 = fd;
-  this.v74_1 = new Long(0, 0);
-  this.w74_1 = false;
+  this.c75_1 = fd;
+  this.d75_1 = new Long(0, 0);
+  this.e75_1 = false;
 }
 protoOf(FileSource).m1j = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
@@ -47,29 +47,29 @@ protoOf(FileSource).m1j = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.w74_1) {
+  if (!!this.e75_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.u74_1;
+  var tmp0_fd = this.c75_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.v74_1);
+  var tmp2_position = toNumber(this.d75_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.v74_1;
-  tmp.v74_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.d75_1;
+  tmp.d75_1 = add(this_0, fromInt(readByteCount));
   sink.b1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).d1i = function () {
-  if (this.w74_1)
+  if (this.e75_1)
     return Unit_instance;
-  this.w74_1 = true;
-  closeSync(this.u74_1);
+  this.e75_1 = true;
+  closeSync(this.c75_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -130,10 +130,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.x74_1 = 61440;
-  this.y74_1 = 32768;
-  this.z74_1 = 16384;
-  this.a75_1 = 40960;
+  this.f75_1 = 61440;
+  this.g75_1 = 32768;
+  this.h75_1 = 16384;
+  this.i75_1 = 40960;
 }
 protoOf(NodeJsFileSystem).b1i = function (dir) {
   return ensureNotNull(list(this, dir, true));
