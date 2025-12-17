@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
+import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
 import mirrg.xarpite.cli.parseArguments
@@ -18,6 +19,7 @@ import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
 import kotlin.js.Promise
+import kotlin.math.min
 
 suspend fun main() {
     envGetter = {
@@ -26,7 +28,7 @@ suspend fun main() {
     }
     fileSystemGetter = { NodeJsFileSystem }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
-    readBytesFromStdinImpl = { maxSize -> readBytesFromStdinIterator(maxSize).receiveCatching().getOrNull() }
+    readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
 
     val options = try {
         parseArguments(process.argv.drop(2))
@@ -83,21 +85,20 @@ val readLineFromStdinIterator: ReceiveChannel<String> by lazy {
     }.produceIn(scope)
 }
 
-fun readBytesFromStdinIterator(maxSize: Int): ReceiveChannel<ByteArray> {
-    return flow {
-        val byteIterator = js("(function(x) { return x[Symbol.asyncIterator](); })")(process.stdin)
+val readBytesFromStdinIterator: ReceiveChannel<ByteArray> by lazy {
+    flow {
+        val bytesIterator = js("(function(x) { return x[Symbol.asyncIterator](); })")(process.stdin)
         while (true) {
-            val result = byteIterator.next().unsafeCast<Promise<dynamic>>().await()
+            val result = bytesIterator.next().unsafeCast<Promise<dynamic>>().await()
             if (result.done) break
-            val buffer = result.value.unsafeCast<dynamic>() // Buffer or Uint8Array
-            val byteArray = ByteArray(buffer.length as Int) { i -> buffer[i].unsafeCast<Byte>() }
-            if (byteArray.size <= maxSize) {
+            val buffer = result.value.unsafeCast<dynamic>()
+            val byteArray = ByteArray(buffer.length.unsafeCast<Int>()) { i -> buffer[i].unsafeCast<Byte>() }
+            if (byteArray.size <= INB_MAX_BUFFER_SIZE) {
                 emit(byteArray)
             } else {
-                // Split into chunks
                 var offset = 0
                 while (offset < byteArray.size) {
-                    val chunkSize = minOf(maxSize, byteArray.size - offset)
+                    val chunkSize = min(INB_MAX_BUFFER_SIZE, byteArray.size - offset)
                     emit(byteArray.copyOfRange(offset, offset + chunkSize))
                     offset += chunkSize
                 }

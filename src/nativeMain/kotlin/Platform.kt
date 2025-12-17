@@ -7,9 +7,15 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import platform.posix.__environ
+import platform.posix.clearerr
+import platform.posix.errno
+import platform.posix.ferror
 import platform.posix.fread
+import platform.posix.set_posix_errno
 import platform.posix.stdin
+import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalNativeApi::class)
@@ -38,10 +44,17 @@ actual fun hasFreeze() = true
 actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(maxSize: Int): ByteArray? = withContext(Dispatchers.IO) {
+actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
-        val buffer = allocArray<ByteVar>(maxSize)
-        val bytesRead = fread(buffer, 1u, maxSize.toULong(), stdin)
-        if (bytesRead <= 0u) null else ByteArray(bytesRead.toInt()) { buffer[it] }
+        val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
+        set_posix_errno(0)
+        val readSize = fread(buffer, 1u, INB_MAX_BUFFER_SIZE.toULong(), stdin)
+        if (ferror(stdin) != 0) {
+            val e = errno
+            val msg = strerror(e)?.toKString()
+            clearerr(stdin)
+            throw IllegalStateException("fread(stdin) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
+        }
+        if (readSize == 0uL) null else ByteArray(readSize.toInt()) { buffer[it] }
     }
 }

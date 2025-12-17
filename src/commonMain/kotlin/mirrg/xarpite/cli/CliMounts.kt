@@ -15,6 +15,8 @@ import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
 
+val INB_MAX_BUFFER_SIZE = 8192
+
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
@@ -27,7 +29,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "INB" to FluoriteStream {
             while (true) {
-                val bytes = readBytesFromStdin(8192) ?: break
+                val bytes = readBytesFromStdin() ?: break
                 @OptIn(ExperimentalUnsignedTypes::class)
                 emit(bytes.asUByteArray().asFluoriteBlob())
             }
