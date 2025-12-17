@@ -14,39 +14,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     "of" to FluoriteFunction { arguments ->
                         if (arguments.size == 1) {
-                            val array = arguments[0]
-                            Buffer().use { buffer ->
-                                fun processItem(item: FluoriteValue) {
-                                    when (item) {
-                                        is FluoriteNumber -> {
-                                            buffer.writeByte(item.roundToInt())
-                                        }
-
-                                        is FluoriteArray -> {
-                                            item.values.forEach { value ->
-                                                value as? FluoriteNumber ?: throw FluoriteException("Invalid element for BLOB: ${"$value".truncate(20)}".toFluoriteString())
-                                                buffer.writeByte(value.roundToInt())
-                                            }
-                                        }
-
-                                        is FluoriteBlob -> {
-                                            @OptIn(ExperimentalUnsignedTypes::class)
-                                            buffer.write(item.value.asByteArray())
-                                        }
-
-                                        else -> throw FluoriteException("Invalid element for BLOB: ${"$item".truncate(20)}".toFluoriteString())
-                                    }
-                                }
-                                if (array is FluoriteStream) {
-                                    array.collect { item ->
-                                        processItem(item)
-                                    }
-                                } else {
-                                    processItem(array)
-                                }
-                                @OptIn(ExperimentalUnsignedTypes::class)
-                                buffer.readByteArray().asUByteArray().asFluoriteBlob()
-                            }
+                            aggregateToBlob(arguments[0])
                         } else {
                             usage("BLOB.of(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB")
                         }
@@ -83,3 +51,40 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
 
 @OptIn(ExperimentalUnsignedTypes::class)
 fun UByteArray.asFluoriteBlob() = FluoriteBlob(this)
+
+suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
+    return Buffer().use { buffer ->
+        fun processItem(item: FluoriteValue) {
+            when (item) {
+                is FluoriteNumber -> {
+                    buffer.writeByte(item.roundToInt())
+                }
+
+                is FluoriteArray -> {
+                    item.values.forEach { value ->
+                        value as? FluoriteNumber ?: throw FluoriteException("Invalid element for BLOB: ${"$value".truncate(20)}".toFluoriteString())
+                        buffer.writeByte(value.roundToInt())
+                    }
+                }
+
+                is FluoriteBlob -> {
+                    @OptIn(ExperimentalUnsignedTypes::class)
+                    buffer.write(item.value.asByteArray())
+                }
+
+                else -> throw FluoriteException("Invalid element for BLOB: ${"$item".truncate(20)}".toFluoriteString())
+            }
+        }
+        
+        if (value is FluoriteStream) {
+            value.collect { item ->
+                processItem(item)
+            }
+        } else {
+            processItem(value)
+        }
+        
+        @OptIn(ExperimentalUnsignedTypes::class)
+        buffer.readByteArray().asUByteArray().asFluoriteBlob()
+    }
+}
