@@ -8,8 +8,6 @@ markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    default_lang: shell
 
 # Theme
 theme: null

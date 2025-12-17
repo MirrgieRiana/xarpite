@@ -31,6 +31,9 @@
   
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
+  
+  --breakpoint-tablet: 968px;
+  --breakpoint-mobile: 768px;
 }
 
 /* ===== Reset & Base ===== */

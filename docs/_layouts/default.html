@@ -88,7 +88,8 @@
       const navLinks = document.querySelectorAll('.doc-nav a');
       
       navLinks.forEach(link => {
-        if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href').split('/').pop().replace('.html', ''))) {
+        const href = link.getAttribute('href');
+        if (href && (currentPath === href || currentPath.endsWith(href))) {
           link.classList.add('active');
         }
       });
