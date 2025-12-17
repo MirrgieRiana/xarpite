@@ -7,6 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
@@ -57,10 +58,12 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            if (arguments.isEmpty()) usage("EXEC(command: STREAM<STRING>[; env: OBJECT][; dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
+            fun error(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT][; dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
+            
+            if (arguments.isEmpty()) error()
             
             // First argument is the command stream
-            val commandStream = arguments[0] as? FluoriteStream ?: usage("EXEC(command: STREAM<STRING>[; env: OBJECT][; dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
+            val commandStream = arguments[0] as? FluoriteStream ?: error()
             
             // Extract command list
             val commandList = mutableListOf<String>()
@@ -68,7 +71,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 commandList.add(it.toFluoriteString().value)
             }
             
-            if (commandList.isEmpty()) throw IllegalArgumentException("Command cannot be empty")
+            if (commandList.isEmpty()) error()
             
             // Parse optional named arguments (entries)
             var envMap: Map<String, String>? = null
@@ -77,28 +80,28 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             
             // Process remaining arguments as entries (2-element arrays from colon operator)
             for (i in 1 until arguments.size) {
-                val arg = arguments[i]
-                if (arg is FluoriteArray && arg.values.size == 2) {
-                    val key = arg.values[0].toFluoriteString().value
-                    val value = arg.values[1]
-                    
-                    when (key) {
-                        "env" -> {
-                            if (value is FluoriteObject) {
-                                envMap = value.map.mapValues { it.value.toFluoriteString().value }
-                            }
-                        }
-                        "dir" -> {
-                            dirPath = value.toFluoriteString().value
-                        }
-                        "in" -> {
-                            if (value is FluoriteStream) {
-                                value.collect { line ->
-                                    inputLines.add(line.toFluoriteString().value)
-                                }
-                            }
+                val entry = arguments[i]
+                if (entry !is FluoriteArray) error()
+                if (entry.values.size != 2) error()
+                val parameterName = entry.values[0]
+                if (parameterName !is FluoriteString) error()
+                val value = entry.values[1]
+                
+                when (parameterName.value) {
+                    "env" -> {
+                        if (value !is FluoriteObject) error()
+                        envMap = value.map.mapValues { it.value.toFluoriteString().value }
+                    }
+                    "dir" -> {
+                        dirPath = value.toFluoriteString().value
+                    }
+                    "in" -> {
+                        if (value !is FluoriteStream) error()
+                        value.collect { line ->
+                            inputLines.add(line.toFluoriteString().value)
                         }
                     }
+                    else -> error()
                 }
             }
             

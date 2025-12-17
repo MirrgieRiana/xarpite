@@ -1,4 +1,6 @@
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import okio.FileSystem
@@ -35,29 +37,41 @@ actual suspend fun executeProcess(
     
     val process = processBuilder.start()
     
-    // Write input to process stdin if provided
+    // Handle stdin, stdout, and stderr concurrently to avoid deadlock
     val inputLines = input()
-    if (inputLines.isNotEmpty()) {
-        process.outputStream.bufferedWriter().use { writer ->
-            inputLines.forEach { line ->
-                writer.write(line)
-                writer.newLine()
+    
+    kotlinx.coroutines.coroutineScope {
+        // Start writing to stdin in a separate coroutine
+        val stdinJob = launch(Dispatchers.IO) {
+            process.outputStream.bufferedWriter().use { writer ->
+                inputLines.forEach { line ->
+                    writer.write(line)
+                    writer.newLine()
+                }
             }
         }
-    } else {
-        process.outputStream.close()
+        
+        // Read stdout and stderr concurrently
+        val stdoutJob = async(Dispatchers.IO) {
+            process.inputStream.bufferedReader().readLines()
+        }
+        
+        val stderrJob = async(Dispatchers.IO) {
+            process.errorStream.bufferedReader().readText()
+        }
+        
+        // Wait for all I/O to complete
+        stdinJob.join()
+        val outputLines = stdoutJob.await()
+        val errorOutput = stderrJob.await()
+        
+        // Wait for process to complete
+        val exitCode = process.waitFor()
+        
+        if (exitCode != 0) {
+            throw RuntimeException("Process exited with code $exitCode${if (errorOutput.isNotBlank()) ": $errorOutput" else ""}")
+        }
+        
+        outputLines
     }
-    
-    // Read output from process stdout
-    val outputLines = process.inputStream.bufferedReader().readLines()
-    
-    // Wait for process to complete
-    val exitCode = process.waitFor()
-    
-    if (exitCode != 0) {
-        val errorOutput = process.errorStream.bufferedReader().readText()
-        throw RuntimeException("Process exited with code $exitCode${if (errorOutput.isNotBlank()) ": $errorOutput" else ""}")
-    }
-    
-    outputLines
 }
