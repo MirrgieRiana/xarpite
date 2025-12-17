@@ -60,10 +60,12 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "EXEC" to FluoriteFunction { arguments ->
             fun error(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT][; dir: dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
             
-            if (arguments.isEmpty()) error()
+            val args = arguments.toMutableList()
+            
+            if (args.isEmpty()) error()
             
             // 1st argument: command (required)
-            val commandStream = arguments[0] as? FluoriteStream ?: error()
+            val commandStream = args.removeFirst() as? FluoriteStream ?: error()
             
             // Extract command list
             val commandList = mutableListOf<String>()
@@ -78,38 +80,36 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             var dirPath: String? = null
             val inputLines = mutableListOf<String>()
             
-            var argIndex = 1
-            
             // 2nd argument: if it's an env entry, use it; otherwise skip
-            if (argIndex < arguments.size) {
-                val arg = arguments[argIndex]
+            if (args.isNotEmpty()) {
+                val arg = args.first()
                 if (arg is FluoriteArray && arg.values.size == 2) {
                     val key = arg.values[0]
                     if (key is FluoriteString && key.value == "env") {
+                        args.removeFirst()
                         val value = arg.values[1]
                         if (value !is FluoriteObject) error()
                         envMap = value.map.mapValues { it.value.toFluoriteString().value }
-                        argIndex++
                     }
                 }
             }
             
             // 3rd argument: if it's a dir entry, use it; otherwise skip
-            if (argIndex < arguments.size) {
-                val arg = arguments[argIndex]
+            if (args.isNotEmpty()) {
+                val arg = args.first()
                 if (arg is FluoriteArray && arg.values.size == 2) {
                     val key = arg.values[0]
                     if (key is FluoriteString && key.value == "dir") {
+                        args.removeFirst()
                         val value = arg.values[1]
                         dirPath = value.toFluoriteString().value
-                        argIndex++
                     }
                 }
             }
             
             // 4th argument: if it exists, it's in
-            if (argIndex < arguments.size) {
-                val inStream = arguments[argIndex]
+            if (args.isNotEmpty()) {
+                val inStream = args.removeFirst()
                 if (inStream is FluoriteStream) {
                     inStream.collect { line ->
                         inputLines.add(line.toFluoriteString().value)
@@ -117,11 +117,10 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 } else {
                     error()
                 }
-                argIndex++
             }
             
             // If there are extra arguments, error
-            if (argIndex < arguments.size) error()
+            if (args.isNotEmpty()) error()
             
             // Merge environment variables
             val finalEnv = if (envMap != null) {
