@@ -54,10 +54,6 @@ body {
   line-height: 1.7;
   color: var(--text-primary);
   background-color: var(--bg-secondary);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(229, 0, 0, 0.03) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(134, 0, 0, 0.02) 0%, transparent 20%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -110,12 +106,13 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  /* Don't invert - keep the red icon visible on red background with white filter */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)) brightness(0) saturate(100%) invert(100%);
   transition: all var(--transition-normal);
 }
 
 .logo-link:hover .logo-icon {
-  filter: brightness(0) invert(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) brightness(0) saturate(100%) invert(100%);
   transform: rotate(-5deg) scale(1.05);
 }
 
@@ -176,12 +173,12 @@ body {
 .sidebar {
   position: sticky;
   top: 100px;
-  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(229, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
-  border-top: 3px solid var(--xarpite-red-primary);
+  border-left: 3px solid var(--xarpite-red-primary);
 }
 
 .nav-title {
@@ -216,85 +213,38 @@ body {
 
 .nav-list a:hover {
   color: var(--xarpite-red-primary);
-  background-color: var(--xarpite-red-subtle);
+  background-color: rgba(229, 0, 0, 0.05);
   border-left-color: var(--xarpite-red-primary);
   padding-left: 1rem;
 }
 
 .nav-list a.active {
   color: var(--xarpite-red-primary);
-  background: linear-gradient(90deg, var(--xarpite-red-subtle), rgba(255, 229, 229, 0.5));
+  background-color: rgba(229, 0, 0, 0.08);
   font-weight: 600;
   border-left-color: var(--xarpite-red-primary);
-  box-shadow: 0 2px 6px rgba(229, 0, 0, 0.12);
 }
 
 /* ===== Document Content ===== */
 .doc-content {
-  background: linear-gradient(to bottom, #ffffff 0%, #fefefe 100%);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 2.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
-  border-top: 4px solid var(--xarpite-red-primary);
+  border-left: 3px solid var(--xarpite-red-primary);
   min-height: 500px;
-  position: relative;
-  overflow: hidden;
-}
-
-.doc-content::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  right: -100px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(229, 0, 0, 0.03) 0%, transparent 70%);
-  pointer-events: none;
-  border-radius: 50%;
-}
-
-.doc-content::after {
-  content: '';
-  position: absolute;
-  bottom: -150px;
-  left: -150px;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(134, 0, 0, 0.02) 0%, transparent 70%);
-  pointer-events: none;
-  border-radius: 50%;
 }
 
 /* Typography */
 .doc-content h1 {
   color: var(--xarpite-red-primary);
-  background: linear-gradient(135deg, var(--xarpite-red-primary) 0%, var(--xarpite-red-dark) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-image: linear-gradient(90deg, var(--xarpite-red-primary), transparent) 1;
-  border-image-slice: 1;
-  border-bottom-width: 3px;
-  border-bottom-style: solid;
+  border-bottom: 3px solid var(--xarpite-red-subtle);
   letter-spacing: -0.02em;
-  position: relative;
-  z-index: 1;
-}
-
-.doc-content h1::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -3px;
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--xarpite-red-primary), var(--xarpite-red-dark));
-  border-radius: 2px;
 }
 
 .doc-content h2 {
@@ -422,14 +372,13 @@ body {
 
 /* Code Blocks */
 .doc-content code {
-  background: linear-gradient(135deg, var(--xarpite-red-subtle) 0%, #fff5f5 100%);
+  background-color: var(--bg-secondary);
   color: var(--xarpite-red-dark);
   padding: 0.2em 0.4em;
   border-radius: var(--radius-sm);
   font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-size: 0.9em;
   font-weight: 500;
-  border: 1px solid rgba(229, 0, 0, 0.15);
 }
 
 .doc-content pre {
@@ -439,20 +388,8 @@ body {
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 1.5rem 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(229, 0, 0, 0.3);
-  border-top: 2px solid var(--xarpite-red-primary);
-  position: relative;
-}
-
-.doc-content pre::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--xarpite-red-primary), var(--xarpite-red-dark), transparent);
+  box-shadow: var(--shadow-md);
+  border-left: 3px solid var(--xarpite-red-primary);
 }
 
 .doc-content pre code {
@@ -484,8 +421,9 @@ body {
 }
 
 .doc-content thead {
-  background: linear-gradient(135deg, var(--xarpite-red-primary) 0%, var(--xarpite-red-dark) 100%);
-  color: white;
+  background-color: var(--bg-tertiary);
+  color: var(--xarpite-red-dark);
+  border-bottom: 2px solid var(--xarpite-red-primary);
 }
 
 .doc-content th {
@@ -506,9 +444,7 @@ body {
 }
 
 .doc-content tbody tr:hover {
-  background: linear-gradient(90deg, var(--xarpite-red-subtle), rgba(255, 229, 229, 0.3));
-  transform: scale(1.01);
-  box-shadow: 0 2px 8px rgba(229, 0, 0, 0.1);
+  background-color: rgba(229, 0, 0, 0.04);
 }
 
 .doc-content tbody tr:last-child td {
@@ -518,25 +454,11 @@ body {
 /* Blockquotes */
 .doc-content blockquote {
   border-left: 4px solid var(--xarpite-red-primary);
-  background: linear-gradient(135deg, var(--xarpite-red-subtle) 0%, #fff5f5 100%);
+  background-color: var(--bg-secondary);
   padding: 1rem 1.5rem;
   margin: 1.5rem 0;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  box-shadow: 0 2px 8px rgba(229, 0, 0, 0.08);
-  position: relative;
-}
-
-.doc-content blockquote::before {
-  content: '"';
-  position: absolute;
-  top: -10px;
-  left: 10px;
-  font-size: 3rem;
-  color: var(--xarpite-red-primary);
-  opacity: 0.2;
-  font-family: Georgia, serif;
-  line-height: 1;
 }
 
 .doc-content blockquote p:last-child {
