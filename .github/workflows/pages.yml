@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: GitHub Pages
 
 on:
   push:
@@ -9,11 +9,6 @@ on:
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -21,20 +16,24 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
-      - name: Checkout
+      - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
 
-      - name: Setup Ruby
+      - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
           bundler-cache: false
 
-      - name: Setup Pages
+      - name: GitHub Pagesの設定
         uses: actions/configure-pages@v4
 
-      - name: Install Jekyll
+      - name: Jekyllのインストール
         run: |
           gem install jekyll bundler
           cd docs
@@ -42,14 +41,14 @@ jobs:
           bundle add jekyll
           bundle add webrick
 
-      - name: Build with Jekyll
+      - name: Jekyllでビルド
         run: |
           cd docs
           bundle exec jekyll build
         env:
           JEKYLL_ENV: production
 
-      - name: Upload artifact
+      - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_site
@@ -59,8 +58,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: GitHub Pagesにデプロイ
         id: deployment
         uses: actions/deploy-pages@v4
