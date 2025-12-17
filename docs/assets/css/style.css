@@ -10,9 +10,11 @@
   --xarpite-red-light: #FF3333;
   --xarpite-red-subtle: #FFE5E5;
   
-  /* Transparent variants for header */
+  /* Transparent variants */
   --xarpite-red-primary-transparent: rgba(229, 0, 0, 0.85);
   --xarpite-red-dark-transparent: rgba(134, 0, 0, 0.9);
+  --xarpite-red-shadow-light: rgba(229, 0, 0, 0.2);
+  --xarpite-red-shadow-medium: rgba(229, 0, 0, 0.3);
   
   --text-primary: #1a1a1a;
   --text-secondary: #666;
@@ -150,11 +152,11 @@ body {
   background: linear-gradient(135deg, var(--xarpite-red-primary), var(--xarpite-red-dark));
   font-weight: 600;
   padding: 0.5rem 1rem;
-  box-shadow: 0 2px 4px rgba(229, 0, 0, 0.2);
+  box-shadow: 0 2px 4px var(--xarpite-red-shadow-light);
 }
 
 .nav-link.playground-link:hover {
-  box-shadow: 0 4px 8px rgba(229, 0, 0, 0.3);
+  box-shadow: 0 4px 8px var(--xarpite-red-shadow-medium);
   transform: translateY(-1px);
 }
 
