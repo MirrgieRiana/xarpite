@@ -84,13 +84,16 @@
   <script>
     // Highlight current page in navigation
     document.addEventListener('DOMContentLoaded', function() {
-      const currentPath = window.location.pathname;
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
       const navLinks = document.querySelectorAll('.doc-nav a');
       
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
-        if (href && (currentPath === href || currentPath.endsWith(href))) {
-          link.classList.add('active');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
         }
       });
     });

@@ -32,8 +32,9 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
   
-  --breakpoint-tablet: 968px;
-  --breakpoint-mobile: 768px;
+  /* Breakpoint values for reference (CSS custom properties cannot be used in @media queries) */
+  /* --breakpoint-tablet: 968px; */
+  /* --breakpoint-mobile: 768px; */
 }
 
 /* ===== Reset & Base ===== */
