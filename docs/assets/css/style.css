@@ -10,6 +10,10 @@
   --xarpite-red-light: #FF3333;
   --xarpite-red-subtle: #FFE5E5;
   
+  /* Transparent variants for header */
+  --xarpite-red-primary-transparent: rgba(229, 0, 0, 0.85);
+  --xarpite-red-dark-transparent: rgba(134, 0, 0, 0.9);
+  
   --text-primary: #1a1a1a;
   --text-secondary: #666;
   --text-light: #999;
@@ -73,7 +77,7 @@ body {
 
 /* ===== Header ===== */
 .site-header {
-  background: linear-gradient(135deg, rgba(229, 0, 0, 0.85) 0%, rgba(134, 0, 0, 0.9) 100%);
+  background: linear-gradient(135deg, var(--xarpite-red-primary-transparent) 0%, var(--xarpite-red-dark-transparent) 100%);
   color: white;
   box-shadow: var(--shadow-md);
   position: sticky;
@@ -106,7 +110,7 @@ body {
 .logo-icon {
   width: 40px;
   height: 40px;
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(100%);
   transition: filter var(--transition-normal);
 }
 
