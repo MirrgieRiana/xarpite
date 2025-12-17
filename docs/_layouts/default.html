@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ site.description }}">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="{{ '/' | relative_url }}" class="logo-link">
+            <img src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="{{ '/ja/' | relative_url }}" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="{{ '/ja/' | relative_url }}">トップ</a></li>
+                <li><a href="{{ '/ja/syntax.html' | relative_url }}">文法</a></li>
+                <li><a href="{{ '/ja/statement.html' | relative_url }}">文・式</a></li>
+                <li><a href="{{ '/ja/whitespace.html' | relative_url }}">空白・コメント</a></li>
+                <li><a href="{{ '/ja/variable.html' | relative_url }}">変数</a></li>
+                <li><a href="{{ '/ja/number.html' | relative_url }}">数値</a></li>
+                <li><a href="{{ '/ja/string.html' | relative_url }}">文字列</a></li>
+                <li><a href="{{ '/ja/regex.html' | relative_url }}">正規表現</a></li>
+                <li><a href="{{ '/ja/blob.html' | relative_url }}">BLOB</a></li>
+                <li><a href="{{ '/ja/comparison.html' | relative_url }}">比較</a></li>
+                <li><a href="{{ '/ja/boolean.html' | relative_url }}">論理値・条件分岐</a></li>
+                <li><a href="{{ '/ja/jump.html' | relative_url }}">リターン・エラー処理</a></li>
+                <li><a href="{{ '/ja/property.html' | relative_url }}">プロパティアクセス</a></li>
+                <li><a href="{{ '/ja/array.html' | relative_url }}">配列</a></li>
+                <li><a href="{{ '/ja/object.html' | relative_url }}">オブジェクト</a></li>
+                <li><a href="{{ '/ja/function.html' | relative_url }}">関数</a></li>
+                <li><a href="{{ '/ja/stream.html' | relative_url }}">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="{{ '/ja/builtin.html' | relative_url }}">組み込み定数・関数</a></li>
+                <li><a href="{{ '/ja/data_conversion.html' | relative_url }}">データ変換系関数</a></li>
+                <li><a href="{{ '/ja/samples.html' | relative_url }}">サンプル</a></li>
+                <li><a href="{{ '/ja/cli.html' | relative_url }}">コマンドラインツール</a></li>
+                <li><a href="{{ '/ja/js.html' | relative_url }}">JavaScript版</a></li>
+                <li><a href="{{ '/ja/coroutine.html' | relative_url }}">コルーチン</a></li>
+                <li><a href="{{ '/ja/json.html' | relative_url }}">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            {{ content }}
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024 Xarpite Project. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href').split('/').pop().replace('.html', ''))) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

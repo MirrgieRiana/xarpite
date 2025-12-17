@@ -1,0 +1,32 @@
+title: Xarpite
+description: An interpreted language for one-liners
+baseurl: "/xarpite"
+url: "https://mirrgieriana.github.io"
+
+# Build settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    default_lang: shell
+
+# Theme
+theme: null
+
+# Collections
+collections:
+  docs:
+    output: true
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
