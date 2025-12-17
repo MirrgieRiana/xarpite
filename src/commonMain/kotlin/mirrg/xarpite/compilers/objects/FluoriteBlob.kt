@@ -52,18 +52,6 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
 @OptIn(ExperimentalUnsignedTypes::class)
 fun UByteArray.asFluoriteBlob() = FluoriteBlob(this)
 
-/**
- * Aggregates a FluoriteValue (which may contain multiple elements) into a single FluoriteBlob.
- * 
- * - If the value is a FluoriteNumber, it is rounded to an integer and the lower 8 bits are written to the blob.
- * - If the value is a FluoriteArray, each element (must be a FluoriteNumber) is processed as above.
- * - If the value is a FluoriteBlob, its bytes are copied directly to the result.
- * - If the value is a FluoriteStream, each element is processed recursively.
- * - Any other type throws a FluoriteException.
- *
- * @param value The FluoriteValue to aggregate into a blob (can be NUMBER, ARRAY<NUMBER>, BLOB, or STREAM)
- * @return A new FluoriteBlob containing the aggregated bytes
- */
 suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
     return Buffer().use { buffer ->
         fun processItem(item: FluoriteValue) {
