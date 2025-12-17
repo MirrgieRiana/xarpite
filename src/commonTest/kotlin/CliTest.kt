@@ -3,6 +3,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
@@ -58,6 +59,13 @@ class CliTest {
         fileSystem.delete(dir.resolve("apple.txt"))
         fileSystem.delete(dir.resolve("banana"))
         fileSystem.delete(dir)
+    }
+
+    @Test
+    fun inb() = runTest {
+        // INB はストリームとして存在することを確認
+        val inb = cliEval("INB")
+        assertEquals(true, inb is FluoriteStream)
     }
 
 }
