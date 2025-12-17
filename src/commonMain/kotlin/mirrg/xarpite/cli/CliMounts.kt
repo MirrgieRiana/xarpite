@@ -58,7 +58,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            fun error(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT][; dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
+            fun error(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT][; dir: dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
             
             if (arguments.isEmpty()) error()
             
