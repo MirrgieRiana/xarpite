@@ -261,13 +261,15 @@ ctx := by_id("canvas")::getContext("2d")
 )
 ```
 
-# シンタックスエラーのデモ
+# エラーのデモ
 
-Xarpiteでは、コードに文法エラーがある場合、パースエラーが発生します。
+Xarpiteでは、コードにエラーがある場合、パースエラーまたは実行時エラーが発生します。
 
-以下は、よくあるシンタックスエラーの例です。
+以下は、よくあるエラーの例です。
 
-## [不完全な式](https://mirrgieriana.github.io/xarpite/playground/?s=eJxLVLCyVTBU0OZS8sxLzs8tyEktSVVIrSgoSi0uzszPU1QCAKChCoQ%3D)
+## シンタックスエラー
+
+### [不完全な式](https://mirrgieriana.github.io/xarpite/playground/?s=eJxLVLCyVTBU0OZS8sxLzs8tyEktSVVIrSgoSi0uzszPU1QCAKChCoQ%3D)
 
 演算子の後に値が続かない場合、パースエラーが発生します。
 
@@ -276,7 +278,7 @@ a := 1 +
 "Incomplete expression!"
 ```
 
-## [括弧の不一致](https://mirrgieriana.github.io/xarpite/playground/?s=eJwrSi0uzSlRsLJV0DBU0FYw4lIKzctNLEnOSE1RKEgsSs0ryUgtzixWVAIAB%2FQNGw%3D%3D)
+### [括弧の不一致](https://mirrgieriana.github.io/xarpite/playground/?s=eJwrSi0uzSlRsLJV0DBU0FYw4lIKzctNLEnOSE1RKEgsSs0ryUgtzixWVAIAB%2FQNGw%3D%3D)
 
 開き括弧と閉じ括弧の数が合わない場合、パースエラーが発生します。
 
@@ -285,7 +287,7 @@ result := (1 + 2
 "Unmatched parenthesis!"
 ```
 
-## [文字列の閉じ忘れ](https://mirrgieriana.github.io/xarpite/playground/?s=eJzLTS0uTkxPVbCyVVDySM3JyddRCM8vyklR5FIKzUvOyS9OTVEoLinKzEtXVAIARrsOiw%3D%3D)
+### [文字列の閉じ忘れ](https://mirrgieriana.github.io/xarpite/playground/?s=eJzLTS0uTkxPVbCyVVDySM3JyddRCM8vyklR5FIKzUvOyS9OTVEoLinKzEtXVAIARrsOiw%3D%3D)
 
 文字列リテラルを閉じる引用符がない場合、パースエラーが発生します。
 
@@ -294,7 +296,9 @@ message := "Hello, World!
 "Unclosed string!"
 ```
 
-## [未定義変数の参照](https://mirrgieriana.github.io/xarpite/playground/?s=eJwFwTEKgDAMBdDdU3y6uugqeAt3ifYXA7FC2uj1fc%2FZwjqWFVEzi1bm%2FRVXOYwYMU9D2i5t%2BNQMp0QjBB61603Q%2FfH0AxyNF1g%3D)
+## 実行時エラー
+
+### [未定義変数の参照](https://mirrgieriana.github.io/xarpite/playground/?s=eJwFwTEKgDAMBdDdU3y6uugqeAt3ifYXA7FC2uj1fc%2FZwjqWFVEzi1bm%2FRVXOYwYMU9D2i5t%2BNQMp0QjBB61603Q%2FfH0AxyNF1g%3D)
 
 定義されていない変数を参照すると、実行時エラーが発生します。
 
