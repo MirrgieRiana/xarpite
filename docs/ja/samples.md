@@ -276,7 +276,7 @@ a := 1 +
 "Incomplete expression!"
 ```
 
-## [括弧の不一致](https://mirrgieriana.github.io/xarpite/playground/?s=eJwrSi0uzSlRsLJV0DBU0FYw4lIKzctNLEnOSE1RKEgsSs0ryUgtzixWVAIAB%2FQNGW%3D%3D)
+## [括弧の不一致](https://mirrgieriana.github.io/xarpite/playground/?s=eJwrSi0uzSlRsLJV0DBU0FYw4lIKzctNLEnOSE1RKEgsSs0ryUgtzixWVAIAB%2FQNGw%3D%3D)
 
 開き括弧と閉じ括弧の数が合わない場合、パースエラーが発生します。
 
