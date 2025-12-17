@@ -25,7 +25,16 @@ actual suspend fun executeProcess(
     dir: String?,
     input: suspend () -> List<String>
 ): List<String> = withContext(Dispatchers.IO) {
-    val processBuilder = ProcessBuilder(command)
+    // Windows環境では自動的にWSLを使用するようにコマンドをラップ
+    val isWindows = System.getProperty("os.name")?.lowercase()?.contains("windows") == true
+    val finalCommand = if (isWindows && command.isNotEmpty()) {
+        // WSL経由でコマンドを実行
+        listOf("wsl", "--") + command
+    } else {
+        command
+    }
+    
+    val processBuilder = ProcessBuilder(finalCommand)
     
     if (env != null) {
         processBuilder.environment().putAll(env)
