@@ -268,6 +268,7 @@ body {
 
 /* Typography */
 .doc-content h1 {
+  color: var(--xarpite-red-primary);
   background: linear-gradient(135deg, var(--xarpite-red-primary) 0%, var(--xarpite-red-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -276,8 +277,10 @@ body {
   font-weight: 700;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 3px solid transparent;
   border-image: linear-gradient(90deg, var(--xarpite-red-primary), transparent) 1;
+  border-image-slice: 1;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
   letter-spacing: -0.02em;
   position: relative;
   z-index: 1;
@@ -676,14 +679,7 @@ body {
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(229, 0, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(229, 0, 0, 0);
-  }
-}
+
 
 .doc-content {
   animation: fadeIn 0.5s ease;
@@ -714,7 +710,7 @@ body {
 }
 
 /* Firefox scrollbar */
-* {
+html, body {
   scrollbar-width: thin;
   scrollbar-color: var(--xarpite-red-primary) var(--bg-secondary);
 }
