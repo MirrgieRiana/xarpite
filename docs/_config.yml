@@ -12,11 +12,6 @@ kramdown:
 # Theme
 theme: null
 
-# Collections
-collections:
-  docs:
-    output: true
-
 # Defaults
 defaults:
   - scope:
