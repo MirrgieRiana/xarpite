@@ -87,7 +87,8 @@ class CliTest {
     fun execWithInput() = runTest {
         // EXEC で標準入力を指定できる
         // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
-        val result = cliEval("""EXEC("bash", "-c", "wc -l"; in: "line1", "line2", "line3")""").stream().trim()
+        // 4番目の引数として直接ストリームを渡す
+        val result = cliEval("""EXEC("bash", "-c", "wc -l"; "line1", "line2", "line3")""").stream().trim()
         assertEquals("3", result)
     }
 
