@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -d docs/_site ]; then
-            echo "docs/_site not found"
+            echo "Error: docs/_site directory not found. Jekyll build may have failed."
             exit 1
           fi
           cd docs/_site
