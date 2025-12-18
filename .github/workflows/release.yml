@@ -33,6 +33,36 @@ jobs:
         env:
           APP_VERSION: ${{ github.ref_name }}
 
+      - name: Rubyのセットアップ
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+
+      - name: Jekyllのインストール
+        run: |
+          gem install jekyll bundler
+          cd build-dir/docs
+          bundle init
+          bundle add jekyll
+          bundle add webrick
+
+      - name: Jekyllでドキュメントをビルド
+        run: |
+          cd build-dir/docs
+          bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      - name: ビルド済みドキュメントを配置
+        run: |
+          if [ ! -d build-dir/docs/_site ]; then
+            echo "Error: Jekyll build failed - _site directory not found"
+            exit 1
+          fi
+          # Jekyll生成のHTMLをマージ（md版と共存）
+          cp -r build-dir/docs/_site/* build-dir/build/bundleRelease/docs/
+
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
         with:
