@@ -37,8 +37,7 @@ jobs:
 
       - name: bundleReleaseをビルド
         run: |
-          APP_VERSION=${{ github.sha }}
-          export APP_VERSION
+          export APP_VERSION=${{ github.sha }}
           ./gradlew clean bundleRelease --stacktrace
 
       - name: Rubyのセットアップ
