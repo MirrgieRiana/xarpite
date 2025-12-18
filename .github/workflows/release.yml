@@ -61,6 +61,8 @@ jobs:
             exit 1
           fi
           tmp_list=$(mktemp)
+          chmod 600 "$tmp_list"
+          trap 'rm -f "$tmp_list"' EXIT
           find build-dir/docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
           conflict_found=0
           found_any=0
@@ -73,7 +75,7 @@ jobs:
               break
             fi
           done < "$tmp_list"
-          rm "$tmp_list"
+          rm -f "$tmp_list"
           if [ "$found_any" -eq 0 ]; then
             echo "Error: Jekyll build produced no output"
             exit 1
