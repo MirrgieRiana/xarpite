@@ -68,7 +68,7 @@ jobs:
             found_any=1
             name=$(basename "$path")
             if [ -e "build-dir/build/bundleRelease/$name" ]; then
-              echo "Error: build output already contains $name - aborting to avoid overwrite"
+              echo "Error: build output already contains entry $name - aborting to avoid overwrite"
               exit 1
             fi
           done < "$tmp_list"
@@ -77,7 +77,7 @@ jobs:
             exit 1
           fi
           # Jekyll生成のHTMLを最終出力に配置（検査済みのファイルのみ）
-          xargs -0 cp -rt build-dir/build/bundleRelease/ -- < "$tmp_list"
+          xargs -0 -r cp -r -t build-dir/build/bundleRelease/ -- < "$tmp_list"
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
