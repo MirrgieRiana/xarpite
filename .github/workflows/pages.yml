@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-pages:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
