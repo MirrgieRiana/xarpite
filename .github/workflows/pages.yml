@@ -53,7 +53,12 @@ jobs:
         run: |
           cd docs/_site
           mkdir -p docs
-          find . -mindepth 1 -maxdepth 1 ! -path './docs' -exec mv {} docs/ \;
+          shopt -s dotglob nullglob
+          for entry in *; do
+            if [ "$entry" != "docs" ] && [ "$entry" != "." ] && [ "$entry" != ".." ]; then
+              mv "$entry" docs/
+            fi
+          done
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
