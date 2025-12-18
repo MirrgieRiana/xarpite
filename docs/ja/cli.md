@@ -267,7 +267,7 @@ $ xa 'EXEC("echo", "Hello, World!")'
 ```
 
 ```shell
-$ xa '1 .. 10 > EXEC["bash", "-c", "wc -l"]'
+$ xa '1 .. 10 >> EXEC["bash", "-c", "wc -l"]'
 # 10
 ```
 
