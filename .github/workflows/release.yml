@@ -21,17 +21,10 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Gradleキャッシュの設定
+      - name: Gradleのセットアップ
         uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: build-dir
-
-      - name: ビルド
-        run: |
-          cd build-dir
-          bash gradlew clean build --stacktrace
-        env:
-          APP_VERSION: ${{ github.ref_name }}
 
       - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
@@ -48,37 +41,17 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
-      - name: Jekyllでドキュメントをビルド
+      - name: ビルド
         run: |
-          cd build-dir/pages
-          bundle exec jekyll build
-        env:
-          JEKYLL_ENV: production
+          ./gradlew clean build bundleRelease --stacktrace
+          ./scripts/build-pages.sh build/bundleRelease
 
-      - name: ビルド済みドキュメントを配置
-        run: |
-          if [ ! -d build-dir/pages/_site ]; then
-            echo "Error: Jekyll build failed - _site directory not found"
-            exit 1
-          fi
-          tmp_list=$(mktemp)
-          trap 'rm -f "$tmp_list"' EXIT
-          find build-dir/pages/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
-          found_any=0
-          while IFS= read -r -d '' path; do
-            found_any=1
-            name=$(basename "$path")
-            if [ -e "build-dir/build/bundleRelease/$name" ]; then
-              echo "Error: build output already contains entry $name - aborting to avoid overwrite"
-              exit 1
-            fi
-          done < "$tmp_list"
-          if [ "$found_any" -eq 0 ]; then
-            echo "Error: Jekyll build produced no output"
-            exit 1
-          fi
-          # Jekyll生成のHTMLを最終出力に配置（検査済みのファイルのみ）
-          xargs -0 -r cp -r -t build-dir/build/bundleRelease/ -- < "$tmp_list"
+          echo "### $(pwd)"
+          find -type f . | sort
+          echo "###"
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        working-directory: build-dir
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
