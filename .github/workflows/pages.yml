@@ -55,7 +55,7 @@ jobs:
           mkdir -p docs
           shopt -s dotglob nullglob
           for entry in *; do
-            if [ "$entry" != "docs" ] && [ "$entry" != "." ] && [ "$entry" != ".." ]; then
+            if [ "$entry" != "docs" ]; then
               mv "$entry" docs/
             fi
           done
