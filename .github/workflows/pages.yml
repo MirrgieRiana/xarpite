@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
+      - 'pages/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -44,7 +44,7 @@ jobs:
       - name: Jekyllのインストール
         run: |
           gem install jekyll bundler
-          cd docs
+          cd pages
           bundle init
           bundle add jekyll
           bundle add jekyll-optional-front-matter

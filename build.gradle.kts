@@ -133,7 +133,7 @@ tasks.named("build").configure { dependsOn(bundleRelease) }
 // Doc Shell Tests
 
 val generateDocShellTests = tasks.register("generateDocShellTests") {
-    val docsDir = file("docs/ja")
+    val docsDir = file("pages/docs/ja")
     val outFile = project.layout.buildDirectory.file("docShellTests/ja.sh")
 
     inputs.dir(docsDir)
