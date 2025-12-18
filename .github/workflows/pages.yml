@@ -52,26 +52,10 @@ jobs:
 
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
-          export APP_VERSION=${{ github.sha }}
-          ./gradlew clean bundleRelease --stacktrace
-          cd docs
-          bundle exec jekyll build
-          cd ..
-          if [ ! -d build/bundleRelease ]; then
-            echo "Error: build/bundleRelease not found. Ensure bundleRelease was built."
-            exit 1
-          fi
-          if [ ! -d docs/_site ]; then
-            echo "Error: Jekyll build failed - docs/_site not found"
-            exit 1
-          fi
-          if ! find docs/_site -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
-            echo "Error: Jekyll build produced no output"
-            exit 1
-          fi
-          rsync -a --ignore-existing docs/_site/ build/bundleRelease/
+          chmod +x scripts/build-pages.sh
+          JEKYLL_ENV=production scripts/build-pages.sh
         env:
-          JEKYLL_ENV: production
+          APP_VERSION: ${{ github.sha }}
 
       - name: GitHub Pagesの設定
         uses: actions/configure-pages@v4
