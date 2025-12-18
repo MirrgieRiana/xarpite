@@ -125,14 +125,11 @@ object XarpiteGrammar {
     val curly: Parser<Node> = -'{' * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.a ?: EmptyNode) }
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
 
-    val returnValue: Parser<Node> = -s * -!br * parser { commas }
-
     val jump: Parser<Node> = or(
-        -"!!" * -b * parser { commas } map { ThrowNode(it) },
-        identifier * -s * -"!!" * returnValue.optional map {
-            val rightExpression = it.b.a ?: EmptyNode
-            ReturnNode(it.a, rightExpression)
-        },
+        -"!!" * -s * parser { commas } map { ThrowNode(it) },
+        -"!!" map { ThrowNode(EmptyNode) },
+        identifier * -s * -"!!" * -s * parser { commas } map { ReturnNode(it.a, it.b) },
+        identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
     val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
