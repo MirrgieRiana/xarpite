@@ -49,6 +49,12 @@ jobs:
         env:
           JEKYLL_ENV: production
 
+      - name: 出力配置を/docs配下に移動
+        run: |
+          cd docs/_site
+          mkdir -p docs
+          find . -mindepth 1 -maxdepth 1 ! -path './docs' -exec mv {} docs/ \;
+
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
