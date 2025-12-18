@@ -124,7 +124,6 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("docs") { into("docs") }
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
