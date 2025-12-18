@@ -50,6 +50,12 @@ jobs:
           # バージョン番号を抽出（vプレフィックスを除去）
           VERSION=${LATEST_TAG#v}
           
+          # バージョン番号の形式を検証
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Error: Invalid version format: $VERSION" >&2
+            exit 1
+          fi
+          
           # バージョン番号を分割
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           
@@ -64,7 +70,7 @@ jobs:
               ;;
             major)
               MAJOR=$((MAJOR + 1))
-              MINOR=$((MINOR + 1))  # メジャーリリースではマイナーもインクリメント
+              MINOR=$((MINOR + 1))  # このプロジェクト独自の仕様: メジャーリリースではマイナーもインクリメント（SEMVER標準では0にリセット）
               PATCH=0
               ;;
             *)
