@@ -24,4 +24,4 @@ if [ -z "$(ls -A "$ROOT_DIR/docs/_site")" ]; then
   exit 1
 fi
 
-rsync -a "$ROOT_DIR/docs/_site/" "$OUTPUT_DIR/"
+rsync -a "$ROOT_DIR/docs/_site/" "$OUTPUT_DIR/docs/"
