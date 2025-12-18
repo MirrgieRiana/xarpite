@@ -58,12 +58,7 @@ jobs:
           fi
           cd docs/_site
           mkdir -p docs
-          shopt -s dotglob nullglob
-          for entry in *; do
-            if [ "$entry" != "docs" ]; then
-              mv "$entry" docs/
-            fi
-          done
+          find . -mindepth 1 -maxdepth 1 ! -name docs -exec mv -t docs/ -- {} +
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
