@@ -61,7 +61,6 @@ jobs:
             exit 1
           fi
           tmp_list=$(mktemp)
-          chmod 600 "$tmp_list"
           trap 'rm -f "$tmp_list"' EXIT
           find build-dir/docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
           conflict_found=0
