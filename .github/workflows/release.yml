@@ -75,7 +75,6 @@ jobs:
               break
             fi
           done < "$tmp_list"
-          rm -f "$tmp_list"
           if [ "$found_any" -eq 0 ]; then
             echo "Error: Jekyll build produced no output"
             exit 1
