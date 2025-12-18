@@ -128,8 +128,8 @@ object XarpiteGrammar {
     val jump: Parser<Node> = or(
         -"!!" * -b * parser { commas } map { ThrowNode(it) },
         identifier * -s * -"!!" * -b * parser { commas }.optional map {
-            val right = it.b.a ?: EmptyNode
-            ReturnNode(it.a, right)
+            val rightExpression = it.b.a ?: EmptyNode
+            ReturnNode(it.a, rightExpression)
         },
     )
 
