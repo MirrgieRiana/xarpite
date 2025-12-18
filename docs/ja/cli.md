@@ -242,3 +242,40 @@ $ {
 # apple
 # banana
 ```
+
+## `EXEC` コマンドの実行
+
+`EXEC(command: STREAM<STRING>[; env: env: OBJECT][; dir: dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>`
+
+`command` で指定されたプロセス名と引数列から外部プロセスを起動します。
+
+`command` は空であってはなりません。
+
+`command` にはシェルコマンドは使用できません。
+
+`env` が指定された場合、現在の環境変数にマージされた状態でプロセスが起動されます。
+
+`dir` が指定された場合、そのディレクトリをカレントディレクトリとしてプロセスが起動されます。
+
+`dir` が指定されなかった場合、現在のプロセスのカレントディレクトリが使用されます。
+
+`in` が指定された場合、そのストリームの各要素が改行コード付きでプロセスの標準入力に書き込まれます。
+
+プロセスの標準出力からの出力が1行ずつ読み取られ、ストリームとして返されます。
+
+プロセスが0以外の終了コードで終了した場合、例外がスローされます。
+
+```shell
+$ xa 'EXEC("echo", "Hello, World!")'
+# Hello, World!
+```
+
+```shell
+$ xa '1 .. 10 | EXEC("wc", "-l")'
+# 10
+```
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FRUIT<%; env: {FRUIT: "apple"})'
+# apple
+```
