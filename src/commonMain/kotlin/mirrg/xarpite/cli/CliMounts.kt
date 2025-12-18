@@ -129,20 +129,27 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             
             // Execute the process
             FluoriteStream {
-                // Create input reader that reads from the stream
-                var inputIterator: (suspend () -> String?)? = null
-                if (inputStream != null) {
+                // Create input reader that properly converts stream values to strings
+                val inputIterator: suspend () -> String? = if (inputStream != null) {
+                    // Pre-collect input stream items (necessary for proper iteration)
                     val inputList = mutableListOf<String>()
-                    inputStream.collect { line ->
-                        inputList.add(line.toFluoriteString().value)
+                    inputStream.collect { value ->
+                        // Convert each value to string properly
+                        inputList.add(value.toFluoriteString().value)
                     }
                     var inputIndex = 0
-                    inputIterator = suspend {
-                        if (inputIndex < inputList.size) inputList[inputIndex++] else null
+                    suspend {
+                        if (inputIndex < inputList.size) {
+                            inputList[inputIndex++]
+                        } else {
+                            null
+                        }
                     }
+                } else {
+                    suspend { null }
                 }
                 
-                val outputReader = executeProcess(commandList, finalEnv, dirPath, inputIterator ?: suspend { null })
+                val outputReader = executeProcess(commandList, finalEnv, dirPath, inputIterator)
                 
                 // Read output line by line
                 while (true) {
