@@ -24,4 +24,7 @@ if [ -z "$(ls -A "$ROOT_DIR/pages/_site")" ]; then
   exit 1
 fi
 
+# Copy Jekyll output to the root of OUTPUT_DIR (not a subdirectory)
+# This allows pages/index.md to become the site root at https://mirrgieriana.github.io/xarpite/
+# and pages/docs/ja/ to be at https://mirrgieriana.github.io/xarpite/docs/ja/
 rsync -a "$ROOT_DIR/pages/_site/" "$OUTPUT_DIR/"
