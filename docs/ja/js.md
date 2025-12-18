@@ -1,3 +1,7 @@
+---
+title: "JavaScript上での動作"
+---
+
 # JavaScript上での動作
 
 XarpiteはJavaScript上での動作をサポートしています。
