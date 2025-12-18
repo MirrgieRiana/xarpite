@@ -222,12 +222,11 @@ object XarpiteGrammar {
     val and: Parser<Node> = leftAssociative(labelColon, -s * andOperator * -b) { left, operator, right -> operator(left, right) }
     val orOperator: Parser<(Node, Node) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
     val or: Parser<Node> = leftAssociative(and, -s * orOperator * -b) { left, operator, right -> operator(left, right) }
-    val catchOperator: Parser<(Node, Node) -> InfixNode> = -"!?" map { ::InfixExclamationQuestionNode }
-    val catch: Parser<Node> = leftAssociative(or, -s * catchOperator * -b) { left, operator, right -> operator(left, right) }
     val condition: Parser<Node> = or(
-        catch * -b * -'?' * -b * parser { condition } * -b * -':' * !':' * -b * parser { condition } map { it -> ConditionNode(it.a, it.b, it.c) },
-        catch * -b * -"?:" * -b * parser { condition } map { InfixQuestionColonNode(it.a, it.b) },
-        catch,
+        or * -b * -'?' * -b * parser { condition } * -b * -':' * !':' * -b * parser { condition } map { it -> ConditionNode(it.a, it.b, it.c) },
+        or * -b * -"?:" * -b * parser { condition } map { InfixQuestionColonNode(it.a, it.b) },
+        or * -b * -"!?" * -b * parser { condition } map { InfixExclamationQuestionNode(it.a, it.b) },
+        or,
     )
 
     val commasPart: Parser<List<Node>> = or(

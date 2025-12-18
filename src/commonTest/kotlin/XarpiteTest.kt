@@ -1231,11 +1231,93 @@ class XarpiteTest {
         assertEquals(0, eval("0 && 1 !: label").int)
         assertEquals(10, eval("(1 && 10 !: label)").int)
 
-        // !? は ?: とほぼ同じ結合優先度を持つ（わずかに高い）
+        // !? は ?: と全く同じ結合優先度を持つ（エルビス演算子と同等）
         // !!'a' !? 'b' は (!!'a') !? 'b' と解釈され、例外がキャッチされる
         assertEquals("b", eval("!!'a' !? 'b'").string)
         // !? の対象範囲は比較的狭い
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
+
+        // Issue #62 のテストケース: ラベルはブロックを取ることが多い
+        
+        // ケース1: パイプごと取ってほしい - break時はNULLが返る
+        """
+            (1 .. 3 | (
+                _ == 2 && break !!
+                _ * 10
+            )) !: break
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+        
+        // ケース1b: breakしない場合は全要素が取れる
+        """
+            (1 .. 3 | (
+                _ == 99 && break !!
+                _ * 10
+            )) !: break
+        """.let { assertEquals("10,20,30", eval(it).stream()) }
+        
+        // ケース2: 集約演算を中断してbreakしてほしい
+        """
+            (1 .. 5 | (
+                _ == 3 && break !!
+                _
+            ) >> SUM) !: break
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+        
+        // ケース3: 代入の右辺を拾ってほしい - break時はNULLが代入される
+        """
+            result := (1 .. 3 | (
+                _ == 2 && break !!
+                _ * 10
+            )) !: break
+            result
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+        
+        // ケース3b: breakしない場合
+        """
+            result := (1 .. 3 | (
+                _ == 99 && break !!
+                _ * 10
+            )) !: break
+            result
+        """.let { assertEquals("10,20,30", eval(it).stream()) }
+        
+        // ケース4: !: の左辺のストリームを解決し、さらにパイプで処理
+        // breakが発生するとNULLになる
+        """
+            ((1 .. 3 | (
+                _ == 2 && break !!
+                _ * 10
+            )) !: break | _)
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+        
+        // ケース4b: breakしない場合、全要素が処理される
+        """
+            ((1 .. 3 | (
+                _ == 99 && break !!
+                _ * 10
+            )) !: break >> COUNT)
+        """.let { assertEquals(3, eval(it).int) }
+        
+        // Issue #62 のテストケース: catchはtry節の範囲を狭める
+        
+        // ケース5: f() !? else のように関数呼び出しのみをキャッチ
+        """
+            f := () -> !! "error"
+            result := f() !? "caught"
+            result
+        """.let { assertEquals("caught", eval(it).string) }
+        
+        // ケース6: 複雑な式全体をキャッチしたい場合は括弧が必要
+        """
+            (1 + 2 + !! "error") !? "caught"
+        """.let { assertEquals("caught", eval(it).string) }
+        
+        // ケース7: !? と ?: が同じ優先度なので、自然にチェーンできる
+        """
+            value := NULL
+            result := value ?: (!! "error") !? "default"
+            result
+        """.let { assertEquals("default", eval(it).string) }
 
     }
 
