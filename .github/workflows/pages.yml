@@ -35,11 +35,6 @@ jobs:
         with:
           build-root-directory: .
 
-      - name: bundleReleaseをビルド
-        run: |
-          export APP_VERSION=${{ github.sha }}
-          ./gradlew clean bundleRelease --stacktrace
-
       - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
         with:
@@ -55,15 +50,13 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
-      - name: Jekyllでビルド
+      - name: bundleReleaseとJekyllをビルドして配置
         run: |
+          export APP_VERSION=${{ github.sha }}
+          ./gradlew clean bundleRelease --stacktrace
           cd docs
           bundle exec jekyll build
-        env:
-          JEKYLL_ENV: production
-
-      - name: Jekyll成果物をbundleReleaseに配置
-        run: |
+          cd ..
           if [ ! -d build/bundleRelease ]; then
             echo "Error: build/bundleRelease not found. Ensure bundleRelease was built."
             exit 1
@@ -72,23 +65,13 @@ jobs:
             echo "Error: Jekyll build failed - docs/_site not found"
             exit 1
           fi
-          tmp_list=$(mktemp)
-          trap 'rm -f "$tmp_list"' EXIT
-          find docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
-          found_any=0
-          while IFS= read -r -d '' path; do
-            found_any=1
-            name=$(basename "$path")
-            if [ -e "build/bundleRelease/$name" ]; then
-              echo "Error: build/bundleRelease already contains entry $name - aborting to avoid overwrite"
-              exit 1
-            fi
-          done < "$tmp_list"
-          if [ "$found_any" -eq 0 ]; then
+          if ! find docs/_site -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
             echo "Error: Jekyll build produced no output"
             exit 1
           fi
-          xargs -0 -r cp -r -t build/bundleRelease/ -- < "$tmp_list"
+          rsync -a --ignore-existing docs/_site/ build/bundleRelease/
+        env:
+          JEKYLL_ENV: production
 
       - name: GitHub Pagesの設定
         uses: actions/configure-pages@v4
