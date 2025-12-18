@@ -39,6 +39,7 @@ jobs:
           cd docs
           bundle init
           bundle add jekyll
+          bundle add jekyll-optional-front-matter
           bundle add webrick
 
       - name: Jekyllでビルド
