@@ -24,7 +24,6 @@ title: "Xarpiteドキュメント"
 - [データ変換系関数](data_conversion.html)
 - [サンプル](samples.html)
 - [コマンドラインツール](cli.html)
-- [リリース成果物とPages成果物の比較](release_pages.html)
 - [JavaScript版](js.html)
 - [コルーチン](coroutine.html)
 - [JSON操作](json.html)
