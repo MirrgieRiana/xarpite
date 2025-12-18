@@ -51,6 +51,11 @@ jobs:
 
       - name: 出力配置を/docs配下に移動
         run: |
+          set -euo pipefail
+          if [ ! -d docs/_site ]; then
+            echo "docs/_site not found"
+            exit 1
+          fi
           cd docs/_site
           mkdir -p docs
           shopt -s dotglob nullglob
