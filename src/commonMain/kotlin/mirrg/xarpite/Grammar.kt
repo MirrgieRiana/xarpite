@@ -128,7 +128,7 @@ object XarpiteGrammar {
     val jump: Parser<Node> = or(
         -"!!" * -s * parser { commas } map { ThrowNode(it) },
         -"!!" map { ThrowNode(EmptyNode) },
-        identifier * -s * -"!!" * -s * -!br * -!(+"!?") * parser { commas } map { ReturnNode(it.a, it.b) },
+        identifier * -s * -"!!" * -s * parser { commas } map { ReturnNode(it.a, it.b) },
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
