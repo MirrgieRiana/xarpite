@@ -33,10 +33,10 @@ build/bundleRelease/
 ├── bin/
 │   ├── native/xarpite
 │   ├── jvm/xarpite-jvm.jar
-│   └── node/…（.mjs群とpackage.json）
-├── docs/…（Markdownソース一式）
-├── ja/…（Jekyll生成済みHTML）
-└── playground/…（ブラウザ用バンドル）
+│   └── node/...（.mjs群とpackage.json）
+├── docs/...（Markdownソース一式）
+├── ja/...（Jekyll生成済みHTML）
+└── playground/...（ブラウザ用バンドル）
 ```
 
 ### Pages workflow（Pagesにデプロイされる内容）
@@ -45,7 +45,7 @@ build/bundleRelease/
 docs/_site/
 └── docs/
     ├── assets/...
-    └── ja/…（Jekyll生成済みHTML）
+    └── ja/...（Jekyll生成済みHTML）
 ```
 
 ## 主な違い
