@@ -1112,6 +1112,17 @@ class XarpiteTest {
             t
         """.let { assertEquals(0, eval(it).int) }
 
+        // label !! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
+        """
+            (
+                label !! !? "On Error!"
+                "unreached"
+            ) !: label
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // !! 単体は NULL をスローする
+        assertEquals("handled", eval(""" !! !? "handled" """).string)
+
         // getter label !! value でreturnできる
         """
             (
