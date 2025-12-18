@@ -70,8 +70,8 @@ import mirrg.xarpite.SemicolonsNode
 import mirrg.xarpite.TemplateStringNode
 import mirrg.xarpite.ThrowNode
 import mirrg.xarpite.UnaryAmpersandNode
-import mirrg.xarpite.UnaryAtNode
 import mirrg.xarpite.UnaryAsteriskNode
+import mirrg.xarpite.UnaryAtNode
 import mirrg.xarpite.UnaryBackslashNode
 import mirrg.xarpite.UnaryDollarAmpersandNode
 import mirrg.xarpite.UnaryDollarAsteriskNode
@@ -237,6 +237,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val argumentGetter = VariableGetter(variable.first, variable.second)
             FunctionInvocationGetter(functionGetter, listOf(argumentGetter))
         }
+
         is UnaryBackslashNode -> {
             // Transform body into lambda: _ -> body
             val newFrame = Frame(this)
@@ -245,6 +246,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val getter = newFrame.compileToGetter(node.main)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
         }
+
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))
 
         is ReturnNode -> {

@@ -1095,6 +1095,34 @@ class XarpiteTest {
     @Test
     fun returnTest() = runTest {
 
+        // label !! の右辺を省略すると NULL を返して脱出できる
+        """
+            (
+                label !!
+            ) !: label
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // !! の直後で改行すると右辺は結合されず、以降の式は実行されない
+        """
+            t := 0
+            (
+                label !!
+                t = 1
+            ) !: label
+            t
+        """.let { assertEquals(0, eval(it).int) }
+
+        // label !! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
+        """
+            (
+                label !! !? "On Error!"
+                "unreached"
+            ) !: label
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // !! 単体は NULL をスローする
+        assertEquals("handled", eval(""" !! !? "handled" """).string)
+
         // getter label !! value でreturnできる
         """
             (

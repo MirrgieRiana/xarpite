@@ -106,7 +106,7 @@ object XarpiteGrammar {
         // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
         -"<%=" * -b * parser { stream } * -b * -"%>" map { NodeStringContent(it) },
     )
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !(+'%' * +'=') map { EmbeddedStringNode(it) } // %>string<%
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' map { EmbeddedStringNode(it) } // %>string<%
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字
@@ -126,8 +126,10 @@ object XarpiteGrammar {
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
 
     val jump: Parser<Node> = or(
-        -"!!" * -b * parser { commas } map { ThrowNode(it) },
-        identifier * -s * -"!!" * -b * parser { commas } map { ReturnNode(it.a, it.b) },
+        -"!!" * -s * parser { commas } map { ThrowNode(it) },
+        -"!!" map { ThrowNode(EmptyNode) },
+        identifier * -s * -"!!" * -s * parser { commas } map { ReturnNode(it.a, it.b) },
+        identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
     val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
@@ -137,7 +139,7 @@ object XarpiteGrammar {
         -'+' map { ::UnaryPlusNode },
         -'-' map { ::UnaryMinusNode },
         -'?' map { ::UnaryQuestionNode },
-        -'!' * !'!' map { ::UnaryExclamationNode },
+        -'!' * !'!' * !'?' map { ::UnaryExclamationNode },
         -'&' map { ::UnaryAmpersandNode },
         -'*' map { ::UnaryAsteriskNode },
         -"$#" map { ::UnaryDollarSharpNode },
@@ -247,7 +249,7 @@ object XarpiteGrammar {
     )
     val assignmentOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'=' * !'>' map { ::InfixEqualNode }, // =
-        -':' * !(+'=' + +':') map { ::InfixColonNode }, // :
+        -':' * !'=' * !':' map { ::InfixColonNode }, // :
         -":=" map { ::InfixColonEqualNode }, // :=
         -"<<" map { ::InfixLessLessNode }, // <<
         -"->" map { ::InfixMinusGreaterNode }, // ->
