@@ -52,9 +52,12 @@ jobs:
 
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
-          chmod +x scripts/build-pages.sh
           ./gradlew clean bundleRelease --stacktrace
-          scripts/build-pages.sh build/bundleRelease
+          ./scripts/build-pages.sh build/bundleRelease
+
+          echo "### $(pwd)"
+          find -type f . | sort
+          echo "###"
         env:
           APP_VERSION: ${{ github.sha }}
 
