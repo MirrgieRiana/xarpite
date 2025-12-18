@@ -24,14 +24,22 @@ jobs:
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
 
+      - name: Javaのセットアップ
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Gradleキャッシュの設定
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: .
+
       - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
           bundler-cache: false
-
-      - name: GitHub Pagesの設定
-        uses: actions/configure-pages@v4
 
       - name: Jekyllのインストール
         run: |
@@ -42,17 +50,21 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
-      - name: Jekyllでビルド
+      - name: bundleReleaseとJekyllをビルドして配置
         run: |
-          cd docs
-          bundle exec jekyll build --destination ./_site/docs
+          chmod +x scripts/build-pages.sh
+          ./gradlew clean bundleRelease --stacktrace
+          scripts/build-pages.sh build/bundleRelease
         env:
-          JEKYLL_ENV: production
+          APP_VERSION: ${{ github.sha }}
+
+      - name: GitHub Pagesの設定
+        uses: actions/configure-pages@v4
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_site
+          path: build/bundleRelease
 
   deploy:
     environment:
