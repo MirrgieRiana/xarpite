@@ -7,7 +7,7 @@
   <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
   <meta name="description" content="{{ site.description }}">
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg">
+  <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/xarpite-icon.svg' | relative_url }}">
 </head>
 <body>
   <div class="page-wrapper">
@@ -15,7 +15,7 @@
       <div class="container">
         <div class="header-content">
           <a href="{{ '/' | relative_url }}" class="logo-link">
-            <img src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <img src="{{ '/assets/images/xarpite-icon.svg' | relative_url }}" alt="Xarpite Icon" class="logo-icon">
             <span class="logo-text">Xarpite</span>
           </a>
           <nav class="main-nav">
