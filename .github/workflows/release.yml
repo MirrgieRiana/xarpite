@@ -83,8 +83,8 @@ jobs:
           if [ "$conflict_found" -eq 1 ]; then
             exit 1
           fi
-          # Jekyll生成のHTMLを最終出力に配置
-          cp -r build-dir/docs/_site/. build-dir/build/bundleRelease/
+          # Jekyll生成のHTMLを最終出力に配置（検査済みのファイルのみ）
+          xargs -0 -I {} cp -r "{}" build-dir/build/bundleRelease/ < "$tmp_list"
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
