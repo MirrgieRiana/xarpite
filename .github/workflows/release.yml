@@ -42,7 +42,7 @@ jobs:
       - name: Jekyllのインストール
         run: |
           gem install jekyll bundler
-          cd build-dir/docs
+          cd build-dir/pages
           bundle init
           bundle add jekyll
           bundle add jekyll-optional-front-matter
@@ -50,20 +50,20 @@ jobs:
 
       - name: Jekyllでドキュメントをビルド
         run: |
-          cd build-dir/docs
+          cd build-dir/pages
           bundle exec jekyll build
         env:
           JEKYLL_ENV: production
 
       - name: ビルド済みドキュメントを配置
         run: |
-          if [ ! -d build-dir/docs/_site ]; then
+          if [ ! -d build-dir/pages/_site ]; then
             echo "Error: Jekyll build failed - _site directory not found"
             exit 1
           fi
           tmp_list=$(mktemp)
           trap 'rm -f "$tmp_list"' EXIT
-          find build-dir/docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
+          find build-dir/pages/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
           found_any=0
           while IFS= read -r -d '' path; do
             found_any=1
