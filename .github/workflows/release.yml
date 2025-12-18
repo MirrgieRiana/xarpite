@@ -70,6 +70,7 @@ jobs:
             if [ -e "build-dir/build/bundleRelease/$name" ]; then
               echo "Error: build output already contains $name - aborting to avoid overwrite"
               conflict_found=1
+              break
             fi
           done < "$tmp_list"
           rm "$tmp_list"
