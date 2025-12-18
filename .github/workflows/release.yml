@@ -56,6 +56,10 @@ jobs:
 
       - name: ビルド済みドキュメントを配置
         run: |
+          if [ ! -d build-dir/docs/_site ]; then
+            echo "Error: Jekyll build failed - _site directory not found"
+            exit 1
+          fi
           rm -rf build-dir/build/bundleRelease/docs
           mv build-dir/docs/_site build-dir/build/bundleRelease/docs
 
