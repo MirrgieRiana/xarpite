@@ -60,8 +60,28 @@ jobs:
             echo "Error: Jekyll build failed - _site directory not found"
             exit 1
           fi
+          tmp_list=$(mktemp)
+          find build-dir/docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
+          conflict_found=0
+          found_any=0
+          while IFS= read -r -d '' path; do
+            found_any=1
+            name=$(basename "$path")
+            if [ -e "build-dir/build/bundleRelease/$name" ]; then
+              echo "Error: build output already contains $name - aborting to avoid overwrite"
+              conflict_found=1
+            fi
+          done < "$tmp_list"
+          rm "$tmp_list"
+          if [ "$found_any" -eq 0 ]; then
+            echo "Error: Jekyll build produced no output"
+            exit 1
+          fi
+          if [ "$conflict_found" -eq 1 ]; then
+            exit 1
+          fi
           # Jekyll生成のHTMLを最終出力に配置
-          cp -r build-dir/docs/_site/* build-dir/build/bundleRelease/
+          cp -r build-dir/docs/_site/. build-dir/build/bundleRelease/
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
