@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>識別子 - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/ja/">トップ</a></li>
+                <li><a href="/xarpite/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            <h1 id="識別子">識別子</h1>
+
+<p>識別子 <code class="language-plaintext highlighter-rouge">identifier</code> は、変数、組み込み定数、組み込み関数、引数などを指し表すための文字列です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  variable := 10
+  variable
+'</span>
+<span class="c"># 10</span>
+
+<span class="nv">$ </span>xa <span class="s1">'MATH.PI'</span>
+<span class="c"># 3.141592653589793</span>
+
+<span class="nv">$ </span>xa <span class="s1">'SQRT(4)'</span>
+<span class="c"># 2.0</span>
+
+<span class="nv">$ </span>xa <span class="s1">'
+  function := x, y, z -&gt; x + y + z
+  function(100; 20; 3)
+'</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<h2 id="識別子に使用できる文字">識別子に使用できる文字</h2>
+
+<p>識別子には、以下の文字が利用できます。</p>
+
+<ul>
+  <li>英字 <code class="language-plaintext highlighter-rouge">a-zA-Z</code></li>
+  <li>数字 <code class="language-plaintext highlighter-rouge">0-9</code></li>
+  <li>アンダースコア <code class="language-plaintext highlighter-rouge">_</code></li>
+  <li>すべてのマルチバイト文字</li>
+</ul>
+
+<p>ただし、先頭は数字であってはいけません。</p>
+
+<h2 id="クォート識別子">クォート識別子</h2>
+
+<p><code class="language-plaintext highlighter-rouge">` `</code> で囲った識別子はクォート識別子と呼ばれます。</p>
+
+<p>識別子とクォート識別子は、書き方が違うだけで同じ識別子を表します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  `variable` := 10
+  `variable`
+'</span>
+<span class="c"># 10</span>
+
+<span class="nv">$ </span>xa <span class="s1">'
+  variable := 10
+  `variable`
+'</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<h2 id="記号を含むクォート識別子">記号を含むクォート識別子</h2>
+
+<p>クォート識別子は記号を含むこともできます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  `#` := 10
+  `#`
+'</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<h2 id="クォート識別子の文字参照">クォート識別子の文字参照</h2>
+
+<p>クォート識別子内では、以下の文字参照を使うことができます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>文字列</th>
+      <th>意味</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">\xXX</code></td>
+      <td>指定したコードポイントU+0000～U+00FFの1文字</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">\uXXXX</code></td>
+      <td>指定したUTF-16のコード単位1個</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  `\x21` := 10
+  `!`
+'</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<h1 id="変数">変数</h1>
+
+<p>変数は、識別子によって値に名前を付けて格納・参照するための仕組みです。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  x := 100
+  y :=  20
+  z :=   3
+
+  x + y + z
+'</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<h2 id="変数の宣言">変数の宣言</h2>
+
+<p>変数の宣言には、変数宣言演算子 <code class="language-plaintext highlighter-rouge">variable := value</code> を使います。</p>
+
+<p>変数宣言演算子は、書かれたスコープ内で変数を宣言しつつ、右辺の値で初期化します。</p>
+
+<p>Xarpiteでは、変数は宣言と同時に何らかの値で初期化する必要があります。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  x := 10
+  x
+'</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<h2 id="変数への値の代入">変数への値の代入</h2>
+
+<p>変数に値を代入するには、代入演算子 <code class="language-plaintext highlighter-rouge">variable = value</code> を使います。</p>
+
+<p>代入先の変数はすでに宣言されている必要があります。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+
+  x := 10
+  OUT &lt;&lt; x
+
+  x = 123
+  OUT &lt;&lt; x
+
+'</span>
+<span class="c"># 10</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<h2 id="変数のスコープ">変数のスコープ</h2>
+
+<p>宣言された変数は、宣言以降、そのスコープ内でのみ有効です。</p>
+
+<p><code class="language-plaintext highlighter-rouge">( )</code> など、スコープを生成する演算子内で宣言された変数は、そのスコープを抜けると破棄されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+
+  x := "A (outer initial value)"
+  OUT &lt;&lt; x
+
+  (
+    x = "B (outer assigned value)"
+    OUT &lt;&lt; x
+
+    x := "C (inner initial value)"
+    OUT &lt;&lt; x
+
+    x = "D (inner assigned value)"
+    OUT &lt;&lt; x
+  )
+
+  OUT &lt;&lt; x
+'</span>
+<span class="c"># A (outer initial value)</span>
+<span class="c"># B (outer assigned value)</span>
+<span class="c"># C (inner initial value)</span>
+<span class="c"># D (inner assigned value)</span>
+<span class="c"># B (outer assigned value)</span>
+</code></pre></div></div>
+
+<h2 id="変数宣言演算子の右辺からの自身の参照">変数宣言演算子の右辺からの自身の参照</h2>
+
+<p>変数宣言演算子の右辺では、その変数自身を参照することができます。</p>
+
+<p>この性質は、再帰関数を作るときに便利です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  factorial := n -&gt; n == 0 ? 1 : n * factorial(n - 1)
+  factorial(5)
+'</span>
+<span class="c"># 120</span>
+</code></pre></div></div>
+
+<h1 id="マウント">マウント</h1>
+
+<p>マウントは、変数が宣言されていない識別子が特殊なテーブルから値を参照することができる仕組みです。</p>
+
+<p>マウントはライブラリを利用する際によく用いられます。</p>
+
+<p><code class="language-plaintext highlighter-rouge">TRUE</code> <code class="language-plaintext highlighter-rouge">NULL</code> などの組み込み定数、 <code class="language-plaintext highlighter-rouge">JOIN</code> <code class="language-plaintext highlighter-rouge">SQRT</code> などの組み込み関数は、すべてマウントの仕組みを利用して提供されています。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  lib := {
+    fruit: "apple"
+  }
+
+  @lib
+
+  fruit
+'</span>
+<span class="c"># apple</span>
+</code></pre></div></div>
+
+<h2 id="マウント演算子">マウント演算子</h2>
+
+<p>マウント演算子 <code class="language-plaintext highlighter-rouge">@object</code> は、オブジェクト <code class="language-plaintext highlighter-rouge">object</code> の内容を現在の位置にマウントします。</p>
+
+<p>定義されていない変数にアクセスしようとしたとき、マウントされているエントリーから値を探します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  @{
+    fruit: "apple"
+  }
+
+  fruit
+'</span>
+<span class="c"># apple</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">object</code> はオブジェクトである必要があります。</p>
+
+<h2 id="マウント演算子はオブジェクトの中身をマウントする">マウント演算子はオブジェクトの中身をマウントする</h2>
+
+<p>マウントはオブジェクトそのものではなく、オブジェクトの各エントリーについて行われます。</p>
+
+<p>マウント後に行われたオブジェクトへの改変は、マウント状態には反映されません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  lib := {
+    fruit: "apple"
+  }
+
+  @lib
+
+  lib.fruit = "orange"
+
+  fruit
+'</span>
+<span class="c"># apple</span>
+</code></pre></div></div>
+
+<p>また、同様の理由でマウントを使ったメソッド呼び出しもできません。</p>
+
+<h2 id="マウントは多重にできる">マウントは多重にできる</h2>
+
+<p>既にマウントが行われた状態で更にマウントを行うと、両方のエントリーがマウントされた状態になります。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  @{
+    fruit: "apple"
+  }
+
+  @{
+    drink: "coffee"
+  }
+
+  "fruit=$fruit, drink=$drink"
+'</span>
+<span class="c"># fruit=apple, drink=coffee</span>
+</code></pre></div></div>
+
+<h2 id="マウントは既存のマウントを上書きする">マウントは既存のマウントを上書きする</h2>
+
+<p>同じ名前に対して複数のマウントが行われた場合、あとのものが優先されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  @{
+    fruit: "apple"
+    bread: "epi"
+  }
+
+  @{
+    vegetable: "tomato"
+    fruit: "orange"
+  }
+
+  "fruit=$fruit, bread=$bread, vegetable=$vegetable"
+'</span>
+<span class="c"># fruit=orange, bread=epi, vegetable=tomato</span>
+</code></pre></div></div>
+
+<h2 id="マウントは変数と同様のスコープを持つ">マウントは変数と同様のスコープを持つ</h2>
+
+<p>マウントは、スコープを抜けると解除されます。</p>
+
+<p>マウントのスコープは、変数と同様に、マウント演算子によってマウントされてからその階層の括弧類を抜けるまでです。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  @{
+    fruit: "apple"
+  }
+
+  (
+    OUT &lt;&lt; fruit
+
+    @{
+      fruit: "banana"
+    }
+
+    OUT &lt;&lt; fruit
+  )
+
+  OUT &lt;&lt; fruit
+'</span>
+<span class="c"># apple</span>
+<span class="c"># banana</span>
+<span class="c"># apple</span>
+</code></pre></div></div>
+
+<h2 id="宣言済みの変数はマウントに優先する">宣言済みの変数はマウントに優先する</h2>
+
+<p>同じ名前で変数とマウントの両方にアクセス可能な場合、宣言順序に関係なく常に変数が優先されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  fruit := "apple"
+
+  @{
+    fruit: "banana"
+  }
+
+  fruit
+'</span>
+<span class="c"># apple</span>
+</code></pre></div></div>
+
+<p>この仕様は、意図しないマウントの利用を防ぐために設けられています。</p>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024 Xarpite Project. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

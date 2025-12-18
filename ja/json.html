@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>JSON操作 - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/ja/">トップ</a></li>
+                <li><a href="/xarpite/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            <h1 id="json操作">JSON操作</h1>
+
+<h2 id="json文字列と値との変換関数">JSON文字列と値との変換関数</h2>
+
+<p>JSON文字列と値との間で変換を行う関数がいくつか用意されています</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">JSON</code></li>
+  <li><code class="language-plaintext highlighter-rouge">JSOND</code></li>
+  <li><code class="language-plaintext highlighter-rouge">JSONS</code></li>
+  <li><code class="language-plaintext highlighter-rouge">JSONSD</code></li>
+</ul>
+
+<p>詳細は<a href="data_conversion.md">data_conversion.md</a>を参照してください。</p>
+
+<h2 id="演算子による変換">演算子による変換</h2>
+
+<h3 id="値をjson文字列に変換">値をJSON文字列に変換</h3>
+
+<p><code class="language-plaintext highlighter-rouge">$&amp;value</code></p>
+
+<p>前置 <code class="language-plaintext highlighter-rouge">$&amp;</code> 演算子は、値をJSON形式の文字列に変換します。</p>
+
+<p>細かい仕様は <code class="language-plaintext highlighter-rouge">JSON</code> 関数と同一です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'$&amp;{a: 1; b: 2}'</span>
+<span class="c"># {"a":1,"b":2}</span>
+</code></pre></div></div>
+
+<p>配列やオブジェクトを指定した場合、内部の要素も再帰的に JSON 化されます。</p>
+
+<h3 id="json文字列を値に変換">JSON文字列を値に変換</h3>
+
+<p><code class="language-plaintext highlighter-rouge">$*string</code></p>
+
+<p>前置 <code class="language-plaintext highlighter-rouge">$*</code> 演算子は、与えられた文字列をJSON文字列として解析し、対応する値に変換します。</p>
+
+<p>細かい仕様は <code class="language-plaintext highlighter-rouge">JSOND</code> 関数と同一です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'$*(%&gt; {"a": 1, "b": 2} &lt;%)'</span>
+<span class="c"># {a:1;b:2}</span>
+</code></pre></div></div>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024 Xarpite Project. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

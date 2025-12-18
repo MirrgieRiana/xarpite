@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>正規表現の概要 - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/ja/">トップ</a></li>
+                <li><a href="/xarpite/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            <h1 id="正規表現の概要">正規表現の概要</h1>
+
+<p>Xarpiteでは、文字列と正規表現オブジェクトを組み合わせた検索や抽出ができます。</p>
+
+<p>正規表現オブジェクトは一般的なオブジェクトの一形態ではなく、数値や文字列などと並ぶ、プリミティブな値です。</p>
+
+<h1 id="正規表現オブジェクトの生成">正規表現オブジェクトの生成</h1>
+
+<p>正規表現オブジェクトは正規表現リテラル <code class="language-plaintext highlighter-rouge">/pattern/flags</code> によって生成します。</p>
+
+<p>また、関数版の <code class="language-plaintext highlighter-rouge">REGEX.new</code> もあります。</p>
+
+<h2 id="正規表現リテラル">正規表現リテラル</h2>
+
+<p>正規表現リテラルは正規表現オブジェクトを生成する最も一般的な方法です。</p>
+
+<p><code class="language-plaintext highlighter-rouge">flags</code> 節は省略可能であり、以下の形式を持ちます。</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/pattern/flags</code></li>
+  <li><code class="language-plaintext highlighter-rouge">/pattern/</code></li>
+</ul>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' /apple/ '</span>
+<span class="c"># /apple/</span>
+
+<span class="nv">$ </span>xa <span class="s1">' /apple/i '</span>
+<span class="c"># /apple/i</span>
+</code></pre></div></div>
+
+<h3 id="パターン">パターン</h3>
+
+<p><code class="language-plaintext highlighter-rouge">pattern</code> には正規表現のパターンを記述します。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>文字列</th>
+      <th>意味</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">\\/</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/</code></td>
+    </tr>
+    <tr>
+      <td>CRLF</td>
+      <td>LF</td>
+    </tr>
+    <tr>
+      <td>CR</td>
+      <td>LF</td>
+    </tr>
+    <tr>
+      <td>LF</td>
+      <td>LF</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">\\</code> (<code class="language-plaintext highlighter-rouge">/</code> 以外の1文字)</td>
+      <td><code class="language-plaintext highlighter-rouge">\\</code> 後続するその1文字</td>
+    </tr>
+    <tr>
+      <td>それ以外の文字</td>
+      <td>その文字自身</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>おおよそそのままの形で正規表現を記述することができます。</p>
+
+<h3 id="空パターンの禁止">空パターンの禁止</h3>
+
+<p><code class="language-plaintext highlighter-rouge">pattern</code> を空にすることはできず、 <code class="language-plaintext highlighter-rouge">//</code> は行コメントとして扱われます。</p>
+
+<p>代わりに、 <code class="language-plaintext highlighter-rouge">/(?:)/</code> のような等価な働きをする別の正規表現を記述してください。</p>
+
+<h3 id="フラグ">フラグ</h3>
+
+<p><code class="language-plaintext highlighter-rouge">flags</code> には以下の文字で構成される <code class="language-plaintext highlighter-rouge">i</code> や <code class="language-plaintext highlighter-rouge">mig</code> のような文字列を記述します。</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">m</code> 複数行モード（ <code class="language-plaintext highlighter-rouge">^</code> や <code class="language-plaintext highlighter-rouge">$</code> が行頭や行末にマッチ）</li>
+  <li><code class="language-plaintext highlighter-rouge">i</code> 大文字小文字を無視</li>
+  <li><code class="language-plaintext highlighter-rouge">g</code> 全件検索（グローバルマッチ）</li>
+</ul>
+
+<h3 id="正規表現エンジン">正規表現エンジン</h3>
+
+<p><code class="language-plaintext highlighter-rouge">pattern</code> は、実際にはKotlinの <code class="language-plaintext highlighter-rouge">String.toRegex</code> に渡され、プラットフォームごとに異なる正規表現エンジンで解釈されます。</p>
+
+<h2 id="regexnew-正規表現オブジェクトのファクトリ関数"><code class="language-plaintext highlighter-rouge">REGEX.new</code> 正規表現オブジェクトのファクトリ関数</h2>
+
+<p><code class="language-plaintext highlighter-rouge">REGEX.new(pattern: STRING[; flags: STRING]): REGEX</code></p>
+
+<p>正規表現オブジェクトを生成します。</p>
+
+<p>この関数は、正規表現リテラル <code class="language-plaintext highlighter-rouge">/pattern/flags</code> と丁度同じように動作します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'REGEX.new("apple")'</span>
+<span class="c"># /apple/</span>
+
+<span class="nv">$ </span>xa <span class="s1">'REGEX.new("apple"; "i")'</span>
+<span class="c"># /apple/i</span>
+</code></pre></div></div>
+
+<h1 id="正規表現オブジェクトのプロパティアクセス">正規表現オブジェクトのプロパティアクセス</h1>
+
+<p>正規表現オブジェクトでは、以下のプロパティが利用できます</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">pattern</code></li>
+  <li><code class="language-plaintext highlighter-rouge">flags</code></li>
+</ul>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'/apple/i.pattern'</span>
+<span class="c"># apple</span>
+
+<span class="nv">$ </span>xa <span class="s1">'/apple/i.flags'</span>
+<span class="c"># i</span>
+
+<span class="nv">$ </span>xa <span class="s1">'/apple/.flags'</span>
+<span class="c"># NULL</span>
+</code></pre></div></div>
+
+<h1 id="部分一致判定">部分一致判定</h1>
+
+<p><code class="language-plaintext highlighter-rouge">regex @ string</code> 演算子で、文字列に正規表現が部分一致するか否かを判定できます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' /pp/ @ "apple" '</span>
+<span class="c"># TRUE</span>
+
+<span class="nv">$ </span>xa <span class="s1">' /xy/ @ "apple" '</span>
+<span class="c"># FALSE</span>
+</code></pre></div></div>
+
+<h1 id="マッチ演算子">マッチ演算子</h1>
+
+<p><code class="language-plaintext highlighter-rouge">string =~ regex</code> 演算子で、文字列に対して正規表現マッチを行うことができます。</p>
+
+<p>マッチした場合は非 <code class="language-plaintext highlighter-rouge">NULL</code> のマッチリザルトが、マッチしなかった場合は <code class="language-plaintext highlighter-rouge">NULL</code> が返されます。</p>
+
+<p>マッチリザルトは、 <code class="language-plaintext highlighter-rouge">result.0</code> でマッチ全体、 <code class="language-plaintext highlighter-rouge">result.1</code> 以降でマッチした各グループの文字列にアクセスできます。</p>
+
+<p><code class="language-plaintext highlighter-rouge">result[]</code> は、マッチ全体と各グループを含む配列に変換します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  result := "apple" =~ /pp(.)/
+
+  OUT &lt;&lt; result.0
+  OUT &lt;&lt; result.1
+  OUT &lt;&lt; result[]
+'</span>
+<span class="c"># ppl</span>
+<span class="c"># l</span>
+<span class="c"># [ppl;l]</span>
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  result := "apple" =~ /xy(.)/
+
+  OUT &lt;&lt; result
+'</span>
+<span class="c"># NULL</span>
+</code></pre></div></div>
+
+<h2 id="グローバルマッチ">グローバルマッチ</h2>
+
+<p><code class="language-plaintext highlighter-rouge">g</code> フラグを付与した正規表現によるマッチでは、すべてのマッチ結果からなるストリームが返されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '</span>
+<span class="c"># apple</span>
+<span class="c"># people</span>
+</code></pre></div></div>
+
+<h2 id="正規表現オブジェクトの関数呼び出し">正規表現オブジェクトの関数呼び出し</h2>
+
+<p>正規表現オブジェクトを関数として呼び出した場合、マッチ演算子と同じ動作をします。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' /pp(.)/("apple").1 '</span>
+<span class="c"># l</span>
+</code></pre></div></div>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024 Xarpite Project. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
