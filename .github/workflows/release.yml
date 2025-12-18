@@ -50,9 +50,8 @@ jobs:
 
       - name: Jekyllでドキュメントをビルドして配置
         run: |
-          cd build-dir
-          chmod +x scripts/build-pages.sh
-          scripts/build-pages.sh build/bundleRelease
+          bash scripts/build-pages.sh build/bundleRelease
+        working-directory: build-dir
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
