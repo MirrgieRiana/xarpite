@@ -10,5 +10,5 @@ expect suspend fun executeProcess(
     command: List<String>,
     env: Map<String, String>?,
     dir: String?,
-    input: suspend () -> List<String>
-): List<String>
+    input: suspend () -> String?
+): suspend () -> String?

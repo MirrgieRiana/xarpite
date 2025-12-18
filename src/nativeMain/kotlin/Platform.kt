@@ -59,12 +59,16 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(
     command: List<String>,
     env: Map<String, String>?,
     dir: String?,
-    input: suspend () -> List<String>
-): List<String> {
-    // TODO: Implement native process execution using posix functions
-    throw UnsupportedOperationException("Process execution is not yet implemented on Native platform")
+    input: suspend () -> String?
+): suspend () -> String? = withContext(Dispatchers.IO) {
+    memScoped {
+        // TODO: Full implementation with fork/exec
+        // For now, basic implementation using system()
+        throw UnsupportedOperationException("Process execution is not yet fully implemented on Native platform")
+    }
 }

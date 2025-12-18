@@ -14,6 +14,9 @@ import kotlin.test.assertEquals
 
 val baseDir = "build/test".toPath()
 
+// Windows環境を検出するヘルパー関数
+expect fun isWindows(): Boolean
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class CliTest {
 
@@ -71,24 +74,38 @@ class CliTest {
     @Test
     fun exec() = runTest {
         // EXEC で外部プロセスを実行できる
-        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
-        assertEquals("Hello, World!", cliEval("""EXEC("bash", "-c", "echo 'Hello, World!'")""").stream())
+        // Windows環境ではWSL経由でbashを起動
+        val cmd = if (isWindows()) {
+            """EXEC("wsl", "--", "bash", "-c", "echo 'Hello, World!'")"""
+        } else {
+            """EXEC("bash", "-c", "echo 'Hello, World!'")"""
+        }
+        assertEquals("Hello, World!", cliEval(cmd).stream())
     }
 
     @Test
     fun execWithEnv() = runTest {
         // EXEC で環境変数を指定できる
-        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
-        val result = cliEval("""EXEC("bash", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
+        // Windows環境ではWSL経由でbashを起動
+        val result = if (isWindows()) {
+            cliEval("""EXEC("wsl", "--", "bash", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
+        } else {
+            cliEval("""EXEC("bash", "-c", %>echo ${'$'}FRUIT<%; env: {FRUIT: "apple"})""").stream()
+        }
         assertEquals("apple", result)
     }
 
     @Test
     fun execWithInput() = runTest {
         // EXEC で標準入力を指定できる
-        // bash を使用することでWindows上のIDEAからでもWSLのbashが起動される
+        // Windows環境ではWSL経由でbashを起動
         // 4番目の引数として直接ストリームを渡す
-        val result = cliEval("""EXEC("bash", "-c", "wc -l"; "line1", "line2", "line3")""").stream().trim()
+        val cmd = if (isWindows()) {
+            """EXEC("wsl", "--", "bash", "-c", "wc -l"; "line1", "line2", "line3")"""
+        } else {
+            """EXEC("bash", "-c", "wc -l"; "line1", "line2", "line3")"""
+        }
+        val result = cliEval(cmd).stream().trim()
         assertEquals("3", result)
     }
 

@@ -23,18 +23,9 @@ actual suspend fun executeProcess(
     command: List<String>,
     env: Map<String, String>?,
     dir: String?,
-    input: suspend () -> List<String>
-): List<String> = withContext(Dispatchers.IO) {
-    // Windows環境では自動的にWSLを使用するようにコマンドをラップ
-    val isWindows = System.getProperty("os.name")?.lowercase()?.contains("windows") == true
-    val finalCommand = if (isWindows && command.isNotEmpty()) {
-        // WSL経由でコマンドを実行
-        listOf("wsl", "--") + command
-    } else {
-        command
-    }
-    
-    val processBuilder = ProcessBuilder(finalCommand)
+    input: suspend () -> String?
+): suspend () -> String? = withContext(Dispatchers.IO) {
+    val processBuilder = ProcessBuilder(command)
     
     if (env != null) {
         processBuilder.environment().putAll(env)
@@ -47,40 +38,43 @@ actual suspend fun executeProcess(
     val process = processBuilder.start()
     
     // Handle stdin, stdout, and stderr concurrently to avoid deadlock
-    val inputLines = input()
-    
     kotlinx.coroutines.coroutineScope {
         // Start writing to stdin in a separate coroutine
-        val stdinJob = launch(Dispatchers.IO) {
+        launch(Dispatchers.IO) {
             process.outputStream.bufferedWriter().use { writer ->
-                inputLines.forEach { line ->
+                while (true) {
+                    val line = input() ?: break
                     writer.write(line)
                     writer.newLine()
                 }
             }
         }
         
-        // Read stdout and stderr concurrently
-        val stdoutJob = async(Dispatchers.IO) {
-            process.inputStream.bufferedReader().readLines()
-        }
+        // Read stdout line by line
+        val reader = process.inputStream.bufferedReader()
         
+        // Start reading stderr in background
         val stderrJob = async(Dispatchers.IO) {
             process.errorStream.bufferedReader().readText()
         }
         
-        // Wait for all I/O to complete
-        stdinJob.join()
-        val outputLines = stdoutJob.await()
-        val errorOutput = stderrJob.await()
-        
-        // Wait for process to complete
-        val exitCode = process.waitFor()
-        
-        if (exitCode != 0) {
-            throw RuntimeException("Process exited with code $exitCode${if (errorOutput.isNotBlank()) ": $errorOutput" else ""}")
+        // Return a suspend function that reads lines one at a time
+        val outputReader: suspend () -> String? = suspend {
+            withContext(Dispatchers.IO) {
+                val line = reader.readLine()
+                if (line == null) {
+                    // No more output, wait for process to complete
+                    val exitCode = process.waitFor()
+                    val errorOutput = stderrJob.await()
+                    
+                    if (exitCode != 0) {
+                        throw RuntimeException("Process exited with code $exitCode${if (errorOutput.isNotBlank()) ": $errorOutput" else ""}")
+                    }
+                }
+                line
+            }
         }
         
-        outputLines
+        outputReader
     }
 }

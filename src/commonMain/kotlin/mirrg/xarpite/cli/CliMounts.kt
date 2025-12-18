@@ -78,7 +78,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             // Parse optional positional arguments with skippable entries
             var envMap: Map<String, String>? = null
             var dirPath: String? = null
-            val inputLines = mutableListOf<String>()
+            var inputStream: FluoriteStream? = null
             
             // 2nd argument: if it's an env entry, use it; otherwise skip
             if (args.isNotEmpty()) {
@@ -111,9 +111,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             if (args.isNotEmpty()) {
                 val inStream = args.removeFirst()
                 if (inStream is FluoriteStream) {
-                    inStream.collect { line ->
-                        inputLines.add(line.toFluoriteString().value)
-                    }
+                    inputStream = inStream
                 } else {
                     error()
                 }
@@ -131,8 +129,24 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             
             // Execute the process
             FluoriteStream {
-                val outputLines = executeProcess(commandList, finalEnv, dirPath) { inputLines }
-                outputLines.forEach { line ->
+                // Create input reader that reads from the stream
+                var inputIterator: (suspend () -> String?)? = null
+                if (inputStream != null) {
+                    val inputList = mutableListOf<String>()
+                    inputStream.collect { line ->
+                        inputList.add(line.toFluoriteString().value)
+                    }
+                    var inputIndex = 0
+                    inputIterator = suspend {
+                        if (inputIndex < inputList.size) inputList[inputIndex++] else null
+                    }
+                }
+                
+                val outputReader = executeProcess(commandList, finalEnv, dirPath, inputIterator ?: suspend { null })
+                
+                // Read output line by line
+                while (true) {
+                    val line = outputReader() ?: break
                     emit(line.toFluoriteString())
                 }
             }
