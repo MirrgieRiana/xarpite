@@ -1226,6 +1226,17 @@ class XarpiteTest {
             ) !: found
         """.let { assertEquals(30, eval(it).int) }
 
+        // !: は && よりも高い結合優先度を持つ
+        // a && b !: label は a && (b !: label) と解釈される
+        assertEquals(0, eval("0 && 1 !: label").int)
+        assertEquals(10, eval("(1 && 10 !: label)").int)
+
+        // !? は ?: とほぼ同じ結合優先度を持つ（わずかに高い）
+        // !!'a' !? 'b' は (!!'a') !? 'b' と解釈され、例外がキャッチされる
+        assertEquals("b", eval("!!'a' !? 'b'").string)
+        // !? の対象範囲は比較的狭い
+        assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
+
     }
 
 }
