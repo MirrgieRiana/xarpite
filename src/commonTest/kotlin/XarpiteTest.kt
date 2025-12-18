@@ -1102,13 +1102,15 @@ class XarpiteTest {
             ) !: label
         """.let { assertEquals(FluoriteNull, eval(it)) }
 
-        // !! の直後で改行していても右辺が存在すれば従来通り評価される
+        // !! の直後で改行すると右辺は結合されず、以降の式は実行されない
         """
+            t := 0
             (
                 label !!
-                789
+                t = 1
             ) !: label
-        """.let { assertEquals(789, eval(it).int) }
+            t
+        """.let { assertEquals(0, eval(it).int) }
 
         // getter label !! value でreturnできる
         """
