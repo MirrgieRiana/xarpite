@@ -24,7 +24,7 @@ if [ ! -d "$ROOT_DIR/docs/_site" ]; then
   exit 1
 fi
 
-if ! find "$ROOT_DIR/docs/_site" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+if [ -z "$(ls -A "$ROOT_DIR/docs/_site")" ]; then
   echo "Error: Jekyll build produced no output" >&2
   exit 1
 fi

@@ -53,7 +53,7 @@ jobs:
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
           chmod +x scripts/build-pages.sh
-          JEKYLL_ENV=production scripts/build-pages.sh
+          scripts/build-pages.sh
         env:
           APP_VERSION: ${{ github.sha }}
 
