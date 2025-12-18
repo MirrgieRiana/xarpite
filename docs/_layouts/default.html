@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
   <meta name="description" content="{{ site.description }}">
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url | absolute_url }}">
   <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/xarpite-icon.svg' | relative_url | absolute_url }}">
 </head>
 <body>
