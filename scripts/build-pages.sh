@@ -11,6 +11,7 @@ cd "$ROOT_DIR"
 
 (
   cd docs
+  export JEKYLL_ENV=production
   bundle exec jekyll build
 )
 
@@ -28,4 +29,4 @@ if ! find "$ROOT_DIR/docs/_site" -mindepth 1 -maxdepth 1 -print -quit | grep -q 
   exit 1
 fi
 
-rsync -a --ignore-existing "$ROOT_DIR/docs/_site/" "$ROOT_DIR/build/bundleRelease/"
+rsync -a "$ROOT_DIR/docs/_site/" "$ROOT_DIR/build/bundleRelease/"
