@@ -27,4 +27,3 @@ title: "Xarpiteドキュメント"
 - [JavaScript版](js.html)
 - [コルーチン](coroutine.html)
 - [JSON操作](json.html)
-- [セッションで読んだテキスト一覧](session_read.html)
