@@ -3,10 +3,14 @@ name: Make Release
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Release Tag (/^v[0-9.a-zA-Z+-]+$/)'
+      release_type:
+        description: 'Release Type'
         required: true
-        type: string
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
       commit_hash:
         description: 'Commit Hash'
         required: true
@@ -25,15 +29,53 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.MAKE_RELEASE_WORKFLOW_PAT }}
 
-      - name: タグフォーマットの検証
+      - name: 最新のバージョンタグを取得
+        id: get_version
         env:
-          TAG: ${{ inputs.tag }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
-          if ! echo "$TAG" | grep -Eq '^v[0-9.a-zA-Z+-]+$'; then
-            echo "Error: Invalid tag format: $TAG" >&2
+          # リモートのタグをフェッチ
+          git fetch --tags
+          
+          # 最新のバージョンタグを取得（v1.2.3形式のみ）
+          LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "Error: No version tag found" >&2
             exit 1
           fi
-          echo "Tag: $TAG"
+          
+          echo "Latest tag: $LATEST_TAG"
+          
+          # バージョン番号を抽出（vプレフィックスを除去）
+          VERSION=${LATEST_TAG#v}
+          
+          # バージョン番号を分割
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          
+          # 新しいバージョンを計算
+          case "$RELEASE_TYPE" in
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=$((MINOR + 1))  # メジャーリリースではマイナーもインクリメント
+              PATCH=0
+              ;;
+            *)
+              echo "Error: Invalid release type: $RELEASE_TYPE" >&2
+              exit 1
+              ;;
+          esac
+          
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "New tag: $NEW_TAG"
+          echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
       - name: コミットの検証
         env:
@@ -56,7 +98,7 @@ jobs:
 
       - name: タグの作成とプッシュ
         env:
-          TAG: ${{ inputs.tag }}
+          TAG: ${{ steps.get_version.outputs.tag }}
           COMMIT: ${{ inputs.commit_hash }}
         run: |
 
