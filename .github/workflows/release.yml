@@ -60,8 +60,8 @@ jobs:
             echo "Error: Jekyll build failed - _site directory not found"
             exit 1
           fi
-          rm -rf build-dir/build/bundleRelease/docs
-          mv build-dir/docs/_site build-dir/build/bundleRelease/docs
+          # Jekyll生成のHTMLをマージ（md版と共存）
+          cp -r build-dir/docs/_site/* build-dir/build/bundleRelease/docs/
 
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
