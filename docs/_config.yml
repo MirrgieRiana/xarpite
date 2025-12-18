@@ -1,6 +1,6 @@
 title: Xarpite
 description: An interpreted language for one-liners
-baseurl: "/xarpite"
+baseurl: "/xarpite/docs"
 url: "https://mirrgieriana.github.io"
 
 # Build settings
