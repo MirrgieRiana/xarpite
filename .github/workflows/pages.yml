@@ -1,4 +1,4 @@
-name: GitHub Pages
+name: Pages
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-pages:
     runs-on: ubuntu-latest
     permissions:
       contents: read
