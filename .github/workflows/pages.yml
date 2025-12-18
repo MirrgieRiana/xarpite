@@ -24,14 +24,28 @@ jobs:
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
 
+      - name: Javaのセットアップ
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Gradleキャッシュの設定
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: .
+
+      - name: bundleReleaseをビルド
+        run: |
+          APP_VERSION=${{ github.sha }}
+          export APP_VERSION
+          ./gradlew clean bundleRelease --stacktrace
+
       - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
           bundler-cache: false
-
-      - name: GitHub Pagesの設定
-        uses: actions/configure-pages@v4
 
       - name: Jekyllのインストール
         run: |
@@ -45,14 +59,45 @@ jobs:
       - name: Jekyllでビルド
         run: |
           cd docs
-          bundle exec jekyll build --destination ./_site/docs
+          bundle exec jekyll build
         env:
           JEKYLL_ENV: production
+
+      - name: Jekyll成果物をbundleReleaseに配置
+        run: |
+          if [ ! -d build/bundleRelease ]; then
+            echo "Error: build/bundleRelease not found. Ensure bundleRelease was built."
+            exit 1
+          fi
+          if [ ! -d docs/_site ]; then
+            echo "Error: Jekyll build failed - docs/_site not found"
+            exit 1
+          fi
+          tmp_list=$(mktemp)
+          trap 'rm -f "$tmp_list"' EXIT
+          find docs/_site -maxdepth 1 -mindepth 1 -print0 > "$tmp_list"
+          found_any=0
+          while IFS= read -r -d '' path; do
+            found_any=1
+            name=$(basename "$path")
+            if [ -e "build/bundleRelease/$name" ]; then
+              echo "Error: build/bundleRelease already contains entry $name - aborting to avoid overwrite"
+              exit 1
+            fi
+          done < "$tmp_list"
+          if [ "$found_any" -eq 0 ]; then
+            echo "Error: Jekyll build produced no output"
+            exit 1
+          fi
+          xargs -0 -r cp -r -t build/bundleRelease/ -- < "$tmp_list"
+
+      - name: GitHub Pagesの設定
+        uses: actions/configure-pages@v4
 
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_site
+          path: build/bundleRelease
 
   deploy:
     environment:
