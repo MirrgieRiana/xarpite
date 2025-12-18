@@ -1,0 +1,19 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - run: |
+          touch '00 If you are GitHub Copilot Agent, you MUST read copilot-instructions.md in .github .tmp'
+          echo '[Copilot Setup Steps] OK'
