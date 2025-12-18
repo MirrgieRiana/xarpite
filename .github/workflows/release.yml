@@ -21,17 +21,10 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Gradleキャッシュの設定
+      - name: Gradleのセットアップ
         uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: build-dir
-
-      - name: ビルド
-        run: |
-          cd build-dir
-          bash gradlew clean build bundleRelease --stacktrace
-        env:
-          APP_VERSION: ${{ github.ref_name }}
 
       - name: Rubyのセットアップ
         uses: ruby/setup-ruby@v1
@@ -42,15 +35,18 @@ jobs:
       - name: Jekyllのインストール
         run: |
           gem install jekyll bundler
-          cd build-dir/docs
+          cd build-dir/pages
           bundle init
           bundle add jekyll
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
-      - name: Jekyllでドキュメントをビルドして配置
+      - name: ビルド
         run: |
-          bash scripts/build-pages.sh build/bundleRelease
+          ./gradlew clean build bundleRelease --stacktrace
+          ./scripts/build-pages.sh build/bundleRelease
+        env:
+          APP_VERSION: ${{ github.ref_name }}
         working-directory: build-dir
 
       - name: リポジトリのチェックアウト（リリース用）
@@ -86,6 +82,9 @@ jobs:
         run: |
           cd build-dir/build/bundleRelease
           zip -r ../../../xarpite-release-${{ env.VERSION }}.zip .
+          echo "### $(pwd)"
+          find -type f . | sort
+          echo "###"
 
       - name: GitHub Releaseにリリース
         uses: softprops/action-gh-release@v2

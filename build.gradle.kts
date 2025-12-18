@@ -102,9 +102,6 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     group = "build"
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
     into(outputDirectory)
-    from(file(project.layout.projectDirectory.file("README.md"))) {
-        rename("README.md", "index.md")
-    }
     from("release") {
         rename("gitignore", ".gitignore")
         eachFile {
@@ -124,7 +121,7 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("docs") { into("docs") }
+    from("pages")
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
@@ -133,7 +130,7 @@ tasks.named("build").configure { dependsOn(bundleRelease) }
 // Doc Shell Tests
 
 val generateDocShellTests = tasks.register("generateDocShellTests") {
-    val docsDir = file("docs/ja")
+    val docsDir = file("pages/docs/ja")
     val outFile = project.layout.buildDirectory.file("docShellTests/ja.sh")
 
     inputs.dir(docsDir)
