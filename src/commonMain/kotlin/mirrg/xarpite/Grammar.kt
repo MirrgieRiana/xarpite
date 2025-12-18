@@ -127,7 +127,7 @@ object XarpiteGrammar {
 
     val jump: Parser<Node> = or(
         -"!!" * -b * parser { commas } map { ThrowNode(it) },
-        identifier * -s * -"!!" * -b * parser { commas } map { ReturnNode(it.a, it.b) },
+        identifier * -s * -"!!" * -b * parser { commas }.optional map { ReturnNode(it.a, it.b.a ?: EmptyNode) },
     )
 
     val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets

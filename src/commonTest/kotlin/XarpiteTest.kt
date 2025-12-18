@@ -1095,6 +1095,21 @@ class XarpiteTest {
     @Test
     fun returnTest() = runTest {
 
+        // label !! の右辺を省略すると NULL を返して脱出できる
+        """
+            (
+                label !!
+            ) !: label
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // !! の直後で改行していても右辺が存在すれば従来通り評価される
+        """
+            (
+                label !!
+                789
+            ) !: label
+        """.let { assertEquals(789, eval(it).int) }
+
         // getter label !! value でreturnできる
         """
             (
