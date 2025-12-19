@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>比較 - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/docs/ja/">トップ</a></li>
+                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            <h1 id="比較">比較</h1>
+
+<p>数値同士や文字列同士の比較、特定の要素が配列に含まれているかといった様々な判定を行うことができます。</p>
+
+<h2 id="比較系演算子の結合">比較系演算子の結合</h2>
+
+<p>比較系演算子同士の結合は特殊で、以下の手順を踏みます。</p>
+
+<ol>
+  <li>すべての比較系演算子について、左右の辺による比較を行う</li>
+  <li>それらの論理積を取る</li>
+</ol>
+
+<p>例えば、 <code class="language-plaintext highlighter-rouge">3 &lt;= x &lt;= 5</code> は、まず <code class="language-plaintext highlighter-rouge">3 &lt;= x</code> を計算し、次に <code class="language-plaintext highlighter-rouge">x &lt;= 5</code> を計算し、最後にその論理積 <code class="language-plaintext highlighter-rouge">3 &lt;= x &amp;&amp; x &lt;= 5</code> を取ります。</p>
+
+<p>これにより、比較の連鎖を簡潔に記述できます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'3 &lt;= 4 &lt;= 5'</span>
+<span class="c"># TRUE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'3 &lt;= 10 &lt;= 5'</span>
+<span class="c"># FALSE</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>この仕様の対象となるのは、以下の演算子です。</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">&gt;</code> <code class="language-plaintext highlighter-rouge">&lt;</code> <code class="language-plaintext highlighter-rouge">&gt;=</code> <code class="language-plaintext highlighter-rouge">&lt;=</code> <code class="language-plaintext highlighter-rouge">==</code> <code class="language-plaintext highlighter-rouge">!=</code> <code class="language-plaintext highlighter-rouge">@</code> <code class="language-plaintext highlighter-rouge">!@</code> <code class="language-plaintext highlighter-rouge">?=</code></li>
+</ul>
+
+<h1 id="比較演算子">比較演算子</h1>
+
+<p>比較演算子には以下のものがあります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>演算子</th>
+      <th>意味</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">left &gt; right</code></td>
+      <td><code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> より大きいか否かを返す</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">left &lt; right</code></td>
+      <td><code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> より小さいか否かを返す</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">left &gt;= right</code></td>
+      <td><code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> 以上であるか否かを返す</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">left &lt;= right</code></td>
+      <td><code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> 以下であるか否かを返す</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'[1 &gt; 2, 2 &gt; 2, 3 &gt; 2]'</span>
+<span class="c"># [FALSE;FALSE;TRUE]</span>
+
+<span class="nv">$ </span>xa <span class="s1">'[1 &lt; 2, 2 &lt; 2, 3 &lt; 2]'</span>
+<span class="c"># [TRUE;FALSE;FALSE]</span>
+
+<span class="nv">$ </span>xa <span class="s1">'[1 &gt;= 2, 2 &gt;= 2, 3 &gt;= 2]'</span>
+<span class="c"># [FALSE;TRUE;TRUE]</span>
+
+<span class="nv">$ </span>xa <span class="s1">'[1 &lt;= 2, 2 &lt;= 2, 3 &lt;= 2]'</span>
+<span class="c"># [TRUE;TRUE;FALSE]</span>
+</code></pre></div></div>
+
+<h2 id="比較演算子のオーバーロード">比較演算子のオーバーロード</h2>
+
+<p>比較演算子の動作は、実際には宇宙船演算子の結果に基づいて判断しています。</p>
+
+<p>宇宙船演算子のオーバーロードが行われると、各種比較演算子の動作も変わります。</p>
+
+<h1 id="等価系演算子">等価系演算子</h1>
+
+<h2 id="等価演算子">等価演算子</h2>
+
+<p>等価演算子 <code class="language-plaintext highlighter-rouge">left == right</code> は、両辺の値が等しいか否かを返します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'[1 == 2, 2 == 2, 3 == 2]'</span>
+<span class="c"># [FALSE;TRUE;FALSE]</span>
+</code></pre></div></div>
+
+<p>現在、数値や文字列などの一部の型においてのみ定義されています。</p>
+
+<h2 id="不等価演算子">不等価演算子</h2>
+
+<p>不等価演算子 <code class="language-plaintext highlighter-rouge">left != right</code> は、両辺の値が等しくないか否かを返します。</p>
+
+<p>等価演算子の否定です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'[1 != 2, 2 != 2, 3 != 2]'</span>
+<span class="c"># [TRUE;FALSE;TRUE]</span>
+</code></pre></div></div>
+
+<h1 id="含有系演算子">含有系演算子</h1>
+
+<h2 id="含有演算子">含有演算子</h2>
+
+<p>含有演算子 <code class="language-plaintext highlighter-rouge">left @ right</code> は、 <code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> に含まれているか否かを返します。</p>
+
+<p>右辺のタイプごとの挙動は以下の通りです。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>右辺のタイプ</th>
+      <th>戻り値</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>文字列</td>
+      <td>左辺の文字列が右辺の文字列に含まれているか否か</td>
+    </tr>
+    <tr>
+      <td>配列</td>
+      <td>左辺の要素が右辺の配列に含まれているか否か</td>
+    </tr>
+    <tr>
+      <td>オブジェクト</td>
+      <td>左辺のキーが右辺のオブジェクトに含まれているか否か</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"bcd" @ "abcde"'</span>
+<span class="c"># TRUE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'"123" @ "abcde"'</span>
+<span class="c"># FALSE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'1 @ [1, 2, 3]'</span>
+<span class="c"># TRUE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'4 @ [1, 2, 3]'</span>
+<span class="c"># FALSE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'"a" @ {a: 1; b: 2; c: 3}'</span>
+<span class="c"># TRUE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'"d" @ {a: 1; b: 2; c: 3}'</span>
+<span class="c"># FALSE</span>
+</code></pre></div></div>
+
+<p>含有演算子の働きは、文字列は部分文字列、配列は要素、オブジェクトはキーと、一貫していません。</p>
+
+<h2 id="否定含有演算子">否定含有演算子</h2>
+
+<p>否定含有演算子 <code class="language-plaintext highlighter-rouge">left !@ right</code> は、 <code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> に含まれていないかどうかを返します。</p>
+
+<p>含有演算子を使った <code class="language-plaintext highlighter-rouge">!(left @ right)</code> という表現と等価な動作をします。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"bcd" !@ "abcde"'</span>
+<span class="c"># FALSE</span>
+
+<span class="nv">$ </span>xa <span class="s1">'"123" !@ "abcde"'</span>
+<span class="c"># TRUE</span>
+</code></pre></div></div>
+
+<h2 id="含有演算子のオーバーライド">含有演算子のオーバーライド</h2>
+
+<p>含有演算子は、実際には右辺の値の <code class="language-plaintext highlighter-rouge">_@_</code> メソッドを呼び出し、論理値化したものを返す演算子です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  Basket := {
+    `_@_`: this, item -&gt; item @ this.items
+  }
+
+  basket := Basket{items: ["apple", "orange", "banana"]}
+
+  OUT &lt;&lt; "Basket: $basket"
+  "apple" @ basket &amp;&amp; (OUT &lt;&lt; "apple is in basket")
+  "cherry" @ basket &amp;&amp; (OUT &lt;&lt; "cherry is in basket")
+'</span>
+<span class="c"># Basket: {items:[apple;orange;banana]}</span>
+<span class="c"># apple is in basket</span>
+</code></pre></div></div>
+
+<h1 id="instanceof演算子">instanceOf演算子</h1>
+
+<p>instanceOf演算子 <code class="language-plaintext highlighter-rouge">left ?= right</code> は、 <code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> のインスタンスであるか否かを返します。</p>
+
+<p>より厳密には、オブジェクト <code class="language-plaintext highlighter-rouge">left</code> が <code class="language-plaintext highlighter-rouge">right</code> と同一のインスタンスか、 <code class="language-plaintext highlighter-rouge">left</code> の継承チェーンのどこかに <code class="language-plaintext highlighter-rouge">right</code> が存在するかを判定します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  Animal := {}
+  Human := Animal {}
+  socrates := Human{}
+  pythagoras := Human{}
+
+  Animal ?= Animal &amp;&amp; (OUT &lt;&lt; "Animal is Animal")
+  Human ?= Human &amp;&amp; (OUT &lt;&lt; "Human is Human")
+  socrates ?= socrates &amp;&amp; (OUT &lt;&lt; "Socrates is Socrates")
+  pythagoras ?= pythagoras &amp;&amp; (OUT &lt;&lt; "Pythagoras is Pythagoras")
+
+  Human ?= Animal &amp;&amp; (OUT &lt;&lt; "Human is Animal")
+  Animal ?= Human &amp;&amp; (OUT &lt;&lt; "Animal is Human")
+
+  socrates ?= Human &amp;&amp; (OUT &lt;&lt; "Socrates is Human")
+  Human ?= socrates &amp;&amp; (OUT &lt;&lt; "Human is Socrates")
+
+  socrates ?= Animal &amp;&amp; (OUT &lt;&lt; "Socrates is Animal")
+  Animal ?= socrates &amp;&amp; (OUT &lt;&lt; "Animal is Socrates")
+
+  socrates ?= pythagoras &amp;&amp; (OUT &lt;&lt; "Socrates is Pythagoras")
+  pythagoras ?= socrates &amp;&amp; (OUT &lt;&lt; "Pythagoras is Socrates")
+'</span>
+<span class="c"># Animal is Animal</span>
+<span class="c"># Human is Human</span>
+<span class="c"># Socrates is Socrates</span>
+<span class="c"># Pythagoras is Pythagoras</span>
+<span class="c"># Human is Animal</span>
+<span class="c"># Socrates is Human</span>
+<span class="c"># Socrates is Animal</span>
+</code></pre></div></div>
+
+<h1 id="宇宙船演算子">宇宙船演算子</h1>
+
+<p>宇宙船演算子 <code class="language-plaintext highlighter-rouge">&lt;=&gt;</code> は左辺と右辺の大小関係を返す演算子です。</p>
+
+<p>以下のように左右の大小関係と宇宙船演算子の戻り値の関係は、以下のようになります。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>条件</th>
+      <th>戻り値</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>左辺 &lt; 右辺</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <td>左辺 = 右辺</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>左辺 &gt; 右辺</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 &lt;=&gt; 2'</span>
+<span class="c"># -1</span>
+
+<span class="nv">$ </span>xa <span class="s1">'2 &lt;=&gt; 2'</span>
+<span class="c"># 0</span>
+
+<span class="nv">$ </span>xa <span class="s1">'3 &lt;=&gt; 2'</span>
+<span class="c"># 1</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>文字列同士を比較した場合は、辞書順で判定されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' "a" &lt;=&gt; "b" '</span>
+<span class="c"># -1</span>
+
+<span class="nv">$ </span>xa <span class="s1">' "aa" &lt;=&gt; "a" '</span>
+<span class="c"># 1</span>
+</code></pre></div></div>
+
+<h2 id="宇宙船演算子のオーバーロード">宇宙船演算子のオーバーロード</h2>
+
+<p>宇宙船演算子は、実際には左辺の値の <code class="language-plaintext highlighter-rouge">_&lt;=&gt;_</code> メソッドを呼び出し、その戻り値を返す演算子です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  Person := {
+    `_&lt;=&gt;_`: this, other -&gt; this.age &lt;=&gt; other.age
+  }
+
+  alice := Person{age: 30}
+  bob   := Person{age: 20}
+
+  alice &lt;=&gt; bob
+'</span>
+<span class="c"># 1</span>
+</code></pre></div></div>
+
+<h2 id="sort関数などでの使用">SORT関数などでの使用</h2>
+
+<p>宇宙船演算子は、 <code class="language-plaintext highlighter-rouge">SORT</code> 関数などの比較関数として使用できます。</p>
+
+<p>以下の例は、文字列の長さでソートする例です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    "apple",
+    "banana",
+    "cherry",
+    "durian",
+    "elderberry",
+    "fig",
+    "grape",
+  ) &gt;&gt; SORT[a, b -&gt; $#a &lt;=&gt; $#b]
+'</span>
+<span class="c"># fig</span>
+<span class="c"># apple</span>
+<span class="c"># grape</span>
+<span class="c"># banana</span>
+<span class="c"># cherry</span>
+<span class="c"># durian</span>
+<span class="c"># elderberry</span>
+</code></pre></div></div>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
+        }
+      });
+
+      // Add copy buttons to code blocks
+      const codeBlocks = document.querySelectorAll('.doc-content pre');
+      codeBlocks.forEach(function(preElement) {
+        // Skip if already wrapped
+        if (preElement.parentElement.classList.contains('code-block-wrapper')) {
+          return;
+        }
+
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        
+        // Create copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-code-button';
+        copyButton.textContent = 'Copy';
+        copyButton.setAttribute('aria-label', 'Copy code');
+        
+        // Add click handler
+        copyButton.addEventListener('click', function() {
+          const code = preElement.querySelector('code') || preElement;
+          const textToCopy = code.textContent;
+          
+          // Try modern clipboard API first (requires secure context: HTTPS or localhost)
+          const isSecure = window.isSecureContext || 
+                          window.location.protocol === 'https:' || 
+                          window.location.hostname === 'localhost';
+          
+          if (navigator.clipboard && isSecure) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+              copyButton.textContent = 'Copied!';
+              copyButton.classList.add('copied');
+              
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+                copyButton.classList.remove('copied');
+              }, 2000);
+            }).catch(function(err) {
+              console.error('Failed to copy:', err);
+              copyButton.textContent = 'Failed';
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+              }, 2000);
+            });
+          } else {
+            // Fallback using deprecated execCommand for legacy browser support
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+              const successful = document.execCommand('copy');
+              if (successful) {
+                copyButton.textContent = 'Copied!';
+                copyButton.classList.add('copied');
+                
+                setTimeout(function() {
+                  copyButton.textContent = 'Copy';
+                  copyButton.classList.remove('copied');
+                }, 2000);
+              } else {
+                copyButton.textContent = 'Failed';
+                setTimeout(function() {
+                  copyButton.textContent = 'Copy';
+                }, 2000);
+              }
+            } catch (err) {
+              console.error('Failed to copy:', err);
+              copyButton.textContent = 'Failed';
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+              }, 2000);
+            } finally {
+              document.body.removeChild(textarea);
+            }
+          }
+        });
+        
+        // Wrap the pre element
+        preElement.parentNode.insertBefore(wrapper, preElement);
+        wrapper.appendChild(preElement);
+        wrapper.appendChild(copyButton);
+      });
+    });
+  </script>
+</body>
+</html>

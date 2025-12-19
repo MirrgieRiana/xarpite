@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>データ変換系関数 - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/docs/ja/">トップ</a></li>
+                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            <h1 id="データ変換系関数">データ変換系関数</h1>
+
+<h2 id="utf8-文字列をutf-8でエンコードされたblobに変換"><code class="language-plaintext highlighter-rouge">UTF8</code> 文字列をUTF-8でエンコードされたBLOBに変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">UTF8(string: STRING): BLOB</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">string</code> をUTF-8でエンコードしたBLOBを返します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' "abc123αβγ" &gt;&gt; UTF8 '</span>
+<span class="c"># BLOB[97;98;99;49;50;51;206;177;206;178;206;179]</span>
+</code></pre></div></div>
+
+<h2 id="utf8d-utf-8でエンコードされたblobを文字列に変換"><code class="language-plaintext highlighter-rouge">UTF8D</code> UTF-8でエンコードされたBLOBを文字列に変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">UTF8D(blob: STREAM&lt;BLOB&gt;): STRING</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">blob</code> をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。</p>
+
+<p><code class="language-plaintext highlighter-rouge">blob</code> がストリームであった場合、すべてのBLOBを連結したバイト列をUTF-8文字列に変換します。</p>
+
+<p>したがって、この関数はBLOBの境界がUTF-8文字の途中で分割されている場合でも正しく動作します。</p>
+
+<p>この関数は改行文字の正規化を行いません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  BLOB.of([ 97,  98,  99]),
+  BLOB.of([ 49,  50,  51]),
+  BLOB.of([206, 177, 206]),
+  BLOB.of([178, 206, 179]),
+  &gt;&gt; UTF8D
+'</span>
+<span class="c"># abc123αβγ</span>
+</code></pre></div></div>
+
+<h2 id="json-値をjson文字列に変換"><code class="language-plaintext highlighter-rouge">JSON</code> 値をJSON文字列に変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">JSON(["indent": indent: STRING; ]value: VALUE): STRING</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">value</code> をJSON形式の文字列に変換します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'{a: 1; b: 2} &gt;&gt; JSON[indent: "  "]'</span>
+<span class="c"># {</span>
+<span class="c">#   "a": 1,</span>
+<span class="c">#   "b": 2</span>
+<span class="c"># }</span>
+</code></pre></div></div>
+
+<h2 id="jsond-json文字列を値に変換"><code class="language-plaintext highlighter-rouge">JSOND</code> JSON文字列を値に変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">JSOND(json: STRING): VALUE</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">json</code> を対応する値に変換します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' "{\"a\": 1, \"b\": 2}" &gt;&gt; JSOND '</span>
+<span class="c"># {a:1;b:2}</span>
+</code></pre></div></div>
+
+<h2 id="jsons-値のストリームをjson文字列のストリームに変換"><code class="language-plaintext highlighter-rouge">JSONS</code> 値のストリームをJSON文字列のストリームに変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">JSONS(["indent": indent: STRING; ]values: STREAM&lt;VALUE&gt;): STREAM&lt;STRING&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">values</code> の各要素をJSON形式の文字列に変換するストリームを返します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'{a: 1}, {b: 2} &gt;&gt; JSONS'</span>
+<span class="c"># {"a":1}</span>
+<span class="c"># {"b":2}</span>
+</code></pre></div></div>
+
+<h2 id="jsonsd-json文字列のストリームを値のストリームに変換"><code class="language-plaintext highlighter-rouge">JSONSD</code> JSON文字列のストリームを値のストリームに変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">JSONSD(jsons: STREAM&lt;STRING&gt;): STREAM&lt;VALUE&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">jsons</code> の各要素を対応する値に変換するストリームを返します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' "{\"a\": 1}", "{\"b\": 2}" &gt;&gt; JSONSD '</span>
+<span class="c"># {a:1}</span>
+<span class="c"># {b:2}</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>Jsonは改行が可能な場所で複数のストリーム要素に分割されていてもかまいません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  "{",
+  "  \"a\": 1",
+  "}",
+  "{",
+  "  \"b\": 2",
+  "}" &gt;&gt; JSONSD
+'</span>
+<span class="c"># {a:1}</span>
+<span class="c"># {b:2}</span>
+</code></pre></div></div>
+
+<h2 id="csv-配列をcsv文字列に変換"><code class="language-plaintext highlighter-rouge">CSV</code> 配列をCSV文字列に変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY&lt;STRING&gt; | STREAM&lt;ARRAY&lt;STRING&gt;&gt;): STRING | STREAM&lt;STRING&gt;</code></p>
+
+<p>文字列の配列やそのストリームを、CSV行の文字列やそのストリームにエンコードします。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' [1;2;3] &gt;&gt; CSV '</span>
+<span class="c"># 1,2,3</span>
+
+<span class="nv">$ </span>xa <span class="s1">'
+  (
+    [1;2;3],
+    [4;5;6],
+    [7;8;9],
+  ) &gt;&gt; CSV
+'</span>
+<span class="c"># 1,2,3</span>
+<span class="c"># 4,5,6</span>
+<span class="c"># 7,8,9</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>区切り文字は <code class="language-plaintext highlighter-rouge">separator</code> パラメータで指定できます。</p>
+
+<p>デフォルトはカンマ <code class="language-plaintext highlighter-rouge">,</code> です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' [1;2;3] &gt;&gt; CSV[separator: "|"] '</span>
+<span class="c"># 1|2|3</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>前後に半角空白やタブ文字を含むか、区切り文字か引用符か改行文字を含むセルは、引用符で囲むことで表現します。</p>
+
+<p>引用符は <code class="language-plaintext highlighter-rouge">quote</code> パラメータで指定できます。</p>
+
+<p>デフォルトはダブルクォート <code class="language-plaintext highlighter-rouge">"</code> です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' [1;" 2 ";3] &gt;&gt; CSV '</span>
+<span class="c"># 1," 2 ",3</span>
+
+<span class="nv">$ </span>xa <span class="s1">' [1;" 2 ";3] &gt;&gt; CSV[quote: "|"] '</span>
+<span class="c"># 1,| 2 |,3</span>
+</code></pre></div></div>
+
+<p>引用符を含むセルは、引用符を2つ連続して書くことで表現します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' [1;" \"2\" ",3] &gt;&gt; CSV '</span>
+<span class="c"># 1," ""2"" ",3</span>
+</code></pre></div></div>
+
+<h2 id="csvd-csv文字列を配列に変換"><code class="language-plaintext highlighter-rouge">CSVD</code> CSV文字列を配列に変換</h2>
+
+<p><code class="language-plaintext highlighter-rouge">CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM&lt;STRING&gt;): ARRAY&lt;STRING&gt; | STREAM&lt;ARRAY&lt;STRING&gt;&gt;</code></p>
+
+<p>CSV行の文字列やそのストリームを、文字列の配列やそのストリームにデコードします。</p>
+
+<p>多くの仕様は <code class="language-plaintext highlighter-rouge">CSV</code> と共通です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    "1,2,3",
+    "4,5,6",
+    "7,8,9",
+  ) &gt;&gt; CSVD
+'</span>
+<span class="c"># [1;2;3]</span>
+<span class="c"># [4;5;6]</span>
+<span class="c"># [7;8;9]</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>区切り文字で区切られたセクションが空である場合、空文字列が返されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' ",1,,3," &gt;&gt; CSVD &gt;&gt; JSON '</span>
+<span class="c"># ["","1","","3",""]</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>行頭・行末・区切り文字の前後にある半角空白やタブ文字は無視されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">' " , 1 , , 3 , " &gt;&gt; CSVD &gt;&gt; JSON '</span>
+<span class="c"># ["","1","","3",""]</span>
+</code></pre></div></div>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Highlight current page in navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+      const navLinks = document.querySelectorAll('.doc-nav a');
+      
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+          const normalizedHref = href.replace(/\/$/, '');
+          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
+            link.classList.add('active');
+          }
+        }
+      });
+
+      // Add copy buttons to code blocks
+      const codeBlocks = document.querySelectorAll('.doc-content pre');
+      codeBlocks.forEach(function(preElement) {
+        // Skip if already wrapped
+        if (preElement.parentElement.classList.contains('code-block-wrapper')) {
+          return;
+        }
+
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        
+        // Create copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-code-button';
+        copyButton.textContent = 'Copy';
+        copyButton.setAttribute('aria-label', 'Copy code');
+        
+        // Add click handler
+        copyButton.addEventListener('click', function() {
+          const code = preElement.querySelector('code') || preElement;
+          const textToCopy = code.textContent;
+          
+          // Try modern clipboard API first (requires secure context: HTTPS or localhost)
+          const isSecure = window.isSecureContext || 
+                          window.location.protocol === 'https:' || 
+                          window.location.hostname === 'localhost';
+          
+          if (navigator.clipboard && isSecure) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+              copyButton.textContent = 'Copied!';
+              copyButton.classList.add('copied');
+              
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+                copyButton.classList.remove('copied');
+              }, 2000);
+            }).catch(function(err) {
+              console.error('Failed to copy:', err);
+              copyButton.textContent = 'Failed';
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+              }, 2000);
+            });
+          } else {
+            // Fallback using deprecated execCommand for legacy browser support
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+              const successful = document.execCommand('copy');
+              if (successful) {
+                copyButton.textContent = 'Copied!';
+                copyButton.classList.add('copied');
+                
+                setTimeout(function() {
+                  copyButton.textContent = 'Copy';
+                  copyButton.classList.remove('copied');
+                }, 2000);
+              } else {
+                copyButton.textContent = 'Failed';
+                setTimeout(function() {
+                  copyButton.textContent = 'Copy';
+                }, 2000);
+              }
+            } catch (err) {
+              console.error('Failed to copy:', err);
+              copyButton.textContent = 'Failed';
+              setTimeout(function() {
+                copyButton.textContent = 'Copy';
+              }, 2000);
+            } finally {
+              document.body.removeChild(textarea);
+            }
+          }
+        });
+        
+        // Wrap the pre element
+        preElement.parentNode.insertBefore(wrapper, preElement);
+        wrapper.appendChild(preElement);
+        wrapper.appendChild(copyButton);
+      });
+    });
+  </script>
+</body>
+</html>

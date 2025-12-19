@@ -1,7 +1,11 @@
+---
+title: "Xarpite"
+---
+
 <br>
 
 <div align="center">
-  <img alt="Xarpite Logo" src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-logo.svg" />
+  <img alt="Xarpite Logo" src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-logo.svg" style="max-width: 100%;" />
 </div>
 
 <br>
@@ -54,7 +58,7 @@ For example, the command `$ xa ' "Hello, World!" '` will display `Hello, World!`
 
 An online playground is available for running Xarpite and trying examples interactively.
 
-[Xarpite Playground](https://mirrgieriana.github.io/xarpite/playground/)
+[Xarpite Playground](playground/)
 
 # INSTALL
 
@@ -96,7 +100,7 @@ This is useful if you want to place Xarpite in the current directory without ins
 
 # DOCUMENTATION
 
-- [Japanese](https://mirrgieriana.github.io/xarpite/docs/ja/)
+- [Japanese](docs/ja/)
 
 ---
 
