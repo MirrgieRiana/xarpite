@@ -66,6 +66,12 @@ fun findVersionTagWithFetching(): String? {
 
 // 徐々に過去ログを取得しながらバージョンタグを探す
 val versionTag = findVersionTagWithFetching()
+val isClean = !isDirty()
+val headTag = versionTag?.let { if (getCommitDistance(it, "HEAD") == 0) it else null }
+
+// クリーンかつHEADにタグがある場合のみ、接尾辞なしで出力
+if (isClean && headTag != null) complete(headTag.drop(1))
+
 // Example: 1.2.3+45.gabc6789.dirty
 complete(
     listOfNotNull(
@@ -73,12 +79,11 @@ complete(
         versionTag?.drop(1) ?: "0.0.0",
         // Build Metadata Part
         listOfNotNull(
-            when { // distance, if it is 0, omit
+            when { // distance
                 versionTag == null -> "${getAllCommitCount("HEAD")}.g${getShortHash("HEAD")}"
-                getCommitDistance(versionTag, "HEAD") == 0 -> null
                 else -> "${getCommitDistance(versionTag, "HEAD")}.g${getShortHash("HEAD")}"
             },
-            if (isDirty()) "dirty" else null,
+            if (!isClean) "dirty" else null,
         ).joinToString(".") { it }.takeIf { it.isNotEmpty() }
     ).joinToString("+") { it }
 )
