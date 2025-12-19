@@ -120,21 +120,58 @@
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
           
-          navigator.clipboard.writeText(textToCopy).then(function() {
-            copyButton.textContent = 'コピーしました！';
-            copyButton.classList.add('copied');
+          // Try modern clipboard API first
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+              copyButton.textContent = 'コピーしました！';
+              copyButton.classList.add('copied');
+              
+              setTimeout(function() {
+                copyButton.textContent = 'コピー';
+                copyButton.classList.remove('copied');
+              }, 2000);
+            }).catch(function(err) {
+              console.error('コピーに失敗しました:', err);
+              copyButton.textContent = '失敗';
+              setTimeout(function() {
+                copyButton.textContent = 'コピー';
+              }, 2000);
+            });
+          } else {
+            // Fallback for non-secure contexts
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
             
-            setTimeout(function() {
-              copyButton.textContent = 'コピー';
-              copyButton.classList.remove('copied');
-            }, 2000);
-          }).catch(function(err) {
-            console.error('コピーに失敗しました:', err);
-            copyButton.textContent = '失敗';
-            setTimeout(function() {
-              copyButton.textContent = 'コピー';
-            }, 2000);
-          });
+            try {
+              const successful = document.execCommand('copy');
+              if (successful) {
+                copyButton.textContent = 'コピーしました！';
+                copyButton.classList.add('copied');
+                
+                setTimeout(function() {
+                  copyButton.textContent = 'コピー';
+                  copyButton.classList.remove('copied');
+                }, 2000);
+              } else {
+                copyButton.textContent = '失敗';
+                setTimeout(function() {
+                  copyButton.textContent = 'コピー';
+                }, 2000);
+              }
+            } catch (err) {
+              console.error('コピーに失敗しました:', err);
+              copyButton.textContent = '失敗';
+              setTimeout(function() {
+                copyButton.textContent = 'コピー';
+              }, 2000);
+            } finally {
+              document.body.removeChild(textarea);
+            }
+          }
         });
         
         // Wrap the pre element
