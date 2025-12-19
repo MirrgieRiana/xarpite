@@ -62,9 +62,10 @@ fetch_if_shallow() {
 }
 
 # Check if working directory is clean
-CLEAN=false
 if is_clean; then
   CLEAN=true
+else
+  CLEAN=false
 fi
 
 # Check if HEAD has a version tag directly
@@ -78,8 +79,6 @@ if [ "$CLEAN" = true ] && [ -n "$HEAD_TAG" ]; then
 fi
 
 # Otherwise, always use suffix format
-SHORT_HASH=$(get_short_hash)
-
 # Find the most recent version tag in ancestors
 VERSION_TAG=$(find_version_tag)
 
@@ -90,6 +89,8 @@ if [ -z "$VERSION_TAG" ]; then
     VERSION_TAG=$(find_version_tag)
   fi
 fi
+
+SHORT_HASH=$(get_short_hash)
 
 if [ -n "$VERSION_TAG" ]; then
   # Found a version tag in ancestors
