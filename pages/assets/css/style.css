@@ -169,12 +169,14 @@ body {
 .content-wrapper {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-areas: "sidebar content";
   gap: 3rem;
   align-items: start;
 }
 
 /* ===== Sidebar Navigation ===== */
 .sidebar {
+  grid-area: sidebar;
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 1.5rem;
@@ -229,6 +231,7 @@ body {
 
 /* ===== Document Content ===== */
 .doc-content {
+  grid-area: content;
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 2.5rem;
@@ -564,6 +567,9 @@ body {
 @media (max-width: 968px) {
   .content-wrapper {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "content"
+      "sidebar";
     gap: 2rem;
   }
   
