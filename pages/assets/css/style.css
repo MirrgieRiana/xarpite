@@ -409,7 +409,7 @@ body {
   line-height: 1.6;
   border: none;
   white-space: pre;
-  word-wrap: normal;
+  overflow-wrap: normal;
 }
 
 /* Copy button for code blocks */
