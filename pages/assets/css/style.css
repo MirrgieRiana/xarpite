@@ -6,7 +6,7 @@
 /* ===== Variables ===== */
 :root {
   --xarpite-red-primary: #E50000;
-  --xarpite-red-dark: #860000;
+  --xarpite-red-dark: #760000;
   --xarpite-red-light: #FF3333;
   --xarpite-red-subtle: #FFE5E5;
   
@@ -149,7 +149,7 @@ body {
 
 .nav-link.playground-link {
   color: white;
-  background: linear-gradient(135deg, var(--xarpite-red-primary), var(--xarpite-red-dark));
+  background: linear-gradient(135deg, var(--xarpite-red-light), var(--xarpite-red-dark));
   font-weight: 600;
   padding: 0.5rem 1rem;
   box-shadow: 0 2px 4px var(--xarpite-red-shadow-light);
@@ -242,7 +242,7 @@ body {
 
 /* Typography */
 .doc-content h1 {
-  color: var(--xarpite-red-primary);
+  color: var(--xarpite-red-dark);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
@@ -383,7 +383,7 @@ body {
   font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-size: 0.9em;
   font-weight: 500;
-  border: 1px solid var(--border-light);
+  border: none;
 }
 
 .doc-content pre {
@@ -395,6 +395,8 @@ body {
   margin: 1.5rem 0;
   box-shadow: var(--shadow-md);
   border-left: 3px solid var(--xarpite-red-primary);
+  position: relative;
+  white-space: pre;
 }
 
 .doc-content pre code {
@@ -403,6 +405,51 @@ body {
   padding: 0;
   font-size: 0.875rem;
   line-height: 1.6;
+  border: none;
+  white-space: pre;
+}
+
+/* Copy button for code blocks */
+.doc-content .code-block-wrapper {
+  position: relative;
+  margin: 1.5rem 0;
+}
+
+.doc-content .code-block-wrapper pre {
+  margin: 0;
+}
+
+.doc-content .copy-code-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8f8f8;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(5px);
+  z-index: 10;
+}
+
+.doc-content .copy-code-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.doc-content .copy-code-button:active {
+  transform: translateY(0);
+}
+
+.doc-content .copy-code-button.copied {
+  background: var(--xarpite-red-primary);
+  border-color: var(--xarpite-red-primary);
+  color: white;
 }
 
 /* Syntax highlighting overrides */

@@ -73,7 +73,7 @@
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">
-            &copy; 2024 Xarpite Project. 
+            &copy; 2024 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
             <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
           </p>
         </div>
@@ -95,6 +95,52 @@
             link.classList.add('active');
           }
         }
+      });
+
+      // Add copy buttons to code blocks
+      const codeBlocks = document.querySelectorAll('.doc-content pre');
+      codeBlocks.forEach(function(preElement) {
+        // Skip if already wrapped
+        if (preElement.parentElement.classList.contains('code-block-wrapper')) {
+          return;
+        }
+
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        
+        // Create copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-code-button';
+        copyButton.textContent = 'コピー';
+        copyButton.setAttribute('aria-label', 'コードをコピー');
+        
+        // Add click handler
+        copyButton.addEventListener('click', function() {
+          const code = preElement.querySelector('code') || preElement;
+          const textToCopy = code.textContent;
+          
+          navigator.clipboard.writeText(textToCopy).then(function() {
+            copyButton.textContent = 'コピーしました！';
+            copyButton.classList.add('copied');
+            
+            setTimeout(function() {
+              copyButton.textContent = 'コピー';
+              copyButton.classList.remove('copied');
+            }, 2000);
+          }).catch(function(err) {
+            console.error('コピーに失敗しました:', err);
+            copyButton.textContent = '失敗';
+            setTimeout(function() {
+              copyButton.textContent = 'コピー';
+            }, 2000);
+          });
+        });
+        
+        // Wrap the pre element
+        preElement.parentNode.insertBefore(wrapper, preElement);
+        wrapper.appendChild(preElement);
+        wrapper.appendChild(copyButton);
       });
     });
   </script>
