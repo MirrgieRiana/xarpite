@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Configuration
+readonly VERSION_TAG_PATTERN='v[0-9]*.[0-9]*.[0-9]*'
+readonly VERSION_TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+$'
+readonly FETCH_DEPTH=100
+
 # Work in the current git repository root
 # If not in a git repository, this will fail appropriately
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
@@ -15,7 +20,7 @@ get_short_hash() {
 
 # Function to find the most recent version tag (v1.2.3 format)
 find_version_tag() {
-  git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --merged HEAD --sort=-version:refname | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | head -n 1
+  git tag --list "$VERSION_TAG_PATTERN" --merged HEAD --sort=-version:refname | { grep -E "$VERSION_TAG_REGEX" || true; } | head -n 1
 }
 
 # Function to count commits from a tag to HEAD
@@ -32,14 +37,14 @@ count_total_commits() {
 # Function to fetch more commits if in shallow clone
 fetch_if_shallow() {
   if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-    git fetch --deepen=100 2>/dev/null || true
+    git fetch --deepen="$FETCH_DEPTH" 2>/dev/null || true
     return 0
   fi
   return 1
 }
 
 # Check if HEAD has a version tag directly
-HEAD_TAG=$(git tag --points-at HEAD --list 'v[0-9]*.[0-9]*.[0-9]*' | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } | head -n 1)
+HEAD_TAG=$(git tag --points-at HEAD --list "$VERSION_TAG_PATTERN" | { grep -E "$VERSION_TAG_REGEX" || true; } | head -n 1)
 
 if [ -n "$HEAD_TAG" ]; then
   # HEAD has a version tag, output without 'v' prefix
