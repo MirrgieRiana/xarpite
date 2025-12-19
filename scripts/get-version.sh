@@ -1,45 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Configuration
+# 設定
 readonly VERSION_TAG_PATTERN='v[0-9]*.[0-9]*.[0-9]*'
 readonly VERSION_TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+$'
 readonly FETCH_DEPTH=100
 readonly MAX_FETCH_ATTEMPTS=10
 
-# Helper functions for exit
+# 終了用ヘルパー関数
 exit_with_version() { echo "$1"; exit 0; }
 exit_with_error() { echo "$1" >&2; exit 1; }
 
-# Check if git command is available
+# gitコマンドが利用可能かチェック
 command -v git >/dev/null 2>&1 || exit_with_version "0.0.0+0.g0000000.dirty"
 
-# Check if we're in a git repository
+# gitリポジトリ内かチェック
 git rev-parse --git-dir >/dev/null 2>&1 || exit_with_version "0.0.0+0.g0000000.dirty"
 
-# Check if HEAD exists (initial commit has been made)
+# HEADが存在するかチェック（初期コミットが作成済みか）
 git rev-parse HEAD >/dev/null 2>&1 || exit_with_version "0.0.0+0.g0000000.dirty"
 
-# Function to check if working directory is clean
+# 作業ディレクトリがクリーンかチェックする関数
 is_clean() { [ -z "$(git status --porcelain 2>/dev/null)" ]; }
 
-# Function to get the short commit hash (7 characters)
+# 短縮コミットハッシュ（7文字）を取得する関数
 get_short_hash() { git rev-parse --short=7 HEAD; }
 
-# Function to find the most recent version tag (v1.2.3 format)
-# Handles both annotated and lightweight tags
+# 最新のバージョンタグ（v1.2.3形式）を探す関数
+# 注釈付きタグと軽量タグの両方に対応
 find_version_tag() {
   git tag --list "$VERSION_TAG_PATTERN" --merged HEAD --sort=-version:refname | { grep -E "$VERSION_TAG_REGEX" || true; } | head -n 1
 }
 
-# Function to count commits from a tag to HEAD
+# タグからHEADまでのコミット数をカウントする関数
 count_commits_since() { git rev-list --count "${1}..HEAD"; }
 
-# Function to count total commits up to HEAD
+# HEADまでの総コミット数をカウントする関数
 count_total_commits() { git rev-list --count HEAD; }
 
-# Function to fetch more commits if in shallow clone (with loop)
-# Returns 0 if tag found, 1 if not shallow, 2 if max attempts reached without finding tag
+# 浅いクローンの場合にコミットを追加取得する関数（ループ付き）
+# 戻り値: 0=タグ発見, 1=shallowでない, 2=最大試行回数到達
 fetch_if_shallow_loop() {
   [ "$(git rev-parse --is-shallow-repository)" != "true" ] && return 1
   
@@ -48,55 +48,55 @@ fetch_if_shallow_loop() {
   while [ $attempt -lt "$MAX_FETCH_ATTEMPTS" ]; do
     attempt=$((attempt + 1))
     
-    # Fetch more commits and tags (redirect all output to stderr)
+    # コミットとタグを追加取得（全出力をstderrにリダイレクト）
     git fetch --deepen="$FETCH_DEPTH" --tags >/dev/null 2>&1 || exit_with_error "Error: git fetch failed"
     
-    # Check if we found a tag
+    # タグが見つかったかチェック
     [ -n "$(find_version_tag)" ] && return 0
     
-    # Check if still shallow
+    # まだshallowかチェック
     [ "$(git rev-parse --is-shallow-repository)" != "true" ] && return 1
   done
   
-  # Max attempts reached without finding tag
+  # 最大試行回数に到達してもタグが見つからなかった
   return 2
 }
 
-# Check if working directory is clean
+# 作業ディレクトリがクリーンかチェック
 is_clean && CLEAN=true || CLEAN=false
 
-# Check if HEAD has a version tag directly
+# HEADに直接バージョンタグが付いているかチェック
 HEAD_TAG=$(git tag --points-at HEAD --list "$VERSION_TAG_PATTERN" | { grep -E "$VERSION_TAG_REGEX" || true; } | head -n 1)
 
-# If clean and HEAD has valid version tag, output X.Y.Z without suffix
+# クリーンかつHEADに有効なバージョンタグがある場合、接尾辞なしでX.Y.Zを出力
 [ "$CLEAN" = true ] && [ -n "$HEAD_TAG" ] && exit_with_version "${HEAD_TAG#v}"
 
-# Otherwise, always use suffix format
-# Find the most recent version tag in ancestors
+# それ以外は常に接尾辞付き形式を使用
+# 祖先から最新のバージョンタグを探す
 VERSION_TAG=$(find_version_tag)
 
-# If no tag found and repository is shallow, try to fetch more
+# タグが見つからず、リポジトリがshallowの場合は追加取得を試みる
 if [ -z "$VERSION_TAG" ]; then
   fetch_if_shallow_loop || fetch_result=$?
-  # fetch_result: 0=tag found, 1=not shallow, 2=max attempts reached
+  # fetch_result: 0=タグ発見, 1=shallowでない, 2=最大試行回数到達
   
-  # Max attempts reached without finding tag - error exit
+  # 最大試行回数に到達してもタグが見つからなかった - エラー終了
   [ "${fetch_result:-0}" -eq 2 ] && exit_with_error "Error: No version tag found after $MAX_FETCH_ATTEMPTS fetch attempts"
   
-  # Try again after fetching (if fetch was performed and tag found)
+  # 取得後に再試行（取得が実行されタグが見つかった場合）
   [ "${fetch_result:-0}" -eq 0 ] && VERSION_TAG=$(find_version_tag)
 fi
 
-# Build version string
+# バージョン文字列を構築
 if [ -n "$VERSION_TAG" ]; then
-  # Found a version tag in ancestors
+  # 祖先にバージョンタグが見つかった
   VERSION="${VERSION_TAG#v}+$(count_commits_since "$VERSION_TAG").g$(get_short_hash)"
 else
-  # No version tag found, use 0.0.0 with total commit count
+  # バージョンタグが見つからなかった、総コミット数で0.0.0を使用
   VERSION="0.0.0+$(count_total_commits).g$(get_short_hash)"
 fi
 
-# Add .dirty suffix if working directory is not clean
+# 作業ディレクトリがクリーンでない場合は.dirtyを付加
 [ "$CLEAN" = false ] && VERSION="${VERSION}.dirty"
 
 exit_with_version "$VERSION"
