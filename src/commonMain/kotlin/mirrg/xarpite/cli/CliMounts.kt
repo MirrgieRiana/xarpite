@@ -2,6 +2,8 @@ package mirrg.xarpite.cli
 
 import getEnv
 import getFileSystem
+import kotlinx.coroutines.CoroutineScope
+import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -10,6 +12,7 @@ import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
 import readBytesFromStdin
@@ -17,8 +20,16 @@ import readLineFromStdin
 
 val INB_MAX_BUFFER_SIZE = 8192
 
-fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
-    return mapOf(
+fun createCliMounts(
+    args: List<String>,
+    coroutineScope: CoroutineScope,
+    out: suspend (FluoriteValue) -> Unit,
+): List<Map<String, FluoriteValue>> {
+    val useCache = mutableMapOf<okio.Path, FluoriteValue>()
+    val useBaseDirStack = ArrayDeque<okio.Path>()
+
+    lateinit var self: List<Map<String, FluoriteValue>>
+    val mounts = mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         "IN" to FluoriteStream {
@@ -53,5 +64,32 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
-    ).let { listOf(it) }
+        "USE" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("USE(file: STRING): VALUE")
+            val fileSystem = getFileSystem().getOrThrow()
+            val rawPath = arguments[0].toFluoriteString().value
+            val relativePath = rawPath.toPath()
+            val baseDir = useBaseDirStack.lastOrNull() ?: fileSystem.canonicalize(".".toPath())
+            val resolvedPath = if (relativePath.isAbsolute) relativePath else baseDir / relativePath
+            val canonicalPath = fileSystem.canonicalize(resolvedPath)
+
+            useCache[canonicalPath]?.let { return@FluoriteFunction it }
+
+            val src = fileSystem.read(canonicalPath) { readUtf8() }
+            val evaluator = Evaluator()
+            evaluator.defineMounts(createCommonMounts(coroutineScope, out))
+            evaluator.defineMounts(self)
+
+            useBaseDirStack.addLast(canonicalPath.parent ?: canonicalPath)
+            val value = try {
+                evaluator.get(src)
+            } finally {
+                useBaseDirStack.removeLast()
+            }
+            useCache[canonicalPath] = value
+            value
+        },
+    )
+    self = listOf(mounts)
+    return self
 }
