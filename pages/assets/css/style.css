@@ -468,6 +468,7 @@ body {
 
 .doc-content .highlight pre {
   margin: 0;
+  padding-right: 6rem;
 }
 
 /* Tables */
