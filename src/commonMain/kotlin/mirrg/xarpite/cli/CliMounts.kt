@@ -28,7 +28,7 @@ fun createCliMounts(
     val useCache = mutableMapOf<okio.Path, FluoriteValue>()
     val useBaseDirStack = ArrayDeque<okio.Path>()
 
-    lateinit var self: List<Map<String, FluoriteValue>>
+    val self = mutableListOf<Map<String, FluoriteValue>>()
     val mounts = mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
@@ -80,7 +80,8 @@ fun createCliMounts(
             evaluator.defineMounts(createCommonMounts(coroutineScope, out))
             evaluator.defineMounts(self)
 
-            useBaseDirStack.addLast(canonicalPath.parent ?: canonicalPath)
+            val parentDir = canonicalPath.parent ?: fileSystem.canonicalize(".".toPath())
+            useBaseDirStack.addLast(parentDir)
             val value = try {
                 evaluator.get(src)
             } finally {
@@ -90,6 +91,6 @@ fun createCliMounts(
             value
         },
     )
-    self = listOf(mounts)
+    self += mounts
     return self
 }

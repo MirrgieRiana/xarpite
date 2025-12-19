@@ -10,6 +10,8 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.string
 import mirrg.xarpite.test.stream
+import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,9 +70,7 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         val file = baseDir.resolve("use.basic.tmp.xa")
-        if (!fileSystem.exists(file.parent!!)) {
-            fileSystem.createDirectory(file.parent!!)
-        }
+        ensureDirectory(fileSystem, file.parent!!)
         fileSystem.write(file) {
             writeUtf8("123")
         }
@@ -83,9 +83,7 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         val file = baseDir.resolve("use.cache.tmp.xa")
-        if (!fileSystem.exists(file.parent!!)) {
-            fileSystem.createDirectory(file.parent!!)
-        }
+        ensureDirectory(fileSystem, file.parent!!)
         fileSystem.write(file) {
             writeUtf8(
                 """
@@ -118,15 +116,9 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         val rootDir = baseDir.resolve("use.relative.tmp")
         val nestedDir = rootDir.resolve("nested")
-        if (!fileSystem.exists(baseDir)) {
-            fileSystem.createDirectory(baseDir)
-        }
-        if (!fileSystem.exists(rootDir)) {
-            fileSystem.createDirectory(rootDir)
-        }
-        if (!fileSystem.exists(nestedDir)) {
-            fileSystem.createDirectory(nestedDir)
-        }
+        ensureDirectory(fileSystem, baseDir)
+        ensureDirectory(fileSystem, rootDir)
+        ensureDirectory(fileSystem, nestedDir)
         val module1 = rootDir.resolve("module1.xa")
         val module2 = nestedDir.resolve("module2.xa")
         fileSystem.write(module1) {
@@ -149,6 +141,12 @@ class CliTest {
         assertEquals(true, inb is FluoriteStream)
     }
 
+}
+
+private fun ensureDirectory(fileSystem: FileSystem, path: Path) {
+    if (!fileSystem.exists(path)) {
+        fileSystem.createDirectory(path)
+    }
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
