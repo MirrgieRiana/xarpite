@@ -396,7 +396,6 @@ body {
   box-shadow: var(--shadow-md);
   border-left: 3px solid var(--xarpite-red-primary);
   position: relative;
-  white-space: pre;
 }
 
 .doc-content pre code {

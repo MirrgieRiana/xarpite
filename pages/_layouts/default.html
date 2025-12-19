@@ -120,8 +120,12 @@
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
           
-          // Try modern clipboard API first
-          if (navigator.clipboard && window.isSecureContext) {
+          // Try modern clipboard API first (requires secure context: HTTPS or localhost)
+          const isSecure = window.isSecureContext || 
+                          window.location.protocol === 'https:' || 
+                          window.location.hostname === 'localhost';
+          
+          if (navigator.clipboard && isSecure) {
             navigator.clipboard.writeText(textToCopy).then(function() {
               copyButton.textContent = 'コピーしました！';
               copyButton.classList.add('copied');
@@ -138,7 +142,7 @@
               }, 2000);
             });
           } else {
-            // Fallback for non-secure contexts
+            // Fallback using deprecated execCommand for legacy browser support
             const textarea = document.createElement('textarea');
             textarea.value = textToCopy;
             textarea.style.position = 'fixed';
