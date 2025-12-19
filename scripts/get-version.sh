@@ -5,6 +5,7 @@ set -euo pipefail
 readonly VERSION_TAG_PATTERN='v[0-9]*.[0-9]*.[0-9]*'
 readonly VERSION_TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+$'
 readonly FETCH_DEPTH=100
+readonly MAX_FETCH_ATTEMPTS=10
 
 # Check if git command is available
 if ! command -v git >/dev/null 2>&1; then
@@ -51,13 +52,41 @@ count_total_commits() {
   git rev-list --count HEAD
 }
 
-# Function to fetch more commits if in shallow clone
-fetch_if_shallow() {
-  if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-    git fetch --deepen="$FETCH_DEPTH" 2>/dev/null || true
-    return 0
+# Function to fetch more commits if in shallow clone (with loop)
+# Returns 0 if tag found, 1 if not shallow, 2 if max attempts reached without finding tag
+fetch_if_shallow_loop() {
+  if [ "$(git rev-parse --is-shallow-repository)" != "true" ]; then
+    return 1
   fi
-  return 1
+  
+  local attempt=0
+  local was_shallow=true
+  
+  while [ $attempt -lt "$MAX_FETCH_ATTEMPTS" ]; do
+    attempt=$((attempt + 1))
+    
+    # Fetch more commits and tags (redirect all output to stderr)
+    if ! git fetch --deepen="$FETCH_DEPTH" --tags >/dev/null 2>&1; then
+      echo "Error: git fetch failed" >&2
+      exit 1
+    fi
+    
+    # Check if we found a tag
+    local tag
+    tag=$(find_version_tag)
+    if [ -n "$tag" ]; then
+      return 0
+    fi
+    
+    # Check if still shallow
+    if [ "$(git rev-parse --is-shallow-repository)" != "true" ]; then
+      # No longer shallow, but continue trying up to max attempts
+      was_shallow=false
+    fi
+  done
+  
+  # Max attempts reached without finding tag
+  return 2
 }
 
 # Check if working directory is clean
@@ -83,8 +112,17 @@ VERSION_TAG=$(find_version_tag)
 
 # If no tag found and repository is shallow, try to fetch more
 if [ -z "$VERSION_TAG" ]; then
-  if fetch_if_shallow; then
-    # Try again after fetching
+  fetch_if_shallow_loop || fetch_result=$?
+  # fetch_result: 0=tag found, 1=not shallow, 2=max attempts reached
+  
+  if [ "${fetch_result:-0}" -eq 2 ]; then
+    # Max attempts reached without finding tag - error exit
+    echo "Error: No version tag found after $MAX_FETCH_ATTEMPTS fetch attempts" >&2
+    exit 1
+  fi
+  
+  # Try again after fetching (if fetch was performed and tag found)
+  if [ "${fetch_result:-0}" -eq 0 ]; then
     VERSION_TAG=$(find_version_tag)
   fi
 fi
