@@ -563,7 +563,7 @@ body {
 /* ===== Responsive Design ===== */
 @media (max-width: 968px) {
   .content-wrapper {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2rem;
   }
   
@@ -715,7 +715,7 @@ html, body {
   }
   
   .content-wrapper {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .doc-content {
