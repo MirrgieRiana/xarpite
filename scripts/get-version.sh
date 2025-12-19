@@ -54,7 +54,6 @@ count_total_commits() {
 # Function to fetch more commits if in shallow clone
 fetch_if_shallow() {
   if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-    echo "Repository is shallow, fetching more commits..." >&2
     git fetch --deepen="$FETCH_DEPTH" 2>/dev/null || true
     return 0
   fi
