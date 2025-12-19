@@ -396,6 +396,9 @@ body {
   box-shadow: var(--shadow-md);
   border-left: 3px solid var(--xarpite-red-primary);
   position: relative;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .doc-content pre code {
@@ -405,6 +408,8 @@ body {
   font-size: 0.875rem;
   line-height: 1.6;
   border: none;
+  white-space: pre;
+  word-wrap: normal;
 }
 
 /* Copy button for code blocks */
