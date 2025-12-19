@@ -60,7 +60,6 @@ fetch_if_shallow_loop() {
   fi
   
   local attempt=0
-  local was_shallow=true
   
   while [ $attempt -lt "$MAX_FETCH_ATTEMPTS" ]; do
     attempt=$((attempt + 1))
@@ -80,8 +79,8 @@ fetch_if_shallow_loop() {
     
     # Check if still shallow
     if [ "$(git rev-parse --is-shallow-repository)" != "true" ]; then
-      # No longer shallow, but continue trying up to max attempts
-      was_shallow=false
+      # No longer shallow, stop trying
+      return 1
     fi
   done
   
