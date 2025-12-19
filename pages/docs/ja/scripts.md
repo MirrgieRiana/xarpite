@@ -6,13 +6,13 @@ title: "スクリプト"
 
 このページでは、Xarpiteリポジトリの `scripts` ディレクトリにある開発用スクリプトについて説明します。
 
-## `get-version.pl` バージョン判定
+## `get-version.kts` バージョン判定
 
 ```
-Usage: ./scripts/get-version.pl
+Usage: kotlin ./scripts/get-version.kts
 ```
 
-Gitリポジトリの状態からバージョン番号を判定し、標準出力に出力するPerlスクリプトです。
+Gitリポジトリの状態からバージョン番号を判定し、標準出力に出力するKotlinスクリプトです。
 
 ### 出力形式
 
@@ -75,7 +75,7 @@ $ ./scripts/get-version.sh
 ```shell
 # 変更がある場合
 $ echo "test" > newfile.txt
-$ ./scripts/get-version.pl
+$ kotlin ./scripts/get-version.kts
 # 1.2.3+2.g1234abc.dirty
 ```
 
@@ -87,9 +87,9 @@ $ ./scripts/get-version.pl
 
 ```shell
 # 現在のバージョンを取得（ログを除外）
-VERSION=$(./scripts/get-version.pl 2>/dev/null)
+VERSION=$(kotlin ./scripts/get-version.kts 2>/dev/null)
 echo "Current version: $VERSION"
 
 # ビルド時にバージョンを埋め込む
-./scripts/get-version.pl > version.txt
+kotlin ./scripts/get-version.kts > version.txt
 ```
