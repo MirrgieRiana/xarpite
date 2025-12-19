@@ -391,6 +391,7 @@ body {
   background: #333;
   color: #f8f8f8;
   padding: 1.5rem;
+  padding-right: 6rem;
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 1.5rem 0;
@@ -468,7 +469,6 @@ body {
 
 .doc-content .highlight pre {
   margin: 0;
-  padding-right: 6rem;
 }
 
 /* Tables */
