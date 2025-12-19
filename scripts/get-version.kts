@@ -35,15 +35,15 @@ fun shell(command: String): ShellResult {
     }
 }
 
-fun isGitAvailable(): Boolean = shell("command -v git >/dev/null 2>&1").succeeded
-
-fun isInsideGitRepository(): Boolean = shell("git rev-parse --git-dir >/dev/null 2>&1").succeeded
-
-fun headExists(): Boolean = shell("git rev-parse HEAD >/dev/null 2>&1").succeeded
-
-fun isWorkingDirectoryClean(): Boolean = shell("git status --porcelain 2>/dev/null").output.isEmpty()
-
-fun getShortCommitHash(): String = shell("git rev-parse --short=7 HEAD").output
+fun isGitAvailable() = shell("command -v git >/dev/null 2>&1").succeeded
+fun isInsideGitRepository() = shell("git rev-parse --git-dir >/dev/null 2>&1").succeeded
+fun headExists() = shell("git rev-parse HEAD >/dev/null 2>&1").succeeded
+fun isWorkingDirectoryClean() = shell("git status --porcelain 2>/dev/null").output.isEmpty()
+fun getShortCommitHash() = shell("git rev-parse --short=7 HEAD").output
+fun countCommitsFrom(tag: String) = shell("git rev-list --count '$tag..HEAD'").output
+fun countAllCommits() = shell("git rev-list --count HEAD").output
+fun isShallowRepository() = shell("git rev-parse --is-shallow-repository").output == "true"
+fun deepenShallowRepository() = shell("git fetch --deepen=$FETCH_DEPTH --tags >/dev/null 2>&1").succeeded
 
 fun findLatestVersionTag(): String {
     return shell("git tag --list '$VERSION_TAG_PATTERN' --merged HEAD --sort=-version:refname")
@@ -53,14 +53,6 @@ fun findLatestVersionTag(): String {
         .firstOrNull { VERSION_TAG_REGEX.matches(it) }
         ?: ""
 }
-
-fun countCommitsFrom(tag: String): String = shell("git rev-list --count '$tag..HEAD'").output
-
-fun countAllCommits(): String = shell("git rev-list --count HEAD").output
-
-fun isShallowRepository(): Boolean = shell("git rev-parse --is-shallow-repository").output == "true"
-
-fun deepenShallowRepository(): Boolean = shell("git fetch --deepen=$FETCH_DEPTH --tags >/dev/null 2>&1").succeeded
 
 fun findVersionTagWithShallowFetch(): Int {
     if (!isShallowRepository()) return 1
@@ -102,9 +94,7 @@ if (!headExists()) exitWithVersion("0.0.0+0.g0000000.dirty")
 val clean = isWorkingDirectoryClean()
 val headTag = findVersionTagOnHead()
 
-if (clean && headTag.isNotEmpty()) {
-    exitWithVersion(headTag.removePrefix("v"))
-}
+if (clean && headTag.isNotEmpty()) exitWithVersion(headTag.removePrefix("v"))
 
 var versionTag = findLatestVersionTag()
 
