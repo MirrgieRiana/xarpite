@@ -399,6 +399,8 @@ body {
   white-space: pre;
   overflow-wrap: normal;
   word-break: normal;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .doc-content pre code {
@@ -416,6 +418,7 @@ body {
 .doc-content .code-block-wrapper {
   position: relative;
   margin: 1.5rem 0;
+  max-width: 100%;
 }
 
 .doc-content .code-block-wrapper pre {
