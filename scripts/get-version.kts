@@ -2,105 +2,83 @@
 
 import kotlin.system.exitProcess
 
-data class ShellResult(val exitCode: Int, val output: String) {
-    val succeeded: Boolean get() = exitCode == 0
-}
-
-val VERSION_TAG_PATTERN = "v[0-9]*.[0-9]*.[0-9]*"
-val VERSION_TAG_REGEX = Regex("^v[0-9]+\\.[0-9]+\\.[0-9]+\$")
-val FETCH_DEPTH = 100
-val MAX_FETCH_ATTEMPTS = 10
-
-fun exitWithVersion(version: String): Nothing {
+fun complete(version: String): Nothing {
     println(version)
     exitProcess(0)
 }
 
-fun error(message: String): Nothing {
+fun fail(message: String): Nothing {
     System.err.println(message)
     exitProcess(1)
 }
 
+data class ShellResult(val command: String, val exitCode: Int, val output: String) {
+    val succeeded get() = exitCode == 0
+
+    fun getOutputOrThrow(): String {
+        if (!succeeded) throw Exception("Command failed with exit code $exitCode: $command")
+        return output
+    }
+}
+
 fun shell(command: String): ShellResult {
-    return try {
-        val process = ProcessBuilder("sh", "-c", command)
+    try {
+        val process = ProcessBuilder("bash", "-c", command)
             .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .redirectErrorStream(true)
             .start()
         val output = process.inputStream.bufferedReader().readText().trim()
         val exitCode = process.waitFor()
-        ShellResult(exitCode, output)
+        return ShellResult(command, exitCode, output)
     } catch (e: Exception) {
-        ShellResult(-1, "")
+        System.err.println("Error executing command: $command")
+        throw e
     }
 }
 
 fun isGitAvailable() = shell("command -v git >/dev/null 2>&1").succeeded
-fun isInsideGitRepository() = shell("git rev-parse --git-dir >/dev/null 2>&1").succeeded
-fun headExists() = shell("git rev-parse HEAD >/dev/null 2>&1").succeeded
-fun isWorkingDirectoryClean() = shell("git status --porcelain 2>/dev/null").output.isEmpty()
-fun getShortCommitHash() = shell("git rev-parse --short=7 HEAD").output
-fun countCommitsFrom(tag: String) = shell("git rev-list --count '$tag..HEAD'").output
-fun countAllCommits() = shell("git rev-list --count HEAD").output
-fun isShallowRepository() = shell("git rev-parse --is-shallow-repository").output == "true"
-fun deepenShallowRepository() = shell("git fetch --deepen=$FETCH_DEPTH --tags >/dev/null 2>&1").succeeded
+fun isInGitRepository() = shell("git rev-parse --git-dir >/dev/null 2>&1").succeeded
+fun hasHead() = shell("git rev-parse HEAD >/dev/null 2>&1").succeeded
+fun isDirty() = shell("git status --porcelain 2>/dev/null").getOutputOrThrow().isNotEmpty()
+fun getShortHash(tag: String) = shell("git rev-parse --short=7 $tag").getOutputOrThrow()
+fun getCommitDistance(from: String, to: String) = shell("git rev-list --count '$from..$to'").getOutputOrThrow().toInt()
+fun getAllCommitCount(to: String) = shell("git rev-list --count $to").getOutputOrThrow()
+fun isShallowRepository() = shell("git rev-parse --is-shallow-repository").getOutputOrThrow() == "true"
+fun deepenRepository(depth: Int) = shell("git fetch --deepen=$depth --tags >/dev/null 2>&1").getOutputOrThrow().let {}
+fun String.parseVersionTags() = this.lines().filter { """^v[0-9]+\.[0-9]+\.[0-9]+$""".toRegex().matches(it) }
+fun getSortedAllVersionTags() = shell("git tag --sort=-version:refname --merged HEAD").getOutputOrThrow().parseVersionTags()
 
-fun findLatestVersionTag() = 
-    shell("git tag --list '$VERSION_TAG_PATTERN' --merged HEAD --sort=-version:refname")
-        .output
-        .lineSequence()
-        .filter { it.isNotEmpty() }
-        .find { VERSION_TAG_REGEX.matches(it) }
-        ?: ""
+// 作業領域が正常なgitリポジトリでない判定
+val INVALID_VERSION = "0.0.0+0.g0000000.dirty"
+if (!isGitAvailable()) complete(INVALID_VERSION)
+if (!isInGitRepository()) complete(INVALID_VERSION)
+if (!hasHead()) complete(INVALID_VERSION)
 
-fun findVersionTagWithShallowFetch(): Int {
-    if (!isShallowRepository()) return 1
-    
-    repeat(MAX_FETCH_ATTEMPTS) {
-        if (!deepenShallowRepository()) error("Error: git fetch failed")
-        if (findLatestVersionTag().isNotEmpty()) return 0
-        if (!isShallowRepository()) return 1
+fun findVersionTagWithFetching(): String? {
+    (0..10).forEach { retry ->
+        getSortedAllVersionTags().firstOrNull()?.let { return it }
+        if (!isShallowRepository()) return null
+        if (retry == 10) fail("Error: No version tag found after partial fetch attempts")
+        deepenRepository(100)
     }
-    
-    return 2
+    return null
 }
 
-fun findVersionTagOnHead() = 
-    shell("git tag --points-at HEAD --list '$VERSION_TAG_PATTERN'")
-        .output
-        .lineSequence()
-        .filter { it.isNotEmpty() }
-        .find { VERSION_TAG_REGEX.matches(it) }
-        ?: ""
-
-fun buildVersionString(versionTag: String, isDirty: Boolean): String {
-    val shortHash = getShortCommitHash()
-    
-    val baseVersion = if (versionTag.isNotEmpty()) {
-        "${versionTag.removePrefix("v")}+${countCommitsFrom(versionTag)}.g$shortHash"
-    } else {
-        "0.0.0+${countAllCommits()}.g$shortHash"
-    }
-    
-    return if (isDirty) "$baseVersion.dirty" else baseVersion
-}
-
-if (!isGitAvailable()) exitWithVersion("0.0.0+0.g0000000.dirty")
-if (!isInsideGitRepository()) exitWithVersion("0.0.0+0.g0000000.dirty")
-if (!headExists()) exitWithVersion("0.0.0+0.g0000000.dirty")
-
-val isClean = isWorkingDirectoryClean()
-val headTag = findVersionTagOnHead()
-
-if (isClean && headTag.isNotEmpty()) exitWithVersion(headTag.removePrefix("v"))
-
-var versionTag = findLatestVersionTag()
-
-if (versionTag.isEmpty()) {
-    when (findVersionTagWithShallowFetch()) {
-        0 -> versionTag = findLatestVersionTag()
-        2 -> error("Error: No version tag found after $MAX_FETCH_ATTEMPTS fetch attempts")
-    }
-}
-
-exitWithVersion(buildVersionString(versionTag, !isClean))
+// 徐々に過去ログを取得しながらバージョンタグを探す
+val versionTag = findVersionTagWithFetching()
+// Example: 1.2.3+45.gabc6789.dirty
+complete(
+    listOfNotNull(
+        // Version Part
+        versionTag?.drop(1) ?: "0.0.0",
+        // Build Metadata Part
+        listOfNotNull(
+            when { // distance, if it is 0, omit
+                versionTag == null -> "${getAllCommitCount("HEAD")}.g${getShortHash("HEAD")}"
+                getCommitDistance(versionTag, "HEAD") == 0 -> null
+                else -> "${getCommitDistance(versionTag, "HEAD")}.g${getShortHash("HEAD")}"
+            },
+            if (isDirty()) "dirty" else null,
+        ).joinToString(".") { it }.takeIf { it.isNotEmpty() }
+    ).joinToString("+") { it }
+)
