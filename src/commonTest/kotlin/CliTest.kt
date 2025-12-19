@@ -1,20 +1,26 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
+import java.io.ByteArrayInputStream
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 val baseDir = "build/test".toPath()
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalUnsignedTypes::class)
 class CliTest {
 
     @Test
@@ -68,6 +74,36 @@ class CliTest {
         assertEquals(true, inb is FluoriteStream)
     }
 
+    @Test
+    fun inbReadsBinaryStream() = runTest {
+        val originalIn = System.`in`
+        try {
+            System.setIn(ByteArrayInputStream(byteArrayOf(97, 98, 99)))
+            val blobs = cliEval("INB").collectBlobs()
+            assertEquals(1, blobs.size)
+            assertContentEquals(ubyteArrayOf(97u, 98u, 99u), blobs.first().value)
+        } finally {
+            System.setIn(originalIn)
+        }
+    }
+
+    @Test
+    fun inbSplitsByBufferSize() = runTest {
+        val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
+        val originalIn = System.`in`
+        try {
+            System.setIn(ByteArrayInputStream(data))
+            val blobs = cliEval("INB").collectBlobs()
+            assertEquals(2, blobs.size)
+            assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+            assertEquals(1, blobs[1].value.size)
+            assertContentEquals(data.take(INB_MAX_BUFFER_SIZE).map { it.toUByte() }.toUByteArray(), blobs[0].value)
+            assertEquals(data.last().toUByte(), blobs[1].value[0])
+        } finally {
+            System.setIn(originalIn)
+        }
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
@@ -76,3 +112,6 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
     evaluator.defineMounts(createCliMounts(args.toList()))
     return evaluator.get(src)
 }
+
+private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> =
+    flow { (this@collectBlobs as FluoriteStream).flowProvider(this) }.toList(mutableListOf()).map { it as FluoriteBlob }
