@@ -45,14 +45,13 @@ fun countAllCommits() = shell("git rev-list --count HEAD").output
 fun isShallowRepository() = shell("git rev-parse --is-shallow-repository").output == "true"
 fun deepenShallowRepository() = shell("git fetch --deepen=$FETCH_DEPTH --tags >/dev/null 2>&1").succeeded
 
-fun findLatestVersionTag(): String {
-    return shell("git tag --list '$VERSION_TAG_PATTERN' --merged HEAD --sort=-version:refname")
+fun findLatestVersionTag() = 
+    shell("git tag --list '$VERSION_TAG_PATTERN' --merged HEAD --sort=-version:refname")
         .output
-        .split("\n")
+        .lineSequence()
         .filter { it.isNotEmpty() }
-        .firstOrNull { VERSION_TAG_REGEX.matches(it) }
+        .find { VERSION_TAG_REGEX.matches(it) }
         ?: ""
-}
 
 fun findVersionTagWithShallowFetch(): Int {
     if (!isShallowRepository()) return 1
@@ -66,14 +65,13 @@ fun findVersionTagWithShallowFetch(): Int {
     return 2
 }
 
-fun findVersionTagOnHead(): String {
-    return shell("git tag --points-at HEAD --list '$VERSION_TAG_PATTERN'")
+fun findVersionTagOnHead() = 
+    shell("git tag --points-at HEAD --list '$VERSION_TAG_PATTERN'")
         .output
-        .split("\n")
+        .lineSequence()
         .filter { it.isNotEmpty() }
-        .firstOrNull { VERSION_TAG_REGEX.matches(it) }
+        .find { VERSION_TAG_REGEX.matches(it) }
         ?: ""
-}
 
 fun buildVersionString(versionTag: String, isDirty: Boolean): String {
     val shortHash = getShortCommitHash()
@@ -91,10 +89,10 @@ if (!isGitAvailable()) exitWithVersion("0.0.0+0.g0000000.dirty")
 if (!isInsideGitRepository()) exitWithVersion("0.0.0+0.g0000000.dirty")
 if (!headExists()) exitWithVersion("0.0.0+0.g0000000.dirty")
 
-val clean = isWorkingDirectoryClean()
+val isClean = isWorkingDirectoryClean()
 val headTag = findVersionTagOnHead()
 
-if (clean && headTag.isNotEmpty()) exitWithVersion(headTag.removePrefix("v"))
+if (isClean && headTag.isNotEmpty()) exitWithVersion(headTag.removePrefix("v"))
 
 var versionTag = findLatestVersionTag()
 
@@ -105,4 +103,4 @@ if (versionTag.isEmpty()) {
     }
 }
 
-exitWithVersion(buildVersionString(versionTag, !clean))
+exitWithVersion(buildVersionString(versionTag, !isClean))
