@@ -5,7 +5,7 @@ title: "Xarpite"
 <br>
 
 <div align="center">
-  <img alt="Xarpite Logo" src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-logo.svg" style="max-width: 100%; width: 100%;" />
+  <img alt="Xarpite Logo" src="https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/assets/xarpite-logo.svg" style="max-width: 100%;" />
 </div>
 
 <br>
