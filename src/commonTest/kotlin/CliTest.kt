@@ -113,5 +113,9 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
     return evaluator.get(src)
 }
 
-private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> =
-    flow { (this@collectBlobs as FluoriteStream).flowProvider(this) }.toList(mutableListOf()).map { it as FluoriteBlob }
+private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
+    require(this is FluoriteStream) { "INB should return a stream" }
+    return flow { this@collectBlobs.flowProvider(this) }.toList().map { value ->
+        value as? FluoriteBlob ?: error("Unexpected element: $value")
+    }
+}
