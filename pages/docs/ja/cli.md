@@ -242,3 +242,72 @@ $ {
 # apple
 # banana
 ```
+
+## `USE` 外部Xarpiteファイルを実行
+
+`USE(file: STRING): VALUE`
+
+呼び出したファイルからの相対パスで示されるXarpiteファイルを実行した結果を返します。
+
+```shell
+$ {
+  echo '123' > tmp.xa1
+  xa 'USE("tmp.xa1")'
+  rm tmp.xa1
+}
+# 123
+```
+
+---
+
+`USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感で利用できます。
+
+```shell
+$ {
+  echo '
+    {
+      FRUIT: "apple"
+    }
+  ' > tmp.xa1
+  xa '
+    @USE("tmp.xa1")
+    FRUIT
+  '
+  rm tmp.xa1
+}
+# apple
+```
+
+---
+
+同一文字列に対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
+
+```shell
+$ {
+  echo '
+    {
+      variables: {
+        fruit: "apple"
+      }
+    }
+  ' > tmp.xa1
+  xa -q '
+    a := USE("tmp.xa1")
+    b := USE("tmp.xa1")
+    OUT << b.variables.fruit
+    a.variables.fruit = "banana"
+    OUT << b.variables.fruit
+  '
+  rm tmp.xa1
+}
+# apple
+# banana
+```
+
+---
+
+`USE` されることを前提として記述されたファイルをモジュールと呼びます。
+
+モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開します。
+
+モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。
