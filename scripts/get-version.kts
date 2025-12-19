@@ -25,7 +25,7 @@ fun shell(command: String): ShellResult {
     try {
         val process = ProcessBuilder("bash", "-c", command)
             .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .redirectErrorStream(true)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
             .start()
         val output = process.inputStream.bufferedReader().readText().trim()
         val exitCode = process.waitFor()
@@ -75,7 +75,7 @@ complete(
         listOfNotNull(
             when { // distance, if it is 0, omit
                 versionTag == null -> "${getAllCommitCount("HEAD")}.g${getShortHash("HEAD")}"
-                getCommitDistance(versionTag, "HEAD") == 0 -> ""
+                getCommitDistance(versionTag, "HEAD") == 0 -> null
                 else -> "${getCommitDistance(versionTag, "HEAD")}.g${getShortHash("HEAD")}"
             },
             if (isDirty()) "dirty" else null,
