@@ -27,4 +27,3 @@ title: "Xarpiteドキュメント"
 - [JavaScript版](js.html)
 - [コルーチン](coroutine.html)
 - [JSON操作](json.html)
-- [スクリプト](scripts.html)
