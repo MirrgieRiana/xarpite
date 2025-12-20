@@ -10,6 +10,8 @@ import mirrg.xarpite.operations.FluoriteException
 import okio.Path
 import okio.Path.Companion.toPath
 
+private const val MODULE_EXTENSION = ".xa1"
+
 fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "USE" to run {
@@ -25,10 +27,12 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                 val relativePath = file.drop(2)
                 fun resolveModulePath(): Path {
                     val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
-                    if (fileSystem.metadataOrNull(originalPath) != null) return originalPath
-                    if (!file.endsWith(".xa1")) {
-                        val fallbackPath = baseDir.resolve("$relativePath.xa1".toPath()).normalized()
-                        if (fileSystem.metadataOrNull(fallbackPath) != null) return fallbackPath
+                    val originalMetadata = fileSystem.metadataOrNull(originalPath)
+                    if (originalMetadata != null) return originalPath
+                    if (!file.endsWith(MODULE_EXTENSION)) {
+                        val fallbackPath = baseDir.resolve("$relativePath$MODULE_EXTENSION".toPath()).normalized()
+                        val fallbackMetadata = fileSystem.metadataOrNull(fallbackPath)
+                        if (fallbackMetadata != null) return fallbackPath
                     }
                     return originalPath
                 }
