@@ -107,7 +107,7 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.extension.tmp")
-        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        fileSystem.createDirectories(dir)
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
         assertEquals("877", cliEval("""USE("./build/test/use.extension.tmp/banana")""").toFluoriteString().value)

@@ -23,15 +23,16 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                 if (!file.startsWith("./")) throw FluoriteException("""Path must start with "./".""".toFluoriteString())
                 val fileSystem = getFileSystem().getOrThrow()
                 val relativePath = file.drop(2)
-                val modulePath = run {
+                fun resolveModulePath(): Path {
                     val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
-                    if (fileSystem.metadataOrNull(originalPath) != null) return@run originalPath
+                    if (fileSystem.metadataOrNull(originalPath) != null) return originalPath
                     if (!file.endsWith(".xa1")) {
                         val fallbackPath = baseDir.resolve("$relativePath.xa1".toPath()).normalized()
-                        if (fileSystem.metadataOrNull(fallbackPath) != null) return@run fallbackPath
+                        if (fileSystem.metadataOrNull(fallbackPath) != null) return fallbackPath
                     }
-                    originalPath
+                    return originalPath
                 }
+                val modulePath = resolveModulePath()
                 moduleCache.getOrPut(modulePath) {
                     val src = fileSystem.read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
