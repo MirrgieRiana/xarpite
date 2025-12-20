@@ -12,6 +12,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
@@ -94,7 +95,7 @@ class CliTest {
         val banana = dir.resolve("banana.xa1")
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
-        fileSystem.write(apple) { writeUtf8("""USE("./build/test/use.relative.tmp/banana.xa1")""") }
+        fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
         assertEquals("877", cliEval("""USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString().value)
         fileSystem.delete(apple)
         fileSystem.delete(banana)
@@ -183,13 +184,16 @@ class CliTest {
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
-    lateinit var defaultBuiltinMounts: List<Map<String, FluoriteValue>>
-    val cliMounts = createCliMounts(args.toList()) { defaultBuiltinMounts }
-    defaultBuiltinMounts = listOf(
+    val defaultBuiltinMounts = listOf(
         createCommonMounts(this) {},
-        cliMounts,
+        createCliMounts(args.toList()),
     ).flatten()
-    evaluator.defineMounts(defaultBuiltinMounts)
+    lateinit var mountsFactory: (okio.Path) -> List<Map<String, FluoriteValue>>
+    mountsFactory = { filePath ->
+        defaultBuiltinMounts + createModuleMounts(filePath, mountsFactory)
+    }
+    val dummyPath = ".".toPath().resolve("-")
+    evaluator.defineMounts(mountsFactory(dummyPath))
     return evaluator.get(src)
 }
 

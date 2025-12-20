@@ -2,7 +2,6 @@ package mirrg.xarpite.cli
 
 import getEnv
 import getFileSystem
-import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -12,16 +11,13 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
-import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
-import okio.FileSystem
-import okio.Path
 
 val INB_MAX_BUFFER_SIZE = 8192
 
-fun createCliMounts(args: List<String>, mountsGetter: () -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
+fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
@@ -57,24 +53,6 @@ fun createCliMounts(args: List<String>, mountsGetter: () -> List<Map<String, Flu
             val dir = arguments[0].toFluoriteString().value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
-        },
-        "USE" to run {
-            val useCache = mutableMapOf<Path, FluoriteValue>()
-            val cachedBaseDir by lazy { getFileSystem().getOrThrow().canonicalize(".".toPath()) }
-            FluoriteFunction { arguments ->
-                if (arguments.size != 1) usage("USE(file: STRING): VALUE")
-                val file = arguments[0].toFluoriteString().value
-                if (!file.startsWith("./")) throw FluoriteException("""USE(file: STRING) requires path starting with "./"""".toFluoriteString())
-                val fileSystem = getFileSystem().getOrThrow()
-                val baseDir = cachedBaseDir
-                val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
-                useCache.getOrPut(resolvedPath) {
-                    val src = fileSystem.read(resolvedPath) { readUtf8() }
-                    val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsGetter())
-                    evaluator.get(src)
-                }
-            }
         },
     ).let { listOf(it) }
 }
