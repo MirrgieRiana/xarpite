@@ -9,6 +9,7 @@ import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
@@ -17,6 +18,7 @@ import java.io.ByteArrayInputStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 val baseDir = "build/test".toPath()
 
@@ -68,6 +70,75 @@ class CliTest {
     }
 
     @Test
+    fun useEvaluatesFile() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val dir = baseDir.resolve("use.evaluate.tmp")
+        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        val file = dir.resolve("value.xa1")
+        fileSystem.write(file) { writeUtf8("877") }
+        assertEquals("877", cliEval("""USE("./$file")""").toFluoriteString().value)
+        fileSystem.delete(file)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useResolvesRelativeToCaller() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val dir = baseDir.resolve("use.relative.tmp")
+        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        val banana = dir.resolve("banana.xa1")
+        val apple = dir.resolve("apple.xa1")
+        fileSystem.write(banana) { writeUtf8("877") }
+        fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
+        assertEquals("877", cliEval("""USE("./$apple")""").toFluoriteString().value)
+        fileSystem.delete(apple)
+        fileSystem.delete(banana)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useCachesByPath() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val file = baseDir.resolve("use.cache.tmp.xa1")
+        fileSystem.write(file) {
+            writeUtf8(
+                """
+                {
+                  variables: {
+                    fruit: "apple"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        val result = cliEval(
+            """
+            a := USE("./$file")
+            b := USE("./$file")
+            a.variables.fruit = "banana"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString().value
+        assertEquals("banana", result)
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useRequiresRelativePrefix() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val file = baseDir.resolve("use.prefix.tmp.xa1")
+        fileSystem.write(file) { writeUtf8("1") }
+        assertFailsWith<IllegalArgumentException> {
+            cliEval("""USE("$file")""")
+        }
+        fileSystem.delete(file)
+    }
+
+    @Test
     fun inb() = runTest {
         // INB はストリームとして存在することを確認
         val inb = cliEval("INB")
@@ -109,7 +180,7 @@ class CliTest {
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
     evaluator.defineMounts(createCommonMounts(this) {})
-    evaluator.defineMounts(createCliMounts(args.toList()))
+    evaluator.defineMounts(createCliMounts(args.toList(), evaluator))
     return evaluator.get(src)
 }
 

@@ -12,7 +12,7 @@ suspend fun main(options: Options, coroutineScope: CoroutineScope, createExtraMo
     val evaluator = Evaluator()
     val defaultBuiltinMounts = listOf(
         createCommonMounts(coroutineScope) { println(it.toFluoriteString().value) },
-        createCliMounts(options.arguments),
+        createCliMounts(options.arguments, evaluator),
         createExtraMounts(),
     ).flatten()
     evaluator.defineMounts(defaultBuiltinMounts)
