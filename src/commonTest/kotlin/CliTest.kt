@@ -6,13 +6,13 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.mounts.createCommonMounts
-import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
@@ -188,12 +188,11 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
         createCommonMounts(this) {},
         createCliMounts(args.toList()),
     ).flatten()
-    lateinit var mountsFactory: (okio.Path) -> List<Map<String, FluoriteValue>>
+    lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
     mountsFactory = { filePath ->
         defaultBuiltinMounts + createModuleMounts(filePath, mountsFactory)
     }
-    val dummyPath = ".".toPath().resolve("-")
-    evaluator.defineMounts(mountsFactory(dummyPath))
+    evaluator.defineMounts(mountsFactory("./-"))
     return evaluator.get(src)
 }
 

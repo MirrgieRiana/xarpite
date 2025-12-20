@@ -18,7 +18,6 @@ import readLineFromStdin
 val INB_MAX_BUFFER_SIZE = 8192
 
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
-
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
