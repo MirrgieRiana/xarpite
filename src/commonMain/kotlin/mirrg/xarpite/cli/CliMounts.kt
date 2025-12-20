@@ -15,7 +15,7 @@ import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
-import java.util.ArrayDeque
+import kotlin.collections.ArrayDeque
 import okio.FileSystem
 import okio.Path
 
@@ -73,7 +73,7 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
         "USE" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("USE(file: STRING): VALUE")
             val file = arguments[0].toFluoriteString().value
-            if (!file.startsWith("./")) usage("USE(file: STRING): VALUE")
+            if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
             val fileSystem = getFileSystem().getOrThrow()
             val baseDir = usePathStack.lastOrNull()?.parent ?: fileSystem.canonicalize(".".toPath())
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
