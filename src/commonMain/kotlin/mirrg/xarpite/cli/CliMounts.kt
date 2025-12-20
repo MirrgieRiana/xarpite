@@ -26,9 +26,9 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
     val usePathStack = ArrayDeque<Path>()
 
     suspend fun evaluateFile(path: Path, fileSystem: FileSystem): FluoriteValue {
-        val src = fileSystem.read(path) { readUtf8() }
         usePathStack.addLast(path)
         return try {
+            val src = fileSystem.read(path) { readUtf8() }
             evaluator.get(src)
         } finally {
             usePathStack.removeLast()
@@ -75,8 +75,11 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
             val file = arguments[0].toFluoriteString().value
             if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
             val fileSystem = getFileSystem().getOrThrow()
-            val baseDir = usePathStack.lastOrNull()?.parent ?: fileSystem.canonicalize(".".toPath())
+            val baseDir = usePathStack.lastOrNull()?.parent ?: usePathStack.lastOrNull() ?: fileSystem.canonicalize(".".toPath())
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
+            val baseNormalized = baseDir.normalized().toString()
+            val resolvedNormalized = resolvedPath.normalized().toString()
+            if (!(resolvedNormalized == baseNormalized || resolvedNormalized.startsWith("$baseNormalized/"))) usage("""USE(file: STRING starting with "./"): VALUE""")
             useCache[resolvedPath] ?: evaluateFile(resolvedPath, fileSystem).also {
                 useCache[resolvedPath] = it
             }
