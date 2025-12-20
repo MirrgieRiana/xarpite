@@ -24,13 +24,13 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                 val fileSystem = getFileSystem().getOrThrow()
                 val relativePath = file.drop(2)
                 val modulePath = run {
-                    val mainPath = baseDir.resolve(relativePath.toPath()).normalized()
-                    if (fileSystem.metadataOrNull(mainPath) != null) return@run mainPath
+                    val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
+                    if (fileSystem.metadataOrNull(originalPath) != null) return@run originalPath
                     if (!file.endsWith(".xa1")) {
-                        val altPath = baseDir.resolve("$relativePath.xa1".toPath()).normalized()
-                        if (fileSystem.metadataOrNull(altPath) != null) return@run altPath
+                        val fallbackPath = baseDir.resolve("$relativePath.xa1".toPath()).normalized()
+                        if (fileSystem.metadataOrNull(fallbackPath) != null) return@run fallbackPath
                     }
-                    mainPath
+                    originalPath
                 }
                 moduleCache.getOrPut(modulePath) {
                     val src = fileSystem.read(modulePath) { readUtf8() }
