@@ -102,6 +102,20 @@ class CliTest {
     }
 
     @Test
+    fun useResolvesXa1WhenExtensionOmitted() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.extension.tmp")
+        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        val module = dir.resolve("banana.xa1")
+        fileSystem.write(module) { writeUtf8("877") }
+        assertEquals("877", cliEval("""USE("./build/test/use.extension.tmp/banana")""").toFluoriteString().value)
+        fileSystem.delete(module)
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useCachesByPath() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
