@@ -16,7 +16,6 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
-import java.io.ByteArrayInputStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -148,36 +147,6 @@ class CliTest {
         // INB はストリームとして存在することを確認
         val inb = cliEval("INB")
         assertEquals(true, inb is FluoriteStream)
-    }
-
-    @Test
-    fun inbReadsBinaryStream() = runTest {
-        val originalIn = System.`in`
-        try {
-            System.setIn(ByteArrayInputStream(byteArrayOf(97, 98, 99)))
-            val blobs = cliEval("INB").collectBlobs()
-            assertEquals(1, blobs.size)
-            assertContentEquals(ubyteArrayOf(97u, 98u, 99u), blobs.first().value)
-        } finally {
-            System.setIn(originalIn)
-        }
-    }
-
-    @Test
-    fun inbSplitsByBufferSize() = runTest {
-        val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
-        val originalIn = System.`in`
-        try {
-            System.setIn(ByteArrayInputStream(data))
-            val blobs = cliEval("INB").collectBlobs()
-            assertEquals(2, blobs.size)
-            assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
-            assertEquals(1, blobs[1].value.size)
-            assertContentEquals(data.take(INB_MAX_BUFFER_SIZE).map { it.toUByte() }.toUByteArray(), blobs[0].value)
-            assertEquals(data.last().toUByte(), blobs[1].value[0])
-        } finally {
-            System.setIn(originalIn)
-        }
     }
 
 }

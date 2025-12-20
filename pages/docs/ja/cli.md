@@ -306,8 +306,8 @@ $ {
     }
   ' > tmp.xa1
   xa -q '
-    a := USE("tmp.xa1")
-    b := USE("tmp.xa1")
+    a := USE("./tmp.xa1")
+    b := USE("./tmp.xa1")
     OUT << b.variables.fruit
     a.variables.fruit = "banana"
     OUT << b.variables.fruit
