@@ -1735,9 +1735,21 @@ function get_indexOfLastSlash(_this__u8e3s4) {
     return lastSlash;
   return _this__u8e3s4.c1h_1.j1h(get_BACKSLASH());
 }
+function lastSegmentIsDotDot(_this__u8e3s4) {
+  _init_properties_Path_kt__cy3pvf();
+  if (_this__u8e3s4.c1h_1.l1h(get_DOT_DOT())) {
+    if (_this__u8e3s4.c1h_1.u() === 2)
+      return true;
+    if (_this__u8e3s4.c1h_1.k1h(_this__u8e3s4.c1h_1.u() - 3 | 0, get_SLASH(), 0, 1))
+      return true;
+    if (_this__u8e3s4.c1h_1.k1h(_this__u8e3s4.c1h_1.u() - 3 | 0, get_BACKSLASH(), 0, 1))
+      return true;
+  }
+  return false;
+}
 function get_slash(_this__u8e3s4) {
   _init_properties_Path_kt__cy3pvf();
-  return !(_this__u8e3s4.c1h_1.k1h(get_SLASH()) === -1) ? get_SLASH() : !(_this__u8e3s4.c1h_1.k1h(get_BACKSLASH()) === -1) ? get_BACKSLASH() : null;
+  return !(_this__u8e3s4.c1h_1.m1h(get_SLASH()) === -1) ? get_SLASH() : !(_this__u8e3s4.c1h_1.m1h(get_BACKSLASH()) === -1) ? get_BACKSLASH() : null;
 }
 function toSlash(_this__u8e3s4) {
   _init_properties_Path_kt__cy3pvf();
@@ -1759,8 +1771,8 @@ function toPath(_this__u8e3s4, normalize) {
   var slash = null;
   var result = new Buffer();
   var leadingSlashCount = 0;
-  while (_this__u8e3s4.l1h(new Long(0, 0), get_SLASH()) || _this__u8e3s4.l1h(new Long(0, 0), get_BACKSLASH())) {
-    var byte = _this__u8e3s4.m1h();
+  while (_this__u8e3s4.n1h(new Long(0, 0), get_SLASH()) || _this__u8e3s4.n1h(new Long(0, 0), get_BACKSLASH())) {
+    var byte = _this__u8e3s4.o1h();
     var tmp0_elvis_lhs = slash;
     slash = tmp0_elvis_lhs == null ? toSlash_0(byte) : tmp0_elvis_lhs;
     leadingSlashCount = leadingSlashCount + 1 | 0;
@@ -1772,7 +1784,7 @@ function toPath(_this__u8e3s4, normalize) {
   } else if (leadingSlashCount > 0) {
     result.g1h(ensureNotNull(slash));
   } else {
-    var limit = _this__u8e3s4.n1h(get_ANY_SLASH());
+    var limit = _this__u8e3s4.p1h(get_ANY_SLASH());
     var tmp1_elvis_lhs = slash;
     var tmp;
     if (tmp1_elvis_lhs == null) {
@@ -1783,23 +1795,23 @@ function toPath(_this__u8e3s4, normalize) {
     slash = tmp;
     if (startsWithVolumeLetterAndColon(_this__u8e3s4, slash)) {
       if (equalsLong(limit, new Long(2, 0))) {
-        result.o1h(_this__u8e3s4, new Long(3, 0));
+        result.q1h(_this__u8e3s4, new Long(3, 0));
       } else {
-        result.o1h(_this__u8e3s4, new Long(2, 0));
+        result.q1h(_this__u8e3s4, new Long(2, 0));
       }
     }
   }
   var absolute = compare(result.x1g_1, new Long(0, 0)) > 0;
   // Inline function 'kotlin.collections.mutableListOf' call
   var canonicalParts = ArrayList_init_$Create$();
-  while (!_this__u8e3s4.p1h()) {
-    var limit_0 = _this__u8e3s4.n1h(get_ANY_SLASH());
+  while (!_this__u8e3s4.r1h()) {
+    var limit_0 = _this__u8e3s4.p1h(get_ANY_SLASH());
     var part;
     if (equalsLong(limit_0, new Long(-1, -1))) {
-      part = _this__u8e3s4.r1h();
+      part = _this__u8e3s4.t1h();
     } else {
-      part = _this__u8e3s4.q1h(limit_0);
-      _this__u8e3s4.m1h();
+      part = _this__u8e3s4.s1h(limit_0);
+      _this__u8e3s4.o1h();
     }
     if (part.equals(get_DOT_DOT())) {
       if (!absolute || !canonicalParts.o())
@@ -1808,7 +1820,7 @@ function toPath(_this__u8e3s4, normalize) {
         } else if (!windowsUncPath || canonicalParts.u() !== 1) {
           removeLastOrNull(canonicalParts);
         }
-    } else if (!part.equals(get_DOT()) && !part.equals(Companion_getInstance_1().s1h_1)) {
+    } else if (!part.equals(get_DOT()) && !part.equals(Companion_getInstance_1().u1h_1)) {
       canonicalParts.j(part);
     }
   }
@@ -1827,7 +1839,7 @@ function toPath(_this__u8e3s4, normalize) {
   if (equalsLong(result.x1g_1, new Long(0, 0))) {
     result.g1h(get_DOT());
   }
-  return new Path(result.r1h());
+  return new Path(result.t1h());
 }
 function toSlash_0(_this__u8e3s4) {
   _init_properties_Path_kt__cy3pvf();
@@ -1865,25 +1877,34 @@ function startsWithVolumeLetterAndColon(_this__u8e3s4, slash) {
 function access$_get_SLASH_$tPathKt_oiy1wy() {
   return get_SLASH();
 }
+function access$_get_BACKSLASH_$tPathKt_hofl47() {
+  return get_BACKSLASH();
+}
+function access$_get_DOT_$tPathKt_c0s3mi() {
+  return get_DOT();
+}
 function access$rootLength$tPathKt($receiver) {
   return rootLength($receiver);
 }
 function access$_get_indexOfLastSlash_$tPathKt_czkh05($receiver) {
   return get_indexOfLastSlash($receiver);
 }
+function access$lastSegmentIsDotDot$tPathKt($receiver) {
+  return lastSegmentIsDotDot($receiver);
+}
 var properties_initialized_Path_kt_a3g6iv;
 function _init_properties_Path_kt__cy3pvf() {
   if (!properties_initialized_Path_kt_a3g6iv) {
     properties_initialized_Path_kt_a3g6iv = true;
-    SLASH = Companion_getInstance_1().t1h('/');
-    BACKSLASH = Companion_getInstance_1().t1h('\\');
-    ANY_SLASH = Companion_getInstance_1().t1h('/\\');
-    DOT = Companion_getInstance_1().t1h('.');
-    DOT_DOT = Companion_getInstance_1().t1h('..');
+    SLASH = Companion_getInstance_1().v1h('/');
+    BACKSLASH = Companion_getInstance_1().v1h('\\');
+    ANY_SLASH = Companion_getInstance_1().v1h('/\\');
+    DOT = Companion_getInstance_1().v1h('.');
+    DOT_DOT = Companion_getInstance_1().v1h('..');
   }
 }
 function segment(_this__u8e3s4, pos) {
-  var i = binarySearch(_this__u8e3s4.y1h_1, pos + 1 | 0, 0, _this__u8e3s4.x1h_1.length);
+  var i = binarySearch(_this__u8e3s4.a1i_1, pos + 1 | 0, 0, _this__u8e3s4.z1h_1.length);
   return i >= 0 ? i : ~i;
 }
 function binarySearch(_this__u8e3s4, value, fromIndex, toIndex) {
@@ -1903,7 +1924,7 @@ function binarySearch(_this__u8e3s4, value, fromIndex, toIndex) {
 }
 function Companion_0() {
   Companion_instance_0 = this;
-  this.z1h_1 = Companion_getInstance_2().a1i(get_tmpdir());
+  this.b1i_1 = Companion_getInstance_2().c1i(get_tmpdir());
 }
 var Companion_instance_0;
 function Companion_getInstance_0() {
@@ -1914,7 +1935,7 @@ function Companion_getInstance_0() {
 function FileSystem() {
   Companion_getInstance_0();
 }
-protoOf(FileSystem).d1i = function () {
+protoOf(FileSystem).f1i = function () {
 };
 function get_tmpdir() {
   var tmp0_safe_receiver = get_os();
@@ -1965,12 +1986,12 @@ function Companion_1() {
   var tmp = this;
   // Inline function 'kotlin.byteArrayOf' call
   var tmp$ret$0 = new Int8Array([]);
-  tmp.s1h_1 = new ByteString(tmp$ret$0);
+  tmp.u1h_1 = new ByteString(tmp$ret$0);
 }
-protoOf(Companion_1).t1h = function (_this__u8e3s4) {
+protoOf(Companion_1).v1h = function (_this__u8e3s4) {
   // Inline function 'okio.internal.commonEncodeUtf8' call
   var byteString = new ByteString(asUtf8ToByteArray(_this__u8e3s4));
-  byteString.e1i(_this__u8e3s4);
+  byteString.g1i(_this__u8e3s4);
   return byteString;
 };
 var Companion_instance_1;
@@ -1985,20 +2006,20 @@ function ByteString(data) {
   this.u1g_1 = 0;
   this.v1g_1 = null;
 }
-protoOf(ByteString).f1i = function (value) {
+protoOf(ByteString).h1i = function (value) {
 };
-protoOf(ByteString).e1i = function (value) {
+protoOf(ByteString).g1i = function (value) {
 };
-protoOf(ByteString).g1i = function () {
+protoOf(ByteString).i1i = function () {
   // Inline function 'okio.internal.commonUtf8' call
   var result = this.v1g_1;
   if (result == null) {
-    result = toUtf8String(this.h1i());
-    this.e1i(result);
+    result = toUtf8String(this.j1i());
+    this.g1i(result);
   }
   return result;
 };
-protoOf(ByteString).i1i = function () {
+protoOf(ByteString).k1i = function () {
   // Inline function 'okio.internal.commonHex' call
   var result = charArray(imul(this.t1g_1.length, 2));
   var c = 0;
@@ -2050,46 +2071,58 @@ protoOf(ByteString).nb = function (beginIndex, endIndex) {
   }
   return tmp$ret$6;
 };
-protoOf(ByteString).j1i = function (beginIndex, endIndex, $super) {
+protoOf(ByteString).l1i = function (beginIndex, endIndex, $super) {
   beginIndex = beginIndex === VOID ? 0 : beginIndex;
   endIndex = endIndex === VOID ? get_DEFAULT__ByteString_size() : endIndex;
   return $super === VOID ? this.nb(beginIndex, endIndex) : $super.nb.call(this, beginIndex, endIndex);
 };
-protoOf(ByteString).k1i = function (pos) {
+protoOf(ByteString).m1i = function (pos) {
   if (pos >= this.u() || pos < 0)
     throw new ArrayIndexOutOfBoundsException('size=' + this.u() + ' pos=' + pos);
   // Inline function 'okio.internal.commonGetByte' call
   return this.t1g_1[pos];
 };
 protoOf(ByteString).w = function (index) {
-  return this.k1i(index);
+  return this.m1i(index);
 };
 protoOf(ByteString).u = function () {
-  return this.l1i();
+  return this.n1i();
 };
-protoOf(ByteString).l1i = function () {
+protoOf(ByteString).n1i = function () {
   // Inline function 'okio.internal.commonGetSize' call
   return this.t1g_1.length;
 };
-protoOf(ByteString).h1i = function () {
+protoOf(ByteString).j1i = function () {
   // Inline function 'okio.internal.commonInternalArray' call
   return this.t1g_1;
 };
-protoOf(ByteString).m1i = function (buffer, offset, byteCount) {
+protoOf(ByteString).o1i = function (buffer, offset, byteCount) {
   return commonWrite(this, buffer, offset, byteCount);
 };
-protoOf(ByteString).n1i = function (offset, other, otherOffset, byteCount) {
+protoOf(ByteString).k1h = function (offset, other, otherOffset, byteCount) {
+  // Inline function 'okio.internal.commonRangeEquals' call
+  return other.p1i(otherOffset, this.t1g_1, offset, byteCount);
+};
+protoOf(ByteString).p1i = function (offset, other, otherOffset, byteCount) {
   // Inline function 'okio.internal.commonRangeEquals' call
   return offset >= 0 && offset <= (this.t1g_1.length - byteCount | 0) && otherOffset >= 0 && otherOffset <= (other.length - byteCount | 0) && arrayRangeEquals(this.t1g_1, offset, other, otherOffset, byteCount);
 };
-protoOf(ByteString).i1h = function (other, fromIndex) {
-  return this.o1i(other.h1i(), fromIndex);
+protoOf(ByteString).q1i = function (prefix) {
+  // Inline function 'okio.internal.commonStartsWith' call
+  return this.k1h(0, prefix, 0, prefix.u());
 };
-protoOf(ByteString).k1h = function (other, fromIndex, $super) {
+protoOf(ByteString).l1h = function (suffix) {
+  // Inline function 'okio.internal.commonEndsWith' call
+  return this.k1h(this.u() - suffix.u() | 0, suffix, 0, suffix.u());
+};
+protoOf(ByteString).i1h = function (other, fromIndex) {
+  return this.r1i(other.j1i(), fromIndex);
+};
+protoOf(ByteString).m1h = function (other, fromIndex, $super) {
   fromIndex = fromIndex === VOID ? 0 : fromIndex;
   return $super === VOID ? this.i1h(other, fromIndex) : $super.i1h.call(this, other, fromIndex);
 };
-protoOf(ByteString).o1i = function (other, fromIndex) {
+protoOf(ByteString).r1i = function (other, fromIndex) {
   var tmp$ret$1;
   $l$block: {
     // Inline function 'okio.internal.commonIndexOf' call
@@ -2110,15 +2143,15 @@ protoOf(ByteString).o1i = function (other, fromIndex) {
   }
   return tmp$ret$1;
 };
-protoOf(ByteString).p1i = function (other, fromIndex) {
+protoOf(ByteString).s1i = function (other, fromIndex) {
   // Inline function 'okio.internal.commonLastIndexOf' call
-  return this.q1i(other.h1i(), fromIndex);
+  return this.t1i(other.j1i(), fromIndex);
 };
 protoOf(ByteString).j1h = function (other, fromIndex, $super) {
   fromIndex = fromIndex === VOID ? get_DEFAULT__ByteString_size() : fromIndex;
-  return $super === VOID ? this.p1i(other, fromIndex) : $super.p1i.call(this, other, fromIndex);
+  return $super === VOID ? this.s1i(other, fromIndex) : $super.s1i.call(this, other, fromIndex);
 };
-protoOf(ByteString).q1i = function (other, fromIndex) {
+protoOf(ByteString).t1i = function (other, fromIndex) {
   var tmp$ret$1;
   $l$block: {
     // Inline function 'okio.internal.commonLastIndexOf' call
@@ -2147,7 +2180,7 @@ protoOf(ByteString).equals = function (other) {
     tmp = true;
   } else {
     if (other instanceof ByteString) {
-      tmp = (other.u() === this.t1g_1.length && other.n1i(0, this.t1g_1, 0, this.t1g_1.length));
+      tmp = (other.u() === this.t1g_1.length && other.p1i(0, this.t1g_1, 0, this.t1g_1.length));
     } else {
       tmp = false;
     }
@@ -2165,12 +2198,12 @@ protoOf(ByteString).hashCode = function () {
     }
     // Inline function 'kotlin.also' call
     var this_0 = contentHashCode(this.t1g_1);
-    this.f1i(this_0);
+    this.h1i(this_0);
     tmp$ret$0 = this_0;
   }
   return tmp$ret$0;
 };
-protoOf(ByteString).r1i = function (other) {
+protoOf(ByteString).u1i = function (other) {
   var tmp$ret$3;
   $l$block_0: {
     // Inline function 'okio.internal.commonCompareTo' call
@@ -2200,7 +2233,7 @@ protoOf(ByteString).r1i = function (other) {
   return tmp$ret$3;
 };
 protoOf(ByteString).d = function (other) {
-  return this.r1i(other instanceof ByteString ? other : THROW_CCE());
+  return this.u1i(other instanceof ByteString ? other : THROW_CCE());
 };
 protoOf(ByteString).toString = function () {
   var tmp$ret$1;
@@ -2215,7 +2248,7 @@ protoOf(ByteString).toString = function () {
     if (i === -1) {
       var tmp;
       if (this.t1g_1.length <= 64) {
-        tmp = '[hex=' + this.i1i() + ']';
+        tmp = '[hex=' + this.k1i() + ']';
       } else {
         var tmp_0 = this.t1g_1.length;
         var tmp$ret$8;
@@ -2244,12 +2277,12 @@ protoOf(ByteString).toString = function () {
           }
           tmp$ret$8 = new ByteString(copyOfRange(this.t1g_1, 0, endIndex));
         }
-        tmp = '[size=' + tmp_0 + ' hex=' + tmp$ret$8.i1i() + '\u2026]';
+        tmp = '[size=' + tmp_0 + ' hex=' + tmp$ret$8.k1i() + '\u2026]';
       }
       tmp$ret$1 = tmp;
       break $l$block_1;
     }
-    var text = this.g1i();
+    var text = this.i1i();
     var safeText = replace(replace(replace(substring(text, 0, i), '\\', '\\\\'), '\n', '\\n'), '\r', '\\r');
     var tmp_1;
     if (i < text.length) {
@@ -2262,15 +2295,15 @@ protoOf(ByteString).toString = function () {
   return tmp$ret$1;
 };
 function toByteString($this) {
-  return new ByteString($this.s1i());
+  return new ByteString($this.v1i());
 }
 function SegmentedByteString(segments, directory) {
-  ByteString.call(this, Companion_getInstance_1().s1h_1.t1g_1);
-  this.x1h_1 = segments;
-  this.y1h_1 = directory;
+  ByteString.call(this, Companion_getInstance_1().u1h_1.t1g_1);
+  this.z1h_1 = segments;
+  this.a1i_1 = directory;
 }
-protoOf(SegmentedByteString).i1i = function () {
-  return toByteString(this).i1i();
+protoOf(SegmentedByteString).k1i = function () {
+  return toByteString(this).k1i();
 };
 protoOf(SegmentedByteString).nb = function (beginIndex, endIndex) {
   var tmp$ret$6;
@@ -2297,12 +2330,12 @@ protoOf(SegmentedByteString).nb = function (beginIndex, endIndex) {
       tmp$ret$6 = this;
       break $l$block_0;
     } else if (beginIndex === endIndex_0) {
-      tmp$ret$6 = Companion_getInstance_1().s1h_1;
+      tmp$ret$6 = Companion_getInstance_1().u1h_1;
       break $l$block_0;
     }
     var beginSegment = segment(this, beginIndex);
     var endSegment = segment(this, endIndex_0 - 1 | 0);
-    var newSegments = copyOfRange_0(this.x1h_1, beginSegment, endSegment + 1 | 0);
+    var newSegments = copyOfRange_0(this.z1h_1, beginSegment, endSegment + 1 | 0);
     var newDirectory = new Int32Array(imul(newSegments.length, 2));
     var index = 0;
     var inductionVariable = beginSegment;
@@ -2312,44 +2345,44 @@ protoOf(SegmentedByteString).nb = function (beginIndex, endIndex) {
         inductionVariable = inductionVariable + 1 | 0;
         var tmp = index;
         // Inline function 'kotlin.comparisons.minOf' call
-        var a = this.y1h_1[s] - beginIndex | 0;
+        var a = this.a1i_1[s] - beginIndex | 0;
         newDirectory[tmp] = Math.min(a, subLen);
         var _unary__edvuaz = index;
         index = _unary__edvuaz + 1 | 0;
-        newDirectory[_unary__edvuaz + newSegments.length | 0] = this.y1h_1[s + this.x1h_1.length | 0];
+        newDirectory[_unary__edvuaz + newSegments.length | 0] = this.a1i_1[s + this.z1h_1.length | 0];
       }
        while (!(s === endSegment));
-    var segmentOffset = beginSegment === 0 ? 0 : this.y1h_1[beginSegment - 1 | 0];
+    var segmentOffset = beginSegment === 0 ? 0 : this.a1i_1[beginSegment - 1 | 0];
     var _index_0__fvwizt = newSegments.length;
     newDirectory[_index_0__fvwizt] = newDirectory[_index_0__fvwizt] + (beginIndex - segmentOffset | 0) | 0;
     tmp$ret$6 = new SegmentedByteString(newSegments, newDirectory);
   }
   return tmp$ret$6;
 };
-protoOf(SegmentedByteString).k1i = function (pos) {
+protoOf(SegmentedByteString).m1i = function (pos) {
   // Inline function 'okio.internal.commonInternalGet' call
-  checkOffsetAndCount(fromInt(this.y1h_1[this.x1h_1.length - 1 | 0]), fromInt(pos), new Long(1, 0));
+  checkOffsetAndCount(fromInt(this.a1i_1[this.z1h_1.length - 1 | 0]), fromInt(pos), new Long(1, 0));
   var segment_0 = segment(this, pos);
-  var segmentOffset = segment_0 === 0 ? 0 : this.y1h_1[segment_0 - 1 | 0];
-  var segmentPos = this.y1h_1[segment_0 + this.x1h_1.length | 0];
-  return this.x1h_1[segment_0][(pos - segmentOffset | 0) + segmentPos | 0];
+  var segmentOffset = segment_0 === 0 ? 0 : this.a1i_1[segment_0 - 1 | 0];
+  var segmentPos = this.a1i_1[segment_0 + this.z1h_1.length | 0];
+  return this.z1h_1[segment_0][(pos - segmentOffset | 0) + segmentPos | 0];
 };
-protoOf(SegmentedByteString).l1i = function () {
+protoOf(SegmentedByteString).n1i = function () {
   // Inline function 'okio.internal.commonGetSize' call
-  return this.y1h_1[this.x1h_1.length - 1 | 0];
+  return this.a1i_1[this.z1h_1.length - 1 | 0];
 };
-protoOf(SegmentedByteString).s1i = function () {
+protoOf(SegmentedByteString).v1i = function () {
   // Inline function 'okio.internal.commonToByteArray' call
   var result = new Int8Array(this.u());
   var resultPos = 0;
   // Inline function 'okio.internal.forEachSegment' call
-  var segmentCount = this.x1h_1.length;
+  var segmentCount = this.z1h_1.length;
   var s = 0;
   var pos = 0;
   while (s < segmentCount) {
-    var segmentPos = this.y1h_1[segmentCount + s | 0];
-    var nextSegmentOffset = this.y1h_1[s];
-    var tmp0 = this.x1h_1[s];
+    var segmentPos = this.a1i_1[segmentCount + s | 0];
+    var nextSegmentOffset = this.a1i_1[s];
+    var tmp0 = this.z1h_1[s];
     var byteCount = nextSegmentOffset - pos | 0;
     var tmp4 = resultPos;
     // Inline function 'kotlin.collections.copyInto' call
@@ -2366,20 +2399,20 @@ protoOf(SegmentedByteString).s1i = function () {
   }
   return result;
 };
-protoOf(SegmentedByteString).m1i = function (buffer, offset, byteCount) {
+protoOf(SegmentedByteString).o1i = function (buffer, offset, byteCount) {
   // Inline function 'okio.internal.commonWrite' call
   var endIndex = offset + byteCount | 0;
   var s = segment(this, offset);
   var pos = offset;
   while (pos < endIndex) {
-    var segmentOffset = s === 0 ? 0 : this.y1h_1[s - 1 | 0];
-    var segmentSize = this.y1h_1[s] - segmentOffset | 0;
-    var segmentPos = this.y1h_1[this.x1h_1.length + s | 0];
+    var segmentOffset = s === 0 ? 0 : this.a1i_1[s - 1 | 0];
+    var segmentSize = this.a1i_1[s] - segmentOffset | 0;
+    var segmentPos = this.a1i_1[this.z1h_1.length + s | 0];
     // Inline function 'kotlin.comparisons.minOf' call
     var b = segmentOffset + segmentSize | 0;
     var byteCount_0 = Math.min(endIndex, b) - pos | 0;
     var offset_0 = segmentPos + (pos - segmentOffset | 0) | 0;
-    var data = this.x1h_1[s];
+    var data = this.z1h_1[s];
     var segment_0 = Segment_init_$Create$_0(data, offset_0, offset_0 + byteCount_0 | 0, true, false);
     if (buffer.w1g_1 == null) {
       segment_0.g1g_1 = segment_0;
@@ -2397,7 +2430,7 @@ protoOf(SegmentedByteString).m1i = function (buffer, offset, byteCount) {
   tmp.x1g_1 = add(this_0, fromInt(byteCount));
   return Unit_instance;
 };
-protoOf(SegmentedByteString).t1i = function (offset, other, otherOffset, byteCount) {
+protoOf(SegmentedByteString).k1h = function (offset, other, otherOffset, byteCount) {
   var tmp$ret$0;
   $l$block_0: {
     // Inline function 'okio.internal.commonRangeEquals' call
@@ -2410,15 +2443,15 @@ protoOf(SegmentedByteString).t1i = function (offset, other, otherOffset, byteCou
     var s = segment(this, offset);
     var pos = offset;
     while (pos < endIndex) {
-      var segmentOffset = s === 0 ? 0 : this.y1h_1[s - 1 | 0];
-      var segmentSize = this.y1h_1[s] - segmentOffset | 0;
-      var segmentPos = this.y1h_1[this.x1h_1.length + s | 0];
+      var segmentOffset = s === 0 ? 0 : this.a1i_1[s - 1 | 0];
+      var segmentSize = this.a1i_1[s] - segmentOffset | 0;
+      var segmentPos = this.a1i_1[this.z1h_1.length + s | 0];
       // Inline function 'kotlin.comparisons.minOf' call
       var b = segmentOffset + segmentSize | 0;
       var byteCount_0 = Math.min(endIndex, b) - pos | 0;
       var offset_0 = segmentPos + (pos - segmentOffset | 0) | 0;
-      var data = this.x1h_1[s];
-      if (!other.n1i(otherOffset_0, data, offset_0, byteCount_0)) {
+      var data = this.z1h_1[s];
+      if (!other.p1i(otherOffset_0, data, offset_0, byteCount_0)) {
         tmp$ret$0 = false;
         break $l$block_0;
       }
@@ -2430,7 +2463,7 @@ protoOf(SegmentedByteString).t1i = function (offset, other, otherOffset, byteCou
   }
   return tmp$ret$0;
 };
-protoOf(SegmentedByteString).n1i = function (offset, other, otherOffset, byteCount) {
+protoOf(SegmentedByteString).p1i = function (offset, other, otherOffset, byteCount) {
   var tmp$ret$0;
   $l$block_0: {
     // Inline function 'okio.internal.commonRangeEquals' call
@@ -2443,14 +2476,14 @@ protoOf(SegmentedByteString).n1i = function (offset, other, otherOffset, byteCou
     var s = segment(this, offset);
     var pos = offset;
     while (pos < endIndex) {
-      var segmentOffset = s === 0 ? 0 : this.y1h_1[s - 1 | 0];
-      var segmentSize = this.y1h_1[s] - segmentOffset | 0;
-      var segmentPos = this.y1h_1[this.x1h_1.length + s | 0];
+      var segmentOffset = s === 0 ? 0 : this.a1i_1[s - 1 | 0];
+      var segmentSize = this.a1i_1[s] - segmentOffset | 0;
+      var segmentPos = this.a1i_1[this.z1h_1.length + s | 0];
       // Inline function 'kotlin.comparisons.minOf' call
       var b = segmentOffset + segmentSize | 0;
       var byteCount_0 = Math.min(endIndex, b) - pos | 0;
       var offset_0 = segmentPos + (pos - segmentOffset | 0) | 0;
-      var data = this.x1h_1[s];
+      var data = this.z1h_1[s];
       if (!arrayRangeEquals(data, offset_0, other, otherOffset_0, byteCount_0)) {
         tmp$ret$0 = false;
         break $l$block_0;
@@ -2463,14 +2496,14 @@ protoOf(SegmentedByteString).n1i = function (offset, other, otherOffset, byteCou
   }
   return tmp$ret$0;
 };
-protoOf(SegmentedByteString).o1i = function (other, fromIndex) {
-  return toByteString(this).o1i(other, fromIndex);
+protoOf(SegmentedByteString).r1i = function (other, fromIndex) {
+  return toByteString(this).r1i(other, fromIndex);
 };
-protoOf(SegmentedByteString).q1i = function (other, fromIndex) {
-  return toByteString(this).q1i(other, fromIndex);
+protoOf(SegmentedByteString).t1i = function (other, fromIndex) {
+  return toByteString(this).t1i(other, fromIndex);
 };
-protoOf(SegmentedByteString).h1i = function () {
-  return this.s1i();
+protoOf(SegmentedByteString).j1i = function () {
+  return this.v1i();
 };
 protoOf(SegmentedByteString).equals = function (other) {
   // Inline function 'okio.internal.commonEquals' call
@@ -2479,7 +2512,7 @@ protoOf(SegmentedByteString).equals = function (other) {
     tmp = true;
   } else {
     if (other instanceof ByteString) {
-      tmp = (other.u() === this.u() && this.t1i(0, other, 0, this.u()));
+      tmp = (other.u() === this.u() && this.k1h(0, other, 0, this.u()));
     } else {
       tmp = false;
     }
@@ -2497,13 +2530,13 @@ protoOf(SegmentedByteString).hashCode = function () {
     }
     result = 1;
     // Inline function 'okio.internal.forEachSegment' call
-    var segmentCount = this.x1h_1.length;
+    var segmentCount = this.z1h_1.length;
     var s = 0;
     var pos = 0;
     while (s < segmentCount) {
-      var segmentPos = this.y1h_1[segmentCount + s | 0];
-      var nextSegmentOffset = this.y1h_1[s];
-      var tmp0 = this.x1h_1[s];
+      var segmentPos = this.a1i_1[segmentCount + s | 0];
+      var nextSegmentOffset = this.a1i_1[s];
+      var tmp0 = this.z1h_1[s];
       var i = segmentPos;
       var limit = segmentPos + (nextSegmentOffset - pos | 0) | 0;
       while (i < limit) {
@@ -2513,7 +2546,7 @@ protoOf(SegmentedByteString).hashCode = function () {
       pos = nextSegmentOffset;
       s = s + 1 | 0;
     }
-    this.f1i(result);
+    this.h1i(result);
     tmp$ret$0 = result;
   }
   return tmp$ret$0;
@@ -2522,33 +2555,33 @@ protoOf(SegmentedByteString).toString = function () {
   return toByteString(this).toString();
 };
 function UnsafeCursor() {
-  this.u1i_1 = null;
-  this.v1i_1 = false;
   this.w1i_1 = null;
-  this.x1i_1 = new Long(-1, -1);
+  this.x1i_1 = false;
   this.y1i_1 = null;
-  this.z1i_1 = -1;
-  this.a1j_1 = -1;
+  this.z1i_1 = new Long(-1, -1);
+  this.a1j_1 = null;
+  this.b1j_1 = -1;
+  this.c1j_1 = -1;
 }
-protoOf(UnsafeCursor).d1i = function () {
+protoOf(UnsafeCursor).f1i = function () {
   // Inline function 'okio.internal.commonClose' call
   // Inline function 'kotlin.check' call
-  if (!!(this.u1i_1 == null)) {
+  if (!!(this.w1i_1 == null)) {
     var message = 'not attached to a buffer';
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  this.u1i_1 = null;
   this.w1i_1 = null;
-  this.x1i_1 = new Long(-1, -1);
   this.y1i_1 = null;
-  this.z1i_1 = -1;
-  this.a1j_1 = -1;
+  this.z1i_1 = new Long(-1, -1);
+  this.a1j_1 = null;
+  this.b1j_1 = -1;
+  this.c1j_1 = -1;
 };
 function Buffer() {
   this.w1g_1 = null;
   this.x1g_1 = new Long(0, 0);
 }
-protoOf(Buffer).p1h = function () {
+protoOf(Buffer).r1h = function () {
   return equalsLong(this.x1g_1, new Long(0, 0));
 };
 protoOf(Buffer).y1g = function (pos) {
@@ -2597,7 +2630,7 @@ protoOf(Buffer).y1g = function (pos) {
   }
   return tmp$ret$0;
 };
-protoOf(Buffer).m1h = function () {
+protoOf(Buffer).o1h = function () {
   // Inline function 'okio.internal.commonReadByte' call
   if (equalsLong(this.x1g_1, new Long(0, 0)))
     throw EOFException_init_$Create$();
@@ -2617,11 +2650,11 @@ protoOf(Buffer).m1h = function () {
   }
   return b;
 };
-protoOf(Buffer).r1h = function () {
+protoOf(Buffer).t1h = function () {
   // Inline function 'okio.internal.commonReadByteString' call
-  return this.q1h(this.x1g_1);
+  return this.s1h(this.x1g_1);
 };
-protoOf(Buffer).q1h = function (byteCount) {
+protoOf(Buffer).s1h = function (byteCount) {
   var tmp$ret$4;
   $l$block_0: {
     // Inline function 'okio.internal.commonReadByteString' call
@@ -2634,16 +2667,19 @@ protoOf(Buffer).q1h = function (byteCount) {
       throw EOFException_init_$Create$();
     if (compare(byteCount, new Long(4096, 0)) >= 0) {
       // Inline function 'kotlin.also' call
-      var this_0 = this.c1j(convertToInt(byteCount));
+      var this_0 = this.e1j(convertToInt(byteCount));
       this.a1h(byteCount);
       tmp$ret$4 = this_0;
       break $l$block_0;
     } else {
-      tmp$ret$4 = new ByteString(this.b1j(byteCount));
+      tmp$ret$4 = new ByteString(this.d1j(byteCount));
       break $l$block_0;
     }
   }
   return tmp$ret$4;
+};
+protoOf(Buffer).f1j = function () {
+  return this.z1g(this.x1g_1);
 };
 protoOf(Buffer).z1g = function (byteCount) {
   var tmp$ret$2;
@@ -2662,7 +2698,7 @@ protoOf(Buffer).z1g = function (byteCount) {
     }
     var s = ensureNotNull(this.w1g_1);
     if (compare(add(numberToLong(s.b1g_1), byteCount), fromInt(s.c1g_1)) > 0) {
-      tmp$ret$2 = commonToUtf8String(this.b1j(byteCount));
+      tmp$ret$2 = commonToUtf8String(this.d1j(byteCount));
       break $l$block_0;
     }
     var result = commonToUtf8String(s.a1g_1, s.b1g_1, s.b1g_1 + convertToInt(byteCount) | 0);
@@ -2676,19 +2712,19 @@ protoOf(Buffer).z1g = function (byteCount) {
   }
   return tmp$ret$2;
 };
-protoOf(Buffer).d1j = function () {
+protoOf(Buffer).g1j = function () {
   // Inline function 'okio.internal.commonReadUtf8Line' call
   // Inline function 'kotlin.code' call
   var this_0 = _Char___init__impl__6a9atx(10);
   var tmp$ret$0 = Char__toInt_impl_vasixd(this_0);
-  var newline = this.e1j(toByte(tmp$ret$0));
+  var newline = this.h1j(toByte(tmp$ret$0));
   return !equalsLong(newline, new Long(-1, -1)) ? readUtf8Line(this, newline) : !equalsLong(this.x1g_1, new Long(0, 0)) ? this.z1g(this.x1g_1) : null;
 };
-protoOf(Buffer).f1j = function () {
+protoOf(Buffer).i1j = function () {
   // Inline function 'okio.internal.commonReadByteArray' call
-  return this.b1j(this.x1g_1);
+  return this.d1j(this.x1g_1);
 };
-protoOf(Buffer).b1j = function (byteCount) {
+protoOf(Buffer).d1j = function (byteCount) {
   // Inline function 'okio.internal.commonReadByteArray' call
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0 && compare(byteCount, new Long(2147483647, 0)) <= 0)) {
@@ -2698,21 +2734,21 @@ protoOf(Buffer).b1j = function (byteCount) {
   if (compare(this.x1g_1, byteCount) < 0)
     throw EOFException_init_$Create$();
   var result = new Int8Array(convertToInt(byteCount));
-  this.g1j(result);
+  this.j1j(result);
   return result;
 };
-protoOf(Buffer).g1j = function (sink) {
+protoOf(Buffer).j1j = function (sink) {
   // Inline function 'okio.internal.commonReadFully' call
   var offset = 0;
   while (offset < sink.length) {
-    var read = this.h1j(sink, offset, sink.length - offset | 0);
+    var read = this.k1j(sink, offset, sink.length - offset | 0);
     if (read === -1)
       throw EOFException_init_$Create$();
     offset = offset + read | 0;
   }
   return Unit_instance;
 };
-protoOf(Buffer).h1j = function (sink, offset, byteCount) {
+protoOf(Buffer).k1j = function (sink, offset, byteCount) {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonRead' call
@@ -2786,10 +2822,10 @@ protoOf(Buffer).a1h = function (byteCount) {
 protoOf(Buffer).g1h = function (byteString) {
   // Inline function 'okio.internal.commonWrite' call
   var byteCount = byteString.u();
-  byteString.m1i(this, 0, byteCount);
+  byteString.o1i(this, 0, byteCount);
   return this;
 };
-protoOf(Buffer).i1j = function (minimumCapacity) {
+protoOf(Buffer).l1j = function (minimumCapacity) {
   var tmp$ret$2;
   $l$block: {
     // Inline function 'okio.internal.commonWritableSegment' call
@@ -2815,9 +2851,9 @@ protoOf(Buffer).i1j = function (minimumCapacity) {
   return tmp$ret$2;
 };
 protoOf(Buffer).h1h = function (string) {
-  return this.j1j(string, 0, string.length);
+  return this.m1j(string, 0, string.length);
 };
-protoOf(Buffer).j1j = function (string, beginIndex, endIndex) {
+protoOf(Buffer).m1j = function (string, beginIndex, endIndex) {
   // Inline function 'okio.internal.commonWriteUtf8' call
   // Inline function 'kotlin.require' call
   if (!(beginIndex >= 0)) {
@@ -2840,7 +2876,7 @@ protoOf(Buffer).j1j = function (string, beginIndex, endIndex) {
     var this_0 = charCodeAt(string, i);
     var c = Char__toInt_impl_vasixd(this_0);
     if (c < 128) {
-      var tail = this.i1j(1);
+      var tail = this.l1j(1);
       var data = tail.a1g_1;
       var segmentOffset = tail.c1g_1 - i | 0;
       // Inline function 'kotlin.comparisons.minOf' call
@@ -2863,14 +2899,14 @@ protoOf(Buffer).j1j = function (string, beginIndex, endIndex) {
       tail.c1g_1 = tail.c1g_1 + runSize | 0;
       this.x1g_1 = add(this.x1g_1, fromInt(runSize));
     } else if (c < 2048) {
-      var tail_0 = this.i1j(2);
+      var tail_0 = this.l1j(2);
       tail_0.a1g_1[tail_0.c1g_1] = toByte(c >> 6 | 192);
       tail_0.a1g_1[tail_0.c1g_1 + 1 | 0] = toByte(c & 63 | 128);
       tail_0.c1g_1 = tail_0.c1g_1 + 2 | 0;
       this.x1g_1 = add(this.x1g_1, new Long(2, 0));
       i = i + 1 | 0;
     } else if (c < 55296 || c > 57343) {
-      var tail_1 = this.i1j(3);
+      var tail_1 = this.l1j(3);
       tail_1.a1g_1[tail_1.c1g_1] = toByte(c >> 12 | 224);
       tail_1.a1g_1[tail_1.c1g_1 + 1 | 0] = toByte(c >> 6 & 63 | 128);
       tail_1.a1g_1[tail_1.c1g_1 + 2 | 0] = toByte(c & 63 | 128);
@@ -2891,11 +2927,11 @@ protoOf(Buffer).j1j = function (string, beginIndex, endIndex) {
         // Inline function 'kotlin.code' call
         var this_3 = _Char___init__impl__6a9atx(63);
         var tmp$ret$10 = Char__toInt_impl_vasixd(this_3);
-        this.k1j(tmp$ret$10);
+        this.n1j(tmp$ret$10);
         i = i + 1 | 0;
       } else {
         var codePoint = 65536 + ((c & 1023) << 10 | low & 1023) | 0;
-        var tail_2 = this.i1j(4);
+        var tail_2 = this.l1j(4);
         tail_2.a1g_1[tail_2.c1g_1] = toByte(codePoint >> 18 | 240);
         tail_2.a1g_1[tail_2.c1g_1 + 1 | 0] = toByte(codePoint >> 12 & 63 | 128);
         tail_2.a1g_1[tail_2.c1g_1 + 2 | 0] = toByte(codePoint >> 6 & 63 | 128);
@@ -2908,7 +2944,7 @@ protoOf(Buffer).j1j = function (string, beginIndex, endIndex) {
   }
   return this;
 };
-protoOf(Buffer).l1j = function (source) {
+protoOf(Buffer).o1j = function (source) {
   // Inline function 'okio.internal.commonWrite' call
   return this.b1h(source, 0, source.length);
 };
@@ -2918,7 +2954,7 @@ protoOf(Buffer).b1h = function (source, offset, byteCount) {
   checkOffsetAndCount(fromInt(source.length), fromInt(offset_0), fromInt(byteCount));
   var limit = offset_0 + byteCount | 0;
   while (offset_0 < limit) {
-    var tail = this.i1j(1);
+    var tail = this.l1j(1);
     var tmp0 = limit - offset_0 | 0;
     // Inline function 'kotlin.comparisons.minOf' call
     var b = 8192 - tail.c1g_1 | 0;
@@ -2940,16 +2976,27 @@ protoOf(Buffer).b1h = function (source, offset, byteCount) {
   this.x1g_1 = add(this.x1g_1, fromInt(byteCount));
   return this;
 };
-protoOf(Buffer).k1j = function (b) {
+protoOf(Buffer).p1j = function (source) {
+  // Inline function 'okio.internal.commonWriteAll' call
+  var totalBytesRead = new Long(0, 0);
+  $l$loop: while (true) {
+    var readCount = source.q1j(this, new Long(8192, 0));
+    if (equalsLong(readCount, new Long(-1, -1)))
+      break $l$loop;
+    totalBytesRead = add(totalBytesRead, readCount);
+  }
+  return totalBytesRead;
+};
+protoOf(Buffer).n1j = function (b) {
   // Inline function 'okio.internal.commonWriteByte' call
-  var tail = this.i1j(1);
+  var tail = this.l1j(1);
   var _unary__edvuaz = tail.c1g_1;
   tail.c1g_1 = _unary__edvuaz + 1 | 0;
   tail.a1g_1[_unary__edvuaz] = toByte(b);
   this.x1g_1 = add(this.x1g_1, new Long(1, 0));
   return this;
 };
-protoOf(Buffer).o1h = function (source, byteCount) {
+protoOf(Buffer).q1h = function (source, byteCount) {
   var tmp$ret$4;
   $l$block: {
     // Inline function 'okio.internal.commonWrite' call
@@ -3006,7 +3053,7 @@ protoOf(Buffer).o1h = function (source, byteCount) {
   }
   return tmp$ret$4;
 };
-protoOf(Buffer).m1j = function (sink, byteCount) {
+protoOf(Buffer).q1j = function (sink, byteCount) {
   var tmp$ret$2;
   $l$block: {
     // Inline function 'okio.internal.commonRead' call
@@ -3022,15 +3069,15 @@ protoOf(Buffer).m1j = function (sink, byteCount) {
     }
     if (compare(byteCount_0, this.x1g_1) > 0)
       byteCount_0 = this.x1g_1;
-    sink.o1h(this, byteCount_0);
+    sink.q1h(this, byteCount_0);
     tmp$ret$2 = byteCount_0;
   }
   return tmp$ret$2;
 };
-protoOf(Buffer).e1j = function (b) {
-  return this.n1j(b, new Long(0, 0), new Long(-1, 2147483647));
+protoOf(Buffer).h1j = function (b) {
+  return this.r1j(b, new Long(0, 0), new Long(-1, 2147483647));
 };
-protoOf(Buffer).n1j = function (b, fromIndex, toIndex) {
+protoOf(Buffer).r1j = function (b, fromIndex, toIndex) {
   var tmp$ret$2;
   $l$block_8: {
     // Inline function 'okio.internal.commonIndexOf' call
@@ -3173,10 +3220,10 @@ protoOf(Buffer).n1j = function (b, fromIndex, toIndex) {
   }
   return tmp$ret$2;
 };
-protoOf(Buffer).n1h = function (targetBytes) {
-  return this.o1j(targetBytes, new Long(0, 0));
+protoOf(Buffer).p1h = function (targetBytes) {
+  return this.s1j(targetBytes, new Long(0, 0));
 };
-protoOf(Buffer).o1j = function (targetBytes, fromIndex) {
+protoOf(Buffer).s1j = function (targetBytes, fromIndex) {
   var tmp$ret$2;
   $l$block_10: {
     // Inline function 'okio.internal.commonIndexOfElement' call
@@ -3221,7 +3268,7 @@ protoOf(Buffer).o1j = function (targetBytes, fromIndex) {
           s = ensureNotNull(s.f1g_1);
         }
       } else {
-        var targetByteArray = targetBytes.h1i();
+        var targetByteArray = targetBytes.j1i();
         while (compare(offset_0, this.x1g_1) < 0) {
           var data_0 = s.a1g_1;
           var pos_0 = convertToInt(subtract(add(numberToLong(s.b1g_1), fromIndex_0), offset_0));
@@ -3288,7 +3335,7 @@ protoOf(Buffer).o1j = function (targetBytes, fromIndex) {
           s_1 = ensureNotNull(s_1.f1g_1);
         }
       } else {
-        var targetByteArray_0 = targetBytes.h1i();
+        var targetByteArray_0 = targetBytes.j1i();
         while (compare(offset_3, this.x1g_1) < 0) {
           var data_2 = s_1.a1g_1;
           var pos_2 = convertToInt(subtract(add(numberToLong(s_1.b1g_1), fromIndex_0), offset_3));
@@ -3357,7 +3404,7 @@ protoOf(Buffer).o1j = function (targetBytes, fromIndex) {
           s_2 = ensureNotNull(s_2.f1g_1);
         }
       } else {
-        var targetByteArray_1 = targetBytes.h1i();
+        var targetByteArray_1 = targetBytes.j1i();
         while (compare(offset_6, this.x1g_1) < 0) {
           var data_4 = s_2.a1g_1;
           var pos_4 = convertToInt(subtract(add(numberToLong(s_2.b1g_1), fromIndex_0), offset_6));
@@ -3387,10 +3434,10 @@ protoOf(Buffer).o1j = function (targetBytes, fromIndex) {
   }
   return tmp$ret$2;
 };
-protoOf(Buffer).l1h = function (offset, bytes) {
-  return this.p1j(offset, bytes, 0, bytes.u());
+protoOf(Buffer).n1h = function (offset, bytes) {
+  return this.t1j(offset, bytes, 0, bytes.u());
 };
-protoOf(Buffer).p1j = function (offset, bytes, bytesOffset, byteCount) {
+protoOf(Buffer).t1j = function (offset, bytes, bytesOffset, byteCount) {
   var tmp$ret$0;
   $l$block_0: {
     // Inline function 'okio.internal.commonRangeEquals' call
@@ -3415,7 +3462,7 @@ protoOf(Buffer).p1j = function (offset, bytes, bytesOffset, byteCount) {
   }
   return tmp$ret$0;
 };
-protoOf(Buffer).d1i = function () {
+protoOf(Buffer).f1i = function () {
   return Unit_instance;
 };
 protoOf(Buffer).equals = function (other) {
@@ -3511,23 +3558,23 @@ protoOf(Buffer).hashCode = function () {
   return tmp$ret$0;
 };
 protoOf(Buffer).toString = function () {
-  return this.q1j().toString();
+  return this.u1j().toString();
 };
-protoOf(Buffer).q1j = function () {
+protoOf(Buffer).u1j = function () {
   // Inline function 'okio.internal.commonSnapshot' call
   // Inline function 'kotlin.check' call
   if (!(compare(this.x1g_1, new Long(2147483647, 0)) <= 0)) {
     var message = 'size > Int.MAX_VALUE: ' + this.x1g_1.toString();
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  return this.c1j(convertToInt(this.x1g_1));
+  return this.e1j(convertToInt(this.x1g_1));
 };
-protoOf(Buffer).c1j = function (byteCount) {
+protoOf(Buffer).e1j = function (byteCount) {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonSnapshot' call
     if (byteCount === 0) {
-      tmp$ret$0 = Companion_getInstance_1().s1h_1;
+      tmp$ret$0 = Companion_getInstance_1().u1h_1;
       break $l$block;
     }
     checkOffsetAndCount(this.x1g_1, new Long(0, 0), fromInt(byteCount));
@@ -3618,12 +3665,12 @@ function Companion_2() {
   Companion_instance_2 = this;
   this.f1h_1 = get_PLATFORM_DIRECTORY_SEPARATOR();
 }
-protoOf(Companion_2).r1j = function (_this__u8e3s4, normalize) {
+protoOf(Companion_2).v1j = function (_this__u8e3s4, normalize) {
   return commonToPath(_this__u8e3s4, normalize);
 };
-protoOf(Companion_2).a1i = function (_this__u8e3s4, normalize, $super) {
+protoOf(Companion_2).c1i = function (_this__u8e3s4, normalize, $super) {
   normalize = normalize === VOID ? false : normalize;
-  return $super === VOID ? this.r1j(_this__u8e3s4, normalize) : $super.r1j.call(this, _this__u8e3s4, normalize);
+  return $super === VOID ? this.v1j(_this__u8e3s4, normalize) : $super.v1j.call(this, _this__u8e3s4, normalize);
 };
 var Companion_instance_2;
 function Companion_getInstance_2() {
@@ -3643,7 +3690,7 @@ protoOf(Path).d1h = function () {
   var tmp$ret$0;
   $l$block_2: {
     // Inline function 'okio.internal.commonVolumeLetter' call
-    if (!(this.c1h_1.k1h(access$_get_SLASH_$tPathKt_oiy1wy()) === -1)) {
+    if (!(this.c1h_1.m1h(access$_get_SLASH_$tPathKt_oiy1wy()) === -1)) {
       tmp$ret$0 = null;
       break $l$block_2;
     }
@@ -3668,12 +3715,12 @@ protoOf(Path).d1h = function () {
   }
   return tmp$ret$0;
 };
-protoOf(Path).s1j = function () {
+protoOf(Path).w1j = function () {
   // Inline function 'okio.internal.commonNameBytes' call
   var lastSlash = access$_get_indexOfLastSlash_$tPathKt_czkh05(this);
   var tmp;
   if (!(lastSlash === -1)) {
-    tmp = this.c1h_1.j1i(lastSlash + 1 | 0);
+    tmp = this.c1h_1.l1i(lastSlash + 1 | 0);
   } else {
     var tmp_0;
     var tmp_1 = this.d1h();
@@ -3683,29 +3730,101 @@ protoOf(Path).s1j = function () {
       tmp_0 = false;
     }
     if (tmp_0) {
-      tmp = Companion_getInstance_1().s1h_1;
+      tmp = Companion_getInstance_1().u1h_1;
     } else {
       tmp = this.c1h_1;
     }
   }
   return tmp;
 };
-protoOf(Path).t1j = function () {
+protoOf(Path).x1j = function () {
   // Inline function 'okio.internal.commonName' call
-  return this.s1j().g1i();
+  return this.w1j().i1i();
 };
-protoOf(Path).u1j = function (child) {
+protoOf(Path).y1j = function () {
+  var tmp$ret$0;
+  $l$block_7: {
+    // Inline function 'okio.internal.commonParent' call
+    if (this.c1h_1.equals(access$_get_DOT_$tPathKt_c0s3mi()) || this.c1h_1.equals(access$_get_SLASH_$tPathKt_oiy1wy()) || this.c1h_1.equals(access$_get_BACKSLASH_$tPathKt_hofl47()) || access$lastSegmentIsDotDot$tPathKt(this)) {
+      tmp$ret$0 = null;
+      break $l$block_7;
+    }
+    var lastSlash = access$_get_indexOfLastSlash_$tPathKt_czkh05(this);
+    var tmp;
+    if (lastSlash === 2) {
+      var tmp_0 = this.d1h();
+      tmp = !((tmp_0 == null ? null : new Char(tmp_0)) == null);
+    } else {
+      tmp = false;
+    }
+    if (tmp) {
+      if (this.c1h_1.u() === 3) {
+        tmp$ret$0 = null;
+        break $l$block_7;
+      }
+      tmp$ret$0 = new Path(this.c1h_1.l1i(VOID, 3));
+      break $l$block_7;
+    } else {
+      if (lastSlash === 1 && this.c1h_1.q1i(access$_get_BACKSLASH_$tPathKt_hofl47())) {
+        tmp$ret$0 = null;
+        break $l$block_7;
+      } else {
+        var tmp_1;
+        if (lastSlash === -1) {
+          var tmp_2 = this.d1h();
+          tmp_1 = !((tmp_2 == null ? null : new Char(tmp_2)) == null);
+        } else {
+          tmp_1 = false;
+        }
+        if (tmp_1) {
+          if (this.c1h_1.u() === 2) {
+            tmp$ret$0 = null;
+            break $l$block_7;
+          }
+          tmp$ret$0 = new Path(this.c1h_1.l1i(VOID, 2));
+          break $l$block_7;
+        } else {
+          if (lastSlash === -1) {
+            tmp$ret$0 = new Path(access$_get_DOT_$tPathKt_c0s3mi());
+            break $l$block_7;
+          } else {
+            if (lastSlash === 0) {
+              tmp$ret$0 = new Path(this.c1h_1.l1i(VOID, 1));
+              break $l$block_7;
+            } else {
+              tmp$ret$0 = new Path(this.c1h_1.l1i(VOID, lastSlash));
+              break $l$block_7;
+            }
+          }
+        }
+      }
+    }
+  }
+  return tmp$ret$0;
+};
+protoOf(Path).z1j = function (child) {
   // Inline function 'okio.internal.commonResolve' call
   // Inline function 'okio.internal.commonResolve' call
   var child_0 = (new Buffer()).h1h(child);
   return commonResolve(this, toPath(child_0, false), false);
 };
-protoOf(Path).v1j = function (other) {
+protoOf(Path).a1k = function (child, normalize) {
+  return commonResolve(this, child, normalize);
+};
+protoOf(Path).b1k = function (child, normalize, $super) {
+  normalize = normalize === VOID ? false : normalize;
+  return $super === VOID ? this.a1k(child, normalize) : $super.a1k.call(this, child, normalize);
+};
+protoOf(Path).c1k = function () {
+  // Inline function 'okio.internal.commonNormalized' call
+  return Companion_getInstance_2().v1j(this.toString(), true);
+};
+protoOf(Path).d1k = function (other) {
   // Inline function 'okio.internal.commonCompareTo' call
-  return this.c1h_1.r1i(other.c1h_1);
+  return this.c1h_1.u1i(other.c1h_1);
 };
 protoOf(Path).d = function (other) {
-  return this.v1j(other instanceof Path ? other : THROW_CCE());
+  return this.d1k(other instanceof Path ? other : THROW_CCE());
 };
 protoOf(Path).equals = function (other) {
   // Inline function 'okio.internal.commonEquals' call
@@ -3723,14 +3842,14 @@ protoOf(Path).hashCode = function () {
 };
 protoOf(Path).toString = function () {
   // Inline function 'okio.internal.commonToString' call
-  return this.c1h_1.g1i();
+  return this.c1h_1.i1i();
 };
 function RealBufferedSource(source) {
-  this.w1j_1 = source;
-  this.x1j_1 = false;
-  this.y1j_1 = new Buffer();
+  this.e1k_1 = source;
+  this.f1k_1 = false;
+  this.g1k_1 = new Buffer();
 }
-protoOf(RealBufferedSource).m1j = function (sink, byteCount) {
+protoOf(RealBufferedSource).q1j = function (sink, byteCount) {
   var tmp$ret$4;
   $l$block_0: {
     // Inline function 'okio.internal.commonRead' call
@@ -3740,35 +3859,35 @@ protoOf(RealBufferedSource).m1j = function (sink, byteCount) {
       throw IllegalArgumentException_init_$Create$(toString(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.x1j_1) {
+    if (!!this.f1k_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString(message_0));
     }
-    if (equalsLong(this.y1j_1.x1g_1, new Long(0, 0))) {
+    if (equalsLong(this.g1k_1.x1g_1, new Long(0, 0))) {
       if (equalsLong(byteCount, new Long(0, 0))) {
         tmp$ret$4 = new Long(0, 0);
         break $l$block_0;
       }
-      var read = this.w1j_1.m1j(this.y1j_1, new Long(8192, 0));
+      var read = this.e1k_1.q1j(this.g1k_1, new Long(8192, 0));
       if (equalsLong(read, new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
     }
     // Inline function 'kotlin.comparisons.minOf' call
-    var b = this.y1j_1.x1g_1;
+    var b = this.g1k_1.x1g_1;
     var toRead = compare(byteCount, b) <= 0 ? byteCount : b;
-    tmp$ret$4 = this.y1j_1.m1j(sink, toRead);
+    tmp$ret$4 = this.g1k_1.q1j(sink, toRead);
   }
   return tmp$ret$4;
 };
-protoOf(RealBufferedSource).z1j = function (byteCount) {
+protoOf(RealBufferedSource).h1k = function (byteCount) {
   // Inline function 'okio.internal.commonRequire' call
-  if (!this.a1k(byteCount))
+  if (!this.i1k(byteCount))
     throw EOFException_init_$Create$();
   return Unit_instance;
 };
-protoOf(RealBufferedSource).a1k = function (byteCount) {
+protoOf(RealBufferedSource).i1k = function (byteCount) {
   var tmp$ret$4;
   $l$block: {
     // Inline function 'okio.internal.commonRequest' call
@@ -3778,12 +3897,12 @@ protoOf(RealBufferedSource).a1k = function (byteCount) {
       throw IllegalArgumentException_init_$Create$(toString(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.x1j_1) {
+    if (!!this.f1k_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString(message_0));
     }
-    while (compare(this.y1j_1.x1g_1, byteCount) < 0) {
-      if (equalsLong(this.w1j_1.m1j(this.y1j_1, new Long(8192, 0)), new Long(-1, -1))) {
+    while (compare(this.g1k_1.x1g_1, byteCount) < 0) {
+      if (equalsLong(this.e1k_1.q1j(this.g1k_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = false;
         break $l$block;
       }
@@ -3792,41 +3911,46 @@ protoOf(RealBufferedSource).a1k = function (byteCount) {
   }
   return tmp$ret$4;
 };
+protoOf(RealBufferedSource).f1j = function () {
+  // Inline function 'okio.internal.commonReadUtf8' call
+  this.g1k_1.p1j(this.e1k_1);
+  return this.g1k_1.f1j();
+};
 protoOf(RealBufferedSource).z1g = function (byteCount) {
   // Inline function 'okio.internal.commonReadUtf8' call
-  this.z1j(byteCount);
-  return this.y1j_1.z1g(byteCount);
+  this.h1k(byteCount);
+  return this.g1k_1.z1g(byteCount);
 };
-protoOf(RealBufferedSource).d1j = function () {
+protoOf(RealBufferedSource).g1j = function () {
   // Inline function 'okio.internal.commonReadUtf8Line' call
   // Inline function 'kotlin.code' call
   var this_0 = _Char___init__impl__6a9atx(10);
   var tmp$ret$0 = Char__toInt_impl_vasixd(this_0);
-  var newline = this.e1j(toByte(tmp$ret$0));
+  var newline = this.h1j(toByte(tmp$ret$0));
   var tmp;
   if (equalsLong(newline, new Long(-1, -1))) {
     var tmp_0;
-    if (!equalsLong(this.y1j_1.x1g_1, new Long(0, 0))) {
-      tmp_0 = this.z1g(this.y1j_1.x1g_1);
+    if (!equalsLong(this.g1k_1.x1g_1, new Long(0, 0))) {
+      tmp_0 = this.z1g(this.g1k_1.x1g_1);
     } else {
       tmp_0 = null;
     }
     tmp = tmp_0;
   } else {
-    tmp = readUtf8Line(this.y1j_1, newline);
+    tmp = readUtf8Line(this.g1k_1, newline);
   }
   return tmp;
 };
-protoOf(RealBufferedSource).e1j = function (b) {
-  return this.n1j(b, new Long(0, 0), new Long(-1, 2147483647));
+protoOf(RealBufferedSource).h1j = function (b) {
+  return this.r1j(b, new Long(0, 0), new Long(-1, 2147483647));
 };
-protoOf(RealBufferedSource).n1j = function (b, fromIndex, toIndex) {
+protoOf(RealBufferedSource).r1j = function (b, fromIndex, toIndex) {
   var tmp$ret$4;
   $l$block_0: {
     // Inline function 'okio.internal.commonIndexOf' call
     var fromIndex_0 = fromIndex;
     // Inline function 'kotlin.check' call
-    if (!!this.x1j_1) {
+    if (!!this.f1k_1) {
       var message = 'closed';
       throw IllegalStateException_init_$Create$(toString(message));
     }
@@ -3836,13 +3960,13 @@ protoOf(RealBufferedSource).n1j = function (b, fromIndex, toIndex) {
       throw IllegalArgumentException_init_$Create$(toString(message_0));
     }
     while (compare(fromIndex_0, toIndex) < 0) {
-      var result = this.y1j_1.n1j(b, fromIndex_0, toIndex);
+      var result = this.g1k_1.r1j(b, fromIndex_0, toIndex);
       if (!equalsLong(result, new Long(-1, -1))) {
         tmp$ret$4 = result;
         break $l$block_0;
       }
-      var lastBufferSize = this.y1j_1.x1g_1;
-      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.w1j_1.m1j(this.y1j_1, new Long(8192, 0)), new Long(-1, -1))) {
+      var lastBufferSize = this.g1k_1.x1g_1;
+      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.e1k_1.q1j(this.g1k_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
@@ -3854,24 +3978,24 @@ protoOf(RealBufferedSource).n1j = function (b, fromIndex, toIndex) {
   }
   return tmp$ret$4;
 };
-protoOf(RealBufferedSource).d1i = function () {
+protoOf(RealBufferedSource).f1i = function () {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonClose' call
-    if (this.x1j_1) {
+    if (this.f1k_1) {
       tmp$ret$0 = Unit_instance;
       break $l$block;
     }
-    this.x1j_1 = true;
-    this.w1j_1.d1i();
-    this.y1j_1.e2();
+    this.f1k_1 = true;
+    this.e1k_1.f1i();
+    this.g1k_1.e2();
     tmp$ret$0 = Unit_instance;
   }
   return tmp$ret$0;
 };
 protoOf(RealBufferedSource).toString = function () {
   // Inline function 'okio.internal.commonToString' call
-  return 'buffer(' + toString(this.w1j_1) + ')';
+  return 'buffer(' + toString(this.e1k_1) + ')';
 };
 function SegmentPool() {
   this.n1g_1 = 0;

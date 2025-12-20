@@ -53,12 +53,6 @@ if (typeof Math.clz32 === 'undefined') {
     };
   }(Math.log, Math.LN2);
 }
-if (typeof String.prototype.startsWith === 'undefined') {
-  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
-    position = position || 0;
-    return this.lastIndexOf(searchString, position) === position;
-  }});
-}
 if (typeof String.prototype.endsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'endsWith', {value: function (searchString, position) {
     var subjectString = this.toString();
@@ -68,6 +62,12 @@ if (typeof String.prototype.endsWith === 'undefined') {
     position -= searchString.length;
     var lastIndex = subjectString.indexOf(searchString, position);
     return lastIndex !== -1 && lastIndex === position;
+  }});
+}
+if (typeof String.prototype.startsWith === 'undefined') {
+  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
+    position = position || 0;
+    return this.lastIndexOf(searchString, position) === position;
   }});
 }
 //endregion
@@ -2300,6 +2300,9 @@ function THROW_CCE() {
 function throwUninitializedPropertyAccessException(name) {
   throw UninitializedPropertyAccessException_init_$Create$_0('lateinit property ' + name + ' has not been initialized');
 }
+function throwUnsupportedOperationException(message) {
+  throw UnsupportedOperationException_init_$Create$_0(message);
+}
 function createMetadata(kind, name, defaultConstructor, associatedObjectKey, associatedObjects, suspendArity) {
   var undef = VOID;
   var iid = kind === 'interface' ? generateInterfaceId() : VOID;
@@ -2611,9 +2614,19 @@ function getInterfaceMaskFor(obj, superType) {
   }
   return tmp;
 }
+function getLocalDelegateReference(name, superType, mutable) {
+  _init_properties_reflectRuntime_kt__5r4uu3();
+  var lambda = getLocalDelegateReference$lambda();
+  return getPropertyCallableRef(name, 0, superType, lambda, mutable ? lambda : null, VOID);
+}
 function throwLinkageErrorInCallableName$lambda($linkageError) {
   return function () {
     throwIrLinkageError($linkageError);
+  };
+}
+function getLocalDelegateReference$lambda() {
+  return function () {
+    throwUnsupportedOperationException('Not supported for local property reference.');
   };
 }
 var properties_initialized_reflectRuntime_kt_inkhwd;
@@ -13762,6 +13775,7 @@ export {
   listOf as listOfvhqybd2zx248,
   listOf_0 as listOf1jh22dvmctj1r,
   mapCapacity as mapCapacity1h45rc3eh9p2l,
+  mapOf as mapOf2zpbbmyqk8xpf,
   mapOf_0 as mapOf1xd03cq9cnmy8,
   mutableListOf as mutableListOf6oorvk2mtdmp,
   mutableMapOf as mutableMapOfk2y3zt1azl40,
@@ -13853,6 +13867,7 @@ export {
   equals as equals2au1ep9vhcato,
   extendThrowable as extendThrowable112s72v177bbq,
   getBooleanHashCode as getBooleanHashCode1bbj3u6b3v0a7,
+  getLocalDelegateReference as getLocalDelegateReference2ls94nvl5ojb2,
   getNumberHashCode as getNumberHashCode2l4nbdcihl25f,
   getPropertyCallableRef as getPropertyCallableRef3hckxc0xueiaj,
   getStringHashCode as getStringHashCode26igk1bx568vk,

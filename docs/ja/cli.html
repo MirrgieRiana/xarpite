@@ -286,6 +286,86 @@ Options:
 <span class="c"># banana</span>
 </code></pre></div></div>
 
+<h2 id="use-外部xarpiteファイルの結果を取得"><code class="language-plaintext highlighter-rouge">USE</code> 外部Xarpiteファイルの結果を取得</h2>
+
+<p><code class="language-plaintext highlighter-rouge">USE(file: STRING): VALUE</code></p>
+
+<p>指定されたXarpiteスクリプトを評価した結果を返します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'877'</span> <span class="o">&gt;</span> banana.xa1
+  xa <span class="s1">'USE("./banana.xa1")'</span>
+  <span class="nb">rm </span>banana.xa1
+<span class="o">}</span>
+<span class="c"># 877</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">file</code> は <code class="language-plaintext highlighter-rouge">./</code> で始まる必要があり、 <code class="language-plaintext highlighter-rouge">USE</code> 関数を呼び出したファイルからの相対パスとして解釈されます。</p>
+
+<p>例えば、 <code class="language-plaintext highlighter-rouge">fruit/apple.xa1</code> 内で <code class="language-plaintext highlighter-rouge">USE("./banana.xa1")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">fruit/banana.xa1</code> が読み込まれます。</p>
+
+<p>コードがコマンドライン上で直接指定された場合、カレントディレクトリを起点としてファイルを解決します。</p>
+
+<p>ディレクトリの区切り文字はそれが実行されるOSに関わらず <code class="language-plaintext highlighter-rouge">/</code> を使用します。</p>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">USE</code> 関数の戻り値をマウントすることで、ディレクティブのような使用感で利用できます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'
+    {
+      FRUIT: 877
+    }
+  '</span> <span class="o">&gt;</span> banana.xa1
+  xa <span class="s1">'
+    @USE("./banana.xa1")
+    FRUIT
+  '</span>
+  <span class="nb">rm </span>banana.xa1
+<span class="o">}</span>
+<span class="c"># 877</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>同一絶対ファイルパスに対する <code class="language-plaintext highlighter-rouge">USE</code> 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。</p>
+
+<p>副作用も1度だけ生じます。</p>
+
+<p>ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'
+    {
+      variables: {
+        fruit: "apple"
+      }
+    }
+  '</span> <span class="o">&gt;</span> tmp.xa1
+  xa <span class="nt">-q</span> <span class="s1">'
+    a := USE("./tmp.xa1")
+    b := USE("./tmp.xa1")
+    OUT &lt;&lt; b.variables.fruit
+    a.variables.fruit = "banana"
+    OUT &lt;&lt; b.variables.fruit
+  '</span>
+  <span class="nb">rm </span>tmp.xa1
+<span class="o">}</span>
+<span class="c"># apple</span>
+<span class="c"># banana</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">USE</code> されることを前提として記述されたファイルをモジュールと呼びます。</p>
+
+<p>モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開しますが、そうでない場合もあります。</p>
+
+<p>モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。</p>
+
           </article>
         </div>
       </div>

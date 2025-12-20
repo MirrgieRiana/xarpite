@@ -36,40 +36,40 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.c75_1 = fd;
-  this.d75_1 = new Long(0, 0);
-  this.e75_1 = false;
+  this.a76_1 = fd;
+  this.b76_1 = new Long(0, 0);
+  this.c76_1 = false;
 }
-protoOf(FileSource).m1j = function (sink, byteCount) {
+protoOf(FileSource).q1j = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.e75_1) {
+  if (!!this.c76_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.c75_1;
+  var tmp0_fd = this.a76_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.d75_1);
+  var tmp2_position = toNumber(this.b76_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.d75_1;
-  tmp.d75_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.b76_1;
+  tmp.b76_1 = add(this_0, fromInt(readByteCount));
   sink.b1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
-protoOf(FileSource).d1i = function () {
-  if (this.e75_1)
+protoOf(FileSource).f1i = function () {
+  if (this.c76_1)
     return Unit_instance;
-  this.e75_1 = true;
-  closeSync(this.c75_1);
+  this.c76_1 = true;
+  closeSync(this.a76_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -91,7 +91,7 @@ function list($this, dir, throwOnFailure) {
         }
         var dirent = tmp;
         // Inline function 'kotlin.collections.plusAssign' call
-        var element = dir.u1j(dirent.name);
+        var element = dir.z1j(dirent.name);
         result.j(element);
       }
       sort(result);
@@ -130,15 +130,15 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.f75_1 = 61440;
-  this.g75_1 = 32768;
-  this.h75_1 = 16384;
-  this.i75_1 = 40960;
+  this.d76_1 = 61440;
+  this.e76_1 = 32768;
+  this.f76_1 = 16384;
+  this.g76_1 = 40960;
 }
-protoOf(NodeJsFileSystem).b1i = function (dir) {
+protoOf(NodeJsFileSystem).d1i = function (dir) {
   return ensureNotNull(list(this, dir, true));
 };
-protoOf(NodeJsFileSystem).c1i = function (file) {
+protoOf(NodeJsFileSystem).e1i = function (file) {
   var fd = openFd(this, file, 'r');
   return new FileSource(fd);
 };
