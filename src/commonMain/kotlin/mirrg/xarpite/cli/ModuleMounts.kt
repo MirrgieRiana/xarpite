@@ -21,8 +21,8 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
                 val file = arguments[0].toFluoriteString().value
                 if (!file.startsWith("./")) throw FluoriteException("""Path must start with "./".""".toFluoriteString())
+                val fileSystem = getFileSystem().getOrThrow()
                 val modulePath = run {
-                    val fileSystem = getFileSystem().getOrThrow()
                     val mainPath = baseDir.resolve(file.drop(2).toPath()).normalized()
                     val fileMetadata = fileSystem.metadataOrNull(mainPath)
                     if (fileMetadata != null) return@run mainPath
@@ -34,7 +34,7 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                     mainPath
                 }
                 moduleCache.getOrPut(modulePath) {
-                    val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
+                    val src = fileSystem.read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(modulePath.toString()))
                     evaluator.get(src)
