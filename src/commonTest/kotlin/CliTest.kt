@@ -10,6 +10,7 @@ import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
@@ -135,7 +136,7 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
-        assertFailsWith<mirrg.xarpite.operations.FluoriteException> {
+        assertFailsWith<FluoriteException> {
             cliEval("""USE("$file")""")
         }
         fileSystem.delete(file)
@@ -182,8 +183,13 @@ class CliTest {
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
-    evaluator.defineMounts(createCommonMounts(this) {})
-    evaluator.defineMounts(createCliMounts(args.toList()))
+    lateinit var defaultBuiltinMounts: List<Map<String, FluoriteValue>>
+    val cliMounts = createCliMounts(args.toList()) { defaultBuiltinMounts }
+    defaultBuiltinMounts = listOf(
+        createCommonMounts(this) {},
+        cliMounts,
+    ).flatten()
+    evaluator.defineMounts(defaultBuiltinMounts)
     return evaluator.get(src)
 }
 
