@@ -7,6 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -25,18 +26,7 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
                 if (!file.startsWith("./")) throw FluoriteException("""Path must start with "./".""".toFluoriteString())
                 val fileSystem = getFileSystem().getOrThrow()
                 val relativePath = file.drop(2)
-                fun resolveModulePath(): Path {
-                    val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
-                    val originalMetadata = fileSystem.metadataOrNull(originalPath)
-                    if (originalMetadata != null) return originalPath
-                    if (!file.endsWith(MODULE_EXTENSION)) {
-                        val fallbackPath = baseDir.resolve("$relativePath$MODULE_EXTENSION".toPath()).normalized()
-                        val fallbackMetadata = fileSystem.metadataOrNull(fallbackPath)
-                        if (fallbackMetadata != null) return fallbackPath
-                    }
-                    return originalPath
-                }
-                val modulePath = resolveModulePath()
+                val modulePath = resolveModulePath(baseDir, relativePath, fileSystem, file.endsWith(MODULE_EXTENSION))
                 moduleCache.getOrPut(modulePath) {
                     val src = fileSystem.read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
@@ -46,4 +36,14 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
             }
         },
     ).let { listOf(it) }
+}
+
+private fun resolveModulePath(baseDir: Path, relativePath: String, fileSystem: FileSystem, hasModuleExtension: Boolean): Path {
+    val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
+    if (fileSystem.exists(originalPath)) return originalPath
+    if (!hasModuleExtension) {
+        val fallbackPath = baseDir.resolve("$relativePath$MODULE_EXTENSION".toPath()).normalized()
+        if (fileSystem.exists(fallbackPath)) return fallbackPath
+    }
+    return originalPath
 }
