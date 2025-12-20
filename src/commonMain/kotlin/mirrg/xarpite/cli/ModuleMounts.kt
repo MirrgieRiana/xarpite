@@ -42,7 +42,7 @@ private fun resolveModulePath(baseDir: Path, relativePath: String, fileSystem: F
     val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
     if (fileSystem.exists(originalPath)) return originalPath
     if (!hasModuleExtension) {
-        val fallbackPath = baseDir.resolve("$relativePath$MODULE_EXTENSION".toPath()).normalized()
+        val fallbackPath = baseDir.resolve((relativePath + MODULE_EXTENSION).toPath()).normalized()
         if (fileSystem.exists(fallbackPath)) return fallbackPath
     }
     return originalPath
