@@ -135,7 +135,7 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<mirrg.xarpite.operations.FluoriteException> {
             cliEval("""USE("$file")""")
         }
         fileSystem.delete(file)
@@ -183,7 +183,7 @@ class CliTest {
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
     evaluator.defineMounts(createCommonMounts(this) {})
-    evaluator.defineMounts(createCliMounts(args.toList(), evaluator))
+    evaluator.defineMounts(createCliMounts(args.toList()))
     return evaluator.get(src)
 }
 

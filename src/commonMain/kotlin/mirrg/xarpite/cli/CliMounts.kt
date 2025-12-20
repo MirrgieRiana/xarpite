@@ -12,6 +12,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
+import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
@@ -20,26 +21,14 @@ import okio.Path
 
 val INB_MAX_BUFFER_SIZE = 8192
 
-fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, FluoriteValue>> {
+fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     val useCache = mutableMapOf<Path, FluoriteValue>()
     var cachedBaseDir: Path? = null
 
-    fun isPathWithinBase(resolvedPath: Path, basePath: Path): Boolean {
-        val baseSegments = basePath.normalized().segments
-        val resolvedSegments = resolvedPath.normalized().segments
-        if (baseSegments.isEmpty()) return true
-        if (resolvedSegments.size < baseSegments.size) return false
-        return resolvedSegments.subList(0, baseSegments.size) == baseSegments
-    }
-
-    fun defaultBaseDir(fileSystem: FileSystem): Path {
-        val cached = cachedBaseDir
-        if (cached != null) return cached
-        return fileSystem.canonicalize(".".toPath()).also { cachedBaseDir = it }
-    }
-
     suspend fun evaluateFile(path: Path, fileSystem: FileSystem): FluoriteValue {
         val src = fileSystem.read(path) { readUtf8() }
+        val evaluator = Evaluator()
+        evaluator.defineMounts(createCliMounts(args))
         return evaluator.get(src)
     }
 
@@ -81,11 +70,10 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
         "USE" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("USE(file: STRING): VALUE")
             val file = arguments[0].toFluoriteString().value
-            if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
+            if (!file.startsWith("./")) throw FluoriteException("""USE(file: STRING) requires path starting with "./"""".toFluoriteString())
             val fileSystem = getFileSystem().getOrThrow()
-            val baseDir = defaultBaseDir(fileSystem)
+            val baseDir = cachedBaseDir ?: fileSystem.canonicalize(".".toPath()).also { cachedBaseDir = it }
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
-            if (!isPathWithinBase(resolvedPath, baseDir)) usage("""USE(file: STRING starting with "./"): VALUE""")
             useCache[resolvedPath] ?: evaluateFile(resolvedPath, fileSystem).also {
                 useCache[resolvedPath] = it
             }
