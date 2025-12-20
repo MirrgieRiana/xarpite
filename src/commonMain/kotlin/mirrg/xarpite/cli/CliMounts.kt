@@ -24,11 +24,20 @@ val INB_MAX_BUFFER_SIZE = 8192
 fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, FluoriteValue>> {
     val useCache = mutableMapOf<Path, FluoriteValue>()
     val usePathStack = ArrayDeque<Path>()
+    var cachedBaseDir: Path? = null
 
     fun isPathWithinBase(resolvedPath: Path, basePath: Path): Boolean {
-        val baseNormalized = basePath.normalized().toString()
-        val resolvedNormalized = resolvedPath.normalized().toString()
-        return resolvedNormalized == baseNormalized || resolvedNormalized.startsWith("$baseNormalized/")
+        val baseSegments = basePath.normalized().segments
+        val resolvedSegments = resolvedPath.normalized().segments
+        if (baseSegments.isEmpty()) return true
+        if (resolvedSegments.size < baseSegments.size) return false
+        return resolvedSegments.subList(0, baseSegments.size) == baseSegments
+    }
+
+    fun defaultBaseDir(fileSystem: FileSystem): Path {
+        val cached = cachedBaseDir
+        if (cached != null) return cached
+        return fileSystem.canonicalize(".".toPath()).also { cachedBaseDir = it }
     }
 
     suspend fun evaluateFile(path: Path, fileSystem: FileSystem): FluoriteValue {
@@ -81,7 +90,7 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
             val file = arguments[0].toFluoriteString().value
             if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
             val fileSystem = getFileSystem().getOrThrow()
-            val baseDir = usePathStack.lastOrNull()?.parent ?: fileSystem.canonicalize(".".toPath())
+            val baseDir = usePathStack.lastOrNull()?.parent ?: defaultBaseDir(fileSystem)
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
             if (!isPathWithinBase(resolvedPath, baseDir)) usage("""USE(file: STRING starting with "./"): VALUE""")
             useCache[resolvedPath] ?: evaluateFile(resolvedPath, fileSystem).also {
