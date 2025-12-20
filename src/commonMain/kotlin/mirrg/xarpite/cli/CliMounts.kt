@@ -15,7 +15,6 @@ import mirrg.xarpite.mounts.usage
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
-import kotlin.collections.ArrayDeque
 import okio.FileSystem
 import okio.Path
 
@@ -23,7 +22,6 @@ val INB_MAX_BUFFER_SIZE = 8192
 
 fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, FluoriteValue>> {
     val useCache = mutableMapOf<Path, FluoriteValue>()
-    val usePathStack = ArrayDeque<Path>()
     var cachedBaseDir: Path? = null
 
     fun isPathWithinBase(resolvedPath: Path, basePath: Path): Boolean {
@@ -41,13 +39,8 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
     }
 
     suspend fun evaluateFile(path: Path, fileSystem: FileSystem): FluoriteValue {
-        usePathStack.addLast(path)
-        return try {
-            val src = fileSystem.read(path) { readUtf8() }
-            evaluator.get(src)
-        } finally {
-            usePathStack.removeLast()
-        }
+        val src = fileSystem.read(path) { readUtf8() }
+        return evaluator.get(src)
     }
 
     return mapOf(
@@ -90,7 +83,7 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
             val file = arguments[0].toFluoriteString().value
             if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
             val fileSystem = getFileSystem().getOrThrow()
-            val baseDir = usePathStack.lastOrNull()?.parent ?: defaultBaseDir(fileSystem)
+            val baseDir = defaultBaseDir(fileSystem)
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
             if (!isPathWithinBase(resolvedPath, baseDir)) usage("""USE(file: STRING starting with "./"): VALUE""")
             useCache[resolvedPath] ?: evaluateFile(resolvedPath, fileSystem).also {

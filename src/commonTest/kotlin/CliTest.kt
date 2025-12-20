@@ -73,6 +73,7 @@ class CliTest {
     fun useEvaluatesFile() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.evaluate.tmp")
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
@@ -83,16 +84,17 @@ class CliTest {
     }
 
     @Test
-    fun useResolvesRelativeToCaller() = runTest {
+    fun useResolvesFromCurrentDirectory() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.relative.tmp")
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val banana = dir.resolve("banana.xa1")
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
-        fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
-        assertEquals("877", cliEval("""USE("./$apple")""").toFluoriteString().value)
+        fileSystem.write(apple) { writeUtf8("""USE("./build/test/use.relative.tmp/banana.xa1")""") }
+        assertEquals("877", cliEval("""USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString().value)
         fileSystem.delete(apple)
         fileSystem.delete(banana)
         fileSystem.delete(dir)
@@ -102,6 +104,7 @@ class CliTest {
     fun useCachesByPath() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.cache.tmp.xa1")
         fileSystem.write(file) {
             writeUtf8(
