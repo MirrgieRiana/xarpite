@@ -25,6 +25,12 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
     val useCache = mutableMapOf<Path, FluoriteValue>()
     val usePathStack = ArrayDeque<Path>()
 
+    fun isPathWithinBase(resolvedPath: Path, basePath: Path): Boolean {
+        val baseNormalized = basePath.normalized().toString()
+        val resolvedNormalized = resolvedPath.normalized().toString()
+        return resolvedNormalized == baseNormalized || resolvedNormalized.startsWith("$baseNormalized/")
+    }
+
     suspend fun evaluateFile(path: Path, fileSystem: FileSystem): FluoriteValue {
         usePathStack.addLast(path)
         return try {
@@ -75,11 +81,9 @@ fun createCliMounts(args: List<String>, evaluator: Evaluator): List<Map<String, 
             val file = arguments[0].toFluoriteString().value
             if (!file.startsWith("./")) usage("""USE(file: STRING starting with "./"): VALUE""")
             val fileSystem = getFileSystem().getOrThrow()
-            val baseDir = usePathStack.lastOrNull()?.parent ?: usePathStack.lastOrNull() ?: fileSystem.canonicalize(".".toPath())
+            val baseDir = usePathStack.lastOrNull()?.parent ?: fileSystem.canonicalize(".".toPath())
             val resolvedPath = baseDir.resolve(file.drop(2).toPath()).normalized()
-            val baseNormalized = baseDir.normalized().toString()
-            val resolvedNormalized = resolvedPath.normalized().toString()
-            if (!(resolvedNormalized == baseNormalized || resolvedNormalized.startsWith("$baseNormalized/"))) usage("""USE(file: STRING starting with "./"): VALUE""")
+            if (!isPathWithinBase(resolvedPath, baseDir)) usage("""USE(file: STRING starting with "./"): VALUE""")
             useCache[resolvedPath] ?: evaluateFile(resolvedPath, fileSystem).also {
                 useCache[resolvedPath] = it
             }
