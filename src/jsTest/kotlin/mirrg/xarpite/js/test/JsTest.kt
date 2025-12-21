@@ -101,11 +101,10 @@ class JsTest {
             defaultMounts + createModuleMounts(location, mountsFactory)
         }
         val evaluator = Evaluator()
-        val fs = NodeJsFileSystem
         val start = js("process.cwd()").unsafeCast<String>().toPath()
         val execPath = generateSequence(start) { it.parent }
             .map { it.resolve("exec.xa1") }
-            .firstOrNull { fs.exists(it) }
+            .firstOrNull { NodeJsFileSystem.exists(it) }
             ?: error("exec.xa1 not found from $start")
         evaluator.defineMounts(mountsFactory(execPath.toString()))
         val nodeExec = js("process.execPath").unsafeCast<String>()

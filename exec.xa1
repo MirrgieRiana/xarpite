@@ -18,7 +18,11 @@
           throw r.error;
         }
         if (r.status !== 0 && r.status !== null) {
-          const error = new Error(`Process exited with code ${r.status}`);
+          const stderrText = (r.stderr ?? "").toString().trimEnd();
+          const errorMessage = stderrText
+            ? `Process exited with code ${r.status}: ${stderrText}`
+            : `Process exited with code ${r.status}`;
+          const error = new Error(errorMessage);
           error.stdout = r.stdout;
           error.stderr = r.stderr;
           throw error;
