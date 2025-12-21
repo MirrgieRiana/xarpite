@@ -1,12 +1,16 @@
 package mirrg.xarpite.cli
 
+import executeProcess
 import getEnv
 import getFileSystem
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
+import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -52,6 +56,107 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             val dir = arguments[0].toFluoriteString().value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+        },
+        "EXEC" to FluoriteFunction { arguments ->
+            fun error(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT][; dir: dir: STRING][; in: STREAM<STRING>]): STREAM<STRING>")
+            
+            val args = arguments.toMutableList()
+            
+            if (args.isEmpty()) error()
+            
+            // 1st argument: command (required)
+            val commandStream = args.removeFirst() as? FluoriteStream ?: error()
+            
+            // Extract command list
+            val commandList = mutableListOf<String>()
+            commandStream.collect { 
+                commandList.add(it.toFluoriteString().value)
+            }
+            
+            if (commandList.isEmpty()) error()
+            
+            // Parse optional positional arguments with skippable entries
+            var envMap: Map<String, String>? = null
+            var dirPath: String? = null
+            var inputStream: FluoriteStream? = null
+            
+            // 2nd argument: if it's an env entry, use it; otherwise skip
+            if (args.isNotEmpty()) {
+                val arg = args.first()
+                if (arg is FluoriteArray && arg.values.size == 2) {
+                    val key = arg.values[0]
+                    if (key is FluoriteString && key.value == "env") {
+                        args.removeFirst()
+                        val value = arg.values[1]
+                        if (value !is FluoriteObject) error()
+                        envMap = value.map.mapValues { it.value.toFluoriteString().value }
+                    }
+                }
+            }
+            
+            // 3rd argument: if it's a dir entry, use it; otherwise skip
+            if (args.isNotEmpty()) {
+                val arg = args.first()
+                if (arg is FluoriteArray && arg.values.size == 2) {
+                    val key = arg.values[0]
+                    if (key is FluoriteString && key.value == "dir") {
+                        args.removeFirst()
+                        val value = arg.values[1]
+                        dirPath = value.toFluoriteString().value
+                    }
+                }
+            }
+            
+            // 4th argument: if it exists, it's in
+            if (args.isNotEmpty()) {
+                val inStream = args.removeFirst()
+                if (inStream is FluoriteStream) {
+                    inputStream = inStream
+                } else {
+                    error()
+                }
+            }
+            
+            // If there are extra arguments, error
+            if (args.isNotEmpty()) error()
+            
+            // Merge environment variables
+            val finalEnv = if (envMap != null) {
+                getEnv().toMutableMap().apply { putAll(envMap) }
+            } else {
+                null
+            }
+            
+            // Execute the process
+            FluoriteStream {
+                // Create input reader that properly converts stream values to strings
+                val inputIterator: suspend () -> String? = if (inputStream != null) {
+                    // Pre-collect input stream items (necessary for proper iteration)
+                    val inputList = mutableListOf<String>()
+                    inputStream.collect { value ->
+                        // Convert each value to string properly
+                        inputList.add(value.toFluoriteString().value)
+                    }
+                    var inputIndex = 0
+                    suspend {
+                        if (inputIndex < inputList.size) {
+                            inputList[inputIndex++]
+                        } else {
+                            null
+                        }
+                    }
+                } else {
+                    suspend { null }
+                }
+                
+                val outputReader = executeProcess(commandList, finalEnv, dirPath, inputIterator)
+                
+                // Read output line by line
+                while (true) {
+                    val line = outputReader() ?: break
+                    emit(line.toFluoriteString())
+                }
+            }
         },
     ).let { listOf(it) }
 }

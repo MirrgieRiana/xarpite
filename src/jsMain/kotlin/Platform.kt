@@ -22,3 +22,19 @@ actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()
 
 var readBytesFromStdinImpl: (suspend () -> ByteArray?)? = null
 actual suspend fun readBytesFromStdin(): ByteArray? = readBytesFromStdinImpl!!()
+
+var executeProcessImpl: (suspend (command: List<String>, env: Map<String, String>?, dir: String?, input: suspend () -> String?) -> suspend () -> String?)? = null
+
+actual suspend fun executeProcess(
+    command: List<String>,
+    env: Map<String, String>?,
+    dir: String?,
+    input: suspend () -> String?
+): suspend () -> String? {
+    val impl = executeProcessImpl
+    return if (impl != null) {
+        impl(command, env, dir, input)
+    } else {
+        throw UnsupportedOperationException("Process execution is not supported on JS Browser platform")
+    }
+}

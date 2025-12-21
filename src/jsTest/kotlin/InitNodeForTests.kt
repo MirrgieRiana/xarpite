@@ -1,125 +1,65 @@
-package mirrg.xarpite.js.node
-
 import envGetter
 import executeProcessImpl
 import fileSystemGetter
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.launch
-import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
-import mirrg.xarpite.cli.ShowUsage
-import mirrg.xarpite.cli.main
-import mirrg.xarpite.cli.parseArguments
-import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.js.Object_keys
-import mirrg.xarpite.js.createJsMounts
-import mirrg.xarpite.js.scope
-import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
 import kotlin.js.Promise
-import kotlin.math.min
 
-suspend fun main() {
+// External Node.js child_process module
+@JsModule("child_process")
+@JsNonModule
+external object childProcessModule {
+    fun spawn(command: String, args: Array<String>, options: dynamic): dynamic
+}
+
+// Initialize Node.js implementations for testing
+fun initializeNodeForTests() {
+    // Check if we're running in Node.js environment
+    val isNode = try {
+        js("typeof process !== 'undefined' && process.versions != null && process.versions.node != null").unsafeCast<Boolean>()
+    } catch (e: Throwable) {
+        false
+    }
+    
+    if (!isNode) return
+    
+    // Initialize environment variable getter
     envGetter = {
-        val env = process.env
+        val env = js("process.env")
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }
     }
-    fileSystemGetter = { NodeJsFileSystem }
-    readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
-    readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
+    
+    // Initialize file system - use dynamic import to avoid compile-time dependency
+    fileSystemGetter = {
+        try {
+            val NodeJsFileSystem = js("require('okio').NodeJsFileSystem")
+            NodeJsFileSystem.unsafeCast<okio.FileSystem>()
+        } catch (e: Throwable) {
+            throw IllegalStateException("NodeJsFileSystem not available", e)
+        }
+    }
+    
+    // Initialize stdin readers (not used in tests but required)
+    readLineFromStdinImpl = { null }
+    readBytesFromStdinImpl = { null }
+    
+    // Initialize process execution
     executeProcessImpl = { command, env, dir, input ->
-        executeProcessNode(command, env, dir, input)
-    }
-
-    val options = try {
-        parseArguments(process.argv.drop(2))
-    } catch (_: ShowUsage) {
-        showUsage()
-        return
-    }
-    coroutineScope {
-        main(options, this) {
-            createJsMounts()
-        }
+        executeProcessForTests(command, env, dir, input)
     }
 }
 
-val readLineFromStdinIterator: ReceiveChannel<String> by lazy {
-    flow {
-        process.stdin.setEncoding("utf8")
-        val stringIterator = js("(function(x) { return x[Symbol.asyncIterator](); })")(process.stdin)
-        val sb = StringBuilder()
-        var afterR = false
-        while (true) {
-            val result = stringIterator.next().unsafeCast<Promise<dynamic>>().await()
-            if (result.done) {
-                if (sb.isNotEmpty()) {
-                    emit(sb.toString())
-                    sb.clear()
-                }
-                break
-            }
-            val string = result.value.unsafeCast<String>()
-            var index = 0
-            while (index < string.length) {
-                if (afterR && string[index] == '\n') {
-                    index++
-                    afterR = false
-                    continue
-                }
-                val r = string.indexOf('\r', index)
-                val n = string.indexOf('\n', index)
-                val lineEnd = if (r == -1) n else if (n == -1) r else minOf(r, n)
-                if (lineEnd == -1) {
-                    sb.append(string.substring(index))
-                    index = string.length
-                    afterR = false
-                } else {
-                    sb.append(string.substring(index, lineEnd))
-                    emit(sb.toString())
-                    sb.clear()
-                    index = lineEnd + 1
-                    afterR = string[lineEnd] == '\r'
-                }
-            }
-        }
-    }.produceIn(scope)
-}
-
-val readBytesFromStdinIterator: ReceiveChannel<ByteArray> by lazy {
-    flow {
-        val bytesIterator = js("(function(x) { return x[Symbol.asyncIterator](); })")(process.stdin)
-        while (true) {
-            val result = bytesIterator.next().unsafeCast<Promise<dynamic>>().await()
-            if (result.done) break
-            val buffer = result.value.unsafeCast<dynamic>()
-            val byteArray = ByteArray(buffer.length.unsafeCast<Int>()) { i -> buffer[i].unsafeCast<Byte>() }
-            if (byteArray.size <= INB_MAX_BUFFER_SIZE) {
-                emit(byteArray)
-            } else {
-                var offset = 0
-                while (offset < byteArray.size) {
-                    val chunkSize = min(INB_MAX_BUFFER_SIZE, byteArray.size - offset)
-                    emit(byteArray.copyOfRange(offset, offset + chunkSize))
-                    offset += chunkSize
-                }
-            }
-        }
-    }.produceIn(scope)
-}
-
-suspend fun executeProcessNode(
+suspend fun executeProcessForTests(
     command: List<String>,
     env: Map<String, String>?,
     dir: String?,
     input: suspend () -> String?
 ): suspend () -> String? = coroutineScope {
-    val childProcess = js("require('child_process')")
     val options = js("({})")
     
     if (env != null) {
@@ -133,7 +73,7 @@ suspend fun executeProcessNode(
     }
     
     // Spawn the process
-    val proc = childProcess.spawn(command[0], command.drop(1).toTypedArray(), options)
+    val proc = childProcessModule.spawn(command[0], command.drop(1).toTypedArray(), options)
     
     // Handle stdin
     launch {
