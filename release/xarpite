@@ -5,7 +5,34 @@ if [ -z "$XARPITE_PROGRAM_NAME" ]; then
 fi
 SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONFIG_FILE=$SCRIPT_DIR/default_engine
-ENGINE="$XARPITE_ENGINE"
+
+# Parse launcher options
+LAUNCHER_ENGINE=""
+ARGS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --node|--jvm|--native)
+      if [ -n "$LAUNCHER_ENGINE" ]; then
+        echo "Error: Multiple engine options specified (${LAUNCHER_ENGINE} and $1)" 1>&2
+        exit 1
+      fi
+      LAUNCHER_ENGINE="${1#--}"
+      shift
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${ARGS[@]}"
+
+# Determine engine to use
+ENGINE="$LAUNCHER_ENGINE"
+if [ -z "$ENGINE" ]
+then
+  ENGINE="$XARPITE_ENGINE"
+fi
 if [ -z "$ENGINE" ] && [ -f "$CONFIG_FILE" ]
 then
   ENGINE="$(cat "$CONFIG_FILE")"

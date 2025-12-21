@@ -4,6 +4,51 @@ title: CLI版
 
 # Xarpiteを起動するコマンド
 
+## ランチャーオプション
+
+`xarpite` および `xa` コマンドは、実行エンジンを指定するためのランチャーオプションをサポートしています。
+
+これらのオプションはランタイムオプション（`-q` など）よりも前に指定する必要があります。
+
+### `--native`: ネイティブ版を使用
+
+```shell
+$ xarpite --native '1 + 2'
+# 3
+```
+
+ネイティブコンパイルされたXarpiteエンジンを使用します。
+
+### `--jvm`: JVM版を使用
+
+```shell
+$ xarpite --jvm '1 + 2'
+# 3
+```
+
+Java仮想マシン上で動作するXarpiteエンジンを使用します。
+
+### `--node`: Node.js版を使用
+
+```shell
+$ xarpite --node '1 + 2'
+# 3
+```
+
+Node.js上で動作するXarpiteエンジンを使用します。
+
+### 注意事項
+
+- これらのオプションは相互に排他的です。複数のエンジンオプションを同時に指定することはできません。
+- ランチャーオプションは環境変数 `XARPITE_ENGINE` よりも優先されます。
+- ランチャーオプションが指定されていない場合、`XARPITE_ENGINE` 環境変数、設定ファイル `default_engine`、デフォルト値（`native`）の順で実行エンジンが決定されます。
+
+```shell
+# エラー: 複数のエンジンオプションは指定できません
+$ xarpite --native --jvm '1 + 2'
+# Error: Multiple engine options specified (native and --jvm)
+```
+
 ## `xarpite`: Xarpiteコードを実行する
 
 ```
