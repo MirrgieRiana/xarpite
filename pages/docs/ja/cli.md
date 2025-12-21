@@ -1,14 +1,37 @@
 ---
-title: "`xa` Xarpiteコードを実行する"
+title: CLI版
 ---
 
-# `xa` Xarpiteコードを実行する
+# Xarpiteを起動するコマンド
+
+## `xarpite`: Xarpiteコードを実行する
 
 ```
-Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
-Options:
-  -h, --help               Show this help
-  -q                       Run script as a runner
+$ xarpite
+# Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
+# Options:
+#   -h, --help               Show this help
+#   -q                       Run script as a runner
+```
+
+`xa` コマンドの長い形式です。
+
+将来的に `xarpite2` などの新作が登場した場合に備えて用意されています。
+
+シェルスクリプトなど、永続的なファイル的にコマンドを記述する際には `xa` コマンドよりもこちらが推奨されます。
+
+他方で、コマンドラインから直接コードを実行する場合には `xa` コマンドの方が短くて便利です。
+
+引数などの仕様は `xa` コマンドと同一です。
+
+## `xa`: Xarpiteコードを実行する
+
+```
+$ xa
+# Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
+# Options:
+#   -h, --help               Show this help
+#   -q                       Run script as a runner
 ```
 
 `xa` はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。
@@ -20,12 +43,18 @@ $ xa '1 + 2'
 # 3
 ```
 
-## 戻り値の出力の仕様
+### 戻り値の出力
 
 戻り値の出力の際には文字列化が行われます。
 
 ```shell
-$ xa '{`&_`: _ -> "Hello, World"}{}'
+$ xa '
+  Object := {
+    new: () -> Object{}
+    `&_`: _ -> "Hello, World"
+  }
+  Object.new()
+'
 # Hello, World
 ```
 
@@ -48,9 +77,9 @@ $ xa '1 .. 3'
 $ xa '1 + 2; ,'
 ```
 
-## 戻り値の出力の抑制
+### 戻り値の出力の抑制
 
-`-q` オプションを指定すると、全体を文として解釈し、戻り値の出力は行われません。
+`-q` オプションを指定すると、全体を文（runner ）として解釈し、戻り値の出力は行われません。
 
 出力を行うには `OUT` 関数などを使う必要があります。
 
@@ -64,11 +93,15 @@ $ xa -q '
 # banana
 ```
 
+---
+
+厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。
+
 # CLI版限定組み込み定数・関数
 
 CLI版Xarpiteでのみ利用可能な定数および関数です。
 
-## `ARGS` コマンドライン引数を取得
+## `ARGS`: コマンドライン引数を取得
 
 コマンドライン引数が配列で格納されています。
 
@@ -79,7 +112,7 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
-## `ENV` 環境変数を取得
+## `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
 
@@ -90,7 +123,7 @@ $ FOO=bar xa 'ENV.FOO'
 
 存在しない変数にアクセスした場合は `NULL` が返ります。
 
-## `IN` コンソールから文字列を1行ずつ読み取る
+## `IN`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
 
@@ -138,7 +171,7 @@ $ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
 
 `IN` を一度でも使用した場合、 `INB` を使用することはできません。
 
-## `INB` コンソールからバイトデータを読み取る
+## `INB`: コンソールからバイトデータを読み取る
 
 `INB: STREAM<BLOB>`
 
@@ -155,7 +188,7 @@ $ echo -n "abc" | xa 'INB'
 
 `INB` を一度でも使用した場合、 `IN` を使用することはできません。
 
-## `OUT` コンソールに出力
+## `OUT`: コンソールに出力
 
 `OUT(value: VALUE): NULL`
 
@@ -198,7 +231,7 @@ $ xa -q '
 # Hello, world!
 ```
 
-## `FILES` ディレクトリ内のファイルの一覧を取得
+## `FILES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
 
@@ -224,7 +257,7 @@ $ {
 # file
 ```
 
-## `READ' ファイルから読み込み
+## `READ': ファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
@@ -243,7 +276,7 @@ $ {
 # banana
 ```
 
-## `USE` 外部Xarpiteファイルの結果を取得
+## `USE`: 外部Xarpiteファイルの結果を取得
 
 `USE(file: STRING): VALUE`
 
