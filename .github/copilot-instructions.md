@@ -10,20 +10,22 @@
 
 ### Follow the User’s Natural Language
 
-When interacting with people on issues or pull requests, you must always write your natural-language text in the natural-language that person normally uses.
+When interacting with people on issues or pull requests, you must always write your natural-language text in the natural-language that the person normally uses.
 
 Scope
 
-- This includes comments, replies, titles, descriptions, progress updates, and any other natural-language text on issues or pull requests.
-- However, the contents of committed files and commit metadata such as commit titles and descriptions are artifacts rather than communication, so they are out of scope for this rule.
+- Including: Titles, descriptions, summaries, progress updates, and any other natural-language text on an issue or pull request.
+- Including: Any comments and replies on GitHub.
+- Including: Your thought-process text.
+- Excluding: The contents of files that are part of commits, and commit metadata such as commit titles and descriptions.
 
 Who to Follow
 
-- When replying to someone, you must follow the natural-language of the user you are replying to.
+- When replying to someone, you must follow that user’s natural-language.
 - When acting in a space managed by a human, you must follow that person’s natural-language.
 - When acting in a space managed by an AI, you must follow the natural-language of the human who provided the prompt to that AI.
 
-If you find existing natural-language text that violates this rule, you must fix it immediately. In particular, you must keep in mind that a AI ​​will always initialize the pull request title and description in English ignoring the natural-language of the original prompt and the original issue.
+If you find existing natural-language text that violates this rule, you must fix it immediately. In particular, you must keep in mind that an AI will always initialize the pull request title and description in English, ignoring the natural-language of the original prompt and the original issue.
 
 ### Conversational Responses
 
