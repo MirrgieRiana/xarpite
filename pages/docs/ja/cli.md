@@ -4,60 +4,7 @@ title: CLI版
 
 # Xarpiteを起動するコマンド
 
-## ランチャーオプション
-
-`xarpite` および `xa` コマンドは、実行エンジンを指定するためのランチャーオプションをサポートしています。
-
-これらのオプションはランタイムオプション（`-q` など）よりも前に指定する必要があります。
-
-### `--native`: ネイティブ版を使用
-
-```shell
-$ xarpite --native '1 + 2'
-# 3
-```
-
-ネイティブコンパイルされたXarpiteエンジンを使用します。
-
-### `--jvm`: JVM版を使用
-
-```shell
-$ xarpite --jvm '1 + 2'
-# 3
-```
-
-Java仮想マシン上で動作するXarpiteエンジンを使用します。
-
-### `--node`: Node.js版を使用
-
-```shell
-$ xarpite --node '1 + 2'
-# 3
-```
-
-Node.js上で動作するXarpiteエンジンを使用します。
-
-### 注意事項
-
-- これらのオプションは相互に排他的です。複数のエンジンオプションを同時に指定することはできません。
-- ランチャーオプションは環境変数 `XARPITE_ENGINE` よりも優先されます。
-- ランチャーオプションが指定されていない場合、`XARPITE_ENGINE` 環境変数、設定ファイル `default_engine`、デフォルト値（`native`）の順で実行エンジンが決定されます。
-
-```shell
-# エラー: 複数のエンジンオプションは指定できません
-$ xarpite --native --jvm '1 + 2'
-# Error: Multiple engine options specified (native and --jvm)
-```
-
 ## `xarpite`: Xarpiteコードを実行する
-
-```
-$ xarpite
-# Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
-# Options:
-#   -h, --help               Show this help
-#   -q                       Run script as a runner
-```
 
 `xa` コマンドの長い形式です。
 
@@ -73,8 +20,14 @@ $ xarpite
 
 ```
 $ xa
-# Usage: xa [-h|--help] [-q] [--] <code> <arguments...>
-# Options:
+# Usage: xa [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>
+#
+# Launcher Options:
+#   --native                 Use the native engine
+#   --jvm                    Use the JVM engine
+#   --node                   Use the Node.js engine
+#
+# Runtime Options:
 #   -h, --help               Show this help
 #   -q                       Run script as a runner
 ```
@@ -87,6 +40,54 @@ $ xa
 $ xa '1 + 2'
 # 3
 ```
+
+---
+
+`Launcher Options` は `Runtime Options` よりも前に指定する必要があります。
+
+`--` はオプションの終端を示します。これ以降の引数はすべてコードおよびコードに渡される引数として解釈されます。
+
+### `XARPITE_ENGINE`: 実行エンジンを指定
+
+`XARPITE_ENGINE` 環境変数はXarpiteの実行エンジンを指定します。
+
+- `native`: ネイティブ実装を使用
+- `jvm`: JVMを使用
+- `node`: Node.jsを使用
+
+---
+
+一部の機能は特定のエンジンでのみ利用可能です。
+
+---
+
+`XARPITE_ENGINE` 環境変数が指定されていない場合、設定ファイル `default_engine` の内容が使用されます。
+
+通常、この設定ファイルはXarpiteのインストール時に作成されます。
+
+この設定ファイルも存在しない場合、デフォルトで `native` エンジンが使用されます。
+
+### `--native`: ネイティブ実装エンジンを使用
+
+ネイティブコンパイルされたXarpiteエンジンを使用します。
+
+---
+
+Xarpiteエンジンを指定するコマンドラインオプションは排他的であり、複数を同時に指定することはできません。
+
+コマンドラインオプションによるXarpiteエンジンの指定は、環境変数による指定よりも優先されます。
+
+### `--jvm`: JVMエンジンを使用
+
+JVM上で動作するXarpiteエンジンを使用します。
+
+コマンドラインオプションとしての基本的な性質は `--native` に準じます。
+
+### `--node`: Node.jsエンジンを使用
+
+Node.js上で動作するXarpiteエンジンを使用します。
+
+コマンドラインオプションとしての基本的な性質は `--native` に準じます。
 
 ### 戻り値の出力
 
@@ -122,7 +123,7 @@ $ xa '1 .. 3'
 $ xa '1 + 2; ,'
 ```
 
-### 戻り値の出力の抑制
+### `-q`: 戻り値の出力の抑制
 
 `-q` オプションを指定すると、全体を文（runner ）として解釈し、戻り値の出力は行われません。
 
