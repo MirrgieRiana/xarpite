@@ -1,3 +1,6 @@
+// Initialize Node.js support when this file is loaded
+private val nodeInitialized = initializeNodeForTests().let { true }
+
 actual fun isWindows(): Boolean {
     // In Node.js, check process.platform
     return try {
