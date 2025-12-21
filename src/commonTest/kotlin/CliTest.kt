@@ -172,8 +172,8 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
         createCliMounts(args.toList()),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-    mountsFactory = { filePath ->
-        defaultBuiltinMounts + createModuleMounts(filePath, mountsFactory)
+    mountsFactory = { location ->
+        defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
     }
     evaluator.defineMounts(mountsFactory("./-"))
     return evaluator.get(src)

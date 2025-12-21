@@ -7,28 +7,24 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
 
-fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
+fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "USE" to run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
-                filePath.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
+                location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
                 val file = arguments[0].toFluoriteString().value
-                if (!file.startsWith("./")) throw FluoriteException("""Path must start with "./".""".toFluoriteString())
-                val fileSystem = getFileSystem().getOrThrow()
-                val relativePath = file.drop(2)
-                val modulePath = resolveModulePath(baseDir, relativePath, fileSystem, file.endsWith(MODULE_EXTENSION))
+                val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
-                    val src = fileSystem.read(modulePath) { readUtf8() }
+                    val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(modulePath.toString()))
                     evaluator.get(src)
@@ -38,13 +34,13 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
-private fun resolveModulePath(baseDir: Path, relativePath: String, fileSystem: FileSystem, hasModuleExtension: Boolean): Path {
-    val originalPath = baseDir.resolve(relativePath.toPath()).normalized()
-    if (fileSystem.exists(originalPath)) return originalPath
-    if (!hasModuleExtension) {
-        val fallbackPath = baseDir.resolve((relativePath + MODULE_EXTENSION).toPath()).normalized()
-        if (fileSystem.exists(fallbackPath)) return fallbackPath
-        return fallbackPath
+private fun resolveModulePath(baseDir: Path, file: String): Path? {
+    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
+    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
+    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
+    if (!file.endsWith(MODULE_EXTENSION)) {
+        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
+        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
     }
-    return originalPath
+    return null
 }
