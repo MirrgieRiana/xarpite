@@ -95,7 +95,7 @@ class JsTest {
     @Test
     fun exec() = runTest {
         fileSystemGetter = { NodeJsFileSystem }
-        val defaultMounts = createDefaultBuiltinMounts()
+        val defaultMounts = this.createDefaultBuiltinMounts()
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
         mountsFactory = { location ->
             defaultMounts + createModuleMounts(location, mountsFactory)

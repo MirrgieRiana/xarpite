@@ -57,11 +57,6 @@ kotlin {
                 implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
             }
         }
-        jsTest {
-            dependencies {
-                implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
-            }
-        }
     }
 
 }
