@@ -151,13 +151,27 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
     }
 }
 
-tasks.register<Exec>("runDocShellTests") {
+val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
     dependsOn(generateDocShellTests, releaseExecutable.linkTaskProvider)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
     commandLine("bash", "ja.sh", releaseExecutable.outputFile.relativeTo(workingDir).invariantSeparatorsPath)
 }
-tasks.named("check").configure { dependsOn(tasks.named("runDocShellTests")) }
+tasks.named("check").configure { dependsOn(runDocShellTests) }
+
+val runReleaseTests = tasks.register<Exec>("runReleaseTests") {
+    group = "verification"
+    dependsOn(bundleRelease)
+    workingDir = project.layout.projectDirectory.dir("scripts").asFile
+    doFirst {
+        commandLine(
+            "bash",
+            "run-release-tests.sh",
+            bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+        )
+    }
+}
+tasks.named("check").configure { dependsOn(runReleaseTests) }
 
 
 // Utilities
