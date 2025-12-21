@@ -309,7 +309,7 @@ $ {
 # file
 ```
 
-## `READ': ファイルから読み込み
+## `READ`: ファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
