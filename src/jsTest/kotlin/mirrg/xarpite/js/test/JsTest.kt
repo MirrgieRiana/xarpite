@@ -2,10 +2,14 @@ package mirrg.xarpite.js.test
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import fileSystemGetter
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
+import okio.NodeJsFileSystem
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -85,6 +89,28 @@ class JsTest {
     fun await() = runTest {
         assertEquals(123, evalJs("AWAIT(JS('new Promise(callback => callback(123))'))").int) // Promiseに対してAWAITするとサスペンドして取得する
         assertEquals(123, evalJs("AWAIT(JS('async () => 123')())").int) // async関数を実行した結果も同様
+    }
+
+    @Test
+    fun exec() = runTest {
+        fileSystemGetter = { NodeJsFileSystem }
+        val defaultMounts = createDefaultBuiltinMounts()
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            defaultMounts + createModuleMounts(location, mountsFactory)
+        }
+        val evaluator = Evaluator()
+        val repoRoot = "/home/runner/work/xarpite/xarpite"
+        evaluator.defineMounts(mountsFactory("$repoRoot/.exec-test-placeholder.xa1"))
+        assertEquals(
+            "abc",
+            evaluator.get(
+                """
+                    @USE("./exec")
+                    EXEC("echo", "abc"; E) >> JOIN["\n"]
+                """.trimIndent()
+            ).string,
+        )
     }
 
 }

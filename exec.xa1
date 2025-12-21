@@ -1,0 +1,35 @@
+{
+  EXEC: (command; stdin) -> (
+    result := AWAIT(JS(%>
+      async (commandStream, stdinStream) => {
+        const { spawnSync } = await import("node:child_process");
+        const commandArray = Array.from(commandStream).map(String);
+        if (commandArray.length === 0) {
+          throw new Error("command stream is empty");
+        }
+        const [cmd, ...args] = commandArray;
+        const stdinLines = Array.from(stdinStream).map(String);
+        const r = spawnSync(cmd, args, {
+          input: stdinLines.join("\n"),
+          encoding: "utf8",
+        });
+        if (r.error) {
+          throw r.error;
+        }
+        if (r.status !== 0 && r.status !== null) {
+          const error = new Error(`Process exited with code ${r.status}`);
+          error.stdout = r.stdout;
+          error.stderr = r.stderr;
+          throw error;
+        }
+        const stdout = (r.stdout ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        const lines = stdout.split("\n");
+        if (lines.length !== 0 && lines[lines.length - 1] === "") {
+          lines.pop();
+        }
+        return lines;
+      }
+    <%)([command]; [stdin]))
+    result()
+  )
+}

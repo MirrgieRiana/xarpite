@@ -177,3 +177,22 @@ promise := async_function()
 AWAIT(promise)
 # apple
 ```
+
+## `@USE("./exec")` 外部プロセス実行モジュール
+
+Node.js 版Xarpiteでは、外部プロセスを実行するモジュールを利用できます。
+
+モジュールはリポジトリルートの `exec.xa1` を `@USE("./exec")` で読み込んで使用します。
+
+### `EXEC` プロセスの実行
+
+`EXEC(command: STREAM<STRING>; stdin: STREAM<STRING>): STREAM<STRING>`
+
+第1引数 `command` でコマンド名と引数を順に指定します。  
+第2引数 `stdin` で標準入力へ送る文字列のストリームを指定します。改行は自動的に付与されます。  
+戻り値は標準出力を行単位に分割したストリームです。
+
+```shell
+$ xa '@USE("./exec"); EXEC("echo", "abc"; E)'
+# abc
+```

@@ -52,6 +52,16 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
+        jsMain {
+            dependencies {
+                implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
+            }
+        }
     }
 
 }
