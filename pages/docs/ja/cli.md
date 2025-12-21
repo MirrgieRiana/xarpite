@@ -252,7 +252,7 @@ $ {
 ```shell
 $ {
   echo '877' > banana.xa1
-  xa 'USE("./banana.xa1")'
+  xa 'USE("./banana")'
   rm banana.xa1
 }
 # 877
@@ -262,17 +262,42 @@ $ {
 
 `file` は `./` で始まる必要があり、 `USE` 関数を呼び出したファイルからの相対パスとして解釈されます。
 
-例えば、 `fruit/apple.xa1` 内で `USE("./banana.xa1")` と記述した場合、 `fruit/banana.xa1` が読み込まれます。
+例えば、 `fruit/apple.xa1` 内で `USE("./banana")` と記述した場合、 `fruit/banana.xa1` が読み込まれます。
 
-拡張子の `.xa1` は省略可能です。 `USE("./banana")` と記述した場合、 `./banana` が存在すればそれ、そうでなければ `./banana.xa1` が読み込まれます。
+`file` では拡張子の `.xa1` は省略可能です。 `USE("./banana")` と記述した場合、 `./banana` が存在すればそれ、そうでなければ `./banana.xa1` が読み込まれます。
 
 コードがコマンドライン上で直接指定された場合、カレントディレクトリを起点としてファイルを解決します。
 
 ディレクトリの区切り文字はそれが実行されるOSに関わらず `/` を使用します。
 
+```shell
+$ {
+  mkdir modules
+  echo '
+    {
+      getBananaImpl: () -> "Banana"
+    }
+  ' > modules/banana.xa1
+  echo '
+    @USE("./banana")
+    {
+      getBanana: () -> getBananaImpl()
+    }
+  ' > modules/fruit.xa1
+  xa '
+    @USE("./modules/fruit")
+    getBanana()
+  '
+  rm modules/banana.xa1
+  rm modules/fruit.xa1
+  rmdir modules
+}
+# Banana
+```
+
 ---
 
-`USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感で利用できます。
+`USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感を実現できます。
 
 ```shell
 $ {
@@ -282,7 +307,7 @@ $ {
     }
   ' > banana.xa1
   xa '
-    @USE("./banana.xa1")
+    @USE("./banana")
     FRUIT
   '
   rm banana.xa1
@@ -294,7 +319,7 @@ $ {
 
 同一絶対ファイルパスに対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
 
-副作用も1度だけ生じます。
+そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。
 
 ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。
 
@@ -308,8 +333,8 @@ $ {
     }
   ' > tmp.xa1
   xa -q '
-    a := USE("./tmp.xa1")
-    b := USE("./tmp.xa1")
+    a := USE("./tmp")
+    b := USE("./tmp")
     OUT << b.variables.fruit
     a.variables.fruit = "banana"
     OUT << b.variables.fruit
