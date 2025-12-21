@@ -10,6 +10,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
 import okio.NodeJsFileSystem
+import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -100,8 +101,13 @@ class JsTest {
             defaultMounts + createModuleMounts(location, mountsFactory)
         }
         val evaluator = Evaluator()
-        val repoRoot = "/home/runner/work/xarpite/xarpite"
-        evaluator.defineMounts(mountsFactory("$repoRoot/.exec-test-placeholder.xa1"))
+        val fs = NodeJsFileSystem
+        val start = js("process.cwd()").unsafeCast<String>().toPath()
+        val execPath = generateSequence(start) { it.parent }
+            .map { it.resolve("exec.xa1") }
+            .firstOrNull { fs.exists(it) }
+            ?: error("exec.xa1 not found from $start")
+        evaluator.defineMounts(mountsFactory(execPath.toString()))
         assertEquals(
             "abc",
             evaluator.get(

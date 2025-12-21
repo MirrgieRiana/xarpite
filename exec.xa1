@@ -9,8 +9,9 @@
         }
         const [cmd, ...args] = commandArray;
         const stdinLines = Array.from(stdinStream).map(String);
+        const input = stdinLines.length === 0 ? undefined : stdinLines.join("\n");
         const r = spawnSync(cmd, args, {
-          input: stdinLines.join("\n"),
+          input,
           encoding: "utf8",
         });
         if (r.error) {
