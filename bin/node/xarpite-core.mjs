@@ -5077,8 +5077,14 @@ function showUsage() {
   var tmp0_elvis_lhs = getEnv().k2('XARPITE_PROGRAM_NAME');
   var tmp1_elvis_lhs = tmp0_elvis_lhs == null ? getProgramName() : tmp0_elvis_lhs;
   var programName = tmp1_elvis_lhs == null ? 'xarpite' : tmp1_elvis_lhs;
-  println('Usage: ' + programName + ' [-h|--help] [-q] [--] <code> <arguments...>');
-  println('Options:');
+  println('Usage: ' + programName + ' [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>');
+  println('');
+  println('Launcher Options:');
+  println('  --native                 Use the native engine');
+  println('  --jvm                    Use the JVM engine');
+  println('  --node                   Use the Node.js engine');
+  println('');
+  println('Runtime Options:');
   println('  -h, --help               Show this help');
   println('  -q                       Run script as a runner');
 }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>`xa` Xarpiteコードを実行する - Xarpite</title>
+  <title>CLI版 - Xarpite</title>
   <meta name="description" content="An interpreted language for one-liners">
   <link rel="stylesheet" href="/xarpite/assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
@@ -63,12 +63,33 @@
           </aside>
 
           <article class="doc-content">
-            <h1 id="xa-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xa</code> Xarpiteコードを実行する</h1>
+            <h1 id="xarpiteを起動するコマンド">Xarpiteを起動するコマンド</h1>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Usage: xa [-h|--help] [-q] [--] &lt;code&gt; &lt;arguments...&gt;
-Options:
-  -h, --help               Show this help
-  -q                       Run script as a runner
+<h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
+
+<p><code class="language-plaintext highlighter-rouge">xa</code> コマンドの長い形式です。</p>
+
+<p>将来的に <code class="language-plaintext highlighter-rouge">xarpite2</code> などの新作が登場した場合に備えて用意されています。</p>
+
+<p>シェルスクリプトなど、永続的なファイル的にコマンドを記述する際には <code class="language-plaintext highlighter-rouge">xa</code> コマンドよりもこちらが推奨されます。</p>
+
+<p>他方で、コマンドラインから直接コードを実行する場合には <code class="language-plaintext highlighter-rouge">xa</code> コマンドの方が短くて便利です。</p>
+
+<p>引数などの仕様は <code class="language-plaintext highlighter-rouge">xa</code> コマンドと同一です。</p>
+
+<h2 id="xa-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xa</code>: Xarpiteコードを実行する</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xa
+# Usage: xa [&lt;Launcher Options&gt;] [&lt;Runtime Options&gt;] [--] &lt;code&gt; &lt;arguments...&gt;
+#
+# Launcher Options:
+#   --native                 Use the native engine
+#   --jvm                    Use the JVM engine
+#   --node                   Use the Node.js engine
+#
+# Runtime Options:
+#   -h, --help               Show this help
+#   -q                       Run script as a runner
 </code></pre></div></div>
 
 <p><code class="language-plaintext highlighter-rouge">xa</code> はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。</p>
@@ -79,11 +100,67 @@ Options:
 <span class="c"># 3</span>
 </code></pre></div></div>
 
-<h2 id="戻り値の出力の仕様">戻り値の出力の仕様</h2>
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">Launcher Options</code> は <code class="language-plaintext highlighter-rouge">Runtime Options</code> よりも前に指定する必要があります。</p>
+
+<p><code class="language-plaintext highlighter-rouge">--</code> はオプションの終端を示します。これ以降の引数はすべてコードおよびコードに渡される引数として解釈されます。</p>
+
+<h3 id="xarpite_engine-実行エンジンを指定"><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code>: 実行エンジンを指定</h3>
+
+<p><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code> 環境変数はXarpiteの実行エンジンを指定します。</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">native</code>: ネイティブ実装を使用</li>
+  <li><code class="language-plaintext highlighter-rouge">jvm</code>: JVMを使用</li>
+  <li><code class="language-plaintext highlighter-rouge">node</code>: Node.jsを使用</li>
+</ul>
+
+<hr />
+
+<p>一部の機能は特定のエンジンでのみ利用可能です。</p>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code> 環境変数が指定されていない場合、設定ファイル <code class="language-plaintext highlighter-rouge">default_engine</code> の内容が使用されます。</p>
+
+<p>通常、この設定ファイルはXarpiteのインストール時に作成されます。</p>
+
+<p>この設定ファイルも存在しない場合、デフォルトで <code class="language-plaintext highlighter-rouge">native</code> エンジンが使用されます。</p>
+
+<h3 id="--native-ネイティブ実装エンジンを使用"><code class="language-plaintext highlighter-rouge">--native</code>: ネイティブ実装エンジンを使用</h3>
+
+<p>ネイティブコンパイルされたXarpiteエンジンを使用します。</p>
+
+<hr />
+
+<p>Xarpiteエンジンを指定するコマンドラインオプションは排他的であり、複数を同時に指定することはできません。</p>
+
+<p>コマンドラインオプションによるXarpiteエンジンの指定は、環境変数による指定よりも優先されます。</p>
+
+<h3 id="--jvm-jvmエンジンを使用"><code class="language-plaintext highlighter-rouge">--jvm</code>: JVMエンジンを使用</h3>
+
+<p>JVM上で動作するXarpiteエンジンを使用します。</p>
+
+<p>コマンドラインオプションとしての基本的な性質は <code class="language-plaintext highlighter-rouge">--native</code> に準じます。</p>
+
+<h3 id="--node-nodejsエンジンを使用"><code class="language-plaintext highlighter-rouge">--node</code>: Node.jsエンジンを使用</h3>
+
+<p>Node.js上で動作するXarpiteエンジンを使用します。</p>
+
+<p>コマンドラインオプションとしての基本的な性質は <code class="language-plaintext highlighter-rouge">--native</code> に準じます。</p>
+
+<h3 id="戻り値の出力">戻り値の出力</h3>
 
 <p>戻り値の出力の際には文字列化が行われます。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'{`&amp;_`: _ -&gt; "Hello, World"}{}'</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  Object := {
+    new: () -&gt; Object{}
+    `&amp;_`: _ -&gt; "Hello, World"
+  }
+  Object.new()
+'</span>
 <span class="c"># Hello, World</span>
 </code></pre></div></div>
 
@@ -104,9 +181,9 @@ Options:
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 + 2; ,'</span>
 </code></pre></div></div>
 
-<h2 id="戻り値の出力の抑制">戻り値の出力の抑制</h2>
+<h3 id="-q-戻り値の出力の抑制"><code class="language-plaintext highlighter-rouge">-q</code>: 戻り値の出力の抑制</h3>
 
-<p><code class="language-plaintext highlighter-rouge">-q</code> オプションを指定すると、全体を文として解釈し、戻り値の出力は行われません。</p>
+<p><code class="language-plaintext highlighter-rouge">-q</code> オプションを指定すると、全体を文（runner ）として解釈し、戻り値の出力は行われません。</p>
 
 <p>出力を行うには <code class="language-plaintext highlighter-rouge">OUT</code> 関数などを使う必要があります。</p>
 
@@ -119,11 +196,15 @@ Options:
 <span class="c"># banana</span>
 </code></pre></div></div>
 
+<hr />
+
+<p>厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。</p>
+
 <h1 id="cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</h1>
 
 <p>CLI版Xarpiteでのみ利用可能な定数および関数です。</p>
 
-<h2 id="args-コマンドライン引数を取得"><code class="language-plaintext highlighter-rouge">ARGS</code> コマンドライン引数を取得</h2>
+<h2 id="args-コマンドライン引数を取得"><code class="language-plaintext highlighter-rouge">ARGS</code>: コマンドライン引数を取得</h2>
 
 <p>コマンドライン引数が配列で格納されています。</p>
 
@@ -133,7 +214,7 @@ Options:
 <span class="c"># [1;2;3]</span>
 </code></pre></div></div>
 
-<h2 id="env-環境変数を取得"><code class="language-plaintext highlighter-rouge">ENV</code> 環境変数を取得</h2>
+<h2 id="env-環境変数を取得"><code class="language-plaintext highlighter-rouge">ENV</code>: 環境変数を取得</h2>
 
 <p>環境変数がオブジェクトとして格納されています。</p>
 
@@ -143,7 +224,7 @@ Options:
 
 <p>存在しない変数にアクセスした場合は <code class="language-plaintext highlighter-rouge">NULL</code> が返ります。</p>
 
-<h2 id="in-コンソールから文字列を1行ずつ読み取る"><code class="language-plaintext highlighter-rouge">IN</code> コンソールから文字列を1行ずつ読み取る</h2>
+<h2 id="in-コンソールから文字列を1行ずつ読み取る"><code class="language-plaintext highlighter-rouge">IN</code>: コンソールから文字列を1行ずつ読み取る</h2>
 
 <p><code class="language-plaintext highlighter-rouge">IN: STREAM&lt;STRING&gt;</code></p>
 
@@ -187,7 +268,7 @@ Options:
 
 <p><code class="language-plaintext highlighter-rouge">IN</code> を一度でも使用した場合、 <code class="language-plaintext highlighter-rouge">INB</code> を使用することはできません。</p>
 
-<h2 id="inb-コンソールからバイトデータを読み取る"><code class="language-plaintext highlighter-rouge">INB</code> コンソールからバイトデータを読み取る</h2>
+<h2 id="inb-コンソールからバイトデータを読み取る"><code class="language-plaintext highlighter-rouge">INB</code>: コンソールからバイトデータを読み取る</h2>
 
 <p><code class="language-plaintext highlighter-rouge">INB: STREAM&lt;BLOB&gt;</code></p>
 
@@ -203,7 +284,7 @@ Options:
 
 <p><code class="language-plaintext highlighter-rouge">INB</code> を一度でも使用した場合、 <code class="language-plaintext highlighter-rouge">IN</code> を使用することはできません。</p>
 
-<h2 id="out-コンソールに出力"><code class="language-plaintext highlighter-rouge">OUT</code> コンソールに出力</h2>
+<h2 id="out-コンソールに出力"><code class="language-plaintext highlighter-rouge">OUT</code>: コンソールに出力</h2>
 
 <p><code class="language-plaintext highlighter-rouge">OUT(value: VALUE): NULL</code></p>
 
@@ -243,7 +324,7 @@ Options:
 <span class="c"># Hello, world!</span>
 </code></pre></div></div>
 
-<h2 id="files-ディレクトリ内のファイルの一覧を取得"><code class="language-plaintext highlighter-rouge">FILES</code> ディレクトリ内のファイルの一覧を取得</h2>
+<h2 id="files-ディレクトリ内のファイルの一覧を取得"><code class="language-plaintext highlighter-rouge">FILES</code>: ディレクトリ内のファイルの一覧を取得</h2>
 
 <p><code class="language-plaintext highlighter-rouge">FILES(dir: STRING): STREAM&lt;STRING&gt;</code></p>
 
@@ -268,7 +349,7 @@ Options:
 <span class="c"># file</span>
 </code></pre></div></div>
 
-<h2 id="read-ファイルから読み込み">`READ’ ファイルから読み込み</h2>
+<h2 id="read-ファイルから読み込み">`READ’: ファイルから読み込み</h2>
 
 <p><code class="language-plaintext highlighter-rouge">READ(file: STRING): STREAM&lt;STRING&gt;</code></p>
 
@@ -286,7 +367,7 @@ Options:
 <span class="c"># banana</span>
 </code></pre></div></div>
 
-<h2 id="use-外部xarpiteファイルの結果を取得"><code class="language-plaintext highlighter-rouge">USE</code> 外部Xarpiteファイルの結果を取得</h2>
+<h2 id="use-外部xarpiteファイルの結果を取得"><code class="language-plaintext highlighter-rouge">USE</code>: 外部Xarpiteファイルの結果を取得</h2>
 
 <p><code class="language-plaintext highlighter-rouge">USE(file: STRING): VALUE</code></p>
 
@@ -294,7 +375,7 @@ Options:
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
   <span class="nb">echo</span> <span class="s1">'877'</span> <span class="o">&gt;</span> banana.xa1
-  xa <span class="s1">'USE("./banana.xa1")'</span>
+  xa <span class="s1">'USE("./banana")'</span>
   <span class="nb">rm </span>banana.xa1
 <span class="o">}</span>
 <span class="c"># 877</span>
@@ -304,17 +385,41 @@ Options:
 
 <p><code class="language-plaintext highlighter-rouge">file</code> は <code class="language-plaintext highlighter-rouge">./</code> で始まる必要があり、 <code class="language-plaintext highlighter-rouge">USE</code> 関数を呼び出したファイルからの相対パスとして解釈されます。</p>
 
-<p>例えば、 <code class="language-plaintext highlighter-rouge">fruit/apple.xa1</code> 内で <code class="language-plaintext highlighter-rouge">USE("./banana.xa1")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">fruit/banana.xa1</code> が読み込まれます。</p>
+<p>例えば、 <code class="language-plaintext highlighter-rouge">fruit/apple.xa1</code> 内で <code class="language-plaintext highlighter-rouge">USE("./banana")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">fruit/banana.xa1</code> が読み込まれます。</p>
 
-<p>拡張子の <code class="language-plaintext highlighter-rouge">.xa1</code> は省略可能です。 <code class="language-plaintext highlighter-rouge">USE("./banana")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">./banana</code> が存在すればそれ、そうでなければ <code class="language-plaintext highlighter-rouge">./banana.xa1</code> が読み込まれます。</p>
+<p><code class="language-plaintext highlighter-rouge">file</code> では拡張子の <code class="language-plaintext highlighter-rouge">.xa1</code> は省略可能です。 <code class="language-plaintext highlighter-rouge">USE("./banana")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">./banana</code> が存在すればそれ、そうでなければ <code class="language-plaintext highlighter-rouge">./banana.xa1</code> が読み込まれます。</p>
 
 <p>コードがコマンドライン上で直接指定された場合、カレントディレクトリを起点としてファイルを解決します。</p>
 
 <p>ディレクトリの区切り文字はそれが実行されるOSに関わらず <code class="language-plaintext highlighter-rouge">/</code> を使用します。</p>
 
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">mkdir </span>modules
+  <span class="nb">echo</span> <span class="s1">'
+    {
+      getBananaImpl: () -&gt; "Banana"
+    }
+  '</span> <span class="o">&gt;</span> modules/banana.xa1
+  <span class="nb">echo</span> <span class="s1">'
+    @USE("./banana")
+    {
+      getBanana: () -&gt; getBananaImpl()
+    }
+  '</span> <span class="o">&gt;</span> modules/fruit.xa1
+  xa <span class="s1">'
+    @USE("./modules/fruit")
+    getBanana()
+  '</span>
+  <span class="nb">rm </span>modules/banana.xa1
+  <span class="nb">rm </span>modules/fruit.xa1
+  <span class="nb">rmdir </span>modules
+<span class="o">}</span>
+<span class="c"># Banana</span>
+</code></pre></div></div>
+
 <hr />
 
-<p><code class="language-plaintext highlighter-rouge">USE</code> 関数の戻り値をマウントすることで、ディレクティブのような使用感で利用できます。</p>
+<p><code class="language-plaintext highlighter-rouge">USE</code> 関数の戻り値をマウントすることで、ディレクティブのような使用感を実現できます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
   <span class="nb">echo</span> <span class="s1">'
@@ -323,7 +428,7 @@ Options:
     }
   '</span> <span class="o">&gt;</span> banana.xa1
   xa <span class="s1">'
-    @USE("./banana.xa1")
+    @USE("./banana")
     FRUIT
   '</span>
   <span class="nb">rm </span>banana.xa1
@@ -335,7 +440,7 @@ Options:
 
 <p>同一絶対ファイルパスに対する <code class="language-plaintext highlighter-rouge">USE</code> 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。</p>
 
-<p>副作用も1度だけ生じます。</p>
+<p>そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。</p>
 
 <p>ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。</p>
 
@@ -348,8 +453,8 @@ Options:
     }
   '</span> <span class="o">&gt;</span> tmp.xa1
   xa <span class="nt">-q</span> <span class="s1">'
-    a := USE("./tmp.xa1")
-    b := USE("./tmp.xa1")
+    a := USE("./tmp")
+    b := USE("./tmp")
     OUT &lt;&lt; b.variables.fruit
     a.variables.fruit = "banana"
     OUT &lt;&lt; b.variables.fruit
