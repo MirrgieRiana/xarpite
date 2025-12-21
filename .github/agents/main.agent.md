@@ -1,5 +1,5 @@
 ---
-name: Main
+name: All GitHub Copilot Coding Agents MUST carefully read `.github/copilot-instructions.md`.
 description: All GitHub Copilot Coding Agents MUST carefully read `.github/copilot-instructions.md`.
 ---
 
