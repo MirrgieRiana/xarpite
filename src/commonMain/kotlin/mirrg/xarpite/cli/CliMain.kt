@@ -16,8 +16,8 @@ suspend fun main(options: Options, coroutineScope: CoroutineScope, createExtraMo
         createExtraMounts(),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-    mountsFactory = { filePath ->
-        defaultBuiltinMounts + createModuleMounts(filePath, mountsFactory)
+    mountsFactory = { location ->
+        defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
     }
     evaluator.defineMounts(mountsFactory("./-"))
     if (options.quiet) {

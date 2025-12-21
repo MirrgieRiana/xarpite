@@ -10,18 +10,19 @@ import mirrg.xarpite.operations.FluoriteException
 import okio.Path
 import okio.Path.Companion.toPath
 
-fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
+private const val MODULE_EXTENSION = ".xa1"
+
+fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "USE" to run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
-                filePath.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
+                location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
                 val file = arguments[0].toFluoriteString().value
-                if (!file.startsWith("./")) throw FluoriteException("""Path must start with "./".""".toFluoriteString())
-                val modulePath = baseDir.resolve(file.drop(2).toPath()).normalized()
+                val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
                     val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
@@ -31,4 +32,15 @@ fun createModuleMounts(filePath: String, mountsFactory: (String) -> List<Map<Str
             }
         },
     ).let { listOf(it) }
+}
+
+private fun resolveModulePath(baseDir: Path, file: String): Path? {
+    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
+    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
+    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
+    if (!file.endsWith(MODULE_EXTENSION)) {
+        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
+        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
+    }
+    return null
 }
