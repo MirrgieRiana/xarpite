@@ -108,12 +108,15 @@ class JsTest {
             .firstOrNull { fs.exists(it) }
             ?: error("exec.xa1 not found from $start")
         evaluator.defineMounts(mountsFactory(execPath.toString()))
+        val nodeExec = js("process.execPath").unsafeCast<String>()
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
         assertEquals(
             "abc",
             evaluator.get(
                 """
                     @USE("./exec")
-                    EXEC("echo", "abc"; E) >> JOIN["\n"]
+                    EXEC("$nodeExec", "-e", "console.log('abc')"; E) >> JOIN["\n"]
                 """.trimIndent()
             ).string,
         )
