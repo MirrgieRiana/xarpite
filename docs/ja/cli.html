@@ -306,6 +306,8 @@ Options:
 
 <p>例えば、 <code class="language-plaintext highlighter-rouge">fruit/apple.xa1</code> 内で <code class="language-plaintext highlighter-rouge">USE("./banana.xa1")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">fruit/banana.xa1</code> が読み込まれます。</p>
 
+<p>拡張子の <code class="language-plaintext highlighter-rouge">.xa1</code> は省略可能です。 <code class="language-plaintext highlighter-rouge">USE("./banana")</code> と記述した場合、 <code class="language-plaintext highlighter-rouge">./banana</code> が存在すればそれ、そうでなければ <code class="language-plaintext highlighter-rouge">./banana.xa1</code> が読み込まれます。</p>
+
 <p>コードがコマンドライン上で直接指定された場合、カレントディレクトリを起点としてファイルを解決します。</p>
 
 <p>ディレクトリの区切り文字はそれが実行されるOSに関わらず <code class="language-plaintext highlighter-rouge">/</code> を使用します。</p>
