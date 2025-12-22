@@ -164,7 +164,7 @@ $ xa -q '
 
 ```shell
 $ {
-  echo '100 + 20 + 3' > script.xa1
+  echo '1 + 2' > script.xa1
   xa -f script.xa1
   rm script.xa1
 }
