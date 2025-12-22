@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Xarpite documentation site now supports automatic generation of Table of Contents (TOC) for documentation pages using Jekyll and Kramdown's built-in TOC functionality.
+The Xarpite documentation site supports automatic generation of Table of Contents (TOC) for documentation pages using Jekyll and Kramdown's built-in TOC functionality.
 
 ## How to Enable TOC for a Documentation Page
 
@@ -10,16 +10,7 @@ To add an automatically generated table of contents to any documentation page:
 
 ### 1. Add Front Matter Configuration
 
-In the YAML front matter of your markdown file, add `toc: true`:
-
-```yaml
----
-title: "Your Page Title"
-toc: true
----
-```
-
-For English pages, also add `lang: en`:
+In the YAML front matter of your markdown file, add `toc: true` and `lang: en`:
 
 ```yaml
 ---
@@ -45,30 +36,6 @@ Make sure your document uses proper heading hierarchy:
 The TOC will automatically be generated from these headings (levels 1-3 by default).
 
 ## Example
-
-**Japanese documentation page:**
-```markdown
----
-title: "組み込み関数"
-toc: true
----
-
-# 数学系関数
-
-## ABS
-
-Absolute value function...
-
-## SQRT
-
-Square root function...
-
-# ストリーム系関数
-
-## MAP
-
-Map function...
-```
 
 **English documentation page:**
 ```markdown
@@ -122,7 +89,7 @@ TOC styling is defined in `/assets/css/style.css` under the `.table-of-contents`
 The TOC system consists of:
 
 1. **Layout Integration** (`pages/_layouts/default.html`) - Automatically detects `toc: true` in front matter and injects the TOC include
-2. **TOC Template** (`pages/_includes/toc.md`) - Generates the TOC with appropriate language heading
+2. **TOC Template** (`pages/_includes/toc-en.md`) - Generates the TOC with English heading
 3. **Kramdown Processing** - The `{:toc}` marker tells Kramdown to generate TOC from headings
 4. **CSS Styling** (`pages/assets/css/style.css`) - Provides visual styling
 
@@ -130,9 +97,9 @@ The TOC system consists of:
 
 - `pages/_config.yml` - Added Kramdown TOC configuration
 - `pages/_layouts/default.html` - Added automatic TOC injection based on front matter
-- `pages/_includes/toc.md` - Created TOC include template
+- `pages/_includes/toc-en.md` - Created English TOC include template
 - `pages/assets/css/style.css` - Added TOC styling
-- Documentation files (`builtin.md`, `cli.md`, `syntax.md`) - Configured with `toc: true` in front matter only
+- Documentation files (`builtin.md`, `cli.md`, `syntax.md`) - Configured with `toc: true` and `lang: en` in front matter only
 
 ## Benefits
 
@@ -140,6 +107,4 @@ The TOC system consists of:
 2. **Consistency** - All TOCs follow the same format and styling
 3. **Maintainability** - TOCs automatically update when headings change
 4. **No Manual Work** - No need to manually create, update, or include TOC statements
-5. **Multilingual Support** - Automatic language detection for TOC headers
-6. **Customizable** - Easy to adjust TOC depth, styling, and placement
-
+5. **Customizable** - Easy to adjust TOC depth, styling, and placement

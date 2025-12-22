@@ -64,11 +64,8 @@
 
           <article class="doc-content">
             {% if page.toc %}
-              {% if page.lang == 'en' %}
-                {% include toc.md lang='en' %}
-              {% else %}
-                {% include toc.md %}
-              {% endif %}
+              {% assign toc_lang = page.lang | default: 'ja' %}
+              {% include toc-{{ toc_lang }}.md %}
             {% endif %}
             {{ content }}
           </article>
