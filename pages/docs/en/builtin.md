@@ -61,9 +61,9 @@ String-related built-in constants.
 | `APOS`   | `'`     |
 | `QUOT`   | `"`     |
 
-# Mathematical Functions
+## Mathematical Functions
 
-## `ABS` Get Absolute Value
+### `ABS` Get Absolute Value
 
 `ABS(value: NUMBER): NUMBER`
 
@@ -74,7 +74,7 @@ $ xa 'ABS(-10)'
 # 10
 ```
 
-## `FLOOR` Round Down to Integer
+### `FLOOR` Round Down to Integer
 
 `FLOOR(number: NUMBER): INTEGER`
 
@@ -85,7 +85,7 @@ $ xa 'FLOOR(1.5)'
 # 1
 ```
 
-## `DIV` Integer Division
+### `DIV` Integer Division
 
 `DIV(x: NUMBER; y: NUMBER): NUMBER`
 
@@ -96,7 +96,7 @@ $ xa 'DIV(10; 3)'
 # 3
 ```
 
-## `SQRT` Get Square Root
+### `SQRT` Get Square Root
 
 `SQRT(number: NUMBER): NUMBER`
 
@@ -107,7 +107,7 @@ $ xa 'SQRT(100)'
 # 10.000
 ```
 
-## `SIN` Sine
+### `SIN` Sine
 
 `SIN(radian: NUMBER): NUMBER`
 
@@ -118,7 +118,7 @@ $ xa 'SIN(MATH.PI / 2)'
 # 1.000
 ```
 
-## `COS` Cosine
+### `COS` Cosine
 
 `COS(radian: NUMBER): NUMBER`
 
@@ -129,7 +129,7 @@ $ xa 'COS(0)'
 # 1.000
 ```
 
-## `TAN` Tangent
+### `TAN` Tangent
 
 `TAN(radian: NUMBER): NUMBER`
 
@@ -140,7 +140,7 @@ $ xa 'TAN(MATH.PI / 4)'
 # 1.000
 ```
 
-## `POW` Power
+### `POW` Power
 
 `POW(base: NUMBER; exponent: NUMBER): NUMBER`
 
@@ -151,7 +151,7 @@ $ xa 'POW(2; 3)'
 # 8.0
 ```
 
-## `EXP` Exponential Function
+### `EXP` Exponential Function
 
 `EXP(x: NUMBER): NUMBER`
 
@@ -165,7 +165,7 @@ $ xa 'EXP(2)'
 # 7.389
 ```
 
-## `LOG` Natural Logarithm
+### `LOG` Natural Logarithm
 
 `LOG(x: NUMBER): NUMBER`
 
@@ -176,7 +176,7 @@ $ xa 'LOG(MATH.E)'
 # 1.000
 ```
 
-## `RAND` Get Random Number
+### `RAND` Get Random Number
 
 `RAND(): NUMBER`
 
@@ -189,9 +189,9 @@ $ xa 'RAND()'
 # (random value between 0 and 1)
 ```
 
-# Stream Functions
+## Stream Functions
 
-## `REVERSE` Reverse Stream
+### `REVERSE` Reverse Stream
 
 `REVERSE(stream: STREAM<T>): STREAM<T>`
 
@@ -204,13 +204,13 @@ $ xa '1 .. 3 >> REVERSE'
 # 1
 ```
 
-## `SHUFFLE` Shuffle Stream
+### `SHUFFLE` Shuffle Stream
 
 `SHUFFLE(stream: STREAM<T>): STREAM<T>`
 
 Returns a stream with elements in random order.
 
-## `DISTINCT` Remove Duplicate Elements from Stream
+### `DISTINCT` Remove Duplicate Elements from Stream
 
 `DISTINCT(stream: STREAM<T>): STREAM<T>`
 
@@ -241,7 +241,7 @@ $ xa '13, 21, 24, 14, 11 >> DISTINCT(_ % 10)'
 # 24
 ```
 
-## `JOIN` Concatenate Stream to String
+### `JOIN` Concatenate Stream to String
 
 `JOIN(stream: STREAM<STRING>): STRING`
 
@@ -268,7 +268,7 @@ $ xa '10, 20, 30 >> JOIN("|")'
 # 10|20|30
 ```
 
-## `SPLIT` Split String to Stream
+### `SPLIT` Split String to Stream
 
 `SPLIT(string: STRING; separator: STRING): STREAM<STRING>`
 
@@ -302,7 +302,7 @@ $ xa '"1.0 2.0 3.0" >> SPLIT(/\s+/)'
 # 3.0
 ```
 
-## `KEYS` Get Stream of Object Keys
+### `KEYS` Get Stream of Object Keys
 
 `KEYS(object: OBJECT): STREAM<STRING>`
 
@@ -315,7 +315,7 @@ $ xa '{a: 1; b: 2; c: 3} >> KEYS'
 # c
 ```
 
-## `VALUES` Get Stream of Object Values
+### `VALUES` Get Stream of Object Values
 
 `VALUES(object: OBJECT): STREAM<T>`
 
@@ -328,7 +328,7 @@ $ xa '{a: 1; b: 2; c: 3} >> VALUES'
 # 3
 ```
 
-## `SUM` Sum of Stream Elements
+### `SUM` Sum of Stream Elements
 
 `SUM(stream: STREAM<NUMBER>): NUMBER`
 
@@ -339,7 +339,7 @@ $ xa '1 .. 3 >> SUM'
 # 6
 ```
 
-## `MIN` Minimum Value of Stream
+### `MIN` Minimum Value of Stream
 
 `MIN(stream: STREAM<T>): T | NULL`
 
@@ -355,7 +355,7 @@ $ xa 'EMPTY >> MIN'
 # NULL
 ```
 
-## `MAX` Maximum Value of Stream
+### `MAX` Maximum Value of Stream
 
 `MAX(stream: STREAM<T>): T | NULL`
 
@@ -371,7 +371,7 @@ $ xa 'EMPTY >> MAX'
 # NULL
 ```
 
-## `COUNT` Count Stream Elements
+### `COUNT` Count Stream Elements
 
 `COUNT(stream: STREAM<T>): INTEGER`
 
@@ -388,7 +388,7 @@ $ xa 'EMPTY >> COUNT'
 # 0
 ```
 
-## `FIRST` Get First Element of Stream
+### `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<T>): T | NULL`
 
@@ -407,7 +407,7 @@ $ xa 'EMPTY >> FIRST'
 # NULL
 ```
 
-## `LAST` Get Last Element of Stream
+### `LAST` Get Last Element of Stream
 
 `LAST(stream: STREAM<T>): T | NULL`
 
@@ -426,7 +426,7 @@ $ xa 'EMPTY >> LAST'
 # NULL
 ```
 
-## `SINGLE` Get Single Element of Stream
+### `SINGLE` Get Single Element of Stream
 
 `SINGLE(stream: STREAM<T>): T`
 
@@ -445,7 +445,7 @@ $ xa 'EMPTY >> SINGLE'
 # Error
 ```
 
-## `SORT` Sort Stream in Ascending Order
+### `SORT` Sort Stream in Ascending Order
 
 `SORT(stream: STREAM<T>): STREAM<T>`
 
@@ -476,7 +476,7 @@ $ xa '1, 2, 3, 4, 5, 6, 7, 8, 9 >> SORT(_ % 3)'
 # 3 6 9 1 4 7 2 5 8
 ```
 
-## `SORTR` Sort Stream in Descending Order
+### `SORTR` Sort Stream in Descending Order
 
 `SORTR(stream: STREAM<T>): STREAM<T>`
 
@@ -493,7 +493,7 @@ $ xa '5, 1, 9, 3, 5, 2, 4, 1, 6, 3, 5 >> SORTR'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
-## `GROUP` Group Stream by Key
+### `GROUP` Group Stream by Key
 
 `GROUP(stream: STREAM<T>; key_getter: (T) -> K): STREAM<[K; ARRAY<T>]>`
 
@@ -533,7 +533,7 @@ $ xa '
 # banana
 ```
 
-## `CHUNK` Split Stream into Fixed-Size Arrays
+### `CHUNK` Split Stream into Fixed-Size Arrays
 
 `CHUNK(stream: STREAM<T>; size: INTEGER): STREAM<ARRAY<T>>`
 
@@ -546,7 +546,7 @@ $ xa '1 .. 5 >> CHUNK(2)'
 # [5]
 ```
 
-## `TAKE` Get First Elements of Stream
+### `TAKE` Get First Elements of Stream
 
 `TAKE(stream: STREAM<T>; count: INTEGER): STREAM<T>`
 
@@ -558,7 +558,7 @@ $ xa '1 .. 3 >> TAKE(2)'
 # 2
 ```
 
-## `TAKER` Get Last Elements of Stream
+### `TAKER` Get Last Elements of Stream
 
 `TAKER(stream: STREAM<T>; count: INTEGER): STREAM<T>`
 
@@ -570,7 +570,7 @@ $ xa '1 .. 3 >> TAKER(2)'
 # 3
 ```
 
-## `DROP` Drop First Elements of Stream
+### `DROP` Drop First Elements of Stream
 
 `DROP(stream: STREAM<T>; count: INTEGER): STREAM<T>`
 
@@ -581,7 +581,7 @@ $ xa '1 .. 3 >> DROP(2)'
 # 3
 ```
 
-## `DROPR` Drop Last Elements of Stream
+### `DROPR` Drop Last Elements of Stream
 
 `DROPR(stream: STREAM<T>; count: INTEGER): STREAM<T>`
 
@@ -592,7 +592,7 @@ $ xa '1 .. 3 >> DROPR(2)'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+### `FILTER` Filter Stream by Condition
 
 `FILTER(stream: STREAM<T>; predicate: (T) -> BOOLEAN): STREAM<T>`
 
@@ -604,7 +604,7 @@ $ xa '1 .. 4 >> FILTER(_ % 2 == 0)'
 # 4
 ```
 
-## `REDUCE` Accumulate Stream Elements
+### `REDUCE` Accumulate Stream Elements
 
 `REDUCE(stream: STREAM<T>; accumulator: (ACC; T) -> ACC): ACC`
 
@@ -637,7 +637,7 @@ $ xa 'EMPTY >> REDUCE((a; b) -> a + b)'
 # NULL
 ```
 
-## `TO_STRING` Convert to String
+### `TO_STRING` Convert to String
 
 `TO_STRING(value: T): STRING`
 
@@ -653,7 +653,7 @@ $ xa '&123'
 # 123
 ```
 
-## `TO_NUMBER` Convert to Number
+### `TO_NUMBER` Convert to Number
 
 `TO_NUMBER(value: T): NUMBER`
 
@@ -672,7 +672,7 @@ $ xa 'TO_NUMBER(FALSE)'
 # 0
 ```
 
-## `TO_BOOLEAN` Convert to Boolean
+### `TO_BOOLEAN` Convert to Boolean
 
 `TO_BOOLEAN(value: T): BOOLEAN`
 
@@ -691,7 +691,7 @@ $ xa 'TO_BOOLEAN("")'
 # TRUE
 ```
 
-## `TO_ARRAY` Convert Stream to Array
+### `TO_ARRAY` Convert Stream to Array
 
 `TO_ARRAY(stream: STREAM<T>): ARRAY<T>`
 
@@ -702,7 +702,7 @@ $ xa '1 .. 3 >> TO_ARRAY'
 # [1;2;3]
 ```
 
-## `TO_OBJECT` Convert Entry Stream to Object
+### `TO_OBJECT` Convert Entry Stream to Object
 
 `TO_OBJECT(stream: STREAM<[STRING; T]>): OBJECT<T>`
 

@@ -61,9 +61,9 @@ title: "組み込みオブジェクトのクラス定数"
 | `APOS` | `'` |
 | `QUOT` | `"` |
 
-# 数学系関数
+## 数学系関数
 
-## `ABS` 絶対値の取得
+### `ABS` 絶対値の取得
 
 `ABS(value: NUMBER): NUMBER`
 
@@ -74,7 +74,7 @@ $ xa 'ABS(-10)'
 # 10
 ```
 
-## `FLOOR` 小数点以下切り捨て
+### `FLOOR` 小数点以下切り捨て
 
 `FLOOR(number: NUMBER): INTEGER`
 
@@ -85,7 +85,7 @@ $ xa 'FLOOR(1.5)'
 # 1
 ```
 
-## `DIV` 除算の整数部
+### `DIV` 除算の整数部
 
 `DIV(x: NUMBER; y: NUMBER): NUMBER`
 
@@ -96,7 +96,7 @@ $ xa 'DIV(10; 3)'
 # 3
 ```
 
-## `SQRT` 平方根の取得
+### `SQRT` 平方根の取得
 
 `SQRT(number: NUMBER): NUMBER`
 
@@ -107,7 +107,7 @@ $ xa '"$%.3f(  SQRT(100.0)  )"'
 # 10.000
 ```
 
-## `SIN` 正弦
+### `SIN` 正弦
 
 `SIN(number: NUMBER): NUMBER`
 
@@ -118,7 +118,7 @@ $ xa '"$%.3f(  SIN(PI / 2)  )"'
 # 1.000
 ```
 
-## `COS` 余弦
+### `COS` 余弦
 
 `COS(number: NUMBER): NUMBER`
 
@@ -129,7 +129,7 @@ $ xa '"$%.3f(  COS(0)  )"'
 # 1.000
 ```
 
-## `TAN` 正接
+### `TAN` 正接
 
 `TAN(number: NUMBER): NUMBER`
 
@@ -140,7 +140,7 @@ $ xa '"$%.3f(  TAN(PI / 4)  )"'
 # 1.000
 ```
 
-## `POW` べき乗
+### `POW` べき乗
 
 `POW(base: NUMBER; exponent: NUMBER): NUMBER`
 
@@ -151,7 +151,7 @@ $ xa 'POW(2; 3)'
 # 8.0
 ```
 
-## `EXP` 指数関数
+### `EXP` 指数関数
 
 `EXP(number: NUMBER): NUMBER`
 
@@ -165,7 +165,7 @@ $ xa '"$%.3f(  EXP(2)  )"'
 # 7.389
 ```
 
-## `LOG` 自然対数
+### `LOG` 自然対数
 
 `LOG(number: NUMBER): NUMBER`
 
@@ -176,7 +176,7 @@ $ xa '"$%.3f(  LOG(MATH.E)  )"'
 # 1.000
 ```
 
-## `RAND` 乱数の取得
+### `RAND` 乱数の取得
 
 `RAND(): DOUBLE`
 
@@ -188,9 +188,9 @@ $ xa '"$%.3f(  LOG(MATH.E)  )"'
 
 2引数で呼び出された場合、`from` 以上 `until` 未満の整数を返します。
 
-# ストリーム系関数
+## ストリーム系関数
 
-## `REVERSE` ストリームを逆順にする
+### `REVERSE` ストリームを逆順にする
 
 `REVERSE(stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -203,13 +203,13 @@ $ xa 'REVERSE(1 .. 3)'
 # 1
 ```
 
-## `SHUFFLE` ストリームをランダムな順序にする
+### `SHUFFLE` ストリームをランダムな順序にする
 
 `<T> SHUFFLE(stream: T,): T,`
 
 `stream` の要素をランダムに並べ替えたストリームを返します。
 
-## `DISTINCT` ストリームの重複要素を除去
+### `DISTINCT` ストリームの重複要素を除去
 
 ストリームから重複する要素を取り除いたストリームを返します。
 
@@ -244,7 +244,7 @@ $ xa '13, 21, 24, 33, 31, 34 >> DISTINCT[by: x -> x % 10]'
 # 24
 ```
 
-## `JOIN` ストリームを文字列に連結
+### `JOIN` ストリームを文字列に連結
 
 `JOIN([separator: STRING; ]stream: STREAM<STRING>): STRING`
 
@@ -276,7 +276,7 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 # 10|20|30
 ```
 
-## `SPLIT` 文字列をストリームに分割
+### `SPLIT` 文字列をストリームに分割
 
 `SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
 
@@ -313,7 +313,7 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 3.0
 ```
 
-## `KEYS` オブジェクトのキーのストリームを取得
+### `KEYS` オブジェクトのキーのストリームを取得
 
 `KEYS(object: OBJECT): STREAM<STRING>`
 
@@ -326,7 +326,7 @@ $ xa 'KEYS({a: 1; b: 2; c: 3})'
 # c
 ```
 
-## `VALUES` オブジェクトの値のストリームを取得
+### `VALUES` オブジェクトの値のストリームを取得
 
 `VALUES(object: OBJECT): STREAM<VALUE>`
 
@@ -339,7 +339,7 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 # 3
 ```
 
-## `SUM` ストリームの要素の合計
+### `SUM` ストリームの要素の合計
 
 `SUM(numbers: STREAM<NUMBER>): NUMBER`
 
@@ -350,7 +350,7 @@ $ xa 'SUM(1 .. 3)'
 # 6
 ```
 
-## `MIN` ストリームの最小値
+### `MIN` ストリームの最小値
 
 `MIN(numbers: STREAM<NUMBER>): NUMBER`
 
@@ -366,7 +366,7 @@ $ xa 'MIN(,)'
 # NULL
 ```
 
-## `MAX` ストリームの最大値
+### `MAX` ストリームの最大値
 
 `MAX(numbers: STREAM<NUMBER>): NUMBER`
 
@@ -382,7 +382,7 @@ $ xa 'MAX(,)'
 # NULL
 ```
 
-## `COUNT` ストリームの要素数
+### `COUNT` ストリームの要素数
 
 `COUNT(stream: STREAM<VALUE>): INT`
 
@@ -401,7 +401,7 @@ $ xa 'COUNT(,)'
 # 0
 ```
 
-## `FIRST` ストリームの先頭要素を取得
+### `FIRST` ストリームの先頭要素を取得
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
 
@@ -420,7 +420,7 @@ $ xa 'FIRST(,)'
 # NULL
 ```
 
-## `LAST` ストリームの末尾要素を取得
+### `LAST` ストリームの末尾要素を取得
 
 `LAST(stream: STREAM<VALUE>): VALUE`
 
@@ -439,7 +439,7 @@ $ xa 'LAST(,)'
 # NULL
 ```
 
-## `SINGLE` ストリームの唯一の要素を取得
+### `SINGLE` ストリームの唯一の要素を取得
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
@@ -458,7 +458,7 @@ $ xa 'SINGLE(,) !? "Error"'
 # Error
 ```
 
-## `SORT` ストリームを昇順にソートする
+### `SORT` ストリームを昇順にソートする
 
 ストリームを昇順にソートします。
 
@@ -501,7 +501,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 # 3 6 9 1 4 7 2 5 8
 ```
 
-## `SORTR` ストリームを降順にソートする
+### `SORTR` ストリームを降順にソートする
 
 `SORTR(stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -518,7 +518,7 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
-## `GROUP` ストリームをキーでグループ化
+### `GROUP` ストリームをキーでグループ化
 
 `<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
 
@@ -556,7 +556,7 @@ $ xa '
 # banana
 ```
 
-## `CHUNK` ストリームを一定サイズの配列に分割
+### `CHUNK` ストリームを一定サイズの配列に分割
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
 
@@ -569,7 +569,7 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
-## `TAKE` ストリームの先頭を取得
+### `TAKE` ストリームの先頭を取得
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -581,7 +581,7 @@ $ xa '1, 2, 3 >> TAKE[2]'
 # 2
 ```
 
-## `TAKER` ストリームの末尾を取得
+### `TAKER` ストリームの末尾を取得
 
 `TAKER(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -593,7 +593,7 @@ $ xa '1, 2, 3 >> TAKER[2]'
 # 3
 ```
 
-## `DROP` ストリームの先頭を破棄
+### `DROP` ストリームの先頭を破棄
 
 `DROP(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -604,7 +604,7 @@ $ xa '1, 2, 3 >> DROP[2]'
 # 3
 ```
 
-## `DROPR` ストリームの末尾を破棄
+### `DROPR` ストリームの末尾を破棄
 
 `DROPR(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -615,7 +615,7 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` ストリームを条件で抽出
+### `FILTER` ストリームを条件で抽出
 
 `FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -627,7 +627,7 @@ $ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
 # 4
 ```
 
-## `REDUCE` ストリームの要素を累積する
+### `REDUCE` ストリームの要素を累積する
 
 `REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE`
 
@@ -665,7 +665,7 @@ $ xa ', >> REDUCE[a, b -> a + b]'
 # NULL
 ```
 
-## `TO_STRING` 文字列化
+### `TO_STRING` 文字列化
 
 `TO_STRING(value: VALUE): STRING`
 
@@ -681,7 +681,7 @@ $ xa '1, 2, 3 >> TO_STRING'
 # 123
 ```
 
-## `TO_NUMBER` 数値化
+### `TO_NUMBER` 数値化
 
 `TO_NUMBER(value: VALUE): NUMBER`
 
@@ -700,7 +700,7 @@ $ xa 'TO_NUMBER(NULL)'
 # 0
 ```
 
-## `TO_BOOLEAN` 論理値化
+### `TO_BOOLEAN` 論理値化
 
 `TO_BOOLEAN(value: VALUE): BOOLEAN`
 
@@ -719,7 +719,7 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `TO_ARRAY` ストリームを配列に変換
+### `TO_ARRAY` ストリームを配列に変換
 
 `ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>`
 
@@ -730,7 +730,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 # [1;2;3]
 ```
 
-## `TO_OBJECT` エントリーのストリームをオブジェクトに変換
+### `TO_OBJECT` エントリーのストリームをオブジェクトに変換
 
 `OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
 
