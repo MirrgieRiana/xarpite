@@ -63,6 +63,13 @@
           </aside>
 
           <article class="doc-content">
+            {% if page.toc %}
+              {% if page.lang == 'en' %}
+                {% include toc.md lang='en' %}
+              {% else %}
+                {% include toc.md %}
+              {% endif %}
+            {% endif %}
             {{ content }}
           </article>
         </div>

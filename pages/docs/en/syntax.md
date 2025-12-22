@@ -4,8 +4,6 @@ lang: en
 toc: true
 ---
 
-{% include toc.md lang='en' %}
-
 Within this document, operators are listed in order from highest to lowest binding precedence.
 
 # Factor

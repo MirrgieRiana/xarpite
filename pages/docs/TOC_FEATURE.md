@@ -29,19 +29,11 @@ toc: true
 ---
 ```
 
-### 2. Include the TOC
+### 2. That's It!
 
-Add the TOC include statement where you want the table of contents to appear (typically near the beginning of the document):
+The TOC will be automatically inserted at the beginning of your document. **No manual include statement needed!**
 
-**For Japanese pages:**
-```liquid
-{% include toc.md %}
-```
-
-**For English pages:**
-```liquid
-{% include toc.md lang='en' %}
-```
+The layout automatically detects the `toc: true` flag and inserts the appropriate TOC template based on the page language.
 
 ### 3. Structure Your Headings
 
@@ -60,8 +52,6 @@ The TOC will automatically be generated from these headings (levels 1-3 by defau
 title: "組み込み関数"
 toc: true
 ---
-
-{% include toc.md %}
 
 # 数学系関数
 
@@ -87,8 +77,6 @@ title: "Built-in Functions"
 lang: en
 toc: true
 ---
-
-{% include toc.md lang='en' %}
 
 # Mathematical Functions
 
@@ -129,18 +117,29 @@ TOC styling is defined in `/assets/css/style.css` under the `.table-of-contents`
 - Hover effects on links
 - Red arrow indicators for each item
 
+## How It Works
+
+The TOC system consists of:
+
+1. **Layout Integration** (`pages/_layouts/default.html`) - Automatically detects `toc: true` in front matter and injects the TOC include
+2. **TOC Template** (`pages/_includes/toc.md`) - Generates the TOC with appropriate language heading
+3. **Kramdown Processing** - The `{:toc}` marker tells Kramdown to generate TOC from headings
+4. **CSS Styling** (`pages/assets/css/style.css`) - Provides visual styling
+
 ## Files Modified
 
 - `pages/_config.yml` - Added Kramdown TOC configuration
-- `pages/_layouts/default.html` - Added automatic TOC container
+- `pages/_layouts/default.html` - Added automatic TOC injection based on front matter
 - `pages/_includes/toc.md` - Created TOC include template
 - `pages/assets/css/style.css` - Added TOC styling
-- Documentation files (`builtin.md`, `cli.md`, `syntax.md`) - Configured to use automatic TOC
+- Documentation files (`builtin.md`, `cli.md`, `syntax.md`) - Configured with `toc: true` in front matter only
 
 ## Benefits
 
-1. **Consistency** - All TOCs follow the same format and styling
-2. **Maintainability** - TOCs automatically update when headings change
-3. **No Manual Work** - No need to manually create and update link lists
-4. **Multilingual Support** - Automatic language detection for TOC headers
-5. **Customizable** - Easy to adjust TOC depth, styling, and placement
+1. **Fully Automatic** - Just set `toc: true` in front matter, no manual includes needed
+2. **Consistency** - All TOCs follow the same format and styling
+3. **Maintainability** - TOCs automatically update when headings change
+4. **No Manual Work** - No need to manually create, update, or include TOC statements
+5. **Multilingual Support** - Automatic language detection for TOC headers
+6. **Customizable** - Easy to adjust TOC depth, styling, and placement
+

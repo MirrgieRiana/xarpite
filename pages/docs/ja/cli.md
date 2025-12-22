@@ -3,8 +3,6 @@ title: CLI
 toc: true
 ---
 
-{% include toc.md %}
-
 # コマンド
 
 ## `xarpite`: Xarpiteコードを実行する

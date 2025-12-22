@@ -4,8 +4,6 @@ lang: en
 toc: true
 ---
 
-{% include toc.md lang='en' %}
-
 # Commands
 
 ## `xarpite`: Execute Xarpite Code
