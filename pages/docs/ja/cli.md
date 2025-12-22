@@ -30,6 +30,7 @@ $ xa
 # Runtime Options:
 #   -h, --help               Show this help
 #   -q                       Run script as a runner
+#   -f <file>                Read script from file
 ```
 
 `xa` はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。
@@ -142,6 +143,40 @@ $ xa -q '
 ---
 
 厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。
+
+### `-f`: ファイルからスクリプトを読み込む
+
+`-f` オプションを指定すると、コマンドライン引数で直接コードを指定する代わりに、指定したファイルからXarpiteスクリプトを読み込んで実行します。
+
+```shell
+$ echo '1 + 2' > script.xa1
+$ xa -f script.xa1
+# 3
+```
+
+---
+
+`-f` オプションを使用する場合、コマンドライン引数で直接コードを指定することはできません。
+
+---
+
+`-f` オプションの後に続く引数は、スクリプトに渡される引数として解釈されます。
+
+```shell
+$ echo 'ARGS' > script.xa1
+$ xa -f script.xa1 arg1 arg2 arg3
+# [arg1;arg2;arg3]
+```
+
+---
+
+`-f` オプションは `-q` オプションと組み合わせることができます。
+
+```shell
+$ echo 'OUT << "Hello"' > script.xa1
+$ xa -q -f script.xa1
+# Hello
+```
 
 ## `xarpite-update`: Xarpiteを最新版に更新する
 
