@@ -1,7 +1,5 @@
 ---
 title: CLI
-lang: en
-toc: true
 ---
 
 # Commands

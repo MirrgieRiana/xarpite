@@ -1,7 +1,5 @@
 ---
 title: "Factor"
-lang: en
-toc: true
 ---
 
 Within this document, operators are listed in order from highest to lowest binding precedence.

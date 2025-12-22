@@ -1,7 +1,5 @@
 ---
 title: "Built-in Object Class Constants"
-lang: en
-toc: true
 ---
 
 Built-in constants are constants that come with language features and can be used without defining them in code.
