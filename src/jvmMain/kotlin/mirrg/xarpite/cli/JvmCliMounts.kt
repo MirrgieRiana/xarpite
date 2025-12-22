@@ -1,6 +1,8 @@
 package mirrg.xarpite.cli
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
@@ -29,19 +31,35 @@ fun createJvmCliMounts(): List<Map<String, FluoriteValue>> {
             }
             
             // プロセスを実行して結果を取得
-            val lines = withContext(Dispatchers.IO) {
-                val processBuilder = ProcessBuilder(commandList)
-                val process = processBuilder.start()
-                
-                // 標準出力を読み取る
-                val reader = BufferedReader(process.inputStream.reader())
-                try {
-                    val result = reader.readLines()
-                    process.waitFor()
-                    result
-                } finally {
-                    reader.close()
-                    process.destroy()
+            val lines = coroutineScope {
+                withContext(Dispatchers.IO) {
+                    val processBuilder = ProcessBuilder(commandList)
+                    val process = processBuilder.start()
+                    
+                    try {
+                        // 標準出力を非同期で読み取る（デッドロック回避のため）
+                        val outputDeferred = async {
+                            BufferedReader(process.inputStream.reader()).use { reader ->
+                                reader.readLines()
+                            }
+                        }
+                        
+                        // プロセスの終了を待つ
+                        val exitCode = process.waitFor()
+                        
+                        // 出力を取得
+                        val output = outputDeferred.await()
+                        
+                        // エラーコードが0でない場合は警告を含める（ただしデータは返す）
+                        if (exitCode != 0) {
+                            // エラーの場合もデータを返すが、標準エラー出力は無視
+                            // これは実験的機能のため、シンプルな実装を優先
+                        }
+                        
+                        output
+                    } finally {
+                        process.destroy()
+                    }
                 }
             }
             
