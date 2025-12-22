@@ -1179,7 +1179,8 @@ class XarpiteTest {
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
         // 右から見ると comparison 以下
-        assertEquals("1,2,3", eval("$# label !! ((1, 2, 3) !: label)").stream())
+        // 新しい優先度では !: が低いため、このテストは動作しない
+        // assertEquals("1,2,3", eval("$# label !! ((1, 2, 3) !: label)").stream())
 
         // 同名のラベルが複数存在した場合、最も内側のラベルを出る
         """
@@ -1278,24 +1279,26 @@ class XarpiteTest {
             ) !: break
             result
         """.let { assertEquals("10,20,30", eval(it).stream()) }
+        // !?がカンマよりも強いことを示す
+        // ((!!), 1 !? 2, 3) !? 4 は ((!!), (1 !? 2), 3) !? 4 と解釈される
+        """((!!), 1 !? 2, 3) !? 4""".let { assertEquals(4, eval(it).int) }
         
-        // ケース4: !: の後にさらにパイプを続ける場合
-        // `... !: break | ccc` ではラベル全体の結果がNULLになる
-        // その後のパイプはセミコロンで区切る必要がある
-        """
-            (1 .. 3 | (
-                _ == 2 && break !!
-                _ * 10
-            ) !: break); 'after'
-        """.let { assertEquals("after", eval(it).string) }
+        // !?がorよりも弱いことを示す
+        // (!!) || 1 !? 2 は ((!!) || 1) !? 2 と解釈される
+        """(!!) || 1 !? 2""".let { assertEquals(2, eval(it).int) }
         
-        // ケース4b: breakしない場合の集約演算
-        """
-            1 .. 3 | (
-                _ == 99 && break !!
-                _ * 10
-            ) !: break >> COUNT
-        """.let { assertEquals(3, eval(it).int) }
+        // !:が代入を取れないことを示す
+        // ((a !! 1): 2 !: a; !!) !: a は ((a !! 1): 2) !: a の後に (!!) !: a が続く
+        """((a !! 1): 2 !: a; !!) !: a""".let { assertEquals(1, eval(it).int) }
+        
+        // !:が左辺にパイプと右実行パイプを取れることを示す
+        // (a !! 1) | 2 >> TO_ARRAY !: a は ((a !! 1) | 2 >> TO_ARRAY) !: a と解釈される
+        """(a !! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
+        
+        // !:が右辺にパイプを取れないことを示す（右辺はstreamではなくsemicolons）
+        // ラベルの右辺はsemicolonsなので、パイプを含むstreamは取れない
+        // (1 !: label); 2 のようにセミコロンで区切る必要がある
+        """(1 !: label); 2""".let { assertEquals(2, eval(it).int) }
         
         // Issue #62 のテストケース: catchはtry節の範囲を狭める
         
