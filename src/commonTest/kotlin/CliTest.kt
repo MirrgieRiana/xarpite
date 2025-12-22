@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -212,6 +213,87 @@ class CliTest {
         
         // クリーンアップ
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionWithDoubleDash() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("fileoption_doubledash.test_script.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("ARGS")
+        }
+        
+        // -f と -- を組み合わせる
+        val options = parseArguments(listOf("-f", file.toString(), "--"))
+        
+        // ソースコードがファイルから読み込まれている
+        assertEquals("ARGS", options.src)
+        // 引数は空
+        assertEquals(emptyList(), options.arguments)
+        
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionWithDoubleDashAndArguments() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("fileoption_doubledash_args.test_script.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("ARGS")
+        }
+        
+        // -f と -- と引数を組み合わせる
+        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"))
+        
+        // ソースコードがファイルから読み込まれている
+        assertEquals("ARGS", options.src)
+        // -- 後の引数がスクリプトに渡される
+        assertEquals(listOf("arg1", "arg2"), options.arguments)
+        
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionDuplicateThrowsError() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file1 = baseDir.resolve("fileoption_dup1.test_script.tmp.xa1")
+        val file2 = baseDir.resolve("fileoption_dup2.test_script.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file1) { writeUtf8("1") }
+        fileSystem.write(file2) { writeUtf8("2") }
+        
+        // -f を重複して指定するとエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()))
+        }
+        
+        // クリーンアップ
+        fileSystem.delete(file1)
+        fileSystem.delete(file2)
+    }
+
+    @Test
+    fun fileOptionNonExistentFileThrowsError() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("nonexistent.xa1")
+        
+        // 存在しないファイルを指定するとエラー
+        assertFailsWith<Exception> {
+            parseArguments(listOf("-f", file.toString()))
+        }
     }
 
 }

@@ -22,7 +22,7 @@ fun parseArguments(args: Iterable<String>): Options {
             if (list.firstOrNull() == "--") {
                 list.removeFirst()
 
-                if (list.isEmpty()) throw ShowUsage
+                if (list.isEmpty() && fileToRead == null) throw ShowUsage
 
                 if (fileToRead == null) {
                     src = list.removeFirst()
