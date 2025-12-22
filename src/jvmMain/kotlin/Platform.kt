@@ -3,6 +3,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import okio.FileSystem
 import java.io.BufferedReader
 
@@ -52,7 +54,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             
             // 終了コードが0でない場合は例外をスロー
             if (exitCode != 0) {
-                throw IllegalStateException("Process exited with code $exitCode")
+                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
             }
             
             output
