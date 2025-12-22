@@ -117,9 +117,9 @@ object XarpiteGrammar {
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
     val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b.a) }
 
-    val arrowRound: Parser<Node> = -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
-    val arrowSquare: Parser<Node> = -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
-    val arrowCurly: Parser<Node> = -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
+    val arrowRound: Parser<Node> = -'(' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
+    val arrowSquare: Parser<Node> = -'[' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
+    val arrowCurly: Parser<Node> = -'{' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
     val round: Parser<Node> = -'(' * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralSimpleRoundNode(it.a ?: EmptyNode) }
     val square: Parser<Node> = -'[' * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralSimpleSquareNode(it.a ?: EmptyNode) }
     val curly: Parser<Node> = -'{' * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.a ?: EmptyNode) }
@@ -149,9 +149,9 @@ object XarpiteGrammar {
         -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'(' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'[' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'{' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
         -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
@@ -216,10 +216,8 @@ object XarpiteGrammar {
             it.a
         }
     }
-    val labelColonOperator: Parser<(Node, Node) -> InfixNode> = -"!:" map { ::InfixExclamationColonNode }
-    val labelColon: Parser<Node> = leftAssociative(comparison, -s * labelColonOperator * -b) { left, operator, right -> operator(left, right) }
     val andOperator: Parser<(Node, Node) -> InfixNode> = -"&&" map { ::InfixAmpersandAmpersandNode }
-    val and: Parser<Node> = leftAssociative(labelColon, -s * andOperator * -b) { left, operator, right -> operator(left, right) }
+    val and: Parser<Node> = leftAssociative(comparison, -s * andOperator * -b) { left, operator, right -> operator(left, right) }
     val orOperator: Parser<(Node, Node) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
     val or: Parser<Node> = leftAssociative(and, -s * orOperator * -b) { left, operator, right -> operator(left, right) }
     val condition: Parser<Node> = or(
@@ -234,6 +232,9 @@ object XarpiteGrammar {
         condition map { listOf(it) },
     )
     val commas: Parser<Node> = commasPart map { if (it.size == 1) it.single() else CommasNode(it) }
+
+    val labelOperator: Parser<(Node, Node) -> InfixNode> = -"!:" map { ::InfixExclamationColonNode }
+    val label: Parser<Node> = leftAssociative(commas, -s * labelOperator * -b) { left, operator, right -> operator(left, right) }
 
     val pipeOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'|' map { ::InfixPipeNode }, // |
@@ -257,21 +258,21 @@ object XarpiteGrammar {
     val assignmentOperatorPart: Parser<(Node, Node) -> InfixNode> = -s * assignmentOperator * -b
 
     val pipeRight: Parser<Node> = or(
-        commas * pipeOperatorPart * parser { pipeRight } map { it.b(it.a, it.c) },
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
-        commas,
+        label * pipeOperatorPart * parser { pipeRight } map { it.b(it.a, it.c) },
+        label * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        label,
     )
     val executionRight: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
-        commas,
+        label * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        label,
     )
     val streamRightPart: Parser<(Node) -> Node> = or(
         pipeOperatorPart * pipeRight map { { left -> it.a(left, it.b) } },
         executionOperatorPart * executionRight map { { left -> it.a(left, it.b) } },
     )
     val stream: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
-        commas * streamRightPart.zeroOrMore map { it.b.fold(it.a) { left, part -> part(left) } },
+        label * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        label * streamRightPart.zeroOrMore map { it.b.fold(it.a) { left, part -> part(left) } },
     )
 
     val semicolonsPart: Parser<List<Node>> = or(
