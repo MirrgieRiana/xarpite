@@ -24,43 +24,40 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
-        val proc = processBuilder.start()
+        val processInstance = processBuilder.start()
         
         try {
-            // 標準出力を非同期で読み取る（デッドロック回避のため）
+            // 標準出力を非同期で読み取る
             val outputDeferred = async {
-                BufferedReader(proc.inputStream.reader()).use { reader ->
-                    reader.readLines().joinToString("\n")
-                }
-            }
-            
-            // 標準エラー出力も非同期で読み取る（デッドロック回避のため）
-            val errorDeferred = async {
-                BufferedReader(proc.errorStream.reader()).use { reader ->
+                BufferedReader(processInstance.inputStream.reader()).use { reader ->
                     reader.readText()
                 }
             }
             
+            // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
+            val errorDeferred = async {
+                BufferedReader(processInstance.errorStream.reader()).use { reader ->
+                    reader.forEachLine { line ->
+                        System.err.println(line)
+                    }
+                }
+            }
+            
             // プロセスの終了を待つ
-            val exitCode = proc.waitFor()
+            val exitCode = processInstance.waitFor()
             
             // 出力を取得
             val output = outputDeferred.await()
-            val error = errorDeferred.await()
+            errorDeferred.await()
             
             // 終了コードが0でない場合は例外をスロー
             if (exitCode != 0) {
-                val errorMessage = if (error.isNotEmpty()) {
-                    "Process exited with code $exitCode: $error"
-                } else {
-                    "Process exited with code $exitCode"
-                }
-                throw IllegalStateException(errorMessage)
+                throw IllegalStateException("Process exited with code $exitCode")
             }
             
             output
         } finally {
-            proc.destroy()
+            processInstance.destroy()
         }
     }
 }

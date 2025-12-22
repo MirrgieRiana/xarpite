@@ -3,8 +3,6 @@ package mirrg.xarpite.cli
 import executeProcess
 import getEnv
 import getFileSystem
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -13,7 +11,9 @@ import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.mounts.usage
+import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
@@ -59,33 +59,28 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "EXEC" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("EXEC(command: STREAM<STRING>): STREAM<STRING>")
             
-            // 引数からコマンド配列を構築
             val commandArg = arguments[0]
             val commandList = if (commandArg is FluoriteStream) {
-                // ストリームの場合、すべての要素を収集
-                flow { commandArg.flowProvider(this) }
-                    .toList()
-                    .map { it.toFluoriteString().value }
+                commandArg.toMutableList().map { it.toFluoriteString().value }
             } else {
-                // 単一要素の場合
                 listOf(commandArg.toFluoriteString().value)
             }
             
             if (commandList.isEmpty()) {
-                throw IllegalArgumentException("EXEC requires at least one argument (the command to execute)")
+                throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
             }
             
-            // プロセスを実行
             val process = commandList[0]
             val processArgs = commandList.drop(1)
             val output = executeProcess(process, processArgs)
             
-            // 出力を行ごとに分割してストリームとして返す
-            FluoriteStream {
-                output.lines().forEach { line ->
-                    emit(line.toFluoriteString())
-                }
+            val lines = output.lines()
+            val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
+                lines.dropLast(1)
+            } else {
+                lines
             }
+            nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
         },
     ).let { listOf(it) }
 }
