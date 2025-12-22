@@ -51,8 +51,8 @@ Mathematical built-in constants.
 
 | Constant    | Meaning            |
 |-------------|--------------------|
-| `MATH.PI`   | Pi (円周率)         |
-| `MATH.E`    | Euler's number (ネイピア数) |
+| `MATH.PI`   | Pi                 |
+| `MATH.E`    | Euler's number     |
 
 ---
 
@@ -208,4 +208,4 @@ $ xa 'REVERSE(1 .. 3)'
 # 1
 ```
 
-(Additional stream functions follow the same pattern as the Japanese version...)
+(Additional stream functions like SHUFFLE, DISTINCT, JOIN, SPLIT, KEYS, VALUES, SUM, MIN, MAX, COUNT, FIRST, LAST, SINGLE, SORT, SORTR, GROUP, CHUNK, TAKE, TAKER, DROP, DROPR, FILTER, REDUCE, TO_STRING, TO_NUMBER, TO_BOOLEAN, TO_ARRAY, and TO_OBJECT follow the same pattern as the Japanese version.)

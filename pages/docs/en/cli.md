@@ -46,8 +46,8 @@ $ xa '1 + 2'
 # 3
 ```
 
-(Additional sections follow the same pattern as the Japanese version...)
+(Additional command options and features like -q, XARPITE_ENGINE, --native, --jvm, --node options, and return value output customization follow the same pattern as the Japanese version.)
 
 # CLI-Specific Built-in Constants and Functions
 
-(CLI-specific built-in constants and functions are described here, following the Japanese version structure...)
+(CLI-specific built-in constants and functions like ARGS, ENV, IN, INB, OUT, FILES, READ, and USE are described here, following the Japanese version structure.)

@@ -74,4 +74,4 @@ This operator returns different things depending on the type of value.
 | Array  | Number of elements                  |
 | Object | Number of entries, ignoring parent  |
 
-(Additional sections follow the same pattern as the Japanese version...)
+(Additional operator categories and specific operators follow the same pattern as the Japanese version.)
