@@ -1096,10 +1096,11 @@ class XarpiteTest {
     fun returnTest() = runTest {
 
         // label !! の右辺を省略すると NULL を返して脱出できる
+        // !: が streamレベルなので、括弧で囲む必要がある
         """
             (
                 label !!
-            ) !: label
+            !: label)
         """.let { assertEquals(FluoriteNull, eval(it)) }
 
         // !! の直後で改行すると右辺は結合されず、以降の式は実行されない
@@ -1108,7 +1109,7 @@ class XarpiteTest {
             (
                 label !!
                 t = 1
-            ) !: label
+            !: label)
             t
         """.let { assertEquals(0, eval(it).int) }
 
@@ -1117,7 +1118,7 @@ class XarpiteTest {
             (
                 label !! !? "On Error!"
                 "unreached"
-            ) !: label
+            !: label)
         """.let { assertEquals(FluoriteNull, eval(it)) }
 
         // !! 単体は NULL をスローする
@@ -1295,10 +1296,9 @@ class XarpiteTest {
         // (a !! 1) | 2 >> TO_ARRAY !: a は ((a !! 1) | 2 >> TO_ARRAY) !: a と解釈される
         """(a !! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
         
-        // !:が右辺にパイプを取れないことを示す（右辺はstreamではなくsemicolons）
-        // ラベルの右辺はsemicolonsなので、パイプを含むstreamは取れない
-        // (1 !: label); 2 のようにセミコロンで区切る必要がある
-        """(1 !: label); 2""".let { assertEquals(2, eval(it).int) }
+        // !:が右辺にパイプを取れないことを示す
+        // (1 !: a | (!!)) !? 2 は (1 !: (a | (!!))) !? 2 と解釈され、a | (!!)がエラーになる
+        """(1 !: a | (!!)) !? 2""".let { assertEquals(2, eval(it).int) }
         
         // Issue #62 のテストケース: catchはtry節の範囲を狭める
         
