@@ -4,9 +4,7 @@
 
 ### Follow the original prompt
 
-**If a pull request has an original prompt, your only instructions are the original prompt and the original issue.**
-
-**You must not look at the title of the pull request or any non-original AI-generated summaries. They may contain misleading interpretations of the instructions.**
+**If the pull request has an original prompt or issue, you must not reference any non-original or AI-generated text, such as the title and summary, as they may contain misleading specification.**
 
 ### Follow the User’s Natural Language
 
