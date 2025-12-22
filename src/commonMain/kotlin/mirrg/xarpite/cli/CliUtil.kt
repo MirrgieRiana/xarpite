@@ -1,7 +1,9 @@
 package mirrg.xarpite.cli
 
 import getEnv
+import getFileSystem
 import getProgramName
+import okio.Path.Companion.toPath
 
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
@@ -12,6 +14,7 @@ fun parseArguments(args: Iterable<String>): Options {
     var src: String? = null
     val arguments = mutableListOf<String>()
     var quiet = false
+    var fileToRead: String? = null
 
     run {
         while (true) {
@@ -21,7 +24,9 @@ fun parseArguments(args: Iterable<String>): Options {
 
                 if (list.isEmpty()) throw ShowUsage
 
-                src = list.removeFirst()
+                if (fileToRead == null) {
+                    src = list.removeFirst()
+                }
                 arguments += list
                 list.clear()
                 return@run
@@ -37,12 +42,41 @@ fun parseArguments(args: Iterable<String>): Options {
                 continue
             }
 
-            if (list.isEmpty()) throw ShowUsage
+            if (list.firstOrNull() == "-f") {
+                if (fileToRead != null) throw ShowUsage
+                list.removeFirst()
+                if (list.isEmpty()) throw ShowUsage
+                fileToRead = list.removeFirst()
+                continue
+            }
+
+            if (list.isEmpty()) {
+                // -f が指定されていれば、残りの引数がなくてもOK
+                if (fileToRead != null) {
+                    return@run
+                }
+                throw ShowUsage
+            }
+
+            // -f が指定されていた場合、残りの引数はすべてスクリプトへの引数
+            if (fileToRead != null) {
+                arguments += list
+                list.clear()
+                return@run
+            }
 
             src = list.removeFirst()
             arguments += list
             list.clear()
             return@run
+        }
+    }
+
+    // -f オプションが指定された場合、ファイルからソースコードを読み込む
+    if (fileToRead != null) {
+        val fileSystem = getFileSystem().getOrThrow()
+        src = fileSystem.read(fileToRead.toPath()) {
+            readUtf8()
         }
     }
 
@@ -61,4 +95,5 @@ fun showUsage() {
     println("Runtime Options:")
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")
+    println("  -f <file>                Read script from file")
 }

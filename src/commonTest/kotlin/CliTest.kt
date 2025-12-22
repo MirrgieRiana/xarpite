@@ -7,6 +7,7 @@ import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -161,6 +162,56 @@ class CliTest {
         // INB はストリームとして存在することを確認
         val inb = cliEval("INB")
         assertEquals(true, inb is FluoriteStream)
+    }
+
+    @Test
+    fun fileOption() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("fileoption.test_script.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("1 + 2")
+        }
+        
+        // -f オプションでファイルを指定して引数を解析
+        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"))
+        
+        // ソースコードがファイルから読み込まれている
+        assertEquals("1 + 2", options.src)
+        // 引数が正しく設定されている
+        assertEquals(listOf("arg1", "arg2"), options.arguments)
+        // quiet フラグが false である
+        assertEquals(false, options.quiet)
+        
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionWithQuiet() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("fileoption_quiet.test_script.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("OUT << 'Hello'")
+        }
+        
+        // -q と -f オプションを組み合わせる
+        val options = parseArguments(listOf("-q", "-f", file.toString()))
+        
+        // ソースコードがファイルから読み込まれている
+        assertEquals("OUT << 'Hello'", options.src)
+        // quiet フラグが true である
+        assertEquals(true, options.quiet)
+        
+        // クリーンアップ
+        fileSystem.delete(file)
     }
 
 }
