@@ -50,12 +50,8 @@ fun createJvmCliMounts(): List<Map<String, FluoriteValue>> {
                         // 出力を取得
                         val output = outputDeferred.await()
                         
-                        // エラーコードが0でない場合は警告を含める（ただしデータは返す）
-                        if (exitCode != 0) {
-                            // エラーの場合もデータを返すが、標準エラー出力は無視
-                            // これは実験的機能のため、シンプルな実装を優先
-                        }
-                        
+                        // 実験的機能のため、エラーコードのチェックは行わず、
+                        // 取得できた標準出力をそのまま返す
                         output
                     } finally {
                         process.destroy()
