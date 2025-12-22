@@ -149,9 +149,9 @@ object XarpiteGrammar {
         -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * -'(' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'[' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'{' * -b * (parser { label } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
         -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
