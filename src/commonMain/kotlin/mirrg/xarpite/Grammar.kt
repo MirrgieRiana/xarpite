@@ -253,27 +253,32 @@ object XarpiteGrammar {
     val pipeOperatorPart: Parser<(Node, Node) -> InfixNode> = -b * pipeOperator * -b + -s * argumentsOperator * -b
     val executionOperatorPart: Parser<(Node, Node) -> InfixNode> = -b * executionOperator * -b
     val assignmentOperatorPart: Parser<(Node, Node) -> InfixNode> = -s * assignmentOperator * -b
+    val labelColonOperatorPart: Parser<(Node, Node) -> InfixNode> = -s * -"!:" * -b map { ::InfixExclamationColonNode }
 
     val pipeRight: Parser<Node> = or(
         commas * pipeOperatorPart * parser { pipeRight } map { it.b(it.a, it.c) },
-        commas * assignmentOperatorPart * parser { label } map { it.b(it.a, it.c) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
         commas,
     )
     val executionRight: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { label } map { it.b(it.a, it.c) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        commas,
+    )
+    val labelColonRight: Parser<Node> = or(
+        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
         commas,
     )
     val streamRightPart: Parser<(Node) -> Node> = or(
         pipeOperatorPart * pipeRight map { { left -> it.a(left, it.b) } },
         executionOperatorPart * executionRight map { { left -> it.a(left, it.b) } },
+        labelColonOperatorPart * labelColonRight map { { left -> it.a(left, it.b) } },
     )
     val stream: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { label } map { it.b(it.a, it.c) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
         commas * streamRightPart.zeroOrMore map { it.b.fold(it.a) { left, part -> part(left) } },
     )
 
-    val labelColonOperator: Parser<(Node, Node) -> InfixNode> = -"!:" map { ::InfixExclamationColonNode }
-    val label: Parser<Node> = leftAssociative(stream, -s * labelColonOperator * -b) { left, operator, right -> operator(left, right) }
+    val label: Parser<Node> = stream
 
     val semicolonsPart: Parser<List<Node>> = or(
         label * -s * -br * -b * parser { semicolonsPart } map { listOf(it.a) + it.b },
