@@ -63,12 +63,6 @@
           </aside>
 
           <article class="doc-content">
-            {% if page.toc %}
-            <div class="table-of-contents">
-              <h2>{% if page.lang == 'en' %}Table of Contents{% else %}目次{% endif %}</h2>
-              <ul id="markdown-toc"></ul>
-            </div>
-            {% endif %}
             {{ content }}
           </article>
         </div>
