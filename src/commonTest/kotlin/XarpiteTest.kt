@@ -1178,8 +1178,8 @@ class XarpiteTest {
 
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
-        // 右から見ると comparison 以下 labelColon 以上
-        assertEquals("1,2,3", eval("$# label !! (1, 2, 3) !: label").stream())
+        // 右から見ると comparison 以下
+        assertEquals("1,2,3", eval("$# label !! ((1, 2, 3) !: label)").stream())
 
         // 同名のラベルが複数存在した場合、最も内側のラベルを出る
         """
