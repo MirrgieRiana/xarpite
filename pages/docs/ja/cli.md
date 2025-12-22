@@ -2,7 +2,7 @@
 title: CLI
 ---
 
-# コマンド
+# Xarpiteを実行するコマンド
 
 ## `xarpite`: Xarpiteコードを実行する
 
@@ -20,7 +20,7 @@ title: CLI
 
 ```
 $ xa
-# Usage: xa [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>
+# Usage: xa [<Launcher Options>] [<Runtime Options>] [--] [<code>] <arguments...>
 #
 # Launcher Options:
 #   --native                 Use the native engine
@@ -47,6 +47,12 @@ $ xa '1 + 2'
 `Launcher Options` は `Runtime Options` よりも前に指定する必要があります。
 
 `--` はオプションの終端を示します。これ以降の引数はすべてコードおよびコードに渡される引数として解釈されます。
+
+## ランチャー
+
+ランチャーとは、Xarpiteコマンドを直接受け付けるシェルスクリプトを指します。
+
+ランチャーは環境変数や引数などに基づいて実際に起動されるXarpiteエンジンを決定します。
 
 ### `XARPITE_ENGINE`: 実行エンジンを指定
 
@@ -89,6 +95,10 @@ JVM上で動作するXarpiteエンジンを使用します。
 Node.js上で動作するXarpiteエンジンを使用します。
 
 コマンドラインオプションとしての基本的な性質は `--native` に準じます。
+
+## ランタイム
+
+ランタイムとは、Xarpite言語を実際に動作させるプログラムです。
 
 ### 戻り値の出力
 
@@ -146,37 +156,38 @@ $ xa -q '
 
 ### `-f`: ファイルからスクリプトを読み込む
 
+`-f <file>`
+
 `-f` オプションを指定すると、コマンドライン引数で直接コードを指定する代わりに、指定したファイルからXarpiteスクリプトを読み込んで実行します。
 
+`file` が相対パスで指定された場合、カレントディレクトリを起点として解決されます。
+
 ```shell
-$ echo '1 + 2' > script.xa1
-$ xa -f script.xa1
+$ {
+  echo '100 + 20 + 3' > script.xa1
+  xa -f script.xa1
+  rm script.xa1
+}
 # 3
 ```
 
 ---
 
-`-f` オプションを使用する場合、コマンドライン引数で直接コードを指定することはできません。
-
----
-
-`-f` オプションの後に続く引数は、スクリプトに渡される引数として解釈されます。
+`-f` オプションが指定された場合、 `code` 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。
 
 ```shell
-$ echo 'ARGS' > script.xa1
-$ xa -f script.xa1 arg1 arg2 arg3
-# [arg1;arg2;arg3]
+$ {
+  echo 'ARGS()' > script.xa1
+  xa -f script.xa1 '100 + 20 + 3' apple banana cherry
+  rm script.xa1
+}
+# 100 + 20 + 3
+# apple
+# banana
+# cherry
 ```
 
----
-
-`-f` オプションは `-q` オプションと組み合わせることができます。
-
-```shell
-$ echo 'OUT << "Hello"' > script.xa1
-$ xa -q -f script.xa1
-# Hello
-```
+# その他のコマンド
 
 ## `xarpite-update`: Xarpiteを最新版に更新する
 
