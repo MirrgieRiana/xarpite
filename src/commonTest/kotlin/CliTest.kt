@@ -163,6 +163,38 @@ class CliTest {
         assertEquals(true, inb is FluoriteStream)
     }
 
+    @Test
+    fun execRunsSimpleCommand() = runTest {
+        try {
+            val result = cliEval("""EXEC("echo", "Hello, World!")""")
+            val lines = result.stream()
+            assertEquals("Hello, World!", lines)
+        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execRunsComplexCommand() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "seq 1 30 | grep 3")""")
+            val lines = result.stream()
+            assertEquals("3,13,23,30", lines)
+        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execThrowsOnNonZeroExitCode() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "exit 1") !? "ERROR"""")
+            assertEquals("ERROR", result.toFluoriteString().value)
+        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {

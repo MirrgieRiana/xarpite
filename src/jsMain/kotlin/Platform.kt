@@ -24,5 +24,5 @@ var readBytesFromStdinImpl: (suspend () -> ByteArray?)? = null
 actual suspend fun readBytesFromStdin(): ByteArray? = readBytesFromStdinImpl!!()
 
 actual suspend fun executeProcess(process: String, args: List<String>): String {
-    throw UnsupportedOperationException("EXEC is an experimental feature and is currently only available on JVM platform")
+    throw mirrg.xarpite.operations.WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM platform")
 }
