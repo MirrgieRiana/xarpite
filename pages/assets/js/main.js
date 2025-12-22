@@ -113,9 +113,7 @@
    * Determines if the current context is secure (HTTPS or localhost)
    */
   function isSecureContext() {
-    return window.isSecureContext || 
-           window.location.protocol === 'https:' || 
-           window.location.hostname === 'localhost';
+    return window.isSecureContext;
   }
 
   /**
@@ -144,8 +142,9 @@
    * Wraps a code block with a wrapper div and adds a copy button
    */
   function wrapCodeBlock(preElement) {
-    // Skip if already wrapped
-    if (preElement.parentElement.classList.contains('code-block-wrapper')) {
+    // Skip if already wrapped or if element has no parent
+    if (!preElement.parentElement || 
+        preElement.parentElement.classList.contains('code-block-wrapper')) {
       return;
     }
 
