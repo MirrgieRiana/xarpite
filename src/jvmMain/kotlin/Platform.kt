@@ -1,7 +1,12 @@
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import okio.FileSystem
+import java.io.BufferedReader
 
 actual fun getProgramName(): String? = null
 actual fun getEnv(): Map<String, String> = System.getenv()
@@ -15,4 +20,46 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
     val readSize = System.`in`.read(byteArray)
     if (readSize == -1) return@withContext null
     if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
+}
+
+actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
+    withContext(Dispatchers.IO) {
+        val commandList = listOf(process) + args
+        val processBuilder = ProcessBuilder(commandList)
+        val processInstance = processBuilder.start()
+        
+        try {
+            // 標準出力を非同期で読み取る
+            val outputDeferred = async {
+                BufferedReader(processInstance.inputStream.reader()).use { reader ->
+                    reader.readText()
+                }
+            }
+            
+            // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
+            val errorDeferred = async {
+                BufferedReader(processInstance.errorStream.reader()).use { reader ->
+                    reader.forEachLine { line ->
+                        System.err.println(line)
+                    }
+                }
+            }
+            
+            // プロセスの終了を待つ
+            val exitCode = processInstance.waitFor()
+            
+            // 出力を取得
+            val output = outputDeferred.await()
+            errorDeferred.await()
+            
+            // 終了コードが0でない場合は例外をスロー
+            if (exitCode != 0) {
+                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+            }
+            
+            output
+        } finally {
+            processInstance.destroy()
+        }
+    }
 }
