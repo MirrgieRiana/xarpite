@@ -58,3 +58,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
         if (readSize == 0uL) null else ByteArray(readSize.toInt()) { buffer[it] }
     }
 }
+
+actual suspend fun executeProcess(process: String, args: List<String>): String {
+    throw UnsupportedOperationException("EXEC is an experimental feature and is currently only available on JVM platform")
+}

@@ -5,7 +5,6 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
-import mirrg.xarpite.cli.createJvmCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -17,6 +16,8 @@ import java.io.ByteArrayInputStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class CliJvmTest {
@@ -69,6 +70,14 @@ class CliJvmTest {
         assertEquals("23", lines[2])
         assertEquals("30", lines[3])
     }
+
+    @Test
+    fun execThrowsOnNonZeroExitCode() = runTest {
+        val exception = assertFailsWith<IllegalStateException> {
+            cliEvalJvm("""EXEC("bash", "-c", "exit 1")""").collectStringsJvm()
+        }
+        assertTrue(exception.message?.contains("exited with code 1") == true)
+    }
 }
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
@@ -76,7 +85,6 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
     val defaultBuiltinMounts = listOf(
         createCommonMounts(this) {},
         createCliMounts(args.toList()),
-        createJvmCliMounts(),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
     mountsFactory = { location ->

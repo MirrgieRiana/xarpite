@@ -1,7 +1,10 @@
 package mirrg.xarpite.cli
 
+import executeProcess
 import getEnv
 import getFileSystem
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -52,6 +55,37 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             val dir = arguments[0].toFluoriteString().value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+        },
+        "EXEC" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("EXEC(command: STREAM<STRING>): STREAM<STRING>")
+            
+            // 引数からコマンド配列を構築
+            val commandArg = arguments[0]
+            val commandList = if (commandArg is FluoriteStream) {
+                // ストリームの場合、すべての要素を収集
+                flow { commandArg.flowProvider(this) }
+                    .toList()
+                    .map { it.toFluoriteString().value }
+            } else {
+                // 単一要素の場合
+                listOf(commandArg.toFluoriteString().value)
+            }
+            
+            if (commandList.isEmpty()) {
+                throw IllegalArgumentException("EXEC requires at least one argument (the command to execute)")
+            }
+            
+            // プロセスを実行
+            val process = commandList[0]
+            val processArgs = commandList.drop(1)
+            val output = executeProcess(process, processArgs)
+            
+            // 出力を行ごとに分割してストリームとして返す
+            FluoriteStream {
+                output.lines().forEach { line ->
+                    emit(line.toFluoriteString())
+                }
+            }
         },
     ).let { listOf(it) }
 }
