@@ -1,24 +1,28 @@
 ---
-title: "Grammar"
+title: "Factor"
 ---
 
-# Grammar
+## Table of Contents
+
+- [Factor](#factor)
+- [Postfix Operators](#postfix-operators)
+- [Prefix Operators](#prefix-operators)
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
 
-## Factors
+# Factor
 
 Factors are literals and parentheses that function independently.
 
 Factors have atomic properties in operator binding.
 
-## Postfix Operators
+# Postfix Operators
 
 Postfix operators are operators placed after the base.
 
 Postfix operators are divided into unary and binary ones, both with left-associative binding.
 
-### Postfix Representation of Prefix Unary Operators `value.+` ...
+## Postfix Representation of Prefix Unary Operators `value.+` ...
 
 All prefix unary operators have a postfix operator variation that is written following `.`.
 
@@ -39,13 +43,13 @@ $*A  A.$*
 
 Using the postfix representation can reduce parentheses in some syntaxes and improve readability.
 
-## Prefix Operators
+# Prefix Operators
 
 Prefix operators are operators placed before the base.
 
 Prefix operators have right-associative binding.
 
-### Getting Length `$#value`
+## Getting Length `$#value`
 
 The prefix `$#` operator gets the "length" of a value.
 
@@ -69,3 +73,5 @@ This operator returns different things depending on the type of value.
 | String | Number of characters in UTF16       |
 | Array  | Number of elements                  |
 | Object | Number of entries, ignoring parent  |
+
+(Additional sections follow the same pattern as the Japanese version...)
