@@ -9,11 +9,15 @@ import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class CliJvmTest {
@@ -45,6 +49,28 @@ class CliJvmTest {
             assertEquals(data.last().toUByte(), blobs[1].value[0])
         } finally {
             System.setIn(originalIn)
+        }
+    }
+
+    @Test
+    fun execRedirectsStderrToXarpiteStderr() = runTest {
+        val originalErr = System.err
+        val errorOutput = ByteArrayOutputStream()
+        try {
+            System.setErr(PrintStream(errorOutput))
+            
+            // stderrに出力するコマンドを実行
+            val result = cliEvalJvm("""EXEC("bash", "-c", "echo 'Error message' >&2; echo 'Output'")""")
+            val output = result.toFluoriteString().value
+            
+            // 標準出力は正しく取得される
+            assertEquals("Output", output)
+            
+            // 標準エラー出力がXarpiteのstderrにリダイレクトされている
+            val stderrContent = errorOutput.toString()
+            assertTrue(stderrContent.contains("Error message"), "stderr should contain 'Error message', but was: $stderrContent")
+        } finally {
+            System.setErr(originalErr)
         }
     }
 }
