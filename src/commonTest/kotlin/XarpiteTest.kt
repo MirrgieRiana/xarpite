@@ -1226,29 +1226,24 @@ class XarpiteTest {
             ) !: found
         """.let { assertEquals(30, eval(it).int) }
 
-        // !: は && よりも高い結合優先度を持つ
-        // a && b !: label は a && (b !: label) と解釈される
-        assertEquals(0, eval("0 && 1 !: label").int)
-        assertEquals(10, eval("(1 && 10 !: label)").int)
-
         // !? は ?: と全く同じ結合優先度を持つ（エルビス演算子と同等）
         // !!'a' !? 'b' は (!!'a') !? 'b' と解釈され、例外がキャッチされる
         assertEquals("b", eval("!!'a' !? 'b'").string)
         // !? の対象範囲は比較的狭い
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
 
-        // Issue #62 のテストケース: ラベルはstreamレベルで動作
+        // Issue #62 のテストケース: ラベルはstreamより低い優先度で動作
         
         // ケース1: `aaa | (bbb && break !!) !: break`
-        // !: は pipeRight で使われるため、パイプの右辺に適用される
-        // つまり `aaa | ((...) !: break)` と解釈される
-        // 各要素に対してラベル付きブロックが実行される
+        // !: はstreamよりも低い優先度なので、パイプ全体を捕捉する
+        // つまり `(aaa | (...)) !: break` と解釈される
+        // breakが発生すると全体がNULLを返す
         """
             1 .. 3 | (
                 _ == 2 && break !!
                 _ * 10
             ) !: break
-        """.let { assertEquals("10,NULL,30", eval(it).stream()) }
+        """.let { assertEquals(FluoriteNull, eval(it)) }
         
         // ケース1b: breakしない場合、全要素が正常に処理される
         """
@@ -1258,22 +1253,22 @@ class XarpiteTest {
             ) !: break
         """.let { assertEquals("10,20,30", eval(it).stream()) }
         
-        // ケース2: パイプ全体にラベルを適用する場合は括弧が必要
+        // ケース2: 集約演算の中断
         """
-            (1 .. 5 | (
+            1 .. 5 | (
                 _ == 3 && break !!
                 _
-            )) !: break
+            ) >> SUM !: break
         """.let { assertEquals(FluoriteNull, eval(it)) }
         
-        // ケース3: 代入の右辺では !: が全体を捕捉
+        // ケース3: 代入の右辺でも同様に全体を捕捉
         """
             result := 1 .. 3 | (
                 _ == 2 && break !!
                 _ * 10
             ) !: break
             result
-        """.let { assertEquals("10,NULL,30", eval(it).stream()) }
+        """.let { assertEquals(FluoriteNull, eval(it)) }
         
         // ケース3b: breakしない場合
         """
@@ -1284,16 +1279,17 @@ class XarpiteTest {
             result
         """.let { assertEquals("10,20,30", eval(it).stream()) }
         
-        // ケース4: !: の後にさらにパイプを続ける
-        // `... !: break | ccc` では、ラベルが各要素に適用された後、結果がパイプに渡される
+        // ケース4: !: の後にさらにパイプを続ける場合
+        // `... !: break | ccc` ではラベル全体の結果がNULLになる
+        // その後のパイプはセミコロンで区切る必要がある
         """
-            1 .. 3 | (
+            (1 .. 3 | (
                 _ == 2 && break !!
                 _ * 10
-            ) !: break | (_ == NULL ? 0 : _ * 2)
-        """.let { assertEquals("20,0,60", eval(it).stream()) }
+            ) !: break); 'after'
+        """.let { assertEquals("after", eval(it).string) }
         
-        // ケース4b: 集約演算でカウント
+        // ケース4b: breakしない場合の集約演算
         """
             1 .. 3 | (
                 _ == 99 && break !!
