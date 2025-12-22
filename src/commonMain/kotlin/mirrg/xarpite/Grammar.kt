@@ -126,9 +126,9 @@ object XarpiteGrammar {
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
 
     val jump: Parser<Node> = or(
-        -"!!" * -s * parser { commas } map { ThrowNode(it) },
+        -"!!" * -s * parser { or } map { ThrowNode(it) },
         -"!!" map { ThrowNode(EmptyNode) },
-        identifier * -s * -"!!" * -s * parser { commas } map { ReturnNode(it.a, it.b) },
+        identifier * -s * -"!!" * -s * parser { or } map { ReturnNode(it.a, it.b) },
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 

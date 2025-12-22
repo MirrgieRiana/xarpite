@@ -1178,9 +1178,8 @@ class XarpiteTest {
 
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
-        // 右から見ると comparison 以下
-        // 新しい優先度では !: が低いため、このテストは動作しない
-        // assertEquals("1,2,3", eval("$# label !! ((1, 2, 3) !: label)").stream())
+        // 右から見ると or 以下（!:, !?, ?:, , を除く）
+        assertEquals("1,2,3", eval("$# label !! ((1, 2, 3) !: label)").stream())
 
         // 同名のラベルが複数存在した場合、最も内側のラベルを出る
         """
@@ -1215,9 +1214,8 @@ class XarpiteTest {
         """.let { assertEquals(123, eval(it).int) }
 
         // ラムダの中から外に !! 出来る
-        // !: が >> と同じレベルなので、括弧で明示的に結合を制御する必要がある
         """
-            ((
+            (
                 1 .. 50 | (
                     _ % 2 != 0 && next !! NULL // 2で割り切れない！
                     _ % 3 != 0 && next !! NULL // 3で割り切れない！
@@ -1225,7 +1223,7 @@ class XarpiteTest {
                     found !! _                 // 2でも3でも5でも割り切れる
                 ) !: next
                 NULL
-            ) !: found)
+            ) !: found
         """.let { assertEquals(30, eval(it).int) }
 
         // !? は ?: と全く同じ結合優先度を持つ（エルビス演算子と同等）
