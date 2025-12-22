@@ -14,7 +14,7 @@ fun parseArguments(args: Iterable<String>): Options {
     var src: String? = null
     val arguments = mutableListOf<String>()
     var quiet = false
-    var fileToRead: String? = null
+    var scriptFile: String? = null
 
     run {
         while (true) {
@@ -22,9 +22,9 @@ fun parseArguments(args: Iterable<String>): Options {
             if (list.firstOrNull() == "--") {
                 list.removeFirst()
 
-                if (list.isEmpty() && fileToRead == null) throw ShowUsage
+                if (list.isEmpty() && scriptFile == null) throw ShowUsage
 
-                if (fileToRead == null) {
+                if (scriptFile == null) {
                     src = list.removeFirst()
                 }
                 arguments += list
@@ -43,23 +43,23 @@ fun parseArguments(args: Iterable<String>): Options {
             }
 
             if (list.firstOrNull() == "-f") {
-                if (fileToRead != null) throw ShowUsage
+                if (scriptFile != null) throw ShowUsage
                 list.removeFirst()
                 if (list.isEmpty()) throw ShowUsage
-                fileToRead = list.removeFirst()
+                scriptFile = list.removeFirst()
                 continue
             }
 
             if (list.isEmpty()) {
                 // -f が指定されていれば、残りの引数がなくてもOK
-                if (fileToRead != null) {
+                if (scriptFile != null) {
                     return@run
                 }
                 throw ShowUsage
             }
 
             // -f が指定されていた場合、残りの引数はすべてスクリプトへの引数
-            if (fileToRead != null) {
+            if (scriptFile != null) {
                 arguments += list
                 list.clear()
                 return@run
@@ -73,9 +73,9 @@ fun parseArguments(args: Iterable<String>): Options {
     }
 
     // -f オプションが指定された場合、ファイルからソースコードを読み込む
-    if (fileToRead != null) {
+    if (scriptFile != null) {
         val fileSystem = getFileSystem().getOrThrow()
-        src = fileSystem.read(fileToRead.toPath()) {
+        src = fileSystem.read(scriptFile.toPath()) {
             readUtf8()
         }
     }
