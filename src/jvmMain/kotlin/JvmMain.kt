@@ -1,5 +1,6 @@
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.cli.ShowUsage
+import mirrg.xarpite.cli.createJvmCliMounts
 import mirrg.xarpite.cli.main
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
@@ -12,6 +13,6 @@ fun main(args: Array<String>) {
         return
     }
     runBlocking {
-        main(options, this)
+        main(options, this, ::createJvmCliMounts)
     }
 }

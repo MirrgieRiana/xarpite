@@ -5,6 +5,7 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.cli.createJvmCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -49,6 +50,25 @@ class CliJvmTest {
             System.setIn(originalIn)
         }
     }
+
+    @Test
+    fun execRunsSimpleCommand() = runTest {
+        val result = cliEvalJvm("""EXEC("echo", "Hello, World!")""")
+        val lines = result.collectStringsJvm()
+        assertEquals(1, lines.size)
+        assertEquals("Hello, World!", lines[0])
+    }
+
+    @Test
+    fun execRunsComplexCommand() = runTest {
+        val result = cliEvalJvm("""EXEC("bash", "-c", "seq 1 30 | grep 3")""")
+        val lines = result.collectStringsJvm()
+        assertEquals(4, lines.size)
+        assertEquals("3", lines[0])
+        assertEquals("13", lines[1])
+        assertEquals("23", lines[2])
+        assertEquals("30", lines[3])
+    }
 }
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
@@ -56,6 +76,7 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
     val defaultBuiltinMounts = listOf(
         createCommonMounts(this) {},
         createCliMounts(args.toList()),
+        createJvmCliMounts(),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
     mountsFactory = { location ->
@@ -69,5 +90,12 @@ private suspend fun FluoriteValue.collectBlobsJvm(): List<FluoriteBlob> {
     require(this is FluoriteStream) { "INB should return a stream" }
     return flow { this@collectBlobsJvm.flowProvider(this) }.toList().map { value ->
         value as? FluoriteBlob ?: error("Unexpected element: $value")
+    }
+}
+
+private suspend fun FluoriteValue.collectStringsJvm(): List<String> {
+    require(this is FluoriteStream) { "EXEC should return a stream" }
+    return flow { this@collectStringsJvm.flowProvider(this) }.toList().map { value ->
+        value.toFluoriteString().value
     }
 }
