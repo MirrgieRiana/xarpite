@@ -327,8 +327,6 @@ class FromJsonGetter(private val getter: Getter) : Getter {
 
 class FluoriteException(val value: FluoriteValue) : Exception(value.toString())
 
-class WorkInProgressError(message: String) : Error(message)
-
 class ThrowGetter(private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment) = throw FluoriteException(getter.evaluate(env))
     override val code get() = "ThrowGetter[${getter.code}]"

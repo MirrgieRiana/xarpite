@@ -474,6 +474,10 @@ $ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 
 呼び出したプロセスの標準エラー出力はXarpiteの標準エラー出力にリダイレクトされます。
 
+---
+
+呼び出したプロセスの標準エラー出力はXarpiteの標準エラー出力にリダイレクトされます。
+
 ```shell
 $ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 # ERROR

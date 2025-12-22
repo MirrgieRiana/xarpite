@@ -291,3 +291,5 @@ fun Int.toFluoriteIntAsCompared(): FluoriteInt {
 }
 
 object IterationAborted : Throwable()
+
+class WorkInProgressError(message: String) : Error(message)

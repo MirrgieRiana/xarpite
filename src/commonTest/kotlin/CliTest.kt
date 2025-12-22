@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
@@ -169,7 +170,7 @@ class CliTest {
             val result = cliEval("""EXEC("echo", "Hello, World!")""")
             val lines = result.stream()
             assertEquals("Hello, World!", lines)
-        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+        } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
     }
@@ -180,7 +181,7 @@ class CliTest {
             val result = cliEval("""EXEC("bash", "-c", "seq 1 30 | grep 3")""")
             val lines = result.stream()
             assertEquals("3,13,23,30", lines)
-        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+        } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
     }
@@ -190,7 +191,7 @@ class CliTest {
         try {
             val result = cliEval("""EXEC("bash", "-c", "exit 1") !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString().value)
-        } catch (e: mirrg.xarpite.operations.WorkInProgressError) {
+        } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
     }
