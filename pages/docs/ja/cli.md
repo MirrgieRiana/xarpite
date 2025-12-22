@@ -449,16 +449,34 @@ $ {
 戻り値はそのプロセスの標準出力を1行ずつ読み取るストリームです。
 
 ```shell
-$ xa 'EXEC("echo", "Hello, World!")'
+$ xa --jvm 'EXEC("echo", "Hello, World!")'
 # Hello, World!
 ```
 
 ```shell
-$ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
+$ xa --jvm 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 3
 # 13
 # 23
 # 30
+```
+
+---
+
+呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。
+
+```shell
+$ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
+# ERROR
+```
+
+---
+
+呼び出したプロセスの標準エラー出力はXarpiteの標準エラー出力にリダイレクトされます。
+
+```shell
+$ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
+# ERROR
 ```
 
 ---
