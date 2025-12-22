@@ -1,5 +1,7 @@
 ---
 title: "Built-in Object Class Constants"
+lang: en
+toc: true
 ---
 
 Built-in constants are constants that come with language features and can be used without defining them in code.
@@ -8,12 +10,7 @@ Built-in constants are defined using only uppercase letters and `_`.
 
 Built-in functions are also provided through the same mechanism as built-in constants.
 
-## Table of Contents
-
-- [Built-in Object Class Constants](#built-in-object-class-constants)
-- [Constants](#constants)
-- [Mathematical Functions](#mathematical-functions)
-- [Stream Functions](#stream-functions)
+{% include toc.md lang='en' %}
 
 # Built-in Object Class Constants
 

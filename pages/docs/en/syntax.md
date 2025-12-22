@@ -1,12 +1,10 @@
 ---
 title: "Factor"
+lang: en
+toc: true
 ---
 
-## Table of Contents
-
-- [Factor](#factor)
-- [Postfix Operators](#postfix-operators)
-- [Prefix Operators](#prefix-operators)
+{% include toc.md lang='en' %}
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
 

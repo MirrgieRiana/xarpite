@@ -1,11 +1,10 @@
 ---
 title: CLI
+lang: en
+toc: true
 ---
 
-## Table of Contents
-
-- [Commands](#commands)
-- [CLI-Specific Built-in Constants and Functions](#cli-specific-built-in-constants-and-functions)
+{% include toc.md lang='en' %}
 
 # Commands
 
