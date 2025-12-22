@@ -25,13 +25,8 @@ defaults:
     values:
       toc: true
   - scope:
-      path: "docs/ja"
-    values:
-      toc: true
-  - scope:
       path: "docs/en"
     values:
-      toc: true
       lang: en
 
 plugins:
