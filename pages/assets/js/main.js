@@ -237,7 +237,7 @@
     const listStack = [tocList];
     let currentLevel = null;
 
-    headings.forEach((heading, index) => {
+    headings.forEach(heading => {
       const level = parseInt(heading.tagName.substring(1), 10);
       const headingId = ensureHeadingId(heading, existingIds);
 
@@ -260,8 +260,6 @@
           listStack.pop();
           currentLevel--;
         }
-      } else {
-        currentLevel = level;
       }
 
       const listItem = document.createElement('li');
