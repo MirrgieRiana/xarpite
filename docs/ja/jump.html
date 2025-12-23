@@ -71,11 +71,11 @@
 
 <p>ラベル演算子 <code class="language-plaintext highlighter-rouge">formula !: label</code> で式 <code class="language-plaintext highlighter-rouge">formula</code> に対してラベルを付与できます。</p>
 
-<p><code class="language-plaintext highlighter-rouge">formula</code> 内では、リターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> でそのラベルに対して値を返すことができます。</p>
+<p><code class="language-plaintext highlighter-rouge">formula</code> 内では、リターン演算子 <code class="language-plaintext highlighter-rouge">label!! value</code> でそのラベルに対して値を返すことができます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
-    label !! 10
+    label!! 10
     20
   ) !: label
 '</span>
@@ -96,7 +96,7 @@
 
 <hr />
 
-<p>リターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> は、 <code class="language-plaintext highlighter-rouge">label</code> が <code class="language-plaintext highlighter-rouge">return</code> のような文字列の場合に <code class="language-plaintext highlighter-rouge">return !! "Result"</code> のように、まずまずの可読性をもたらします。</p>
+<p>リターン演算子 <code class="language-plaintext highlighter-rouge">label!! value</code> は、 <code class="language-plaintext highlighter-rouge">label</code> が <code class="language-plaintext highlighter-rouge">return</code> のような文字列の場合に <code class="language-plaintext highlighter-rouge">return!! "Result"</code> のように、まずまずの可読性をもたらします。</p>
 
 <p>演算子 <code class="language-plaintext highlighter-rouge">!!</code> の見た目はスロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> と対応しており、その挙動も似通っています。</p>
 
@@ -109,7 +109,7 @@
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
     1 .. 100 | (
-      (_ % 2 == 0 &amp;&amp; _ % 3 == 0 &amp;&amp; _ % 5 == 0) &amp;&amp; found !! _
+      (_ % 2 == 0 &amp;&amp; _ % 3 == 0 &amp;&amp; _ % 5 == 0) &amp;&amp; found!! _
     )
     NULL
   ) !: found
@@ -126,7 +126,7 @@
   (
     array := [1 .. 100]
     forEach[array] ( _ =&gt;
-      (_ % 2 == 0 &amp;&amp; _ % 3 == 0 &amp;&amp; _ % 5 == 0) &amp;&amp; found !! _
+      (_ % 2 == 0 &amp;&amp; _ % 3 == 0 &amp;&amp; _ % 5 == 0) &amp;&amp; found!! _
     )
     NULL
   ) !: found
@@ -189,13 +189,13 @@
 
 <h2 id="リターン値の省略">リターン値の省略</h2>
 
-<p>リターン演算子は <code class="language-plaintext highlighter-rouge">label !!</code> のように <code class="language-plaintext highlighter-rouge">value</code> 節を省略して書くこともできます。</p>
+<p>リターン演算子は <code class="language-plaintext highlighter-rouge">label!!</code> のように <code class="language-plaintext highlighter-rouge">value</code> 節を省略して書くこともできます。</p>
 
 <p>この場合、 <code class="language-plaintext highlighter-rouge">NULL</code> が返されます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
-    label !!
+    label!!
     20
   ) !: label
 '</span>
@@ -211,7 +211,7 @@
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
     value := 10
-    value &gt; 5 &amp;&amp; result !! "Larger than 5:", value
+    value &gt; 5 &amp;&amp; result!! "Larger than 5:", value
     "Not larger than 5:", value
   ) !: result
 '</span>
@@ -226,7 +226,7 @@
 <p>これはラベル演算子の結合優先度がリターン演算子よりも低く、右実行パイプと同じレベルであるためです。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
-  result !! "123" !: result
+  result!! "123" !: result
 '</span>
 <span class="c"># 123</span>
 </code></pre></div></div>
@@ -241,7 +241,7 @@
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
-    fail := \break !! "Failed: $_"
+    fail := \break!! "Failed: $_"
 
     1 == 1 || fail("1 is not equal to 1")
     1 == 2 || fail("1 is not equal to 2")
@@ -262,7 +262,7 @@
 
 <p>そして、右側のパイプはラベル演算子全体を取ることができます。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 .. 100 | (_ %% 3 &amp;&amp; _ %% 5) &amp;&amp; found !! _ !: found | _ * 10'</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 .. 100 | (_ %% 3 &amp;&amp; _ %% 5) &amp;&amp; found!! _ !: found | _ * 10'</span>
 <span class="c"># 150</span>
 </code></pre></div></div>
 
@@ -380,7 +380,7 @@
 
 <h3 id="スロー演算子キャッチ演算子の結合優先度">スロー演算子・キャッチ演算子の結合優先度</h3>
 
-<p>スロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> はリターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> と同様の結合規則を持ち、 <code class="language-plaintext highlighter-rouge">error</code> 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。</p>
+<p>スロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> はリターン演算子 <code class="language-plaintext highlighter-rouge">label!! value</code> と同様の結合規則を持ち、 <code class="language-plaintext highlighter-rouge">error</code> 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。</p>
 
 <p>以下の例では <code class="language-plaintext highlighter-rouge">error</code> 節がカンマ演算子を直接含んでいます。</p>
 
