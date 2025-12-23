@@ -175,6 +175,7 @@
     codeBlocks.forEach(wrapCodeBlock);
   }
 
+  // Allow lowercase alphanumerics and Japanese scripts (hiragana, katakana, kanji)
   const SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/g;
 
   /**
@@ -213,7 +214,9 @@
 
     const headings = Array.from(
       document.querySelectorAll('.doc-content h1, .doc-content h2, .doc-content h3')
-    ).filter(heading => !heading.closest('.table-of-contents'));
+    )
+      // Exclude headings inside TOC containers to avoid self-referencing
+      .filter(heading => !heading.closest('.table-of-contents'));
 
     const tocWrapper = tocList.closest('.table-of-contents');
 
@@ -244,6 +247,7 @@
       if (currentLevel === null) {
         currentLevel = level;
       } else {
+        // Adjust nesting depth to match the current heading level
         while (level > currentLevel) {
           const lastList = listStack[listStack.length - 1];
           const lastItem = lastList.lastElementChild;
