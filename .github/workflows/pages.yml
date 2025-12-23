@@ -53,8 +53,11 @@ jobs:
       - name: バージョンの取得
         run: |
           set -e
-          chmod +x ./scripts/get-version.kts
-          APP_VERSION=$(./scripts/get-version.kts)
+          APP_VERSION=$(kotlin ./scripts/get-version.kts)
+          if [ -z "${APP_VERSION}" ]; then
+            echo "APP_VERSION is empty" >&2
+            exit 1
+          fi
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
 
       - name: bundleReleaseとJekyllをビルドして配置
