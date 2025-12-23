@@ -1461,7 +1461,7 @@ protoOf(AbstractDecoder).lo = function () {
 };
 protoOf(AbstractDecoder).mo = function () {
   var tmp = this.co();
-  return tmp instanceof Char ? tmp.l1_1 : THROW_CCE();
+  return tmp instanceof Char ? tmp.m1_1 : THROW_CCE();
 };
 protoOf(AbstractDecoder).no = function () {
   var tmp = this.co();
@@ -2300,9 +2300,9 @@ protoOf(MapLikeSerializer).it = function (decoder, builder, startIndex, size) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   var progression = step(until(0, imul(size, 2)), 2);
-  var inductionVariable = progression.c1_1;
-  var last = progression.d1_1;
-  var step_0 = progression.e1_1;
+  var inductionVariable = progression.d1_1;
+  var last = progression.e1_1;
+  var step_0 = progression.f1_1;
   if (step_0 > 0 && inductionVariable <= last || (step_0 < 0 && last <= inductionVariable))
     do {
       var index = inductionVariable;
@@ -4413,7 +4413,7 @@ protoOf(CharSerializer).k11 = function (encoder, value) {
   return encoder.tp(value);
 };
 protoOf(CharSerializer).vl = function (encoder, value) {
-  return this.k11(encoder, value instanceof Char ? value.l1_1 : THROW_CCE());
+  return this.k11(encoder, value instanceof Char ? value.m1_1 : THROW_CCE());
 };
 protoOf(CharSerializer).l11 = function (decoder) {
   return decoder.mo();
@@ -4611,7 +4611,7 @@ protoOf(TaggedDecoder).n12 = function (tag) {
 };
 protoOf(TaggedDecoder).o12 = function (tag) {
   var tmp = this.f12(tag);
-  return tmp instanceof Char ? tmp.l1_1 : THROW_CCE();
+  return tmp instanceof Char ? tmp.m1_1 : THROW_CCE();
 };
 protoOf(TaggedDecoder).p12 = function (tag) {
   var tmp = this.f12(tag);
@@ -4964,7 +4964,7 @@ protoOf(ULongSerializer).r13 = function (encoder, value) {
   tmp.qp(tmp$ret$0);
 };
 protoOf(ULongSerializer).vl = function (encoder, value) {
-  return this.r13(encoder, value instanceof ULong ? value.j1_1 : THROW_CCE());
+  return this.r13(encoder, value instanceof ULong ? value.k1_1 : THROW_CCE());
 };
 protoOf(ULongSerializer).s13 = function (decoder) {
   // Inline function 'kotlin.toULong' call
@@ -5024,7 +5024,7 @@ protoOf(UByteSerializer).x13 = function (encoder, value) {
   tmp.np(tmp$ret$0);
 };
 protoOf(UByteSerializer).vl = function (encoder, value) {
-  return this.x13(encoder, value instanceof UByte ? value.k1_1 : THROW_CCE());
+  return this.x13(encoder, value instanceof UByte ? value.l1_1 : THROW_CCE());
 };
 protoOf(UByteSerializer).y13 = function (decoder) {
   // Inline function 'kotlin.toUByte' call

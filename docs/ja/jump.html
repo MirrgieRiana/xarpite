@@ -69,7 +69,7 @@
 
 <h2 id="簡単な例">簡単な例</h2>
 
-<p><code class="language-plaintext highlighter-rouge">formula !: label</code> で式 <code class="language-plaintext highlighter-rouge">formula</code> に対してラベルを付与できます。</p>
+<p>ラベル演算子 <code class="language-plaintext highlighter-rouge">formula !: label</code> で式 <code class="language-plaintext highlighter-rouge">formula</code> に対してラベルを付与できます。</p>
 
 <p><code class="language-plaintext highlighter-rouge">formula</code> 内では、リターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> でそのラベルに対して値を返すことができます。</p>
 
@@ -84,7 +84,21 @@
 
 <hr />
 
-<p>ラベルはラベルを参照する個所でのみ有効で、変数のように値を読み書きすることはできません。</p>
+<p>ラベルは変数とは異なるテーブルで管理されており、リターン演算子の左辺からのみ参照が可能です。</p>
+
+<hr />
+
+<p>ラベル演算子 <code class="language-plaintext highlighter-rouge">formula !: label</code> は非常に独特の見た目を持っていますが、これはエルビス演算子 <code class="language-plaintext highlighter-rouge">value ?: default</code> との類似性を意識したものです。</p>
+
+<p>これらはともに左辺に特別な状態を取る可能性があり、それを右辺で受け取ります。</p>
+
+<p>ただし、ラベル演算子は結合優先度が低く、 <code class="language-plaintext highlighter-rouge">formula</code> にはパイプ <code class="language-plaintext highlighter-rouge">|</code> や右実行パイプ <code class="language-plaintext highlighter-rouge">&gt;&gt;</code> を含めることができます。</p>
+
+<hr />
+
+<p>リターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> は、 <code class="language-plaintext highlighter-rouge">label</code> が <code class="language-plaintext highlighter-rouge">return</code> のような文字列の場合に <code class="language-plaintext highlighter-rouge">return !! "Result"</code> のように、まずまずの可読性をもたらします。</p>
+
+<p>演算子 <code class="language-plaintext highlighter-rouge">!!</code> の見た目はスロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> と対応しており、その挙動も似通っています。</p>
 
 <h2 id="ループからの脱出">ループからの脱出</h2>
 
@@ -108,10 +122,10 @@
 <p>関数に渡すラムダ式の内側から、外側のラベルに対してリターンすることもできます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
-  for_each := array, block -&gt; array() | *block
+  forEach := array, block -&gt; array() | *block
   (
     array := [1 .. 100]
-    for_each[array] ( _ =&gt;
+    forEach[array] ( _ =&gt;
       (_ % 2 == 0 &amp;&amp; _ % 3 == 0 &amp;&amp; _ % 5 == 0) &amp;&amp; found !! _
     )
     NULL
@@ -122,7 +136,7 @@
 
 <h2 id="ストリームの副作用">ストリームの副作用</h2>
 
-<p>ラベルの <code class="language-plaintext highlighter-rouge">formula</code> の戻り値がストリームである場合、必ずその場で1度だけ評価され、副作用も1度だけ生じます。</p>
+<p>ラベル演算子の <code class="language-plaintext highlighter-rouge">formula</code> の戻り値がストリームである場合、必ずその場で1度だけ評価され、副作用も1度だけ生じます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   count := 0
@@ -130,7 +144,7 @@
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !: break
   [stream], [stream], [stream], count
 '</span>
@@ -150,7 +164,7 @@
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !: break
   count
 '</span>
@@ -167,7 +181,7 @@
   (
     1 .. 1000 | (
       [1 .. 1000]
-    ) 
+    )
   ) !: break;
 '</span>
 <span class="c"># NULL</span>
@@ -188,23 +202,28 @@
 <span class="c"># NULL</span>
 </code></pre></div></div>
 
-<h2 id="リターン演算子の結合優先度">リターン演算子の結合優先度</h2>
+<h2 id="リターン演算子ラベル演算子の結合優先度">リターン演算子・ラベル演算子の結合優先度</h2>
 
-<p>リターン演算子は特殊な前置演算子として扱われており、 <code class="language-plaintext highlighter-rouge">value</code> 節にはラベル系演算子よりも結合優先度の高い任意の式が来れます。</p>
+<p>リターン演算子はリテラル系演算子の一種として扱われており、 <code class="language-plaintext highlighter-rouge">value</code> 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。</p>
 
-<p>以下の例では <code class="language-plaintext highlighter-rouge">value</code> 節が文字列結合演算子を直接含んでいます。</p>
+<p>以下の例では <code class="language-plaintext highlighter-rouge">value</code> 節がカンマ演算子を直接含んでいます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   (
     value := 10
-    value &gt; 5 &amp;&amp; result !! value &amp; " is Larger than 5"
-    value &amp; " is Not Larger than 5"
+    value &gt; 5 &amp;&amp; result !! "Larger than 5:", value
+    "Not larger than 5:", value
   ) !: result
 '</span>
-<span class="c"># 10 is Larger than 5</span>
+<span class="c"># Larger than 5:</span>
+<span class="c"># 10</span>
 </code></pre></div></div>
 
-<p>一方、ラベル構文と共起した場合はリターン演算子は外側のラベル構文によるラベルを参照できます。</p>
+<hr />
+
+<p>一方、ラベル演算子と共起した場合はリターン演算子は外側のラベル演算子によるラベルを参照できます。</p>
+
+<p>これはラベル演算子の結合優先度がリターン演算子よりも低く、右実行パイプと同じレベルであるためです。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   result !! "123" !: result
@@ -212,78 +231,101 @@
 <span class="c"># 123</span>
 </code></pre></div></div>
 
-<h2 id="ラベル演算子の結合優先度">ラベル演算子の結合優先度</h2>
+<hr />
 
-<p>ラベル演算子はラベル系演算子に属し、カンマ <code class="language-plaintext highlighter-rouge">,</code> よりも低く、パイプ系 <code class="language-plaintext highlighter-rouge">|</code> よりも高い結合優先度を持ちます。</p>
+<p>リターン演算子の左辺には識別子のみを指定できます。</p>
+
+<p>また、リターン演算子に前置演算子を付与した場合、その前置演算子はリターン演算子全体を受け取ります。</p>
+
+<p>以下の例では、関数化演算子によってリターン演算子全体を関数にする例です。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    fail := \break !! "Failed: $_"
+
+    1 == 1 || fail("1 is not equal to 1")
+    1 == 2 || fail("1 is not equal to 2")
+
+    "Success"
+  ) !: break
+'</span>
+<span class="c"># Failed: 1 is not equal to 2</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>ラベル演算子 <code class="language-plaintext highlighter-rouge">!:</code> は右実行パイプ <code class="language-plaintext highlighter-rouge">&gt;&gt;</code> と同じレベルの結合優先度を持ちます。</p>
+
+<p>左辺にはパイプ <code class="language-plaintext highlighter-rouge">|</code> や右実行パイプ <code class="language-plaintext highlighter-rouge">&gt;&gt;</code> を取ることができ、パイプや右実行パイプもまた、左辺にラベル演算子を取ることができます。</p>
+
+<p>以下の例では、ラベル演算子 <code class="language-plaintext highlighter-rouge">!:</code> がそれより左側のパイプによるループ全体を取るため、リターン <code class="language-plaintext highlighter-rouge">!!</code> によってループが途中脱出されます。</p>
+
+<p>そして、右側のパイプはラベル演算子全体を取ることができます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 .. 100 | (_ %% 3 &amp;&amp; _ %% 5) &amp;&amp; found !! _ !: found | _ * 10'</span>
+<span class="c"># 150</span>
+</code></pre></div></div>
 
 <h1 id="エラー処理">エラー処理</h1>
 
-<h2 id="スロー">スロー</h2>
+<h2 id="スロー演算子">スロー演算子</h2>
 
-<p>Xarpiteでは、エラーのスローを <code class="language-plaintext highlighter-rouge">!! error</code> 演算子で行います。</p>
+<p>Xarpiteでは、エラーのスローをスロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> で行います。</p>
 
 <p>スローする値はどのようなタイプの値であっても構いません。</p>
 
-<p>スローした値は、キャッチした際に渡されます。</p>
+<p>スローした値はキャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? catch</code> の右辺に渡されます。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'!! "12345" !? (e =&gt; "Error ($e)")'</span>
-<span class="c"># Error (12345)</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    !! 12345
+  ) !? ( e =&gt;
+    "Error: $e"
+  )
+'</span>
+<span class="c"># Error: 12345</span>
 </code></pre></div></div>
 
 <h3 id="スロー値の省略">スロー値の省略</h3>
 
-<p>スロー演算子は <code class="language-plaintext highlighter-rouge">!!</code> のように <code class="language-plaintext highlighter-rouge">error</code> 節を省略して書くこともできます。</p>
+<p>スロー演算子は、単に <code class="language-plaintext highlighter-rouge">!!</code> のように <code class="language-plaintext highlighter-rouge">error</code> 節を省略して書くこともできます。</p>
 
 <p>この場合、 <code class="language-plaintext highlighter-rouge">NULL</code> がスローされます。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'!! !? (e =&gt; "Error ($e)")'</span>
-<span class="c"># Error (NULL)</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'(!!) !? (e =&gt; "Error: $e")'</span>
+<span class="c"># Error: NULL</span>
 </code></pre></div></div>
 
-<h3 id="スロー演算子の結合優先度">スロー演算子の結合優先度</h3>
+<h2 id="キャッチ演算子">キャッチ演算子</h2>
 
-<p>スロー演算子もリターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> と同様の結合規則を持ち、右辺にはラベル系演算子よりも結合優先度の高い任意の式が来れます。</p>
+<p>キャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? catch</code> は、左辺で値がスローされなかった場合は左辺を、スローされた場合は右辺を返す演算子です。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
-  (
-    value := 10
-    value &gt; 5 &amp;&amp; !! value &amp; " is Larger than 5"
-    value &amp; " is Not Larger than 5"
-  ) !? (e =&gt; e)
-'</span>
-<span class="c"># 10 is Larger than 5</span>
-</code></pre></div></div>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
-  !! "123" !? (e =&gt; e)
-'</span>
-<span class="c"># 123</span>
-</code></pre></div></div>
-
-<h2 id="トライキャッチ演算子">トライキャッチ演算子</h2>
-
-<p>トライキャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? catch</code> は、左辺で値がスローされなかった場合は左辺を、スローされた場合は右辺を返す演算子です。</p>
-
-<p>スローされる値は、どのようなタイプの値である可能性もあります。</p>
+<p>スローされる値はどのようなタイプの値である可能性もあります。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"OK" !? "Failed"'</span>
 <span class="c"># OK</span>
 
-<span class="nv">$ </span>xa <span class="s1">'!!"Error" !? "Failed"'</span>
+<span class="nv">$ </span>xa <span class="s1">'(!! "Error") !? "Failed"'</span>
 <span class="c"># Failed</span>
 </code></pre></div></div>
 
 <h3 id="スローされた値の受け取り">スローされた値の受け取り</h3>
 
-<p><code class="language-plaintext highlighter-rouge">try !? (error =&gt; catch)</code> により、スローされた値を受け取ることができます。</p>
+<p>引数付きキャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? (error =&gt; catch)</code> により、スローされた値を受け取ることができます。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'!!12345 !? (e =&gt; "Error: #$e")'</span>
-<span class="c"># Error: #12345</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    !! 12345
+  ) !? ( e =&gt;
+    "Error: $e"
+  )
+'</span>
+<span class="c"># Error: 12345</span>
 </code></pre></div></div>
 
 <h3 id="ストリームの解決">ストリームの解決</h3>
 
-<p>トライキャッチ演算子 <code class="language-plaintext highlighter-rouge">!?</code> の左辺の戻り値がストリームである場合、その評価は必ず1度だけ行われ、副作用も1度だけ生じます。</p>
+<p>キャッチ演算子 <code class="language-plaintext highlighter-rouge">!?</code> の左辺の戻り値がストリームである場合、その評価は必ず1度だけ行われ、副作用も1度だけ生じます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   count := 0
@@ -291,7 +333,7 @@
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !? "error"
   [stream], [stream], [stream], count
 '</span>
@@ -303,7 +345,7 @@
 
 <hr />
 
-<p>これはトライキャッチ演算子の戻り値であるストリームが1度も評価されない場合も同様です。</p>
+<p>これはキャッチ演算子の戻り値であるストリームが1度も評価されない場合も同様です。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   count := 0
@@ -311,14 +353,14 @@
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !? "error"
   count
 '</span>
 <span class="c"># 3</span>
 </code></pre></div></div>
 
-<h3 id="文レベルのトライキャッチ演算子">文レベルのトライキャッチ演算子</h3>
+<h3 id="文レベルのキャッチ演算子">文レベルのキャッチ演算子</h3>
 
 <p>キャッチ演算子は式レベルとしても文レベルとしても機能します。</p>
 
@@ -336,9 +378,49 @@
 
 <p>この性質は、ストリームの戻り値を持つ文を書いた場合に違いが現れる場合があります。</p>
 
-<h3 id="トライキャッチ演算子の結合優先度">トライキャッチ演算子の結合優先度</h3>
+<h3 id="スロー演算子キャッチ演算子の結合優先度">スロー演算子・キャッチ演算子の結合優先度</h3>
 
-<p>トライキャッチ演算子はラベル系演算子に属し、カンマ <code class="language-plaintext highlighter-rouge">,</code> よりも低く、パイプ系 <code class="language-plaintext highlighter-rouge">|</code> よりも高い結合優先度を持ちます。</p>
+<p>スロー演算子 <code class="language-plaintext highlighter-rouge">!! error</code> はリターン演算子 <code class="language-plaintext highlighter-rouge">label !! value</code> と同様の結合規則を持ち、 <code class="language-plaintext highlighter-rouge">error</code> 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。</p>
+
+<p>以下の例では <code class="language-plaintext highlighter-rouge">error</code> 節がカンマ演算子を直接含んでいます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  (
+    value := 10
+    value &gt; 5 &amp;&amp; !! "Larger than 5:", value
+    "Not larger than 5:", value
+  ) !? (e =&gt; e)
+'</span>
+<span class="c"># Larger than 5:</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><strong>一方で、キャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? catch</code> の結合優先度はエルビス演算子 <code class="language-plaintext highlighter-rouge">value ?: default</code> と同じレベルです。</strong></p>
+
+<p>これは、常にリターン演算子が <code class="language-plaintext highlighter-rouge">formula</code> 内に書かれるラベル演算子 <code class="language-plaintext highlighter-rouge">formula !: label</code> と異なり、実際のキャッチ演算子 <code class="language-plaintext highlighter-rouge">try !? catch</code> の <code class="language-plaintext highlighter-rouge">try</code> には単一の関数呼び出しや演算子が来る場合が多いためです。</p>
+
+<p>Xarpiteのキャッチ演算子は一般的なプログラミング言語におけるtry-catch文ではなく、むしろ三項演算子の同類とみなした方が理解が早いです。</p>
+
+<p>このため、キャッチ演算子はカンマよりも結合優先度が高いです。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  evenOrThrow := x -&gt; x % 2 == 0 || !! "Not even: $x"
+
+  x := 5
+  "Number: $x", evenOrThrow(x) !? (e =&gt; "Caught error: $e"), "Mod 2: $(x % 2)"
+'</span>
+<span class="c"># Number: 5</span>
+<span class="c"># Caught error: Not even: 5</span>
+<span class="c"># Mod 2: 1</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>キャッチ演算子の <code class="language-plaintext highlighter-rouge">try !? catch</code> の <code class="language-plaintext highlighter-rouge">try</code> には、論理演算子までを含めることができ、パイプ系演算子を含めることはできません。</p>
+
+<p>パイプ系演算子を含めるためには丸括弧で囲う必要があります。</p>
 
           </article>
         </div>
@@ -349,7 +431,7 @@
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
             <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
           </p>
         </div>
@@ -362,7 +444,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
       const navLinks = document.querySelectorAll('.doc-nav a');
-      
+
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href) {
@@ -384,28 +466,28 @@
         // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
-        
+
         // Create copy button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-button';
         copyButton.textContent = 'Copy';
         copyButton.setAttribute('aria-label', 'Copy code');
-        
+
         // Add click handler
         copyButton.addEventListener('click', function() {
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
-          
+
           // Try modern clipboard API first (requires secure context: HTTPS or localhost)
-          const isSecure = window.isSecureContext || 
-                          window.location.protocol === 'https:' || 
+          const isSecure = window.isSecureContext ||
+                          window.location.protocol === 'https:' ||
                           window.location.hostname === 'localhost';
-          
+
           if (navigator.clipboard && isSecure) {
             navigator.clipboard.writeText(textToCopy).then(function() {
               copyButton.textContent = 'Copied!';
               copyButton.classList.add('copied');
-              
+
               setTimeout(function() {
                 copyButton.textContent = 'Copy';
                 copyButton.classList.remove('copied');
@@ -425,13 +507,13 @@
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
+
             try {
               const successful = document.execCommand('copy');
               if (successful) {
                 copyButton.textContent = 'Copied!';
                 copyButton.classList.add('copied');
-                
+
                 setTimeout(function() {
                   copyButton.textContent = 'Copy';
                   copyButton.classList.remove('copied');
@@ -453,7 +535,7 @@
             }
           }
         });
-        
+
         // Wrap the pre element
         preElement.parentNode.insertBefore(wrapper, preElement);
         wrapper.appendChild(preElement);

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>CLI版 - Xarpite</title>
+  <title>CLI - Xarpite</title>
   <meta name="description" content="An interpreted language for one-liners">
   <link rel="stylesheet" href="/xarpite/assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
@@ -63,7 +63,7 @@
           </aside>
 
           <article class="doc-content">
-            <h1 id="xarpiteを起動するコマンド">Xarpiteを起動するコマンド</h1>
+            <h1 id="コマンド">コマンド</h1>
 
 <h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
 
@@ -71,7 +71,7 @@
 
 <p>将来的に <code class="language-plaintext highlighter-rouge">xarpite2</code> などの新作が登場した場合に備えて用意されています。</p>
 
-<p>シェルスクリプトなど、永続的なファイル的にコマンドを記述する際には <code class="language-plaintext highlighter-rouge">xa</code> コマンドよりもこちらが推奨されます。</p>
+<p>シェルスクリプトなど、永続的なファイルにコマンドを記述する際には <code class="language-plaintext highlighter-rouge">xa</code> コマンドよりもこちらが推奨されます。</p>
 
 <p>他方で、コマンドラインから直接コードを実行する場合には <code class="language-plaintext highlighter-rouge">xa</code> コマンドの方が短くて便利です。</p>
 
@@ -199,6 +199,12 @@
 <hr />
 
 <p>厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。</p>
+
+<h2 id="xarpite-update-xarpiteを最新版に更新する"><code class="language-plaintext highlighter-rouge">xarpite-update</code>: Xarpiteを最新版に更新する</h2>
+
+<p>現在実行中のXarpiteを最新版に更新します。</p>
+
+<p>このコマンドは特別な実行権限が必要な場合があります。</p>
 
 <h1 id="cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</h1>
 
@@ -337,7 +343,7 @@
 <p>返されるファイル名は辞書順にソートされます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
-  <span class="nb">mkdir </span>tmp 
+  <span class="nb">mkdir </span>tmp
   <span class="nb">touch </span>tmp/file
   <span class="nb">mkdir </span>tmp/dir
   xa <span class="s1">'FILES("tmp")'</span>
@@ -349,7 +355,7 @@
 <span class="c"># file</span>
 </code></pre></div></div>
 
-<h2 id="read-ファイルから読み込み">`READ’: ファイルから読み込み</h2>
+<h2 id="read-ファイルから読み込み"><code class="language-plaintext highlighter-rouge">READ</code>: ファイルから読み込み</h2>
 
 <p><code class="language-plaintext highlighter-rouge">READ(file: STRING): STREAM&lt;STRING&gt;</code></p>
 
@@ -473,6 +479,51 @@
 
 <p>モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。</p>
 
+<h2 id="exec-外部コマンドを実行"><code class="language-plaintext highlighter-rouge">EXEC</code>: 外部コマンドを実行</h2>
+
+<p><code class="language-plaintext highlighter-rouge">EXEC(command: STREAM&lt;STRING&gt;): STREAM&lt;STRING&gt;</code> [EXPERIMENTAL]</p>
+
+<p>外部コマンドを実行します。</p>
+
+<p><code class="language-plaintext highlighter-rouge">command</code> にはプロセスおよびその引数を1要素ずつ指定します。</p>
+
+<p>戻り値はそのプロセスの標準出力を1行ずつ読み取るストリームです。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">--jvm</span> <span class="s1">'EXEC("echo", "Hello, World!")'</span>
+<span class="c"># Hello, World!</span>
+</code></pre></div></div>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">--jvm</span> <span class="s1">'EXEC("bash", "-c", "seq 1 30 | grep 3")'</span>
+<span class="c"># 3</span>
+<span class="c"># 13</span>
+<span class="c"># 23</span>
+<span class="c"># 30</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">--jvm</span> <span class="s1">'EXEC("bash", "-c", "exit 1") !? "ERROR"'</span>
+<span class="c"># ERROR</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>呼び出したプロセスの標準エラー出力はXarpiteの標準エラー出力にリダイレクトされます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">--jvm</span> <span class="nt">-q</span> <span class="s1">'EXEC("bash", "-c", "echo '</span>ERROR<span class="s1">' 1&gt;&amp;2")'</span> 2&gt;&amp;1
+<span class="c"># ERROR</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>この関数は実験的な機能であり、将来的に仕様が変更される可能性があります。</p>
+
+<p>戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。</p>
+
+<p><strong>また、この関数は現状JVM版でのみ提供されます。</strong></p>
+
           </article>
         </div>
       </div>
@@ -482,7 +533,7 @@
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
             <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
           </p>
         </div>
@@ -495,7 +546,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
       const navLinks = document.querySelectorAll('.doc-nav a');
-      
+
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href) {
@@ -517,28 +568,28 @@
         // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
-        
+
         // Create copy button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-button';
         copyButton.textContent = 'Copy';
         copyButton.setAttribute('aria-label', 'Copy code');
-        
+
         // Add click handler
         copyButton.addEventListener('click', function() {
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
-          
+
           // Try modern clipboard API first (requires secure context: HTTPS or localhost)
-          const isSecure = window.isSecureContext || 
-                          window.location.protocol === 'https:' || 
+          const isSecure = window.isSecureContext ||
+                          window.location.protocol === 'https:' ||
                           window.location.hostname === 'localhost';
-          
+
           if (navigator.clipboard && isSecure) {
             navigator.clipboard.writeText(textToCopy).then(function() {
               copyButton.textContent = 'Copied!';
               copyButton.classList.add('copied');
-              
+
               setTimeout(function() {
                 copyButton.textContent = 'Copy';
                 copyButton.classList.remove('copied');
@@ -558,13 +609,13 @@
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
+
             try {
               const successful = document.execCommand('copy');
               if (successful) {
                 copyButton.textContent = 'Copied!';
                 copyButton.classList.add('copied');
-                
+
                 setTimeout(function() {
                   copyButton.textContent = 'Copy';
                   copyButton.classList.remove('copied');
@@ -586,7 +637,7 @@
             }
           }
         });
-        
+
         // Wrap the pre element
         preElement.parentNode.insertBefore(wrapper, preElement);
         wrapper.appendChild(preElement);

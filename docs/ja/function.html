@@ -205,7 +205,7 @@
 <span class="c"># 3</span>
 </code></pre></div></div>
 
-<h1 id="関数生成演算子">関数生成演算子</h1>
+<h1 id="関数化演算子">関数化演算子</h1>
 
 <p>前置 <code class="language-plaintext highlighter-rouge">\</code> 演算子は、 <code class="language-plaintext highlighter-rouge">_ -&gt; body</code> というラムダ式と等しい関数を生成する演算子です。</p>
 
@@ -226,7 +226,7 @@
 
 <hr />
 
-<p>関数生成演算子は、 <code class="language-plaintext highlighter-rouge">FILTER</code> や <code class="language-plaintext highlighter-rouge">SORT</code> などの関数を受け取る関数と組み合わせると便利です。</p>
+<p>関数化演算子は、 <code class="language-plaintext highlighter-rouge">FILTER</code> や <code class="language-plaintext highlighter-rouge">SORT</code> などの関数を受け取る関数と組み合わせると便利です。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   {name: "Bob"; age: 30},
@@ -807,7 +807,7 @@ entry      := (class): function
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
             <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
           </p>
         </div>
@@ -820,7 +820,7 @@ entry      := (class): function
     document.addEventListener('DOMContentLoaded', function() {
       const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
       const navLinks = document.querySelectorAll('.doc-nav a');
-      
+
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href) {
@@ -842,28 +842,28 @@ entry      := (class): function
         // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
-        
+
         // Create copy button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-button';
         copyButton.textContent = 'Copy';
         copyButton.setAttribute('aria-label', 'Copy code');
-        
+
         // Add click handler
         copyButton.addEventListener('click', function() {
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
-          
+
           // Try modern clipboard API first (requires secure context: HTTPS or localhost)
-          const isSecure = window.isSecureContext || 
-                          window.location.protocol === 'https:' || 
+          const isSecure = window.isSecureContext ||
+                          window.location.protocol === 'https:' ||
                           window.location.hostname === 'localhost';
-          
+
           if (navigator.clipboard && isSecure) {
             navigator.clipboard.writeText(textToCopy).then(function() {
               copyButton.textContent = 'Copied!';
               copyButton.classList.add('copied');
-              
+
               setTimeout(function() {
                 copyButton.textContent = 'Copy';
                 copyButton.classList.remove('copied');
@@ -883,13 +883,13 @@ entry      := (class): function
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
+
             try {
               const successful = document.execCommand('copy');
               if (successful) {
                 copyButton.textContent = 'Copied!';
                 copyButton.classList.add('copied');
-                
+
                 setTimeout(function() {
                   copyButton.textContent = 'Copy';
                   copyButton.classList.remove('copied');
@@ -911,7 +911,7 @@ entry      := (class): function
             }
           }
         });
-        
+
         // Wrap the pre element
         preElement.parentNode.insertBefore(wrapper, preElement);
         wrapper.appendChild(preElement);

@@ -41,9 +41,9 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.k76_1 = fd;
-  this.l76_1 = new Long(0, 0);
-  this.m76_1 = false;
+  this.u76_1 = fd;
+  this.v76_1 = new Long(0, 0);
+  this.w76_1 = false;
 }
 protoOf(FileSource).a1k = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
@@ -52,29 +52,29 @@ protoOf(FileSource).a1k = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.m76_1) {
+  if (!!this.w76_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.k76_1;
+  var tmp0_fd = this.u76_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.l76_1);
+  var tmp2_position = toNumber(this.v76_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.l76_1;
-  tmp.l76_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.v76_1;
+  tmp.v76_1 = add(this_0, fromInt(readByteCount));
   sink.j1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).p1i = function () {
-  if (this.m76_1)
+  if (this.w76_1)
     return Unit_instance;
-  this.m76_1 = true;
-  closeSync(this.k76_1);
+  this.w76_1 = true;
+  closeSync(this.u76_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -135,10 +135,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.n76_1 = 61440;
-  this.o76_1 = 32768;
-  this.p76_1 = 16384;
-  this.q76_1 = 40960;
+  this.x76_1 = 61440;
+  this.y76_1 = 32768;
+  this.z76_1 = 16384;
+  this.a77_1 = 40960;
 }
 protoOf(NodeJsFileSystem).k1h = function (path) {
   var pathString = path.toString();
@@ -158,7 +158,7 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.n76_1) === this.q76_1) {
+  if ((numberToInt(stat.mode) & this.x76_1) === this.a77_1) {
     try {
       symlinkTarget = Companion_getInstance().l1i(readlinkSync(pathString));
     } catch ($p) {
@@ -170,7 +170,7 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.n76_1) === this.o76_1, (numberToInt(stat.mode) & this.n76_1) === this.p76_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.x76_1) === this.y76_1, (numberToInt(stat.mode) & this.x76_1) === this.z76_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
 protoOf(NodeJsFileSystem).n1i = function (dir) {
   return ensureNotNull(list(this, dir, true));

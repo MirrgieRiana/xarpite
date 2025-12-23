@@ -2594,7 +2594,7 @@ protoOf(BigInteger).q2d = function (other) {
             tmp = this.b2e(Companion_getInstance_1().u2c(other));
           } else {
             if (other instanceof ULong) {
-              tmp = this.b2e(Companion_getInstance_1().r2e(other.j1_1));
+              tmp = this.b2e(Companion_getInstance_1().r2e(other.k1_1));
             } else {
               if (other instanceof UInt) {
                 tmp = this.b2e(Companion_getInstance_1().t2e(other.vk_1));
@@ -2603,7 +2603,7 @@ protoOf(BigInteger).q2d = function (other) {
                   tmp = this.b2e(Companion_getInstance_1().v2e(other.ol_1));
                 } else {
                   if (other instanceof UByte) {
-                    tmp = this.b2e(Companion_getInstance_1().x2e(other.k1_1));
+                    tmp = this.b2e(Companion_getInstance_1().x2e(other.l1_1));
                   } else {
                     if (typeof other === 'number') {
                       tmp = this.a2f(other, BigInteger$compareTo$lambda(this));
@@ -2684,7 +2684,7 @@ protoOf(BigInteger).equals = function (other) {
             tmp = this.b2e(Companion_getInstance_1().u2c(other));
           } else {
             if (other instanceof ULong) {
-              tmp = this.b2e(Companion_getInstance_1().r2e(other.j1_1));
+              tmp = this.b2e(Companion_getInstance_1().r2e(other.k1_1));
             } else {
               if (other instanceof UInt) {
                 tmp = this.b2e(Companion_getInstance_1().t2e(other.vk_1));
@@ -2693,7 +2693,7 @@ protoOf(BigInteger).equals = function (other) {
                   tmp = this.b2e(Companion_getInstance_1().v2e(other.ol_1));
                 } else {
                   if (other instanceof UByte) {
-                    tmp = this.b2e(Companion_getInstance_1().x2e(other.k1_1));
+                    tmp = this.b2e(Companion_getInstance_1().x2e(other.l1_1));
                   } else {
                     tmp = -1;
                   }
@@ -2714,7 +2714,7 @@ protoOf(BigInteger).hashCode = function () {
   var accumulator = 0;
   var _iterator__ex2g4s = ULongArray__iterator_impl_cq4d2h(this_0);
   while (_iterator__ex2g4s.s()) {
-    var element = _iterator__ex2g4s.t().j1_1;
+    var element = _iterator__ex2g4s.t().k1_1;
     accumulator = accumulator + ULong__hashCode_impl_6hv2lb(element) | 0;
   }
   return accumulator + this.d2b_1.hashCode() | 0;
@@ -3824,7 +3824,7 @@ function basecaseMultiplyWithCorrectedSize($this, first, second, firstCorrectedS
   var index = 0;
   var _iterator__ex2g4s = ULongArray__iterator_impl_cq4d2h(second);
   while (_iterator__ex2g4s.s()) {
-    var item = _iterator__ex2g4s.t().j1_1;
+    var item = _iterator__ex2g4s.t().k1_1;
     var _unary__edvuaz = index;
     index = _unary__edvuaz + 1 | 0;
     if (_unary__edvuaz > secondCorrectedSizeStart) {

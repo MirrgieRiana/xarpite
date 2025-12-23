@@ -200,11 +200,6 @@ initMetadataForClass(SendBroadcast, 'SendBroadcast', VOID, VOID, [Waiter]);
 initMetadataForClass(BufferedChannelIterator, 'BufferedChannelIterator', VOID, VOID, [Waiter], [0, 3]);
 initMetadataForCoroutine($sendCOROUTINE$, CoroutineImpl);
 initMetadataForCoroutine($receiveCatchingCOROUTINE$, CoroutineImpl);
-function close$default(cause, $super) {
-  cause = cause === VOID ? null : cause;
-  return $super === VOID ? this.z20(cause) : $super.z20.call(this, cause);
-}
-initMetadataForInterface(SendChannel, 'SendChannel', VOID, VOID, VOID, [1]);
 function cancel$default_0(cause, $super) {
   cause = cause === VOID ? null : cause;
   var tmp;
@@ -217,7 +212,12 @@ function cancel$default_0(cause, $super) {
   return tmp;
 }
 initMetadataForInterface(ReceiveChannel, 'ReceiveChannel', VOID, VOID, VOID, [0]);
-initMetadataForClass(BufferedChannel, 'BufferedChannel', VOID, VOID, [SendChannel, ReceiveChannel], [1, 4, 0, 3]);
+function close$default(cause, $super) {
+  cause = cause === VOID ? null : cause;
+  return $super === VOID ? this.z20(cause) : $super.z20.call(this, cause);
+}
+initMetadataForInterface(SendChannel, 'SendChannel', VOID, VOID, VOID, [1]);
+initMetadataForClass(BufferedChannel, 'BufferedChannel', VOID, VOID, [ReceiveChannel, SendChannel], [1, 4, 0, 3]);
 initMetadataForClass(WaiterEB, 'WaiterEB');
 initMetadataForClass(ReceiveCatching, 'ReceiveCatching', VOID, VOID, [Waiter]);
 initMetadataForObject(Factory, 'Factory');
@@ -227,7 +227,7 @@ initMetadataForCompanion(Companion);
 initMetadataForClass(ChannelResult, 'ChannelResult');
 initMetadataForClass(ClosedSendChannelException, 'ClosedSendChannelException', VOID, IllegalStateException);
 initMetadataForClass(ClosedReceiveChannelException, 'ClosedReceiveChannelException', VOID, NoSuchElementException);
-initMetadataForClass(ChannelCoroutine, 'ChannelCoroutine', VOID, AbstractCoroutine, [AbstractCoroutine, SendChannel, ReceiveChannel], [1, 0]);
+initMetadataForClass(ChannelCoroutine, 'ChannelCoroutine', VOID, AbstractCoroutine, [AbstractCoroutine, ReceiveChannel, SendChannel], [1, 0]);
 initMetadataForClass(ConflatedBufferedChannel, 'ConflatedBufferedChannel', VOID, BufferedChannel, VOID, [1, 0]);
 initMetadataForInterface(ProducerScope, 'ProducerScope', VOID, VOID, [CoroutineScope, SendChannel], [1]);
 initMetadataForClass(ProducerCoroutine, 'ProducerCoroutine', VOID, ChannelCoroutine, [ChannelCoroutine, ProducerScope], [1, 0]);
@@ -261,7 +261,7 @@ initMetadataForClass(ScopeCoroutine, 'ScopeCoroutine', VOID, AbstractCoroutine, 
 initMetadataForClass(Symbol, 'Symbol');
 initMetadataForInterface(SelectInstance, 'SelectInstance');
 initMetadataForClass(ClauseData, 'ClauseData', VOID, VOID, VOID, [1]);
-initMetadataForClass(SelectImplementation, 'SelectImplementation', VOID, VOID, [CancelHandler, Waiter, SelectInstance], [0, 2]);
+initMetadataForClass(SelectImplementation, 'SelectImplementation', VOID, VOID, [CancelHandler, SelectInstance, Waiter], [0, 2]);
 initMetadataForClass(TrySelectDetailedResult, 'TrySelectDetailedResult', VOID, Enum);
 initMetadataForClass(SetTimeoutBasedDispatcher, 'SetTimeoutBasedDispatcher', VOID, CoroutineDispatcher, [CoroutineDispatcher, Delay], [1]);
 initMetadataForObject(NodeDispatcher, 'NodeDispatcher', VOID, SetTimeoutBasedDispatcher, VOID, [1]);
@@ -8955,16 +8955,16 @@ protoOf(MessageQueue).e2 = function () {
   this.h28_1.e2();
 };
 protoOf(MessageQueue).s28 = function (index, element) {
-  return this.h28_1.y(index, element);
+  return this.h28_1.z(index, element);
 };
-protoOf(MessageQueue).y = function (index, element) {
+protoOf(MessageQueue).z = function (index, element) {
   return this.s28(index, (!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
 };
 protoOf(MessageQueue).o2 = function (index) {
   return this.h28_1.o2(index);
 };
-protoOf(MessageQueue).y1 = function (index) {
-  return this.h28_1.y1(index);
+protoOf(MessageQueue).x = function (index) {
+  return this.h28_1.x(index);
 };
 protoOf(MessageQueue).z1 = function (fromIndex, toIndex) {
   return this.h28_1.z1(fromIndex, toIndex);
@@ -8973,9 +8973,9 @@ protoOf(MessageQueue).o = function () {
   return this.h28_1.o();
 };
 protoOf(MessageQueue).t28 = function (element) {
-  return this.h28_1.x1(element);
+  return this.h28_1.y1(element);
 };
-protoOf(MessageQueue).x1 = function (element) {
+protoOf(MessageQueue).y1 = function (element) {
   if (!(!(element == null) ? isInterface(element, Runnable) : false))
     return false;
   return this.t28((!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());

@@ -543,9 +543,9 @@ protoOf(JsonArray).o = function () {
   return this.f17_1.o();
 };
 protoOf(JsonArray).g17 = function (element) {
-  return this.f17_1.x1(element);
+  return this.f17_1.y1(element);
 };
-protoOf(JsonArray).x1 = function (element) {
+protoOf(JsonArray).y1 = function (element) {
   if (!(element instanceof JsonElement))
     return false;
   return this.g17(element instanceof JsonElement ? element : THROW_CCE());
@@ -556,8 +556,8 @@ protoOf(JsonArray).r = function () {
 protoOf(JsonArray).w = function (index) {
   return this.f17_1.w(index);
 };
-protoOf(JsonArray).y1 = function (index) {
-  return this.f17_1.y1(index);
+protoOf(JsonArray).x = function (index) {
+  return this.f17_1.x(index);
 };
 protoOf(JsonArray).z1 = function (fromIndex, toIndex) {
   return this.f17_1.z1(fromIndex, toIndex);
@@ -866,7 +866,7 @@ protoOf(JsonLiteralSerializer).w17 = function (encoder, value) {
   else {
     var tmp_0 = tmp1_safe_receiver;
     // Inline function 'kotlin.let' call
-    var it = (tmp_0 == null ? null : new ULong(tmp_0)).j1_1;
+    var it = (tmp_0 == null ? null : new ULong(tmp_0)).k1_1;
     var tmp_1 = encoder.vp(serializer_0(Companion_getInstance()).ul());
     // Inline function 'kotlin.ULong.toLong' call
     var tmp$ret$1 = _ULong___get_data__impl__fggpzb(it);
@@ -2036,7 +2036,7 @@ function classDiscriminator(_this__u8e3s4, json) {
 function validateIfSealed(serializer, actualSerializer, classDiscriminator) {
   if (!(serializer instanceof SealedClassSerializer))
     return Unit_instance;
-  if (jsonCachedSerialNames(actualSerializer.ul()).x1(classDiscriminator)) {
+  if (jsonCachedSerialNames(actualSerializer.ul()).y1(classDiscriminator)) {
     var baseName = serializer.ul().bn();
     var actualName = actualSerializer.ul().bn();
     // Inline function 'kotlin.error' call
@@ -2972,7 +2972,7 @@ protoOf(StreamingJsonEncoder).up = function (value) {
 };
 function get_isUnsignedNumber(_this__u8e3s4) {
   _init_properties_StreamingJsonEncoder_kt__pn1bsi();
-  return _this__u8e3s4.dn() && get_unsignedNumberDescriptors().x1(_this__u8e3s4);
+  return _this__u8e3s4.dn() && get_unsignedNumberDescriptors().y1(_this__u8e3s4);
 }
 function get_isUnquotedLiteral(_this__u8e3s4) {
   _init_properties_StreamingJsonEncoder_kt__pn1bsi();
@@ -3641,7 +3641,7 @@ protoOf(AbstractJsonTreeDecoder).o1d = function (tag) {
       } else {
         tmp_1 = tmp0_elvis_lhs;
       }
-      tmp$ret$4 = tmp_1.l1_1;
+      tmp$ret$4 = tmp_1.m1_1;
       break $l$block;
     } catch ($p) {
       if ($p instanceof IllegalArgumentException) {
@@ -3808,7 +3808,7 @@ protoOf(JsonTreeDecoder).y11 = function (descriptor, index) {
   if (strategy == null) {
     if (!this.c1d_1.s16_1)
       return baseName;
-    if (this.m2().f2().x1(baseName))
+    if (this.m2().f2().y1(baseName))
       return baseName;
   }
   var deserializationNamesMap_0 = deserializationNamesMap(this.y16(), descriptor);
@@ -3888,7 +3888,7 @@ protoOf(JsonTreeDecoder).so = function (descriptor) {
   var _iterator__ex2g4s = this.m2().f2().r();
   while (_iterator__ex2g4s.s()) {
     var key = _iterator__ex2g4s.t();
-    if (!names.x1(key) && !(key === this.b1d_1)) {
+    if (!names.y1(key) && !(key === this.b1d_1)) {
       throw JsonDecodingException_1(-1, "Encountered an unknown key '" + key + "' at element: " + this.e12() + '\n' + "Use 'ignoreUnknownKeys = true' in 'Json {}' builder or '@JsonIgnoreUnknownKeys' annotation to ignore unknown keys.\n" + ('JSON input: ' + toString(minify(this.m2().toString()))));
     }
   }

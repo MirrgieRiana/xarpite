@@ -676,7 +676,7 @@ def' "</span>
       <div class="container">
         <div class="footer-content">
           <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>. 
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
             <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
           </p>
         </div>
@@ -689,7 +689,7 @@ def' "</span>
     document.addEventListener('DOMContentLoaded', function() {
       const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
       const navLinks = document.querySelectorAll('.doc-nav a');
-      
+
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href) {
@@ -711,28 +711,28 @@ def' "</span>
         // Create wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
-        
+
         // Create copy button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-button';
         copyButton.textContent = 'Copy';
         copyButton.setAttribute('aria-label', 'Copy code');
-        
+
         // Add click handler
         copyButton.addEventListener('click', function() {
           const code = preElement.querySelector('code') || preElement;
           const textToCopy = code.textContent;
-          
+
           // Try modern clipboard API first (requires secure context: HTTPS or localhost)
-          const isSecure = window.isSecureContext || 
-                          window.location.protocol === 'https:' || 
+          const isSecure = window.isSecureContext ||
+                          window.location.protocol === 'https:' ||
                           window.location.hostname === 'localhost';
-          
+
           if (navigator.clipboard && isSecure) {
             navigator.clipboard.writeText(textToCopy).then(function() {
               copyButton.textContent = 'Copied!';
               copyButton.classList.add('copied');
-              
+
               setTimeout(function() {
                 copyButton.textContent = 'Copy';
                 copyButton.classList.remove('copied');
@@ -752,13 +752,13 @@ def' "</span>
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
+
             try {
               const successful = document.execCommand('copy');
               if (successful) {
                 copyButton.textContent = 'Copied!';
                 copyButton.classList.add('copied');
-                
+
                 setTimeout(function() {
                   copyButton.textContent = 'Copy';
                   copyButton.classList.remove('copied');
@@ -780,7 +780,7 @@ def' "</span>
             }
           }
         });
-        
+
         // Wrap the pre element
         preElement.parentNode.insertBefore(wrapper, preElement);
         wrapper.appendChild(preElement);
