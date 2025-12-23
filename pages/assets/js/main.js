@@ -187,7 +187,7 @@
       .trim()
       .toLowerCase()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-ぁ-んァ-ヶ一-龠]/g, '');
+      .replace(/[^a-z0-9ぁ-んァ-ヶ一-龠-]/g, '');
 
     const existingIds = new Set(
       Array.from(document.querySelectorAll('[id]')).map(element => element.id)
