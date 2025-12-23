@@ -63,7 +63,7 @@
           </aside>
 
           <article class="doc-content">
-            <h1 id="コマンド">コマンド</h1>
+            <h1 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h1>
 
 <h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
 
@@ -80,7 +80,7 @@
 <h2 id="xa-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xa</code>: Xarpiteコードを実行する</h2>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xa
-# Usage: xa [&lt;Launcher Options&gt;] [&lt;Runtime Options&gt;] [--] &lt;code&gt; &lt;arguments...&gt;
+# Usage: xa [&lt;Launcher Options&gt;] [&lt;Runtime Options&gt;] [--] [&lt;code&gt;] &lt;arguments...&gt;
 #
 # Launcher Options:
 #   --native                 Use the native engine
@@ -90,6 +90,7 @@
 # Runtime Options:
 #   -h, --help               Show this help
 #   -q                       Run script as a runner
+#   -f &lt;file&gt;                Read script from file
 </code></pre></div></div>
 
 <p><code class="language-plaintext highlighter-rouge">xa</code> はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。</p>
@@ -105,6 +106,12 @@
 <p><code class="language-plaintext highlighter-rouge">Launcher Options</code> は <code class="language-plaintext highlighter-rouge">Runtime Options</code> よりも前に指定する必要があります。</p>
 
 <p><code class="language-plaintext highlighter-rouge">--</code> はオプションの終端を示します。これ以降の引数はすべてコードおよびコードに渡される引数として解釈されます。</p>
+
+<h2 id="ランチャー">ランチャー</h2>
+
+<p>ランチャーとは、Xarpiteコマンドを直接受け付けるシェルスクリプトを指します。</p>
+
+<p>ランチャーは環境変数や引数などに基づいて実際に起動されるXarpiteエンジンを決定します。</p>
 
 <h3 id="xarpite_engine-実行エンジンを指定"><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code>: 実行エンジンを指定</h3>
 
@@ -149,6 +156,10 @@
 <p>Node.js上で動作するXarpiteエンジンを使用します。</p>
 
 <p>コマンドラインオプションとしての基本的な性質は <code class="language-plaintext highlighter-rouge">--native</code> に準じます。</p>
+
+<h2 id="ランタイム">ランタイム</h2>
+
+<p>ランタイムとは、Xarpite言語を実際に動作させるプログラムです。</p>
 
 <h3 id="戻り値の出力">戻り値の出力</h3>
 
@@ -199,6 +210,39 @@
 <hr />
 
 <p>厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。</p>
+
+<h3 id="-f-ファイルからスクリプトを読み込む"><code class="language-plaintext highlighter-rouge">-f</code>: ファイルからスクリプトを読み込む</h3>
+
+<p><code class="language-plaintext highlighter-rouge">-f &lt;file&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションを指定すると、コマンドライン引数で直接コードを指定する代わりに、指定したファイルからXarpiteスクリプトを読み込んで実行します。</p>
+
+<p><code class="language-plaintext highlighter-rouge">file</code> が相対パスで指定された場合、カレントディレクトリを起点として解決されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'1 + 2'</span> <span class="o">&gt;</span> script.xa1
+  xa <span class="nt">-f</span> script.xa1
+  <span class="nb">rm </span>script.xa1
+<span class="o">}</span>
+<span class="c"># 3</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションが指定された場合、 <code class="language-plaintext highlighter-rouge">code</code> 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'ARGS()'</span> <span class="o">&gt;</span> script.xa1
+  xa <span class="nt">-f</span> script.xa1 <span class="s1">'100 + 20 + 3'</span> apple banana cherry
+  <span class="nb">rm </span>script.xa1
+<span class="o">}</span>
+<span class="c"># 100 + 20 + 3</span>
+<span class="c"># apple</span>
+<span class="c"># banana</span>
+<span class="c"># cherry</span>
+</code></pre></div></div>
+
+<h1 id="その他のコマンド">その他のコマンド</h1>
 
 <h2 id="xarpite-update-xarpiteを最新版に更新する"><code class="language-plaintext highlighter-rouge">xarpite-update</code>: Xarpiteを最新版に更新する</h2>
 

@@ -5165,18 +5165,21 @@ function parseArguments(args) {
   // Inline function 'kotlin.collections.mutableListOf' call
   var arguments_0 = ArrayList_init_$Create$_0();
   var quiet = false;
+  var scriptFile = null;
   // Inline function 'kotlin.run' call
-  $l$block_0: {
-    $l$loop: while (true) {
+  $l$block_2: {
+    $l$loop_0: while (true) {
       if (firstOrNull(list) === '--') {
         removeFirst(list);
-        if (list.o())
+        if (list.o() && scriptFile == null)
           throw ShowUsage_getInstance();
-        src = removeFirst(list);
+        if (scriptFile == null) {
+          src = removeFirst(list);
+        }
         // Inline function 'kotlin.collections.plusAssign' call
         addAll(arguments_0, list);
         list.e2();
-        break $l$block_0;
+        break $l$block_2;
       }
       if (firstOrNull(list) === '-h')
         throw ShowUsage_getInstance();
@@ -5187,25 +5190,94 @@ function parseArguments(args) {
           throw ShowUsage_getInstance();
         quiet = true;
         removeFirst(list);
-        continue $l$loop;
+        continue $l$loop_0;
       }
-      if (list.o())
+      if (firstOrNull(list) === '-f') {
+        if (!(scriptFile == null))
+          throw ShowUsage_getInstance();
+        removeFirst(list);
+        if (list.o())
+          throw ShowUsage_getInstance();
+        scriptFile = removeFirst(list);
+        continue $l$loop_0;
+      }
+      if (list.o()) {
+        if (!(scriptFile == null)) {
+          break $l$block_2;
+        }
         throw ShowUsage_getInstance();
+      }
+      if (!(scriptFile == null)) {
+        // Inline function 'kotlin.collections.plusAssign' call
+        addAll(arguments_0, list);
+        list.e2();
+        break $l$block_2;
+      }
       src = removeFirst(list);
       // Inline function 'kotlin.collections.plusAssign' call
       addAll(arguments_0, list);
       list.e2();
-      break $l$block_0;
+      break $l$block_2;
     }
   }
+  if (!(scriptFile == null)) {
+    // Inline function 'kotlin.getOrThrow' call
+    var this_0 = getFileSystem();
+    throwOnFailure(this_0);
+    var tmp = _Result___get_value__impl__bjfvqg(this_0);
+    var fileSystem = (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
+    // Inline function 'okio.FileSystem.read' call
+    var file = Companion_getInstance().l1i(scriptFile);
+    // Inline function 'okio.use' call
+    var this_1 = buffer(fileSystem.o1i(file));
+    var thrown = null;
+    var tmp_0;
+    try {
+      tmp_0 = this_1.p1j();
+    } catch ($p) {
+      var tmp_1;
+      if ($p instanceof Error) {
+        var t = $p;
+        thrown = t;
+        tmp_1 = null;
+      } else {
+        throw $p;
+      }
+      tmp_0 = tmp_1;
+    }
+    finally {
+      try {
+        if (this_1 == null)
+          null;
+        else {
+          this_1.p1i();
+        }
+      } catch ($p) {
+        if ($p instanceof Error) {
+          var t_0 = $p;
+          if (thrown == null) {
+            thrown = t_0;
+          } else {
+            addSuppressed(thrown, t_0);
+          }
+        } else {
+          throw $p;
+        }
+      }
+    }
+    var result = tmp_0;
+    if (!(thrown == null))
+      throw thrown;
+    src = (result == null ? true : !(result == null)) ? result : THROW_CCE();
+  }
   var tmp0_elvis_lhs = src;
-  var tmp;
+  var tmp_2;
   if (tmp0_elvis_lhs == null) {
     throw ShowUsage_getInstance();
   } else {
-    tmp = tmp0_elvis_lhs;
+    tmp_2 = tmp0_elvis_lhs;
   }
-  return new Options(tmp, arguments_0, quiet);
+  return new Options(tmp_2, arguments_0, quiet);
 }
 function ShowUsage() {
   ShowUsage_instance = this;
@@ -5232,6 +5304,7 @@ function showUsage() {
   println('Runtime Options:');
   println('  -h, --help               Show this help');
   println('  -q                       Run script as a runner');
+  println('  -f <file>                Read script from file');
 }
 function createModuleMounts(location, mountsFactory) {
   // Inline function 'kotlin.run' call
@@ -30606,20 +30679,6 @@ function get_readBytesFromStdinImpl() {
   return readBytesFromStdinImpl;
 }
 var readBytesFromStdinImpl;
-function getEnv() {
-  _init_properties_Platform_kt__37ezn1();
-  return get_envGetter()();
-}
-function getProgramName() {
-  _init_properties_Platform_kt__37ezn1();
-  return null;
-}
-function readLineFromStdin($completion) {
-  return ensureNotNull(get_readLineFromStdinImpl())($completion);
-}
-function readBytesFromStdin($completion) {
-  return ensureNotNull(get_readBytesFromStdinImpl())($completion);
-}
 function getFileSystem() {
   _init_properties_Platform_kt__37ezn1();
   var fileSystemGetter = get_fileSystemGetter();
@@ -30634,6 +30693,20 @@ function getFileSystem() {
     tmp = _Result___init__impl__xyqfz8(createFailure(exception));
   }
   return tmp;
+}
+function getEnv() {
+  _init_properties_Platform_kt__37ezn1();
+  return get_envGetter()();
+}
+function getProgramName() {
+  _init_properties_Platform_kt__37ezn1();
+  return null;
+}
+function readLineFromStdin($completion) {
+  return ensureNotNull(get_readLineFromStdinImpl())($completion);
+}
+function readBytesFromStdin($completion) {
+  return ensureNotNull(get_readBytesFromStdinImpl())($completion);
 }
 function executeProcess(process, args, $completion) {
   throw new WorkInProgressError('EXEC is an experimental feature and is currently only available on JVM platform');
