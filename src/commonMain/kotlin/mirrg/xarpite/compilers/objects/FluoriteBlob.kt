@@ -23,13 +23,13 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val byteArray = (arguments[0] as FluoriteBlob).value
                         val sb = StringBuilder()
-                        sb.append("BLOB[")
+                        sb.append("BLOB.of([")
                         @OptIn(ExperimentalUnsignedTypes::class)
                         byteArray.forEachIndexed { i, value ->
-                            if (i != 0) sb.append(';')
+                            if (i != 0) sb.append(',')
                             sb.append(value)
                         }
-                        sb.append(']')
+                        sb.append("])")
                         sb.toString().toFluoriteString()
                     },
                     // BLOB::toArray(): ARRAY<INT>
