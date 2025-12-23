@@ -51,7 +51,11 @@ jobs:
           bundle add webrick
 
       - name: バージョンの取得
-        run: echo "APP_VERSION=$(./scripts/get-version.kts)" >> $GITHUB_ENV
+        run: |
+          set -e
+          chmod +x ./scripts/get-version.kts
+          APP_VERSION=$(./scripts/get-version.kts)
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
 
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
