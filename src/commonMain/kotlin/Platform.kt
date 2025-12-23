@@ -6,3 +6,4 @@ expect fun hasFreeze(): Boolean
 expect fun getFileSystem(): Result<FileSystem>
 expect suspend fun readLineFromStdin(): String?
 expect suspend fun readBytesFromStdin(): ByteArray?
+expect suspend fun executeProcess(process: String, args: List<String>): String

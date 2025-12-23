@@ -102,9 +102,6 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     group = "build"
     val outputDirectory = layout.buildDirectory.dir("bundleRelease")
     into(outputDirectory)
-    from(file(project.layout.projectDirectory.file("README.md"))) {
-        rename("README.md", "index.md")
-    }
     from("release") {
         rename("gitignore", ".gitignore")
         eachFile {
@@ -124,7 +121,7 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("docs") { into("docs") }
+    from("pages")
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
@@ -133,7 +130,7 @@ tasks.named("build").configure { dependsOn(bundleRelease) }
 // Doc Shell Tests
 
 val generateDocShellTests = tasks.register("generateDocShellTests") {
-    val docsDir = file("docs/ja")
+    val docsDir = file("pages/docs/ja")
     val outFile = project.layout.buildDirectory.file("docShellTests/ja.sh")
 
     inputs.dir(docsDir)
@@ -154,13 +151,31 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
     }
 }
 
-tasks.register<Exec>("runDocShellTests") {
+val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
-    dependsOn(generateDocShellTests, releaseExecutable.linkTaskProvider)
+    dependsOn(generateDocShellTests, bundleRelease)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
-    commandLine("bash", "ja.sh", releaseExecutable.outputFile.relativeTo(workingDir).invariantSeparatorsPath)
+    commandLine(
+        "bash",
+        "ja.sh",
+        bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+    )
 }
-tasks.named("check").configure { dependsOn(tasks.named("runDocShellTests")) }
+tasks.named("check").configure { dependsOn(runDocShellTests) }
+
+val runReleaseTests = tasks.register<Exec>("runReleaseTests") {
+    group = "verification"
+    dependsOn(bundleRelease)
+    workingDir = project.layout.projectDirectory.dir("scripts").asFile
+    doFirst {
+        commandLine(
+            "bash",
+            "run-release-tests.sh",
+            bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+        )
+    }
+}
+tasks.named("check").configure { dependsOn(runReleaseTests) }
 
 
 // Utilities

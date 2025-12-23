@@ -51,8 +51,14 @@ fun parseArguments(args: Iterable<String>): Options {
 
 fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
-    println("Usage: $programName [-h|--help] [-q] [--] <code> <arguments...>")
-    println("Options:")
+    println("Usage: $programName [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>")
+    println("")
+    println("Launcher Options:")
+    println("  --native                 Use the native engine")
+    println("  --jvm                    Use the JVM engine")
+    println("  --node                   Use the Node.js engine")
+    println("")
+    println("Runtime Options:")
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")
 }

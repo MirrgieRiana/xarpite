@@ -7,6 +7,7 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import platform.posix.__environ
 import platform.posix.clearerr
@@ -57,4 +58,8 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
         }
         if (readSize == 0uL) null else ByteArray(readSize.toInt()) { buffer[it] }
     }
+}
+
+actual suspend fun executeProcess(process: String, args: List<String>): String {
+    throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM platform")
 }
