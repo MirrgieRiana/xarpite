@@ -67,9 +67,9 @@
             {% assign toc_enabled = page.toc | default: true %}
             {% if toc_enabled %}
               {% assign toc_lang = page.lang | default: 'ja' %}
-              {% capture toc_markdown %}
-                {% include toc-{{ toc_lang }}.md %}
-              {% endcapture %}
+              {%- capture toc_markdown -%}
+{% include toc-{{ toc_lang }}.md %}
+              {%- endcapture -%}
               {% assign toc_markup = toc_markdown | markdownify %}
               {% assign toc_list = content | generate_toc_from_html %}
               {% if toc_list != '' %}

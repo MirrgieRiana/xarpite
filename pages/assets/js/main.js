@@ -175,8 +175,6 @@
     codeBlocks.forEach(wrapCodeBlock);
   }
 
-  // Allow lowercase alphanumerics and Japanese scripts (hiragana, katakana, kanji).
-  // Note: extended characters outside these ranges will be stripped.
   /**
    * Initializes all page functionality
    */

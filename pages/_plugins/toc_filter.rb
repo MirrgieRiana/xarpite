@@ -15,10 +15,6 @@ module Xarpite
 
       existing_ids = html.scan(/id="([^"]+)"/i).map(&:first).to_set
 
-      toc_lines = []
-      list_stack = [toc_lines]
-      current_level = nil
-
       root = { level: 0, children: [] }
       stack = [root]
 
