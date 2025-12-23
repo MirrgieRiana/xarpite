@@ -19,6 +19,9 @@ module Xarpite
       list_stack = [toc_lines]
       current_level = nil
 
+      root = { level: 0, children: [] }
+      stack = [root]
+
       headings.each do |level_str, attrs, inner_html|
         level = level_str.to_i
         text = strip_tags(inner_html).strip
@@ -28,31 +31,17 @@ module Xarpite
         id = id_match ? id_match[1] : generate_slug(text, existing_ids)
         existing_ids.add(id)
 
-        if current_level.nil?
-          current_level = level
-        else
-          while level > current_level
-            list_stack << []
-            current_level += 1
-          end
-
-          while level < current_level && list_stack.size > 1
-            nested = list_stack.pop
-            list_stack.last << nested
-            current_level -= 1
-          end
+        while stack.last[:level] >= level
+          stack.pop
         end
 
-        list_stack.last << { text: text, id: id, children: [] }
+        parent = stack.last
+        node = { level: level, text: text, id: id, children: [] }
+        parent[:children] << node
+        stack << node
       end
 
-      # Flush remaining nested lists
-      while list_stack.size > 1
-        nested = list_stack.pop
-        list_stack.last << nested
-      end
-
-      build_html(list_stack.first)
+      build_html(root[:children])
     end
 
     private
@@ -80,12 +69,8 @@ module Xarpite
     end
 
     def render_item(item)
-      if item.is_a?(Array)
-        build_html(item)
-      else
-        children_html = build_html(item[:children])
-        %(<li><a href="##{CGI.escapeHTML(item[:id])}">#{CGI.escapeHTML(item[:text])}</a>#{children_html}</li>)
-      end
+      children_html = build_html(item[:children])
+      %(<li><a href="##{CGI.escapeHTML(item[:id])}">#{CGI.escapeHTML(item[:text])}</a>#{children_html}</li>)
     end
   end
 end
