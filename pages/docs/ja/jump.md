@@ -10,12 +10,12 @@ title: "ラベルとリターン"
 
 ラベル演算子 `formula !: label` で式 `formula` に対してラベルを付与できます。
 
-`formula` 内では、リターン演算子 `label !! value` でそのラベルに対して値を返すことができます。
+`formula` 内では、リターン演算子 `label!! value` でそのラベルに対して値を返すことができます。
 
 ```shell
 $ xa '
   (
-    label !! 10
+    label!! 10
     20
   ) !: label
 '
@@ -36,7 +36,7 @@ $ xa '
 
 ---
 
-リターン演算子 `label !! value` は、 `label` が `return` のような文字列の場合に `return !! "Result"` のように、まずまずの可読性をもたらします。
+リターン演算子 `label!! value` は、 `label` が `return` のような文字列の場合に `return!! "Result"` のように、まずまずの可読性をもたらします。
 
 演算子 `!!` の見た目はスロー演算子 `!! error` と対応しており、その挙動も似通っています。
 
@@ -50,7 +50,7 @@ $ xa '
 $ xa '
   (
     1 .. 100 | (
-      (_ % 2 == 0 && _ % 3 == 0 && _ % 5 == 0) && found !! _
+      (_ % 2 == 0 && _ % 3 == 0 && _ % 5 == 0) && found!! _
     )
     NULL
   ) !: found
@@ -68,7 +68,7 @@ $ xa '
   (
     array := [1 .. 100]
     forEach[array] ( _ =>
-      (_ % 2 == 0 && _ % 3 == 0 && _ % 5 == 0) && found !! _
+      (_ % 2 == 0 && _ % 3 == 0 && _ % 5 == 0) && found!! _
     )
     NULL
   ) !: found
@@ -134,14 +134,14 @@ $ xa '
 
 ## リターン値の省略
 
-リターン演算子は `label !!` のように `value` 節を省略して書くこともできます。
+リターン演算子は `label!!` のように `value` 節を省略して書くこともできます。
 
 この場合、 `NULL` が返されます。
 
 ```shell
 $ xa '
   (
-    label !!
+    label!!
     20
   ) !: label
 '
@@ -158,7 +158,7 @@ $ xa '
 $ xa '
   (
     value := 10
-    value > 5 && result !! "Larger than 5:", value
+    value > 5 && result!! "Larger than 5:", value
     "Not larger than 5:", value
   ) !: result
 '
@@ -174,7 +174,7 @@ $ xa '
 
 ```shell
 $ xa '
-  result !! "123" !: result
+  result!! "123" !: result
 '
 # 123
 ```
@@ -190,7 +190,7 @@ $ xa '
 ```shell
 $ xa '
   (
-    fail := \break !! "Failed: $_"
+    fail := \break!! "Failed: $_"
 
     1 == 1 || fail("1 is not equal to 1")
     1 == 2 || fail("1 is not equal to 2")
@@ -212,7 +212,7 @@ $ xa '
 そして、右側のパイプはラベル演算子全体を取ることができます。
 
 ```shell
-$ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found !! _ !: found | _ * 10'
+$ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found!! _ !: found | _ * 10'
 # 150
 ```
 
@@ -337,7 +337,7 @@ $ xa '
 
 ### スロー演算子・キャッチ演算子の結合優先度
 
-スロー演算子 `!! error` はリターン演算子 `label !! value` と同様の結合規則を持ち、 `error` 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。
+スロー演算子 `!! error` はリターン演算子 `label!! value` と同様の結合規則を持ち、 `error` 節にはカンマ系演算子およびそれよりも結合優先度の高い任意の式が来れます。
 
 以下の例では `error` 節がカンマ演算子を直接含んでいます。
 

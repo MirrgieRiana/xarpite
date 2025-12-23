@@ -1095,10 +1095,10 @@ class XarpiteTest {
     @Test
     fun returnTest() = runTest {
 
-        // label !! の右辺を省略すると NULL を返して脱出できる
+        // label!! の右辺を省略すると NULL を返して脱出できる
         """
             (
-                label !!
+                label!!
             ) !: label
         """.let { assertEquals(FluoriteNull, eval(it)) }
 
@@ -1106,16 +1106,16 @@ class XarpiteTest {
         """
             t := 0
             (
-                label !!
+                label!!
                 t = 1
             ) !: label
             t
         """.let { assertEquals(0, eval(it).int) }
 
-        // label !! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
+        // label!! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
         """
             (
-                label !! !? "On Error!"
+                label!! !? "On Error!"
                 "unreached"
             ) !: label
         """.let { assertEquals(FluoriteNull, eval(it)) }
@@ -1123,10 +1123,10 @@ class XarpiteTest {
         // !! 単体は NULL をスローする
         assertEquals("handled", eval(""" !! !? "handled" """).string)
 
-        // getter label !! value でreturnできる
+        // getter label!! value でreturnできる
         """
             (
-                label !! 123
+                label!! 123
                 456
             ) !: label
         """.let { assertEquals(123, eval(it).int) }
@@ -1135,7 +1135,7 @@ class XarpiteTest {
         // getterラベルブロックは戻り値のストリームを素通りさせず、1度その場で一通り評価してキャッシュする
         """
             (
-                1 .. 3 | label !! 123
+                1 .. 3 | label!! 123
             ) !: label
         """.let { assertEquals(123, eval(it).int) }
 
@@ -1158,10 +1158,10 @@ class XarpiteTest {
             [stream; stream; stream; t]
         """.let { assertEquals("[1;2;3;1;2;3;1;2;3;3]", eval(it).array()) }
 
-        // runner label !! value でreturnできる
+        // runner label!! value でreturnできる
         """
             (
-                label !! 123
+                label!! 123
                 !! "fail"
             ) !: label
             NULL
@@ -1179,13 +1179,13 @@ class XarpiteTest {
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
         // 右から見ると commas 以下
-        assertEquals("1,2,3", eval("($# label !! 1, 2, 3) !: label").stream())
+        assertEquals("1,2,3", eval("($# label!! 1, 2, 3) !: label").stream())
 
         // 同名のラベルが複数存在した場合、最も内側のラベルを出る
         """
             (
                 (
-                    label !! 1
+                    label!! 1
                     2
                 ) !: label
                 3
@@ -1195,10 +1195,10 @@ class XarpiteTest {
         // !: はラムダ右辺よりも結合優先度が高い
         """
             prime_only := x -> (
-                x == 1 && fail !! "!1"
-                (x != 2 && x %% 2) && fail !! "!2n"
-                (x != 3 && x %% 3) && fail !! "!3n"
-                (x != 5 && x %% 5) && fail !! "!5n"
+                x == 1 && fail!! "!1"
+                (x != 2 && x %% 2) && fail!! "!2n"
+                (x != 3 && x %% 3) && fail!! "!3n"
+                (x != 5 && x %% 5) && fail!! "!5n"
                 x
             ) !: fail
             1 .. 10 | prime_only(_)
@@ -1208,7 +1208,7 @@ class XarpiteTest {
         """
             run := block -> block()
             run ( =>
-                return !! 123
+                return!! 123
                 456
             ) !: return
         """.let { assertEquals(123, eval(it).int) }
@@ -1218,10 +1218,10 @@ class XarpiteTest {
             (
                 1 .. 50 | (
                     (
-                        _ % 2 != 0 && next !! NULL // 2で割り切れない！
-                        _ % 3 != 0 && next !! NULL // 3で割り切れない！
-                        _ % 5 != 0 && next !! NULL // 5で割り切れない！
-                        found !! _                 // 2でも3でも5でも割り切れる
+                        _ % 2 != 0 && next!! NULL // 2で割り切れない！
+                        _ % 3 != 0 && next!! NULL // 3で割り切れない！
+                        _ % 5 != 0 && next!! NULL // 5で割り切れない！
+                        found!! _                 // 2でも3でも5でも割り切れる
                     ) !: next
                 )
                 NULL
@@ -1236,13 +1236,13 @@ class XarpiteTest {
 
         // Issue #62 のテストケース: ラベルはstreamより低い優先度で動作
 
-        // ケース1: `aaa | (bbb && break !!) !: break`
+        // ケース1: `aaa | (bbb && break!!) !: break`
         // !: はstreamよりも低い優先度なので、パイプ全体を捕捉する
         // つまり `(aaa | (...)) !: break` と解釈される
         // breakが発生すると全体がNULLを返す
         """
             1 .. 3 | (
-                _ == 2 && break !!
+                _ == 2 && break!!
                 _ * 10
             ) !: break
         """.let { assertEquals(FluoriteNull, eval(it)) }
@@ -1250,7 +1250,7 @@ class XarpiteTest {
         // ケース1b: breakしない場合、全要素が正常に処理される
         """
             1 .. 3 | (
-                _ == 99 && break !!
+                _ == 99 && break!!
                 _ * 10
             ) !: break
         """.let { assertEquals("10,20,30", eval(it).stream()) }
@@ -1258,7 +1258,7 @@ class XarpiteTest {
         // ケース2: 集約演算の中断
         """
             1 .. 5 | (
-                _ == 3 && break !!
+                _ == 3 && break!!
                 _
             ) >> SUM !: break
         """.let { assertEquals(FluoriteNull, eval(it)) }
@@ -1266,7 +1266,7 @@ class XarpiteTest {
         // ケース3: 代入の右辺でも同様に全体を捕捉
         """
             result := 1 .. 3 | (
-                _ == 2 && break !!
+                _ == 2 && break!!
                 _ * 10
             ) !: break
             result
@@ -1275,7 +1275,7 @@ class XarpiteTest {
         // ケース3b: breakしない場合
         """
             result := 1 .. 3 | (
-                _ == 99 && break !!
+                _ == 99 && break!!
                 _ * 10
             ) !: break
             result
@@ -1289,12 +1289,12 @@ class XarpiteTest {
         """(!!) || 1 !? 2""".let { assertEquals(2, eval(it).int) }
 
         // !:が代入を取れないことを示す
-        // ((a !! 1): 2 !: a; !!) !: a は ((a !! 1): 2) !: a の後に (!!) !: a が続く
-        """((a !! 1): 2 !: a; !!) !: a""".let { assertEquals(1, eval(it).int) }
+        // ((a!! 1): 2 !: a; !!) !: a は ((a!! 1): 2) !: a の後に (!!) !: a が続く
+        """((a!! 1): 2 !: a; !!) !: a""".let { assertEquals(1, eval(it).int) }
 
         // !:が左辺にパイプと右実行パイプを取れることを示す
-        // (a !! 1) | 2 >> TO_ARRAY !: a は ((a !! 1) | 2 >> TO_ARRAY) !: a と解釈される
-        """(a !! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
+        // (a!! 1) | 2 >> TO_ARRAY !: a は ((a!! 1) | 2 >> TO_ARRAY) !: a と解釈される
+        """(a!! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
 
         // !:が右辺にパイプを取れないことを示す
         // (1 !: a | (!!)) !? 2 は (1 !: (a | (!!))) !? 2 と解釈され、a | (!!)がエラーになる
