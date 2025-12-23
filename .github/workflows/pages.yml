@@ -53,7 +53,9 @@ jobs:
       - name: バージョンの取得
         run: |
           set -e
+          command -v kotlin
           APP_VERSION=$(kotlin ./scripts/get-version.kts)
+          echo "Derived APP_VERSION: ${APP_VERSION}"
           if [ -z "${APP_VERSION}" ]; then
             echo "APP_VERSION is empty" >&2
             exit 1
