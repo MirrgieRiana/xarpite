@@ -5,8 +5,10 @@ import getEnv
 import getFileSystem
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.aggregateToBlob
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
@@ -17,6 +19,7 @@ import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
+import writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 
@@ -36,6 +39,13 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 @OptIn(ExperimentalUnsignedTypes::class)
                 emit(bytes.asUByteArray().asFluoriteBlob())
             }
+        },
+        "OUTB" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
+            val blob = aggregateToBlob(arguments[0])
+            @OptIn(ExperimentalUnsignedTypes::class)
+            writeBytesToStdout(blob.value.toByteArray())
+            FluoriteNull
         },
         "READ" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
