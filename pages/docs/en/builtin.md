@@ -8,6 +8,8 @@ Built-in constants are defined using only uppercase letters and `_`.
 
 Built-in functions are also provided through the same mechanism as built-in constants.
 
+<!-- toc -->
+
 # Built-in Object Class Constants
 
 You can reference classes of various built-in objects.

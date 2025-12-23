@@ -4,6 +4,8 @@ title: "Factor"
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
 
+<!-- toc -->
+
 # Factor
 
 Factors are literals and parentheses that function independently.

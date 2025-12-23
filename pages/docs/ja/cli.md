@@ -2,6 +2,8 @@
 title: CLI
 ---
 
+<!-- toc -->
+
 # Xarpiteを実行するコマンド
 
 ## `xarpite`: Xarpiteコードを実行する

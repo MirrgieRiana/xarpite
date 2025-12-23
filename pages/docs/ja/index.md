@@ -2,6 +2,8 @@
 title: "Xarpiteドキュメント"
 ---
 
+<!-- toc -->
+
 # Xarpiteドキュメント
 
 - [文法](syntax.html)

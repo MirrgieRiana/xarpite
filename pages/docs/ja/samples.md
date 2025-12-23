@@ -2,6 +2,8 @@
 title: "FizzBuzz"
 ---
 
+<!-- toc -->
+
 # FizzBuzz
 
 以下の条件に従って数値を出力します。
