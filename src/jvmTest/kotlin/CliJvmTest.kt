@@ -71,7 +71,7 @@ class CliJvmTest {
         val output = ByteArrayOutputStream()
         try {
             System.setOut(PrintStream(output))
-            cliEvalJvm("OUTB([BLOB.of([65]); BLOB.of([66, 67])])")
+            cliEvalJvm("OUTB(65 .. 67)")
             assertContentEquals(byteArrayOf(65, 66, 67), output.toByteArray())
         } finally {
             System.setOut(originalOut)
