@@ -180,7 +180,7 @@
   /**
    * Generates a stable ID for a heading if it does not already have one
    */
-  function ensureHeadingId(heading) {
+  function ensureHeadingId(heading, existingIds) {
     if (heading.id) {
       return heading.id;
     }
@@ -191,10 +191,6 @@
       .replace(/\s+/g, '-')
       .replace(SLUG_ALLOWED_CHARS_PATTERN, '');
 
-    const existingIds = new Set(
-      Array.from(document.querySelectorAll('[id]')).map(element => element.id)
-    );
-
     let candidate = slug || 'section';
     let counter = 1;
     while (existingIds.has(candidate)) {
@@ -202,6 +198,7 @@
     }
 
     heading.id = candidate;
+    existingIds.add(candidate);
     return heading.id;
   }
 
@@ -232,15 +229,21 @@
       tocWrapper.style.display = '';
     }
 
+    const existingIds = new Set(
+      Array.from(document.querySelectorAll('[id]')).map(element => element.id)
+    );
+
     tocList.innerHTML = '';
     const listStack = [tocList];
-    let currentLevel = parseInt(headings[0].tagName.substring(1), 10);
+    let currentLevel = null;
 
     headings.forEach((heading, index) => {
       const level = parseInt(heading.tagName.substring(1), 10);
-      const headingId = ensureHeadingId(heading);
+      const headingId = ensureHeadingId(heading, existingIds);
 
-      if (index !== 0) {
+      if (currentLevel === null) {
+        currentLevel = level;
+      } else {
         while (level > currentLevel) {
           const lastList = listStack[listStack.length - 1];
           const lastItem = lastList.lastElementChild;
