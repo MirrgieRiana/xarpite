@@ -175,6 +175,8 @@
     codeBlocks.forEach(wrapCodeBlock);
   }
 
+  const SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/g;
+
   /**
    * Generates a stable ID for a heading if it does not already have one
    */
@@ -187,7 +189,7 @@
       .trim()
       .toLowerCase()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9ぁ-んァ-ヶ一-龠-]/g, '');
+      .replace(SLUG_ALLOWED_CHARS_PATTERN, '');
 
     const existingIds = new Set(
       Array.from(document.querySelectorAll('[id]')).map(element => element.id)
@@ -216,12 +218,18 @@
       document.querySelectorAll('.doc-content h1, .doc-content h2, .doc-content h3')
     ).filter(heading => !heading.closest('.table-of-contents'));
 
+    const tocWrapper = tocList.closest('.table-of-contents');
+
     if (headings.length === 0) {
-      const tocWrapper = tocList.closest('.table-of-contents');
       if (tocWrapper) {
-        tocWrapper.remove();
+        tocWrapper.style.display = 'none';
       }
+      tocList.innerHTML = '';
       return;
+    }
+
+    if (tocWrapper) {
+      tocWrapper.style.display = '';
     }
 
     tocList.innerHTML = '';
