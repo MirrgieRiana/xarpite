@@ -8,6 +8,7 @@
   <meta name="description" content="An interpreted language for one-liners">
   <link rel="stylesheet" href="/xarpite/assets/css/style.css">
   <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+  <script src="/xarpite/assets/js/main.js" defer></script>
 </head>
 <body>
   <div class="page-wrapper">
@@ -63,6 +64,15 @@
           </aside>
 
           <article class="doc-content">
+            
+            
+              
+              <div class="table-of-contents" markdown="1">
+## 目次
+{:toc}
+</div>
+
+            
             <h1 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h1>
 
 <h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
@@ -584,110 +594,5 @@
       </div>
     </footer>
   </div>
-
-  <script>
-    // Highlight current page in navigation
-    document.addEventListener('DOMContentLoaded', function() {
-      const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
-      const navLinks = document.querySelectorAll('.doc-nav a');
-
-      navLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href) {
-          const normalizedHref = href.replace(/\/$/, '');
-          if (currentPath === normalizedHref || currentPath === normalizedHref + '.html' || currentPath.replace('.html', '') === normalizedHref) {
-            link.classList.add('active');
-          }
-        }
-      });
-
-      // Add copy buttons to code blocks
-      const codeBlocks = document.querySelectorAll('.doc-content pre');
-      codeBlocks.forEach(function(preElement) {
-        // Skip if already wrapped
-        if (preElement.parentElement.classList.contains('code-block-wrapper')) {
-          return;
-        }
-
-        // Create wrapper
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-block-wrapper';
-
-        // Create copy button
-        const copyButton = document.createElement('button');
-        copyButton.className = 'copy-code-button';
-        copyButton.textContent = 'Copy';
-        copyButton.setAttribute('aria-label', 'Copy code');
-
-        // Add click handler
-        copyButton.addEventListener('click', function() {
-          const code = preElement.querySelector('code') || preElement;
-          const textToCopy = code.textContent;
-
-          // Try modern clipboard API first (requires secure context: HTTPS or localhost)
-          const isSecure = window.isSecureContext ||
-                          window.location.protocol === 'https:' ||
-                          window.location.hostname === 'localhost';
-
-          if (navigator.clipboard && isSecure) {
-            navigator.clipboard.writeText(textToCopy).then(function() {
-              copyButton.textContent = 'Copied!';
-              copyButton.classList.add('copied');
-
-              setTimeout(function() {
-                copyButton.textContent = 'Copy';
-                copyButton.classList.remove('copied');
-              }, 2000);
-            }).catch(function(err) {
-              console.error('Failed to copy:', err);
-              copyButton.textContent = 'Failed';
-              setTimeout(function() {
-                copyButton.textContent = 'Copy';
-              }, 2000);
-            });
-          } else {
-            // Fallback using deprecated execCommand for legacy browser support
-            const textarea = document.createElement('textarea');
-            textarea.value = textToCopy;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-
-            try {
-              const successful = document.execCommand('copy');
-              if (successful) {
-                copyButton.textContent = 'Copied!';
-                copyButton.classList.add('copied');
-
-                setTimeout(function() {
-                  copyButton.textContent = 'Copy';
-                  copyButton.classList.remove('copied');
-                }, 2000);
-              } else {
-                copyButton.textContent = 'Failed';
-                setTimeout(function() {
-                  copyButton.textContent = 'Copy';
-                }, 2000);
-              }
-            } catch (err) {
-              console.error('Failed to copy:', err);
-              copyButton.textContent = 'Failed';
-              setTimeout(function() {
-                copyButton.textContent = 'Copy';
-              }, 2000);
-            } finally {
-              document.body.removeChild(textarea);
-            }
-          }
-        });
-
-        // Wrap the pre element
-        preElement.parentNode.insertBefore(wrapper, preElement);
-        wrapper.appendChild(preElement);
-        wrapper.appendChild(copyButton);
-      });
-    });
-  </script>
 </body>
 </html>

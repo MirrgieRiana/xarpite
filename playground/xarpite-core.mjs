@@ -26211,9 +26211,9 @@ protoOf(AssignmentGetter).l2a = function (env, $completion) {
   tmp.n8_1 = null;
   return tmp.s8();
 };
-function PipeGetter$evaluate$slambda$slambda(this$0, $newEnv, $index, $this_FluoriteStream, resultContinuation) {
-  this.r62_1 = this$0;
-  this.s62_1 = $newEnv;
+function PipeGetter$evaluate$slambda$slambda($env, this$0, $index, $this_FluoriteStream, resultContinuation) {
+  this.r62_1 = $env;
+  this.s62_1 = this$0;
   this.t62_1 = $index;
   this.u62_1 = $this_FluoriteStream;
   CoroutineImpl.call(this, resultContinuation);
@@ -26235,13 +26235,22 @@ protoOf(PipeGetter$evaluate$slambda$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 5;
-          if (!(this.r62_1.y62_1 == null)) {
-            this.s62_1.o2a_1[this.r62_1.x62_1][this.r62_1.y62_1] = new LocalVariable(new FluoriteInt(this.t62_1._v));
+          var tmp_0;
+          if (this.s62_1.y62_1 == null) {
+            tmp_0 = null;
+          } else {
+            tmp_0 = 1;
           }
 
-          this.s62_1.o2a_1[this.r62_1.x62_1][this.r62_1.z62_1] = new LocalVariable(this.v62_1);
+          var tmp1_elvis_lhs = tmp_0;
+          var newEnv = new Environment(this.r62_1, (tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs) + 1 | 0, 0);
+          if (!(this.s62_1.y62_1 == null)) {
+            newEnv.o2a_1[this.s62_1.x62_1][this.s62_1.y62_1] = new LocalVariable(new FluoriteInt(this.t62_1._v));
+          }
+
+          newEnv.o2a_1[this.s62_1.x62_1][this.s62_1.z62_1] = new LocalVariable(this.v62_1);
           this.k8_1 = 1;
-          suspendResult = this.r62_1.a63_1.l2a(this.s62_1, this);
+          suspendResult = this.s62_1.a63_1.l2a(newEnv, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -26294,18 +26303,18 @@ protoOf(PipeGetter$evaluate$slambda$slambda).i2i = function (value, completion) 
   i.v62_1 = value;
   return i;
 };
-function PipeGetter$evaluate$slambda$slambda_0(this$0, $newEnv, $index, $this_FluoriteStream, resultContinuation) {
-  var i = new PipeGetter$evaluate$slambda$slambda(this$0, $newEnv, $index, $this_FluoriteStream, resultContinuation);
+function PipeGetter$evaluate$slambda$slambda_0($env, this$0, $index, $this_FluoriteStream, resultContinuation) {
+  var i = new PipeGetter$evaluate$slambda$slambda($env, this$0, $index, $this_FluoriteStream, resultContinuation);
   var l = function (value, $completion) {
     return i.h2i(value, $completion);
   };
   l.$arity = 1;
   return l;
 }
-function PipeGetter$evaluate$slambda($env, this$0, $stream, resultContinuation) {
-  this.j63_1 = $env;
-  this.k63_1 = this$0;
-  this.l63_1 = $stream;
+function PipeGetter$evaluate$slambda($stream, $env, this$0, resultContinuation) {
+  this.j63_1 = $stream;
+  this.k63_1 = $env;
+  this.l63_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
 protoOf(PipeGetter$evaluate$slambda).u2i = function ($this$FluoriteStream, $completion) {
@@ -26325,18 +26334,9 @@ protoOf(PipeGetter$evaluate$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 2;
-          var tmp_0;
-          if (this.k63_1.y62_1 == null) {
-            tmp_0 = null;
-          } else {
-            tmp_0 = 1;
-          }
-
-          var tmp1_elvis_lhs = tmp_0;
-          var newEnv = new Environment(this.j63_1, (tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs) + 1 | 0, 0);
           var index = {_v: 0};
           this.k8_1 = 1;
-          suspendResult = collect(this.l63_1, PipeGetter$evaluate$slambda$slambda_0(this.k63_1, newEnv, index, this.m63_1, null), this);
+          suspendResult = collect(this.j63_1, PipeGetter$evaluate$slambda$slambda_0(this.k63_1, this.l63_1, index, this.m63_1, null), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -26363,8 +26363,8 @@ protoOf(PipeGetter$evaluate$slambda).v2i = function ($this$FluoriteStream, compl
   i.m63_1 = $this$FluoriteStream;
   return i;
 };
-function PipeGetter$evaluate$slambda_0($env, this$0, $stream, resultContinuation) {
-  var i = new PipeGetter$evaluate$slambda($env, this$0, $stream, resultContinuation);
+function PipeGetter$evaluate$slambda_0($stream, $env, this$0, resultContinuation) {
+  var i = new PipeGetter$evaluate$slambda($stream, $env, this$0, resultContinuation);
   var l = function ($this$FluoriteStream, $completion) {
     return i.u2i($this$FluoriteStream, $completion);
   };
@@ -26395,7 +26395,7 @@ protoOf($evaluateCOROUTINE$_38).s8 = function () {
           var stream = suspendResult;
           if (stream instanceof FluoriteStream) {
             var tmp_0 = this;
-            tmp_0.x63_1 = new FluoriteStream(PipeGetter$evaluate$slambda_0(this.w63_1, this.v63_1, stream, null));
+            tmp_0.x63_1 = new FluoriteStream(PipeGetter$evaluate$slambda_0(stream, this.w63_1, this.v63_1, null));
             this.k8_1 = 3;
             continue $sm;
           } else {

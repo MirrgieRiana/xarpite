@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CLI - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+  <script src="/xarpite/assets/js/main.js" defer></script>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/docs/ja/">トップ</a></li>
+                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            
+            
+              
+              <div class="table-of-contents" markdown="1">
+## Table of Contents
+{:toc}
+</div>
+
+            
+            <h1 id="commands">Commands</h1>
+
+<h2 id="xarpite-execute-xarpite-code"><code class="language-plaintext highlighter-rouge">xarpite</code>: Execute Xarpite Code</h2>
+
+<p>This is the long form of the <code class="language-plaintext highlighter-rouge">xa</code> command.</p>
+
+<p>It is provided in case new versions such as <code class="language-plaintext highlighter-rouge">xarpite2</code> appear in the future.</p>
+
+<p>This command is recommended over the <code class="language-plaintext highlighter-rouge">xa</code> command when writing commands in persistent files such as shell scripts.</p>
+
+<p>On the other hand, the <code class="language-plaintext highlighter-rouge">xa</code> command is shorter and more convenient when executing code directly from the command line.</p>
+
+<p>The specifications of arguments are the same as the <code class="language-plaintext highlighter-rouge">xa</code> command.</p>
+
+<h2 id="xa-execute-xarpite-code"><code class="language-plaintext highlighter-rouge">xa</code>: Execute Xarpite Code</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xa
+# Usage: xa [&lt;Launcher Options&gt;] [&lt;Runtime Options&gt;] [--] &lt;code&gt; &lt;arguments...&gt;
+#
+# Launcher Options:
+#   --native                 Use the native engine
+#   --jvm                    Use the JVM engine
+#   --node                   Use the Node.js engine
+#
+# Runtime Options:
+#   -h, --help               Show this help
+#   -q                       Run script as a runner
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">xa</code> is a command that executes Xarpite code passed in command-line arguments on the spot.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">xa</code> command outputs the return value of the code as standard behavior, so you don’t need to explicitly use the <code class="language-plaintext highlighter-rouge">OUT</code> function or similar to output results.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 + 2'</span>
+<span class="c"># 3</span>
+</code></pre></div></div>
+
+<h1 id="cli-specific-built-in-constants-and-functions">CLI-Specific Built-in Constants and Functions</h1>
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

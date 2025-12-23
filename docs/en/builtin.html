@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Built-in Object Class Constants - Xarpite</title>
+  <meta name="description" content="An interpreted language for one-liners">
+  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+  <script src="/xarpite/assets/js/main.js" defer></script>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/xarpite/" class="logo-link">
+            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+            <span class="logo-text">Xarpite</span>
+          </a>
+          <nav class="main-nav">
+            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container">
+        <div class="content-wrapper">
+          <aside class="sidebar">
+            <nav class="doc-nav">
+              <h3 class="nav-title">ドキュメント</h3>
+              <ul class="nav-list">
+                <li><a href="/xarpite/docs/ja/">トップ</a></li>
+                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
+                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <article class="doc-content">
+            
+            
+              
+              <div class="table-of-contents" markdown="1">
+## Table of Contents
+{:toc}
+</div>
+
+            
+            <p>Built-in constants are constants that come with language features and can be used without defining them in code.</p>
+
+<p>Built-in constants are defined using only uppercase letters and <code class="language-plaintext highlighter-rouge">_</code>.</p>
+
+<p>Built-in functions are also provided through the same mechanism as built-in constants.</p>
+
+<h1 id="built-in-object-class-constants">Built-in Object Class Constants</h1>
+
+<p>You can reference classes of various built-in objects.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">VALUE</code></li>
+  <li><code class="language-plaintext highlighter-rouge">NULL_CLASS</code></li>
+  <li><code class="language-plaintext highlighter-rouge">INT</code></li>
+  <li><code class="language-plaintext highlighter-rouge">DOUBLE</code></li>
+  <li><code class="language-plaintext highlighter-rouge">BOOLEAN</code></li>
+  <li><code class="language-plaintext highlighter-rouge">STRING</code></li>
+  <li><code class="language-plaintext highlighter-rouge">REGEX</code></li>
+  <li><code class="language-plaintext highlighter-rouge">ARRAY</code></li>
+  <li><code class="language-plaintext highlighter-rouge">OBJECT</code></li>
+  <li><code class="language-plaintext highlighter-rouge">FUNCTION</code></li>
+  <li><code class="language-plaintext highlighter-rouge">STREAM</code></li>
+  <li><code class="language-plaintext highlighter-rouge">PROMISE</code></li>
+  <li><code class="language-plaintext highlighter-rouge">BLOB</code></li>
+</ul>
+
+<h1 id="constants">Constants</h1>
+
+<p>Various constants representing special values.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Constant</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">NULL</code> <code class="language-plaintext highlighter-rouge">N</code></td>
+      <td>NULL value</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">TRUE</code> <code class="language-plaintext highlighter-rouge">T</code></td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">FALSE</code> <code class="language-plaintext highlighter-rouge">F</code></td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">EMPTY</code> <code class="language-plaintext highlighter-rouge">E</code></td>
+      <td>Empty stream</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LOOP</code></td>
+      <td>Stream that generates NULL infinitely</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<p>Mathematical built-in constants.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Constant</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MATH.PI</code></td>
+      <td>Pi</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MATH.E</code></td>
+      <td>Euler’s number</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<p>String-related built-in constants.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Constant</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LT</code></td>
+      <td><code class="language-plaintext highlighter-rouge">&lt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GT</code></td>
+      <td><code class="language-plaintext highlighter-rouge">&gt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AMP</code></td>
+      <td><code class="language-plaintext highlighter-rouge">&amp;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">APOS</code></td>
+      <td><code class="language-plaintext highlighter-rouge">'</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">QUOT</code></td>
+      <td><code class="language-plaintext highlighter-rouge">"</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="mathematical-functions">Mathematical Functions</h1>
+
+<h2 id="abs-get-absolute-value"><code class="language-plaintext highlighter-rouge">ABS</code> Get Absolute Value</h2>
+
+<p><code class="language-plaintext highlighter-rouge">ABS(value: NUMBER): NUMBER</code></p>
+
+<p>Returns the absolute value of the first argument.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'ABS(-10)'</span>
+<span class="c"># 10</span>
+</code></pre></div></div>
+
+<h2 id="floor-round-down"><code class="language-plaintext highlighter-rouge">FLOOR</code> Round Down</h2>
+
+<p><code class="language-plaintext highlighter-rouge">FLOOR(number: NUMBER): INTEGER</code></p>
+
+<p>Rounds the first argument down to the nearest integer.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'FLOOR(1.5)'</span>
+<span class="c"># 1</span>
+</code></pre></div></div>
+
+<h2 id="div-integer-division"><code class="language-plaintext highlighter-rouge">DIV</code> Integer Division</h2>
+
+<p><code class="language-plaintext highlighter-rouge">DIV(x: NUMBER; y: NUMBER): NUMBER</code></p>
+
+<p>Divides <code class="language-plaintext highlighter-rouge">x</code> by <code class="language-plaintext highlighter-rouge">y</code> and returns the integer part of the result.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'DIV(10; 3)'</span>
+<span class="c"># 3</span>
+</code></pre></div></div>
+
+<h2 id="sqrt-get-square-root"><code class="language-plaintext highlighter-rouge">SQRT</code> Get Square Root</h2>
+
+<p><code class="language-plaintext highlighter-rouge">SQRT(number: NUMBER): NUMBER</code></p>
+
+<p>Returns the positive square root of the first argument.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  SQRT(100.0)  )"'</span>
+<span class="c"># 10.000</span>
+</code></pre></div></div>
+
+<h2 id="sin-sine"><code class="language-plaintext highlighter-rouge">SIN</code> Sine</h2>
+
+<p><code class="language-plaintext highlighter-rouge">SIN(number: NUMBER): NUMBER</code></p>
+
+<p>Interprets the first argument as radians and returns its sine.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  SIN(PI / 2)  )"'</span>
+<span class="c"># 1.000</span>
+</code></pre></div></div>
+
+<h2 id="cos-cosine"><code class="language-plaintext highlighter-rouge">COS</code> Cosine</h2>
+
+<p><code class="language-plaintext highlighter-rouge">COS(number: NUMBER): NUMBER</code></p>
+
+<p>Interprets the first argument as radians and returns its cosine.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  COS(0)  )"'</span>
+<span class="c"># 1.000</span>
+</code></pre></div></div>
+
+<h2 id="tan-tangent"><code class="language-plaintext highlighter-rouge">TAN</code> Tangent</h2>
+
+<p><code class="language-plaintext highlighter-rouge">TAN(number: NUMBER): NUMBER</code></p>
+
+<p>Interprets the first argument as radians and returns its tangent.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  TAN(PI / 4)  )"'</span>
+<span class="c"># 1.000</span>
+</code></pre></div></div>
+
+<h2 id="pow-power"><code class="language-plaintext highlighter-rouge">POW</code> Power</h2>
+
+<p><code class="language-plaintext highlighter-rouge">POW(base: NUMBER; exponent: NUMBER): NUMBER</code></p>
+
+<p>Returns the result of raising the first argument to the power of the second argument.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'POW(2; 3)'</span>
+<span class="c"># 8.0</span>
+</code></pre></div></div>
+
+<h2 id="exp-exponential-function"><code class="language-plaintext highlighter-rouge">EXP</code> Exponential Function</h2>
+
+<p><code class="language-plaintext highlighter-rouge">EXP(number: NUMBER): NUMBER</code></p>
+
+<p>Returns the exponential function (base e) of the first argument.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  EXP(1)  )"'</span>
+<span class="c"># 2.718</span>
+
+<span class="nv">$ </span>xa <span class="s1">'"$%.3f(  EXP(2)  )"'</span>
+<span class="c"># 7.389</span>
+</code></pre></div></div>
+
+<h2 id="log-natural-logarithm"><code class="language-plaintext highlighter-rouge">LOG</code> Natural Logarithm</h2>
+
+<p><code class="language-plaintext highlighter-rouge">LOG(number: NUMBER): NUMBER</code></p>
+
+<p>Returns the natural logarithm (base e) of the first argument.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'"$%.3f(  LOG(MATH.E)  )"'</span>
+<span class="c"># 1.000</span>
+</code></pre></div></div>
+
+<h2 id="rand-get-random-number"><code class="language-plaintext highlighter-rouge">RAND</code> Get Random Number</h2>
+
+<p><code class="language-plaintext highlighter-rouge">RAND(): DOUBLE</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">RAND([from: NUMBER; ]until: NUMBER): INT</code></p>
+
+<p>When called with no arguments, returns a decimal number from 0 (inclusive) to 1 (exclusive).</p>
+
+<p>When called with 1 argument, returns an integer from 0 (inclusive) to <code class="language-plaintext highlighter-rouge">until</code> (exclusive).</p>
+
+<p>When called with 2 arguments, returns an integer from <code class="language-plaintext highlighter-rouge">from</code> (inclusive) to <code class="language-plaintext highlighter-rouge">until</code> (exclusive).</p>
+
+<h1 id="stream-functions">Stream Functions</h1>
+
+<h2 id="reverse-reverse-stream"><code class="language-plaintext highlighter-rouge">REVERSE</code> Reverse Stream</h2>
+
+<p><code class="language-plaintext highlighter-rouge">REVERSE(stream: STREAM&lt;VALUE&gt;): STREAM&lt;VALUE&gt;</code></p>
+
+<p>Returns a stream with the elements of the first argument in reverse order.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'REVERSE(1 .. 3)'</span>
+<span class="c"># 3</span>
+<span class="c"># 2</span>
+<span class="c"># 1</span>
+</code></pre></div></div>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-content">
+          <p class="footer-text">
+            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
+            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
