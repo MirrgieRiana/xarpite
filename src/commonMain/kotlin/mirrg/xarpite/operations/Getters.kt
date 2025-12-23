@@ -788,9 +788,9 @@ class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: In
         val stream = streamGetter.evaluate(env)
         return if (stream is FluoriteStream) {
             FluoriteStream {
-                val newEnv = Environment(env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
                 var index = 0
                 stream.collect { value ->
+                    val newEnv = Environment(env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
                     if (indexVariableIndex != null) {
                         newEnv.variableTable[newFrameIndex][indexVariableIndex] = LocalVariable(FluoriteInt(index))
                     }
