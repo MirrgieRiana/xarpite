@@ -410,8 +410,8 @@ $ xa '
     set: _ -> value = _
     get: , -> value
   }]
-  array.2.set() = 99
-  array().get()
+  accessors.2.set() = 99
+  accessors().get()
 '
 # 1
 # 2
