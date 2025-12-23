@@ -4,9 +4,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
-import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
-import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.WorkInProgressError
+import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -293,6 +292,9 @@ class CliTest {
         // 存在しないファイルを指定するとエラー
         assertFailsWith<Exception> {
             parseArguments(listOf("-f", file.toString()))
+        }
+    }
+
     fun execRunsSimpleCommand() = runTest {
         try {
             val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
