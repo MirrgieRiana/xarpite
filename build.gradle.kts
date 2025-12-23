@@ -153,9 +153,13 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
 
 val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
-    dependsOn(generateDocShellTests, releaseExecutable.linkTaskProvider)
+    dependsOn(generateDocShellTests, bundleRelease)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
-    commandLine("bash", "ja.sh", releaseExecutable.outputFile.relativeTo(workingDir).invariantSeparatorsPath)
+    commandLine(
+        "bash",
+        "ja.sh",
+        bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+    )
 }
 tasks.named("check").configure { dependsOn(runDocShellTests) }
 

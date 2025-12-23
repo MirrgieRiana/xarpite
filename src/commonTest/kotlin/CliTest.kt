@@ -4,20 +4,19 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
-import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -50,19 +49,19 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val dir = baseDir.resolve("files.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
-        
+
         // ディレクトリとファイルを準備
         fileSystem.createDirectory(dir)
         fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
         fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
         fileSystem.createDirectory(dir.resolve("banana"))
-        
+
         // FILES 関数でファイル一覧を取得
         val result = cliEval("FILES(ARGS.0)", dir.toString()).stream()
-        
+
         // アルファベット順にソートされ、ファイル名のみが返される
         assertEquals("apple.txt,banana,zebra.txt", result)
-        
+
         // クリーンアップ
         fileSystem.delete(dir.resolve("zebra.txt"))
         fileSystem.delete(dir.resolve("apple.txt"))
@@ -161,6 +160,38 @@ class CliTest {
         // INB はストリームとして存在することを確認
         val inb = cliEval("INB")
         assertEquals(true, inb is FluoriteStream)
+    }
+
+    @Test
+    fun execRunsSimpleCommand() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
+            val lines = result.stream()
+            assertEquals("hello", lines)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execRunsComplexCommand() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "seq 1 30 | grep 3")""")
+            val lines = result.stream()
+            assertEquals("3,13,23,30", lines)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execThrowsOnNonZeroExitCode() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "exit 1") !? "ERROR"""")
+            assertEquals("ERROR", result.toFluoriteString().value)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
     }
 
 }

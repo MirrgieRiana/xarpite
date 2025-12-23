@@ -40,28 +40,28 @@ jobs:
         run: |
           # リモートのタグをフェッチ
           git fetch --tags
-          
+
           # 最新のバージョンタグを取得（v1.2.3形式のみ）
           LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1)
-          
+
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v0.0.0"
           fi
-          
+
           echo "Latest tag: $LATEST_TAG"
-          
+
           # バージョン番号を抽出（vプレフィックスを除去）
           VERSION=${LATEST_TAG#v}
-          
+
           # バージョン番号の形式を検証
           if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "Error: Invalid version format: $VERSION" >&2
             exit 1
           fi
-          
+
           # バージョン番号を分割
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          
+
           # 新しいバージョンを計算
           case "$RELEASE_TYPE" in
             patch)
@@ -81,7 +81,7 @@ jobs:
               exit 1
               ;;
           esac
-          
+
           NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
           echo "New tag: $NEW_TAG"
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT

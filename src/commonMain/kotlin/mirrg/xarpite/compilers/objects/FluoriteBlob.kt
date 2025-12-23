@@ -75,7 +75,7 @@ suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
                 else -> throw FluoriteException("Invalid element for BLOB: ${"$item".truncate(20)}".toFluoriteString())
             }
         }
-        
+
         if (value is FluoriteStream) {
             value.collect { item ->
                 processItem(item)
@@ -83,7 +83,7 @@ suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
         } else {
             processItem(value)
         }
-        
+
         @OptIn(ExperimentalUnsignedTypes::class)
         buffer.readByteArray().asUByteArray().asFluoriteBlob()
     }
