@@ -66,6 +66,19 @@ class CliJvmTest {
     }
 
     @Test
+    fun outbWritesEachStreamElement() = runTest {
+        val originalOut = System.out
+        val output = ByteArrayOutputStream()
+        try {
+            System.setOut(PrintStream(output))
+            cliEvalJvm("OUTB([BLOB.of([65]); BLOB.of([66, 67])])")
+            assertContentEquals(byteArrayOf(65, 66, 67), output.toByteArray())
+        } finally {
+            System.setOut(originalOut)
+        }
+    }
+
+    @Test
     fun execRedirectsStderrToXarpiteStderr() = runTest {
         val originalErr = System.err
         val errorOutput = ByteArrayOutputStream()

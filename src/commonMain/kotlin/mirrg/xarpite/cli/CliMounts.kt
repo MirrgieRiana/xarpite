@@ -42,9 +42,18 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
-            val blob = aggregateToBlob(arguments[0])
-            @OptIn(ExperimentalUnsignedTypes::class)
-            writeBytesToStdout(blob.value.toByteArray())
+            val value = arguments[0]
+            if (value is FluoriteStream) {
+                value.collect { item ->
+                    val blob = aggregateToBlob(item)
+                    @OptIn(ExperimentalUnsignedTypes::class)
+                    writeBytesToStdout(blob.value.toByteArray())
+                }
+            } else {
+                val blob = aggregateToBlob(value)
+                @OptIn(ExperimentalUnsignedTypes::class)
+                writeBytesToStdout(blob.value.toByteArray())
+            }
             FluoriteNull
         },
         "READ" to FluoriteFunction { arguments ->
