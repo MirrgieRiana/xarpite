@@ -71,6 +71,10 @@
                 {% include toc-{{ toc_lang }}.md %}
               {% endcapture %}
               {% assign toc_markup = toc_markdown | markdownify %}
+              {% assign toc_list = content | generate_toc_from_html %}
+              {% if toc_list != '' %}
+                {% assign toc_markup = toc_markup | append: toc_list %}
+              {% endif %}
               {% assign toc_placeholder = '<!-- toc -->' %}
               {% if content contains toc_placeholder %}
                 {{ content | replace: toc_placeholder, toc_markup }}
