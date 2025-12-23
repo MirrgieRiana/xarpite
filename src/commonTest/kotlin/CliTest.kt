@@ -5,20 +5,18 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.WorkInProgressError
-import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -167,9 +165,9 @@ class CliTest {
     @Test
     fun execRunsSimpleCommand() = runTest {
         try {
-            val result = cliEval("""EXEC("echo", "Hello, World!")""")
+            val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
             val lines = result.stream()
-            assertEquals("Hello, World!", lines)
+            assertEquals("hello", lines)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }

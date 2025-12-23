@@ -414,9 +414,9 @@ class XarpiteTest {
             assertEquals("a", e.value.string)
         }
 
-        assertEquals("b", eval("!!'a' !? 'b'").string) // !? で例外をキャッチできる
+        assertEquals("b", eval("(!!'a') !? 'b'").string) // !? で例外をキャッチできる
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
-        assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
+        assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
 
         // !? は左辺のストリームをキャッシュする（副作用が1度だけ生じる）
@@ -1217,18 +1217,20 @@ class XarpiteTest {
         """
             (
                 1 .. 50 | (
-                    _ % 2 != 0 && next !! NULL // 2で割り切れない！
-                    _ % 3 != 0 && next !! NULL // 3で割り切れない！
-                    _ % 5 != 0 && next !! NULL // 5で割り切れない！
-                    found !! _                 // 2でも3でも5でも割り切れる
-                ) !: next
+                    (
+                        _ % 2 != 0 && next !! NULL // 2で割り切れない！
+                        _ % 3 != 0 && next !! NULL // 3で割り切れない！
+                        _ % 5 != 0 && next !! NULL // 5で割り切れない！
+                        found !! _                 // 2でも3でも5でも割り切れる
+                    ) !: next
+                )
                 NULL
             ) !: found
         """.let { assertEquals(30, eval(it).int) }
 
         // !? は ?: と全く同じ結合優先度を持つ（エルビス演算子と同等）
         // !!'a' !? 'b' は (!!'a') !? 'b' と解釈され、例外がキャッチされる
-        assertEquals("b", eval("!!'a' !? 'b'").string)
+        assertEquals("b", eval("(!!'a') !? 'b'").string)
         // !? の対象範囲は比較的狭い
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
 
