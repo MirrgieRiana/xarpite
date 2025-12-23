@@ -83,6 +83,34 @@ $ xa '
 # 3
 ```
 
+---
+
+以下は `LAUNCH` を使って非同期的に標準入力からの命令を受け付けるサンプルです。
+
+先頭のブロック部分を削除すれば、実際にユーザーからの `stop` 命令でプログラムが終了します。
+
+```shell
+$ { sleep 0.5; echo stop; } | xa -q '
+  stop := PROMISE.new()
+  LAUNCH ( =>
+    IN | (
+      _ == "stop" && (
+        OUT << "Stopping..."
+        stop::complete()
+        break!!
+      )
+    ) !: break
+  )
+  LOOP | i, _ => (
+    stop::isCompleted() && break!!
+    SLEEP << 100
+  ) !: break
+  OUT << "Stopped!"
+'
+# Stopping...
+# Stopped!
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。
