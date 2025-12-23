@@ -58,10 +58,12 @@
   /**
    * Resets button to default state after a delay
    */
-  function resetButtonAfterDelay(button, delay) {
+  function resetButtonAfterDelay(button, delay, cssClass) {
     setTimeout(() => {
       button.textContent = COPY_BUTTON_TEXT.DEFAULT;
-      button.classList.remove('copied');
+      if (cssClass) {
+        button.classList.remove(cssClass);
+      }
     }, delay);
   }
 
@@ -72,12 +74,12 @@
     return navigator.clipboard.writeText(text)
       .then(() => {
         setButtonState(button, COPY_BUTTON_TEXT.SUCCESS, 'copied');
-        resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION);
+        resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION, 'copied');
       })
       .catch(err => {
         console.error('Failed to copy:', err);
         setButtonState(button, COPY_BUTTON_TEXT.FAILURE);
-        resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION);
+        resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION, null);
       });
   }
 
@@ -94,16 +96,17 @@
     
     try {
       const successful = document.execCommand('copy');
+      const cssClass = successful ? 'copied' : null;
       setButtonState(
         button, 
         successful ? COPY_BUTTON_TEXT.SUCCESS : COPY_BUTTON_TEXT.FAILURE,
-        successful ? 'copied' : null
+        cssClass
       );
-      resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION);
+      resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION, cssClass);
     } catch (err) {
       console.error('Failed to copy:', err);
       setButtonState(button, COPY_BUTTON_TEXT.FAILURE);
-      resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION);
+      resetButtonAfterDelay(button, FEEDBACK_DISPLAY_DURATION, null);
     } finally {
       document.body.removeChild(textarea);
     }
@@ -159,7 +162,7 @@
       copyToClipboard(textToCopy, copyButton);
     });
     
-    preElement.parentNode.insertBefore(wrapper, preElement);
+    preElement.parentElement.insertBefore(wrapper, preElement);
     wrapper.appendChild(preElement);
     wrapper.appendChild(copyButton);
   }
