@@ -72,15 +72,20 @@
               {%- endcapture -%}
               {% assign toc_markup = toc_markdown | markdownify %}
               {% assign toc_list = content | generate_toc_from_html %}
+              {% assign toc_placeholder = '<!-- toc -->' %}
               {% if toc_list != '' %}
                 {% assign toc_markup = toc_markup | append: toc_list %}
-              {% endif %}
-              {% assign toc_placeholder = '<!-- toc -->' %}
-              {% if content contains toc_placeholder %}
-                {{ content | replace: toc_placeholder, toc_markup }}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, toc_markup }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
               {% else %}
-                {{ toc_markup }}
-                {{ content }}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, '' }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
               {% endif %}
             {% else %}
               {{ content }}
