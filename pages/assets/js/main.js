@@ -175,7 +175,8 @@
     codeBlocks.forEach(wrapCodeBlock);
   }
 
-  // Allow lowercase alphanumerics and Japanese scripts (hiragana, katakana, kanji)
+  // Allow lowercase alphanumerics and Japanese scripts (hiragana, katakana, kanji).
+  // Note: extended characters outside these ranges will be stripped.
   const SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/g;
 
   /**
@@ -250,9 +251,10 @@
         // Adjust nesting depth to match the current heading level
         while (level > currentLevel) {
           const lastList = listStack[listStack.length - 1];
-          const lastItem = lastList.lastElementChild;
+          let lastItem = lastList.lastElementChild;
           if (!lastItem) {
-            break;
+            lastItem = document.createElement('li');
+            lastList.appendChild(lastItem);
           }
           const nestedList = document.createElement('ul');
           lastItem.appendChild(nestedList);
