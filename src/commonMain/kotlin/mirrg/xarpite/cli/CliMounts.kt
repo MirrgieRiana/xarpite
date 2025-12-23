@@ -58,22 +58,22 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "EXEC" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("EXEC(command: STREAM<STRING>): STREAM<STRING>")
-            
+
             val commandArg = arguments[0]
             val commandList = if (commandArg is FluoriteStream) {
                 commandArg.toMutableList().map { it.toFluoriteString().value }
             } else {
                 listOf(commandArg.toFluoriteString().value)
             }
-            
+
             if (commandList.isEmpty()) {
                 throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
             }
-            
+
             val process = commandList[0]
             val processArgs = commandList.drop(1)
             val output = executeProcess(process, processArgs)
-            
+
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
                 lines.dropLast(1)

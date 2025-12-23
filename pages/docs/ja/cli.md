@@ -297,7 +297,7 @@ $ xa -q '
 
 ```shell
 $ {
-  mkdir tmp 
+  mkdir tmp
   touch tmp/file
   mkdir tmp/dir
   xa 'FILES("tmp")'

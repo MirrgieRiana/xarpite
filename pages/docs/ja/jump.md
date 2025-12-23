@@ -87,7 +87,7 @@ $ xa '
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !: break
   [stream], [stream], [stream], count
 '
@@ -108,7 +108,7 @@ $ xa '
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !: break
   count
 '
@@ -126,7 +126,7 @@ $ xa '
   (
     1 .. 1000 | (
       [1 .. 1000]
-    ) 
+    )
   ) !: break;
 '
 # NULL
@@ -288,7 +288,7 @@ $ xa '
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !? "error"
   [stream], [stream], [stream], count
 '
@@ -309,7 +309,7 @@ $ xa '
     1 .. 3 | (
       count = count + 1
       count
-    ) 
+    )
   ) !? "error"
   count
 '

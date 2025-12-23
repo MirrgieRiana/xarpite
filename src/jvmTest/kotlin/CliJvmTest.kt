@@ -58,14 +58,14 @@ class CliJvmTest {
         val errorOutput = ByteArrayOutputStream()
         try {
             System.setErr(PrintStream(errorOutput))
-            
+
             // stderrに出力するコマンドを実行
             val result = cliEvalJvm("""EXEC("bash", "-c", "echo 'Error message' >&2; echo 'Output'")""")
             val output = result.toFluoriteString().value
-            
+
             // 標準出力は正しく取得される
             assertEquals("Output", output)
-            
+
             // 標準エラー出力がXarpiteのstderrにリダイレクトされている
             val stderrContent = errorOutput.toString()
             assertTrue(stderrContent.contains("Error message"), "stderr should contain 'Error message', but was: $stderrContent")

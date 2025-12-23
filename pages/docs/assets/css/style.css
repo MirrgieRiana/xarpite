@@ -9,35 +9,35 @@
   --xarpite-red-dark: #860000;
   --xarpite-red-light: #FF3333;
   --xarpite-red-subtle: #FFE5E5;
-  
+
   /* Transparent variants */
   --xarpite-red-primary-transparent: rgba(229, 0, 0, 0.85);
   --xarpite-red-dark-transparent: rgba(134, 0, 0, 0.9);
   --xarpite-red-shadow-light: rgba(229, 0, 0, 0.2);
   --xarpite-red-shadow-medium: rgba(229, 0, 0, 0.3);
-  
+
   --text-primary: #1a1a1a;
   --text-secondary: #666;
   --text-light: #999;
-  
+
   --bg-primary: #ffffff;
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #f0f0f0;
-  
+
   --border-color: #e0e0e0;
   --border-light: #f0f0f0;
-  
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-  
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  
+
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
-  
+
   /* Breakpoint values for reference (CSS custom properties cannot be used in @media queries) */
   /* --breakpoint-tablet: 968px; */
   /* --breakpoint-mobile: 768px; */
@@ -513,20 +513,20 @@ body {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .sidebar {
     position: relative;
     top: 0;
   }
-  
+
   .doc-content {
     padding: 1.5rem;
   }
-  
+
   .doc-content h1 {
     font-size: 2rem;
   }
-  
+
   .doc-content h2 {
     font-size: 1.5rem;
   }
@@ -536,32 +536,32 @@ body {
   .container {
     padding: 0 1rem;
   }
-  
+
   .header-content {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .main-nav {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.5rem;
   }
-  
+
   .nav-link {
     font-size: 0.9rem;
     padding: 0.4rem 0.8rem;
   }
-  
+
   .doc-content {
     padding: 1rem;
   }
-  
+
   .doc-content h1 {
     font-size: 1.75rem;
   }
-  
+
   .doc-content pre {
     padding: 1rem;
     font-size: 0.8rem;
@@ -660,11 +660,11 @@ html, body {
   .site-footer {
     display: none;
   }
-  
+
   .content-wrapper {
     grid-template-columns: 1fr;
   }
-  
+
   .doc-content {
     box-shadow: none;
     border: none;

@@ -27,7 +27,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
         val processInstance = processBuilder.start()
-        
+
         try {
             // 標準出力を非同期で読み取る
             val outputDeferred = async {
@@ -35,7 +35,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     reader.readText()
                 }
             }
-            
+
             // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
             val errorDeferred = async {
                 BufferedReader(processInstance.errorStream.reader()).use { reader ->
@@ -44,19 +44,19 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     }
                 }
             }
-            
+
             // プロセスの終了を待つ
             val exitCode = processInstance.waitFor()
-            
+
             // 出力を取得
             val output = outputDeferred.await()
             errorDeferred.await()
-            
+
             // 終了コードが0でない場合は例外をスロー
             if (exitCode != 0) {
                 throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
             }
-            
+
             output
         } finally {
             processInstance.destroy()

@@ -1235,7 +1235,7 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
 
         // Issue #62 のテストケース: ラベルはstreamより低い優先度で動作
-        
+
         // ケース1: `aaa | (bbb && break !!) !: break`
         // !: はstreamよりも低い優先度なので、パイプ全体を捕捉する
         // つまり `(aaa | (...)) !: break` と解釈される
@@ -1246,7 +1246,7 @@ class XarpiteTest {
                 _ * 10
             ) !: break
         """.let { assertEquals(FluoriteNull, eval(it)) }
-        
+
         // ケース1b: breakしない場合、全要素が正常に処理される
         """
             1 .. 3 | (
@@ -1254,7 +1254,7 @@ class XarpiteTest {
                 _ * 10
             ) !: break
         """.let { assertEquals("10,20,30", eval(it).stream()) }
-        
+
         // ケース2: 集約演算の中断
         """
             1 .. 5 | (
@@ -1262,7 +1262,7 @@ class XarpiteTest {
                 _
             ) >> SUM !: break
         """.let { assertEquals(FluoriteNull, eval(it)) }
-        
+
         // ケース3: 代入の右辺でも同様に全体を捕捉
         """
             result := 1 .. 3 | (
@@ -1271,7 +1271,7 @@ class XarpiteTest {
             ) !: break
             result
         """.let { assertEquals(FluoriteNull, eval(it)) }
-        
+
         // ケース3b: breakしない場合
         """
             result := 1 .. 3 | (
@@ -1283,37 +1283,37 @@ class XarpiteTest {
         // !?がカンマよりも強いことを示す
         // ((!!), 1 !? 2, 3) !? 4 は ((!!), (1 !? 2), 3) !? 4 と解釈される
         """((!!), 1 !? 2, 3) !? 4""".let { assertEquals(4, eval(it).int) }
-        
+
         // !?がorよりも弱いことを示す
         // (!!) || 1 !? 2 は ((!!) || 1) !? 2 と解釈される
         """(!!) || 1 !? 2""".let { assertEquals(2, eval(it).int) }
-        
+
         // !:が代入を取れないことを示す
         // ((a !! 1): 2 !: a; !!) !: a は ((a !! 1): 2) !: a の後に (!!) !: a が続く
         """((a !! 1): 2 !: a; !!) !: a""".let { assertEquals(1, eval(it).int) }
-        
+
         // !:が左辺にパイプと右実行パイプを取れることを示す
         // (a !! 1) | 2 >> TO_ARRAY !: a は ((a !! 1) | 2 >> TO_ARRAY) !: a と解釈される
         """(a !! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
-        
+
         // !:が右辺にパイプを取れないことを示す
         // (1 !: a | (!!)) !? 2 は (1 !: (a | (!!))) !? 2 と解釈され、a | (!!)がエラーになる
         """(1 !: a | (!!)) !? 2""".let { assertEquals(2, eval(it).int) }
-        
+
         // Issue #62 のテストケース: catchはtry節の範囲を狭める
-        
+
         // ケース5: f() !? else のように関数呼び出しのみをキャッチ
         """
             f := () -> !! "error"
             result := f() !? "caught"
             result
         """.let { assertEquals("caught", eval(it).string) }
-        
+
         // ケース6: 複雑な式全体をキャッチしたい場合は括弧が必要
         """
             (1 + 2 + !! "error") !? "caught"
         """.let { assertEquals("caught", eval(it).string) }
-        
+
         // ケース7: !? と ?: が同じ優先度なので、自然にチェーンできる
         """
             value := NULL
