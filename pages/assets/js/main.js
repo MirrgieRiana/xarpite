@@ -176,10 +176,98 @@
   }
 
   /**
+   * Generates a stable ID for a heading if it does not already have one
+   */
+  function ensureHeadingId(heading) {
+    if (heading.id) {
+      return heading.id;
+    }
+
+    const slug = heading.textContent
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-ぁ-んァ-ヶ一-龠]/g, '');
+
+    const existingIds = new Set(
+      Array.from(document.querySelectorAll('[id]')).map(element => element.id)
+    );
+
+    let candidate = slug || 'section';
+    let counter = 1;
+    while (existingIds.has(candidate)) {
+      candidate = `${slug || 'section'}-${counter++}`;
+    }
+
+    heading.id = candidate;
+    return heading.id;
+  }
+
+  /**
+   * Builds a table of contents based on headings in the document content
+   */
+  function buildTableOfContents() {
+    const tocList = document.querySelector('.doc-content #markdown-toc');
+    if (!tocList) {
+      return;
+    }
+
+    const headings = Array.from(
+      document.querySelectorAll('.doc-content h1, .doc-content h2, .doc-content h3')
+    ).filter(heading => !heading.closest('.table-of-contents'));
+
+    if (headings.length === 0) {
+      const tocWrapper = tocList.closest('.table-of-contents');
+      if (tocWrapper) {
+        tocWrapper.remove();
+      }
+      return;
+    }
+
+    tocList.innerHTML = '';
+    const listStack = [tocList];
+    let currentLevel = parseInt(headings[0].tagName.substring(1), 10);
+
+    headings.forEach((heading, index) => {
+      const level = parseInt(heading.tagName.substring(1), 10);
+      const headingId = ensureHeadingId(heading);
+
+      if (index !== 0) {
+        while (level > currentLevel) {
+          const lastList = listStack[listStack.length - 1];
+          const lastItem = lastList.lastElementChild;
+          if (!lastItem) {
+            break;
+          }
+          const nestedList = document.createElement('ul');
+          lastItem.appendChild(nestedList);
+          listStack.push(nestedList);
+          currentLevel++;
+        }
+
+        while (level < currentLevel && listStack.length > 1) {
+          listStack.pop();
+          currentLevel--;
+        }
+      } else {
+        currentLevel = level;
+      }
+
+      const listItem = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = `#${headingId}`;
+      link.textContent = heading.textContent;
+      listItem.appendChild(link);
+      listStack[listStack.length - 1].appendChild(listItem);
+    });
+  }
+
+  /**
    * Initializes all page functionality
    */
   function init() {
     highlightCurrentNav();
+    buildTableOfContents();
     addCopyButtonsToCodeBlocks();
   }
 

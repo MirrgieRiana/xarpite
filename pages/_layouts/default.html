@@ -67,9 +67,19 @@
             {% assign toc_enabled = page.toc | default: true %}
             {% if toc_enabled %}
               {% assign toc_lang = page.lang | default: 'ja' %}
-              {% include toc-{{ toc_lang }}.md %}
+              {% capture toc_markup %}
+                {% include toc-{{ toc_lang }}.md %}
+              {% endcapture %}
+              {% assign toc_placeholder = '<!-- toc -->' %}
+              {% if content contains toc_placeholder %}
+                {{ content | replace: toc_placeholder, toc_markup }}
+              {% else %}
+                {{ toc_markup }}
+                {{ content }}
+              {% endif %}
+            {% else %}
+              {{ content }}
             {% endif %}
-            {{ content }}
           </article>
         </div>
       </div>
