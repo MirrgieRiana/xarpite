@@ -177,112 +177,11 @@
 
   // Allow lowercase alphanumerics and Japanese scripts (hiragana, katakana, kanji).
   // Note: extended characters outside these ranges will be stripped.
-  const SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/g;
-
-  /**
-   * Generates a stable ID for a heading if it does not already have one
-   */
-  function ensureHeadingId(heading, existingIds) {
-    if (heading.id) {
-      return heading.id;
-    }
-
-    const slug = heading.textContent
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(SLUG_ALLOWED_CHARS_PATTERN, '');
-
-    let candidate = slug || 'section';
-    let counter = 1;
-    while (existingIds.has(candidate)) {
-      candidate = `${slug || 'section'}-${counter++}`;
-    }
-
-    heading.id = candidate;
-    existingIds.add(candidate);
-    return heading.id;
-  }
-
-  /**
-   * Builds a table of contents based on headings in the document content
-   */
-  function buildTableOfContents() {
-    const tocList = document.querySelector('.doc-content #markdown-toc');
-    if (!tocList) {
-      return;
-    }
-
-    const headings = Array.from(
-      document.querySelectorAll('.doc-content h1, .doc-content h2, .doc-content h3')
-    )
-      // Exclude headings inside TOC containers to avoid self-referencing
-      .filter(heading => !heading.closest('.table-of-contents'));
-
-    const tocWrapper = tocList.closest('.table-of-contents');
-
-    if (headings.length === 0) {
-      if (tocWrapper) {
-        tocWrapper.style.display = 'none';
-      }
-      tocList.innerHTML = '';
-      return;
-    }
-
-    if (tocWrapper) {
-      tocWrapper.style.display = '';
-    }
-
-    const existingIds = new Set(
-      Array.from(document.querySelectorAll('[id]')).map(element => element.id)
-    );
-
-    tocList.innerHTML = '';
-    const listStack = [tocList];
-    let currentLevel = null;
-
-    headings.forEach(heading => {
-      const level = parseInt(heading.tagName.substring(1), 10);
-      const headingId = ensureHeadingId(heading, existingIds);
-
-      if (currentLevel === null) {
-        currentLevel = level;
-      } else {
-        // Adjust nesting depth to match the current heading level
-        while (level > currentLevel) {
-          const lastList = listStack[listStack.length - 1];
-          let lastItem = lastList.lastElementChild;
-          if (!lastItem) {
-            lastItem = document.createElement('li');
-            lastList.appendChild(lastItem);
-          }
-          const nestedList = document.createElement('ul');
-          lastItem.appendChild(nestedList);
-          listStack.push(nestedList);
-          currentLevel++;
-        }
-
-        while (level < currentLevel && listStack.length > 1) {
-          listStack.pop();
-          currentLevel--;
-        }
-      }
-
-      const listItem = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = `#${headingId}`;
-      link.textContent = heading.textContent;
-      listItem.appendChild(link);
-      listStack[listStack.length - 1].appendChild(listItem);
-    });
-  }
-
   /**
    * Initializes all page functionality
    */
   function init() {
     highlightCurrentNav();
-    buildTableOfContents();
     addCopyButtonsToCodeBlocks();
   }
 

@@ -67,9 +67,10 @@
             {% assign toc_enabled = page.toc | default: true %}
             {% if toc_enabled %}
               {% assign toc_lang = page.lang | default: 'ja' %}
-              {% capture toc_markup %}
+              {% capture toc_markdown %}
                 {% include toc-{{ toc_lang }}.md %}
               {% endcapture %}
+              {% assign toc_markup = toc_markdown | markdownify %}
               {% assign toc_placeholder = '<!-- toc -->' %}
               {% if content contains toc_placeholder %}
                 {{ content | replace: toc_placeholder, toc_markup }}
