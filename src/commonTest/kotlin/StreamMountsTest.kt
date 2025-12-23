@@ -128,13 +128,13 @@ class StreamMountsTest {
     fun single() = runTest {
         // SINGLE with multiple elements should throw error
         assertFails { eval("SINGLE(4, 5, 6)") }
-        
+
         // SINGLE with single element should return that element
         assertEquals(6, eval("SINGLE(6)").int)
-        
+
         // SINGLE with empty stream should throw error
         assertFails { eval("SINGLE(,)") }
-        
+
         // SINGLE with single element stream should return that element
         assertEquals(7, eval("SINGLE(7,)").int)
     }

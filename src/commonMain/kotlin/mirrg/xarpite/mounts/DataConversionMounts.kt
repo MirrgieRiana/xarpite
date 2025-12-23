@@ -22,7 +22,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
-            
+
             // Convert string to UTF-8 bytes and return as a single BLOB
             val utf8Bytes = string.encodeToByteArray().asUByteArray()
             utf8Bytes.asFluoriteBlob()
@@ -31,9 +31,9 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
-            
+
             val allBytes = mutableListOf<UByte>()
-            
+
             // Collect all bytes from BLOB(s)
             if (value is FluoriteStream) {
                 value.collect { item ->
@@ -44,7 +44,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                 val blob = value as? FluoriteBlob ?: usage()
                 allBytes.addAll(blob.value.toList())
             }
-            
+
             // Convert UTF-8 bytes to string
             // decodeToString() will throw IllegalArgumentException for invalid UTF-8 sequences
             val byteArray = allBytes.toUByteArray().asByteArray()

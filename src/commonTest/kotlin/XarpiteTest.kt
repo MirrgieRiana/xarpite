@@ -414,9 +414,9 @@ class XarpiteTest {
             assertEquals("a", e.value.string)
         }
 
-        assertEquals("b", eval("!!'a' !? 'b'").string) // !? で例外をキャッチできる
+        assertEquals("b", eval("(!!'a') !? 'b'").string) // !? で例外をキャッチできる
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
-        assertEquals("a", eval("!!'a' !? (e => e)").string) // => でスローされた値を受け取れる
+        assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
 
         // !? は左辺のストリームをキャッシュする（副作用が1度だけ生じる）
@@ -1095,10 +1095,10 @@ class XarpiteTest {
     @Test
     fun returnTest() = runTest {
 
-        // label !! の右辺を省略すると NULL を返して脱出できる
+        // label!! の右辺を省略すると NULL を返して脱出できる
         """
             (
-                label !!
+                label!!
             ) !: label
         """.let { assertEquals(FluoriteNull, eval(it)) }
 
@@ -1106,16 +1106,16 @@ class XarpiteTest {
         """
             t := 0
             (
-                label !!
+                label!!
                 t = 1
             ) !: label
             t
         """.let { assertEquals(0, eval(it).int) }
 
-        // label !! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
+        // label!! と !? が隣接しても RHS として取り込まれず、外側の !? として扱われる
         """
             (
-                label !! !? "On Error!"
+                label!! !? "On Error!"
                 "unreached"
             ) !: label
         """.let { assertEquals(FluoriteNull, eval(it)) }
@@ -1123,10 +1123,10 @@ class XarpiteTest {
         // !! 単体は NULL をスローする
         assertEquals("handled", eval(""" !! !? "handled" """).string)
 
-        // getter label !! value でreturnできる
+        // getter label!! value でreturnできる
         """
             (
-                label !! 123
+                label!! 123
                 456
             ) !: label
         """.let { assertEquals(123, eval(it).int) }
@@ -1135,7 +1135,7 @@ class XarpiteTest {
         // getterラベルブロックは戻り値のストリームを素通りさせず、1度その場で一通り評価してキャッシュする
         """
             (
-                1 .. 3 | label !! 123
+                1 .. 3 | label!! 123
             ) !: label
         """.let { assertEquals(123, eval(it).int) }
 
@@ -1158,10 +1158,10 @@ class XarpiteTest {
             [stream; stream; stream; t]
         """.let { assertEquals("[1;2;3;1;2;3;1;2;3;3]", eval(it).array()) }
 
-        // runner label !! value でreturnできる
+        // runner label!! value でreturnできる
         """
             (
-                label !! 123
+                label!! 123
                 !! "fail"
             ) !: label
             NULL
@@ -1178,14 +1178,14 @@ class XarpiteTest {
 
         // !! の結合優先度は左から見るとリテラル系と同等
         // なので前置単項すらそのままつけれる
-        // 右から見ると , 以下 !: 以上
-        assertEquals("1,2,3", eval("$# label !! 1, 2, 3 !: label").stream())
+        // 右から見ると commas 以下
+        assertEquals("1,2,3", eval("($# label!! 1, 2, 3) !: label").stream())
 
         // 同名のラベルが複数存在した場合、最も内側のラベルを出る
         """
             (
                 (
-                    label !! 1
+                    label!! 1
                     2
                 ) !: label
                 3
@@ -1195,10 +1195,10 @@ class XarpiteTest {
         // !: はラムダ右辺よりも結合優先度が高い
         """
             prime_only := x -> (
-                x == 1 && fail !! "!1"
-                (x != 2 && x %% 2) && fail !! "!2n"
-                (x != 3 && x %% 3) && fail !! "!3n"
-                (x != 5 && x %% 5) && fail !! "!5n"
+                x == 1 && fail!! "!1"
+                (x != 2 && x %% 2) && fail!! "!2n"
+                (x != 3 && x %% 3) && fail!! "!3n"
+                (x != 5 && x %% 5) && fail!! "!5n"
                 x
             ) !: fail
             1 .. 10 | prime_only(_)
@@ -1208,7 +1208,7 @@ class XarpiteTest {
         """
             run := block -> block()
             run ( =>
-                return !! 123
+                return!! 123
                 456
             ) !: return
         """.let { assertEquals(123, eval(it).int) }
@@ -1217,14 +1217,109 @@ class XarpiteTest {
         """
             (
                 1 .. 50 | (
-                    _ % 2 != 0 && next !! NULL // 2で割り切れない！
-                    _ % 3 != 0 && next !! NULL // 3で割り切れない！
-                    _ % 5 != 0 && next !! NULL // 5で割り切れない！
-                    found !! _                 // 2でも3でも5でも割り切れる
-                ) !: next
+                    (
+                        _ % 2 != 0 && next!! NULL // 2で割り切れない！
+                        _ % 3 != 0 && next!! NULL // 3で割り切れない！
+                        _ % 5 != 0 && next!! NULL // 5で割り切れない！
+                        found!! _                 // 2でも3でも5でも割り切れる
+                    ) !: next
+                )
                 NULL
             ) !: found
         """.let { assertEquals(30, eval(it).int) }
+
+        // !? は ?: と全く同じ結合優先度を持つ（エルビス演算子と同等）
+        // !!'a' !? 'b' は (!!'a') !? 'b' と解釈され、例外がキャッチされる
+        assertEquals("b", eval("(!!'a') !? 'b'").string)
+        // !? の対象範囲は比較的狭い
+        assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string)
+
+        // Issue #62 のテストケース: ラベルはstreamより低い優先度で動作
+
+        // ケース1: `aaa | (bbb && break!!) !: break`
+        // !: はstreamよりも低い優先度なので、パイプ全体を捕捉する
+        // つまり `(aaa | (...)) !: break` と解釈される
+        // breakが発生すると全体がNULLを返す
+        """
+            1 .. 3 | (
+                _ == 2 && break!!
+                _ * 10
+            ) !: break
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // ケース1b: breakしない場合、全要素が正常に処理される
+        """
+            1 .. 3 | (
+                _ == 99 && break!!
+                _ * 10
+            ) !: break
+        """.let { assertEquals("10,20,30", eval(it).stream()) }
+
+        // ケース2: 集約演算の中断
+        """
+            1 .. 5 | (
+                _ == 3 && break!!
+                _
+            ) >> SUM !: break
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // ケース3: 代入の右辺でも同様に全体を捕捉
+        """
+            result := 1 .. 3 | (
+                _ == 2 && break!!
+                _ * 10
+            ) !: break
+            result
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // ケース3b: breakしない場合
+        """
+            result := 1 .. 3 | (
+                _ == 99 && break!!
+                _ * 10
+            ) !: break
+            result
+        """.let { assertEquals("10,20,30", eval(it).stream()) }
+        // !?がカンマよりも強いことを示す
+        // ((!!), 1 !? 2, 3) !? 4 は ((!!), (1 !? 2), 3) !? 4 と解釈される
+        """((!!), 1 !? 2, 3) !? 4""".let { assertEquals(4, eval(it).int) }
+
+        // !?がorよりも弱いことを示す
+        // (!!) || 1 !? 2 は ((!!) || 1) !? 2 と解釈される
+        """(!!) || 1 !? 2""".let { assertEquals(2, eval(it).int) }
+
+        // !:が代入を取れないことを示す
+        // ((a!! 1): 2 !: a; !!) !: a は ((a!! 1): 2) !: a の後に (!!) !: a が続く
+        """((a!! 1): 2 !: a; !!) !: a""".let { assertEquals(1, eval(it).int) }
+
+        // !:が左辺にパイプと右実行パイプを取れることを示す
+        // (a!! 1) | 2 >> TO_ARRAY !: a は ((a!! 1) | 2 >> TO_ARRAY) !: a と解釈される
+        """(a!! 1) | 2 >> TO_ARRAY !: a""".let { assertEquals(1, eval(it).int) }
+
+        // !:が右辺にパイプを取れないことを示す
+        // (1 !: a | (!!)) !? 2 は (1 !: (a | (!!))) !? 2 と解釈され、a | (!!)がエラーになる
+        """(1 !: a | (!!)) !? 2""".let { assertEquals(2, eval(it).int) }
+
+        // Issue #62 のテストケース: catchはtry節の範囲を狭める
+
+        // ケース5: f() !? else のように関数呼び出しのみをキャッチ
+        """
+            f := () -> !! "error"
+            result := f() !? "caught"
+            result
+        """.let { assertEquals("caught", eval(it).string) }
+
+        // ケース6: 複雑な式全体をキャッチしたい場合は括弧が必要
+        """
+            (1 + 2 + !! "error") !? "caught"
+        """.let { assertEquals("caught", eval(it).string) }
+
+        // ケース7: !? と ?: が同じ優先度なので、自然にチェーンできる
+        """
+            value := NULL
+            result := value ?: (!! "error") !? "default"
+            result
+        """.let { assertEquals("default", eval(it).string) }
 
     }
 

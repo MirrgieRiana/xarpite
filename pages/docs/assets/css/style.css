@@ -6,13 +6,13 @@
 /* ===== Variables ===== */
 :root {
   --xarpite-red-primary: #E50000;
-  --xarpite-red-dark: #760000;
+  --xarpite-red-dark: #860000;
   --xarpite-red-light: #FF3333;
   --xarpite-red-subtle: #FFE5E5;
 
   /* Transparent variants */
   --xarpite-red-primary-transparent: rgba(229, 0, 0, 0.85);
-  --xarpite-red-dark-transparent: rgba(118, 0, 0, 0.9);
+  --xarpite-red-dark-transparent: rgba(134, 0, 0, 0.9);
   --xarpite-red-shadow-light: rgba(229, 0, 0, 0.2);
   --xarpite-red-shadow-medium: rgba(229, 0, 0, 0.3);
 
@@ -149,7 +149,7 @@ body {
 
 .nav-link.playground-link {
   color: white;
-  background: linear-gradient(135deg, var(--xarpite-red-light), var(--xarpite-red-dark));
+  background: linear-gradient(135deg, var(--xarpite-red-primary), var(--xarpite-red-dark));
   font-weight: 600;
   padding: 0.5rem 1rem;
   box-shadow: 0 2px 4px var(--xarpite-red-shadow-light);
@@ -168,15 +168,15 @@ body {
 
 .content-wrapper {
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  grid-template-areas: "sidebar content";
+  grid-template-columns: 250px 1fr;
   gap: 3rem;
   align-items: start;
 }
 
 /* ===== Sidebar Navigation ===== */
 .sidebar {
-  grid-area: sidebar;
+  position: sticky;
+  top: 100px;
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 1.5rem;
@@ -231,7 +231,6 @@ body {
 
 /* ===== Document Content ===== */
 .doc-content {
-  grid-area: content;
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   padding: 2.5rem;
@@ -243,7 +242,7 @@ body {
 
 /* Typography */
 .doc-content h1 {
-  color: var(--xarpite-red-dark);
+  color: var(--xarpite-red-primary);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
@@ -384,25 +383,18 @@ body {
   font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-size: 0.9em;
   font-weight: 500;
-  border: none;
+  border: 1px solid var(--border-light);
 }
 
 .doc-content pre {
-  background: #333;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   color: #f8f8f8;
   padding: 1.5rem;
-  padding-right: 6rem;
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 1.5rem 0;
   box-shadow: var(--shadow-md);
   border-left: 3px solid var(--xarpite-red-primary);
-  position: relative;
-  white-space: pre;
-  overflow-wrap: normal;
-  word-break: normal;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .doc-content pre code {
@@ -411,55 +403,6 @@ body {
   padding: 0;
   font-size: 0.875rem;
   line-height: 1.6;
-  border: none;
-  outline: none;
-  text-decoration: none;
-  white-space: pre;
-  overflow-wrap: normal;
-}
-
-/* Copy button for code blocks */
-.doc-content .code-block-wrapper {
-  position: relative;
-  margin: 1.5rem 0;
-  max-width: 100%;
-}
-
-.doc-content .code-block-wrapper pre {
-  margin: 0;
-}
-
-.doc-content .copy-code-button {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #f8f8f8;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  backdrop-filter: blur(5px);
-  z-index: 10;
-}
-
-.doc-content .copy-code-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
-}
-
-.doc-content .copy-code-button:active {
-  transform: translateY(0);
-}
-
-.doc-content .copy-code-button.copied {
-  background: var(--xarpite-red-primary);
-  border-color: var(--xarpite-red-primary);
-  color: white;
 }
 
 /* Syntax highlighting overrides */
@@ -567,10 +510,7 @@ body {
 /* ===== Responsive Design ===== */
 @media (max-width: 968px) {
   .content-wrapper {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "content"
-      "sidebar";
+    grid-template-columns: 1fr;
     gap: 2rem;
   }
 
@@ -722,7 +662,7 @@ html, body {
   }
 
   .content-wrapper {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .doc-content {
