@@ -8,6 +8,8 @@ markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
+  auto_ids: true
+  toc_levels: 1..3
 
 # Theme
 theme: null
@@ -18,6 +20,14 @@ defaults:
       path: ""
     values:
       layout: default
+  - scope:
+      path: "docs"
+    values:
+      toc: true
+  - scope:
+      path: "docs/en"
+    values:
+      lang: en
 
 plugins:
   - jekyll-optional-front-matter
