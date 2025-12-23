@@ -50,6 +50,9 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
+      - name: バージョンの取得
+        run: echo "APP_VERSION=$(./scripts/get-version.kts)" >> $GITHUB_ENV
+
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
           ./gradlew clean bundleRelease --stacktrace
@@ -58,8 +61,6 @@ jobs:
           echo "### $(pwd)"
           find -type f . | sort
           echo "###"
-        env:
-          APP_VERSION: ${{ github.sha }}
 
       - name: GitHub Pagesの設定
         uses: actions/configure-pages@v4
