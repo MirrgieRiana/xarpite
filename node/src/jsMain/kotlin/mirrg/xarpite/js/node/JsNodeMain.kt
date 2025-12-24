@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
@@ -40,10 +41,12 @@ suspend fun main() {
             i++
         }
         suspendCancellableCoroutine { cont ->
-            val ok = process.stdout.write(uint8Array) {
-                if (cont.isActive) cont.resume(Unit) {}
+            val ok = process.stdout.write(uint8Array) { error ->
+                if (cont.isActive) {
+                    if (error == null) cont.resume(Unit) else cont.resumeWithException(error.unsafeCast<Throwable>())
+                }
             }
-            if (ok && cont.isActive) cont.resume(Unit) {}
+            if (ok && cont.isActive) cont.resume(Unit)
         }
     }
 
