@@ -44,6 +44,11 @@ module Xarpite
       return '' if toc_list.to_s.empty?
       return toc_list if container_html.to_s.empty?
 
+      placeholder = '<!-- toc -->'
+      if container_html.include?(placeholder)
+        return container_html.sub(placeholder, toc_list)
+      end
+
       closing_tag = '</div>'
       if container_html.include?(closing_tag)
         container_html.sub(closing_tag, toc_list + closing_tag)
