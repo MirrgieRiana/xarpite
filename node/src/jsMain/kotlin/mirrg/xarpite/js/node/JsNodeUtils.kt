@@ -6,6 +6,7 @@ external class Process {
     val env: Json
     val argv: Array<String>
     val stdin: dynamic
+    val stdout: dynamic
 }
 
 val process by lazy { js("process").unsafeCast<Process>() }
