@@ -1,7 +1,7 @@
 module Xarpite
   module DocsMdLinkRewriter
     # Captures href values pointing to markdown files within the attribute (before any fragment).
-    LINK_PATTERN = /href=(['"])([^'"]*\.md)(#[^'"]*)?\1/i.freeze
+    LINK_PATTERN = /href(\s*=\s*)(['"])([^'"]*\.md)(#[^'"]*)?\2/i.freeze
     URI_SCHEME_PATTERN = %r{\A[a-z][a-z0-9+.\-]*:}i.freeze
 
     module_function
@@ -18,11 +18,12 @@ module Xarpite
       base_dir = File.dirname(relative_path)
 
       html.gsub(LINK_PATTERN) do
-        quote = Regexp.last_match(1)
-        href = Regexp.last_match(2)
-        fragment = Regexp.last_match(3) || ""
+        spacing = Regexp.last_match(1)
+        quote = Regexp.last_match(2)
+        href = Regexp.last_match(3)
+        fragment = Regexp.last_match(4) || ""
         replaced = replace_href(href, fragment, base_dir, baseurl)
-        replaced ? %(href=#{quote}#{replaced}#{quote}) : Regexp.last_match(0)
+        replaced ? %(href#{spacing}#{quote}#{replaced}#{quote}) : Regexp.last_match(0)
       end
     end
 
@@ -46,7 +47,7 @@ module Xarpite
       return href unless href.start_with?(prefix)
 
       stripped = href.delete_prefix(prefix).sub(%r{\A/+}, "")
-      "/#{stripped}"
+      stripped.empty? ? "/" : "/#{stripped}"
     end
 
     def resolve_path(href, base_dir)

@@ -26,6 +26,12 @@ class DocsMdLinkRewriterTest < Minitest::Test
                  rewrite(html, relative_path: "docs/ja/json.md")
   end
 
+  def test_preserves_spacing_around_equals
+    html = '<a href = "data_conversion.md">link</a>'
+    assert_equal '<a href = "data_conversion.html">link</a>',
+                 rewrite(html, relative_path: "docs/ja/json.md")
+  end
+
   def test_keeps_external_md_link
     html = '<a href="https://example.com/data_conversion.md">external</a>'
     assert_equal html, rewrite(html, relative_path: "docs/ja/json.md")
