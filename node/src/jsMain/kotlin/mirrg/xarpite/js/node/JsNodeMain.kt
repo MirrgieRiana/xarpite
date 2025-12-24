@@ -41,12 +41,14 @@ suspend fun main() {
             i++
         }
         suspendCancellableCoroutine { cont ->
-            val ok = process.stdout.write(uint8Array) { error ->
-                if (cont.isActive) {
-                    if (error == null) cont.resume(Unit) else cont.resumeWithException(error.unsafeCast<Throwable>())
+            process.stdout.write(uint8Array) { error ->
+                if (!cont.isActive) return@write
+                if (error == null) {
+                    cont.resume(Unit)
+                } else {
+                    cont.resumeWithException(error.unsafeCast<Throwable>())
                 }
             }
-            if (ok && cont.isActive) cont.resume(Unit)
         }
     }
 

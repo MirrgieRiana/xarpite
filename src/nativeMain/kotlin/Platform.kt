@@ -73,10 +73,13 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
         }
         set_posix_errno(0)
         val writtenSize = fwrite(bytes.refTo(0), 1u, bytes.size.toULong(), stdout)
-        if (writtenSize.toInt() != bytes.size) {
+        val errorFlag = ferror(stdout)
+        if (writtenSize.toInt() != bytes.size || errorFlag != 0) {
             val e = errno
             val msg = strerror(e)?.toKString()
-            clearerr(stdout)
+            if (errorFlag != 0) {
+                clearerr(stdout)
+            }
             throw IllegalStateException("fwrite(stdout) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
         }
         fflush(stdout)
