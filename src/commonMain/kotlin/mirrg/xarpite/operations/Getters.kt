@@ -6,6 +6,7 @@ import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -309,6 +310,7 @@ class GetLengthGetter(private val getter: Getter) : Getter {
         is FluoriteString -> FluoriteInt(value.value.length)
         is FluoriteArray -> FluoriteInt(value.values.size)
         is FluoriteObject -> FluoriteInt(value.map.size)
+        is FluoriteBlob -> FluoriteInt(value.value.size)
         else -> throw IllegalArgumentException("Can not calculate length: $value")
     }
 
