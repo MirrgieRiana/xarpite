@@ -32,6 +32,23 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                 emit(FluoriteNull)
             }
         },
+        "WHILE" to FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("<T> WHILE(condition: () -> BOOLEAN; block: () -> T): STREAM<T>")
+            val condition = arguments[0]
+            val block = arguments[1]
+            FluoriteStream {
+                while (true) {
+                    val conditionResult = condition.invoke(emptyArray())
+                    if (!(conditionResult as FluoriteBoolean).value) break
+                    val result = block.invoke(emptyArray())
+                    if (result is FluoriteStream) {
+                        result.flowProvider(this)
+                    } else {
+                        emit(result)
+                    }
+                }
+            }
+        },
         "SLEEP" to FluoriteFunction { arguments ->
             when (arguments.size) {
                 0 -> yield()
