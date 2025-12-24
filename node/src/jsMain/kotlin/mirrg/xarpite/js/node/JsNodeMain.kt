@@ -7,6 +7,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
@@ -37,7 +39,12 @@ suspend fun main() {
             uint8Array[i] = bytes[i].toUByte().toInt()
             i++
         }
-        process.stdout.write(uint8Array)
+        suspendCancellableCoroutine { cont ->
+            val ok = process.stdout.write(uint8Array) {
+                if (cont.isActive) cont.resume(Unit) {}
+            }
+            if (ok && cont.isActive) cont.resume(Unit) {}
+        }
     }
 
     val options = try {
