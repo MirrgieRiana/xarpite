@@ -74,8 +74,19 @@
               {% assign toc_list = content | generate_toc_from_html %}
               {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
               {% assign toc_placeholder = '<!-- toc -->' %}
-              {% assign content_without_toc = content | remove: toc_placeholder %}
-              {{ content_without_toc | insert_toc: toc_markup }}
+              {% if toc_list != '' %}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, toc_markup }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
+              {% else %}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, '' }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
+              {% endif %}
             {% else %}
               {{ content }}
             {% endif %}
