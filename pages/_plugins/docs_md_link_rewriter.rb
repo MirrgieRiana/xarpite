@@ -1,8 +1,9 @@
 module Xarpite
   module DocsMdLinkRewriter
     # Captures href values pointing to markdown files within the attribute (before any fragment).
-    # Groups: (1) spacing around '=', (2) quote char, (3) href value ending with .md, (4) optional fragment.
-    LINK_PATTERN = /href(\s*=\s*)(['"])([^'"]*\.md)(#[^'"]*)?\2/i.freeze
+    # Named groups: spacing (around '='), quote (quote char), href (path ending with .md), fragment (optional #... part).
+    # Case-insensitive to allow '.MD' style links to be normalized as well.
+    LINK_PATTERN = /href(?<spacing>\s*=\s*)(?<quote>['"])(?<href>[^'"]*\.md)(?<fragment>#[^'"]*)?\k<quote>/i.freeze
     URI_SCHEME_PATTERN = %r{\A[a-z][a-z0-9+.\-]*:}i.freeze
 
     module_function
@@ -19,10 +20,11 @@ module Xarpite
       base_dir = File.dirname(relative_path)
 
       html.gsub(LINK_PATTERN) do
-        spacing = Regexp.last_match(1)
-        quote = Regexp.last_match(2)
-        href = Regexp.last_match(3)
-        fragment = Regexp.last_match(4) || ""
+        match = Regexp.last_match
+        spacing = match[:spacing]
+        quote = match[:quote]
+        href = match[:href]
+        fragment = match[:fragment] || ""
         replaced = replace_href(href, fragment, base_dir, baseurl)
         replaced ? %(href#{spacing}#{quote}#{replaced}#{quote}) : Regexp.last_match(0)
       end
@@ -55,7 +57,8 @@ module Xarpite
       return href if href.start_with?("/")
 
       # base_dir comes from the document path under docs/, so expand_path is safe and ensures ../ is resolved.
-      File.expand_path(href, "/#{base_dir}/")
+      resolved = File.expand_path(href, "/#{base_dir}/")
+      resolved.start_with?("/docs/") ? resolved : nil
     end
 
     def doc_relative_path(doc)
