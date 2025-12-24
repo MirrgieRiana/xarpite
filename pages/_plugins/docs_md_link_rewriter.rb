@@ -1,7 +1,7 @@
 module Xarpite
   module DocsMdLinkRewriter
     # Captures href values pointing to markdown files within the attribute (before any fragment).
-    LINK_PATTERN = /href="([^"#]*\.md)(#[^"]*)?"/i.freeze
+    LINK_PATTERN = /href=(['"])([^'"]*\.md)(#[^'"]*)?\1/i.freeze
     URI_SCHEME_PATTERN = %r{\A[a-z][a-z0-9+.\-]*:}i.freeze
 
     module_function
@@ -18,9 +18,11 @@ module Xarpite
       base_dir = File.dirname(relative_path)
 
       html.gsub(LINK_PATTERN) do
-        href = Regexp.last_match(1)
-        fragment = Regexp.last_match(2) || ""
-        replace_href(href, fragment, base_dir, baseurl) || Regexp.last_match(0)
+        quote = Regexp.last_match(1)
+        href = Regexp.last_match(2)
+        fragment = Regexp.last_match(3) || ""
+        replaced = replace_href(href, fragment, base_dir, baseurl)
+        replaced ? %(href=#{quote}#{replaced}#{quote}) : Regexp.last_match(0)
       end
     end
 
@@ -32,7 +34,7 @@ module Xarpite
       resolved = resolve_path(normalized, base_dir)
       return nil unless resolved&.start_with?("/docs/")
 
-      %(href="#{href.sub(/\.md\z/i, '.html')}#{fragment}")
+      href.sub(/\.md\z/i, ".html") + fragment
     end
 
     def normalize_href_for_check(href, baseurl)
@@ -43,9 +45,8 @@ module Xarpite
       prefix = normalized_baseurl.end_with?("/") ? normalized_baseurl : "#{normalized_baseurl}/"
       return href unless href.start_with?(prefix)
 
-      stripped = href.delete_prefix(prefix)
-      # Preserve the leading slash so we can reliably detect /docs/ targets after stripping baseurl.
-      stripped.start_with?("/") ? stripped : "/#{stripped}"
+      stripped = href.delete_prefix(prefix).sub(%r{\A/+}, "")
+      "/#{stripped}"
     end
 
     def resolve_path(href, base_dir)
