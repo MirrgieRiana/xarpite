@@ -66,7 +66,7 @@ class CliJvmTest {
     }
 
     @Test
-    fun outbWritesEachStreamElement() = runTest {
+    fun outbWritesStreamAggregated() = runTest {
         val originalOut = System.out
         val output = ByteArrayOutputStream()
         try {
