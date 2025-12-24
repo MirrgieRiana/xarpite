@@ -5,8 +5,6 @@ require 'cgi'
 module Xarpite
   module TocFilter
     SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/.freeze
-    TOC_PLACEHOLDER = '<!-- toc -->'.freeze
-
     def generate_toc_from_html(html)
       return '' unless html
 
@@ -43,7 +41,10 @@ module Xarpite
 
     def wrap_toc(container_html, toc_list)
       return '' if toc_list.to_s.empty?
-      container_html.to_s.sub(TOC_PLACEHOLDER, toc_list)
+      container_html_str = container_html.to_s
+      return '' unless container_html_str.include?('<!-- toc -->')
+
+      container_html_str.sub('<!-- toc -->', toc_list)
     end
 
     private
