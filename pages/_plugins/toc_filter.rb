@@ -43,13 +43,7 @@ module Xarpite
 
     def wrap_toc(container_html, toc_list)
       return '' if toc_list.to_s.empty?
-      return toc_list if container_html.to_s.empty?
-
-      if container_html.include?(TOC_PLACEHOLDER)
-        return container_html.gsub(TOC_PLACEHOLDER, toc_list)
-      end
-
-      container_html
+      container_html.to_s.sub(TOC_PLACEHOLDER, toc_list)
     end
 
     private
