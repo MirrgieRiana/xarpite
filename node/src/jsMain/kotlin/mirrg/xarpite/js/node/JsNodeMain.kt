@@ -31,7 +31,7 @@ suspend fun main() {
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
     readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
     writeBytesToStdoutImpl = { bytes ->
-        val uint8Array = js("new Uint8Array(bytes.length)").unsafeCast<dynamic>()
+        val uint8Array = js("new Uint8Array(bytes.length)")
         var i = 0
         while (i < bytes.size) {
             uint8Array[i] = bytes[i]

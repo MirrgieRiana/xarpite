@@ -52,7 +52,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
 @OptIn(ExperimentalUnsignedTypes::class)
 fun UByteArray.asFluoriteBlob() = FluoriteBlob(this)
 
-suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
+private suspend fun aggregateValueToBytes(value: FluoriteValue): ByteArray {
     return Buffer().use { buffer ->
         fun processItem(item: FluoriteValue) {
             when (item) {
@@ -84,21 +84,22 @@ suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
             processItem(value)
         }
 
-        @OptIn(ExperimentalUnsignedTypes::class)
-        buffer.readByteArray().asUByteArray().asFluoriteBlob()
+        buffer.readByteArray()
     }
+}
+
+suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
+    val bytes = aggregateValueToBytes(value)
+    @OptIn(ExperimentalUnsignedTypes::class)
+    return bytes.asUByteArray().asFluoriteBlob()
 }
 
 suspend fun iterateBlobs(value: FluoriteValue, callback: suspend (ByteArray) -> Unit) {
     if (value is FluoriteStream) {
         value.collect { item ->
-            val blob = aggregateToBlob(item)
-            @OptIn(ExperimentalUnsignedTypes::class)
-            callback(blob.value.asByteArray())
+            callback(aggregateValueToBytes(item))
         }
     } else {
-        val blob = aggregateToBlob(value)
-        @OptIn(ExperimentalUnsignedTypes::class)
-        callback(blob.value.asByteArray())
+        callback(aggregateValueToBytes(value))
     }
 }
