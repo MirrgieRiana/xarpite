@@ -8,7 +8,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.aggregateToBlob
+import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
@@ -42,9 +42,9 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
-            val blob = aggregateToBlob(arguments[0])
-            @OptIn(ExperimentalUnsignedTypes::class)
-            writeBytesToStdout(blob.value.toByteArray())
+            iterateBlobs(arguments[0]) { bytes ->
+                writeBytesToStdout(bytes)
+            }
             FluoriteNull
         },
         "READ" to FluoriteFunction { arguments ->

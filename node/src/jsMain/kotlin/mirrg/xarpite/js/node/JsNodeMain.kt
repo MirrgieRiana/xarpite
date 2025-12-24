@@ -18,6 +18,7 @@ import mirrg.xarpite.js.scope
 import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
+import writeBytesToStdoutImpl
 import kotlin.js.Promise
 import kotlin.math.min
 
@@ -29,6 +30,15 @@ suspend fun main() {
     fileSystemGetter = { NodeJsFileSystem }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
     readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
+    writeBytesToStdoutImpl = { bytes ->
+        val uint8Array = js("new Uint8Array(bytes.length)").unsafeCast<dynamic>()
+        var i = 0
+        while (i < bytes.size) {
+            uint8Array[i] = bytes[i]
+            i++
+        }
+        process.stdout.write(uint8Array)
+    }
 
     val options = try {
         parseArguments(process.argv.drop(2))

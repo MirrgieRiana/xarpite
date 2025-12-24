@@ -88,3 +88,17 @@ suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
         buffer.readByteArray().asUByteArray().asFluoriteBlob()
     }
 }
+
+suspend fun iterateBlobs(value: FluoriteValue, callback: suspend (ByteArray) -> Unit) {
+    if (value is FluoriteStream) {
+        value.collect { item ->
+            val blob = aggregateToBlob(item)
+            @OptIn(ExperimentalUnsignedTypes::class)
+            callback(blob.value.asByteArray())
+        }
+    } else {
+        val blob = aggregateToBlob(value)
+        @OptIn(ExperimentalUnsignedTypes::class)
+        callback(blob.value.asByteArray())
+    }
+}
