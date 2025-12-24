@@ -1,10 +1,10 @@
 ---
-title: "Operation"
+title: "Control Structures"
 ---
 
 <!-- toc -->
 
-# Operation
+# Control Structures
 
 ## `WHILE`: Conditional Loop
 

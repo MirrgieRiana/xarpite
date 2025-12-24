@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class OperationTest {
+class ControlStructuresTest {
 
     @Test
     fun whileLoop() = runTest {

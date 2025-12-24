@@ -6,7 +6,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.invoke
 
-fun createOperationMounts(): List<Map<String, FluoriteValue>> {
+fun createControlStructuresMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "WHILE" to FluoriteFunction { arguments ->
             if (arguments.size != 2) usage("<T> WHILE(condition: () -> BOOLEAN; block: () -> T): STREAM<T>")
