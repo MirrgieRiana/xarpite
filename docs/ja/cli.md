@@ -2,6 +2,8 @@
 title: CLI
 ---
 
+<!-- toc -->
+
 # Xarpiteを実行するコマンド
 
 ## `xarpite`: Xarpiteコードを実行する
@@ -279,7 +281,7 @@ BLOBは最大8192バイトの長さに分割されます。
 
 ```shell
 $ echo -n "abc" | xa 'INB'
-# BLOB[97;98;99]
+# BLOB.of([97;98;99])
 ```
 
 ---
@@ -484,9 +486,9 @@ $ {
 
 モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。
 
-## `EXEC`: 外部コマンドを実行
+## `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>` [EXPERIMENTAL]
+`EXEC(command: STREAM<STRING>): STREAM<STRING>`
 
 外部コマンドを実行します。
 
@@ -524,6 +526,10 @@ $ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 $ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 # ERROR
 ```
+
+---
+
+呼び出したプロセスは別のスレッドで管理され、メインスレッドはブロッキングせずにサスペンドします。
 
 ---
 

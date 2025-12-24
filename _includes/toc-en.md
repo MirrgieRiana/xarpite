@@ -1,4 +1,1 @@
-<div class="table-of-contents" markdown="1">
-## Table of Contents
-{:toc}
-</div>
+<div class="table-of-contents" markdown="1"><!-- toc --></div>

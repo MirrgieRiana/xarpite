@@ -4,6 +4,8 @@ title: "Factor"
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
 
+<!-- toc -->
+
 # Factor
 
 Factors are literals and parentheses that function independently.
@@ -67,5 +69,6 @@ This operator returns different things depending on the type of value.
 | String | Number of characters in UTF16       |
 | Array  | Number of elements                  |
 | Object | Number of entries, ignoring parent  |
+| BLOB   | Number of bytes                     |
 
 

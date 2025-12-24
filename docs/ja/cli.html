@@ -67,13 +67,17 @@
             
             
               
-              <div class="table-of-contents" markdown="1">
-## 目次
-{:toc}
+              
+              
+              
+              
+                
+                  <div class="table-of-contents">
+  <ul id="markdown-toc"><li><a href="#xarpiteを実行するコマンド">Xarpiteを実行するコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-xarpiteコードを実行する">xarpite: Xarpiteコードを実行する</a></li><li><a href="#xa-xarpiteコードを実行する">xa: Xarpiteコードを実行する</a></li><li><a href="#ランチャー">ランチャー</a><ul id="markdown-toc"><li><a href="#xarpite_engine-実行エンジンを指定">XARPITE_ENGINE: 実行エンジンを指定</a></li><li><a href="#--native-ネイティブ実装エンジンを使用">--native: ネイティブ実装エンジンを使用</a></li><li><a href="#--jvm-jvmエンジンを使用">--jvm: JVMエンジンを使用</a></li><li><a href="#--node-nodejsエンジンを使用">--node: Node.jsエンジンを使用</a></li></ul></li><li><a href="#ランタイム">ランタイム</a><ul id="markdown-toc"><li><a href="#戻り値の出力">戻り値の出力</a></li><li><a href="#-q-戻り値の出力の抑制">-q: 戻り値の出力の抑制</a></li><li><a href="#-f-ファイルからスクリプトを読み込む">-f: ファイルからスクリプトを読み込む</a></li></ul></li></ul></li><li><a href="#その他のコマンド">その他のコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-update-xarpiteを最新版に更新する">xarpite-update: Xarpiteを最新版に更新する</a></li></ul></li><li><a href="#cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</a><ul id="markdown-toc"><li><a href="#args-コマンドライン引数を取得">ARGS: コマンドライン引数を取得</a></li><li><a href="#env-環境変数を取得">ENV: 環境変数を取得</a></li><li><a href="#in-コンソールから文字列を1行ずつ読み取る">IN: コンソールから文字列を1行ずつ読み取る</a></li><li><a href="#inb-コンソールからバイトデータを読み取る">INB: コンソールからバイトデータを読み取る</a></li><li><a href="#out-コンソールに出力">OUT: コンソールに出力</a></li><li><a href="#files-ディレクトリ内のファイルの一覧を取得">FILES: ディレクトリ内のファイルの一覧を取得</a></li><li><a href="#read-ファイルから読み込み">READ: ファイルから読み込み</a></li><li><a href="#use-外部xarpiteファイルの結果を取得">USE: 外部Xarpiteファイルの結果を取得</a></li><li><a href="#exec-外部コマンドを実行-experimental">EXEC: 外部コマンドを実行 [EXPERIMENTAL]</a></li></ul></li></ul>
 </div>
 
-            
-            <h1 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h1>
+
+<h1 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h1>
 
 <h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
 
@@ -337,7 +341,7 @@
 <p>BLOBは最大8192バイトの長さに分割されます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">echo</span> <span class="nt">-n</span> <span class="s2">"abc"</span> | xa <span class="s1">'INB'</span>
-<span class="c"># BLOB[97;98;99]</span>
+<span class="c"># BLOB.of([97;98;99])</span>
 </code></pre></div></div>
 
 <hr />
@@ -533,9 +537,9 @@
 
 <p>モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。</p>
 
-<h2 id="exec-外部コマンドを実行"><code class="language-plaintext highlighter-rouge">EXEC</code>: 外部コマンドを実行</h2>
+<h2 id="exec-外部コマンドを実行-experimental"><code class="language-plaintext highlighter-rouge">EXEC</code>: 外部コマンドを実行 [EXPERIMENTAL]</h2>
 
-<p><code class="language-plaintext highlighter-rouge">EXEC(command: STREAM&lt;STRING&gt;): STREAM&lt;STRING&gt;</code> [EXPERIMENTAL]</p>
+<p><code class="language-plaintext highlighter-rouge">EXEC(command: STREAM&lt;STRING&gt;): STREAM&lt;STRING&gt;</code></p>
 
 <p>外部コマンドを実行します。</p>
 
@@ -572,12 +576,19 @@
 
 <hr />
 
+<p>呼び出したプロセスは別のスレッドで管理され、メインスレッドはブロッキングせずにサスペンドします。</p>
+
+<hr />
+
 <p>この関数は実験的な機能であり、将来的に仕様が変更される可能性があります。</p>
 
 <p>戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。</p>
 
 <p><strong>また、この関数は現状JVM版でのみ提供されます。</strong></p>
 
+                
+              
+            
           </article>
         </div>
       </div>

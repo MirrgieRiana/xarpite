@@ -67,9 +67,29 @@
             {% assign toc_enabled = page.toc | default: true %}
             {% if toc_enabled %}
               {% assign toc_lang = page.lang | default: 'ja' %}
-              {% include toc-{{ toc_lang }}.md %}
+              {%- capture toc_markdown -%}
+{% include toc-{{ toc_lang }}.md %}
+              {%- endcapture -%}
+              {% assign toc_markup = toc_markdown | markdownify %}
+              {% assign toc_list = content | generate_toc_from_html %}
+              {% assign toc_placeholder = '<!-- toc -->' %}
+              {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
+              {% if toc_list != '' %}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, toc_markup }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
+              {% else %}
+                {% if content contains toc_placeholder %}
+                  {{ content | replace: toc_placeholder, '' }}
+                {% else %}
+                  {{ content }}
+                {% endif %}
+              {% endif %}
+            {% else %}
+              {{ content }}
             {% endif %}
-            {{ content }}
           </article>
         </div>
       </div>

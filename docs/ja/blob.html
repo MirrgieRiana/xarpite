@@ -67,13 +67,17 @@
             
             
               
-              <div class="table-of-contents" markdown="1">
-## 目次
-{:toc}
+              
+              
+              
+              
+                
+                  <div class="table-of-contents">
+  <ul id="markdown-toc"><li><a href="#blob">BLOB</a><ul id="markdown-toc"><li><a href="#blobの合成">BLOBの合成</a></li><li><a href="#blobof-配列からのblobの生成">BLOB.of 配列からのBLOBの生成</a></li><li><a href="#長さの取得">長さの取得</a></li><li><a href="#配列への変換">配列への変換</a></li></ul></li></ul>
 </div>
 
-            
-            <h1 id="blob">BLOB</h1>
+
+<h1 id="blob">BLOB</h1>
 
 <p>BLOBはバイト列を保持する型で、バイナリデータを高速に扱うために一部のAPIが扱います。</p>
 
@@ -107,7 +111,18 @@
     [1.4, 1.6],
   )
 '</span>
-<span class="c"># BLOB[1;0;255;0;1;1;2]</span>
+<span class="c"># BLOB.of([1;0;255;0;1;1;2])</span>
+</code></pre></div></div>
+
+<h2 id="長さの取得">長さの取得</h2>
+
+<p><code class="language-plaintext highlighter-rouge">$#</code> 演算子でBLOBのバイト数を取得できます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'$#BLOB.of([1, 2, 3])'</span>
+<span class="c"># 3</span>
+
+<span class="nv">$ </span>xa <span class="s1">'$#BLOB.of(1 .. 100)'</span>
+<span class="c"># 100</span>
 </code></pre></div></div>
 
 <h2 id="配列への変換">配列への変換</h2>
@@ -118,6 +133,9 @@
 <span class="c"># [1;2;3]</span>
 </code></pre></div></div>
 
+                
+              
+            
           </article>
         </div>
       </div>

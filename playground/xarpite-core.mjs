@@ -6629,7 +6629,7 @@ protoOf(FluoriteBlob$Companion$fluoriteClass$delegate$lambda$slambda_1).s8 = fun
         var tmp_0 = this.i2t_1[0];
         var byteArray = (tmp_0 instanceof FluoriteBlob ? tmp_0 : THROW_CCE()).j2t_1;
         var sb = StringBuilder_init_$Create$();
-        sb.r7('BLOB[');
+        sb.r7('BLOB.of([');
         var index = 0;
         var _iterator__ex2g4s = UByteArray__iterator_impl_509y1p(byteArray);
         while (_iterator__ex2g4s.r()) {
@@ -6641,7 +6641,7 @@ protoOf(FluoriteBlob$Companion$fluoriteClass$delegate$lambda$slambda_1).s8 = fun
           }
           sb.q7(new UByte(item));
         }
-        sb.s7(_Char___init__impl__6a9atx(93));
+        sb.r7('])');
         return toFluoriteString(sb.toString());
       } else if (tmp === 1) {
         throw this.n8_1;
@@ -23404,7 +23404,11 @@ protoOf($evaluateCOROUTINE$_5).s8 = function () {
               if (value instanceof FluoriteObject) {
                 tmp_0 = new FluoriteInt(value.n2k_1.t());
               } else {
-                throw IllegalArgumentException_init_$Create$('Can not calculate length: ' + toString_0(value));
+                if (value instanceof FluoriteBlob) {
+                  tmp_0 = new FluoriteInt(_UByteArray___get_size__impl__h6pkdv(value.j2t_1));
+                } else {
+                  throw IllegalArgumentException_init_$Create$('Can not calculate length: ' + toString_0(value));
+                }
               }
             }
           }

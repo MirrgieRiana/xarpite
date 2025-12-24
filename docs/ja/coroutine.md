@@ -2,6 +2,8 @@
 title: "コルーチン"
 ---
 
+<!-- toc -->
+
 # コルーチン
 
 コルーチンは、関数の中断（サスペンド）と再開、非同期処理の派生（コルーチンの起動）からなるプログラミングの概念です。
@@ -81,6 +83,34 @@ $ xa '
 # [1;2;3]
 # [1;2;3]
 # 3
+```
+
+---
+
+以下は `LAUNCH` を使って非同期的に標準入力からの命令を受け付けるサンプルです。
+
+先頭のブロック部分を削除すれば、実際にユーザーからの `stop` 命令でプログラムが終了します。
+
+```shell
+$ { sleep 0.5; echo stop; } | xa -q '
+  stop := PROMISE.new()
+  LAUNCH ( =>
+    IN | (
+      _ == "stop" && (
+        OUT << "Stopping..."
+        stop::complete()
+        break!!
+      )
+    ) !: break
+  )
+  LOOP | i, _ => (
+    stop::isCompleted() && break!!
+    SLEEP << 100
+  ) !: break
+  OUT << "Stopped!"
+'
+# Stopping...
+# Stopped!
 ```
 
 ## `PROMISE`: 非同期結果コンテナ

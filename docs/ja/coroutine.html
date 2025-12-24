@@ -67,13 +67,17 @@
             
             
               
-              <div class="table-of-contents" markdown="1">
-## 目次
-{:toc}
+              
+              
+              
+              
+                
+                  <div class="table-of-contents">
+  <ul id="markdown-toc"><li><a href="#コルーチン">コルーチン</a><ul id="markdown-toc"><li><a href="#コルーチンの起動">コルーチンの起動</a><ul id="markdown-toc"><li><a href="#launch-新しいコルーチンを起動する">LAUNCH: 新しいコルーチンを起動する</a></li></ul></li><li><a href="#promise-非同期結果コンテナ">PROMISE: 非同期結果コンテナ</a><ul id="markdown-toc"><li><a href="#new-新しい-promise-を生成する">new: 新しい PROMISE を生成する</a></li><li><a href="#complete-promise-を完了する">complete: PROMISE を完了する</a></li><li><a href="#fail-promise-を失敗として完了する">fail: PROMISE を失敗として完了する</a></li><li><a href="#await-promise-の完了を待機し内容を取得する">await: PROMISE の完了を待機し、内容を取得する</a></li><li><a href="#iscompleted-promise-の完了状態を調べる">isCompleted: PROMISE の完了状態を調べる</a></li></ul></li><li><a href="#sleep-指定時間の間処理を停止">SLEEP: 指定時間の間処理を停止</a></li><li><a href="#generate-関数からストリームを生成">GENERATE: 関数からストリームを生成</a></li></ul></li></ul>
 </div>
 
-            
-            <h1 id="コルーチン">コルーチン</h1>
+
+<h1 id="コルーチン">コルーチン</h1>
 
 <p>コルーチンは、関数の中断（サスペンド）と再開、非同期処理の派生（コルーチンの起動）からなるプログラミングの概念です。</p>
 
@@ -148,6 +152,33 @@
 <span class="c"># [1;2;3]</span>
 <span class="c"># [1;2;3]</span>
 <span class="c"># 3</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>以下は <code class="language-plaintext highlighter-rouge">LAUNCH</code> を使って非同期的に標準入力からの命令を受け付けるサンプルです。</p>
+
+<p>先頭のブロック部分を削除すれば、実際にユーザーからの <code class="language-plaintext highlighter-rouge">stop</code> 命令でプログラムが終了します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span> <span class="nb">sleep </span>0.5<span class="p">;</span> <span class="nb">echo </span>stop<span class="p">;</span> <span class="o">}</span> | xa <span class="nt">-q</span> <span class="s1">'
+  stop := PROMISE.new()
+  LAUNCH ( =&gt;
+    IN | (
+      _ == "stop" &amp;&amp; (
+        OUT &lt;&lt; "Stopping..."
+        stop::complete()
+        break!!
+      )
+    ) !: break
+  )
+  LOOP | i, _ =&gt; (
+    stop::isCompleted() &amp;&amp; break!!
+    SLEEP &lt;&lt; 100
+  ) !: break
+  OUT &lt;&lt; "Stopped!"
+'</span>
+<span class="c"># Stopping...</span>
+<span class="c"># Stopped!</span>
 </code></pre></div></div>
 
 <h2 id="promise-非同期結果コンテナ"><code class="language-plaintext highlighter-rouge">PROMISE</code>: 非同期結果コンテナ</h2>
@@ -241,6 +272,9 @@
 <span class="c"># 3</span>
 </code></pre></div></div>
 
+                
+              
+            
           </article>
         </div>
       </div>

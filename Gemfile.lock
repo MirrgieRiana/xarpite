@@ -51,7 +51,7 @@ GEM
     google-protobuf (4.33.2-x86_64-linux-musl)
       bigdecimal
       rake (>= 13)
-    http_parser.rb (0.8.0)
+    http_parser.rb (0.8.1)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     jekyll (4.4.1)
@@ -191,7 +191,7 @@ CHECKSUMS
   google-protobuf (4.33.2-x86_64-darwin) sha256=87cde586234674562cf099e2b708a65e376e2d39b0f0f48281f4b4ea182b47f8
   google-protobuf (4.33.2-x86_64-linux-gnu) sha256=73cba041477afcac92ff383fcbdec195ea28d96b994876d1deaa944d18f91786
   google-protobuf (4.33.2-x86_64-linux-musl) sha256=97cdf4f772c5540f9274603b00f1474ed5e6e2238b1d8b1585e77f941a36bd2c
-  http_parser.rb (0.8.0) sha256=5a0932f1fa82ce08a8516a2685d5a86031c000560f89946913c555a0697544be
+  http_parser.rb (0.8.1) sha256=9ae8df145b39aa5398b2f90090d651c67bd8e2ebfe4507c966579f641e11097a
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   jekyll (4.4.1) sha256=4c1144d857a5b2b80d45b8cf5138289579a9f8136aadfa6dd684b31fe2bc18c1
   jekyll-optional-front-matter (0.3.2) sha256=ecdc061d711472469fcf04da617653b553e914c038a17df3b6a5f6f92aeb761b
@@ -231,4 +231,4 @@ CHECKSUMS
   webrick (1.9.2) sha256=beb4a15fc474defed24a3bda4ffd88a490d517c9e4e6118c3edce59e45864131
 
 BUNDLED WITH
-  4.0.2
+  4.0.3

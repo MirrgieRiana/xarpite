@@ -2,6 +2,8 @@
 title: CLI
 ---
 
+<!-- toc -->
+
 # Commands
 
 ## `xarpite`: Execute Xarpite Code
