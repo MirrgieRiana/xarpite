@@ -45,6 +45,14 @@ module Xarpite
       build_html(root[:children])
     end
 
+    def wrap_toc(container_html, toc_list)
+      return '' if toc_list.to_s.empty?
+      container_html_str = container_html.to_s
+      return '' unless container_html_str.include?('<!-- toc -->')
+
+      container_html_str.sub('<!-- toc -->', toc_list)
+    end
+
     private
 
     # 見出しテキストから既存IDと衝突しないスラグを生成し、重複するたび数値を付加して処理を繰り返す

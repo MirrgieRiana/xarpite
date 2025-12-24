@@ -73,8 +73,8 @@
               {% assign toc_markup = toc_markdown | markdownify %}
               {% assign toc_list = content | generate_toc_from_html %}
               {% assign toc_placeholder = '<!-- toc -->' %}
+              {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
               {% if toc_list != '' %}
-                {% assign toc_markup = toc_markup | append: toc_list %}
                 {% if content contains toc_placeholder %}
                   {{ content | replace: toc_placeholder, toc_markup }}
                 {% else %}
