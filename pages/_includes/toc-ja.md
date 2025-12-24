@@ -1,3 +1,1 @@
-<div class="table-of-contents" markdown="1">
-## 目次
-</div>
+<div class="table-of-contents" markdown="1"></div>

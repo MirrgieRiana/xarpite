@@ -40,6 +40,37 @@ module Xarpite
       build_html(root[:children])
     end
 
+    def wrap_toc(container_html, toc_list)
+      return '' if toc_list.to_s.empty?
+      return toc_list if container_html.to_s.empty?
+
+      closing_tag = '</div>'
+      if container_html.include?(closing_tag)
+        container_html.sub(closing_tag, toc_list + closing_tag)
+      else
+        container_html + toc_list
+      end
+    end
+
+    def insert_toc(html, toc_markup)
+      return html unless html
+
+      cleaned_html = html.gsub('<!-- toc -->', '')
+      return cleaned_html if toc_markup.to_s.empty?
+
+      h1_match = cleaned_html.match(/<h1[^>]*>.*?<\/h1>/im)
+      return cleaned_html unless h1_match
+
+      insertion_base = h1_match.end(0)
+      after_h1 = cleaned_html[insertion_base..] || ''
+      next_heading_index = after_h1.index(/<h[1-6][^>]*>/i)
+      insertion_point = next_heading_index ? insertion_base + next_heading_index : cleaned_html.length
+
+      result = cleaned_html.dup
+      result.insert(insertion_point, toc_markup)
+      result
+    end
+
     private
 
     def generate_slug(text, existing_ids)
