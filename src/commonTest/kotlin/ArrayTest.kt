@@ -93,6 +93,7 @@ class ArrayTest {
     fun length() = runTest {
         assertEquals(3, eval("$#[1; 2; 3]").int) // 長さの取得
         assertEquals(0, eval("$#[]").int) // 空配列の長さは 0
+        assertEquals(3, eval("[1; 2; 3]::`$#_`()").int) // メソッド形式での長さの取得
     }
 
     @Test

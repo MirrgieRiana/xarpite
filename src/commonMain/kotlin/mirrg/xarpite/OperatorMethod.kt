@@ -10,6 +10,7 @@ enum class OperatorMethod(val methodName: String) {
     TO_NUMBER("+_"),
     TO_BOOLEAN("?_"),
     TO_STRING("&_"),
+    LENGTH("$#_"),
     PLUS("_+_"),
     COMPARE("_<=>_"),
     CONTAINS("_@_"),

@@ -126,6 +126,7 @@ class BlobTest {
         assertEquals(0, eval("$#BLOB.of([])").int) // 空BLOBの長さは0
         assertEquals(1, eval("$#BLOB.of([1])").int) // 1要素のBLOBの長さは1
         assertEquals(7, eval("$#BLOB.of([1, 0, -1], [256, 257], [1.4, 1.6])").int) // ストリームから生成したBLOBの長さ
+        assertEquals(3, eval("BLOB.of([1,2,3])::`$#_`()").int) // メソッド形式での長さの取得
     }
 
     companion object {
