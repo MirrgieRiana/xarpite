@@ -69,5 +69,6 @@ This operator returns different things depending on the type of value.
 | String | Number of characters in UTF16       |
 | Array  | Number of elements                  |
 | Object | Number of entries, ignoring parent  |
+| BLOB   | Number of bytes                     |
 
 
