@@ -49,12 +49,7 @@ module Xarpite
         return container_html.gsub(TOC_PLACEHOLDER, toc_list)
       end
 
-      closing_tag = '</div>'
-      if container_html.include?(closing_tag)
-        container_html.sub(closing_tag, toc_list + closing_tag)
-      else
-        container_html + toc_list
-      end
+      container_html
     end
 
     private
