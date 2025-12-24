@@ -627,6 +627,10 @@ $ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
 # 4
 ```
 
+## `GREP` ストリームを条件で抽出
+
+`FILTER` のエイリアスです。
+
 ## `REDUCE` ストリームの要素を累積する
 
 `REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE`
