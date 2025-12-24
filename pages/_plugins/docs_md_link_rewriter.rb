@@ -1,6 +1,7 @@
 module Xarpite
   module DocsMdLinkRewriter
-    LINK_PATTERN = /href="([^"]*?\.md)(#[^"]*)?"/i.freeze
+    LINK_PATTERN = /href="([^"#]*\.md)(#[^"]*)?"/i.freeze
+    URI_SCHEME_PATTERN = %r{\A[a-z][a-z0-9+.\-]*:}i.freeze
 
     module_function
 
@@ -23,7 +24,8 @@ module Xarpite
     end
 
     def replace_href(href, fragment, base_dir, baseurl)
-      return nil if href =~ %r{\A[a-z][a-z0-9+.\-]*:}i
+      # Skip absolute URIs such as http:, https:, mailto:, etc.
+      return nil if href =~ URI_SCHEME_PATTERN
 
       normalized = normalize_href_for_check(href, baseurl)
       resolved = resolve_path(normalized, base_dir)
@@ -47,7 +49,7 @@ module Xarpite
     def resolve_path(href, base_dir)
       return href if href.start_with?("/")
 
-      File.expand_path(href, File.join("/", base_dir, "/"))
+      File.expand_path(href, "/#{base_dir}/")
     end
 
     def doc_relative_path(doc)
