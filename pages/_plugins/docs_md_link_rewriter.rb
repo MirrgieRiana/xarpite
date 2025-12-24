@@ -1,5 +1,6 @@
 module Xarpite
   module DocsMdLinkRewriter
+    # Captures href values pointing to markdown files within the attribute (before any fragment).
     LINK_PATTERN = /href="([^"#]*\.md)(#[^"]*)?"/i.freeze
     URI_SCHEME_PATTERN = %r{\A[a-z][a-z0-9+.\-]*:}i.freeze
 
@@ -43,12 +44,14 @@ module Xarpite
       return href unless href.start_with?(prefix)
 
       stripped = href.delete_prefix(prefix)
+      # Preserve the leading slash so we can reliably detect /docs/ targets after stripping baseurl.
       stripped.start_with?("/") ? stripped : "/#{stripped}"
     end
 
     def resolve_path(href, base_dir)
       return href if href.start_with?("/")
 
+      # base_dir comes from the document path under docs/, so expand_path is safe and ensures ../ is resolved.
       File.expand_path(href, "/#{base_dir}/")
     end
 
