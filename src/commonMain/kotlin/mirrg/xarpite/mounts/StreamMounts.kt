@@ -26,6 +26,27 @@ import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(): List<Map<String, FluoriteValue>> {
+    val filterFunction = FluoriteFunction { arguments ->
+        if (arguments.size == 2) {
+            val predicate = arguments[0]
+            val stream = arguments[1]
+            FluoriteStream {
+                if (stream is FluoriteStream) {
+                    stream.collect { item ->
+                        if (predicate.invoke(arrayOf(item)).toBoolean()) {
+                            emit(item)
+                        }
+                    }
+                } else {
+                    if (predicate.invoke(arrayOf(stream)).toBoolean()) {
+                        emit(stream)
+                    }
+                }
+            }
+        } else {
+            usage("FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
+        }
+    }
     return mapOf(
         "REVERSE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
@@ -470,27 +491,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("DROPR(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "FILTER" to FluoriteFunction { arguments ->
-            if (arguments.size == 2) {
-                val predicate = arguments[0]
-                val stream = arguments[1]
-                FluoriteStream {
-                    if (stream is FluoriteStream) {
-                        stream.collect { item ->
-                            if (predicate.invoke(arrayOf(item)).toBoolean()) {
-                                emit(item)
-                            }
-                        }
-                    } else {
-                        if (predicate.invoke(arrayOf(stream)).toBoolean()) {
-                            emit(stream)
-                        }
-                    }
-                }
-            } else {
-                usage("FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
-            }
-        },
+        "FILTER" to filterFunction,
+        "GREP" to filterFunction,
         "GROUP" to FluoriteFunction { arguments ->
             fun error(): Nothing = usage("<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],")
 
