@@ -5,6 +5,7 @@ require 'cgi'
 module Xarpite
   module TocFilter
     SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/.freeze
+    TOC_PLACEHOLDER = '<!-- toc -->'.freeze
 
     def generate_toc_from_html(html)
       return '' unless html
@@ -44,9 +45,8 @@ module Xarpite
       return '' if toc_list.to_s.empty?
       return toc_list if container_html.to_s.empty?
 
-      placeholder = '<!-- toc -->'
-      if container_html.include?(placeholder)
-        return container_html.sub(placeholder, toc_list)
+      if container_html.include?(TOC_PLACEHOLDER)
+        return container_html.gsub(TOC_PLACEHOLDER, toc_list)
       end
 
       closing_tag = '</div>'
@@ -60,7 +60,7 @@ module Xarpite
     def insert_toc(html, toc_markup)
       return html unless html
 
-      cleaned_html = html.gsub('<!-- toc -->', '')
+      cleaned_html = html.gsub(TOC_PLACEHOLDER, '')
       return cleaned_html if toc_markup.to_s.empty?
 
       h1_match = cleaned_html.match(/<h1[^>]*>.*?<\/h1>/im)
