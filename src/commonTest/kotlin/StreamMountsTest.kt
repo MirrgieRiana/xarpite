@@ -55,6 +55,11 @@ class StreamMountsTest {
         assertEquals("2,4", eval("1 .. 5 >> FILTER [ x => x %% 2 ]").stream()) // FILTER で条件を満たす要素のみを抽出する
     }
 
+    @Test
+    fun grep() = runTest {
+        assertEquals("2,4", eval("1 .. 5 >> GREP [ x => x %% 2 ]").stream()) // GREP は FILTER のエイリアス
+    }
+
 
     @Test
     fun sum() = runTest {

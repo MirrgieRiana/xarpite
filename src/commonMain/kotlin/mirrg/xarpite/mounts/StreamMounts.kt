@@ -470,26 +470,34 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("DROPR(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "FILTER" to FluoriteFunction { arguments ->
-            if (arguments.size == 2) {
-                val predicate = arguments[0]
-                val stream = arguments[1]
-                FluoriteStream {
-                    if (stream is FluoriteStream) {
-                        stream.collect { item ->
-                            if (predicate.invoke(arrayOf(item)).toBoolean()) {
-                                emit(item)
+        *run {
+            fun createFilterFunction(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size == 2) {
+                        val predicate = arguments[0]
+                        val stream = arguments[1]
+                        FluoriteStream {
+                            if (stream is FluoriteStream) {
+                                stream.collect { item ->
+                                    if (predicate.invoke(arrayOf(item)).toBoolean()) {
+                                        emit(item)
+                                    }
+                                }
+                            } else {
+                                if (predicate.invoke(arrayOf(stream)).toBoolean()) {
+                                    emit(stream)
+                                }
                             }
                         }
                     } else {
-                        if (predicate.invoke(arrayOf(stream)).toBoolean()) {
-                            emit(stream)
-                        }
+                        usage("$name(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     }
                 }
-            } else {
-                usage("FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
+            arrayOf(
+                "FILTER" to createFilterFunction("FILTER"),
+                "GREP" to createFilterFunction("GREP"),
+            )
         },
         "GROUP" to FluoriteFunction { arguments ->
             fun error(): Nothing = usage("<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],")
