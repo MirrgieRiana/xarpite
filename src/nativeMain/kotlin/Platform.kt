@@ -67,6 +67,10 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
+        if (bytes.isEmpty()) {
+            fflush(stdout)
+            return@memScoped
+        }
         set_posix_errno(0)
         val writtenSize = fwrite(bytes.refTo(0), 1u, bytes.size.toULong(), stdout)
         if (writtenSize.toInt() != bytes.size) {

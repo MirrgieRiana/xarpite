@@ -34,7 +34,7 @@ suspend fun main() {
         val uint8Array = js("new Uint8Array(bytes.length)")
         var i = 0
         while (i < bytes.size) {
-            uint8Array[i] = bytes[i]
+            uint8Array[i] = bytes[i].toUByte().toInt()
             i++
         }
         process.stdout.write(uint8Array)
