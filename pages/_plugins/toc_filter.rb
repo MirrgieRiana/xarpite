@@ -5,6 +5,7 @@ require 'cgi'
 module Xarpite
   module TocFilter
     SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/.freeze
+
     def generate_toc_from_html(html)
       return '' unless html
 
