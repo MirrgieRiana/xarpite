@@ -24,6 +24,7 @@ import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
+import mirrg.xarpite.compilers.objects.getLength
 import mirrg.xarpite.compilers.objects.getMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
@@ -306,13 +307,7 @@ class ToNegativeBooleanGetter(private val getter: Getter) : Getter {
 
 // TODO to method
 class GetLengthGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = when (val value = getter.evaluate(env)) {
-        is FluoriteString -> FluoriteInt(value.value.length)
-        is FluoriteArray -> FluoriteInt(value.values.size)
-        is FluoriteObject -> FluoriteInt(value.map.size)
-        is FluoriteBlob -> FluoriteInt(value.value.size)
-        else -> throw IllegalArgumentException("Can not calculate length: $value")
-    }
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).getLength()
 
     override val code get() = "GetLengthGetter[${getter.code}]"
 }
