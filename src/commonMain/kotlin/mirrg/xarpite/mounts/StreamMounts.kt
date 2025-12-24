@@ -44,7 +44,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
         } else {
-            usage("FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
+            usage("FILTER/GREP(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
         }
     }
     return mapOf(
