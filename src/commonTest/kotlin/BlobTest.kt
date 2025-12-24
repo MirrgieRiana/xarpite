@@ -5,6 +5,7 @@ import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -117,6 +118,14 @@ class BlobTest {
         assertEquals("[0]", (eval("BLOB.of([256])::toArray()").array())) // オーバーフローして戻す
         assertEquals("[255]", (eval("BLOB.of([-1])::toArray()").array())) // 負の領域も正の数として取り出される
         assertEquals("[1]", (eval("BLOB.of([257])::toArray()").array())) // 一旦下位8バイトになり、戻ってきたもの
+    }
+
+    @Test
+    fun length() = runTest {
+        assertEquals(3, eval("$#BLOB.of([1,2,3])").int) // BLOBの長さを取得
+        assertEquals(0, eval("$#BLOB.of([])").int) // 空BLOBの長さは0
+        assertEquals(1, eval("$#BLOB.of([1])").int) // 1要素のBLOBの長さは1
+        assertEquals(7, eval("$#BLOB.of([1, 0, -1], [256, 257], [1.4, 1.6])").int) // ストリームから生成したBLOBの長さ
     }
 
     companion object {
