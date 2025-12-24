@@ -75,7 +75,7 @@
                   <p>このドキュメント内では、結合優先度の高い演算子から順に記載されています。</p>
 
 <div class="table-of-contents">
-  <ul id="markdown-toc"><li><a href="#因子">因子</a></li><li><a href="#後置演算子">後置演算子</a><ul id="markdown-toc"><li><a href="#前置単項演算子の後置表現-value-">前置単項演算子の後置表現 value.+ …</a></li></ul></li><li><a href="#前置演算子">前置演算子</a><ul id="markdown-toc"><li><a href="#長さの取得-value">長さの取得 $#value</a></li></ul></li></ul>
+  <ul id="markdown-toc"><li><a href="#因子">因子</a></li><li><a href="#後置演算子">後置演算子</a><ul id="markdown-toc"><li><a href="#前置単項演算子の後置表現-value-">前置単項演算子の後置表現 value.+ …</a></li></ul></li><li><a href="#前置演算子">前置演算子</a></li></ul>
 </div>
 
 
@@ -116,51 +116,6 @@ $*A  A.$*
 <p>前置演算子は基部の前に付与する演算子です。</p>
 
 <p>前置演算子は右優先結合です。</p>
-
-<h2 id="長さの取得-value">長さの取得 <code class="language-plaintext highlighter-rouge">$#value</code></h2>
-
-<p>前置 <code class="language-plaintext highlighter-rouge">$#</code> 演算子は、値の「長さ」を取得します。</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'$#"123"'</span>
-<span class="c"># 3</span>
-
-<span class="nv">$ </span>xa <span class="s1">'$#[1, 2, 3]'</span>
-<span class="c"># 3</span>
-
-<span class="nv">$ </span>xa <span class="s1">'$#{a: 1; b: 2; c: 3}'</span>
-<span class="c"># 3</span>
-</code></pre></div></div>
-
-<hr />
-
-<p>この演算子は値のタイプによって異なるものを返します。</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>タイプ</th>
-      <th> </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>文字列</td>
-      <td>UTF16による文字の長さ</td>
-    </tr>
-    <tr>
-      <td>配列</td>
-      <td>要素数</td>
-    </tr>
-    <tr>
-      <td>オブジェクト</td>
-      <td>親オブジェクトを無視した、エントリの数</td>
-    </tr>
-    <tr>
-      <td>BLOB</td>
-      <td>バイト数</td>
-    </tr>
-  </tbody>
-</table>
 
                 
               

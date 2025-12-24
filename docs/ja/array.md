@@ -341,14 +341,7 @@ $ xa '
 
 `$#array` により、配列の要素数を取得できます。
 
-```shell
-$ xa '
-  array := ["zero", "one", "two", "three", "four"]
-
-  $#array
-'
-# 5
-```
+詳細は [長さの取得](./length.md) を参照してください。
 
 # 配列の連結
 
