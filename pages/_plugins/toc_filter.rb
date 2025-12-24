@@ -62,7 +62,7 @@ module Xarpite
       return cleaned_html unless h1_match
 
       insertion_base = h1_match.end(0)
-      after_h1 = cleaned_html[insertion_base..] || ''
+      after_h1 = cleaned_html[insertion_base..]
       next_heading_index = after_h1.index(/<h[1-6][^>]*>/i)
       insertion_point = next_heading_index ? insertion_base + next_heading_index : cleaned_html.length
 
