@@ -34,15 +34,20 @@ module Xarpite
 
     def normalize_href_for_check(href, baseurl)
       return href unless href.start_with?("/")
-      return href if baseurl.to_s.empty?
-      prefix = baseurl.end_with?("/") ? baseurl : "#{baseurl}/"
-      href.start_with?(prefix) ? href.delete_prefix(baseurl) : href
+      normalized_baseurl = baseurl.to_s
+      return href if normalized_baseurl.empty?
+
+      prefix = normalized_baseurl.end_with?("/") ? normalized_baseurl : "#{normalized_baseurl}/"
+      return href unless href.start_with?(prefix)
+
+      stripped = href.delete_prefix(prefix)
+      stripped.start_with?("/") ? stripped : "/#{stripped}"
     end
 
     def resolve_path(href, base_dir)
       return href if href.start_with?("/")
 
-      File.expand_path(href, "/#{base_dir}/")
+      File.expand_path(href, File.join("/", base_dir, "/"))
     end
 
     def doc_relative_path(doc)
