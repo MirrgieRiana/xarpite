@@ -77,7 +77,7 @@
 <p>配列的オブジェクトには長さの概念が定義されます。</p>
 
 <div class="table-of-contents">
-  <ul id="markdown-toc"><li><a href="#長さ">長さ</a><ul id="markdown-toc"><li><a href="#長さの定義">長さの定義</a></li><li><a href="#長さ取得演算子-array">長さ取得演算子 $#array</a></li><li><a href="#長さ取得メソッド">長さ取得メソッド</a></li></ul></li></ul>
+  <ul id="markdown-toc"><li><a href="#長さ">長さ</a><ul id="markdown-toc"><li><a href="#長さの定義">長さの定義</a></li><li><a href="#長さ取得演算子-array">長さ取得演算子 $#array</a></li><li><a href="#長さ取得演算子のオーバーライド">長さ取得演算子のオーバーライド</a></li></ul></li></ul>
 </div>
 
 
@@ -109,8 +109,14 @@
       <td>BLOB</td>
       <td>バイト数</td>
     </tr>
+    <tr>
+      <td>ストリーム</td>
+      <td>各要素の長さの合計</td>
+    </tr>
   </tbody>
 </table>
+
+<p>長さは何らかの数値として定義されますが、整数であるとは限りません。</p>
 
 <h2 id="長さ取得演算子-array">長さ取得演算子 <code class="language-plaintext highlighter-rouge">$#array</code></h2>
 
@@ -127,11 +133,14 @@
 
 <span class="nv">$ </span>xa <span class="s1">'$#BLOB.of([1, 2, 3])'</span>
 <span class="c"># 3</span>
+
+<span class="nv">$ </span>xa <span class="s1">'$#("abc", "def", "ghi")'</span>
+<span class="c"># 9</span>
 </code></pre></div></div>
 
-<h2 id="長さ取得メソッド">長さ取得メソッド</h2>
+<h2 id="長さ取得演算子のオーバーライド">長さ取得演算子のオーバーライド</h2>
 
-<p>長さの取得は、値の <code class="language-plaintext highlighter-rouge">$#_</code> メソッドを呼び出すことで行われます。</p>
+<p>長さの取得は値の <code class="language-plaintext highlighter-rouge">$#_</code> メソッドを呼び出すことで行われます。</p>
 
 <p><code class="language-plaintext highlighter-rouge">$#_</code> メソッドをオーバーライドすることで長さの取得の処理を変更することができます。</p>
 
@@ -143,6 +152,21 @@
   $#object
 '</span>
 <span class="c"># 123</span>
+</code></pre></div></div>
+
+<p>長さは小数値であってもかまいません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  Line := {
+    `$#_`: this -&gt; ((this.b.0 - this.a.0) ^ 2 + (this.b.1 - this.a.1) ^ 2) ^ 0.5
+  }
+  object := Line{
+    a: [1, 2]
+    b: [2, 3]
+  }
+  "$%.4f($#object)"
+'</span>
+<span class="c"># 1.4142</span>
 </code></pre></div></div>
 
                 

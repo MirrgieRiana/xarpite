@@ -37,6 +37,11 @@ if (typeof Array.prototype.fill === 'undefined') {
     Object.defineProperty(TypedArray.prototype, 'fill', {value: Array.prototype.fill});
   }
 });
+if (typeof Math.log10 === 'undefined') {
+  Math.log10 = function (x) {
+    return Math.log(x) * Math.LOG10E;
+  };
+}
 if (typeof Math.clz32 === 'undefined') {
   Math.clz32 = function (log, LN2) {
     return function (x) {
@@ -47,11 +52,6 @@ if (typeof Math.clz32 === 'undefined') {
       return 31 - (log(asUint) / LN2 | 0) | 0; // the "| 0" acts like math.floor
     };
   }(Math.log, Math.LN2);
-}
-if (typeof Math.log10 === 'undefined') {
-  Math.log10 = function (x) {
-    return Math.log(x) * Math.LOG10E;
-  };
 }
 if (typeof String.prototype.endsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'endsWith', {value: function (searchString, position) {
@@ -2344,6 +2344,9 @@ function extendThrowable(this_, message, cause) {
 }
 function defineFieldOnInstance(this_, name, value) {
   Object.defineProperty(this_, name, {configurable: true, writable: true, value: value});
+}
+function returnIfSuspended(argument, $completion) {
+  return (argument == null ? true : !(argument == null)) ? argument : THROW_CCE();
 }
 function ensureNotNull(v) {
   var tmp;
@@ -13657,6 +13660,7 @@ export {
   RegexOption_IGNORE_CASE_getInstance as RegexOption_IGNORE_CASE_getInstance1e6t23ud6ux7i,
   RegexOption_MULTILINE_getInstance as RegexOption_MULTILINE_getInstance3m3iukvv670g5,
   LazyThreadSafetyMode_PUBLICATION_getInstance as LazyThreadSafetyMode_PUBLICATION_getInstance3hlj875zwihx0,
+  returnIfSuspended as returnIfSuspendedqak8u4r448cu,
   ArrayDeque_init_$Create$ as ArrayDeque_init_$Create$2333dl090ltjt,
   ArrayList_init_$Create$_0 as ArrayList_init_$Create$3bxttkj3v1mea,
   ArrayList_init_$Create$ as ArrayList_init_$Create$149jv2ovkkvnt,
