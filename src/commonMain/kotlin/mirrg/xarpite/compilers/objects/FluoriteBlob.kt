@@ -32,7 +32,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                         sb.append("])")
                         sb.toString().toFluoriteString()
                     },
-                    OperatorMethod.LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val blob = arguments[0] as FluoriteBlob
                         FluoriteInt(blob.value.size)

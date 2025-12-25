@@ -96,7 +96,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         sb.toString().toFluoriteString()
                     },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { (it[0] as FluoriteArray).values.isNotEmpty().toFluoriteBoolean() },
-                    OperatorMethod.LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
                         val array = arguments[0] as FluoriteArray
                         FluoriteInt(array.values.size)
                     },

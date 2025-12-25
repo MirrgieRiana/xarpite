@@ -6,7 +6,6 @@ import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
-import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -305,10 +304,8 @@ class ToNegativeBooleanGetter(private val getter: Getter) : Getter {
     override val code get() = "ToNegativeBooleanGetter[${getter.code}]"
 }
 
-// TODO to method
 class GetLengthGetter(private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment) = getter.evaluate(env).getLength()
-
     override val code get() = "GetLengthGetter[${getter.code}]"
 }
 

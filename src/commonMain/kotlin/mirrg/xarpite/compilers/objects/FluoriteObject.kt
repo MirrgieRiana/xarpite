@@ -82,7 +82,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         sb.toString().toFluoriteString()
                     },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { (it[0] as FluoriteObject).map.isNotEmpty().toFluoriteBoolean() },
-                    OperatorMethod.LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         FluoriteInt(obj.map.size)
                     },

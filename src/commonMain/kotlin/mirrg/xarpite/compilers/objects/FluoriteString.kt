@@ -86,7 +86,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                     },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteString).value != "").toFluoriteBoolean() },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction { it[0] as FluoriteString },
-                    OperatorMethod.LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
                         val string = arguments[0] as FluoriteString
                         FluoriteInt(string.value.length)
                     },
