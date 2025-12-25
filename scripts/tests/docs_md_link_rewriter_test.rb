@@ -2,6 +2,21 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+
+module Jekyll
+  module Hooks
+    @registered = []
+
+    class << self
+      attr_reader :registered
+    end
+
+    def self.register(entity, hook, &block)
+      @registered << [entity, hook, block]
+    end
+  end
+end
+
 require_relative "../../pages/_plugins/docs_md_link_rewriter"
 
 class DocsMdLinkRewriterTest < Minitest::Test
@@ -12,6 +27,12 @@ class DocsMdLinkRewriterTest < Minitest::Test
     doc = DocStub.new(relative_path, site_stub, html)
     Xarpite::DocsMdLinkRewriter.rewrite_for(doc)
     doc.output
+  end
+
+  def test_hooks_registered_post_render
+    registered = Jekyll::Hooks.registered.map { |entity, hook, _| [entity, hook] }
+    assert_includes registered, [:documents, :post_render]
+    assert_includes registered, [:pages, :post_render]
   end
 
   def test_converts_relative_docs_md_link
