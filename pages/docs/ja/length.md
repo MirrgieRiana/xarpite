@@ -65,11 +65,11 @@ $ xa '
 ```shell
 $ xa '
   Line := {
-    `$#_`: this -> ((this.b[0] - this.a[0]) ^ 2 + (this.b[1] - this.a[1]) ^ 2) ^ 0.5
+    `$#_`: this -> ((this.b(0) - this.a(0)) ^ 2 + (this.b(1) - this.a(1)) ^ 2) ^ 0.5
   }
   object := Line{
-    a: [1, 2]
-    b: [2, 3]
+    a: [1; 2]
+    b: [2; 3]
   }
   "$%.4f($#object)"
 '
