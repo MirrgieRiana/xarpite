@@ -543,11 +543,9 @@ fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, Fluorit
                 
                 // Channel を使用して元のストリームから要素を提供する
                 val channel = Channel<FluoriteValue>(Channel.UNLIMITED)
-                var isProducing = false
-                var isCompleted = false
                 
                 // 元のストリームから Channel へ要素を送るコルーチンを起動
-                val job = coroutineScope.launch {
+                coroutineScope.launch {
                     try {
                         if (stream is FluoriteStream) {
                             stream.collect { item ->
@@ -558,7 +556,6 @@ fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, Fluorit
                         }
                     } finally {
                         channel.close()
-                        isCompleted = true
                     }
                 }
                 
