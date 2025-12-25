@@ -81,7 +81,7 @@ end
 
 if defined?(Jekyll::Hooks)
   [:documents, :pages].each do |entity|
-    Jekyll::Hooks.register entity, :post_convert do |doc|
+    Jekyll::Hooks.register entity, :post_render do |doc|
       Xarpite::DocsMdLinkRewriter.rewrite_for(doc)
     end
   end
