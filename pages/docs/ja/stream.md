@@ -584,6 +584,100 @@ a | b =>
 >> i
 ```
 
+# ストリーム系関数
+
+## `PIPE` 読み取り位置を記憶するストリームを生成する
+
+`<T> PIPE(stream: STREAM<T>): STREAM<T>`
+
+`stream` のイテレーションを保持し、イテレート時に保持した位置から再開するストリームを生成します。
+
+```shell
+$ xa -q '
+  pipe := PIPE(1 .. 10)
+  OUT << "First: " & FIRST(pipe)
+  OUT << "Next 3 items: " & JOIN[","; TAKE(3; pipe)]
+  OUT << "Next: " & FIRST(pipe)
+'
+# First: 1
+# Next 3 items: 2,3,4
+# Next: 5
+```
+
+---
+
+返されるストリームを通じて、 `stream` は高々1度のみイテレートされます。
+
+そのため、 `stream` が引き起こす副作用も複数回発生することはありません。
+
+```shell
+$ xa -q '
+  array := []
+  pipe := PIPE(1 .. 3 | (
+    array::push << _
+    _
+  ))
+
+  OUT << "Pipe: " & JOIN[","; pipe]
+  OUT << "Pipe: " & JOIN[","; pipe]
+  OUT << "Pipe: " & JOIN[","; pipe]
+
+  OUT << "Array: " & array
+'
+# Pipe: 1,2,3
+# Pipe: 
+# Pipe: 
+# Array: [1;2;3]
+```
+
+---
+
+`PIPE` は遅延評価であり、返されたストリームが消費されない場合、 `stream` のイテレーションは開始されません。
+
+したがって、副作用も発生しません。
+
+```shell
+$ xa -q '
+  array := []
+  pipe := PIPE(1 .. 3 | (
+    array::push << _
+    _
+  ))
+
+  OUT << "Array: " & array
+'
+# Array: []
+```
+
+---
+
+ただし、 `PIPE` は `stream` の要素をバッファリングする可能性があり、副作用が意図しないタイミングで発生する可能性があります。
+
+副作用のタイミングを制御するには、副作用のある処理を関数にし、パイプから取り出した側でそれを実行します。
+
+```shell
+$ xa -q '
+  tasks := PIPE(1 .. 10 | , -> (
+    OUT << "Task " & _
+  ))
+
+  OUT << "Execute 1 task"
+  FIRST(tasks) | _()
+  OUT << "Execute 3 tasks"
+  TAKE(3; tasks) | _()
+  OUT << "Execute 1 task"
+  FIRST(tasks) | _()
+'
+# Execute 1 task
+# Task 1
+# Execute 3 tasks
+# Task 2
+# Task 3
+# Task 4
+# Execute 1 task
+# Task 5
+```
+
 # ストリームのプロパティアクセス
 
 ストリームに対してプロパティアクセスをすると、各要素のプロパティアクセスの結果を結合したストリームを返します。
