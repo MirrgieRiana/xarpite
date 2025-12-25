@@ -2,6 +2,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.test.empty
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,6 +33,16 @@ class StreamTest {
     fun indexedPipe() = runTest {
         assertEquals("[0;1],[1;2],[2;3]", eval("1 .. 3 | i, v => [i, v]").stream()) // 右辺の引数が2項目だとindexを渡す
         assertTrue(eval(", | i, v => [i, v]").empty()) // 空ストリームでも動作する
+    }
+
+    @Test
+    fun length() = runTest {
+        assertEquals(9, eval("$#(\"abc\", \"def\", \"ghi\")").int) // ストリームの長さは各要素の長さの合計
+        assertEquals(0, eval("$#(,)").int) // 空ストリームの長さは0
+        assertEquals(3, eval("$#(\"abc\",)").int) // 単一要素のストリームの長さは要素の長さ
+        assertEquals(6, eval("$#([1; 2; 3], [4; 5; 6])").int) // 配列のストリームの長さ
+        assertEquals(7, eval("$#({a: 1; b: 2}, {c: 3}, {d: 4; e: 5; f: 6; g: 7})").int) // オブジェクトのストリームの長さ
+        assertEquals(9, eval("(\"abc\", \"def\", \"ghi\")::`$#_`()").int) // メソッド形式での長さの取得
     }
 
 }

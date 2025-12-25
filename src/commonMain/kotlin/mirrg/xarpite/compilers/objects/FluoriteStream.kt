@@ -64,6 +64,15 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                             }
                         }
                     },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                        val stream = arguments[0] as FluoriteStream
+                        var sum: FluoriteValue = FluoriteInt.ZERO
+                        stream.collect { item ->
+                            val length = item.callMethod(OperatorMethod.GET_LENGTH.methodName)
+                            sum = sum.callMethod(OperatorMethod.PLUS.methodName, arrayOf(length))
+                        }
+                        sum
+                    },
                 )
             )
         }
