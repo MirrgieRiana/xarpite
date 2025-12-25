@@ -1,6 +1,9 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
@@ -25,7 +28,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.operations.FluoriteException
 
-fun createStreamMounts(): List<Map<String, FluoriteValue>> {
+fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return mapOf(
         "REVERSE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
@@ -532,6 +535,41 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 groups.forEach { (key, list) ->
                     emit(key colon list.toFluoriteArray())
                 }
+            }
+        },
+        "PIPE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                
+                // Channel を使用して元のストリームから要素を提供する
+                val channel = Channel<FluoriteValue>(Channel.UNLIMITED)
+                var isProducing = false
+                var isCompleted = false
+                
+                // 元のストリームから Channel へ要素を送るコルーチンを起動
+                val job = coroutineScope.launch {
+                    try {
+                        if (stream is FluoriteStream) {
+                            stream.collect { item ->
+                                channel.send(item)
+                            }
+                        } else {
+                            channel.send(stream)
+                        }
+                    } finally {
+                        channel.close()
+                        isCompleted = true
+                    }
+                }
+                
+                // Channel から要素を読み取るストリームを返す
+                FluoriteStream {
+                    for (item in channel) {
+                        emit(item)
+                    }
+                }
+            } else {
+                usage("PIPE(stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
     ).let { listOf(it) }

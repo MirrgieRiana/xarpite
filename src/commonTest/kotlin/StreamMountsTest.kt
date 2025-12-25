@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.array
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -160,6 +161,62 @@ class StreamMountsTest {
         assertEquals("1", eval("1, >> SHUFFLE").stream()) // 1要素のストリームはその要素だけのストリームを返す
         assertEquals(1, eval("1 >> SHUFFLE").int) // 非ストリームはその要素を返す
         assertEquals("", eval(", >> SHUFFLE").stream()) // 空ストリームは空ストリームを返す
+    }
+
+    @Test
+    fun pipe() = runTest {
+        // 基本的な動作: 複数回読み取っても元のストリームは1度だけイテレートされる
+        assertEquals(1, eval("""
+            pipe := PIPE(1 .. 10)
+            FIRST(pipe)
+        """).int) // 最初の要素を取得
+        
+        assertEquals("2,3,4", eval("""
+            pipe := PIPE(1 .. 10)
+            FIRST(pipe)
+            TAKE(3; pipe)
+        """).stream()) // 最初を取った後、次の3要素を取得
+        
+        assertEquals(5, eval("""
+            pipe := PIPE(1 .. 10)
+            FIRST(pipe)
+            TAKE(3; pipe)
+            FIRST(pipe)
+        """).int) // さらに次の要素を取得
+        
+        // 空ストリームの場合
+        assertEquals("", eval("""
+            pipe := PIPE(,)
+            pipe
+        """).stream())
+        
+        // 元のストリームが1度だけイテレートされることを確認
+        assertEquals("1,2,3", eval("""
+            array := []
+            pipe := PIPE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            pipe
+        """).stream())
+        
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            pipe := PIPE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            pipe
+            pipe
+            pipe
+            array
+        """).array()) // 配列には1,2,3が1度だけ追加される
+        
+        // 非ストリームの場合
+        assertEquals(42, eval("""
+            pipe := PIPE(42)
+            FIRST(pipe)
+        """).int)
     }
 
 }
