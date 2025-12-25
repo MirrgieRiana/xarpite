@@ -4,6 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
@@ -543,24 +545,27 @@ fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, Fluorit
                 
                 // Channel を使用して元のストリームから要素を提供する
                 val channel = Channel<FluoriteValue>(Channel.UNLIMITED)
+                val mutex = Mutex()
                 var producerStarted = false
                 
                 // Channel から要素を読み取るストリームを返す
                 FluoriteStream {
                     // 最初の要素が要求されたときに、元のストリームから Channel へ要素を送るコルーチンを起動
-                    if (!producerStarted) {
-                        producerStarted = true
-                        coroutineScope.launch {
-                            try {
-                                if (stream is FluoriteStream) {
-                                    stream.collect { item ->
-                                        channel.send(item)
+                    mutex.withLock {
+                        if (!producerStarted) {
+                            producerStarted = true
+                            coroutineScope.launch {
+                                try {
+                                    if (stream is FluoriteStream) {
+                                        stream.collect { item ->
+                                            channel.send(item)
+                                        }
+                                    } else {
+                                        channel.send(stream)
                                     }
-                                } else {
-                                    channel.send(stream)
+                                } finally {
+                                    channel.close()
                                 }
-                            } finally {
-                                channel.close()
                             }
                         }
                     }
