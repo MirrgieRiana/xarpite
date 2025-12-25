@@ -22,6 +22,11 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
     if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
 }
 
+actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    System.out.write(bytes)
+    System.out.flush()
+}
+
 actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args

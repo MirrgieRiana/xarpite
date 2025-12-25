@@ -3,6 +3,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -14,8 +15,11 @@ import platform.posix.clearerr
 import platform.posix.errno
 import platform.posix.ferror
 import platform.posix.fread
+import platform.posix.fflush
+import platform.posix.fwrite
 import platform.posix.set_posix_errno
 import platform.posix.stdin
+import platform.posix.stdout
 import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -57,6 +61,28 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
             throw IllegalStateException("fread(stdin) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
         }
         if (readSize == 0uL) null else ByteArray(readSize.toInt()) { buffer[it] }
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    memScoped {
+        if (bytes.isEmpty()) {
+            fflush(stdout)
+            return@memScoped
+        }
+        set_posix_errno(0)
+        val writtenSize = fwrite(bytes.refTo(0), 1u, bytes.size.toULong(), stdout)
+        val errorFlag = ferror(stdout)
+        if (writtenSize.toInt() != bytes.size || errorFlag != 0) {
+            val e = errno
+            val msg = strerror(e)?.toKString()
+            if (errorFlag != 0) {
+                clearerr(stdout)
+            }
+            throw IllegalStateException("fwrite(stdout) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
+        }
+        fflush(stdout)
     }
 }
 

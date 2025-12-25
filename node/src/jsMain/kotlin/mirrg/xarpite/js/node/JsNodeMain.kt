@@ -7,6 +7,9 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
@@ -18,6 +21,7 @@ import mirrg.xarpite.js.scope
 import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
+import writeBytesToStdoutImpl
 import kotlin.js.Promise
 import kotlin.math.min
 
@@ -29,6 +33,24 @@ suspend fun main() {
     fileSystemGetter = { NodeJsFileSystem }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
     readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
+    writeBytesToStdoutImpl = { bytes ->
+        val uint8Array = js("new Uint8Array(bytes.length)")
+        var i = 0
+        while (i < bytes.size) {
+            uint8Array[i] = bytes[i].toUByte().toInt()
+            i++
+        }
+        suspendCancellableCoroutine { cont ->
+            process.stdout.write(uint8Array) { error ->
+                if (!cont.isActive) return@write
+                if (error == null) {
+                    cont.resume(Unit)
+                } else {
+                    cont.resumeWithException(error.unsafeCast<Throwable>())
+                }
+            }
+        }
+    }
 
     val options = try {
         parseArguments(process.argv.drop(2))
