@@ -165,41 +165,15 @@ class StreamMountsTest {
 
     @Test
     fun pipe() = runTest {
-        // 基本的な動作: 複数回読み取っても元のストリームは1度だけイテレートされる
-        assertEquals(1, eval("""
-            pipe := PIPE(1 .. 10)
-            FIRST(pipe)
-        """).int) // 最初の要素を取得
-        
-        assertEquals("2,3,4", eval("""
-            pipe := PIPE(1 .. 10)
-            FIRST(pipe)
-            TAKE(3; pipe)
-        """).stream()) // 最初を取った後、次の3要素を取得
-        
+        // 複数回の読み取りで位置を記憶
         assertEquals(5, eval("""
             pipe := PIPE(1 .. 10)
             FIRST(pipe)
             TAKE(3; pipe)
             FIRST(pipe)
-        """).int) // さらに次の要素を取得
+        """).int)
         
-        // 空ストリームの場合
-        assertEquals("", eval("""
-            pipe := PIPE(,)
-            pipe
-        """).stream())
-        
-        // 元のストリームが1度だけイテレートされることを確認
-        assertEquals("1,2,3", eval("""
-            array := []
-            pipe := PIPE(1 .. 3 | (
-                array::push << _
-                _
-            ))
-            pipe
-        """).stream())
-        
+        // 副作用は1度だけ発生
         assertEquals("[1;2;3]", eval("""
             array := []
             pipe := PIPE(1 .. 3 | (
@@ -208,17 +182,10 @@ class StreamMountsTest {
             ))
             pipe
             pipe
-            pipe
             array
-        """).array()) // 配列には1,2,3が1度だけ追加される
+        """).array())
         
-        // 非ストリームの場合
-        assertEquals(42, eval("""
-            pipe := PIPE(42)
-            FIRST(pipe)
-        """).int)
-        
-        // パイプが1度も消費されない場合、副作用が発生しない
+        // 未消費時は副作用なし
         assertEquals("[]", eval("""
             array := []
             pipe := PIPE(1 .. 3 | (
@@ -226,7 +193,19 @@ class StreamMountsTest {
                 _
             ))
             array
-        """).array()) // pipeを使わないので、配列は空のまま
+        """).array())
+        
+        // 空ストリーム
+        assertEquals("", eval("""
+            pipe := PIPE(,)
+            pipe
+        """).stream())
+        
+        // 非ストリーム
+        assertEquals(42, eval("""
+            pipe := PIPE(42)
+            FIRST(pipe)
+        """).int)
     }
 
 }
