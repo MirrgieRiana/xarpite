@@ -217,6 +217,16 @@ class StreamMountsTest {
             pipe := PIPE(42)
             FIRST(pipe)
         """).int)
+        
+        // パイプが1度も消費されない場合、副作用が発生しない
+        assertEquals("[]", eval("""
+            array := []
+            pipe := PIPE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            array
+        """).array()) // pipeを使わないので、配列は空のまま
     }
 
 }
