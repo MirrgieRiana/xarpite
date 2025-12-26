@@ -677,7 +677,7 @@ $ xa '
 $ xa -q '
   tasks := PIPE(
     1 .. 10 | , -> (
-      OUT << "Task $1"
+      OUT << "Task $_"
     )
   )
 
