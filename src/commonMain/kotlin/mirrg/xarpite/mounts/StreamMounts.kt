@@ -1,7 +1,6 @@
 package mirrg.xarpite.mounts
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import mirrg.xarpite.IterationAborted
@@ -28,7 +27,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.operations.FluoriteException
 
-fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, FluoriteValue>> {
+fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return mapOf(
         "REVERSE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
@@ -540,29 +539,26 @@ fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, Fluorit
         "PIPE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
-                
-                // 遅延評価: 最初の消費時に Channel を作成
-                // lazy を使用してスレッドセーフに初期化
-                val lazyChannel = lazy {
-                    val sourceFlow = flow {
+
+                val channel by lazy {
+                    flow {
                         if (stream is FluoriteStream) {
-                            stream.flowProvider(this)
+                            stream.collect { item ->
+                                emit(item)
+                            }
                         } else {
                             emit(stream)
                         }
-                    }
-                    sourceFlow.produceIn(coroutineScope)
+                    }.produceIn(daemonScope)
                 }
-                
-                // Channel から要素を読み取るストリームを返す
+
                 FluoriteStream {
-                    val channel: ReceiveChannel<FluoriteValue> = lazyChannel.value
                     for (item in channel) {
                         emit(item)
                     }
                 }
             } else {
-                usage("PIPE(stream: STREAM<VALUE>): STREAM<VALUE>")
+                usage("<T> PIPE(stream: STREAM<T>): STREAM<T>")
             }
         },
     ).let { listOf(it) }
