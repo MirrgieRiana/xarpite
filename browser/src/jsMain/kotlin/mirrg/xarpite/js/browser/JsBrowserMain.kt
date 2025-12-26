@@ -1,10 +1,14 @@
 package mirrg.xarpite.js.browser
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.await
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.promise
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.js.createJsMounts
@@ -16,17 +20,22 @@ import kotlin.js.Promise
 @JsExport
 fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Promise<dynamic> = scope.promise {
     val evaluator = Evaluator()
-    val defaultBuiltinMounts = listOf(
-        createCommonMounts(scope) { out(it).await() },
-        createJsMounts(),
-        createJsBrowserMounts(),
-    ).flatten()
-    evaluator.defineMounts(defaultBuiltinMounts)
-    if (quiet) {
-        evaluator.run(src)
-        undefined
-    } else {
-        evaluator.get(src)
+    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+    try {
+        val defaultBuiltinMounts = listOf(
+            createCommonMounts(scope, daemonScope) { out(it).await() },
+            createJsMounts(),
+            createJsBrowserMounts(),
+        ).flatten()
+        evaluator.defineMounts(defaultBuiltinMounts)
+        if (quiet) {
+            evaluator.run(src)
+            undefined
+        } else {
+            evaluator.get(src).cache()
+        }
+    } finally {
+        daemonScope.cancel()
     }
 }
 
