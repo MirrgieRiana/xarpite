@@ -19,11 +19,13 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
+import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 val baseDir = "build/test".toPath()
 
@@ -163,8 +165,7 @@ class CliTest {
     @Test
     fun inb() = runTest {
         // INB はストリームとして存在することを確認
-        val inb = cliEval("INB")
-        assertEquals(true, inb is FluoriteStream)
+        assertTrue(cliEval("INB ?= STREAM").boolean)
     }
 
     @Test

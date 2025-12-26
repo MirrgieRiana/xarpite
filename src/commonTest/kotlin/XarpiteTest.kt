@@ -5,7 +5,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -109,7 +108,7 @@ class XarpiteTest {
         assertEquals(FluoriteNull, eval("NULL"))
         assertEquals(true, eval("TRUE").boolean)
         assertEquals(false, eval("FALSE").boolean)
-        assertEquals(true, eval("LOOP") is FluoriteStream)
+        assertEquals(true, eval("LOOP ?= STREAM").boolean)
     }
 
     @Test
