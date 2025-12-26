@@ -3,6 +3,7 @@ package mirrg.xarpite.mounts
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
 
@@ -15,7 +16,7 @@ fun createControlStructuresMounts(): List<Map<String, FluoriteValue>> {
             while (true) {
                 val conditionResult = condition.invoke(emptyArray())
                 if (!conditionResult.toBoolean()) break
-                block.invoke(emptyArray())
+                block.invoke(emptyArray()).consume()
             }
             FluoriteNull
         },
