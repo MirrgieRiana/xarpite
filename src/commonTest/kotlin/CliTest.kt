@@ -173,22 +173,22 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption.test_script.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
             writeUtf8("1 + 2")
         }
-        
+
         // -f オプションでファイルを指定して引数を解析
         val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"))
-        
+
         // ソースコードがファイルから読み込まれている
         assertEquals("1 + 2", options.src)
         // 引数が正しく設定されている
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         // quiet フラグが false である
         assertEquals(false, options.quiet)
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
@@ -199,20 +199,20 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_quiet.test_script.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
             writeUtf8("OUT << 'Hello'")
         }
-        
+
         // -q と -f オプションを組み合わせる
         val options = parseArguments(listOf("-q", "-f", file.toString()))
-        
+
         // ソースコードがファイルから読み込まれている
         assertEquals("OUT << 'Hello'", options.src)
         // quiet フラグが true である
         assertEquals(true, options.quiet)
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
@@ -223,20 +223,20 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_doubledash.test_script.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
             writeUtf8("ARGS")
         }
-        
+
         // -f と -- を組み合わせる
         val options = parseArguments(listOf("-f", file.toString(), "--"))
-        
+
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
         // 引数は空
         assertEquals(emptyList(), options.arguments)
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
@@ -247,20 +247,20 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_doubledash_args.test_script.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
             writeUtf8("ARGS")
         }
-        
+
         // -f と -- と引数を組み合わせる
         val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"))
-        
+
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
         // -- 後の引数がスクリプトに渡される
         assertEquals(listOf("arg1", "arg2"), options.arguments)
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
@@ -272,16 +272,16 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val file1 = baseDir.resolve("fileoption_dup1.test_script.tmp.xa1")
         val file2 = baseDir.resolve("fileoption_dup2.test_script.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file1) { writeUtf8("1") }
         fileSystem.write(file2) { writeUtf8("2") }
-        
+
         // -f を重複して指定するとエラー
         assertFailsWith<ShowUsage> {
             parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()))
         }
-        
+
         // クリーンアップ
         fileSystem.delete(file1)
         fileSystem.delete(file2)
@@ -291,7 +291,7 @@ class CliTest {
     fun fileOptionNonExistentFileThrowsError() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("nonexistent.xa1")
-        
+
         // 存在しないファイルを指定するとエラー
         assertFailsWith<Exception> {
             parseArguments(listOf("-f", file.toString()))
