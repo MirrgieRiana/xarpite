@@ -655,7 +655,7 @@ $ xa '
 $ xa '
   array := [1, 2, 3]
   dummy := (4, 5 | *array::push;)
-  array()
+  array
 '
 # [1;2;3;4;5]
 ```
