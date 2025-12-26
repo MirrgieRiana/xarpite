@@ -21,7 +21,6 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.stream
 import okio.Path.Companion.toPath
-import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

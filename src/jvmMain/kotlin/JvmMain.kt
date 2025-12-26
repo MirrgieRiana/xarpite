@@ -7,7 +7,6 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
-import kotlin.coroutines.coroutineContext
 
 fun main(args: Array<String>) {
     val options = try {

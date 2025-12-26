@@ -21,7 +21,6 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.parser.parseAllOrThrow
-import kotlin.coroutines.coroutineContext
 
 fun parse(src: String): String {
     val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)

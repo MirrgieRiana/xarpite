@@ -17,7 +17,6 @@ import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.parse
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
-import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
