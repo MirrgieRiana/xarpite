@@ -66,27 +66,27 @@ class FunctionTest {
 
             // _::_ でフォールバックメソッドを定義する
             """
-            register := listener -> listener(23)
+                register := listener -> listener(23)
+    
+                Obj := {
+                    register: this, listener -> listener(this.x + 3)
+                }
+                obj := Obj{x: 20}
+            """.let { evaluator.run(it) }
 
-            Obj := {
-                register: this, listener -> listener(this.x + 3)
-            }
-            obj := Obj{x: 20}
-        """.let { evaluator.run(it) }
+            assertEquals(123, evaluator.get("register ( event => 100 + event )").int) // クロージャ付き関数呼び出し
+            assertEquals(123, evaluator.get("register [ event => 100 + event ]()").int) // クロージャ付き関数の部分適用
+            assertEquals(123, evaluator.get("obj::register ( event => 100 + event )").int) // クロージャ付きメソッド呼び出し
+            assertEquals(123, evaluator.get("obj::register [ event => 100 + event ]()").int) // クロージャ付きメソッドの部分適用
 
-        assertEquals(123, evaluator.get("register ( event => 100 + event )").int) // クロージャ付き関数呼び出し
-        assertEquals(123, evaluator.get("register [ event => 100 + event ]()").int) // クロージャ付き関数の部分適用
-        assertEquals(123, evaluator.get("obj::register ( event => 100 + event )").int) // クロージャ付きメソッド呼び出し
-        assertEquals(123, evaluator.get("obj::register [ event => 100 + event ]()").int) // クロージャ付きメソッドの部分適用
+            assertEquals(123, evaluator.get("register ( event => 9; 9; 9; 100 + event )").int) // クロージャは ; を文の区切りとして解釈する
 
-        assertEquals(123, evaluator.get("register ( event => 9; 9; 9; 100 + event )").int) // クロージャは ; を文の区切りとして解釈する
+            // クロージャがフレームを正しく生成することのテスト
+            // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
+            assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
 
-        // クロージャがフレームを正しく生成することのテスト
-        // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
-        assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
-
-        // クロージャ直下で変数を宣言するテスト
-        assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
+            // クロージャ直下で変数を宣言するテスト
+            assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
         } finally {
             daemonScope.cancel()
         }
