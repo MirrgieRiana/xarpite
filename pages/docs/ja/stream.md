@@ -688,7 +688,7 @@ $ xa -q '
   OUT << "Next: " & FIRST(pipe)
 '
 # First: 1
-# Next 3 items: [2,3,4]
+# Next 3 items: [2;3;4]
 # Next: 5
 ```
 
