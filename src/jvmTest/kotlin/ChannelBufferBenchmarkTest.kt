@@ -1,6 +1,6 @@
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 import kotlin.test.Test
@@ -17,20 +17,22 @@ class ChannelBufferBenchmarkTest {
             for (buffer in buffers) {
                 val (elapsedMs, consumed) = benchmark(buffer, count, delayMs)
                 val throughputPerSec = count * 1000.0 / elapsedMs
-                println("buffer=$buffer delay=${delayMs}ms -> $count items in ${elapsedMs}ms (~${"%.1f".format(throughputPerSec)} items/sec, consumed=$consumed)")
+                println(
+                    "buffer=$buffer delay=${delayMs}ms -> $count items in ${elapsedMs}ms " +
+                        "(~${"%.1f".format(throughputPerSec)} items/sec, consumed=$consumed)"
+                )
             }
         }
     }
 
     private suspend fun benchmark(buffer: Int, count: Int, delayMs: Long): Pair<Long, Int> = coroutineScope {
         val channel = Channel<Int>(buffer)
-        var consumed = 0
-        val receiver = launch {
+        val receiver = async {
             repeat(count) {
-                val v = channel.receive()
-                consumed += v
+                channel.receive()
                 if (delayMs > 0) delay(delayMs)
             }
+            count
         }
         val elapsedMs = measureTimeMillis {
             try {
@@ -38,8 +40,8 @@ class ChannelBufferBenchmarkTest {
             } finally {
                 channel.close()
             }
-            receiver.join()
+            receiver.await()
         }
-        elapsedMs to consumed
+        elapsedMs to count
     }
 }
