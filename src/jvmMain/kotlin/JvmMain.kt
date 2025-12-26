@@ -1,5 +1,5 @@
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
         return
     }
     runBlocking {
-        val daemonScope = CoroutineScope(coroutineContext + Job())
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             coroutineScope {
                 main(options, this, daemonScope)

@@ -1,7 +1,7 @@
 package mirrg.xarpite.test
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -31,7 +31,7 @@ fun parse(src: String): String {
 
 suspend fun CoroutineScope.eval(src: String): FluoriteValue {
     val evaluator = Evaluator()
-    val daemonScope = CoroutineScope(coroutineContext + Job())
+    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
         return evaluator.get(src)

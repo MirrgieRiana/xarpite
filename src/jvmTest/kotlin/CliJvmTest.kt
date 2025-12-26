@@ -1,5 +1,5 @@
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -106,7 +106,7 @@ class CliJvmTest {
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
-    val daemonScope = CoroutineScope(coroutineContext + Job())
+    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         val defaultBuiltinMounts = listOf(
             createCommonMounts(this, daemonScope) {},

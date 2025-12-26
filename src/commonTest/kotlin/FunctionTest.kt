@@ -1,6 +1,6 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
@@ -60,7 +60,7 @@ class FunctionTest {
     @Test
     fun arrowCall() = runTest {
         val evaluator = Evaluator()
-        val daemonScope = CoroutineScope(coroutineContext + Job())
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
 
