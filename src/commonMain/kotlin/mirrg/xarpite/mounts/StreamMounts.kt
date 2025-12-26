@@ -1,11 +1,9 @@
 package mirrg.xarpite.mounts
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.produceIn
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
@@ -543,33 +541,22 @@ fun createStreamMounts(coroutineScope: CoroutineScope): List<Map<String, Fluorit
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 
-                // Channel を使用して元のストリームから要素を提供する
-                val channel = Channel<FluoriteValue>(Channel.UNLIMITED)
-                val mutex = Mutex()
-                var producerStarted = false
+                // 遅延評価: 最初の消費時に Channel を作成
+                // lazy を使用してスレッドセーフに初期化
+                val lazyChannel = lazy {
+                    val sourceFlow = flow {
+                        if (stream is FluoriteStream) {
+                            stream.flowProvider(this)
+                        } else {
+                            emit(stream)
+                        }
+                    }
+                    sourceFlow.produceIn(coroutineScope)
+                }
                 
                 // Channel から要素を読み取るストリームを返す
                 FluoriteStream {
-                    // 最初の要素が要求されたときに、元のストリームから Channel へ要素を送るコルーチンを起動
-                    mutex.withLock {
-                        if (!producerStarted) {
-                            producerStarted = true
-                            coroutineScope.launch {
-                                try {
-                                    if (stream is FluoriteStream) {
-                                        stream.collect { item ->
-                                            channel.send(item)
-                                        }
-                                    } else {
-                                        channel.send(stream)
-                                    }
-                                } finally {
-                                    channel.close()
-                                }
-                            }
-                        }
-                    }
-                    
+                    val channel: ReceiveChannel<FluoriteValue> = lazyChannel.value
                     for (item in channel) {
                         emit(item)
                     }
