@@ -26,17 +26,20 @@ class ChannelBufferBenchmarkTest {
         val channel = Channel<Int>(buffer)
         var consumed = 0
         val receiver = launch {
-            repeat(count) { value ->
+            repeat(count) {
                 val v = channel.receive()
                 consumed += v
                 if (delayMs > 0) delay(delayMs)
             }
         }
         val elapsedMs = measureTimeMillis {
-            repeat(count) { channel.send(it) }
+            try {
+                repeat(count) { channel.send(it) }
+            } finally {
+                channel.close()
+            }
             receiver.join()
         }
-        channel.close()
         elapsedMs to consumed
     }
 }
