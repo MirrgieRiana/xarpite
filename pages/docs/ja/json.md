@@ -15,7 +15,7 @@ JSON文字列と値との間で変換を行う関数がいくつか用意され�
 - `JSONS`
 - `JSONSD`
 
-詳細は[data_conversion.md](data_conversion.md)を参照してください。
+詳細は[data-conversion.md](data-conversion.md)を参照してください。
 
 ## 演算子による変換
 
