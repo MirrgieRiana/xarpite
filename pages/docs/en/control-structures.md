@@ -2,25 +2,58 @@
 title: "Control Structures"
 ---
 
-<!-- toc -->
-
 # Control Structures
 
-## `WHILE`: Conditional Loop
+Xarpite does not have syntax identical to "if statements" or "while statements" found in many programming languages.
 
-`<T> WHILE(condition: () -> BOOLEAN; block: () -> T): STREAM<T>`
+Instead, it uses operators and functions to achieve similar control flow.
 
-Repeatedly executes `block` while `condition` returns `TRUE`, returning the results as a stream.
+<!-- toc -->
 
-If `condition` is `FALSE` from the start, returns an empty stream.
+## Control Operators
+
+### Conditional Branching
+
+Logical OR, logical AND, and ternary operators can be used for conditional branching.
+
+See [Boolean](boolean.md) for details.
+
+### Loops
+
+Pipe operators can be used to express loops.
+
+See [Stream](stream.md) for details.
+
+### Labels and Returns
+
+Label and return operators allow you to break out of arbitrary locations.
+
+See [Jump](jump.md) for details.
+
+### Error Handling
+
+Throw and catch operators allow you to throw and catch errors.
+
+See [Jump](jump.md) for details.
+
+## Control Functions
+
+### `WHILE`: Conditional Loop
+
+`WHILE(condition: () -> BOOLEAN; block: () -> VALUE): NULL`
+
+Repeatedly executes `block` while `condition` returns `TRUE`.
+
+This function reproduces the common "while statement".
+
+Since this function is intended for controlling blocks with side effects, it intentionally discards the return value of `block`.
 
 ```shell
 $ xa '
   i := 0
   WHILE [ => i < 5 ] ( =>
-    result := i
+    OUT << i
     i = i + 1
-    result
   )
 '
 # 0
@@ -28,35 +61,24 @@ $ xa '
 # 2
 # 3
 # 4
+# NULL
 ```
 
 ---
 
-When the return value of `block` is a stream, it is automatically flattened.
+By combining with label/return operators, you can also break out of the loop midway.
 
 ```shell
 $ xa '
   i := 0
-  [WHILE [ => i < 3 ] ( =>
+  WHILE [ => i < 5 ] ( =>
+    i == 3 && break!!
+    OUT << i
     i = i + 1
-    1 .. i
-  )]
+  ) !: break
 '
-# [1;1;2;1;2;3]
-```
-
----
-
-By combining with label operators, you can break out of the loop early.
-
-```shell
-$ xa '
-  i := 0
-  [WHILE [ => i < 100 ] ( =>
-    i = i + 1
-    i >= 5 && break!!
-    i
-  ) !: break]
-'
-# [1;2;3;4]
+# 0
+# 1
+# 2
+# NULL
 ```
