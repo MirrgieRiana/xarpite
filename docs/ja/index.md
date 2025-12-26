@@ -29,3 +29,4 @@ title: "Xarpiteドキュメント"
 - [JavaScript版](js.html)
 - [コルーチン](coroutine.html)
 - [JSON操作](json.html)
+- [制御構文](control-structures.md)

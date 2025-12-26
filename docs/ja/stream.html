@@ -73,7 +73,7 @@
               
                 
                   <div class="table-of-contents">
-  <ul id="markdown-toc"><li><a href="#範囲系演算子">範囲系演算子</a><ul id="markdown-toc"><li><a href="#閉区間-start--end">閉区間 start .. end</a></li><li><a href="#半開区間-start--end">半開区間 start ~ end</a></li></ul></li><li><a href="#ストリーム結合系演算子">ストリーム結合系演算子</a><ul id="markdown-toc"><li><a href="#ストリームの結合-items-">ストリームの結合 items, ...</a></li></ul></li><li><a href="#ストリーム系演算子">ストリーム系演算子</a><ul id="markdown-toc"><li><a href="#ストリーム系演算子の簡単な紹介">ストリーム系演算子の簡単な紹介</a></li><li><a href="#結合優先度について">結合優先度について</a></li><li><a href="#配列の要素への代入代入系-arrayindex--value">配列の要素への代入（代入系） array(index) = value</a></li><li><a href="#エントリー演算子代入系-key-value">エントリー演算子（代入系） key: value</a></li><li><a href="#左実行パイプ代入系-function--value">左実行パイプ（代入系） function &amp;lt;&amp;lt; value</a></li><li><a href="#パイプパイプ系-stream--formula">パイプ（パイプ系） stream | formula</a></li><li><a href="#右実行パイプ実行パイプ系-value--function">右実行パイプ（実行パイプ系） value &amp;gt;&amp;gt; function</a></li><li><a href="#オブジェクトの継承-parententry-">オブジェクトの継承 parent{entry; ...}</a></li><li><a href="#オブジェクトの要素アクセス-objectkey">オブジェクトの要素アクセス object.key</a></li><li><a href="#null安全要素アクセス-objectkey">Null安全要素アクセス object?.key</a></li></ul></li><li><a href="#パイプと実行パイプのインデントのベストプラクティス">パイプと実行パイプのインデントのベストプラクティス</a><ul id="markdown-toc"><li><a href="#パイプの連鎖">パイプの連鎖</a></li><li><a href="#実行パイプによるパイプのインデントのリセット">実行パイプによるパイプのインデントのリセット</a></li></ul></li><li><a href="#ストリームのプロパティアクセス">ストリームのプロパティアクセス</a></li><li><a href="#ストリームの解決">ストリームの解決</a></li></ul>
+  <ul id="markdown-toc"><li><a href="#範囲系演算子">範囲系演算子</a><ul id="markdown-toc"><li><a href="#閉区間-start--end">閉区間 start .. end</a></li><li><a href="#半開区間-start--end">半開区間 start ~ end</a></li></ul></li><li><a href="#ストリーム結合系演算子">ストリーム結合系演算子</a><ul id="markdown-toc"><li><a href="#ストリームの結合-items-">ストリームの結合 items, ...</a></li></ul></li><li><a href="#ストリーム系演算子">ストリーム系演算子</a><ul id="markdown-toc"><li><a href="#ストリーム系演算子の簡単な紹介">ストリーム系演算子の簡単な紹介</a></li><li><a href="#結合優先度について">結合優先度について</a></li><li><a href="#配列の要素への代入代入系-arrayindex--value">配列の要素への代入（代入系） array(index) = value</a></li><li><a href="#エントリー演算子代入系-key-value">エントリー演算子（代入系） key: value</a></li><li><a href="#左実行パイプ代入系-function--value">左実行パイプ（代入系） function &amp;lt;&amp;lt; value</a></li><li><a href="#パイプパイプ系-stream--formula">パイプ（パイプ系） stream | formula</a></li><li><a href="#右実行パイプ実行パイプ系-value--function">右実行パイプ（実行パイプ系） value &amp;gt;&amp;gt; function</a></li><li><a href="#オブジェクトの継承-parententry-">オブジェクトの継承 parent{entry; ...}</a></li><li><a href="#オブジェクトの要素アクセス-objectkey">オブジェクトの要素アクセス object.key</a></li><li><a href="#null安全要素アクセス-objectkey">Null安全要素アクセス object?.key</a></li></ul></li><li><a href="#パイプと実行パイプのインデントのベストプラクティス">パイプと実行パイプのインデントのベストプラクティス</a><ul id="markdown-toc"><li><a href="#パイプの連鎖">パイプの連鎖</a></li><li><a href="#実行パイプによるパイプのインデントのリセット">実行パイプによるパイプのインデントのリセット</a></li></ul></li><li><a href="#ストリームのプロパティアクセス">ストリームのプロパティアクセス</a></li><li><a href="#ストリームの解決">ストリームの解決</a></li><li><a href="#ストリーム系関数">ストリーム系関数</a><ul id="markdown-toc"><li><a href="#pipe-読み取り位置を記憶するストリームを生成する">PIPE: 読み取り位置を記憶するストリームを生成する</a></li></ul></li></ul>
 </div>
 
 
@@ -687,6 +687,153 @@
 <hr />
 
 <p>キャッシュ用の配列の保持は、解決されたストリームの結果がどこにも使われない場合、メモリ節約のために省略される場合があります。</p>
+
+<hr />
+
+<p>無限ストリームの解決を試みた場合、エラーやリターン演算子等で途中離脱しない限り、プログラムはその場所で無限ループに陥ります。</p>
+
+<p>その結果、プログラムが進行しなくなったり、メモリ不足でクラッシュしたりする可能性があります。</p>
+
+<p>例えば、 <code class="language-plaintext highlighter-rouge">LOOP !? "Error"</code> という式は無限ループに陥ります。</p>
+
+<p>これはキャッチ演算子 <code class="language-plaintext highlighter-rouge">!?</code> が <code class="language-plaintext highlighter-rouge">LOOP</code> に含まれる無限のNULLのどこかで何かがスローされないかチェックしようとするためです。</p>
+
+<p>ストリームの解決を避けるには、ストリームそのものの代わりにストリームを返す関数の状態でやりとりする方法があります。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  getStream := (() -&gt; LOOP | i, _ =&gt; i) !? "Error"
+  getStream() &gt;&gt; TAKE[3]
+'</span>
+<span class="c"># 0</span>
+<span class="c"># 1</span>
+<span class="c"># 2</span>
+</code></pre></div></div>
+
+<h1 id="ストリーム系関数">ストリーム系関数</h1>
+
+<h2 id="pipe-読み取り位置を記憶するストリームを生成する"><code class="language-plaintext highlighter-rouge">PIPE</code>: 読み取り位置を記憶するストリームを生成する</h2>
+
+<p><code class="language-plaintext highlighter-rouge">&lt;T&gt; PIPE(stream: STREAM&lt;T&gt;): STREAM&lt;T&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">stream</code> のイテレーションを保持し、イテレート時に保持した位置から再開するストリームを生成します。</p>
+
+<hr />
+
+<p>このような性質を持つストリームは、便宜上「パイプ」と呼ばれます。</p>
+
+<p>CLI上で標準入力を受け付ける <code class="language-plaintext highlighter-rouge">IN</code> などもパイプに相当します。</p>
+
+<p>パイプは <code class="language-plaintext highlighter-rouge">FIRST</code> や <code class="language-plaintext highlighter-rouge">TAKE</code> などのストリームを中途半端に消費する関数と組み合わせることで真価を発揮します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  pipe := PIPE(1 .. 10)
+  OUT &lt;&lt; "First: " &amp; FIRST(pipe)
+  OUT &lt;&lt; "Next 3 items: " &amp; [pipe &gt;&gt; TAKE[3]]
+  OUT &lt;&lt; "Next: " &amp; FIRST(pipe)
+'</span>
+<span class="c"># First: 1</span>
+<span class="c"># Next 3 items: [2;3;4]</span>
+<span class="c"># Next: 5</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>読み切ったパイプは空ストリームになります。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  pipe := PIPE(1 .. 10)
+  OUT &lt;&lt; [pipe]
+  OUT &lt;&lt; [pipe]
+'</span>
+<span class="c"># [1;2;3;4;5;6;7;8;9;10]</span>
+<span class="c"># []</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>性質上、返されるストリームを通じて、 <code class="language-plaintext highlighter-rouge">stream</code> は高々1度のみイテレートされます。</p>
+
+<p>これにより <code class="language-plaintext highlighter-rouge">stream</code> が引き起こす副作用も複数回発生することはありません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  array := []
+  pipe := PIPE(
+    1 .. 3 | (
+      array::push &lt;&lt; _
+    )
+  )
+
+  pipe
+  pipe
+  pipe
+
+  array
+'</span>
+<span class="c"># [1;2;3]</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>ただし、 <code class="language-plaintext highlighter-rouge">PIPE</code> は <code class="language-plaintext highlighter-rouge">stream</code> の要素をバッファリングする可能性があり、副作用が意図しないタイミングで発生する可能性があります。</p>
+
+<p>副作用のタイミングを制御するには、副作用のある処理を関数にし、パイプから取り出した側でそれを実行します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
+  tasks := PIPE(
+    1 .. 10 | , -&gt; (
+      OUT &lt;&lt; "Task $_"
+    )
+  )
+
+  OUT &lt;&lt; "Execute 1 task"
+  FIRST(tasks) | _()
+  OUT &lt;&lt; "Execute 3 tasks"
+  TAKE(3; tasks) | _()
+  OUT &lt;&lt; "Execute 1 task"
+  FIRST(tasks) | _()
+'</span>
+<span class="c"># Execute 1 task</span>
+<span class="c"># Task 1</span>
+<span class="c"># Execute 3 tasks</span>
+<span class="c"># Task 2</span>
+<span class="c"># Task 3</span>
+<span class="c"># Task 4</span>
+<span class="c"># Execute 1 task</span>
+<span class="c"># Task 5</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>パイプは遅延評価であり、返されたストリームが消費されない場合、 <code class="language-plaintext highlighter-rouge">stream</code> のイテレーションは開始されません。</p>
+
+<p>したがって、副作用も発生しません。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  array := []
+  pipe := PIPE(
+    1 .. 10000 | (
+      array::push &lt;&lt; _
+    )
+  )
+  array
+'</span>
+<span class="c"># []</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">stream</code> は無限ストリームであってもかまいません。</p>
+
+<p>パイプが最後まで読み切られなくても、 <code class="language-plaintext highlighter-rouge">stream</code> をイテレートするためのリソースはプログラムの終了時に自動的に解放されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
+  pipe := PIPE(LOOP | i, _ =&gt; i)
+  OUT &lt;&lt; [pipe &gt;&gt; TAKE[10]]
+  "Finished"
+'</span>
+<span class="c"># [0;1;2;3;4;5;6;7;8;9]</span>
+<span class="c"># Finished</span>
+</code></pre></div></div>
 
                 
               

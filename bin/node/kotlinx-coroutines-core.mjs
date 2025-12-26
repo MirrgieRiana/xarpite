@@ -1385,6 +1385,22 @@ function coroutineScope(block, $completion) {
   var coroutine = new ScopeCoroutine($completion.q8(), $completion);
   return startUndispatchedOrReturn(coroutine, coroutine, block);
 }
+function CoroutineScope_0(context) {
+  return new ContextScope(!(context.x8(Key_instance_2) == null) ? context : context.vf(Job_0()));
+}
+function cancel(_this__u8e3s4, cause) {
+  cause = cause === VOID ? null : cause;
+  var tmp0_elvis_lhs = _this__u8e3s4.g1l().x8(Key_instance_2);
+  var tmp;
+  if (tmp0_elvis_lhs == null) {
+    var message = 'Scope cannot be cancelled because it does not have a job: ' + toString(_this__u8e3s4);
+    throw IllegalStateException_init_$Create$(toString(message));
+  } else {
+    tmp = tmp0_elvis_lhs;
+  }
+  var job = tmp;
+  job.n1m(cause);
+}
 function GlobalScope() {
 }
 protoOf(GlobalScope).g1l = function () {
@@ -1393,9 +1409,6 @@ protoOf(GlobalScope).g1l = function () {
 var GlobalScope_instance;
 function GlobalScope_getInstance() {
   return GlobalScope_instance;
-}
-function CoroutineScope_0(context) {
-  return new ContextScope(!(context.x8(Key_instance_2) == null) ? context : context.vf(Job_0()));
 }
 var CoroutineStart_DEFAULT_instance;
 var CoroutineStart_LAZY_instance;
@@ -9308,6 +9321,8 @@ export {
   CoroutineScope_0 as CoroutineScopelux7s7zphw7e,
   CoroutineScope as CoroutineScopefcb5f5dwqcas,
   MainScope as MainScope1gi1r4abhrtmm,
+  SupervisorJob as SupervisorJobythnfxkr3jxc,
+  cancel as cancel36mj9lv3a0whl,
   launch as launch1c91vkjzdi9sd,
   promise as promise1ky6tawqaxbt4,
 };
