@@ -17,6 +17,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.parser.parseAllOrThrow
@@ -34,7 +35,7 @@ suspend fun CoroutineScope.eval(src: String): FluoriteValue {
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
-        return evaluator.get(src)
+        return evaluator.get(src).cache()
     } finally {
         daemonScope.cancel()
     }

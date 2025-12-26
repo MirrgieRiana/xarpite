@@ -11,6 +11,7 @@ import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import java.io.ByteArrayInputStream
@@ -117,7 +118,7 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
             defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
         }
         evaluator.defineMounts(mountsFactory("./-"))
-        return evaluator.get(src)
+        return evaluator.get(src).cache()
     } finally {
         daemonScope.cancel()
     }

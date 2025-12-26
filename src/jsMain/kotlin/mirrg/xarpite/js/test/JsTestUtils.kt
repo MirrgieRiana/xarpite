@@ -6,6 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
 import kotlin.coroutines.coroutineContext
@@ -27,7 +28,7 @@ suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: () -> List<Map
                 createExtraMounts(),
             ).flatten()
         )
-        return evaluator.get(src)
+        return evaluator.get(src).cache()
     } finally {
         daemonScope.cancel()
     }
