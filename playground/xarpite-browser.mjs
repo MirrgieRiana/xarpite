@@ -57,7 +57,7 @@ function stringify(value) {
   return promise(tmp, VOID, VOID, stringify$slambda_0(value, null));
 }
 function evaluate$slambda$slambda($out, resultContinuation) {
-  this.o6r_1 = $out;
+  this.z6r_1 = $out;
   CoroutineImpl.call(this, resultContinuation);
 }
 protoOf(evaluate$slambda$slambda).h2i = function (it, $completion) {
@@ -78,7 +78,7 @@ protoOf(evaluate$slambda$slambda).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = await_0(this.o6r_1(this.p6r_1), this);
+          suspendResult = await_0(this.z6r_1(this.a6s_1), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -101,8 +101,8 @@ protoOf(evaluate$slambda$slambda).s8 = function () {
    while (true);
 };
 protoOf(evaluate$slambda$slambda).i2i = function (it, completion) {
-  var i = new evaluate$slambda$slambda(this.o6r_1, completion);
-  i.p6r_1 = it;
+  var i = new evaluate$slambda$slambda(this.z6r_1, completion);
+  i.a6s_1 = it;
   return i;
 };
 function evaluate$slambda$slambda_0($out, resultContinuation) {
@@ -114,19 +114,19 @@ function evaluate$slambda$slambda_0($out, resultContinuation) {
   return l;
 }
 function evaluate$slambda($quiet, $src, $out, resultContinuation) {
-  this.y6r_1 = $quiet;
-  this.z6r_1 = $src;
-  this.a6s_1 = $out;
+  this.j6s_1 = $quiet;
+  this.k6s_1 = $src;
+  this.l6s_1 = $out;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(evaluate$slambda).e6s = function ($this$promise, $completion) {
-  var tmp = this.s4d($this$promise, $completion);
+protoOf(evaluate$slambda).p6s = function ($this$promise, $completion) {
+  var tmp = this.d4e($this$promise, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(evaluate$slambda).b9 = function (p1, $completion) {
-  return this.e6s((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p6s((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(evaluate$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -136,27 +136,27 @@ protoOf(evaluate$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 5;
-          this.d6s_1 = new Evaluator();
+          this.o6s_1 = new Evaluator();
           var tmp_0 = get_scope();
-          var defaultBuiltinMounts = flatten(listOf([createCommonMounts(tmp_0, evaluate$slambda$slambda_0(this.a6s_1, null)), createJsMounts(), createJsBrowserMounts()]));
+          var defaultBuiltinMounts = flatten(listOf([createCommonMounts(tmp_0, evaluate$slambda$slambda_0(this.l6s_1, null)), createJsMounts(), createJsBrowserMounts()]));
           this.k8_1 = 1;
-          suspendResult = this.d6s_1.j2a(defaultBuiltinMounts, this);
+          suspendResult = this.o6s_1.j2a(defaultBuiltinMounts, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
           continue $sm;
         case 1:
-          if (this.y6r_1) {
+          if (this.j6s_1) {
             this.k8_1 = 3;
-            suspendResult = this.d6s_1.m2a(this.z6r_1, this);
+            suspendResult = this.o6s_1.m2a(this.k6s_1, this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
             continue $sm;
           } else {
             this.k8_1 = 2;
-            suspendResult = this.d6s_1.k2a(this.z6r_1, this);
+            suspendResult = this.o6s_1.k2a(this.k6s_1, this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -164,15 +164,15 @@ protoOf(evaluate$slambda).s8 = function () {
           }
 
         case 2:
-          this.c6s_1 = suspendResult;
+          this.n6s_1 = suspendResult;
           this.k8_1 = 4;
           continue $sm;
         case 3:
-          this.c6s_1 = undefined;
+          this.n6s_1 = undefined;
           this.k8_1 = 4;
           continue $sm;
         case 4:
-          return this.c6s_1;
+          return this.n6s_1;
         case 5:
           throw this.n8_1;
       }
@@ -187,15 +187,15 @@ protoOf(evaluate$slambda).s8 = function () {
     }
    while (true);
 };
-protoOf(evaluate$slambda).s4d = function ($this$promise, completion) {
-  var i = new evaluate$slambda(this.y6r_1, this.z6r_1, this.a6s_1, completion);
-  i.b6s_1 = $this$promise;
+protoOf(evaluate$slambda).d4e = function ($this$promise, completion) {
+  var i = new evaluate$slambda(this.j6s_1, this.k6s_1, this.l6s_1, completion);
+  i.m6s_1 = $this$promise;
   return i;
 };
 function evaluate$slambda_0($quiet, $src, $out, resultContinuation) {
   var i = new evaluate$slambda($quiet, $src, $out, resultContinuation);
   var l = function ($this$promise, $completion) {
-    return i.e6s($this$promise, $completion);
+    return i.p6s($this$promise, $completion);
   };
   l.$arity = 1;
   return l;
@@ -219,7 +219,7 @@ protoOf(log$slambda$slambda).s8 = function () {
       var tmp = this.k8_1;
       if (tmp === 0) {
         this.l8_1 = 1;
-        console.log(this.n6s_1);
+        console.log(this.y6s_1);
         return Unit_instance;
       } else if (tmp === 1) {
         throw this.n8_1;
@@ -232,7 +232,7 @@ protoOf(log$slambda$slambda).s8 = function () {
 };
 protoOf(log$slambda$slambda).i2i = function (it, completion) {
   var i = new log$slambda$slambda(completion);
-  i.n6s_1 = it;
+  i.y6s_1 = it;
   return i;
 };
 function log$slambda$slambda_0(resultContinuation) {
@@ -244,17 +244,17 @@ function log$slambda$slambda_0(resultContinuation) {
   return l;
 }
 function log$slambda($value, resultContinuation) {
-  this.w6s_1 = $value;
+  this.h6t_1 = $value;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(log$slambda).r4d = function ($this$promise, $completion) {
-  var tmp = this.s4d($this$promise, $completion);
+protoOf(log$slambda).c4e = function ($this$promise, $completion) {
+  var tmp = this.d4e($this$promise, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(log$slambda).b9 = function (p1, $completion) {
-  return this.r4d((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.c4e((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(log$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -264,7 +264,7 @@ protoOf(log$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 3;
-          var value = this.w6s_1;
+          var value = this.h6t_1;
           if (value instanceof FluoriteStream) {
             this.k8_1 = 1;
             suspendResult = collect(value, log$slambda$slambda_0(null), this);
@@ -297,15 +297,15 @@ protoOf(log$slambda).s8 = function () {
     }
    while (true);
 };
-protoOf(log$slambda).s4d = function ($this$promise, completion) {
-  var i = new log$slambda(this.w6s_1, completion);
-  i.x6s_1 = $this$promise;
+protoOf(log$slambda).d4e = function ($this$promise, completion) {
+  var i = new log$slambda(this.h6t_1, completion);
+  i.i6t_1 = $this$promise;
   return i;
 };
 function log$slambda_0($value, resultContinuation) {
   var i = new log$slambda($value, resultContinuation);
   var l = function ($this$promise, $completion) {
-    return i.r4d($this$promise, $completion);
+    return i.c4e($this$promise, $completion);
   };
   l.$arity = 1;
   return l;
@@ -317,8 +317,8 @@ function invoke$f(value, $completion) {
   return tmp.s8();
 }
 function stringify$slambda$f$slambda($isFirst, $sb, resultContinuation) {
-  this.r6t_1 = $isFirst;
-  this.s6t_1 = $sb;
+  this.c6u_1 = $isFirst;
+  this.d6u_1 = $sb;
   CoroutineImpl.call(this, resultContinuation);
 }
 protoOf(stringify$slambda$f$slambda).h2i = function (it, $completion) {
@@ -338,14 +338,14 @@ protoOf(stringify$slambda$f$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 2;
-          if (this.r6t_1._v) {
-            this.r6t_1._v = false;
+          if (this.c6u_1._v) {
+            this.c6u_1._v = false;
           } else {
-            this.s6t_1.s7(_Char___init__impl__6a9atx(10));
+            this.d6u_1.s7(_Char___init__impl__6a9atx(10));
           }
 
           this.k8_1 = 1;
-          suspendResult = invoke$f(this.t6t_1, this);
+          suspendResult = invoke$f(this.e6u_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -353,7 +353,7 @@ protoOf(stringify$slambda$f$slambda).s8 = function () {
           continue $sm;
         case 1:
           var ARGUMENT = suspendResult;
-          this.s6t_1.r7(ARGUMENT);
+          this.d6u_1.r7(ARGUMENT);
           return Unit_instance;
         case 2:
           throw this.n8_1;
@@ -370,8 +370,8 @@ protoOf(stringify$slambda$f$slambda).s8 = function () {
    while (true);
 };
 protoOf(stringify$slambda$f$slambda).i2i = function (it, completion) {
-  var i = new stringify$slambda$f$slambda(this.r6t_1, this.s6t_1, completion);
-  i.t6t_1 = it;
+  var i = new stringify$slambda$f$slambda(this.c6u_1, this.d6u_1, completion);
+  i.e6u_1 = it;
   return i;
 };
 function stringify$slambda$f$slambda_0($isFirst, $sb, resultContinuation) {
@@ -384,7 +384,7 @@ function stringify$slambda$f$slambda_0($isFirst, $sb, resultContinuation) {
 }
 function $invoke$fCOROUTINE$(value, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.g6t_1 = value;
+  this.r6t_1 = value;
 }
 protoOf($invoke$fCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -394,19 +394,19 @@ protoOf($invoke$fCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 4;
-          var tmp_0 = this.g6t_1;
+          var tmp_0 = this.r6t_1;
           if (tmp_0 instanceof FluoriteStream) {
-            this.i6t_1 = StringBuilder_init_$Create$();
+            this.t6t_1 = StringBuilder_init_$Create$();
             var isFirst = {_v: true};
             this.k8_1 = 2;
-            suspendResult = collect(this.g6t_1, stringify$slambda$f$slambda_0(isFirst, this.i6t_1, null), this);
+            suspendResult = collect(this.r6t_1, stringify$slambda$f$slambda_0(isFirst, this.t6t_1, null), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
             continue $sm;
           } else {
             this.k8_1 = 1;
-            suspendResult = toFluoriteString(this.g6t_1, this);
+            suspendResult = toFluoriteString(this.r6t_1, this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -414,15 +414,15 @@ protoOf($invoke$fCOROUTINE$).s8 = function () {
           }
 
         case 1:
-          this.h6t_1 = suspendResult.s2j_1;
+          this.s6t_1 = suspendResult.s2j_1;
           this.k8_1 = 3;
           continue $sm;
         case 2:
-          this.h6t_1 = this.i6t_1.toString();
+          this.s6t_1 = this.t6t_1.toString();
           this.k8_1 = 3;
           continue $sm;
         case 3:
-          return this.h6t_1;
+          return this.s6t_1;
         case 4:
           throw this.n8_1;
       }
@@ -438,17 +438,17 @@ protoOf($invoke$fCOROUTINE$).s8 = function () {
    while (true);
 };
 function stringify$slambda($value, resultContinuation) {
-  this.c6u_1 = $value;
+  this.n6u_1 = $value;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(stringify$slambda).e6u = function ($this$promise, $completion) {
-  var tmp = this.s4d($this$promise, $completion);
+protoOf(stringify$slambda).p6u = function ($this$promise, $completion) {
+  var tmp = this.d4e($this$promise, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(stringify$slambda).b9 = function (p1, $completion) {
-  return this.e6u((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p6u((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(stringify$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -458,7 +458,7 @@ protoOf(stringify$slambda).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 2;
-          var value = this.c6u_1;
+          var value = this.n6u_1;
           this.k8_1 = 1;
           suspendResult = invoke$f(value, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
@@ -482,15 +482,15 @@ protoOf(stringify$slambda).s8 = function () {
     }
    while (true);
 };
-protoOf(stringify$slambda).s4d = function ($this$promise, completion) {
-  var i = new stringify$slambda(this.c6u_1, completion);
-  i.d6u_1 = $this$promise;
+protoOf(stringify$slambda).d4e = function ($this$promise, completion) {
+  var i = new stringify$slambda(this.n6u_1, completion);
+  i.o6u_1 = $this$promise;
   return i;
 };
 function stringify$slambda_0($value, resultContinuation) {
   var i = new stringify$slambda($value, resultContinuation);
   var l = function ($this$promise, $completion) {
-    return i.e6u($this$promise, $completion);
+    return i.p6u($this$promise, $completion);
   };
   l.$arity = 1;
   return l;
