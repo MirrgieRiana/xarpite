@@ -9,6 +9,7 @@ fun createCommonMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteVal
     return listOf(
         createClassMounts(),
         createLangMounts(coroutineScope, out),
+        createControlStructuresMounts(),
         createMathMounts(),
         createConvertMounts(),
         createStreamMounts(),
