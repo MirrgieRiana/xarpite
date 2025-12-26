@@ -13,6 +13,7 @@ on:
           - major
       commit_hash:
         description: 'Commit Hash'
+        default: HEAD
         required: true
         type: string
 
