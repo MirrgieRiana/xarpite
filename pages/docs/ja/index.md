@@ -2,31 +2,23 @@
 title: "Xarpiteドキュメント"
 ---
 
-<!-- toc -->
-
 # Xarpiteドキュメント
 
-- [文法](syntax.html)
-- [文・式](statement.html)
-- [空白・コメント](whitespace.html)
-- [変数](variable.html)
-- [数値](number.html)
-- [文字列](string.html)
-- [正規表現](regex.html)
-- [BLOB](blob.html)
-- [比較](comparison.html)
-- [論理値・条件分岐](boolean.html)
-- [リターン・エラー処理](jump.html)
-- [プロパティアクセス](property.html)
-- [配列](array.html)
-- [オブジェクト](object.html)
-- [関数](function.html)
-- [ストリーム・代入・パイプ系演算子](stream.html)
-- [組み込み定数・関数](builtin.html)
-- [データ変換系関数](data_conversion.html)
-- [サンプル](samples.html)
-- [コマンドラインツール](cli.html)
-- [JavaScript版](js.html)
-- [コルーチン](coroutine.html)
-- [JSON操作](json.html)
-- [制御構文](control-structures.md)
+Xarpiteは、ワンライナー向けに設計されたインタープリタ言語です。
+
+このドキュメントでは、Xarpiteの文法、機能、使用方法について説明します。
+
+## ドキュメントの構成
+
+左側のメニューから各トピックをご覧ください。
+
+- **基本文法**: 文法、文・式、空白・コメント、変数など
+- **データ型**: 数値、文字列、正規表現、BLOB、配列、オブジェクトなど
+- **制御構造**: 論理値・条件分岐、リターン・エラー処理、制御構文など
+- **演算子**: 比較、プロパティアクセス、ストリーム・代入・パイプ系演算子など
+- **組み込み機能**: 組み込み定数・関数、データ変換系関数など
+- **応用**: サンプル、コマンドラインツール、JavaScript版、コルーチン、JSON操作など
+
+## はじめに
+
+Xarpiteを始めるには、まず[文法](syntax.html)のページをご覧ください。
