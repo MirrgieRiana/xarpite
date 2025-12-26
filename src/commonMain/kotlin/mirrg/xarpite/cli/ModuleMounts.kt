@@ -4,6 +4,7 @@ import getFileSystem
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
@@ -27,7 +28,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                     val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(modulePath.toString()))
-                    evaluator.get(src)
+                    evaluator.get(src).cache()
                 }
             }
         },

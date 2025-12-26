@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.array
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -160,6 +161,51 @@ class StreamMountsTest {
         assertEquals("1", eval("1, >> SHUFFLE").stream()) // 1要素のストリームはその要素だけのストリームを返す
         assertEquals(1, eval("1 >> SHUFFLE").int) // 非ストリームはその要素を返す
         assertEquals("", eval(", >> SHUFFLE").stream()) // 空ストリームは空ストリームを返す
+    }
+
+    @Test
+    fun pipe() = runTest {
+        // 複数回の読み取りで位置を記憶
+        assertEquals(5, eval("""
+            pipe := PIPE(1 .. 10)
+            FIRST(pipe)
+            TAKE(3; pipe)
+            FIRST(pipe)
+        """).int)
+        
+        // 副作用は1度だけ発生
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            pipe := PIPE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            pipe
+            pipe
+            array
+        """).array())
+        
+        // 未消費時は副作用なし
+        assertEquals("[]", eval("""
+            array := []
+            pipe := PIPE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            array
+        """).array())
+        
+        // 空ストリーム
+        assertEquals("", eval("""
+            pipe := PIPE(,)
+            pipe
+        """).stream())
+        
+        // 非ストリーム
+        assertEquals(42, eval("""
+            pipe := PIPE(42)
+            FIRST(pipe)
+        """).int)
     }
 
 }

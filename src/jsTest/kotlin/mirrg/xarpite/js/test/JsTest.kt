@@ -1,6 +1,9 @@
 package mirrg.xarpite.js.test
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -20,12 +23,17 @@ class JsTest {
     @Test
     fun property() = runTest {
         val evaluator = Evaluator()
-        evaluator.defineMounts(createDefaultBuiltinMounts())
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            evaluator.defineMounts(createDefaultBuiltinMounts(daemonScope))
 
-        evaluator.run("obj := JS('({a: 100})')")
+            evaluator.run("obj := JS('({a: 100})')")
 
-        assertEquals(100, evaluator.get("obj.a").int) // プロパティを取得できる
-        assertEquals(123, evaluator.get("obj.b = obj.a + 23; obj.b").int) // プロパティを設定できる
+            assertEquals(100, evaluator.get("obj.a").int) // プロパティを取得できる
+            assertEquals(123, evaluator.get("obj.b = obj.a + 23; obj.b").int) // プロパティを設定できる
+        } finally {
+            daemonScope.cancel()
+        }
     }
 
     @Test
@@ -36,44 +44,54 @@ class JsTest {
     @Test
     fun new() = runTest {
         val evaluator = Evaluator()
-        evaluator.defineMounts(createDefaultBuiltinMounts())
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            evaluator.defineMounts(createDefaultBuiltinMounts(daemonScope))
 
-        """
-            Obj := JS(%>
-                function Obj(arg1) {
-                    if (this !== undefined) this.arg1 = arg1;
-                }
-                Obj.prototype.toString = function() {
-                    return "" + this.arg1;
-                }
-                Obj;
-            <%)
-        """.let { evaluator.run(it) }
+            """
+                Obj := JS(%>
+                    function Obj(arg1) {
+                        if (this !== undefined) this.arg1 = arg1;
+                    }
+                    Obj.prototype.toString = function() {
+                        return "" + this.arg1;
+                    }
+                    Obj;
+                <%)
+            """.let { evaluator.run(it) }
 
-        assertEquals(FluoriteNull, evaluator.get("Obj(123)"))
-        assertEquals("123", evaluator.get("&Obj::new(123)").string)
+            assertEquals(FluoriteNull, evaluator.get("Obj(123)"))
+            assertEquals("123", evaluator.get("&Obj::new(123)").string)
+        } finally {
+            daemonScope.cancel()
+        }
     }
 
     @Test
     fun methodCall() = runTest {
         val evaluator = Evaluator()
-        evaluator.defineMounts(createDefaultBuiltinMounts())
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            evaluator.defineMounts(createDefaultBuiltinMounts(daemonScope))
 
-        """
-            obj := JS(%>
-                ({
-                    method1: function() {
-                        return 100;
-                    },
-                    method2: function(argument1) {
-                        return 100 + argument1;
-                    }
-                })
-            <%)
-        """.let { evaluator.run(it) }
+            """
+                obj := JS(%>
+                    ({
+                        method1: function() {
+                            return 100;
+                        },
+                        method2: function(argument1) {
+                            return 100 + argument1;
+                        }
+                    })
+                <%)
+            """.let { evaluator.run(it) }
 
-        assertEquals(100, evaluator.get("obj::method1()").int) // メソッド呼び出し
-        assertEquals(123, evaluator.get("obj::method2(23)").int) // 引数のあるメソッド呼び出し
+            assertEquals(100, evaluator.get("obj::method1()").int) // メソッド呼び出し
+            assertEquals(123, evaluator.get("obj::method2(23)").int) // 引数のあるメソッド呼び出し
+        } finally {
+            daemonScope.cancel()
+        }
     }
 
     @Test

@@ -2,14 +2,15 @@ package mirrg.xarpite.js.node
 
 import envGetter
 import fileSystemGetter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.await
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.main
@@ -22,6 +23,8 @@ import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
 import writeBytesToStdoutImpl
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
 import kotlin.math.min
 
@@ -59,8 +62,15 @@ suspend fun main() {
         return
     }
     coroutineScope {
-        main(options, this) {
-            createJsMounts()
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            coroutineScope {
+                main(options, this, daemonScope) {
+                    createJsMounts()
+                }
+            }
+        } finally {
+            daemonScope.cancel()
         }
     }
 }

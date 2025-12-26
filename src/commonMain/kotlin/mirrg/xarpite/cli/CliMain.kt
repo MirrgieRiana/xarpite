@@ -8,10 +8,10 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 
-suspend fun main(options: Options, coroutineScope: CoroutineScope, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+suspend fun main(options: Options, coroutineScope: CoroutineScope, daemonScope: CoroutineScope, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     val evaluator = Evaluator()
     val defaultBuiltinMounts = listOf(
-        createCommonMounts(coroutineScope) { println(it.toFluoriteString().value) },
+        createCommonMounts(coroutineScope, daemonScope) { println(it.toFluoriteString().value) },
         createCliMounts(options.arguments),
         createExtraMounts(),
     ).flatten()

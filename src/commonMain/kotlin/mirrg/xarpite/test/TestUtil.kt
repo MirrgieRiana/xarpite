@@ -1,6 +1,8 @@
 package mirrg.xarpite.test
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
@@ -15,6 +17,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.parser.parseAllOrThrow
@@ -28,8 +31,13 @@ fun parse(src: String): String {
 
 suspend fun CoroutineScope.eval(src: String): FluoriteValue {
     val evaluator = Evaluator()
-    evaluator.defineMounts(createCommonMounts(this) {})
-    return evaluator.get(src)
+    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+    try {
+        evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
+        return evaluator.get(src).cache()
+    } finally {
+        daemonScope.cancel()
+    }
 }
 
 val FluoriteValue.int get() = (this as FluoriteInt).value

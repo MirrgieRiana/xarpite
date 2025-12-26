@@ -1,6 +1,8 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.produceIn
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
@@ -25,7 +27,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.operations.FluoriteException
 
-fun createStreamMounts(): List<Map<String, FluoriteValue>> {
+fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return mapOf(
         "REVERSE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
@@ -532,6 +534,31 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 groups.forEach { (key, list) ->
                     emit(key colon list.toFluoriteArray())
                 }
+            }
+        },
+        "PIPE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+
+                val channel by lazy {
+                    flow {
+                        if (stream is FluoriteStream) {
+                            stream.collect { item ->
+                                emit(item)
+                            }
+                        } else {
+                            emit(stream)
+                        }
+                    }.produceIn(daemonScope)
+                }
+
+                FluoriteStream {
+                    for (item in channel) {
+                        emit(item)
+                    }
+                }
+            } else {
+                usage("<T> PIPE(stream: STREAM<T>): STREAM<T>")
             }
         },
     ).let { listOf(it) }
