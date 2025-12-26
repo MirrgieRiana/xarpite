@@ -1,4 +1,6 @@
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -14,6 +16,7 @@ import mirrg.xarpite.mounts.createCommonMounts
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -103,16 +106,21 @@ class CliJvmTest {
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
     val evaluator = Evaluator()
-    val defaultBuiltinMounts = listOf(
-        createCommonMounts(this) {},
-        createCliMounts(args.toList()),
-    ).flatten()
-    lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-    mountsFactory = { location ->
-        defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
+    val daemonScope = CoroutineScope(coroutineContext + Job())
+    try {
+        val defaultBuiltinMounts = listOf(
+            createCommonMounts(this, daemonScope) {},
+            createCliMounts(args.toList()),
+        ).flatten()
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
+        }
+        evaluator.defineMounts(mountsFactory("./-"))
+        return evaluator.get(src)
+    } finally {
+        daemonScope.cancel()
     }
-    evaluator.defineMounts(mountsFactory("./-"))
-    return evaluator.get(src)
 }
 
 private suspend fun FluoriteValue.collectBlobsJvm(): List<FluoriteBlob> {

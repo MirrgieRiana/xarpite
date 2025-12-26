@@ -1,4 +1,7 @@
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.mounts.createCommonMounts
@@ -7,6 +10,7 @@ import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
+import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -56,10 +60,12 @@ class FunctionTest {
     @Test
     fun arrowCall() = runTest {
         val evaluator = Evaluator()
-        evaluator.defineMounts(createCommonMounts(this) {})
+        val daemonScope = CoroutineScope(coroutineContext + Job())
+        try {
+            evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
 
-        // _::_ でフォールバックメソッドを定義する
-        """
+            // _::_ でフォールバックメソッドを定義する
+            """
             register := listener -> listener(23)
 
             Obj := {
@@ -81,6 +87,9 @@ class FunctionTest {
 
         // クロージャ直下で変数を宣言するテスト
         assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
+        } finally {
+            daemonScope.cancel()
+        }
     }
 
     @Test
