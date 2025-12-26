@@ -10,10 +10,10 @@ class ChannelBufferBenchmarkTest {
 
     @Test
     fun benchmarkChannelBuffers() = runBlocking {
-        val count = 1_000
         val buffers = listOf(0, 1, 100)
         val delays = listOf(0L, 1L)
         for (delayMs in delays) {
+            val count = if (delayMs == 0L) 100_000 else 1_000
             for (buffer in buffers) {
                 val (elapsedMs, consumed) = benchmark(buffer, count, delayMs)
                 val throughputPerSec = count * 1000.0 / elapsedMs
