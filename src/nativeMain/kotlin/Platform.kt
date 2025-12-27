@@ -8,15 +8,23 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
+import platform.posix.FILE
+import platform.posix.WEXITSTATUS
+import platform.posix.WIFEXITED
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.errno
 import platform.posix.ferror
+import platform.posix.fclose
+import platform.posix.fgets
 import platform.posix.fread
 import platform.posix.fflush
 import platform.posix.fwrite
+import platform.posix.pclose
+import platform.posix.popen
 import platform.posix.set_posix_errno
 import platform.posix.stdin
 import platform.posix.stdout
@@ -86,6 +94,48 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
     }
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>): String {
-    throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM platform")
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
+    val commandList = listOf(process) + args
+    // シェルコマンドとして実行するためにエスケープ処理を行う
+    val escapedCommand = commandList.joinToString(" ") { arg ->
+        if (arg.contains(" ") || arg.contains("'") || arg.contains("\"") || arg.contains("\\")) {
+            "'" + arg.replace("'", "'\\''") + "'"
+        } else {
+            arg
+        }
+    }
+    
+    // popenで標準出力と標準エラー出力を結合して取得
+    val pipe: FILE? = popen("$escapedCommand 2>&1", "r")
+    
+    if (pipe == null) {
+        throw FluoriteException("Failed to execute command: $escapedCommand".toFluoriteString())
+    }
+    
+    try {
+        val output = StringBuilder()
+        memScoped {
+            val buffer = allocArray<ByteVar>(4096)
+            while (true) {
+                val line = fgets(buffer, 4096, pipe)
+                if (line == null) break
+                output.append(line.toKString())
+            }
+        }
+        
+        // プロセスを閉じて終了コードを取得
+        val status = pclose(pipe)
+        
+        // 終了コードが0でない場合は例外をスロー
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+            throw FluoriteException("Process exited with code ${WEXITSTATUS(status)}".toFluoriteString())
+        }
+        
+        output.toString()
+    } catch (e: FluoriteException) {
+        throw e
+    } catch (e: Exception) {
+        throw FluoriteException("Error executing command: ${e.message}".toFluoriteString())
+    }
 }
