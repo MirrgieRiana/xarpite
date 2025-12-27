@@ -1,74 +1,74 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
-  <meta name="description" content="{{ site.description }}">
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-  <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/xarpite-icon.svg' | relative_url }}">
-  <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{{ site.description }}">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/xarpite-icon.svg' | relative_url }}">
+    <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
 </head>
 <body>
-  <div class="page-wrapper">
+<div class="page-wrapper">
     <header class="site-header">
-      <div class="container">
-        <div class="header-content">
-          <a href="{{ '/' | relative_url }}" class="logo-link">
-            <img src="{{ '/assets/images/xarpite-icon.svg' | relative_url }}" alt="Xarpite Icon" class="logo-icon">
-            <span class="logo-text">Xarpite</span>
-          </a>
-          <nav class="main-nav">
-            <a href="{{ '/docs/ja/' | relative_url }}" class="nav-link">ドキュメント</a>
-            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
-            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
-          </nav>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ '/' | relative_url }}" class="logo-link">
+                    <img src="{{ '/assets/images/xarpite-icon.svg' | relative_url }}" alt="Xarpite Icon" class="logo-icon">
+                    <span class="logo-text">Xarpite</span>
+                </a>
+                <nav class="main-nav">
+                    <a href="{{ '/docs/ja/' | relative_url }}" class="nav-link">ドキュメント</a>
+                    <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+                    <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+                </nav>
+            </div>
         </div>
-      </div>
     </header>
 
     <main class="main-content">
-      <div class="container">
-        <div class="content-wrapper">
-          <aside class="sidebar">
-            {% assign menu_path = page.dir | append: '_menu.html' | remove_first: '/' %}
-            {% include {{ menu_path }} %}
-          </aside>
+        <div class="container">
+            <div class="content-wrapper">
+                <aside class="sidebar">
+                    {% assign menu_path = page.dir | append: 'menu.html' | remove_first: '/' %}
+                    {% include {{ menu_path }} %}
+                </aside>
 
-          <article class="doc-content">
-            {% assign toc_placeholder = '<!-- toc -->' %}
-            {% if content contains toc_placeholder %}
-              {% assign toc_path = page.dir | append: '_includes/toc.md' | remove_first: '/' %}
-              {%- capture toc_markdown -%}
-              {% include_relative {{ toc_path }} %}
-              {%- endcapture -%}
-              {% assign toc_markup = toc_markdown | markdownify %}
-              {% assign toc_list = content | generate_toc_from_html %}
-              {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
-              {% if toc_list != '' %}
-                {{ content | replace: toc_placeholder, toc_markup }}
-              {% else %}
-                {{ content | replace: toc_placeholder, '' }}
-              {% endif %}
-            {% else %}
-              {{ content }}
-            {% endif %}
-          </article>
+                <article class="doc-content">
+                    {% assign toc_placeholder = '<!-- toc --> ' %}
+                    {% if content contains toc_placeholder %}
+                    {% assign toc_path = page.dir | append: 'toc.md' | remove_first: '/' %}
+                    {%- capture toc_markdown -%}
+                    {% include {{ toc_path }} %}
+                    {%- endcapture -%}
+                    {% assign toc_markup = toc_markdown | markdownify %}
+                    {% assign toc_list = content | generate_toc_from_html %}
+                    {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
+                    {% if toc_list != '' %}
+                    {{ content | replace: toc_placeholder, toc_markup }}
+                    {% else %}
+                    {{ content | replace: toc_placeholder, '' }}
+                    {% endif %}
+                    {% else %}
+                    {{ content }}
+                    {% endif %}
+                </article>
+            </div>
         </div>
-      </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
-            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
-          </p>
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
+                    <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+                </p>
+            </div>
         </div>
-      </div>
     </footer>
-  </div>
+</div>
 </body>
 </html>
