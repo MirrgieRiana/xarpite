@@ -33,7 +33,7 @@
         <div class="content-wrapper">
           <aside class="sidebar">
             {% assign menu_path = page.dir | append: '_menu.html' | remove_first: '/' %}
-            {% include_relative {{ menu_path }} %}
+            {% include {{ menu_path }} %}
           </aside>
 
           <article class="doc-content">
