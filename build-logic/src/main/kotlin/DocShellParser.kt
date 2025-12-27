@@ -22,7 +22,7 @@ class DocShellParser(private val filePath: String, private val lines: List<Strin
         out("  echo \"Usage: \$0 <release_dir>\" >&2")
         out("  exit 1")
         out("}")
-        out("release_dir=\$(cd \"\$(dirname \"\$1\")\" && pwd)")
+        out("release_dir=\$(cd \"\$1\" && pwd)")
         out("shift")
         out("")
         out("export PATH=\"\$release_dir:\$PATH\"")
