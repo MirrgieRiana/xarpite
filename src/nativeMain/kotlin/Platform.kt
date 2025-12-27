@@ -44,6 +44,8 @@ import platform.posix.strerror
 import platform.posix.waitpid
 import kotlin.experimental.ExperimentalNativeApi
 
+val EXEC_BUFFER_SIZE = 4096
+
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
 
@@ -133,9 +135,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stdoutPipe[1])
                 
                 // 引数配列を構築
+                // cstrオブジェクトをリストに保持してGCから保護
+                val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
                 val argv = allocArrayOf(
-                    process.cstr.ptr,
-                    *args.map { it.cstr.ptr }.toTypedArray(),
+                    *cstrArgs.map { it.ptr }.toTypedArray(),
                     null
                 )
                 
@@ -150,15 +153,16 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stdoutPipe[1]) // 書き込み側を閉じる
                 
                 // 標準出力を読み取る
-                val output = StringBuilder()
-                val buffer = allocArray<ByteVar>(4096)
+                val outputBytes = mutableListOf<Byte>()
+                val buffer = allocArray<ByteVar>(EXEC_BUFFER_SIZE)
                 while (true) {
-                    val bytesRead = read(stdoutPipe[0], buffer, 4096u)
+                    val bytesRead = read(stdoutPipe[0], buffer, EXEC_BUFFER_SIZE.toULong())
                     when {
                         bytesRead > 0 -> {
-                            // バッファから文字列を作成
-                            val chunk = ByteArray(bytesRead.toInt()) { buffer[it] }
-                            output.append(chunk.decodeToString())
+                            // バッファからバイトを収集
+                            for (i in 0 until bytesRead.toInt()) {
+                                outputBytes.add(buffer[i])
+                            }
                         }
                         bytesRead == 0L -> break // EOF
                         errno == EINTR -> continue // シグナルで中断された場合は再試行
@@ -189,7 +193,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     }
                 }
                 
-                output.toString()
+                // バイト配列を文字列に変換
+                outputBytes.toByteArray().decodeToString()
             }
         }
     }
