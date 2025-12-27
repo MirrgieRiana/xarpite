@@ -9,18 +9,8 @@ then
   export XARPITE_PROGRAM_NAME
 fi
 
-# Parse launcher options (pass them through to xarpite)
-LAUNCHER_OPTIONS=()
-while (($# > 0))
-do
-  if [ "$1" = "--native" ] || [ "$1" = "--jvm" ] || [ "$1" = "--node" ]
-  then
-    LAUNCHER_OPTIONS+=("$1")
-    shift
-    continue
-  fi
-  break
-done
+# Set environment variable to indicate short command mode
+export XARPITE_SHORT_COMMAND=1
 
-# Call xarpite with launcher options, --short, and remaining arguments
-exec "$SCRIPT_DIR/xarpite" "${LAUNCHER_OPTIONS[@]}" --short "$@"
+# Call xarpite with all arguments
+exec "$SCRIPT_DIR/xarpite" "$@"

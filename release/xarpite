@@ -11,21 +11,9 @@ then
 fi
 
 # Parse launcher options
-RUNTIME_OPTION_SHORT=""
 LAUNCHER_OPTION_ENGINE=""
 while (($# > 0))
 do
-  if [ "$1" = "--short" ]
-  then
-    if [ -n "$RUNTIME_OPTION_SHORT" ]
-    then
-      echo "Error: Multiple --short options specified" 1>&2
-      exit 1
-    fi
-    RUNTIME_OPTION_SHORT="--short"
-    shift
-    continue
-  fi
   if [ "$1" = "--native" ] || [ "$1" = "--jvm" ] || [ "$1" = "--node" ]
   then
     if [ -n "$LAUNCHER_OPTION_ENGINE" ]
@@ -57,19 +45,19 @@ fi
 # Execute Xarpite
 if [ "$ENGINE" = "native" ]
 then
-  exec "$SCRIPT_DIR/bin/native/xarpite" $RUNTIME_OPTION_SHORT "$@"
+  exec "$SCRIPT_DIR/bin/native/xarpite" "$@"
 elif [ "$ENGINE" = "jvm" ]
 then
   # JAVA_HOME is set by the system or user environment
   if [ -n "$JAVA_HOME" ]
   then
-    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" $RUNTIME_OPTION_SHORT "$@"
+    exec "$JAVA_HOME/bin/java" -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   else
-    exec java -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" $RUNTIME_OPTION_SHORT "$@"
+    exec java -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   fi
 elif [ "$ENGINE" = "node" ]
 then
-  exec node "$SCRIPT_DIR/bin/node/xarpite-node.mjs" $RUNTIME_OPTION_SHORT "$@"
+  exec node "$SCRIPT_DIR/bin/node/xarpite-node.mjs" "$@"
 else
   echo "Unsupported engine: $ENGINE" 1>&2
   exit 1

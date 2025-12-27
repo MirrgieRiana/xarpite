@@ -5,18 +5,17 @@ import getFileSystem
 import getProgramName
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val short: Boolean)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
 object ShowUsage : Throwable()
 
 fun parseArguments(args: Iterable<String>): Options {
     val list = args.toMutableList()
-    var src: String? = null
     val arguments = mutableListOf<String>()
     var quiet = false
-    var short = false
     var scriptFile: String? = null
-    var evaluateMode = false
+    var script: String? = null
+    val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
     run {
         while (true) {
@@ -24,10 +23,10 @@ fun parseArguments(args: Iterable<String>): Options {
             if (list.firstOrNull() == "--") {
                 list.removeFirst()
 
-                if (list.isEmpty() && scriptFile == null && !evaluateMode) throw ShowUsage
+                if (list.isEmpty() && scriptFile == null && script == null) throw ShowUsage
 
-                if (scriptFile == null && !evaluateMode) {
-                    src = list.removeFirst()
+                if (scriptFile == null && script == null) {
+                    script = list.removeFirst()
                 }
                 arguments += list
                 list.clear()
@@ -44,16 +43,9 @@ fun parseArguments(args: Iterable<String>): Options {
                 continue
             }
 
-            if (list.firstOrNull() == "--short") {
-                if (short) throw ShowUsage
-                short = true
-                list.removeFirst()
-                continue
-            }
-
             if (list.firstOrNull() == "-f") {
                 if (scriptFile != null) throw ShowUsage
-                if (evaluateMode) throw ShowUsage
+                if (script != null) throw ShowUsage
                 list.removeFirst()
                 if (list.isEmpty()) throw ShowUsage
                 scriptFile = list.removeFirst()
@@ -61,43 +53,42 @@ fun parseArguments(args: Iterable<String>): Options {
             }
 
             if (list.firstOrNull() == "-e") {
-                if (evaluateMode) throw ShowUsage
+                if (script != null) throw ShowUsage
                 if (scriptFile != null) throw ShowUsage
-                evaluateMode = true
                 list.removeFirst()
                 if (list.isEmpty()) throw ShowUsage
-                src = list.removeFirst()
+                script = list.removeFirst()
                 continue
             }
 
             if (list.isEmpty()) {
                 // -f が指定されていれば、残りの引数がなくてもOK
-                if (scriptFile != null || evaluateMode) {
+                if (scriptFile != null || script != null) {
                     return@run
                 }
-                // --short モードで -f も -e も指定されていない場合はエラー
-                if (short) {
+                // short command モードで -f も -e も指定されていない場合はエラー
+                if (isShortCommand) {
                     throw ShowUsage
                 }
                 throw ShowUsage
             }
 
             // -f または -e が指定されていた場合、残りの引数はすべてスクリプトへの引数
-            if (scriptFile != null || evaluateMode) {
+            if (scriptFile != null || script != null) {
                 arguments += list
                 list.clear()
                 return@run
             }
 
-            // --short モードで -f も -e も指定されていない場合、最初の引数をスクリプトとして扱う
-            if (short) {
-                src = list.removeFirst()
+            // short command モードで -f も -e も指定されていない場合、最初の引数をスクリプトとして扱う
+            if (isShortCommand) {
+                script = list.removeFirst()
                 arguments += list
                 list.clear()
                 return@run
             }
 
-            src = list.removeFirst()
+            script = list.removeFirst()
             arguments += list
             list.clear()
             return@run
@@ -107,17 +98,20 @@ fun parseArguments(args: Iterable<String>): Options {
     // -f オプションが指定された場合、ファイルからソースコードを読み込む
     if (scriptFile != null) {
         val fileSystem = getFileSystem().getOrThrow()
-        src = fileSystem.read(scriptFile.toPath()) {
+        script = fileSystem.read(scriptFile.toPath()) {
             readUtf8()
         }
     }
 
-    return Options(src ?: throw ShowUsage, arguments, quiet, short)
+    return Options(script ?: throw ShowUsage, arguments, quiet)
 }
 
 fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
-    println("Usage: $programName [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>")
+    val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
+    val firstArgName = if (isShortCommand) "<script>" else "<code>"
+    
+    println("Usage: $programName [<Launcher Options>] [<Runtime Options>] [--] $firstArgName <arguments...>")
     println("")
     println("Launcher Options:")
     println("  --native                 Use the native engine")
@@ -129,5 +123,4 @@ fun showUsage() {
     println("  -q                       Run script as a runner")
     println("  -f <file>                Read script from file")
     println("  -e <code>                Evaluate code directly")
-    println("  --short                  Treat first argument as script (for xa command)")
 }

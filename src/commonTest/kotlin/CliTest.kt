@@ -300,43 +300,13 @@ class CliTest {
     }
 
     @Test
-    fun shortOptionTreatsFirstArgumentAsScript() = runTest {
-        // --short オプションを指定すると、最初の引数をスクリプトとして扱う
-        val options = parseArguments(listOf("--short", "1 + 2", "arg1", "arg2"))
-
-        assertEquals("1 + 2", options.src)
-        assertEquals(listOf("arg1", "arg2"), options.arguments)
-        assertEquals(true, options.short)
-    }
-
-    @Test
-    fun shortOptionWithFileOptionReadFromFile() = runTest {
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val file = baseDir.resolve("short_file.test_script.tmp.xa1")
-
-        fileSystem.write(file) {
-            writeUtf8("3 + 4")
-        }
-
-        // --short と -f を組み合わせると、-f が優先される
-        val options = parseArguments(listOf("--short", "-f", file.toString(), "arg1"))
-
-        assertEquals("3 + 4", options.src)
-        assertEquals(listOf("arg1"), options.arguments)
-        assertEquals(true, options.short)
-
-        fileSystem.delete(file)
-    }
-
-    @Test
     fun eOptionEvaluatesCode() = runTest {
         // -e オプションを指定すると、直接コードを評価する
         val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"))
 
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
+        assertEquals(false, options.quiet)
     }
 
     @Test
@@ -360,14 +330,6 @@ class CliTest {
         }
 
         fileSystem.delete(file)
-    }
-
-    @Test
-    fun shortOptionWithoutArgumentsThrowsError() = runTest {
-        // --short オプションだけで引数がない場合はエラー
-        assertFailsWith<ShowUsage> {
-            parseArguments(listOf("--short"))
-        }
     }
 
     fun execRunsSimpleCommand() = runTest {
