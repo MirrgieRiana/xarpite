@@ -32,14 +32,22 @@
       <div class="container">
         <div class="content-wrapper">
           <aside class="sidebar">
-            {% assign menu_path = page.dir | append: '_menu.html' | remove_first: '/' | prepend: '../' %}
-            {% include_relative {{ menu_path }} %}
+            {% assign doc_lang = 'ja' %}
+            {% if page.dir contains '/docs/en/' %}
+              {% include_relative ../docs/en/_menu.html %}
+              {% assign doc_lang = 'en' %}
+            {% elsif page.dir contains '/docs/ja/' %}
+              {% include_relative ../docs/ja/_menu.html %}
+              {% assign doc_lang = 'ja' %}
+            {% else %}
+              {% include_relative ../_menu.html %}
+            {% endif %}
           </aside>
 
           <article class="doc-content">
             {% assign toc_enabled = page.toc | default: true %}
             {% if toc_enabled %}
-              {% assign toc_lang = page.lang | default: 'ja' %}
+              {% assign toc_lang = page.lang | default: doc_lang %}
               {%- capture toc_markdown -%}
 {% include toc-{{ toc_lang }}.md %}
               {%- endcapture -%}
