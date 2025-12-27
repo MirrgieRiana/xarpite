@@ -79,9 +79,9 @@ import {
   last1vo29oleiqj36 as last,
   dropLast1vpiyky649o34 as dropLast_0,
   toMutableListoiy7juhbnlr7 as toMutableList,
+  firstOrNull1982767dljvdy as firstOrNull,
   removeFirst1io7eo7dqtj5o as removeFirst,
   addAll1k27qatfgp3k5 as addAll,
-  firstOrNull1982767dljvdy as firstOrNull,
   lazy2hsh8ze7j6ikd as lazy,
   mapOf2zpbbmyqk8xpf as mapOf_0,
   startsWith26w8qjqapeeq6 as startsWith_0,
@@ -5305,79 +5305,83 @@ function Options(src, arguments_0, quiet) {
 }
 function parseArguments(args) {
   var list = toMutableList(args);
-  var src = null;
   // Inline function 'kotlin.collections.mutableListOf' call
   var arguments_0 = ArrayList_init_$Create$_0();
   var quiet = false;
   var scriptFile = null;
+  var script = null;
+  // Inline function 'kotlin.text.isNullOrEmpty' call
+  var this_0 = getEnv().k2('XARPITE_SHORT_COMMAND');
+  var isShortCommand = !(this_0 == null || charSequenceLength(this_0) === 0);
   // Inline function 'kotlin.run' call
-  $l$block_2: {
-    $l$loop_0: while (true) {
-      if (firstOrNull(list) === '--') {
-        removeFirst(list);
-        if (list.o() && scriptFile == null)
+  $l$block_0: {
+    $l$loop_1: while (true) {
+      switch (firstOrNull(list)) {
+        case '--':
+          removeFirst(list);
+          break $l$block_0;
+        case '-h':
+        case '--help':
+          removeFirst(list);
           throw ShowUsage_getInstance();
-        if (scriptFile == null) {
-          src = removeFirst(list);
-        }
-        // Inline function 'kotlin.collections.plusAssign' call
-        addAll(arguments_0, list);
-        list.e2();
-        break $l$block_2;
+        case '-q':
+          if (quiet)
+            throw ShowUsage_getInstance();
+          removeFirst(list);
+          quiet = true;
+          continue $l$loop_1;
+        case '-f':
+          if (!(scriptFile == null))
+            throw ShowUsage_getInstance();
+          if (!(script == null))
+            throw ShowUsage_getInstance();
+          removeFirst(list);
+          if (list.o())
+            throw ShowUsage_getInstance();
+          scriptFile = removeFirst(list);
+          continue $l$loop_1;
+        case '-e':
+          if (!(scriptFile == null))
+            throw ShowUsage_getInstance();
+          if (!(script == null))
+            throw ShowUsage_getInstance();
+          removeFirst(list);
+          if (list.o())
+            throw ShowUsage_getInstance();
+          script = removeFirst(list);
+          continue $l$loop_1;
+        default:
+          break $l$block_0;
       }
-      if (firstOrNull(list) === '-h')
-        throw ShowUsage_getInstance();
-      if (firstOrNull(list) === '--help')
-        throw ShowUsage_getInstance();
-      if (firstOrNull(list) === '-q') {
-        if (quiet)
-          throw ShowUsage_getInstance();
-        quiet = true;
-        removeFirst(list);
-        continue $l$loop_0;
-      }
-      if (firstOrNull(list) === '-f') {
-        if (!(scriptFile == null))
-          throw ShowUsage_getInstance();
-        removeFirst(list);
-        if (list.o())
-          throw ShowUsage_getInstance();
-        scriptFile = removeFirst(list);
-        continue $l$loop_0;
-      }
-      if (list.o()) {
-        if (!(scriptFile == null)) {
-          break $l$block_2;
-        }
-        throw ShowUsage_getInstance();
-      }
-      if (!(scriptFile == null)) {
-        // Inline function 'kotlin.collections.plusAssign' call
-        addAll(arguments_0, list);
-        list.e2();
-        break $l$block_2;
-      }
-      src = removeFirst(list);
-      // Inline function 'kotlin.collections.plusAssign' call
-      addAll(arguments_0, list);
-      list.e2();
-      break $l$block_2;
     }
   }
+  // Inline function 'kotlin.run' call
+  if (scriptFile == null && script == null) {
+    if (list.o())
+      throw ShowUsage_getInstance();
+    if (isShortCommand) {
+      script = removeFirst(list);
+    } else {
+      scriptFile = removeFirst(list);
+    }
+  }
+  // Inline function 'kotlin.collections.plusAssign' call
+  addAll(arguments_0, list);
+  list.e2();
   if (!(scriptFile == null)) {
     // Inline function 'kotlin.getOrThrow' call
-    var this_0 = getFileSystem();
-    throwOnFailure(this_0);
-    var tmp = _Result___get_value__impl__bjfvqg(this_0);
+    var this_1 = getFileSystem();
+    throwOnFailure(this_1);
+    var tmp = _Result___get_value__impl__bjfvqg(this_1);
     var fileSystem = (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
     // Inline function 'okio.FileSystem.read' call
     var file = Companion_getInstance().l1i(scriptFile);
     // Inline function 'okio.use' call
-    var this_1 = buffer(fileSystem.o1i(file));
+    var this_2 = buffer(fileSystem.o1i(file));
     var thrown = null;
     var tmp_0;
     try {
-      tmp_0 = this_1.p1j();
+      tmp_0 = this_2.p1j();
     } catch ($p) {
       var tmp_1;
       if ($p instanceof Error) {
@@ -5391,10 +5395,10 @@ function parseArguments(args) {
     }
     finally {
       try {
-        if (this_1 == null)
+        if (this_2 == null)
           null;
         else {
-          this_1.p1i();
+          this_2.p1i();
         }
       } catch ($p) {
         if ($p instanceof Error) {
@@ -5412,9 +5416,9 @@ function parseArguments(args) {
     var result = tmp_0;
     if (!(thrown == null))
       throw thrown;
-    src = (result == null ? true : !(result == null)) ? result : THROW_CCE();
+    script = (result == null ? true : !(result == null)) ? result : THROW_CCE();
   }
-  var tmp0_elvis_lhs = src;
+  var tmp0_elvis_lhs = script;
   var tmp_2;
   if (tmp0_elvis_lhs == null) {
     throw ShowUsage_getInstance();
@@ -5438,17 +5442,22 @@ function showUsage() {
   var tmp0_elvis_lhs = getEnv().k2('XARPITE_PROGRAM_NAME');
   var tmp1_elvis_lhs = tmp0_elvis_lhs == null ? getProgramName() : tmp0_elvis_lhs;
   var programName = tmp1_elvis_lhs == null ? 'xarpite' : tmp1_elvis_lhs;
-  println('Usage: ' + programName + ' [<Launcher Options>] [<Runtime Options>] [--] <code> <arguments...>');
-  println('');
+  // Inline function 'kotlin.text.isNullOrEmpty' call
+  var this_0 = getEnv().k2('XARPITE_SHORT_COMMAND');
+  var isShortCommand = !(this_0 == null || charSequenceLength(this_0) === 0);
+  var firstArgName = isShortCommand ? 'script' : 'scriptfile';
+  println('Usage: ' + programName + ' <Launcher Options> <Runtime Options> [--] [' + firstArgName + '] <arguments>');
   println('Launcher Options:');
   println('  --native                 Use the native engine');
   println('  --jvm                    Use the JVM engine');
   println('  --node                   Use the Node.js engine');
-  println('');
   println('Runtime Options:');
   println('  -h, --help               Show this help');
   println('  -q                       Run script as a runner');
-  println('  -f <file>                Read script from file');
+  println('  -f <scriptfile>          Read script from file');
+  println('                           Omit [' + firstArgName + ']');
+  println('  -e <script>              Evaluate script directly');
+  println('                           Omit [' + firstArgName + ']');
 }
 function createModuleMounts(location, mountsFactory) {
   // Inline function 'kotlin.run' call
@@ -31767,6 +31776,10 @@ function get_writeBytesToStdoutImpl() {
   return writeBytesToStdoutImpl;
 }
 var writeBytesToStdoutImpl;
+function getEnv() {
+  _init_properties_Platform_kt__37ezn1();
+  return get_envGetter()();
+}
 function getFileSystem() {
   _init_properties_Platform_kt__37ezn1();
   var fileSystemGetter = get_fileSystemGetter();
@@ -31781,10 +31794,6 @@ function getFileSystem() {
     tmp = _Result___init__impl__xyqfz8(createFailure(exception));
   }
   return tmp;
-}
-function getEnv() {
-  _init_properties_Platform_kt__37ezn1();
-  return get_envGetter()();
 }
 function getProgramName() {
   _init_properties_Platform_kt__37ezn1();

@@ -20,14 +20,6 @@ defaults:
       path: ""
     values:
       layout: default
-  - scope:
-      path: "docs"
-    values:
-      toc: true
-  - scope:
-      path: "docs/en"
-    values:
-      lang: en
 
 plugins:
   - jekyll-optional-front-matter

@@ -37,7 +37,7 @@ ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
 destination=/usr/local/bin/xa
 echo "Updating $destination"
 rm -f "$destination" || exit
-ln -s "$SCRIPT_DIR"/xarpite "$destination" || exit
+ln -s "$SCRIPT_DIR"/xa "$destination" || exit
 
 # /usr/local/bin/xarpite-update にインストール
 destination=/usr/local/bin/xarpite-update

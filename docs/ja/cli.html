@@ -1,133 +1,197 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>CLI - Xarpite</title>
-  <meta name="description" content="An interpreted language for one-liners">
-  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
-  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
-  <script src="/xarpite/assets/js/main.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CLI - Xarpite</title>
+    <meta name="description" content="An interpreted language for one-liners">
+    <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+    <script src="/xarpite/assets/js/main.js" defer></script>
 </head>
 <body>
-  <div class="page-wrapper">
+<div class="page-wrapper">
     <header class="site-header">
-      <div class="container">
-        <div class="header-content">
-          <a href="/xarpite/" class="logo-link">
-            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
-            <span class="logo-text">Xarpite</span>
-          </a>
-          <nav class="main-nav">
-            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
-            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
-            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
-          </nav>
+        <div class="container">
+            <div class="header-content">
+                <a href="/xarpite/" class="logo-link">
+                    <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+                    <span class="logo-text">Xarpite</span>
+                </a>
+                <nav class="main-nav">
+                    <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+                    <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+                    <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+                </nav>
+            </div>
         </div>
-      </div>
     </header>
 
     <main class="main-content">
-      <div class="container">
-        <div class="content-wrapper">
-          <aside class="sidebar">
-            <nav class="doc-nav">
-              <h3 class="nav-title">ドキュメント</h3>
-              <ul class="nav-list">
-                <li><a href="/xarpite/docs/ja/">トップ</a></li>
-                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
-                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
-                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
-                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
-                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
-                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
-                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
-                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
-                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
-                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
-                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
-                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
-                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
-                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
-                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
-                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
-                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
-                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
-                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
-                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
-                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
-                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
-                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
-              </ul>
-            </nav>
-          </aside>
+        <div class="container">
+            <div class="content-wrapper">
+                <aside class="sidebar">
+                    
+                    <nav class="doc-nav">
+  <h3 class="nav-title">ドキュメント</h3>
+  <ul class="nav-list">
+    <li><a href="/xarpite/docs/ja/">トップ</a></li>
+    <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+    <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+    <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+    <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+    <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+    <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+    <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+    <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+    <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+    <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+    <li><a href="/xarpite/docs/ja/control-structures.html">制御構文</a></li>
+    <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+    <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+    <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+    <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+    <li><a href="/xarpite/docs/ja/length.html">長さ</a></li>
+    <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+    <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+    <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+    <li><a href="/xarpite/docs/ja/data-conversion.html">データ変換系関数</a></li>
+    <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+    <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+    <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+    <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+    <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+  </ul>
+</nav>
 
-          <article class="doc-content">
-            
-            
-              
-              
-              
-              
-              
-                
-                  <div class="table-of-contents">
-  <ul id="markdown-toc"><li><a href="#xarpiteを実行するコマンド">Xarpiteを実行するコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-xarpiteコードを実行する">xarpite: Xarpiteコードを実行する</a></li><li><a href="#xa-xarpiteコードを実行する">xa: Xarpiteコードを実行する</a></li><li><a href="#ランチャー">ランチャー</a><ul id="markdown-toc"><li><a href="#xarpite_engine-実行エンジンを指定">XARPITE_ENGINE: 実行エンジンを指定</a></li><li><a href="#--native-ネイティブ実装エンジンを使用">--native: ネイティブ実装エンジンを使用</a></li><li><a href="#--jvm-jvmエンジンを使用">--jvm: JVMエンジンを使用</a></li><li><a href="#--node-nodejsエンジンを使用">--node: Node.jsエンジンを使用</a></li></ul></li><li><a href="#ランタイム">ランタイム</a><ul id="markdown-toc"><li><a href="#戻り値の出力">戻り値の出力</a></li><li><a href="#-q-戻り値の出力の抑制">-q: 戻り値の出力の抑制</a></li><li><a href="#-f-ファイルからスクリプトを読み込む">-f: ファイルからスクリプトを読み込む</a></li></ul></li></ul></li><li><a href="#その他のコマンド">その他のコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-update-xarpiteを最新版に更新する">xarpite-update: Xarpiteを最新版に更新する</a></li></ul></li><li><a href="#cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</a><ul id="markdown-toc"><li><a href="#args-コマンドライン引数を取得">ARGS: コマンドライン引数を取得</a></li><li><a href="#env-環境変数を取得">ENV: 環境変数を取得</a></li><li><a href="#in-コンソールから文字列を1行ずつ読み取る">IN: コンソールから文字列を1行ずつ読み取る</a></li><li><a href="#inb-コンソールからバイトデータを読み取る">INB: コンソールからバイトデータを読み取る</a></li><li><a href="#out-コンソールに出力">OUT: コンソールに出力</a></li><li><a href="#outb-バイトデータをコンソールに出力">OUTB: バイトデータをコンソールに出力</a></li><li><a href="#files-ディレクトリ内のファイルの一覧を取得">FILES: ディレクトリ内のファイルの一覧を取得</a></li><li><a href="#read-ファイルから読み込み">READ: ファイルから読み込み</a></li><li><a href="#use-外部xarpiteファイルの結果を取得">USE: 外部Xarpiteファイルの結果を取得</a></li><li><a href="#exec-外部コマンドを実行-experimental">EXEC: 外部コマンドを実行 [EXPERIMENTAL]</a></li></ul></li></ul>
+                </aside>
+
+                <article class="doc-content">
+                    
+                    
+                        
+                        
+                        
+                        
+                            <h1 id="cli">CLI</h1>
+
+<p>Xarpiteはコマンドラインインターフェース（CLI）を通じて実行できます。</p>
+
+<p>ブラウザ版にはない、CLI版限定の機能や概念がいくつか存在します。</p>
+
+<div class="table-of-contents">
+  <ul id="markdown-toc"><li><a href="#cli">CLI</a><ul id="markdown-toc"><li><a href="#ランチャーとランタイム">ランチャーとランタイム</a></li><li><a href="#xarpiteを実行するコマンド">Xarpiteを実行するコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-xarpiteを実行する基本的なコマンド">xarpite: Xarpiteを実行する基本的なコマンド</a></li><li><a href="#xa-xarpiteを手元で実行する便利なショートカット">xa: Xarpiteを手元で実行する便利なショートカット</a></li></ul></li><li><a href="#xarpiteエンジンの指定">Xarpiteエンジンの指定</a><ul id="markdown-toc"><li><a href="#xarpite_engine-xarpiteエンジンを指定する環境変数">XARPITE_ENGINE: Xarpiteエンジンを指定する環境変数</a></li></ul></li><li><a href="#xarpiteエンジンを指定するコマンドラインオプション">Xarpiteエンジンを指定するコマンドラインオプション</a><ul id="markdown-toc"><li><a href="#--native-ネイティブ実装エンジンを使用">--native: ネイティブ実装エンジンを使用</a></li><li><a href="#--jvm-jvmエンジンを使用">--jvm: JVMエンジンを使用</a></li><li><a href="#--node-nodejsエンジンを使用">--node: Node.jsエンジンを使用</a></li></ul></li><li><a href="#戻り値の出力">戻り値の出力</a><ul id="markdown-toc"><li><a href="#-q-戻り値の出力の抑制">-q: 戻り値の出力の抑制</a></li></ul></li><li><a href="#スクリプトの指定">スクリプトの指定</a><ul id="markdown-toc"><li><a href="#-f-ファイルからスクリプトを読み込む">-f: ファイルからスクリプトを読み込む</a></li><li><a href="#-e-スクリプトを直接実行">-e: スクリプトを直接実行</a></li></ul></li><li><a href="#その他のコマンド">その他のコマンド</a><ul id="markdown-toc"><li><a href="#xarpite-update-xarpiteを最新版に更新する">xarpite-update: Xarpiteを最新版に更新する</a></li></ul></li><li><a href="#cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</a><ul id="markdown-toc"><li><a href="#args-コマンドライン引数を取得">ARGS: コマンドライン引数を取得</a></li><li><a href="#env-環境変数を取得">ENV: 環境変数を取得</a></li><li><a href="#in-コンソールから文字列を1行ずつ読み取る">IN: コンソールから文字列を1行ずつ読み取る</a></li><li><a href="#inb-コンソールからバイトデータを読み取る">INB: コンソールからバイトデータを読み取る</a></li><li><a href="#out-コンソールに出力">OUT: コンソールに出力</a></li><li><a href="#outb-バイトデータをコンソールに出力">OUTB: バイトデータをコンソールに出力</a></li><li><a href="#files-ディレクトリ内のファイルの一覧を取得">FILES: ディレクトリ内のファイルの一覧を取得</a></li><li><a href="#read-ファイルから読み込み">READ: ファイルから読み込み</a></li><li><a href="#use-外部xarpiteファイルの結果を取得">USE: 外部Xarpiteファイルの結果を取得</a></li><li><a href="#exec-外部コマンドを実行-experimental">EXEC: 外部コマンドを実行 [EXPERIMENTAL]</a></li></ul></li></ul></li></ul>
 </div>
 
 
-<h1 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h1>
+<h2 id="ランチャーとランタイム">ランチャーとランタイム</h2>
 
-<h2 id="xarpite-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteコードを実行する</h2>
+<p>CLI上でXarpiteを実行する際には、ランチャーとランタイムという2つのレイヤーが存在します。</p>
 
-<p><code class="language-plaintext highlighter-rouge">xa</code> コマンドの長い形式です。</p>
+<hr />
 
-<p>将来的に <code class="language-plaintext highlighter-rouge">xarpite2</code> などの新作が登場した場合に備えて用意されています。</p>
+<p>ランチャーとは <code class="language-plaintext highlighter-rouge">xarpite</code> コマンドを直接受け付けるシェルスクリプトを指します。</p>
 
-<p>シェルスクリプトなど、永続的なファイルにコマンドを記述する際には <code class="language-plaintext highlighter-rouge">xa</code> コマンドよりもこちらが推奨されます。</p>
+<p>ランチャーは環境変数や引数などに基づいて実際に起動すべきランタイムの決定とその起動を行います。</p>
 
-<p>他方で、コマンドラインから直接コードを実行する場合には <code class="language-plaintext highlighter-rouge">xa</code> コマンドの方が短くて便利です。</p>
+<hr />
 
-<p>引数などの仕様は <code class="language-plaintext highlighter-rouge">xa</code> コマンドと同一です。</p>
+<p>ランタイムとはXarpiteスクリプトを実際に動作させるプログラムを指します。</p>
 
-<h2 id="xa-xarpiteコードを実行する"><code class="language-plaintext highlighter-rouge">xa</code>: Xarpiteコードを実行する</h2>
+<p>ランタイムには複数のプラットフォームによる異なる実装があり、これはXarpiteエンジンと呼ばれます。</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xa
-# Usage: xa [&lt;Launcher Options&gt;] [&lt;Runtime Options&gt;] [--] [&lt;code&gt;] &lt;arguments...&gt;
-#
-# Launcher Options:
-#   --native                 Use the native engine
-#   --jvm                    Use the JVM engine
-#   --node                   Use the Node.js engine
-#
-# Runtime Options:
-#   -h, --help               Show this help
-#   -q                       Run script as a runner
-#   -f &lt;file&gt;                Read script from file
-</code></pre></div></div>
+<h2 id="xarpiteを実行するコマンド">Xarpiteを実行するコマンド</h2>
 
-<p><code class="language-plaintext highlighter-rouge">xa</code> はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。</p>
+<h3 id="xarpite-xarpiteを実行する基本的なコマンド"><code class="language-plaintext highlighter-rouge">xarpite</code>: Xarpiteを実行する基本的なコマンド</h3>
 
-<p><code class="language-plaintext highlighter-rouge">xa</code> コマンドは標準の動作としてコードの戻り値を出力するため、結果の出力のために明示的に <code class="language-plaintext highlighter-rouge">OUT</code> 関数などを使う必要はありません。</p>
+<p><code class="language-plaintext highlighter-rouge">xarpite</code> コマンドはXarpiteを実行するための最も基本的なコマンドです。</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'1 + 2'</span>
-<span class="c"># 3</span>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xarpite <span class="nt">-h</span>
+<span class="c"># Usage: xarpite &lt;Launcher Options&gt; &lt;Runtime Options&gt; [--] [scriptfile] &lt;arguments&gt;</span>
+<span class="c"># Launcher Options:</span>
+<span class="c">#   --native                 Use the native engine</span>
+<span class="c">#   --jvm                    Use the JVM engine</span>
+<span class="c">#   --node                   Use the Node.js engine</span>
+<span class="c"># Runtime Options:</span>
+<span class="c">#   -h, --help               Show this help</span>
+<span class="c">#   -q                       Run script as a runner</span>
+<span class="c">#   -f &lt;scriptfile&gt;          Read script from file</span>
+<span class="c">#                            Omit [scriptfile]</span>
+<span class="c">#   -e &lt;script&gt;              Evaluate script directly</span>
+<span class="c">#                            Omit [scriptfile]</span>
 </code></pre></div></div>
 
 <hr />
 
-<p><code class="language-plaintext highlighter-rouge">Launcher Options</code> は <code class="language-plaintext highlighter-rouge">Runtime Options</code> よりも前に指定する必要があります。</p>
+<p><code class="language-plaintext highlighter-rouge">Launcher Options</code> はランチャー側で、 <code class="language-plaintext highlighter-rouge">Runtime Options</code> はランタイム側で解釈されます。</p>
 
-<p><code class="language-plaintext highlighter-rouge">--</code> はオプションの終端を示します。これ以降の引数はすべてコードおよびコードに渡される引数として解釈されます。</p>
+<p>このため、両者は順序を入れ替えて指定することはできません。</p>
 
-<h2 id="ランチャー">ランチャー</h2>
+<hr />
 
-<p>ランチャーとは、Xarpiteコマンドを直接受け付けるシェルスクリプトを指します。</p>
+<p><code class="language-plaintext highlighter-rouge">xarpite</code> コマンドはシバン行によってXarpiteスクリプトを直接実行するためにも利用できます。</p>
 
-<p>ランチャーは環境変数や引数などに基づいて実際に起動されるXarpiteエンジンを決定します。</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
+  <span class="nb">echo</span> <span class="s1">'#!/usr/bin/env xarpite'</span> <span class="o">&gt;</span> script.xa1
+  <span class="nb">echo</span> <span class="s1">'100 + 20 + 3'</span> <span class="o">&gt;&gt;</span> script.xa1
+  <span class="nb">chmod</span> +x script.xa1
 
-<h3 id="xarpite_engine-実行エンジンを指定"><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code>: 実行エンジンを指定</h3>
+  ./script.xa1
+
+  <span class="nb">rm </span>script.xa1
+<span class="o">}</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<h3 id="xa-xarpiteを手元で実行する便利なショートカット"><code class="language-plaintext highlighter-rouge">xa</code>: Xarpiteを手元で実行する便利なショートカット</h3>
+
+<p><code class="language-plaintext highlighter-rouge">xa</code> コマンドは <code class="language-plaintext highlighter-rouge">xarpite</code> コマンドのショートカットです。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-h</span>
+<span class="c"># Usage: xa &lt;Launcher Options&gt; &lt;Runtime Options&gt; [--] [script] &lt;arguments&gt;</span>
+<span class="c"># Launcher Options:</span>
+<span class="c">#   --native                 Use the native engine</span>
+<span class="c">#   --jvm                    Use the JVM engine</span>
+<span class="c">#   --node                   Use the Node.js engine</span>
+<span class="c"># Runtime Options:</span>
+<span class="c">#   -h, --help               Show this help</span>
+<span class="c">#   -q                       Run script as a runner</span>
+<span class="c">#   -f &lt;scriptfile&gt;          Read script from file</span>
+<span class="c">#                            Omit [script]</span>
+<span class="c">#   -e &lt;script&gt;              Evaluate script directly</span>
+<span class="c">#                            Omit [script]</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">xarpite</code> コマンドと概ね同じ仕様ですが、以下の点で重要な違いがあります。</p>
+
+<ul>
+  <li>文字数が2文字と非常に短い。</li>
+  <li>第一引数がデフォルトでXarpiteスクリプトファイルではなくXarpiteスクリプトそのものとして解釈される。</li>
+  <li><strong>Xarpite2などが出た場合、同じ <code class="language-plaintext highlighter-rouge">xa</code> コマンドが使われる可能性がある。</strong></li>
+</ul>
+
+<hr />
+
+<p>大雑把に言えば、人間が手元のコンソール上で使うための便利なコマンドです。</p>
+
+<p><code class="language-plaintext highlighter-rouge">xa</code> コマンドを使えば非常に少ない記述量で簡単な計算をすることができます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'100 + 20 + 3'</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<hr />
+
+<p>一方で、 <code class="language-plaintext highlighter-rouge">xa</code> コマンドはシェルスクリプトなどのファイル内に記述する利用法を想定していません。</p>
+
+<p>その目的には代わりに <code class="language-plaintext highlighter-rouge">xarpite</code> コマンドを使用してください。</p>
+
+<h2 id="xarpiteエンジンの指定">Xarpiteエンジンの指定</h2>
+
+<h3 id="xarpite_engine-xarpiteエンジンを指定する環境変数"><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code>: Xarpiteエンジンを指定する環境変数</h3>
 
 <p><code class="language-plaintext highlighter-rouge">XARPITE_ENGINE</code> 環境変数はXarpiteの実行エンジンを指定します。</p>
 
@@ -149,35 +213,33 @@
 
 <p>この設定ファイルも存在しない場合、デフォルトで <code class="language-plaintext highlighter-rouge">native</code> エンジンが使用されます。</p>
 
-<h3 id="--native-ネイティブ実装エンジンを使用"><code class="language-plaintext highlighter-rouge">--native</code>: ネイティブ実装エンジンを使用</h3>
-
-<p>ネイティブコンパイルされたXarpiteエンジンを使用します。</p>
-
 <hr />
+
+<p>コマンドラインオプションによるXarpiteエンジンの指定は環境変数による指定よりも優先されます。</p>
+
+<h2 id="xarpiteエンジンを指定するコマンドラインオプション">Xarpiteエンジンを指定するコマンドラインオプション</h2>
 
 <p>Xarpiteエンジンを指定するコマンドラインオプションは排他的であり、複数を同時に指定することはできません。</p>
 
-<p>コマンドラインオプションによるXarpiteエンジンの指定は、環境変数による指定よりも優先されます。</p>
+<h3 id="--native-ネイティブ実装エンジンを使用"><code class="language-plaintext highlighter-rouge">--native</code>: ネイティブ実装エンジンを使用</h3>
+
+<p>ネイティブコンパイルされたXarpiteエンジンを使用します。</p>
 
 <h3 id="--jvm-jvmエンジンを使用"><code class="language-plaintext highlighter-rouge">--jvm</code>: JVMエンジンを使用</h3>
 
 <p>JVM上で動作するXarpiteエンジンを使用します。</p>
 
-<p>コマンドラインオプションとしての基本的な性質は <code class="language-plaintext highlighter-rouge">--native</code> に準じます。</p>
-
 <h3 id="--node-nodejsエンジンを使用"><code class="language-plaintext highlighter-rouge">--node</code>: Node.jsエンジンを使用</h3>
 
 <p>Node.js上で動作するXarpiteエンジンを使用します。</p>
 
-<p>コマンドラインオプションとしての基本的な性質は <code class="language-plaintext highlighter-rouge">--native</code> に準じます。</p>
+<h2 id="戻り値の出力">戻り値の出力</h2>
 
-<h2 id="ランタイム">ランタイム</h2>
+<p>CLI版Xarpiteでは、標準の動作としてプログラム全体の戻り値を標準出力に出力します。</p>
 
-<p>ランタイムとは、Xarpite言語を実際に動作させるプログラムです。</p>
+<hr />
 
-<h3 id="戻り値の出力">戻り値の出力</h3>
-
-<p>戻り値の出力の際には文字列化が行われます。</p>
+<p>この際、出力値の文字列化が行われます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="s1">'
   Object := {
@@ -208,9 +270,9 @@
 
 <h3 id="-q-戻り値の出力の抑制"><code class="language-plaintext highlighter-rouge">-q</code>: 戻り値の出力の抑制</h3>
 
-<p><code class="language-plaintext highlighter-rouge">-q</code> オプションを指定すると、全体を文（runner ）として解釈し、戻り値の出力は行われません。</p>
+<p><code class="language-plaintext highlighter-rouge">-q</code> オプションを指定すると、戻り値の出力が行われなくなります。</p>
 
-<p>出力を行うには <code class="language-plaintext highlighter-rouge">OUT</code> 関数などを使う必要があります。</p>
+<p>出力を行うには別途 <code class="language-plaintext highlighter-rouge">OUT</code> 関数などを使う必要があります。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-q</span> <span class="s1">'
   OUT &lt;&lt; "apple"
@@ -223,27 +285,82 @@
 
 <hr />
 
-<p>厳密には、このオプションはソースコード全体を文（runner）として解釈することを指定するオプションです。</p>
+<p>厳密には、このオプションはソースコード全体を文（runner）コンテキストとして解釈することを指定するオプションです。</p>
+
+<p>このため末尾式の部分に変数宣言文などの文が書けるようになります。</p>
+
+<h2 id="スクリプトの指定">スクリプトの指定</h2>
+
+<p>実行するXarpiteスクリプトの指定方法は起動コマンドと指定方法で6通りに別れます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>起動コマンド</th>
+      <th>スクリプトの指定方法</th>
+      <th>記述例</th>
+      <th>扱い</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xarpite</code></td>
+      <td>第一引数</td>
+      <td><code class="language-plaintext highlighter-rouge">xarpite script.xa1 arg1 ...</code></td>
+      <td>スクリプトファイル</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xarpite</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-f</code></td>
+      <td><code class="language-plaintext highlighter-rouge">xarpite -f script.xa1 arg1 ...</code></td>
+      <td>スクリプトファイル</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xarpite</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-e</code></td>
+      <td><code class="language-plaintext highlighter-rouge">xarpite -e '1 + 2' arg1 ...</code></td>
+      <td>スクリプト</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xa</code></td>
+      <td>第一引数</td>
+      <td><code class="language-plaintext highlighter-rouge">xa '1 + 2' arg1 ...</code></td>
+      <td>スクリプト</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xa</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-f</code></td>
+      <td><code class="language-plaintext highlighter-rouge">xa -f script.xa1 arg1 ...</code></td>
+      <td>スクリプトファイル</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">xa</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-e</code></td>
+      <td><code class="language-plaintext highlighter-rouge">xa -e '1 + 2' arg1 ...</code></td>
+      <td>スクリプト</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3 id="-f-ファイルからスクリプトを読み込む"><code class="language-plaintext highlighter-rouge">-f</code>: ファイルからスクリプトを読み込む</h3>
 
-<p><code class="language-plaintext highlighter-rouge">-f &lt;file&gt;</code></p>
+<p><code class="language-plaintext highlighter-rouge">-f &lt;scriptfile&gt;</code></p>
 
-<p><code class="language-plaintext highlighter-rouge">-f</code> オプションを指定すると、コマンドライン引数で直接コードを指定する代わりに、指定したファイルからXarpiteスクリプトを読み込んで実行します。</p>
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションを指定すると、指定したXarpiteスクリプトファイルからXarpiteスクリプトを読み込んで実行します。</p>
 
-<p><code class="language-plaintext highlighter-rouge">file</code> が相対パスで指定された場合、カレントディレクトリを起点として解決されます。</p>
+<p><code class="language-plaintext highlighter-rouge">USE</code> 関数とは異なり、 <code class="language-plaintext highlighter-rouge">scriptfile</code> が相対パスで指定された場合、カレントディレクトリを起点として解決されます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
-  <span class="nb">echo</span> <span class="s1">'1 + 2'</span> <span class="o">&gt;</span> script.xa1
+  <span class="nb">echo</span> <span class="s1">'100 + 20 + 3'</span> <span class="o">&gt;</span> script.xa1
   xa <span class="nt">-f</span> script.xa1
   <span class="nb">rm </span>script.xa1
 <span class="o">}</span>
-<span class="c"># 3</span>
+<span class="c"># 123</span>
 </code></pre></div></div>
 
 <hr />
 
-<p><code class="language-plaintext highlighter-rouge">-f</code> オプションが指定された場合、 <code class="language-plaintext highlighter-rouge">code</code> 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。</p>
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションが指定された場合、第1引数はスクリプトに渡す引数の一部として解釈されます。</p>
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="o">{</span>
   <span class="nb">echo</span> <span class="s1">'ARGS()'</span> <span class="o">&gt;</span> script.xa1
@@ -256,19 +373,46 @@
 <span class="c"># cherry</span>
 </code></pre></div></div>
 
-<h1 id="その他のコマンド">その他のコマンド</h1>
+<hr />
 
-<h2 id="xarpite-update-xarpiteを最新版に更新する"><code class="language-plaintext highlighter-rouge">xarpite-update</code>: Xarpiteを最新版に更新する</h2>
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションと <code class="language-plaintext highlighter-rouge">-e</code> オプションは排他的であり、同時に指定することはできません。</p>
+
+<h3 id="-e-スクリプトを直接実行"><code class="language-plaintext highlighter-rouge">-e</code>: スクリプトを直接実行</h3>
+
+<p><code class="language-plaintext highlighter-rouge">-e &lt;script&gt;</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">-e</code> オプションを指定すると、指定したXarpiteスクリプトを直接実行します。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xarpite <span class="nt">-e</span> <span class="s1">'100 + 20 + 3'</span>
+<span class="c"># 123</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">-e</code> オプションが指定された場合、第1引数はスクリプトに渡す引数の一部として解釈されます。</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>xa <span class="nt">-e</span> <span class="s1">'ARGS()'</span> <span class="s1">'100 + 20 + 3'</span> apple banana cherry
+<span class="c"># 100 + 20 + 3</span>
+<span class="c"># apple</span>
+<span class="c"># banana</span>
+<span class="c"># cherry</span>
+</code></pre></div></div>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">-f</code> オプションと <code class="language-plaintext highlighter-rouge">-e</code> オプションは排他的であり、同時に指定することはできません。</p>
+
+<h2 id="その他のコマンド">その他のコマンド</h2>
+
+<h3 id="xarpite-update-xarpiteを最新版に更新する"><code class="language-plaintext highlighter-rouge">xarpite-update</code>: Xarpiteを最新版に更新する</h3>
 
 <p>現在実行中のXarpiteを最新版に更新します。</p>
 
-<p>このコマンドは特別な実行権限が必要な場合があります。</p>
+<p>このコマンドにはインストールディレクトリに書き込みを行う権限が必要です。</p>
 
-<h1 id="cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</h1>
+<h2 id="cli版限定組み込み定数関数">CLI版限定組み込み定数・関数</h2>
 
-<p>CLI版Xarpiteでのみ利用可能な定数および関数です。</p>
-
-<h2 id="args-コマンドライン引数を取得"><code class="language-plaintext highlighter-rouge">ARGS</code>: コマンドライン引数を取得</h2>
+<h3 id="args-コマンドライン引数を取得"><code class="language-plaintext highlighter-rouge">ARGS</code>: コマンドライン引数を取得</h3>
 
 <p>コマンドライン引数が配列で格納されています。</p>
 
@@ -278,7 +422,7 @@
 <span class="c"># [1;2;3]</span>
 </code></pre></div></div>
 
-<h2 id="env-環境変数を取得"><code class="language-plaintext highlighter-rouge">ENV</code>: 環境変数を取得</h2>
+<h3 id="env-環境変数を取得"><code class="language-plaintext highlighter-rouge">ENV</code>: 環境変数を取得</h3>
 
 <p>環境変数がオブジェクトとして格納されています。</p>
 
@@ -288,7 +432,7 @@
 
 <p>存在しない変数にアクセスした場合は <code class="language-plaintext highlighter-rouge">NULL</code> が返ります。</p>
 
-<h2 id="in-コンソールから文字列を1行ずつ読み取る"><code class="language-plaintext highlighter-rouge">IN</code>: コンソールから文字列を1行ずつ読み取る</h2>
+<h3 id="in-コンソールから文字列を1行ずつ読み取る"><code class="language-plaintext highlighter-rouge">IN</code>: コンソールから文字列を1行ずつ読み取る</h3>
 
 <p><code class="language-plaintext highlighter-rouge">IN: STREAM&lt;STRING&gt;</code></p>
 
@@ -332,7 +476,7 @@
 
 <p><code class="language-plaintext highlighter-rouge">IN</code> を一度でも使用した場合、 <code class="language-plaintext highlighter-rouge">INB</code> を使用することはできません。</p>
 
-<h2 id="inb-コンソールからバイトデータを読み取る"><code class="language-plaintext highlighter-rouge">INB</code>: コンソールからバイトデータを読み取る</h2>
+<h3 id="inb-コンソールからバイトデータを読み取る"><code class="language-plaintext highlighter-rouge">INB</code>: コンソールからバイトデータを読み取る</h3>
 
 <p><code class="language-plaintext highlighter-rouge">INB: STREAM&lt;BLOB&gt;</code></p>
 
@@ -348,7 +492,7 @@
 
 <p><code class="language-plaintext highlighter-rouge">INB</code> を一度でも使用した場合、 <code class="language-plaintext highlighter-rouge">IN</code> を使用することはできません。</p>
 
-<h2 id="out-コンソールに出力"><code class="language-plaintext highlighter-rouge">OUT</code>: コンソールに出力</h2>
+<h3 id="out-コンソールに出力"><code class="language-plaintext highlighter-rouge">OUT</code>: コンソールに出力</h3>
 
 <p><code class="language-plaintext highlighter-rouge">OUT(value: VALUE): NULL</code></p>
 
@@ -380,7 +524,7 @@
 
 <p><code class="language-plaintext highlighter-rouge">OUT</code> 関数自体は <code class="language-plaintext highlighter-rouge">NULL</code> を返します。</p>
 
-<h2 id="outb-バイトデータをコンソールに出力"><code class="language-plaintext highlighter-rouge">OUTB</code>: バイトデータをコンソールに出力</h2>
+<h3 id="outb-バイトデータをコンソールに出力"><code class="language-plaintext highlighter-rouge">OUTB</code>: バイトデータをコンソールに出力</h3>
 
 <p><code class="language-plaintext highlighter-rouge">OUTB(blobLike: BLOB_LIKE): NULL</code></p>
 
@@ -399,7 +543,7 @@
 
 <p>それ以外の部分は概ね <code class="language-plaintext highlighter-rouge">OUT</code> 関数の仕様に準じます。</p>
 
-<h2 id="files-ディレクトリ内のファイルの一覧を取得"><code class="language-plaintext highlighter-rouge">FILES</code>: ディレクトリ内のファイルの一覧を取得</h2>
+<h3 id="files-ディレクトリ内のファイルの一覧を取得"><code class="language-plaintext highlighter-rouge">FILES</code>: ディレクトリ内のファイルの一覧を取得</h3>
 
 <p><code class="language-plaintext highlighter-rouge">FILES(dir: STRING): STREAM&lt;STRING&gt;</code></p>
 
@@ -424,7 +568,7 @@
 <span class="c"># file</span>
 </code></pre></div></div>
 
-<h2 id="read-ファイルから読み込み"><code class="language-plaintext highlighter-rouge">READ</code>: ファイルから読み込み</h2>
+<h3 id="read-ファイルから読み込み"><code class="language-plaintext highlighter-rouge">READ</code>: ファイルから読み込み</h3>
 
 <p><code class="language-plaintext highlighter-rouge">READ(file: STRING): STREAM&lt;STRING&gt;</code></p>
 
@@ -442,7 +586,7 @@
 <span class="c"># banana</span>
 </code></pre></div></div>
 
-<h2 id="use-外部xarpiteファイルの結果を取得"><code class="language-plaintext highlighter-rouge">USE</code>: 外部Xarpiteファイルの結果を取得</h2>
+<h3 id="use-外部xarpiteファイルの結果を取得"><code class="language-plaintext highlighter-rouge">USE</code>: 外部Xarpiteファイルの結果を取得</h3>
 
 <p><code class="language-plaintext highlighter-rouge">USE(file: STRING): VALUE</code></p>
 
@@ -550,7 +694,7 @@
 
 <p>モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。</p>
 
-<h2 id="exec-外部コマンドを実行-experimental"><code class="language-plaintext highlighter-rouge">EXEC</code>: 外部コマンドを実行 [EXPERIMENTAL]</h2>
+<h3 id="exec-外部コマンドを実行-experimental"><code class="language-plaintext highlighter-rouge">EXEC</code>: 外部コマンドを実行 [EXPERIMENTAL]</h3>
 
 <p><code class="language-plaintext highlighter-rouge">EXEC(command: STREAM&lt;STRING&gt;): STREAM&lt;STRING&gt;</code></p>
 
@@ -599,24 +743,23 @@
 
 <p><strong>また、この関数は現状JVM版でのみ提供されます。</strong></p>
 
-                
-              
-            
-          </article>
+                        
+                    
+                </article>
+            </div>
         </div>
-      </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
-            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
-          </p>
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
+                    <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+                </p>
+            </div>
         </div>
-      </div>
     </footer>
-  </div>
+</div>
 </body>
 </html>

@@ -199,6 +199,11 @@ initMetadataForCoroutine($hasNextCOROUTINE$, CoroutineImpl);
 initMetadataForClass(SendBroadcast, 'SendBroadcast', VOID, VOID, [Waiter]);
 initMetadataForClass(BufferedChannelIterator, 'BufferedChannelIterator', VOID, VOID, [Waiter], [0, 3]);
 initMetadataForCoroutine($sendCOROUTINE$, CoroutineImpl);
+function close$default(cause, $super) {
+  cause = cause === VOID ? null : cause;
+  return $super === VOID ? this.o1x(cause) : $super.o1x.call(this, cause);
+}
+initMetadataForInterface(SendChannel, 'SendChannel', VOID, VOID, VOID, [1]);
 function cancel$default_0(cause, $super) {
   cause = cause === VOID ? null : cause;
   var tmp;
@@ -211,12 +216,7 @@ function cancel$default_0(cause, $super) {
   return tmp;
 }
 initMetadataForInterface(ReceiveChannel, 'ReceiveChannel', VOID, VOID, VOID, [0]);
-function close$default(cause, $super) {
-  cause = cause === VOID ? null : cause;
-  return $super === VOID ? this.o1x(cause) : $super.o1x.call(this, cause);
-}
-initMetadataForInterface(SendChannel, 'SendChannel', VOID, VOID, VOID, [1]);
-initMetadataForClass(BufferedChannel, 'BufferedChannel', VOID, VOID, [ReceiveChannel, SendChannel], [1, 4, 0, 3]);
+initMetadataForClass(BufferedChannel, 'BufferedChannel', VOID, VOID, [SendChannel, ReceiveChannel], [1, 4, 0, 3]);
 initMetadataForClass(WaiterEB, 'WaiterEB');
 initMetadataForClass(ReceiveCatching, 'ReceiveCatching', VOID, VOID, [Waiter]);
 initMetadataForObject(Factory, 'Factory');
@@ -226,7 +226,7 @@ initMetadataForCompanion(Companion);
 initMetadataForClass(ChannelResult, 'ChannelResult');
 initMetadataForClass(ClosedSendChannelException, 'ClosedSendChannelException', VOID, IllegalStateException);
 initMetadataForClass(ClosedReceiveChannelException, 'ClosedReceiveChannelException', VOID, NoSuchElementException);
-initMetadataForClass(ChannelCoroutine, 'ChannelCoroutine', VOID, AbstractCoroutine, [AbstractCoroutine, ReceiveChannel, SendChannel], [1, 0]);
+initMetadataForClass(ChannelCoroutine, 'ChannelCoroutine', VOID, AbstractCoroutine, [AbstractCoroutine, SendChannel, ReceiveChannel], [1, 0]);
 initMetadataForClass(ConflatedBufferedChannel, 'ConflatedBufferedChannel', VOID, BufferedChannel, VOID, [1, 0]);
 initMetadataForInterface(ProducerScope, 'ProducerScope', VOID, VOID, [CoroutineScope, SendChannel], [1]);
 initMetadataForClass(ProducerCoroutine, 'ProducerCoroutine', VOID, ChannelCoroutine, [ChannelCoroutine, ProducerScope], [1, 0]);
@@ -1379,6 +1379,10 @@ function MainScope() {
 function CoroutineScope_0(context) {
   return new ContextScope(!(context.x8(Key_instance_2) == null) ? context : context.tf(Job_0()));
 }
+function coroutineScope(block, $completion) {
+  var coroutine = new ScopeCoroutine($completion.q8(), $completion);
+  return startUndispatchedOrReturn(coroutine, coroutine, block);
+}
 function cancel(_this__u8e3s4, cause) {
   cause = cause === VOID ? null : cause;
   var tmp0_elvis_lhs = _this__u8e3s4.o1i().x8(Key_instance_2);
@@ -1400,10 +1404,6 @@ protoOf(GlobalScope).o1i = function () {
 var GlobalScope_instance;
 function GlobalScope_getInstance() {
   return GlobalScope_instance;
-}
-function coroutineScope(block, $completion) {
-  var coroutine = new ScopeCoroutine($completion.q8(), $completion);
-  return startUndispatchedOrReturn(coroutine, coroutine, block);
 }
 var CoroutineStart_DEFAULT_instance;
 var CoroutineStart_LAZY_instance;
@@ -8084,6 +8084,9 @@ function dispatcherFailure(completion, e) {
   completion.v8(tmp$ret$0);
   throw reportException;
 }
+function startUndispatchedOrReturn(_this__u8e3s4, receiver, block) {
+  return startUndspatched(_this__u8e3s4, true, receiver, block);
+}
 function startCoroutineUndispatched(_this__u8e3s4, receiver, completion) {
   // Inline function 'kotlinx.coroutines.internal.probeCoroutineCreated' call
   var actualCompletion = completion;
@@ -8122,9 +8125,6 @@ function startCoroutineUndispatched(_this__u8e3s4, receiver, completion) {
     var tmp$ret$7 = _Result___init__impl__xyqfz8(value_0);
     actualCompletion.v8(tmp$ret$7);
   }
-}
-function startUndispatchedOrReturn(_this__u8e3s4, receiver, block) {
-  return startUndspatched(_this__u8e3s4, true, receiver, block);
 }
 function startUndspatched(_this__u8e3s4, alwaysRethrow, receiver, block) {
   var tmp;
@@ -9036,6 +9036,7 @@ DEBUG = false;
 export {
   first as firstvh3bah3c9r20,
   await_0 as await20nhgj9iqzkt,
+  coroutineScope as coroutineScope284yy3flyb2v2,
   delay as delayolwo40i9ucjz,
   yield_0 as yield384d4mz0p6ack,
   Dispatchers_getInstance as Dispatchers_getInstanceitgtkvqfcnx3,

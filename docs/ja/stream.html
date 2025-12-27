@@ -1,78 +1,80 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>範囲系演算子 - Xarpite</title>
-  <meta name="description" content="An interpreted language for one-liners">
-  <link rel="stylesheet" href="/xarpite/assets/css/style.css">
-  <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
-  <script src="/xarpite/assets/js/main.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>範囲系演算子 - Xarpite</title>
+    <meta name="description" content="An interpreted language for one-liners">
+    <link rel="stylesheet" href="/xarpite/assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="/xarpite/assets/images/xarpite-icon.svg">
+    <script src="/xarpite/assets/js/main.js" defer></script>
 </head>
 <body>
-  <div class="page-wrapper">
+<div class="page-wrapper">
     <header class="site-header">
-      <div class="container">
-        <div class="header-content">
-          <a href="/xarpite/" class="logo-link">
-            <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
-            <span class="logo-text">Xarpite</span>
-          </a>
-          <nav class="main-nav">
-            <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
-            <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
-            <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
-          </nav>
+        <div class="container">
+            <div class="header-content">
+                <a href="/xarpite/" class="logo-link">
+                    <img src="/xarpite/assets/images/xarpite-icon.svg" alt="Xarpite Icon" class="logo-icon">
+                    <span class="logo-text">Xarpite</span>
+                </a>
+                <nav class="main-nav">
+                    <a href="/xarpite/docs/ja/" class="nav-link">ドキュメント</a>
+                    <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
+                    <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
+                </nav>
+            </div>
         </div>
-      </div>
     </header>
 
     <main class="main-content">
-      <div class="container">
-        <div class="content-wrapper">
-          <aside class="sidebar">
-            <nav class="doc-nav">
-              <h3 class="nav-title">ドキュメント</h3>
-              <ul class="nav-list">
-                <li><a href="/xarpite/docs/ja/">トップ</a></li>
-                <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
-                <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
-                <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
-                <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
-                <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
-                <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
-                <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
-                <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
-                <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
-                <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
-                <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
-                <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
-                <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
-                <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
-                <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
-                <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
-                <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
-                <li><a href="/xarpite/docs/ja/data_conversion.html">データ変換系関数</a></li>
-                <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
-                <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
-                <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
-                <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
-                <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
-              </ul>
-            </nav>
-          </aside>
+        <div class="container">
+            <div class="content-wrapper">
+                <aside class="sidebar">
+                    
+                    <nav class="doc-nav">
+  <h3 class="nav-title">ドキュメント</h3>
+  <ul class="nav-list">
+    <li><a href="/xarpite/docs/ja/">トップ</a></li>
+    <li><a href="/xarpite/docs/ja/syntax.html">文法</a></li>
+    <li><a href="/xarpite/docs/ja/statement.html">文・式</a></li>
+    <li><a href="/xarpite/docs/ja/whitespace.html">空白・コメント</a></li>
+    <li><a href="/xarpite/docs/ja/variable.html">変数</a></li>
+    <li><a href="/xarpite/docs/ja/number.html">数値</a></li>
+    <li><a href="/xarpite/docs/ja/string.html">文字列</a></li>
+    <li><a href="/xarpite/docs/ja/regex.html">正規表現</a></li>
+    <li><a href="/xarpite/docs/ja/blob.html">BLOB</a></li>
+    <li><a href="/xarpite/docs/ja/comparison.html">比較</a></li>
+    <li><a href="/xarpite/docs/ja/boolean.html">論理値・条件分岐</a></li>
+    <li><a href="/xarpite/docs/ja/control-structures.html">制御構文</a></li>
+    <li><a href="/xarpite/docs/ja/jump.html">リターン・エラー処理</a></li>
+    <li><a href="/xarpite/docs/ja/property.html">プロパティアクセス</a></li>
+    <li><a href="/xarpite/docs/ja/array.html">配列</a></li>
+    <li><a href="/xarpite/docs/ja/object.html">オブジェクト</a></li>
+    <li><a href="/xarpite/docs/ja/length.html">長さ</a></li>
+    <li><a href="/xarpite/docs/ja/function.html">関数</a></li>
+    <li><a href="/xarpite/docs/ja/stream.html">ストリーム・代入・パイプ系演算子</a></li>
+    <li><a href="/xarpite/docs/ja/builtin.html">組み込み定数・関数</a></li>
+    <li><a href="/xarpite/docs/ja/data-conversion.html">データ変換系関数</a></li>
+    <li><a href="/xarpite/docs/ja/samples.html">サンプル</a></li>
+    <li><a href="/xarpite/docs/ja/cli.html">コマンドラインツール</a></li>
+    <li><a href="/xarpite/docs/ja/js.html">JavaScript版</a></li>
+    <li><a href="/xarpite/docs/ja/coroutine.html">コルーチン</a></li>
+    <li><a href="/xarpite/docs/ja/json.html">JSON操作</a></li>
+  </ul>
+</nav>
 
-          <article class="doc-content">
-            
-            
-              
-              
-              
-              
-              
-                
-                  <div class="table-of-contents">
+                </aside>
+
+                <article class="doc-content">
+                    
+                    
+                        
+                        
+                        
+                        
+                            <div class="table-of-contents">
   <ul id="markdown-toc"><li><a href="#範囲系演算子">範囲系演算子</a><ul id="markdown-toc"><li><a href="#閉区間-start--end">閉区間 start .. end</a></li><li><a href="#半開区間-start--end">半開区間 start ~ end</a></li></ul></li><li><a href="#ストリーム結合系演算子">ストリーム結合系演算子</a><ul id="markdown-toc"><li><a href="#ストリームの結合-items-">ストリームの結合 items, ...</a></li></ul></li><li><a href="#ストリーム系演算子">ストリーム系演算子</a><ul id="markdown-toc"><li><a href="#ストリーム系演算子の簡単な紹介">ストリーム系演算子の簡単な紹介</a></li><li><a href="#結合優先度について">結合優先度について</a></li><li><a href="#配列の要素への代入代入系-arrayindex--value">配列の要素への代入（代入系） array(index) = value</a></li><li><a href="#エントリー演算子代入系-key-value">エントリー演算子（代入系） key: value</a></li><li><a href="#左実行パイプ代入系-function--value">左実行パイプ（代入系） function &amp;lt;&amp;lt; value</a></li><li><a href="#パイプパイプ系-stream--formula">パイプ（パイプ系） stream | formula</a></li><li><a href="#右実行パイプ実行パイプ系-value--function">右実行パイプ（実行パイプ系） value &amp;gt;&amp;gt; function</a></li><li><a href="#オブジェクトの継承-parententry-">オブジェクトの継承 parent{entry; ...}</a></li><li><a href="#オブジェクトの要素アクセス-objectkey">オブジェクトの要素アクセス object.key</a></li><li><a href="#null安全要素アクセス-objectkey">Null安全要素アクセス object?.key</a></li></ul></li><li><a href="#パイプと実行パイプのインデントのベストプラクティス">パイプと実行パイプのインデントのベストプラクティス</a><ul id="markdown-toc"><li><a href="#パイプの連鎖">パイプの連鎖</a></li><li><a href="#実行パイプによるパイプのインデントのリセット">実行パイプによるパイプのインデントのリセット</a></li></ul></li><li><a href="#ストリームのプロパティアクセス">ストリームのプロパティアクセス</a></li><li><a href="#ストリームの解決">ストリームの解決</a></li><li><a href="#ストリーム系関数">ストリーム系関数</a><ul id="markdown-toc"><li><a href="#pipe-読み取り位置を記憶するストリームを生成する">PIPE: 読み取り位置を記憶するストリームを生成する</a></li></ul></li></ul>
 </div>
 
@@ -835,24 +837,23 @@
 <span class="c"># Finished</span>
 </code></pre></div></div>
 
-                
-              
-            
-          </article>
+                        
+                    
+                </article>
+            </div>
         </div>
-      </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container">
-        <div class="footer-content">
-          <p class="footer-text">
-            &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
-            <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
-          </p>
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    &copy; 2024-2025 <a href="https://github.com/MirrgieRiana" target="_blank" class="footer-link">MirrgieRiana</a>.
+                    <a href="https://github.com/MirrgieRiana/xarpite" target="_blank" class="footer-link">GitHub</a>
+                </p>
+            </div>
         </div>
-      </div>
     </footer>
-  </div>
+</div>
 </body>
 </html>
