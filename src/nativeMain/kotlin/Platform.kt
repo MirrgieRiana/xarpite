@@ -1,5 +1,4 @@
 import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
@@ -18,7 +17,7 @@ import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
-import platform.posix.STDERR_FILENO
+import platform.posix.EINTR
 import platform.posix.STDOUT_FILENO
 import platform.posix.WEXITSTATUS
 import platform.posix.WIFEXITED
@@ -128,27 +127,23 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             }
             pid == 0 -> {
                 // 子プロセス
-                try {
-                    // 標準出力をパイプに接続
-                    close(stdoutPipe[0]) // 読み取り側を閉じる
-                    dup2(stdoutPipe[1], STDOUT_FILENO)
-                    close(stdoutPipe[1])
-                    
-                    // 引数配列を構築
-                    val argv = allocArrayOf(
-                        process.cstr.ptr,
-                        *args.map { it.cstr.ptr }.toTypedArray(),
-                        null
-                    )
-                    
-                    // プロセスを実行
-                    execvp(process, argv)
-                    
-                    // execvpが戻ってきた場合はエラー
-                    exit(127)
-                } catch (e: Exception) {
-                    exit(126)
-                }
+                // 標準出力をパイプに接続
+                close(stdoutPipe[0]) // 読み取り側を閉じる
+                dup2(stdoutPipe[1], STDOUT_FILENO)
+                close(stdoutPipe[1])
+                
+                // 引数配列を構築
+                val argv = allocArrayOf(
+                    process.cstr.ptr,
+                    *args.map { it.cstr.ptr }.toTypedArray(),
+                    null
+                )
+                
+                // プロセスを実行
+                execvp(process, argv)
+                
+                // execvpが戻ってきた場合はエラー
+                exit(127)
             }
             else -> {
                 // 親プロセス
@@ -159,10 +154,16 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 val buffer = allocArray<ByteVar>(4096)
                 while (true) {
                     val bytesRead = read(stdoutPipe[0], buffer, 4096u)
-                    if (bytesRead <= 0) break
-                    // バッファから文字列を作成
-                    val chunk = ByteArray(bytesRead.toInt()) { buffer[it] }
-                    output.append(chunk.decodeToString())
+                    when {
+                        bytesRead > 0 -> {
+                            // バッファから文字列を作成
+                            val chunk = ByteArray(bytesRead.toInt()) { buffer[it] }
+                            output.append(chunk.decodeToString())
+                        }
+                        bytesRead == 0L -> break // EOF
+                        errno == EINTR -> continue // シグナルで中断された場合は再試行
+                        else -> break // その他のエラー
+                    }
                 }
                 
                 close(stdoutPipe[0])
