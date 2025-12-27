@@ -20,7 +20,7 @@
             <span class="logo-text">Xarpite</span>
           </a>
           <nav class="main-nav">
-            <a href="{{ (site.docs_base | append: '/ja/') | relative_url }}" class="nav-link">ドキュメント</a>
+            <a href="{{ '/docs/ja/' | relative_url }}" class="nav-link">ドキュメント</a>
             <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
             <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
           </nav>
@@ -32,13 +32,14 @@
       <div class="container">
         <div class="content-wrapper">
           <aside class="sidebar">
-            {% if page.url contains '/docs/en/' %}
+            {% case page.menu_relative %}
+            {% when '../docs/en/_menu.html' %}
               {% include_relative ../docs/en/_menu.html %}
-            {% elsif page.url contains '/docs/ja/' %}
+            {% when '../docs/ja/_menu.html' %}
               {% include_relative ../docs/ja/_menu.html %}
-            {% else %}
+            {% when '../_menu.html' %}
               {% include_relative ../_menu.html %}
-            {% endif %}
+            {% endcase %}
           </aside>
 
           <article class="doc-content">

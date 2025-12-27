@@ -1,10 +1,10 @@
 <nav class="doc-nav">
   <h3 class="nav-title">Documentation</h3>
   <ul class="nav-list">
-    <li><a href="{{ (site.docs_base | append: '/en/') | relative_url }}">Top</a></li>
-    <li><a href="{{ (site.docs_base | append: '/en/syntax.html') | relative_url }}">Syntax</a></li>
-    <li><a href="{{ (site.docs_base | append: '/en/control-structures.html') | relative_url }}">Control Structures</a></li>
-    <li><a href="{{ (site.docs_base | append: '/en/builtin.html') | relative_url }}">Built-in Constants and Functions</a></li>
-    <li><a href="{{ (site.docs_base | append: '/en/cli.html') | relative_url }}">Command Line Tool</a></li>
+    <li><a href="{{ page.dir | relative_url }}">Top</a></li>
+    <li><a href="{{ page.dir | append: 'syntax.html' | relative_url }}">Syntax</a></li>
+    <li><a href="{{ page.dir | append: 'control-structures.html' | relative_url }}">Control Structures</a></li>
+    <li><a href="{{ page.dir | append: 'builtin.html' | relative_url }}">Built-in Constants and Functions</a></li>
+    <li><a href="{{ page.dir | append: 'cli.html' | relative_url }}">Command Line Tool</a></li>
   </ul>
 </nav>
