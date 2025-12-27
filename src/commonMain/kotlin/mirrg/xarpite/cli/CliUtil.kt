@@ -66,10 +66,6 @@ fun parseArguments(args: Iterable<String>): Options {
                 if (scriptFile != null || script != null) {
                     return@run
                 }
-                // short command モードで -f も -e も指定されていない場合はエラー
-                if (isShortCommand) {
-                    throw ShowUsage
-                }
                 throw ShowUsage
             }
 

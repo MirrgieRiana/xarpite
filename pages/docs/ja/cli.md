@@ -22,7 +22,7 @@ title: CLI
 
 ```
 $ xa
-# Usage: xa [<Launcher Options>] [<Runtime Options>] [--] [<code>] <arguments...>
+# Usage: xa [<Launcher Options>] [<Runtime Options>] [--] <script> <arguments...>
 #
 # Launcher Options:
 #   --native                 Use the native engine
@@ -33,9 +33,27 @@ $ xa
 #   -h, --help               Show this help
 #   -q                       Run script as a runner
 #   -f <file>                Read script from file
+#   -e <code>                Evaluate code directly
 ```
 
 `xa` はコマンドライン引数に渡されたXarpiteのコードをその場で実行するコマンドです。
+
+`xa` コマンドは `xarpite` コマンドに環境変数 `XARPITE_SHORT_COMMAND=1` をセットして呼び出すショートカットです。
+
+この環境変数により、シバン行 `#!/usr/bin/xa` を使ったスクリプトファイルの直接実行が可能です。
+
+```shell
+$ cat > script.xa1 << 'EOF'
+#!/usr/bin/xa
+1 + 2
+EOF
+$ chmod +x script.xa1
+$ ./script.xa1
+# 3
+$ rm script.xa1
+```
+
+---
 
 `xa` コマンドは標準の動作としてコードの戻り値を出力するため、結果の出力のために明示的に `OUT` 関数などを使う必要はありません。
 
@@ -174,6 +192,48 @@ $ {
 ```
 
 ---
+
+`-f` オプションが指定された場合、 `<script>` 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。
+
+```shell
+$ {
+  echo 'ARGS()' > script.xa1
+  xa -f script.xa1 '100 + 20 + 3' apple banana cherry
+  rm script.xa1
+}
+# 100 + 20 + 3
+# apple
+# banana
+# cherry
+```
+
+### `-e`: コードを直接評価
+
+`-e <code>`
+
+`-e` オプションを指定すると、 `<code>` 引数を直接Xarpiteコードとして評価します。
+
+これにより、コード内にスペースや特殊文字を含む場合でも、引数として明示的に指定できます。
+
+```shell
+$ xa -e '1 + 2' arg1 arg2
+# 3
+```
+
+---
+
+`-e` オプションが指定された場合、それ以降の引数はすべてスクリプトに渡されます。
+
+```shell
+$ xa -e 'ARGS()' apple banana cherry
+# apple
+# banana
+# cherry
+```
+
+---
+
+`-e` オプションと `-f` オプションは排他的であり、同時に指定することはできません。
 
 `-f` オプションが指定された場合、 `code` 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。
 
