@@ -99,15 +99,15 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
     val commandList = listOf(process) + args
     // シェルコマンドとして実行するためにエスケープ処理を行う
     val escapedCommand = commandList.joinToString(" ") { arg ->
-        if (arg.contains(" ") || arg.contains("'") || arg.contains("\"") || arg.contains("\\")) {
+        if (arg.contains(" ") || arg.contains("'") || arg.contains("\"") || arg.contains("\\") || arg.contains("\$") || arg.contains("`")) {
             "'" + arg.replace("'", "'\\''") + "'"
         } else {
             arg
         }
     }
     
-    // popenで標準出力と標準エラー出力を結合して取得
-    val pipe: FILE? = popen("$escapedCommand 2>&1", "r")
+    // popenで標準出力を取得（標準エラー出力は別途処理）
+    val pipe: FILE? = popen(escapedCommand, "r")
     
     if (pipe == null) {
         throw FluoriteException("Failed to execute command: $escapedCommand".toFluoriteString())
