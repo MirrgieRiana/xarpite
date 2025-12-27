@@ -96,46 +96,49 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
+    // NOTE: この実装はpopを使用しており、シェルを経由します。
+    // すべての引数をシングルクォートでエスケープしていますが、
+    // より安全な実装にはfork/execvpの使用が推奨されます。
     val commandList = listOf(process) + args
     // シェルコマンドとして実行するためにエスケープ処理を行う
+    // シングルクォートでエスケープするため、引数内のシングルクォートを適切に処理
     val escapedCommand = commandList.joinToString(" ") { arg ->
-        if (arg.contains(" ") || arg.contains("'") || arg.contains("\"") || arg.contains("\\") || arg.contains("\$") || arg.contains("`")) {
-            "'" + arg.replace("'", "'\\''") + "'"
-        } else {
-            arg
-        }
+        "'" + arg.replace("'", "'\\''") + "'"
     }
     
-    // popenで標準出力を取得（標準エラー出力は別途処理）
+    // popenで標準出力を取得
     val pipe: FILE? = popen(escapedCommand, "r")
     
     if (pipe == null) {
         throw FluoriteException("Failed to execute command: $escapedCommand".toFluoriteString())
     }
     
-    try {
-        val output = StringBuilder()
-        memScoped {
-            val buffer = allocArray<ByteVar>(4096)
-            while (true) {
-                val line = fgets(buffer, 4096, pipe)
-                if (line == null) break
-                output.append(line.toKString())
+    val output = StringBuilder()
+    memScoped {
+        val buffer = allocArray<ByteVar>(4096)
+        while (true) {
+            val line = fgets(buffer, 4096, pipe)
+            if (line == null) break
+            output.append(line.toKString())
+        }
+    }
+    
+    // プロセスを閉じて終了コードを取得
+    val status = pclose(pipe)
+    
+    // 終了コードをチェック
+    when {
+        WIFEXITED(status) -> {
+            val exitCode = WEXITSTATUS(status)
+            if (exitCode != 0) {
+                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
             }
         }
-        
-        // プロセスを閉じて終了コードを取得
-        val status = pclose(pipe)
-        
-        // 終了コードが0でない場合は例外をスロー
-        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-            throw FluoriteException("Process exited with code ${WEXITSTATUS(status)}".toFluoriteString())
+        else -> {
+            // シグナルで終了した場合など
+            throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
         }
-        
-        output.toString()
-    } catch (e: FluoriteException) {
-        throw e
-    } catch (e: Exception) {
-        throw FluoriteException("Error executing command: ${e.message}".toFluoriteString())
     }
+    
+    output.toString()
 }
