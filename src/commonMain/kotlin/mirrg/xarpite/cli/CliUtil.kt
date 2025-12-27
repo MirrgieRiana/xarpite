@@ -17,81 +17,73 @@ fun parseArguments(args: Iterable<String>): Options {
     var script: String? = null
     val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
+    // オプションセクションのパース
     run {
         while (true) {
+            when (list.firstOrNull()) {
 
-            if (list.firstOrNull() == "--") {
-                list.removeFirst()
-
-                if (list.isEmpty() && scriptFile == null && script == null) throw ShowUsage
-
-                if (scriptFile == null && script == null) {
-                    script = list.removeFirst()
-                }
-                arguments += list
-                list.clear()
-                return@run
-            }
-
-            if (list.firstOrNull() == "-h") throw ShowUsage
-            if (list.firstOrNull() == "--help") throw ShowUsage
-
-            if (list.firstOrNull() == "-q") {
-                if (quiet) throw ShowUsage
-                quiet = true
-                list.removeFirst()
-                continue
-            }
-
-            if (list.firstOrNull() == "-f") {
-                if (scriptFile != null) throw ShowUsage
-                if (script != null) throw ShowUsage
-                list.removeFirst()
-                if (list.isEmpty()) throw ShowUsage
-                scriptFile = list.removeFirst()
-                continue
-            }
-
-            if (list.firstOrNull() == "-e") {
-                if (script != null) throw ShowUsage
-                if (scriptFile != null) throw ShowUsage
-                list.removeFirst()
-                if (list.isEmpty()) throw ShowUsage
-                script = list.removeFirst()
-                continue
-            }
-
-            if (list.isEmpty()) {
-                // -f が指定されていれば、残りの引数がなくてもOK
-                if (scriptFile != null || script != null) {
+                "--" -> { // -- が来たらオプションセクションは終了
+                    list.removeFirst()
                     return@run
                 }
-                throw ShowUsage
-            }
 
-            // -f または -e が指定されていた場合、残りの引数はすべてスクリプトへの引数
-            if (scriptFile != null || script != null) {
-                arguments += list
-                list.clear()
-                return@run
-            }
+                "-h", "--help" -> { // ヘルプ表示
+                    list.removeFirst()
+                    throw ShowUsage
+                }
 
-            // short command モードで -f も -e も指定されていない場合、最初の引数をスクリプトとして扱う
-            if (isShortCommand) {
-                script = list.removeFirst()
-                arguments += list
-                list.clear()
-                return@run
-            }
+                "-q" -> { // runnerモード
+                    if (quiet) throw ShowUsage
+                    list.removeFirst()
+                    quiet = true
+                    continue
+                }
 
-            script = list.removeFirst()
-            arguments += list
-            list.clear()
-            return@run
+                "-f" -> { // スクリプトファイルの指定
+                    if (scriptFile != null) throw ShowUsage
+                    if (script != null) throw ShowUsage
+                    list.removeFirst()
+                    if (list.isEmpty()) throw ShowUsage
+                    scriptFile = list.removeFirst()
+                    continue
+                }
+
+                "-e" -> { // スクリプトの指定
+                    if (scriptFile != null) throw ShowUsage
+                    if (script != null) throw ShowUsage
+                    list.removeFirst()
+                    if (list.isEmpty()) throw ShowUsage
+                    script = list.removeFirst()
+                    continue
+                }
+
+                else -> { // どれもマッチしなかったのでオプションセクションは終了
+                    return@run
+                }
+            }
         }
     }
 
-    // -f オプションが指定された場合、ファイルからソースコードを読み込む
+    // 引数セクションのパース
+    run {
+
+        // -f も -e も指定されていなければ、最初の引数をスクリプトファイルやスクリプトとして扱う
+        if (scriptFile == null && script == null) {
+            if (list.isEmpty()) throw ShowUsage
+            if (isShortCommand) {
+                script = list.removeFirst()
+            } else {
+                scriptFile = list.removeFirst()
+            }
+        }
+
+        // 残りの引数はすべてスクリプトへの引数
+        arguments += list
+        list.clear()
+
+    }
+
+    // -f オプションが指定された場合、ファイルからスクリプトを読み込む
     if (scriptFile != null) {
         val fileSystem = getFileSystem().getOrThrow()
         script = fileSystem.read(scriptFile.toPath()) {
@@ -105,17 +97,17 @@ fun parseArguments(args: Iterable<String>): Options {
 fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
     val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
-    val firstArgName = if (isShortCommand) "<script>" else "<code>"
-    println("Usage: $programName [<Launcher Options>] [<Runtime Options>] [--] $firstArgName <arguments...>")
-    println("")
+    val firstArgName = if (isShortCommand) "script" else "scriptfile"
+    println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
     println("Launcher Options:")
     println("  --native                 Use the native engine")
     println("  --jvm                    Use the JVM engine")
     println("  --node                   Use the Node.js engine")
-    println("")
     println("Runtime Options:")
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")
-    println("  -f <file>                Read script from file")
-    println("  -e <code>                Evaluate code directly")
+    println("  -f <scriptfile>          Read script from file")
+    println("                           Omit [$firstArgName]")
+    println("  -e <script>              Evaluate script directly")
+    println("                           Omit [$firstArgName]")
 }
