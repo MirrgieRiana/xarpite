@@ -1,34 +1,48 @@
 import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.allocArrayOf
+import kotlinx.cinterop.cstr
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
+import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
-import platform.posix.FILE
+import platform.posix.STDERR_FILENO
+import platform.posix.STDOUT_FILENO
 import platform.posix.WEXITSTATUS
 import platform.posix.WIFEXITED
+import platform.posix.WIFSIGNALED
 import platform.posix.__environ
 import platform.posix.clearerr
+import platform.posix.close
+import platform.posix.dup2
 import platform.posix.errno
+import platform.posix.execvp
+import platform.posix.exit
 import platform.posix.ferror
-import platform.posix.fclose
-import platform.posix.fgets
+import platform.posix.fork
 import platform.posix.fread
 import platform.posix.fflush
 import platform.posix.fwrite
-import platform.posix.pclose
-import platform.posix.popen
+import platform.posix.pid_t
+import platform.posix.pipe
+import platform.posix.read
 import platform.posix.set_posix_errno
 import platform.posix.stdin
 import platform.posix.stdout
 import platform.posix.strerror
+import platform.posix.waitpid
 import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalNativeApi::class)
@@ -96,49 +110,86 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
-    // NOTE: この実装はpopを使用しており、シェルを経由します。
-    // すべての引数をシングルクォートでエスケープしていますが、
-    // より安全な実装にはfork/execvpの使用が推奨されます。
-    val commandList = listOf(process) + args
-    // シェルコマンドとして実行するためにエスケープ処理を行う
-    // シングルクォートでエスケープするため、引数内のシングルクォートを適切に処理
-    val escapedCommand = commandList.joinToString(" ") { arg ->
-        "'" + arg.replace("'", "'\\''") + "'"
-    }
-    
-    // popenで標準出力を取得
-    val pipe: FILE? = popen(escapedCommand, "r")
-    
-    if (pipe == null) {
-        throw FluoriteException("Failed to execute command: $escapedCommand".toFluoriteString())
-    }
-    
-    val output = StringBuilder()
     memScoped {
-        val buffer = allocArray<ByteVar>(4096)
-        while (true) {
-            val line = fgets(buffer, 4096, pipe)
-            if (line == null) break
-            output.append(line.toKString())
+        // パイプを作成（標準出力用）
+        val stdoutPipe = allocArray<IntVar>(2)
+        if (pipe(stdoutPipe) != 0) {
+            throw FluoriteException("Failed to create pipe".toFluoriteString())
         }
-    }
-    
-    // プロセスを閉じて終了コードを取得
-    val status = pclose(pipe)
-    
-    // 終了コードをチェック
-    when {
-        WIFEXITED(status) -> {
-            val exitCode = WEXITSTATUS(status)
-            if (exitCode != 0) {
-                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+        
+        val pid: pid_t = fork()
+        
+        when {
+            pid < 0 -> {
+                // fork失敗
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                throw FluoriteException("Failed to fork process".toFluoriteString())
+            }
+            pid == 0 -> {
+                // 子プロセス
+                try {
+                    // 標準出力をパイプに接続
+                    close(stdoutPipe[0]) // 読み取り側を閉じる
+                    dup2(stdoutPipe[1], STDOUT_FILENO)
+                    close(stdoutPipe[1])
+                    
+                    // 引数配列を構築
+                    val argv = allocArrayOf(
+                        process.cstr.ptr,
+                        *args.map { it.cstr.ptr }.toTypedArray(),
+                        null
+                    )
+                    
+                    // プロセスを実行
+                    execvp(process, argv)
+                    
+                    // execvpが戻ってきた場合はエラー
+                    exit(127)
+                } catch (e: Exception) {
+                    exit(126)
+                }
+            }
+            else -> {
+                // 親プロセス
+                close(stdoutPipe[1]) // 書き込み側を閉じる
+                
+                // 標準出力を読み取る
+                val output = StringBuilder()
+                val buffer = allocArray<ByteVar>(4096)
+                while (true) {
+                    val bytesRead = read(stdoutPipe[0], buffer, 4096u)
+                    if (bytesRead <= 0) break
+                    // バッファから文字列を作成
+                    val chunk = ByteArray(bytesRead.toInt()) { buffer[it] }
+                    output.append(chunk.decodeToString())
+                }
+                
+                close(stdoutPipe[0])
+                
+                // 子プロセスの終了を待つ
+                val statusPtr = alloc<IntVar>()
+                waitpid(pid, statusPtr.ptr, 0)
+                val status = statusPtr.value
+                
+                // 終了コードをチェック
+                when {
+                    WIFEXITED(status) -> {
+                        val exitCode = WEXITSTATUS(status)
+                        if (exitCode != 0) {
+                            throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+                        }
+                    }
+                    WIFSIGNALED(status) -> {
+                        throw FluoriteException("Process terminated by signal".toFluoriteString())
+                    }
+                    else -> {
+                        throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
+                    }
+                }
+                
+                output.toString()
             }
         }
-        else -> {
-            // シグナルで終了した場合など
-            throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
-        }
     }
-    
-    output.toString()
 }
