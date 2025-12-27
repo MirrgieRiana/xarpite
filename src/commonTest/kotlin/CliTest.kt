@@ -299,6 +299,42 @@ class CliTest {
         }
     }
 
+    @Test
+    fun eOptionEvaluatesCode() = runTest {
+        // -e オプションを指定すると、直接コードを評価する
+        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"))
+
+        assertEquals("5 + 6", options.src)
+        assertEquals(listOf("arg1", "arg2"), options.arguments)
+        assertEquals(false, options.quiet)
+    }
+
+    @Test
+    fun eOptionAndFileOptionAreMutuallyExclusive() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("e_and_f.test_script.tmp.xa1")
+
+        fileSystem.write(file) {
+            writeUtf8("1")
+        }
+
+        // -e と -f は排他的
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-e", "1", "-f", file.toString()))
+        }
+
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-f", file.toString(), "-e", "1"))
+        }
+
+        fileSystem.delete(file)
+    }
+
+    // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
+    // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
+
     fun execRunsSimpleCommand() = runTest {
         try {
             val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
