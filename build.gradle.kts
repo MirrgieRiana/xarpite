@@ -127,6 +127,73 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
 tasks.named("build").configure { dependsOn(bundleRelease) }
 
 
+// Maven Publish
+
+val bundleMavenAll = tasks.register<Sync>("bundleMavenAll") {
+    group = "build"
+    val outputDirectory = layout.buildDirectory.dir("bundleMavenAll")
+    into(outputDirectory)
+    from("release") {
+        rename("gitignore", ".gitignore")
+        eachFile {
+            if (relativePath.pathString == "xarpite") {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
+    }
+    from(generateInstallNative)
+    from(releaseExecutable.linkTaskProvider) {
+        into("bin/native")
+        rename("xarpite.kexe", "xarpite")
+        eachFile {
+            permissions {
+                unix("rwxr-xr-x")
+            }
+        }
+    }
+}
+
+val createMavenAllTarGz = tasks.register<Tar>("createMavenAllTarGz") {
+    group = "build"
+    dependsOn(bundleMavenAll)
+    archiveBaseName.set("xarpite-bin")
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set("all")
+    archiveExtension.set("tar.gz")
+    compression = Compression.GZIP
+    from(bundleMavenAll.get().destinationDir) {
+        eachFile {
+            if (path == "xarpite" || path == "bin/native/xarpite" || path.startsWith("install-")) {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
+    }
+    destinationDirectory.set(layout.buildDirectory.dir("mavenTar"))
+}
+
+val publishToMavenLocal = tasks.register<Copy>("publishToMavenLocal") {
+    group = "publishing"
+    dependsOn(createMavenAllTarGz)
+    
+    val groupPath = "io/github/mirrgieriana/xarpite"
+    val artifactId = "xarpite-bin"
+    val version = project.version.toString()
+    val classifier = "all"
+    val extension = "tar.gz"
+    
+    val tarFile = createMavenAllTarGz.get().archiveFile.get().asFile
+    val fileName = "$artifactId-$version-$classifier.$extension"
+    
+    from(tarFile)
+    into(layout.buildDirectory.dir("maven/$groupPath/$artifactId/$version"))
+    rename { fileName }
+}
+
+
 // Doc Shell Tests
 
 val generateDocShellTests = tasks.register("generateDocShellTests") {
