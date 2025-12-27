@@ -235,20 +235,6 @@ $ xa -e 'ARGS()' apple banana cherry
 
 `-e` オプションと `-f` オプションは排他的であり、同時に指定することはできません。
 
-`-f` オプションが指定された場合、 `code` 引数は解析されず、スクリプトに渡す引数の一部として解釈されます。
-
-```shell
-$ {
-  echo 'ARGS()' > script.xa1
-  xa -f script.xa1 '100 + 20 + 3' apple banana cherry
-  rm script.xa1
-}
-# 100 + 20 + 3
-# apple
-# banana
-# cherry
-```
-
 # その他のコマンド
 
 ## `xarpite-update`: Xarpiteを最新版に更新する
