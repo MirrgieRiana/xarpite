@@ -11,10 +11,21 @@ then
 fi
 
 # Parse launcher options
-LAUNCHER_OPTION_ENGINE=""
 RUNTIME_OPTION_SHORT=""
+LAUNCHER_OPTION_ENGINE=""
 while (($# > 0))
 do
+  if [ "$1" = "--short" ]
+  then
+    if [ -n "$RUNTIME_OPTION_SHORT" ]
+    then
+      echo "Error: Multiple --short options specified" 1>&2
+      exit 1
+    fi
+    RUNTIME_OPTION_SHORT="--short"
+    shift
+    continue
+  fi
   if [ "$1" = "--native" ] || [ "$1" = "--jvm" ] || [ "$1" = "--node" ]
   then
     if [ -n "$LAUNCHER_OPTION_ENGINE" ]
@@ -23,12 +34,6 @@ do
       exit 1
     fi
     LAUNCHER_OPTION_ENGINE="${1#--}"
-    shift
-    continue
-  fi
-  if [ "$1" = "--short" ]
-  then
-    RUNTIME_OPTION_SHORT="--short"
     shift
     continue
   fi
