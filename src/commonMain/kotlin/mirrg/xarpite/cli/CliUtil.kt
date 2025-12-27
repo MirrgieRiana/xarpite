@@ -5,7 +5,7 @@ import getFileSystem
 import getProgramName
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val short: Boolean)
 
 object ShowUsage : Throwable()
 
@@ -14,7 +14,9 @@ fun parseArguments(args: Iterable<String>): Options {
     var src: String? = null
     val arguments = mutableListOf<String>()
     var quiet = false
+    var short = false
     var scriptFile: String? = null
+    var evaluateMode = false
 
     run {
         while (true) {
@@ -22,9 +24,9 @@ fun parseArguments(args: Iterable<String>): Options {
             if (list.firstOrNull() == "--") {
                 list.removeFirst()
 
-                if (list.isEmpty() && scriptFile == null) throw ShowUsage
+                if (list.isEmpty() && scriptFile == null && !evaluateMode) throw ShowUsage
 
-                if (scriptFile == null) {
+                if (scriptFile == null && !evaluateMode) {
                     src = list.removeFirst()
                 }
                 arguments += list
@@ -42,24 +44,54 @@ fun parseArguments(args: Iterable<String>): Options {
                 continue
             }
 
+            if (list.firstOrNull() == "--short") {
+                if (short) throw ShowUsage
+                short = true
+                list.removeFirst()
+                continue
+            }
+
             if (list.firstOrNull() == "-f") {
                 if (scriptFile != null) throw ShowUsage
+                if (evaluateMode) throw ShowUsage
                 list.removeFirst()
                 if (list.isEmpty()) throw ShowUsage
                 scriptFile = list.removeFirst()
                 continue
             }
 
+            if (list.firstOrNull() == "-e") {
+                if (evaluateMode) throw ShowUsage
+                if (scriptFile != null) throw ShowUsage
+                evaluateMode = true
+                list.removeFirst()
+                if (list.isEmpty()) throw ShowUsage
+                src = list.removeFirst()
+                continue
+            }
+
             if (list.isEmpty()) {
                 // -f が指定されていれば、残りの引数がなくてもOK
-                if (scriptFile != null) {
+                if (scriptFile != null || evaluateMode) {
                     return@run
+                }
+                // --short モードで -f も -e も指定されていない場合はエラー
+                if (short) {
+                    throw ShowUsage
                 }
                 throw ShowUsage
             }
 
-            // -f が指定されていた場合、残りの引数はすべてスクリプトへの引数
-            if (scriptFile != null) {
+            // -f または -e が指定されていた場合、残りの引数はすべてスクリプトへの引数
+            if (scriptFile != null || evaluateMode) {
+                arguments += list
+                list.clear()
+                return@run
+            }
+
+            // --short モードで -f も -e も指定されていない場合、最初の引数をスクリプトとして扱う
+            if (short) {
+                src = list.removeFirst()
                 arguments += list
                 list.clear()
                 return@run
@@ -80,7 +112,7 @@ fun parseArguments(args: Iterable<String>): Options {
         }
     }
 
-    return Options(src ?: throw ShowUsage, arguments, quiet)
+    return Options(src ?: throw ShowUsage, arguments, quiet, short)
 }
 
 fun showUsage() {
@@ -96,4 +128,6 @@ fun showUsage() {
     println("  -h, --help               Show this help")
     println("  -q                       Run script as a runner")
     println("  -f <file>                Read script from file")
+    println("  -e <code>                Evaluate code directly")
+    println("  --short                  Treat first argument as script (for xa command)")
 }
