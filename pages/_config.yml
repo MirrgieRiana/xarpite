@@ -20,18 +20,6 @@ defaults:
       path: ""
     values:
       layout: default
-      menu_relative: "../_menu.html"
-  - scope:
-      path: "docs/ja"
-    values:
-      toc: true
-      menu_relative: "../docs/ja/_menu.html"
-  - scope:
-      path: "docs/en"
-    values:
-      toc: true
-      lang: en
-      menu_relative: "../docs/en/_menu.html"
 
 plugins:
   - jekyll-optional-front-matter

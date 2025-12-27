@@ -32,14 +32,8 @@
       <div class="container">
         <div class="content-wrapper">
           <aside class="sidebar">
-            {% case page.menu_relative %}
-            {% when '../docs/en/_menu.html' %}
-              {% include_relative ../docs/en/_menu.html %}
-            {% when '../docs/ja/_menu.html' %}
-              {% include_relative ../docs/ja/_menu.html %}
-            {% when '../_menu.html' %}
-              {% include_relative ../_menu.html %}
-            {% endcase %}
+            {% assign menu_path = page.dir | append: '_menu.html' | remove_first: '/' | prepend: '../' %}
+            {% include_relative {{ menu_path }} %}
           </aside>
 
           <article class="doc-content">
