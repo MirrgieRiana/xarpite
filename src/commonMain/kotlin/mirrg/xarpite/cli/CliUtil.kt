@@ -110,7 +110,6 @@ fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
     val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "<script>" else "<code>"
-    
     println("Usage: $programName [<Launcher Options>] [<Runtime Options>] [--] $firstArgName <arguments...>")
     println("")
     println("Launcher Options:")
