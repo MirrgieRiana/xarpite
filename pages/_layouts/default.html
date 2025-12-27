@@ -37,41 +37,26 @@
           </aside>
 
           <article class="doc-content">
-            {% assign toc_enabled = page.toc | default: true %}
-            {% if toc_enabled %}
-              {% if page.dir contains '/docs/en/' %}
-                {% assign toc_path = 'docs/en/_includes/toc.md' %}
-              {% elsif page.dir contains '/docs/ja/' %}
-                {% assign toc_path = 'docs/ja/_includes/toc.md' %}
-              {% else %}
-                {% assign toc_path = nil %}
-              {% endif %}
-              {% if toc_path %}
-                {%- capture toc_markdown -%}
+            {% assign toc_path = page.dir | append: '_includes/toc.md' | remove_first: '/' %}
+            {%- capture toc_markdown -%}
 {% include_relative {{ toc_path }} %}
-                {%- endcapture -%}
-                {% assign toc_markup = toc_markdown | markdownify %}
-                {% assign toc_list = content | generate_toc_from_html %}
-                {% assign toc_placeholder = '<!-- toc -->' %}
-                {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
-                {% if toc_list != '' %}
-                  {% if content contains toc_placeholder %}
-                    {{ content | replace: toc_placeholder, toc_markup }}
-                  {% else %}
-                    {{ content }}
-                  {% endif %}
-                {% else %}
-                  {% if content contains toc_placeholder %}
-                    {{ content | replace: toc_placeholder, '' }}
-                  {% else %}
-                    {{ content }}
-                  {% endif %}
-                {% endif %}
+            {%- endcapture -%}
+            {% assign toc_markup = toc_markdown | markdownify %}
+            {% assign toc_list = content | generate_toc_from_html %}
+            {% assign toc_placeholder = '<!-- toc -->' %}
+            {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
+            {% if content contains toc_placeholder %}
+              {% if toc_list != '' %}
+                {{ content | replace: toc_placeholder, toc_markup }}
+              {% else %}
+                {{ content | replace: toc_placeholder, '' }}
+              {% endif %}
+            {% else %}
+              {% if toc_list != '' %}
+                {{ content }}
               {% else %}
                 {{ content }}
               {% endif %}
-            {% else %}
-              {{ content }}
             {% endif %}
           </article>
         </div>
