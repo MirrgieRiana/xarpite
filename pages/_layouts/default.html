@@ -37,26 +37,22 @@
           </aside>
 
           <article class="doc-content">
-            {% assign toc_path = page.dir | append: '_includes/toc.md' | remove_first: '/' %}
-            {%- capture toc_markdown -%}
-{% include_relative {{ toc_path }} %}
-            {%- endcapture -%}
-            {% assign toc_markup = toc_markdown | markdownify %}
-            {% assign toc_list = content | generate_toc_from_html %}
             {% assign toc_placeholder = '<!-- toc -->' %}
-            {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
             {% if content contains toc_placeholder %}
+              {% assign toc_path = page.dir | append: '_includes/toc.md' | remove_first: '/' %}
+              {%- capture toc_markdown -%}
+              {% include_relative {{ toc_path }} %}
+              {%- endcapture -%}
+              {% assign toc_markup = toc_markdown | markdownify %}
+              {% assign toc_list = content | generate_toc_from_html %}
+              {% assign toc_markup = toc_markup | wrap_toc: toc_list %}
               {% if toc_list != '' %}
                 {{ content | replace: toc_placeholder, toc_markup }}
               {% else %}
                 {{ content | replace: toc_placeholder, '' }}
               {% endif %}
             {% else %}
-              {% if toc_list != '' %}
-                {{ content }}
-              {% else %}
-                {{ content }}
-              {% endif %}
+              {{ content }}
             {% endif %}
           </article>
         </div>
