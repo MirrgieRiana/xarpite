@@ -20,7 +20,7 @@
             <span class="logo-text">Xarpite</span>
           </a>
           <nav class="main-nav">
-            <a href="{{ '/docs/ja/' | relative_url }}" class="nav-link">ドキュメント</a>
+            <a href="{{ (site.docs_base | append: '/ja/') | relative_url }}" class="nav-link">ドキュメント</a>
             <a href="https://github.com/MirrgieRiana/xarpite" class="nav-link" target="_blank">GitHub</a>
             <a href="https://mirrgieriana.github.io/xarpite/playground/" class="nav-link playground-link" target="_blank">Playground</a>
           </nav>
@@ -32,35 +32,13 @@
       <div class="container">
         <div class="content-wrapper">
           <aside class="sidebar">
-            <nav class="doc-nav">
-              <h3 class="nav-title">ドキュメント</h3>
-              <ul class="nav-list">
-                <li><a href="{{ '/docs/ja/' | relative_url }}">トップ</a></li>
-                <li><a href="{{ '/docs/ja/syntax.html' | relative_url }}">文法</a></li>
-                <li><a href="{{ '/docs/ja/statement.html' | relative_url }}">文・式</a></li>
-                <li><a href="{{ '/docs/ja/whitespace.html' | relative_url }}">空白・コメント</a></li>
-                <li><a href="{{ '/docs/ja/variable.html' | relative_url }}">変数</a></li>
-                <li><a href="{{ '/docs/ja/number.html' | relative_url }}">数値</a></li>
-                <li><a href="{{ '/docs/ja/string.html' | relative_url }}">文字列</a></li>
-                <li><a href="{{ '/docs/ja/regex.html' | relative_url }}">正規表現</a></li>
-                <li><a href="{{ '/docs/ja/blob.html' | relative_url }}">BLOB</a></li>
-                <li><a href="{{ '/docs/ja/comparison.html' | relative_url }}">比較</a></li>
-                <li><a href="{{ '/docs/ja/boolean.html' | relative_url }}">論理値・条件分岐</a></li>
-                <li><a href="{{ '/docs/ja/jump.html' | relative_url }}">リターン・エラー処理</a></li>
-                <li><a href="{{ '/docs/ja/property.html' | relative_url }}">プロパティアクセス</a></li>
-                <li><a href="{{ '/docs/ja/array.html' | relative_url }}">配列</a></li>
-                <li><a href="{{ '/docs/ja/object.html' | relative_url }}">オブジェクト</a></li>
-                <li><a href="{{ '/docs/ja/function.html' | relative_url }}">関数</a></li>
-                <li><a href="{{ '/docs/ja/stream.html' | relative_url }}">ストリーム・代入・パイプ系演算子</a></li>
-                <li><a href="{{ '/docs/ja/builtin.html' | relative_url }}">組み込み定数・関数</a></li>
-                <li><a href="{{ '/docs/ja/data_conversion.html' | relative_url }}">データ変換系関数</a></li>
-                <li><a href="{{ '/docs/ja/samples.html' | relative_url }}">サンプル</a></li>
-                <li><a href="{{ '/docs/ja/cli.html' | relative_url }}">コマンドラインツール</a></li>
-                <li><a href="{{ '/docs/ja/js.html' | relative_url }}">JavaScript版</a></li>
-                <li><a href="{{ '/docs/ja/coroutine.html' | relative_url }}">コルーチン</a></li>
-                <li><a href="{{ '/docs/ja/json.html' | relative_url }}">JSON操作</a></li>
-              </ul>
-            </nav>
+            {% if page.url contains '/docs/en/' %}
+              {% include_relative ../docs/en/_menu.html %}
+            {% elsif page.url contains '/docs/ja/' %}
+              {% include_relative ../docs/ja/_menu.html %}
+            {% else %}
+              {% include_relative ../_menu.html %}
+            {% endif %}
           </aside>
 
           <article class="doc-content">
