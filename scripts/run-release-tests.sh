@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
+script_name=$0
+
 (($# != 1)) && {
-  echo "Usage: $0 <woking-directory>"
+  echo "Usage: $script_name <woking-directory>"
   exit 1
 }
 
 WORKING_DIR=$1
 cd "$WORKING_DIR" || exit 1
 
-xa() {
-  ./xarpite "$@"
-}
+export PATH="$(cd . && pwd):$PATH"
 
 fail() {
-  echo "FAILED: ${BASH_LINENO[0]}" >&2
+  echo "FAILED: $script_name:${BASH_LINENO[0]}" >&2
   echo "[expected]" >&2
   echo "$1" >&2
   echo "[actual]" >&2
