@@ -149,6 +149,7 @@ val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     compression = Compression.GZIP
     from(bundleXarpiteBinAll)
     destinationDirectory = project.layout.buildDirectory.dir("xarpiteBinAllTarGz")
+    useFileSystemPermissions()
 }
 
 publishing {
