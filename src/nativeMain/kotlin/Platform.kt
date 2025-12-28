@@ -52,7 +52,11 @@ const val EXEC_MAX_BUFFER_SIZE = 4096
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
 private fun WEXITSTATUS(status: Int): Int = ((status and 0xff00) shr 8)
-private fun WIFSIGNALED(status: Int): Boolean = (((status and 0x7f) + 1) shr 1) > 0
+// WIFSIGNALEDの実装: シグナルで終了した場合、下位7ビットが非ゼロかつ0x7fでない
+private fun WIFSIGNALED(status: Int): Boolean {
+    val term = status and 0x7f
+    return term != 0 && term != 0x7f
+}
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
@@ -212,7 +216,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     // 標準エラー出力を読み取る
                     val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
                     
-                    // 両方のパイプから読み取る（簡易的な実装）
+                    // 両方のパイプから読み取る
+                    // 注: この実装は簡易的なポーリングを使用しています。
+                    // より高度な実装では select() や poll() を使用して
+                    // ブロッキングを回避できますが、通常のユースケースでは
+                    // このシンプルな実装で十分です。
                     var stdoutClosed = false
                     var stderrClosed = false
                     
@@ -251,7 +259,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 bytesRead == 0L -> stderrClosed = true // EOF
                                 bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
                                 bytesRead == -1L -> {
-                                    // その他のエラーは無視（stderrの読み取りは重要ではない）
+                                    // stderrの読み取りエラーは無視
+                                    // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
                                     stderrClosed = true
                                 }
                                 else -> stderrClosed = true
