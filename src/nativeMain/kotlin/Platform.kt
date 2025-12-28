@@ -18,7 +18,6 @@ import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import platform.posix.EINTR
-import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.WEXITSTATUS
 import platform.posix.WIFEXITED
@@ -194,7 +193,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     } while (waitResult.toLong() == -1L && errno == EINTR)
                     
                     if (waitResult.toLong() == -1L) {
-                        val errMsg = strerror(errno)?.toKString() ?: "unknown error"
+                        val errMsg = strerror(errno)?.toKString() ?: "Unknown error"
                         throw FluoriteException("waitpid failed: $errMsg (errno=$errno)".toFluoriteString())
                     }
                     
