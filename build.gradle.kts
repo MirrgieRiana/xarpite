@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.21"
     id("com.dorongold.task-tree") version "4.0.1"
     id("build-logic")
+    `maven-publish`
 }
 
 kotlin {
@@ -125,6 +126,77 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundleRelease) }
+
+
+// Maven Publish
+
+val bundleMavenAll = tasks.register<Sync>("bundleMavenAll") {
+    group = "build"
+    val outputDirectory = layout.buildDirectory.dir("bundleMavenAll")
+    into(outputDirectory)
+    from("release") {
+        rename("gitignore", ".gitignore")
+        eachFile {
+            if (relativePath.pathString == "xarpite") {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
+    }
+    from(generateInstallNative)
+    from(releaseExecutable.linkTaskProvider) {
+        into("bin/native")
+        rename("xarpite.kexe", "xarpite")
+        eachFile {
+            permissions {
+                unix("rwxr-xr-x")
+            }
+        }
+    }
+}
+
+val createMavenAllTarGz = tasks.register<Tar>("createMavenAllTarGz") {
+    group = "build"
+    dependsOn(bundleMavenAll)
+    archiveBaseName.set("xarpite-bin")
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set("all")
+    archiveExtension.set("tar.gz")
+    compression = Compression.GZIP
+    from(bundleMavenAll.get().destinationDir) {
+        eachFile {
+            if (path == "xarpite" || path == "bin/native/xarpite" || path.startsWith("install-")) {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
+    }
+    destinationDirectory.set(layout.buildDirectory.dir("mavenTar"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("xarpiteBinAll") {
+            groupId = "io.github.mirrgieriana.xarpite"
+            artifactId = "xarpite-bin"
+            version = project.version.toString()
+            
+            artifact(createMavenAllTarGz) {
+                classifier = "all"
+                extension = "tar.gz"
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "BuildLocal"
+            url = uri(layout.buildDirectory.dir("maven"))
+        }
+    }
+}
+
 
 
 // Doc Shell Tests
