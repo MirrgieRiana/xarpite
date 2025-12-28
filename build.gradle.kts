@@ -2,7 +2,6 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import java.util.Base64
 
 plugins {
     kotlin("multiplatform") version "2.2.21"
@@ -184,7 +183,7 @@ publishing {
             groupId = "io.github.mirrgieriana.xarpite"
             artifactId = "xarpite-bin"
             version = project.version.toString()
-            
+
             artifact(createMavenAllTarGz) {
                 classifier = "all"
                 extension = "tar.gz"
@@ -199,25 +198,15 @@ publishing {
     }
 }
 
-// GPG Signing Configuration
 signing {
-    // Enable signing only if GPG key is available
-    isRequired = false
-    
-    // Support for in-memory signing from environment variables (for CI/CD)
-    val signingKey = System.getenv("GPG_SIGNING_ZIP_BASE64")
-    val signingPassword = System.getenv("GPG_SIGNING_PASSPHRASE")
-    
-    if (signingKey != null && signingPassword != null) {
-        // Decode base64-encoded key from environment variable
-        val decodedKey = String(Base64.getDecoder().decode(signingKey))
-        useInMemoryPgpKeys(decodedKey, signingPassword)
-    }
-    
-    // Sign the xarpiteBinAll publication
+    isRequired = true
+
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+
     sign(publishing.publications["xarpiteBinAll"])
 }
-
 
 
 // Doc Shell Tests
