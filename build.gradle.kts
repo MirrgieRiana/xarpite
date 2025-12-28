@@ -71,6 +71,7 @@ val releaseExecutable = kotlin.targets
 // Executable Jar
 
 tasks.named<Jar>("jvmJar") {
+    archiveFileName = "xarpite-jvm.jar"
     manifest {
         attributes["Main-Class"] = "JvmMainKt"
     }
