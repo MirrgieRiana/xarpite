@@ -18,6 +18,7 @@ import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import platform.posix.EINTR
+import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.WEXITSTATUS
 import platform.posix.WIFEXITED
@@ -34,6 +35,7 @@ import platform.posix.fork
 import platform.posix.fread
 import platform.posix.fflush
 import platform.posix.fwrite
+import platform.posix.perror
 import platform.posix.pid_t
 import platform.posix.pipe
 import platform.posix.read
@@ -44,7 +46,7 @@ import platform.posix.strerror
 import platform.posix.waitpid
 import kotlin.experimental.ExperimentalNativeApi
 
-val EXEC_BUFFER_SIZE = 4096
+val EXEC_MAX_BUFFER_SIZE = 4096
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
@@ -131,7 +133,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 // 子プロセス
                 // 標準出力をパイプに接続
                 close(stdoutPipe[0]) // 読み取り側を閉じる
-                dup2(stdoutPipe[1], STDOUT_FILENO)
+                if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1) {
+                    perror("dup2")
+                    close(stdoutPipe[1])
+                    exit(1)
+                }
                 close(stdoutPipe[1])
                 
                 // 引数配列を構築
@@ -146,55 +152,75 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 execvp(process, argv)
                 
                 // execvpが戻ってきた場合はエラー
+                // エラー情報をstderrに出力
+                perror("execvp")
                 exit(127)
             }
             else -> {
                 // 親プロセス
                 close(stdoutPipe[1]) // 書き込み側を閉じる
                 
-                // 標準出力を読み取る
-                val outputBytes = mutableListOf<Byte>()
-                val buffer = allocArray<ByteVar>(EXEC_BUFFER_SIZE)
-                while (true) {
-                    val bytesRead = read(stdoutPipe[0], buffer, EXEC_BUFFER_SIZE.toULong())
-                    when {
-                        bytesRead > 0 -> {
-                            // バッファからバイトを収集
-                            for (i in 0 until bytesRead.toInt()) {
-                                outputBytes.add(buffer[i])
+                try {
+                    // 標準出力を読み取る
+                    val outputBytes = mutableListOf<Byte>()
+                    val buffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+                    while (true) {
+                        val bytesRead = read(stdoutPipe[0], buffer, EXEC_MAX_BUFFER_SIZE.toULong())
+                        when {
+                            bytesRead > 0 -> {
+                                // バッファからバイトを収集
+                                for (i in 0 until bytesRead.toInt()) {
+                                    outputBytes.add(buffer[i])
+                                }
+                            }
+                            bytesRead == 0L -> break // EOF
+                            errno == EINTR -> continue // シグナルで中断された場合は再試行
+                            else -> {
+                                // その他のエラー
+                                val errorCode = errno
+                                val errorMessage = strerror(errorCode)?.toKString() ?: "Unknown error"
+                                throw FluoriteException(
+                                    "Failed to read from child process: $errorMessage (errno=$errorCode)".toFluoriteString()
+                                )
                             }
                         }
-                        bytesRead == 0L -> break // EOF
-                        errno == EINTR -> continue // シグナルで中断された場合は再試行
-                        else -> break // その他のエラー
                     }
-                }
-                
-                close(stdoutPipe[0])
-                
-                // 子プロセスの終了を待つ
-                val statusPtr = alloc<IntVar>()
-                waitpid(pid, statusPtr.ptr, 0)
-                val status = statusPtr.value
-                
-                // 終了コードをチェック
-                when {
-                    WIFEXITED(status) -> {
-                        val exitCode = WEXITSTATUS(status)
-                        if (exitCode != 0) {
-                            throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+                    
+                    // 子プロセスの終了を待つ
+                    val statusPtr = alloc<IntVar>()
+                    var waitResult: pid_t
+                    do {
+                        waitResult = waitpid(pid, statusPtr.ptr, 0)
+                    } while (waitResult.toLong() == -1L && errno == EINTR)
+                    
+                    if (waitResult.toLong() == -1L) {
+                        val errMsg = strerror(errno)?.toKString() ?: "unknown error"
+                        throw FluoriteException("waitpid failed: $errMsg (errno=$errno)".toFluoriteString())
+                    }
+                    
+                    val status = statusPtr.value
+                    
+                    // 終了コードをチェック
+                    when {
+                        WIFEXITED(status) -> {
+                            val exitCode = WEXITSTATUS(status)
+                            if (exitCode != 0) {
+                                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+                            }
+                        }
+                        WIFSIGNALED(status) -> {
+                            throw FluoriteException("Process terminated by signal".toFluoriteString())
+                        }
+                        else -> {
+                            throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
                         }
                     }
-                    WIFSIGNALED(status) -> {
-                        throw FluoriteException("Process terminated by signal".toFluoriteString())
-                    }
-                    else -> {
-                        throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
-                    }
+                    
+                    // バイト配列を文字列に変換
+                    outputBytes.toByteArray().decodeToString()
+                } finally {
+                    close(stdoutPipe[0])
                 }
-                
-                // バイト配列を文字列に変換
-                outputBytes.toByteArray().decodeToString()
             }
         }
     }
