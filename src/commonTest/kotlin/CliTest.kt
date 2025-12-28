@@ -335,6 +335,7 @@ class CliTest {
     // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
     // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
 
+    @Test
     fun execRunsSimpleCommand() = runTest {
         try {
             val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
