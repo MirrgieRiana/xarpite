@@ -159,6 +159,29 @@ publishing {
                 classifier = "all"
                 extension = "tar.gz"
             }
+            pom {
+                name = "xarpite-bin"
+                description = "Xarpite (xa) - An interpreted language for one-liners"
+                url = "https://mirrgieriana.github.io/xarpite/"
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "http://www.opensource.org/licenses/mit-license.php"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "MirrgieRiana"
+                        name = "MirrgieRiana"
+                        url = "https://github.com/MirrgieRiana"
+                    }
+                }
+                scm {
+                    connection = "scm:git:https://github.com/MirrgieRiana/xarpite.git"
+                    developerConnection = "scm:git:ssh://git@github.com/MirrgieRiana/xarpite.git"
+                    url = "https://github.com/MirrgieRiana/xarpite"
+                }
+            }
         }
     }
     repositories {
