@@ -41,6 +41,21 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
+      - name: バージョンの取得
+        run: |
+          set -e
+          command -v kotlin > /dev/null || {
+            echo "Kotlin runtime not available in PATH. Ensure Kotlin is installed." >&2
+            exit 1
+          }
+          APP_VERSION=$(kotlin ./scripts/get-version.kts)
+          echo "Derived APP_VERSION: ${APP_VERSION}"
+          if [ -z "${APP_VERSION}" ]; then
+            echo "APP_VERSION is empty" >&2
+            exit 1
+          fi
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+
       - name: ビルド・Maven Publish
         run: |
           ./gradlew \
@@ -58,7 +73,6 @@ jobs:
           #find . -type f | sort
           echo "###"
         env:
-          APP_VERSION: ${{ github.ref_name }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
