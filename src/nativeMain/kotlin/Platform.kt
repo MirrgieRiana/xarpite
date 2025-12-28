@@ -182,12 +182,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     "Failed to read from child process: $errorMessage (errno=$errno)".toFluoriteString()
                                 )
                             }
-                            else -> {
-                                // 想定外のケース
-                                throw FluoriteException(
-                                    "Unexpected read result: $bytesRead".toFluoriteString()
-                                )
-                            }
+                            else -> error("Unexpected read result: $bytesRead")
                         }
                     }
                     
