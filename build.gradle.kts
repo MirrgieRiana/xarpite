@@ -201,8 +201,8 @@ publishing {
 signing {
     isRequired = true
 
-    val signingKey: String? by project
-    val signingPassword: String? by project
+    val signingKey = providers.gradleProperty("signingKey").orNull
+    val signingPassword = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKey, signingPassword)
 
     sign(publishing.publications["xarpiteBinAll"])

@@ -51,6 +51,8 @@ jobs:
           echo "###"
         env:
           APP_VERSION: ${{ github.ref_name }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         working-directory: build-dir
 
       - name: リポジトリのチェックアウト（リリース用）
