@@ -100,10 +100,20 @@ val generateInstallNative = registerGenerateInstallTask("native")
 val generateInstallJvm = registerGenerateInstallTask("jvm")
 val generateInstallNode = registerGenerateInstallTask("node")
 
-val bundleRelease = tasks.register<Sync>("bundleRelease") {
+val bundlePages = tasks.register<Sync>("bundlePages") {
     group = "build"
-    val outputDirectory = layout.buildDirectory.dir("bundleRelease")
-    into(outputDirectory)
+    into(project.layout.buildDirectory.dir("bundlePages"))
+    from(generateInstallNative)
+    from(generateInstallJvm)
+    from(generateInstallNode)
+    from("pages")
+    from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
+}
+tasks.named("build").configure { dependsOn(bundlePages) }
+
+val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
+    group = "build"
+    into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
     from("release") {
         rename("gitignore", ".gitignore")
         eachFile {
@@ -123,57 +133,17 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("pages")
-    from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
-tasks.named("build").configure { dependsOn(bundleRelease) }
-
-
-// Maven Publish
-
-val bundleMavenAll = tasks.register<Sync>("bundleMavenAll") {
-    group = "build"
-    val outputDirectory = layout.buildDirectory.dir("bundleMavenAll")
-    into(outputDirectory)
-    from("release") {
-        rename("gitignore", ".gitignore")
-        eachFile {
-            if (relativePath.pathString == "xarpite") {
-                permissions {
-                    unix("rwxr-xr-x")
-                }
-            }
-        }
-    }
-    from(generateInstallNative)
-    from(releaseExecutable.linkTaskProvider) {
-        into("bin/native")
-        rename("xarpite.kexe", "xarpite")
-        eachFile {
-            permissions {
-                unix("rwxr-xr-x")
-            }
-        }
-    }
-}
+tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
 
 val createMavenAllTarGz = tasks.register<Tar>("createMavenAllTarGz") {
     group = "build"
-    dependsOn(bundleMavenAll)
     archiveBaseName.set("xarpite-bin")
     archiveVersion.set(project.version.toString())
     archiveClassifier.set("all")
     archiveExtension.set("tar.gz")
     compression = Compression.GZIP
-    from(bundleMavenAll.get().destinationDir) {
-        eachFile {
-            if (path == "xarpite" || path == "bin/native/xarpite" || path.startsWith("install-")) {
-                permissions {
-                    unix("rwxr-xr-x")
-                }
-            }
-        }
-    }
+    from(bundleXarpiteBinAll)
     destinationDirectory.set(layout.buildDirectory.dir("mavenTar"))
 }
 
@@ -235,25 +205,25 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
 
 val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
-    dependsOn(generateDocShellTests, bundleRelease)
+    dependsOn(generateDocShellTests, bundleXarpiteBinAll)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
     commandLine(
         "bash",
         "ja.sh",
-        bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+        bundleXarpiteBinAll.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
     )
 }
 tasks.named("check").configure { dependsOn(runDocShellTests) }
 
 val runReleaseTests = tasks.register<Exec>("runReleaseTests") {
     group = "verification"
-    dependsOn(bundleRelease)
+    dependsOn(bundleXarpiteBinAll)
     workingDir = project.layout.projectDirectory.dir("scripts").asFile
     doFirst {
         commandLine(
             "bash",
             "run-release-tests.sh",
-            bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+            bundleXarpiteBinAll.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
         )
     }
 }

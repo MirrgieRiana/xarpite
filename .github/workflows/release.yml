@@ -43,8 +43,8 @@ jobs:
 
       - name: ビルド
         run: |
-          ./gradlew clean build bundleRelease --stacktrace
-          ./scripts/build-pages.sh build/bundleRelease
+          ./gradlew clean build bundlePages bundleXarpiteBinAll --stacktrace
+          ./scripts/build-pages.sh build/bundlePages
 
           echo "### $(pwd)"
           find -type f . | sort
@@ -65,7 +65,7 @@ jobs:
       - name: ファイルの同期
         run: |
           mv release-dir/.git tmp92758927523654
-          rsync -av --delete build-dir/build/bundleRelease/ release-dir/
+          rsync -av --delete build-dir/build/bundleXarpiteBinAll/ release-dir/
           mv tmp92758927523654 release-dir/.git
 
       - name: コミット準備
@@ -86,15 +86,17 @@ jobs:
 
       - name: リリース用Zipの作成
         run: |
-          cd build-dir/build/bundleRelease
-          zip -r ../../../xarpite-release-${{ env.VERSION }}.zip .
+          (cd build-dir/build/bundlePages && zip -r ../../../xarpite-pages-${{ env.VERSION }}.zip .)
+          (cd build-dir/build/bundleXarpiteBinAll && zip -r ../../../xarpite-bin-${{ env.VERSION }}-all.zip .)
 
       - name: GitHub Releaseにリリース
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: xarpite-release-${{ env.VERSION }}.zip
+          files: |
+            xarpite-pages-${{ env.VERSION }}.zip
+            xarpite-bin-${{ env.VERSION }}-all.zip
 
       - name: レポートをアップロード
         if: failure()
