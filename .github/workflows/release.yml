@@ -55,6 +55,7 @@ jobs:
             exit 1
           fi
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+        working-directory: build-dir
 
       - name: ビルド・Maven Publish
         run: |
