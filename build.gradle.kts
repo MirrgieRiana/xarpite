@@ -10,6 +10,7 @@ plugins {
     id("build-logic")
     `maven-publish`
     signing
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
 project.group = "io.github.mirrgieriana"
@@ -175,6 +176,15 @@ signing {
     useInMemoryPgpKeys(signingKey, signingPassword)
 
     sign(publishing.publications["xarpiteBinAll"])
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
+    }
 }
 
 
