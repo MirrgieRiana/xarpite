@@ -19,9 +19,6 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import platform.posix.EINTR
 import platform.posix.STDOUT_FILENO
-import platform.posix.WEXITSTATUS
-import platform.posix.WIFEXITED
-import platform.posix.WIFSIGNALED
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.close
@@ -46,6 +43,11 @@ import platform.posix.waitpid
 import kotlin.experimental.ExperimentalNativeApi
 
 const val EXEC_MAX_BUFFER_SIZE = 4096
+
+// POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
+private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
+private fun WEXITSTATUS(status: Int): Int = ((status and 0xff00) shr 8)
+private fun WIFSIGNALED(status: Int): Boolean = ((status and 0x7f) + 1 shr 1) > 0
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
@@ -154,6 +156,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 // エラー情報をstderrに出力
                 perror("execvp")
                 exit(127)
+                @Suppress("UNREACHABLE_CODE")
+                error("Should not reach here")
             }
             else -> {
                 // 親プロセス

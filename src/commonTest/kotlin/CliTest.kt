@@ -405,9 +405,14 @@ class CliTest {
     fun execThrowsOnCommandNotFound() = runTest {
         try {
             // 存在しないコマンドは例外をスロー
-            assertFailsWith<Exception> {
+            var exceptionThrown = false
+            try {
                 cliEval("""EXEC("nonexistent_command_xyz_12345")""")
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
             }
+            assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -429,9 +434,14 @@ class CliTest {
     fun execWithDifferentExitCodes() = runTest {
         try {
             // 終了コード2でテスト
-            assertFailsWith<FluoriteException> {
+            var exceptionThrown = false
+            try {
                 cliEval("""EXEC("bash", "-c", "exit 2")""")
+            } catch (e: FluoriteException) {
+                // FluoriteExceptionが期待される
+                exceptionThrown = true
             }
+            assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -477,9 +487,14 @@ class CliTest {
     fun execWithEmptyArgumentList() = runTest {
         try {
             // 空の引数リストは例外をスロー
-            assertFailsWith<Exception> {
+            var exceptionThrown = false
+            try {
                 cliEval("""EXEC([])""")
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
             }
+            assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
