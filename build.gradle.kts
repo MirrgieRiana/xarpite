@@ -178,7 +178,7 @@ publishing {
                 }
                 scm {
                     connection = "scm:git:https://github.com/MirrgieRiana/xarpite.git"
-                    developerConnection = "scm:git:ssh://git@github.com/MirrgieRiana/xarpite.git"
+                    developerConnection = "scm:git:ssh://github.com:MirrgieRiana/xarpite.git"
                     url = "https://github.com/MirrgieRiana/xarpite"
                 }
             }
