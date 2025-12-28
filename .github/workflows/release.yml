@@ -55,7 +55,7 @@ jobs:
           ./scripts/build-pages.sh build/bundlePages
 
           echo "### $(pwd)"
-          find . -type f | sort
+          #find . -type f | sort
           echo "###"
         env:
           APP_VERSION: ${{ github.ref_name }}
