@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.21"
     id("com.dorongold.task-tree") version "4.0.1"
     id("build-logic")
+    `maven-publish`
 }
 
 kotlin {
@@ -175,23 +176,27 @@ val createMavenAllTarGz = tasks.register<Tar>("createMavenAllTarGz") {
     destinationDirectory.set(layout.buildDirectory.dir("mavenTar"))
 }
 
-val publishToMavenLocal = tasks.register<Copy>("publishToMavenLocal") {
-    group = "publishing"
-    dependsOn(createMavenAllTarGz)
-    
-    val groupPath = "io/github/mirrgieriana/xarpite"
-    val artifactId = "xarpite-bin"
-    val version = project.version.toString()
-    val classifier = "all"
-    val extension = "tar.gz"
-    
-    val tarFile = createMavenAllTarGz.get().archiveFile.get().asFile
-    val fileName = "$artifactId-$version-$classifier.$extension"
-    
-    from(tarFile)
-    into(layout.buildDirectory.dir("maven/$groupPath/$artifactId/$version"))
-    rename { fileName }
+publishing {
+    publications {
+        create<MavenPublication>("xarpiteBinAll") {
+            groupId = "io.github.mirrgieriana.xarpite"
+            artifactId = "xarpite-bin"
+            version = project.version.toString()
+            
+            artifact(createMavenAllTarGz) {
+                classifier = "all"
+                extension = "tar.gz"
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "BuildLocal"
+            url = uri(layout.buildDirectory.dir("maven"))
+        }
+    }
 }
+
 
 
 // Doc Shell Tests
