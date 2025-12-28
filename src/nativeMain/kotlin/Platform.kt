@@ -174,13 +174,18 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 }
                             }
                             bytesRead == 0L -> break // EOF
-                            errno == EINTR -> continue // シグナルで中断された場合は再試行
-                            else -> {
+                            bytesRead == -1L && errno == EINTR -> continue // シグナルで中断された場合は再試行
+                            bytesRead == -1L -> {
                                 // その他のエラー
-                                val errorCode = errno
-                                val errorMessage = strerror(errorCode)?.toKString() ?: "Unknown error"
+                                val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
                                 throw FluoriteException(
-                                    "Failed to read from child process: $errorMessage (errno=$errorCode)".toFluoriteString()
+                                    "Failed to read from child process: $errorMessage (errno=$errno)".toFluoriteString()
+                                )
+                            }
+                            else -> {
+                                // 想定外のケース
+                                throw FluoriteException(
+                                    "Unexpected read result: $bytesRead".toFluoriteString()
                                 )
                             }
                         }
