@@ -41,9 +41,16 @@ jobs:
           bundle add jekyll-optional-front-matter
           bundle add webrick
 
-      - name: ビルド
+      - name: ビルド・Maven Publish
         run: |
-          ./gradlew clean build bundlePages bundleXarpiteBinAll --stacktrace
+          ./gradlew \
+            clean \
+            build \
+            bundlePages \
+            bundleXarpiteBinAll \
+            publishXarpiteBinAllPublicationToSonatypeRepository \
+            --stacktrace
+
           ./scripts/build-pages.sh build/bundlePages
 
           echo "### $(pwd)"
