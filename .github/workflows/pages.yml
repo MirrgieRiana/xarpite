@@ -64,8 +64,8 @@ jobs:
 
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
-          ./gradlew clean bundleRelease --stacktrace
-          ./scripts/build-pages.sh build/bundleRelease
+          ./gradlew clean bundlePages --stacktrace
+          ./scripts/build-pages.sh build/bundlePages
 
           echo "### $(pwd)"
           find -type f . | sort
@@ -77,7 +77,7 @@ jobs:
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/bundleRelease
+          path: build/bundlePages
 
   deploy:
     environment:

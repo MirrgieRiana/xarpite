@@ -8,7 +8,13 @@ plugins {
     kotlin("plugin.serialization") version "2.2.21"
     id("com.dorongold.task-tree") version "4.0.1"
     id("build-logic")
+    `maven-publish`
+    signing
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
+
+project.group = "io.github.mirrgieriana"
+project.version = System.getenv("APP_VERSION") ?: "0.0.0-SNAPSHOT"
 
 kotlin {
 
@@ -65,6 +71,7 @@ val releaseExecutable = kotlin.targets
 // Executable Jar
 
 tasks.named<Jar>("jvmJar") {
+    archiveFileName = "xarpite-jvm.jar"
     manifest {
         attributes["Main-Class"] = "JvmMainKt"
     }
@@ -98,10 +105,20 @@ val generateInstallNative = registerGenerateInstallTask("native")
 val generateInstallJvm = registerGenerateInstallTask("jvm")
 val generateInstallNode = registerGenerateInstallTask("node")
 
-val bundleRelease = tasks.register<Sync>("bundleRelease") {
+val bundlePages = tasks.register<Sync>("bundlePages") {
     group = "build"
-    val outputDirectory = layout.buildDirectory.dir("bundleRelease")
-    into(outputDirectory)
+    into(project.layout.buildDirectory.dir("bundlePages"))
+    from(generateInstallNative)
+    from(generateInstallJvm)
+    from(generateInstallNode)
+    from("pages")
+    from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
+}
+tasks.named("build").configure { dependsOn(bundlePages) }
+
+val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
+    group = "build"
+    into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
     from("release") {
         rename("gitignore", ".gitignore")
         eachFile {
@@ -121,10 +138,55 @@ val bundleRelease = tasks.register<Sync>("bundleRelease") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
-    from("pages")
-    from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
-tasks.named("build").configure { dependsOn(bundleRelease) }
+tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
+
+val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
+    group = "build"
+    archiveBaseName = "xarpite-bin"
+    archiveClassifier = "all"
+    archiveExtension = "tar.gz"
+    compression = Compression.GZIP
+    from(bundleXarpiteBinAll)
+    destinationDirectory = project.layout.buildDirectory.dir("xarpiteBinAllTarGz")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("xarpiteBinAll") {
+            artifactId = "xarpite-bin"
+            artifact(createXarpiteBinAllTarGz) {
+                classifier = "all"
+                extension = "tar.gz"
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "BuildLocal"
+            url = uri(project.layout.buildDirectory.dir("maven"))
+        }
+    }
+}
+
+signing {
+    isRequired = true
+
+    val signingKey = providers.gradleProperty("signingKey").orNull
+    val signingPassword = providers.gradleProperty("signingPassword").orNull
+    useInMemoryPgpKeys(signingKey, signingPassword)
+
+    sign(publishing.publications["xarpiteBinAll"])
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
+    }
+}
 
 
 // Doc Shell Tests
@@ -153,25 +215,25 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
 
 val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
-    dependsOn(generateDocShellTests, bundleRelease)
+    dependsOn(generateDocShellTests, bundleXarpiteBinAll)
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
     commandLine(
         "bash",
         "ja.sh",
-        bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+        bundleXarpiteBinAll.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
     )
 }
 tasks.named("check").configure { dependsOn(runDocShellTests) }
 
 val runReleaseTests = tasks.register<Exec>("runReleaseTests") {
     group = "verification"
-    dependsOn(bundleRelease)
+    dependsOn(bundleXarpiteBinAll)
     workingDir = project.layout.projectDirectory.dir("scripts").asFile
     doFirst {
         commandLine(
             "bash",
             "run-release-tests.sh",
-            bundleRelease.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
+            bundleXarpiteBinAll.get().destinationDir.relativeTo(workingDir).invariantSeparatorsPath,
         )
     }
 }
