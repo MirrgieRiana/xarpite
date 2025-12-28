@@ -45,7 +45,7 @@ import platform.posix.strerror
 import platform.posix.waitpid
 import kotlin.experimental.ExperimentalNativeApi
 
-val EXEC_MAX_BUFFER_SIZE = 4096
+const val EXEC_MAX_BUFFER_SIZE = 4096
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
