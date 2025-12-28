@@ -49,6 +49,7 @@ jobs:
             bundlePages \
             bundleXarpiteBinAll \
             publishXarpiteBinAllPublicationToSonatypeRepository \
+            closeAndReleaseSonatypeStagingRepository \
             --stacktrace
 
           ./scripts/build-pages.sh build/bundlePages
