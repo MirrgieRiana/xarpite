@@ -12,6 +12,9 @@ plugins {
     signing
 }
 
+project.group = "io.github.mirrgieriana"
+project.version = System.getenv("APP_VERSION") ?: "0.0.0-SNAPSHOT"
+
 kotlin {
 
     jvmToolchain(21)
@@ -136,25 +139,21 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
 
-val createMavenAllTarGz = tasks.register<Tar>("createMavenAllTarGz") {
+val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     group = "build"
-    archiveBaseName.set("xarpite-bin")
-    archiveVersion.set(project.version.toString())
-    archiveClassifier.set("all")
-    archiveExtension.set("tar.gz")
+    archiveBaseName = "xarpite-bin"
+    archiveClassifier = "all"
+    archiveExtension = "tar.gz"
     compression = Compression.GZIP
     from(bundleXarpiteBinAll)
-    destinationDirectory.set(layout.buildDirectory.dir("mavenTar"))
+    destinationDirectory = project.layout.buildDirectory.dir("xarpiteBinAllTarGz")
 }
 
 publishing {
     publications {
         create<MavenPublication>("xarpiteBinAll") {
-            groupId = "io.github.mirrgieriana.xarpite"
             artifactId = "xarpite-bin"
-            version = project.version.toString()
-
-            artifact(createMavenAllTarGz) {
+            artifact(createXarpiteBinAllTarGz) {
                 classifier = "all"
                 extension = "tar.gz"
             }
@@ -163,7 +162,7 @@ publishing {
     repositories {
         maven {
             name = "BuildLocal"
-            url = uri(layout.buildDirectory.dir("maven"))
+            url = uri(project.layout.buildDirectory.dir("maven"))
         }
     }
 }
