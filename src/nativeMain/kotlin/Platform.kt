@@ -17,7 +17,10 @@ import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
+import platform.posix.EACCES
 import platform.posix.EINTR
+import platform.posix.ENOENT
+import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.__environ
 import platform.posix.clearerr
@@ -38,8 +41,10 @@ import platform.posix.read
 import platform.posix.set_posix_errno
 import platform.posix.stdin
 import platform.posix.stdout
+import platform.posix.stderr
 import platform.posix.strerror
 import platform.posix.waitpid
+import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
 
 const val EXEC_MAX_BUFFER_SIZE = 4096
@@ -47,7 +52,7 @@ const val EXEC_MAX_BUFFER_SIZE = 4096
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
 private fun WEXITSTATUS(status: Int): Int = ((status and 0xff00) shr 8)
-private fun WIFSIGNALED(status: Int): Boolean = ((status and 0x7f) + 1 shr 1) > 0
+private fun WIFSIGNALED(status: Int): Boolean = (((status and 0x7f) + 1) shr 1) > 0
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
@@ -115,31 +120,62 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
-        // パイプを作成（標準出力用）
+        // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
+        val stderrPipe = allocArray<IntVar>(2)
+        
         if (pipe(stdoutPipe) != 0) {
-            throw FluoriteException("Failed to create pipe".toFluoriteString())
+            throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
         }
         
-        val pid: pid_t = fork()
+        if (pipe(stderrPipe) != 0) {
+            // stdoutパイプをクリーンアップ
+            close(stdoutPipe[0])
+            close(stdoutPipe[1])
+            throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
+        }
+        
+        val pid: pid_t
+        try {
+            pid = fork()
+        } catch (t: Throwable) {
+            // forkが失敗した場合、すべてのパイプをクリーンアップ
+            close(stdoutPipe[0])
+            close(stdoutPipe[1])
+            close(stderrPipe[0])
+            close(stderrPipe[1])
+            throw t
+        }
         
         when {
             pid < 0 -> {
                 // fork失敗
                 close(stdoutPipe[0])
                 close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to fork process".toFluoriteString())
             }
             pid == 0 -> {
                 // 子プロセス
-                // 標準出力をパイプに接続
+                // 標準出力と標準エラー出力をパイプに接続
                 close(stdoutPipe[0]) // 読み取り側を閉じる
+                close(stderrPipe[0])
+                
                 if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1) {
-                    perror("dup2")
+                    perror("dup2 stdout")
                     close(stdoutPipe[1])
+                    close(stderrPipe[1])
                     exit(1)
                 }
                 close(stdoutPipe[1])
+                
+                if (dup2(stderrPipe[1], STDERR_FILENO) == -1) {
+                    perror("dup2 stderr")
+                    close(stderrPipe[1])
+                    exit(1)
+                }
+                close(stderrPipe[1])
                 
                 // 引数配列を構築
                 // cstrオブジェクトをリストに保持してGCから保護
@@ -153,39 +189,73 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 execvp(process, argv)
                 
                 // execvpが戻ってきた場合はエラー
-                // エラー情報をstderrに出力
-                perror("execvp")
-                exit(127)
+                // エラーの種類に応じて異なる終了コードを使用
+                val exitCode = when (errno) {
+                    ENOENT -> 127 // コマンドが見つからない
+                    EACCES -> 126 // 実行権限がない
+                    else -> 125 // その他のエラー
+                }
+                exit(exitCode)
                 @Suppress("UNREACHABLE_CODE")
                 error("Should not reach here")
             }
             else -> {
                 // 親プロセス
                 close(stdoutPipe[1]) // 書き込み側を閉じる
+                close(stderrPipe[1])
                 
                 try {
                     // 標準出力を読み取る
                     val outputBytes = mutableListOf<Byte>()
-                    val buffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
-                    while (true) {
-                        val bytesRead = read(stdoutPipe[0], buffer, EXEC_MAX_BUFFER_SIZE.toULong())
-                        when {
-                            bytesRead > 0 -> {
-                                // バッファからバイトを収集
-                                for (i in 0 until bytesRead.toInt()) {
-                                    outputBytes.add(buffer[i])
+                    val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+                    
+                    // 標準エラー出力を読み取る
+                    val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+                    
+                    // 両方のパイプから読み取る（簡易的な実装）
+                    var stdoutClosed = false
+                    var stderrClosed = false
+                    
+                    while (!stdoutClosed || !stderrClosed) {
+                        // 標準出力を読み取り
+                        if (!stdoutClosed) {
+                            val bytesRead = read(stdoutPipe[0], stdoutBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
+                            when {
+                                bytesRead > 0 -> {
+                                    // バッファからバイトを収集
+                                    for (i in 0 until bytesRead.toInt()) {
+                                        outputBytes.add(stdoutBuffer[i])
+                                    }
                                 }
+                                bytesRead == 0L -> stdoutClosed = true // EOF
+                                bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                                bytesRead == -1L -> {
+                                    // その他のエラー
+                                    val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
+                                    throw FluoriteException(
+                                        "Failed to read from child process stdout: $errorMessage (errno=$errno)".toFluoriteString()
+                                    )
+                                }
+                                else -> error("Unexpected read result: $bytesRead")
                             }
-                            bytesRead == 0L -> break // EOF
-                            bytesRead == -1L && errno == EINTR -> continue // シグナルで中断された場合は再試行
-                            bytesRead == -1L -> {
-                                // その他のエラー
-                                val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
-                                throw FluoriteException(
-                                    "Failed to read from child process: $errorMessage (errno=$errno)".toFluoriteString()
-                                )
+                        }
+                        
+                        // 標準エラー出力を読み取り、Xarpiteのstderrに転送
+                        if (!stderrClosed) {
+                            val bytesRead = read(stderrPipe[0], stderrBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
+                            when {
+                                bytesRead > 0 -> {
+                                    // stderrに書き込む
+                                    write(STDERR_FILENO, stderrBuffer, bytesRead.toULong())
+                                }
+                                bytesRead == 0L -> stderrClosed = true // EOF
+                                bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                                bytesRead == -1L -> {
+                                    // その他のエラーは無視（stderrの読み取りは重要ではない）
+                                    stderrClosed = true
+                                }
+                                else -> stderrClosed = true
                             }
-                            else -> error("Unexpected read result: $bytesRead")
                         }
                     }
                     
@@ -223,6 +293,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     outputBytes.toByteArray().decodeToString()
                 } finally {
                     close(stdoutPipe[0])
+                    close(stderrPipe[0])
                 }
             }
         }
