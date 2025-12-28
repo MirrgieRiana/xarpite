@@ -205,8 +205,8 @@ signing {
     isRequired = false
     
     // Support for in-memory signing from environment variables (for CI/CD)
-    val signingKey = System.getenv("GPG_SIGNING_KEY")
-    val signingPassword = System.getenv("GPG_SIGNING_PASSWORD")
+    val signingKey = System.getenv("GPG_SIGNING_ZIP_BASE64")
+    val signingPassword = System.getenv("GPG_SIGNING_PASSPHRASE")
     
     if (signingKey != null && signingPassword != null) {
         // Decode base64-encoded key from environment variable

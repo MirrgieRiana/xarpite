@@ -11,8 +11,8 @@
 bash scripts/generate-dummy-gpg-key.sh
 
 # 環境変数を設定
-export GPG_SIGNING_KEY=$(cat build/gpg-test/private-key-base64.txt)
-export GPG_SIGNING_PASSWORD=""
+export GPG_SIGNING_ZIP_BASE64=$(cat build/gpg-test/private-key-base64.txt)
+export GPG_SIGNING_PASSPHRASE=""
 
 # 署名付きでビルド
 ./gradlew publishXarpiteBinAllPublicationToBuildLocalRepository
@@ -47,16 +47,16 @@ base64 -w 0 private-key.asc > private-key-base64.txt
 
 リポジトリの Settings → Secrets and variables → Actions で以下を追加:
 
-- `GPG_SIGNING_KEY`: `private-key-base64.txt` の内容
-- `GPG_SIGNING_PASSWORD`: GPG キーのパスフレーズ
+- `GPG_SIGNING_ZIP_BASE64`: `private-key-base64.txt` の内容
+- `GPG_SIGNING_PASSPHRASE`: GPG キーのパスフレーズ
 
 ### 3. GitHub Actions での使用例
 
 ```yaml
 - name: Publish with GPG signing
   env:
-    GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-    GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
+    GPG_SIGNING_ZIP_BASE64: ${{ secrets.GPG_SIGNING_ZIP_BASE64 }}
+    GPG_SIGNING_PASSPHRASE: ${{ secrets.GPG_SIGNING_PASSPHRASE }}
   run: ./gradlew publishXarpiteBinAllPublicationToBuildLocalRepository
 ```
 
