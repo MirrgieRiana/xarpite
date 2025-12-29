@@ -8,6 +8,7 @@ import okio.Path.Companion.toPath
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
 object ShowUsage : Throwable()
+object ShowVersion : Throwable()
 
 fun parseArguments(args: Iterable<String>): Options {
     val list = args.toMutableList()
@@ -30,6 +31,11 @@ fun parseArguments(args: Iterable<String>): Options {
                 "-h", "--help" -> { // ヘルプ表示
                     list.removeFirst()
                     throw ShowUsage
+                }
+
+                "-v", "--version" -> { // バージョン表示
+                    list.removeFirst()
+                    throw ShowVersion
                 }
 
                 "-q" -> { // runnerモード
@@ -96,8 +102,10 @@ fun parseArguments(args: Iterable<String>): Options {
 
 fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
+    val version = getEnv()["XARPITE_VERSION"] ?: "unknown"
     val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "script" else "scriptfile"
+    println("Xarpite version $version")
     println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
     println("Launcher Options:")
     println("  --native                 Use the native engine")
@@ -105,9 +113,15 @@ fun showUsage() {
     println("  --node                   Use the Node.js engine")
     println("Runtime Options:")
     println("  -h, --help               Show this help")
+    println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  -f <scriptfile>          Read script from file")
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
+}
+
+fun showVersion() {
+    val version = getEnv()["XARPITE_VERSION"] ?: "unknown"
+    println(version)
 }

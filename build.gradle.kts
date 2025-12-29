@@ -138,6 +138,10 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     }
     from(tasks.named("jvmJar")) { into("bin/jvm") }
     from(project(":node").tasks.named("jsNodeProductionLibraryDistribution")) { into("bin/node") }
+    doLast {
+        val versionFile = destinationDir.resolve("version")
+        versionFile.writeText(project.version.toString())
+    }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
 

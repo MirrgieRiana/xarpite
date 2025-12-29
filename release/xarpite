@@ -2,12 +2,20 @@
 
 SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 CONFIG_FILE=$SCRIPT_DIR/default_engine
+VERSION_FILE=$SCRIPT_DIR/version
 
 # Set environment variable for actual program name of Xarpite
 if [ -z "$XARPITE_PROGRAM_NAME" ]
 then
   XARPITE_PROGRAM_NAME=${0##*/}
   export XARPITE_PROGRAM_NAME
+fi
+
+# Set environment variable for version of Xarpite
+if [ -z "$XARPITE_VERSION" ] && [ -f "$VERSION_FILE" ]
+then
+  XARPITE_VERSION=$(cat "$VERSION_FILE")
+  export XARPITE_VERSION
 fi
 
 # Parse launcher options
