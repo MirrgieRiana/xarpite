@@ -94,18 +94,18 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
             FluoriteNull
         },
+        "LET" to FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("LET(value: VALUE; block: VALUE -> VALUE): VALUE")
+            val value = arguments[0]
+            val block = arguments[1]
+            block.invoke(arrayOf(value))
+        },
         "ALSO" to FluoriteFunction { arguments ->
             if (arguments.size != 2) usage("ALSO(value: VALUE; block: VALUE -> VALUE): VALUE")
             val value = arguments[0]
             val block = arguments[1]
             block.invoke(arrayOf(value))
             value
-        },
-        "LET" to FluoriteFunction { arguments ->
-            if (arguments.size != 2) usage("LET(value: VALUE; block: VALUE -> VALUE): VALUE")
-            val value = arguments[0]
-            val block = arguments[1]
-            block.invoke(arrayOf(value))
         },
     ).let { listOf(it) }
 }
