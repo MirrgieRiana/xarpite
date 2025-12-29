@@ -135,6 +135,25 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
     }
 }
 
+/**
+ * パイプを非ブロッキングモードに設定するヘルパー関数
+ * @param fd ファイルディスクリプタ
+ * @param name デバッグ用の名前
+ * @throws FluoriteException 設定に失敗した場合
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun setNonBlocking(fd: Int, name: String) {
+    val flags = fcntl(fd, F_GETFL, 0)
+    if (flags == -1) {
+        perror("fcntl F_GETFL $name")
+        throw FluoriteException("Failed to get flags for $name pipe".toFluoriteString())
+    }
+    if (fcntl(fd, F_SETFL, flags or O_NONBLOCK) == -1) {
+        perror("fcntl F_SETFL $name")
+        throw FluoriteException("Failed to set non-blocking mode for $name pipe".toFluoriteString())
+    }
+}
+
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
@@ -214,32 +233,13 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stderrPipe[1])
                 
                 // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
-                val stdoutFlags = fcntl(stdoutPipe[0], F_GETFL, 0)
-                if (stdoutFlags == -1) {
-                    perror("fcntl F_GETFL stdout")
+                try {
+                    setNonBlocking(stdoutPipe[0], "stdout")
+                    setNonBlocking(stderrPipe[0], "stderr")
+                } catch (e: Throwable) {
                     close(stdoutPipe[0])
                     close(stderrPipe[0])
-                    throw FluoriteException("Failed to get flags for stdout pipe".toFluoriteString())
-                }
-                if (fcntl(stdoutPipe[0], F_SETFL, stdoutFlags or O_NONBLOCK) == -1) {
-                    perror("fcntl F_SETFL stdout")
-                    close(stdoutPipe[0])
-                    close(stderrPipe[0])
-                    throw FluoriteException("Failed to set non-blocking mode for stdout pipe".toFluoriteString())
-                }
-                
-                val stderrFlags = fcntl(stderrPipe[0], F_GETFL, 0)
-                if (stderrFlags == -1) {
-                    perror("fcntl F_GETFL stderr")
-                    close(stdoutPipe[0])
-                    close(stderrPipe[0])
-                    throw FluoriteException("Failed to get flags for stderr pipe".toFluoriteString())
-                }
-                if (fcntl(stderrPipe[0], F_SETFL, stderrFlags or O_NONBLOCK) == -1) {
-                    perror("fcntl F_SETFL stderr")
-                    close(stdoutPipe[0])
-                    close(stderrPipe[0])
-                    throw FluoriteException("Failed to set non-blocking mode for stderr pipe".toFluoriteString())
+                    throw e
                 }
                 
                 try {
@@ -309,15 +309,19 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                                 continue
                                             }
                                             written == 0L -> {
-                                                // 進捗なし: リトライカウンターをインクリメント
+                                                // 進捗なし: ビジーウェイトを避けるためスリープ
                                                 writeRetryCount++
                                                 if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
                                                     // 無限ループ防止: 諦める
+                                                    perror("stderr write: too many retries with no progress")
                                                     break
                                                 }
+                                                usleep(1000u) // 1ミリ秒スリープ
                                             }
                                             else -> {
                                                 // それ以外のエラーの場合は、このチャンクの転送を諦める
+                                                val errMsg = strerror(errno)?.toKString() ?: "unknown"
+                                                perror("stderr write failed: $errMsg (errno=$errno)")
                                                 break
                                             }
                                         }
