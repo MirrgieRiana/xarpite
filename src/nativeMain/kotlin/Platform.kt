@@ -291,21 +291,32 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 bytesRead > 0 -> {
                                     dataRead = true
                                     // stderrに書き込む（部分書き込みとEINTRを考慮）
-                                    var totalWritten = 0L
-                                    while (totalWritten < bytesRead) {
-                                        val remaining = (bytesRead - totalWritten).toULong()
-                                        val ptr = stderrBuffer + totalWritten.toInt()
+                                    var totalWritten = 0
+                                    var writeRetryCount = 0
+                                    val maxWriteRetries = 100
+                                    while (totalWritten < bytesRead.toInt()) {
+                                        val remaining = (bytesRead.toInt() - totalWritten).toULong()
+                                        val ptr = stderrBuffer + totalWritten
                                         val written = write(STDERR_FILENO, ptr, remaining)
                                         when {
                                             written > 0 -> {
-                                                totalWritten += written
+                                                totalWritten += written.toInt()
+                                                writeRetryCount = 0 // リセット
                                             }
                                             written == -1L && errno == EINTR -> {
                                                 // シグナルによる一時的な中断は再試行
                                                 continue
                                             }
+                                            written == 0L -> {
+                                                // 進捗なし: リトライカウンターをインクリメント
+                                                writeRetryCount++
+                                                if (writeRetryCount >= maxWriteRetries) {
+                                                    // 無限ループ防止: 諦める
+                                                    break
+                                                }
+                                            }
                                             else -> {
-                                                // それ以外のエラーや進捗なしの場合は、このチャンクの転送を諦める
+                                                // それ以外のエラーの場合は、このチャンクの転送を諦める
                                                 break
                                             }
                                         }
