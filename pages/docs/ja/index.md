@@ -17,3 +17,19 @@ Xarpiteはワンライナー向けに設計されたインタプリタ言語で�
 ## ドキュメントの構成
 
 メニューから各トピックをご覧ください。
+
+## インストール
+
+### カレントディレクトリにダウンロード
+
+Xarpiteを `./xarpite` にダウンロードします。
+
+```shell
+curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
+```
+
+以下のコマンドでダウンロードされたXarpiteが動作することを確認できます。
+
+```shell
+./xarpite/xarpite -e '1 .. 9 | [1 .. _]'
+```
