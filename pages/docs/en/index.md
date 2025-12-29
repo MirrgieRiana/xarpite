@@ -4,7 +4,7 @@ title: "Xarpite Documentation"
 
 # Xarpite Documentation
 
-Xarpite (xa) - An interpreted language for one-liners
+Xarpite (xa) - An Interpreted Language for One-Liners
 
 <!-- toc -->
 
