@@ -120,6 +120,18 @@ class FunctionTest {
     }
 
     @Test
+    fun let() = runTest {
+        // LET は値をブロックに渡して、ブロックの戻り値を返す
+        assertEquals(20, eval("LET(10; x -> x + x)").int) // ブロックの戻り値を返す
+
+        // LET を使って値を変換する
+        assertEquals(246, eval("LET(123; x -> x + x)").int)
+
+        // 連鎖した使用例
+        assertEquals(200, eval("LET(LET(10; x -> x + x); y -> y + y + y + y + y + y + y + y + y + y)").int)
+    }
+
+    @Test
     fun setCall() = runTest {
 
         // 代入呼び出しができる
