@@ -1,4 +1,5 @@
 import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
@@ -7,6 +8,7 @@ import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
@@ -34,7 +36,6 @@ import platform.posix.close
 import platform.posix.dup2
 import platform.posix.errno
 import platform.posix.execvp
-import platform.posix.exit
 import platform.posix.fcntl
 import platform.posix.ferror
 import platform.posix.fork
@@ -213,10 +214,32 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 
                 // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
                 val stdoutFlags = fcntl(stdoutPipe[0], F_GETFL, 0)
-                fcntl(stdoutPipe[0], F_SETFL, stdoutFlags or O_NONBLOCK)
+                if (stdoutFlags == -1) {
+                    perror("fcntl F_GETFL stdout")
+                    close(stdoutPipe[0])
+                    close(stderrPipe[0])
+                    throw FluoriteException("Failed to get flags for stdout pipe".toFluoriteString())
+                }
+                if (fcntl(stdoutPipe[0], F_SETFL, stdoutFlags or O_NONBLOCK) == -1) {
+                    perror("fcntl F_SETFL stdout")
+                    close(stdoutPipe[0])
+                    close(stderrPipe[0])
+                    throw FluoriteException("Failed to set non-blocking mode for stdout pipe".toFluoriteString())
+                }
                 
                 val stderrFlags = fcntl(stderrPipe[0], F_GETFL, 0)
-                fcntl(stderrPipe[0], F_SETFL, stderrFlags or O_NONBLOCK)
+                if (stderrFlags == -1) {
+                    perror("fcntl F_GETFL stderr")
+                    close(stdoutPipe[0])
+                    close(stderrPipe[0])
+                    throw FluoriteException("Failed to get flags for stderr pipe".toFluoriteString())
+                }
+                if (fcntl(stderrPipe[0], F_SETFL, stderrFlags or O_NONBLOCK) == -1) {
+                    perror("fcntl F_SETFL stderr")
+                    close(stdoutPipe[0])
+                    close(stderrPipe[0])
+                    throw FluoriteException("Failed to set non-blocking mode for stderr pipe".toFluoriteString())
+                }
                 
                 try {
                     // 標準出力を読み取る
@@ -267,8 +290,26 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             when {
                                 bytesRead > 0 -> {
                                     dataRead = true
-                                    // stderrに書き込む
-                                    write(STDERR_FILENO, stderrBuffer, bytesRead.toULong())
+                                    // stderrに書き込む（部分書き込みとEINTRを考慮）
+                                    var totalWritten = 0L
+                                    while (totalWritten < bytesRead) {
+                                        val remaining = (bytesRead - totalWritten).toULong()
+                                        val ptr = stderrBuffer + totalWritten.toInt()
+                                        val written = write(STDERR_FILENO, ptr, remaining)
+                                        when {
+                                            written > 0 -> {
+                                                totalWritten += written
+                                            }
+                                            written == -1L && errno == EINTR -> {
+                                                // シグナルによる一時的な中断は再試行
+                                                continue
+                                            }
+                                            else -> {
+                                                // それ以外のエラーや進捗なしの場合は、このチャンクの転送を諦める
+                                                break
+                                            }
+                                        }
+                                    }
                                 }
                                 bytesRead == 0L -> stderrClosed = true // EOF
                                 bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
