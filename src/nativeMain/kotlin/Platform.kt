@@ -59,6 +59,9 @@ import kotlin.experimental.ExperimentalNativeApi
 const val EXEC_MAX_BUFFER_SIZE = 4096
 const val WAITPID_MAX_RETRIES = 1000
 const val STDERR_WRITE_MAX_RETRIES = 100
+const val STDERR_WRITE_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
+const val IO_POLLING_SLEEP_MICROS = 10000u // 10ミリ秒
+const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
@@ -295,6 +298,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     var totalWritten = 0
                                     var writeRetryCount = 0
                                     while (totalWritten < bytesRead.toInt()) {
+                                        // 境界チェック：totalWrittenがbytesReadを超えないことを保証
+                                        require(totalWritten <= bytesRead.toInt()) { "totalWritten exceeds bytesRead" }
                                         val remaining = (bytesRead.toInt() - totalWritten).toULong()
                                         // kotlinx.cinterop.plusによるポインター演算（Kotlin/Native標準）
                                         val ptr = stderrBuffer + totalWritten
@@ -316,7 +321,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                                     perror("stderr write: too many retries with no progress")
                                                     break
                                                 }
-                                                usleep(1000u) // 1000マイクロ秒（1ミリ秒）スリープ
+                                                usleep(STDERR_WRITE_RETRY_SLEEP_MICROS)
                                             }
                                             else -> {
                                                 // それ以外のエラーの場合は、このチャンクの転送を諦める
@@ -343,7 +348,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         
                         // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
                         if (!dataRead && (!stdoutClosed || !stderrClosed)) {
-                            usleep(10000u) // 10000マイクロ秒（10ミリ秒）スリープ
+                            usleep(IO_POLLING_SLEEP_MICROS)
                         }
                     }
                     
@@ -358,7 +363,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             if (waitRetryCount >= WAITPID_MAX_RETRIES) {
                                 throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
                             }
-                            usleep(1000u) // 1000マイクロ秒（1ミリ秒）スリープ
+                            usleep(WAITPID_RETRY_SLEEP_MICROS)
                         }
                     } while (waitResult.toLong() == -1L && errno == EINTR)
                     
