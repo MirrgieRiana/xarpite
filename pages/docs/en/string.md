@@ -6,7 +6,7 @@ title: "Raw String Literal `'contents'`"
 
 # Raw String Literal `'contents'`
 
-Raw string literals are strings enclosed by `'` `'` and interpret most characters as-is.
+Raw string literals are strings enclosed in `'` `'` that interpret most characters literally.
 
 | String            | Meaning              |
 |-------------------|----------------------|
@@ -28,9 +28,9 @@ $ xa " 'abc''def' "
 
 ## Newline Content
 
-Raw strings can contain newlines, but all are unified to LF.
+Raw strings can contain newlines, but all are normalized to LF.
 
-This property ensures that program behavior does not change even if the source code's newline code changes.
+This ensures that program behavior remains consistent even if the source code's newline convention changes.
 
 ```shell
 $ xa " 'abc
@@ -52,7 +52,7 @@ $ xa \''abc$def\nop'\'
 
 # Template String Literal `"contents"`
 
-Template string literals are strings enclosed by `"` `"` and support features like escaping and embedding.
+Template string literals are strings enclosed in `"` `"` that support features like escape sequences and variable interpolation.
 
 | String                              | Meaning                                         |
 |-------------------------------------|-------------------------------------------------|
@@ -75,9 +75,9 @@ Template string literals are strings enclosed by `"` `"` and support features li
 
 ## Escape Sequence Content `\n`
 
-Escape sequence content is a sequence starting with ` \ `, each representing a predetermined character.
+Escape sequence content consists of sequences starting with ` \ `, each representing a specific character.
 
-See the table above for a list of escape sequences.
+Refer to the table above for a complete list of escape sequences.
 
 Sequences starting with ` \ ` are reserved for future features, and invalid sequences result in syntax errors.
 

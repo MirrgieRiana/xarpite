@@ -19,9 +19,9 @@ $ xa '{a: 1; b: 2}'
 
 ---
 
-Items separated by `;` are not required to be in the form `key: value`; they can actually be 2-element arrays and streams thereof.
+Items separated by `;` don't have to be in `key: value` form; they can also be 2-element arrays or streams of such arrays.
 
-The entry operator `:` is essentially independent of object literals and is an operator that makes both sides into a 2-element array.
+The entry operator `:` is essentially independent of object literals—it's an operator that creates a 2-element array from its operands.
 
 ```shell
 $ xa '{1 .. 3 | "Item$_": _ * 10; 4 .. 6 | ["Item$_", _ * 100]}'
@@ -32,9 +32,9 @@ $ xa '{1 .. 3 | "Item$_": _ * 10; 4 .. 6 | ["Item$_", _ * 100]}'
 
 The notation of `;` in object literals is flexible.
 
-Having extra `;` before, after, or between items is not a problem.
+Extra `;` before, after, or between items is not a problem.
 
-Also, line breaks act as a substitute for `;`.
+Newlines can also substitute for `;`.
 
 ```shell
 $ xa '{
