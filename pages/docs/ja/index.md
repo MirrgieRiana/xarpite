@@ -28,9 +28,7 @@ Xarpiteを `./xarpite` にダウンロードします。
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 ```
 
-これは `/usr/local/bin` にコマンドをインストールせずに、カレントディレクトリにXarpiteを配置したい場合に便利です。
-
-インストールの確認は以下のコマンドで行えます:
+以下のコマンドでダウンロードされたXarpiteが動作することを確認できます。
 
 ```shell
 ./xarpite/xarpite -e '1 .. 9 | [1 .. _]'
