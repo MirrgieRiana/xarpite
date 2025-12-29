@@ -6,9 +6,9 @@ title: "Functions"
 
 # Functions
 
-In Xarpite, functions are treated as a type of value that can be assigned to variables, just like numbers and strings.
+In Xarpite, functions are treated as values that can be assigned to variables, just like numbers and strings.
 
-Specifically, you create function objects with lambda operators like `arguments -> formula`, assign them to variables as needed, and execute them with function call operators like `function(argument; ...)`.
+Specifically, you create function objects using lambda operators like `arguments -> formula`, assign them to variables as needed, and execute them using function call operators like `function(argument; ...)`.
 
 ```shell
 $ xa '
@@ -20,9 +20,9 @@ $ xa '
 
 # Lambda Expressions
 
-The lambda operator `arguments -> formula` is an operator that creates function objects.
+The lambda operator `arguments -> formula` creates function objects.
 
-On the left side of `->`, write the argument names, and on the right side, write the expression that becomes the call result.
+On the left side of `->`, you write the parameter names, and on the right side, you write the expression that will be returned when the function is called.
 
 ```shell
 $ xa '

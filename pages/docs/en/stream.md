@@ -8,9 +8,9 @@ title: "Range Operators"
 
 ## Closed Interval `start .. end`
 
-The closed interval operator creates a stream of integer ranges from the left side to the right side.
+The closed interval operator creates a stream of integers ranging from the left operand to the right operand.
 
-The end itself is included in the stream.
+The end value itself is included in the stream.
 
 ```shell
 $ xa '1 .. 3'
@@ -32,9 +32,9 @@ $ xa '3 .. 1'
 
 ## Half-Open Interval `start ~ end`
 
-The half-open interval operator creates a stream of integer ranges from the left side to one before the right side.
+The half-open interval operator creates a stream of integers from the left operand up to (but not including) the right operand.
 
-The end itself is not included in the stream.
+The end value itself is not included in the stream.
 
 ```shell
 $ xa '1 ~ 3'
@@ -44,7 +44,7 @@ $ xa '1 ~ 3'
 
 ---
 
-Unlike the closed interval operator, the half-open interval operator creates an empty stream when the right side is greater than the left side.
+Unlike the closed interval operator, the half-open interval operator creates an empty stream when the right operand is less than the left operand.
 
 ```shell
 $ xa '[3 ~ 1]'
@@ -89,7 +89,7 @@ $ xa '[,]'
 
 ---
 
-The xa command outputs the return value of the given source code by default behavior, but outputs nothing for empty streams, so it is sometimes used to suppress the output of the xa command.
+The xa command outputs the return value of the given source code by default, but outputs nothing for empty streams, so this is sometimes used to suppress output from the xa command.
 
 ```shell
 $ xa '"Some processing with side effects"; ,'
@@ -97,7 +97,7 @@ $ xa '"Some processing with side effects"; ,'
 
 # Stream Operators
 
-Stream operators are operators that process, assign, and otherwise manipulate streams.
+Stream operators are operators that process, transform, and assign streams.
 
 ## Brief Introduction to Stream Operators
 
