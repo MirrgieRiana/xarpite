@@ -303,8 +303,6 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     var totalWritten = 0
                                     var writeRetryCount = 0
                                     while (totalWritten < bytesRead.toInt()) {
-                                        // 内部不変条件チェック（デバッグ用）
-                                        check(totalWritten <= bytesRead.toInt()) { "totalWritten exceeds bytesRead" }
                                         val remaining = (bytesRead.toInt() - totalWritten).toULong()
                                         // ポインター演算でstderrバッファの適切な位置を取得
                                         val ptr = stderrBuffer + totalWritten
