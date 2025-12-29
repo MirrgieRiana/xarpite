@@ -33,7 +33,7 @@ CLI上でXarpiteを実行する際には、ランチャーとランタイムと�
 `xarpite` コマンドはXarpiteを実行するための最も基本的なコマンドです。
 
 ```shell
-$ xarpite -h
+$ xarpite -h | tail -n +2
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -41,6 +41,7 @@ $ xarpite -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
 #                            Omit [scriptfile]
@@ -76,7 +77,7 @@ $ {
 `xa` コマンドは `xarpite` コマンドのショートカットです。
 
 ```shell
-$ xa -h
+$ xa -h | tail -n +2
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -84,6 +85,7 @@ $ xa -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
 #                            Omit [script]
@@ -115,6 +117,16 @@ $ xa '100 + 20 + 3'
 一方で、 `xa` コマンドはシェルスクリプトなどのファイル内に記述する利用法を想定していません。
 
 その目的には代わりに `xarpite` コマンドを使用してください。
+
+## ヘルプ系のオプション
+
+### `-h`, `--help`: ヘルプの表示
+
+`-h` または `--help` オプションを指定するとヘルプメッセージが表示されます。
+
+### `-v`, `--version`: バージョン情報の表示
+
+`-v` または `--version` オプションを指定するとXarpiteのバージョンが表示されます。
 
 ## Xarpiteエンジンの指定
 
