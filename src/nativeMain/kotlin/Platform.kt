@@ -296,7 +296,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     var writeRetryCount = 0
                                     while (totalWritten < bytesRead.toInt()) {
                                         val remaining = (bytesRead.toInt() - totalWritten).toULong()
-                                        // kotlinx.cinterop.plusによる安全なポインター演算
+                                        // kotlinx.cinterop.plusによるポインター演算（Kotlin/Native標準）
                                         val ptr = stderrBuffer + totalWritten
                                         val written = write(STDERR_FILENO, ptr, remaining)
                                         when {
@@ -316,7 +316,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                                     perror("stderr write: too many retries with no progress")
                                                     break
                                                 }
-                                                usleep(1000u) // 1ミリ秒スリープ
+                                                usleep(1000u) // 1000マイクロ秒（1ミリ秒）スリープ
                                             }
                                             else -> {
                                                 // それ以外のエラーの場合は、このチャンクの転送を諦める
@@ -343,7 +343,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         
                         // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
                         if (!dataRead && (!stdoutClosed || !stderrClosed)) {
-                            usleep(10000u) // 10ミリ秒スリープ
+                            usleep(10000u) // 10000マイクロ秒（10ミリ秒）スリープ
                         }
                     }
                     
@@ -358,7 +358,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             if (waitRetryCount >= WAITPID_MAX_RETRIES) {
                                 throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
                             }
-                            usleep(1000u) // 過度なビジーループを避けるため、1ミリ秒スリープ
+                            usleep(1000u) // 1000マイクロ秒（1ミリ秒）スリープ
                         }
                     } while (waitResult.toLong() == -1L && errno == EINTR)
                     
