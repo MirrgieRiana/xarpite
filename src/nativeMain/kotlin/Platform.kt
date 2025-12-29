@@ -56,9 +56,14 @@ import platform.posix.waitpid
 import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
 
+// EXEC関数の定数
 const val EXEC_MAX_BUFFER_SIZE = 4096
+
+// リトライ制限
 const val WAITPID_MAX_RETRIES = 1000
 const val STDERR_WRITE_MAX_RETRIES = 100
+
+// スリープ時間（マイクロ秒）
 const val STDERR_WRITE_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 const val IO_POLLING_SLEEP_MICROS = 10000u // 10ミリ秒
 const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
@@ -298,10 +303,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     var totalWritten = 0
                                     var writeRetryCount = 0
                                     while (totalWritten < bytesRead.toInt()) {
-                                        // 境界チェック：totalWrittenがbytesReadを超えないことを保証
-                                        require(totalWritten <= bytesRead.toInt()) { "totalWritten exceeds bytesRead" }
+                                        // 内部不変条件チェック（デバッグ用）
+                                        check(totalWritten <= bytesRead.toInt()) { "totalWritten exceeds bytesRead" }
                                         val remaining = (bytesRead.toInt() - totalWritten).toULong()
-                                        // kotlinx.cinterop.plusによるポインター演算（Kotlin/Native標準）
+                                        // ポインター演算でstderrバッファの適切な位置を取得
                                         val ptr = stderrBuffer + totalWritten
                                         val written = write(STDERR_FILENO, ptr, remaining)
                                         when {
