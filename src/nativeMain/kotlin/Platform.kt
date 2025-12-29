@@ -56,6 +56,7 @@ import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
 
 const val EXEC_MAX_BUFFER_SIZE = 4096
+const val WAITPID_MAX_RETRIES = 1000
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
@@ -293,12 +294,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     val statusPtr = alloc<IntVar>()
                     var waitResult: pid_t
                     var waitRetryCount = 0
-                    val waitMaxRetries = 1000
                     do {
                         waitResult = waitpid(pid, statusPtr.ptr, 0)
                         if (waitResult.toLong() == -1L && errno == EINTR) {
                             waitRetryCount++
-                            if (waitRetryCount >= waitMaxRetries) {
+                            if (waitRetryCount >= WAITPID_MAX_RETRIES) {
                                 throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
                             }
                             usleep(1000u) // 過度なビジーループを避けるため、1ミリ秒スリープ
