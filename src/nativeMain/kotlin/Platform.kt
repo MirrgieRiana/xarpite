@@ -1,5 +1,4 @@
 import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
