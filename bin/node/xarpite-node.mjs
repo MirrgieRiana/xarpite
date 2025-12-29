@@ -39,6 +39,8 @@ import {
   set_readBytesFromStdinImpl190e472vb359k as set_readBytesFromStdinImpl,
   set_writeBytesToStdoutImpl3mboj4it6aj3a as set_writeBytesToStdoutImpl,
   parseArguments2lef1fjjpcnj4 as parseArguments,
+  showVersion321d1rtvx3woa as showVersion,
+  ShowVersion39hapcoullw8m as ShowVersion,
   showUsage1kmttarfmwnj8 as showUsage,
   ShowUsage11o4la4sguagx as ShowUsage,
   get_scope34wtnlfbrnd6v as get_scope,
@@ -107,7 +109,13 @@ function main_0($completion) {
       showUsage();
       return Unit_instance;
     } else {
-      throw $p;
+      if ($p instanceof ShowVersion) {
+        var _unused_var__etf5q3_0 = $p;
+        showVersion();
+        return Unit_instance;
+      } else {
+        throw $p;
+      }
     }
   }
   var options = tmp;

@@ -349,6 +349,7 @@ initMetadataForLambda(createCliMounts$slambda_7, CoroutineImpl, VOID, [1]);
 initMetadataForLambda(createCliMounts$slambda_9, CoroutineImpl, VOID, [1]);
 initMetadataForClass(Options, 'Options');
 initMetadataForObject(ShowUsage, 'ShowUsage', VOID, Error);
+initMetadataForObject(ShowVersion, 'ShowVersion', VOID, Error);
 initMetadataForLambda(createModuleMounts$slambda, CoroutineImpl, VOID, [1]);
 initMetadataForLambda(FluoriteArray$Companion$fluoriteClass$delegate$lambda$slambda$slambda$slambda, CoroutineImpl, VOID, [1]);
 initMetadataForLambda(FluoriteArray$Companion$fluoriteClass$delegate$lambda$slambda$slambda, CoroutineImpl, VOID, [1]);
@@ -5324,6 +5325,10 @@ function parseArguments(args) {
         case '--help':
           removeFirst(list);
           throw ShowUsage_getInstance();
+        case '-v':
+        case '--version':
+          removeFirst(list);
+          throw ShowVersion_getInstance();
         case '-q':
           if (quiet)
             throw ShowUsage_getInstance();
@@ -5442,10 +5447,15 @@ function showUsage() {
   var tmp0_elvis_lhs = getEnv().k2('XARPITE_PROGRAM_NAME');
   var tmp1_elvis_lhs = tmp0_elvis_lhs == null ? getProgramName() : tmp0_elvis_lhs;
   var programName = tmp1_elvis_lhs == null ? 'xarpite' : tmp1_elvis_lhs;
+  var tmp2_elvis_lhs = getEnv().k2('XARPITE_ENGINE');
+  var engine = tmp2_elvis_lhs == null ? 'native' : tmp2_elvis_lhs;
+  var tmp3_elvis_lhs = getEnv().k2('XARPITE_VERSION');
+  var version = tmp3_elvis_lhs == null ? '0.0.0-SNAPSHOT' : tmp3_elvis_lhs;
   // Inline function 'kotlin.text.isNullOrEmpty' call
   var this_0 = getEnv().k2('XARPITE_SHORT_COMMAND');
   var isShortCommand = !(this_0 == null || charSequenceLength(this_0) === 0);
   var firstArgName = isShortCommand ? 'script' : 'scriptfile';
+  println('Xarpite (xa) ' + version + ' ' + engine);
   println('Usage: ' + programName + ' <Launcher Options> <Runtime Options> [--] [' + firstArgName + '] <arguments>');
   println('Launcher Options:');
   println('  --native                 Use the native engine');
@@ -5453,11 +5463,28 @@ function showUsage() {
   println('  --node                   Use the Node.js engine');
   println('Runtime Options:');
   println('  -h, --help               Show this help');
+  println('  -v, --version            Show version');
   println('  -q                       Run script as a runner');
   println('  -f <scriptfile>          Read script from file');
   println('                           Omit [' + firstArgName + ']');
   println('  -e <script>              Evaluate script directly');
   println('                           Omit [' + firstArgName + ']');
+}
+function ShowVersion() {
+  ShowVersion_instance = this;
+  extendThrowable(this);
+  captureStack(this, ShowVersion);
+}
+var ShowVersion_instance;
+function ShowVersion_getInstance() {
+  if (ShowVersion_instance == null)
+    new ShowVersion();
+  return ShowVersion_instance;
+}
+function showVersion() {
+  var tmp0_elvis_lhs = getEnv().k2('XARPITE_VERSION');
+  var version = tmp0_elvis_lhs == null ? '0.0.0-SNAPSHOT' : tmp0_elvis_lhs;
+  println(version);
 }
 function createModuleMounts(location, mountsFactory) {
   // Inline function 'kotlin.run' call
@@ -32728,8 +32755,10 @@ export {
   main as mainjjw9tugnb4cz,
   get_INB_MAX_BUFFER_SIZE as get_INB_MAX_BUFFER_SIZE3tjzuz5loelvk,
   ShowUsage as ShowUsage11o4la4sguagx,
+  ShowVersion as ShowVersion39hapcoullw8m,
   parseArguments as parseArguments2lef1fjjpcnj4,
   showUsage as showUsage1kmttarfmwnj8,
+  showVersion as showVersion321d1rtvx3woa,
   get_Object_keys as get_Object_keys2nolb0l4j8r2q,
   createJsMounts as createJsMounts3lknrl24nfeh1,
   get_scope as get_scope34wtnlfbrnd6v,
