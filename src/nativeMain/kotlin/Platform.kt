@@ -18,8 +18,13 @@ import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import platform.posix.EACCES
+import platform.posix.EAGAIN
 import platform.posix.EINTR
 import platform.posix.ENOENT
+import platform.posix.EWOULDBLOCK
+import platform.posix.F_GETFL
+import platform.posix.F_SETFL
+import platform.posix.O_NONBLOCK
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.__environ
@@ -29,6 +34,7 @@ import platform.posix.dup2
 import platform.posix.errno
 import platform.posix.execvp
 import platform.posix.exit
+import platform.posix.fcntl
 import platform.posix.ferror
 import platform.posix.fork
 import platform.posix.fread
@@ -43,6 +49,7 @@ import platform.posix.stdin
 import platform.posix.stdout
 import platform.posix.stderr
 import platform.posix.strerror
+import platform.posix.usleep
 import platform.posix.waitpid
 import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
@@ -208,6 +215,13 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stdoutPipe[1]) // 書き込み側を閉じる
                 close(stderrPipe[1])
                 
+                // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
+                val stdoutFlags = fcntl(stdoutPipe[0], F_GETFL, 0)
+                fcntl(stdoutPipe[0], F_SETFL, stdoutFlags or O_NONBLOCK)
+                
+                val stderrFlags = fcntl(stderrPipe[0], F_GETFL, 0)
+                fcntl(stderrPipe[0], F_SETFL, stderrFlags or O_NONBLOCK)
+                
                 try {
                     // 標準出力を読み取る
                     val outputBytes = mutableListOf<Byte>()
@@ -216,20 +230,20 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     // 標準エラー出力を読み取る
                     val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
                     
-                    // 両方のパイプから読み取る
-                    // 注: この実装は簡易的なポーリングを使用しています。
-                    // より高度な実装では select() や poll() を使用して
-                    // ブロッキングを回避できますが、通常のユースケースでは
-                    // このシンプルな実装で十分です。
+                    // 両方のパイプから非ブロッキングで読み取る
+                    // これによりデッドロックを防ぎ、stdoutとstderrを並行して処理できる
                     var stdoutClosed = false
                     var stderrClosed = false
                     
                     while (!stdoutClosed || !stderrClosed) {
+                        var dataRead = false
+                        
                         // 標準出力を読み取り
                         if (!stdoutClosed) {
                             val bytesRead = read(stdoutPipe[0], stdoutBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
                             when {
                                 bytesRead > 0 -> {
+                                    dataRead = true
                                     // バッファからバイトを収集
                                     for (i in 0 until bytesRead.toInt()) {
                                         outputBytes.add(stdoutBuffer[i])
@@ -237,6 +251,9 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 }
                                 bytesRead == 0L -> stdoutClosed = true // EOF
                                 bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                                bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                                    // データが利用可能になるまで待つ（非ブロッキング）
+                                }
                                 bytesRead == -1L -> {
                                     // その他のエラー
                                     val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
@@ -253,11 +270,15 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             val bytesRead = read(stderrPipe[0], stderrBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
                             when {
                                 bytesRead > 0 -> {
+                                    dataRead = true
                                     // stderrに書き込む
                                     write(STDERR_FILENO, stderrBuffer, bytesRead.toULong())
                                 }
                                 bytesRead == 0L -> stderrClosed = true // EOF
                                 bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                                bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                                    // データが利用可能になるまで待つ（非ブロッキング）
+                                }
                                 bytesRead == -1L -> {
                                     // stderrの読み取りエラーは無視
                                     // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
@@ -265,6 +286,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 }
                                 else -> stderrClosed = true
                             }
+                        }
+                        
+                        // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
+                        if (!dataRead && (!stdoutClosed || !stderrClosed)) {
+                            usleep(1000u) // 1ミリ秒スリープ
                         }
                     }
                     
