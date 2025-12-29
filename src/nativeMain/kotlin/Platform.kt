@@ -27,6 +27,7 @@ import platform.posix.F_SETFL
 import platform.posix.O_NONBLOCK
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
+import platform.posix._exit
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.close
@@ -57,6 +58,7 @@ import kotlin.experimental.ExperimentalNativeApi
 const val EXEC_MAX_BUFFER_SIZE = 4096
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
+// 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
 private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
 private fun WEXITSTATUS(status: Int): Int = ((status and 0xff00) shr 8)
 // WIFSIGNALEDの実装: シグナルで終了した場合、下位7ビットが非ゼロかつ0x7fでない
@@ -64,6 +66,8 @@ private fun WIFSIGNALED(status: Int): Boolean {
     val term = status and 0x7f
     return term != 0 && term != 0x7f
 }
+// WTERMSIGの実装: プロセスを終了させたシグナル番号を取得
+private fun WTERMSIG(status: Int): Int = (status and 0x7f)
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
@@ -146,17 +150,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
         }
         
-        val pid: pid_t
-        try {
-            pid = fork()
-        } catch (t: Throwable) {
-            // forkが失敗した場合、すべてのパイプをクリーンアップ
-            close(stdoutPipe[0])
-            close(stdoutPipe[1])
-            close(stderrPipe[0])
-            close(stderrPipe[1])
-            throw t
-        }
+        val pid: pid_t = fork()
         
         when {
             pid < 0 -> {
@@ -177,14 +171,14 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     perror("dup2 stdout")
                     close(stdoutPipe[1])
                     close(stderrPipe[1])
-                    exit(1)
+                    _exit(1)
                 }
                 close(stdoutPipe[1])
                 
                 if (dup2(stderrPipe[1], STDERR_FILENO) == -1) {
                     perror("dup2 stderr")
                     close(stderrPipe[1])
-                    exit(1)
+                    _exit(1)
                 }
                 close(stderrPipe[1])
                 
@@ -201,12 +195,13 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 
                 // execvpが戻ってきた場合はエラー
                 // エラーの種類に応じて異なる終了コードを使用
+                // _exit()を使用してatexit ハンドラやstdioバッファのフラッシュを避ける
                 val exitCode = when (errno) {
                     ENOENT -> 127 // コマンドが見つからない
                     EACCES -> 126 // 実行権限がない
                     else -> 125 // その他のエラー
                 }
-                exit(exitCode)
+                _exit(exitCode)
                 @Suppress("UNREACHABLE_CODE")
                 error("Should not reach here")
             }
@@ -290,15 +285,24 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         
                         // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
                         if (!dataRead && (!stdoutClosed || !stderrClosed)) {
-                            usleep(1000u) // 1ミリ秒スリープ
+                            usleep(10000u) // 10ミリ秒スリープ
                         }
                     }
                     
                     // 子プロセスの終了を待つ
                     val statusPtr = alloc<IntVar>()
                     var waitResult: pid_t
+                    var waitRetryCount = 0
+                    val waitMaxRetries = 1000
                     do {
                         waitResult = waitpid(pid, statusPtr.ptr, 0)
+                        if (waitResult.toLong() == -1L && errno == EINTR) {
+                            waitRetryCount++
+                            if (waitRetryCount >= waitMaxRetries) {
+                                throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
+                            }
+                            usleep(1000u) // 過度なビジーループを避けるため、1ミリ秒スリープ
+                        }
                     } while (waitResult.toLong() == -1L && errno == EINTR)
                     
                     if (waitResult.toLong() == -1L) {
@@ -317,7 +321,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             }
                         }
                         WIFSIGNALED(status) -> {
-                            throw FluoriteException("Process terminated by signal".toFluoriteString())
+                            val signalNumber = WTERMSIG(status)
+                            throw FluoriteException("Process terminated by signal $signalNumber".toFluoriteString())
                         }
                         else -> {
                             throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
@@ -327,8 +332,17 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     // バイト配列を文字列に変換
                     outputBytes.toByteArray().decodeToString()
                 } finally {
-                    close(stdoutPipe[0])
-                    close(stderrPipe[0])
+                    // close()が失敗してもtryブロックの例外をマスクしないようにする
+                    try {
+                        close(stdoutPipe[0])
+                    } catch (_: Throwable) {
+                        // close失敗は無視してtryブロックの例外を優先
+                    }
+                    try {
+                        close(stderrPipe[0])
+                    } catch (_: Throwable) {
+                        // close失敗は無視してtryブロックの例外を優先
+                    }
                 }
             }
         }
