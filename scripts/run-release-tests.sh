@@ -33,6 +33,14 @@ actual=$(xa '1 .. 3')
 [ "$actual" = "$expected" ] || fail "$expected" "$actual"
 
 
+# Version option
+actual=$(xa -v)
+[ -n "$actual" ] || fail "non-empty version" "$actual"
+
+actual=$(xa --version)
+[ -n "$actual" ] || fail "non-empty version" "$actual"
+
+
 # Native engine
 expected=123
 actual=$(XARPITE_ENGINE=native xa '123')
