@@ -58,6 +58,7 @@ import kotlin.experimental.ExperimentalNativeApi
 
 const val EXEC_MAX_BUFFER_SIZE = 4096
 const val WAITPID_MAX_RETRIES = 1000
+const val STDERR_WRITE_MAX_RETRIES = 100
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
@@ -293,9 +294,9 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     // stderrに書き込む（部分書き込みとEINTRを考慮）
                                     var totalWritten = 0
                                     var writeRetryCount = 0
-                                    val maxWriteRetries = 100
                                     while (totalWritten < bytesRead.toInt()) {
                                         val remaining = (bytesRead.toInt() - totalWritten).toULong()
+                                        // kotlinx.cinterop.plusによる安全なポインター演算
                                         val ptr = stderrBuffer + totalWritten
                                         val written = write(STDERR_FILENO, ptr, remaining)
                                         when {
@@ -310,7 +311,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                             written == 0L -> {
                                                 // 進捗なし: リトライカウンターをインクリメント
                                                 writeRetryCount++
-                                                if (writeRetryCount >= maxWriteRetries) {
+                                                if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
                                                     // 無限ループ防止: 諦める
                                                     break
                                                 }
