@@ -24,12 +24,13 @@ Please refer to each topic from the menu.
 
 Download the Xarpite release into `./xarpite`.
 
-```shell
+```sh
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 ```
 
 You can verify that the downloaded Xarpite works with the following command:
 
 ```shell
-./xarpite/xarpite -e '1 .. 9 | [1 .. _]'
+$ ./xarpite/xarpite -e ' "Hello, World!!" '
+Hello, World!!
 ```
