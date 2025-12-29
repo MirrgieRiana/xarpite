@@ -6,7 +6,7 @@ title: "Identifiers"
 
 # Identifiers
 
-An identifier `identifier` is a string for indicating variables, built-in constants, built-in functions, arguments, etc.
+An identifier is a string used to refer to variables, built-in constants, built-in functions, parameters, and other named entities.
 
 ```shell
 $ xa '
@@ -61,7 +61,7 @@ $ xa '
 
 ## Quoted Identifiers with Symbols
 
-Quoted identifiers can also contain symbols.
+Quoted identifiers can also include symbols.
 
 ```shell
 $ xa '
@@ -71,9 +71,9 @@ $ xa '
 # 10
 ```
 
-## Character References in Quoted Identifiers
+## Character Escapes in Quoted Identifiers
 
-The following character references can be used in quoted identifiers:
+The following character escapes can be used within quoted identifiers:
 
 | String     | Meaning                                        |
 |------------|------------------------------------------------|

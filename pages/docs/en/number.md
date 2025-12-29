@@ -35,9 +35,9 @@ $ xa 'H#FF'
 
 # Floating-Point Number Literal `1.23`
 
-You can write real numbers in the form "integer part `.` fractional part".
+You can write real numbers in the form "integer part `.` decimal part".
 
-Real number representation and operations include calculation errors.
+Representation and operations with real numbers involve rounding errors.
 
 ```shell
 $ xa '1.5'
@@ -56,7 +56,7 @@ The prefix `+` operator performs numeric conversion of a value.
 | String     | Result of parsing as a number       |
 | Stream     | Sum of all elements                 |
 
-The main use is to convert numeric data represented as strings to internal numbers.
+The main purpose is to convert numeric data represented as strings into internal numeric values.
 
 ```shell
 $ xa ' "+123"'
