@@ -6,16 +6,16 @@ title: "Comparison"
 
 # Comparison
 
-You can perform various determinations such as comparing numbers or strings, or checking whether a specific element is contained in an array.
+You can perform various comparisons, such as comparing numbers or strings, or checking whether a specific element is contained in an array.
 
 ## Binding of Comparison Operators
 
-The binding between comparison operators is special and follows these steps:
+The binding between comparison operators works in a special way, following these steps:
 
-1. For all comparison operators, perform comparisons based on the left and right sides
-2. Take the logical AND of those results
+1. For all comparison operators, perform the comparison between their left and right operands
+2. Take the logical AND of all those results
 
-For example, `3 <= x <= 5` first calculates `3 <= x`, then calculates `x <= 5`, and finally takes their logical AND `3 <= x && x <= 5`.
+For example, `3 <= x <= 5` first evaluates `3 <= x`, then evaluates `x <= 5`, and finally takes their logical AND: `3 <= x && x <= 5`.
 
 This allows you to write comparison chains concisely.
 
@@ -29,7 +29,7 @@ $ xa '3 <= 10 <= 5'
 
 ---
 
-The following operators are subject to this specification:
+The following operators follow this specification:
 
 - `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
 
@@ -60,9 +60,9 @@ $ xa '[1 <= 2, 2 <= 2, 3 <= 2]'
 
 ## Overloading Comparison Operators
 
-The behavior of comparison operators is actually determined based on the result of the spaceship operator.
+Comparison operators actually determine their behavior based on the result of the spaceship operator.
 
-When the spaceship operator is overloaded, the behavior of various comparison operators also changes.
+When the spaceship operator is overloaded, the behavior of the various comparison operators changes accordingly.
 
 # Equality Operators
 

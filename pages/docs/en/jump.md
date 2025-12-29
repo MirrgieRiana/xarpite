@@ -8,13 +8,13 @@ title: "Jump"
 
 # Labels and Returns
 
-You can label elements of expressions and explicitly return values to those labels while exiting the process early.
+You can attach labels to expression elements and explicitly return values to those labels, allowing early exit from the process.
 
 ## Simple Example
 
-The label operator `formula !: label` can attach a label to expression `formula`.
+The label operator `formula !: label` attaches a label to the expression `formula`.
 
-Within `formula`, you can return a value to that label with the return operator `label!! value`.
+Within `formula`, you can use the return operator `label!! value` to return a value to that label.
 
 ```shell
 $ xa '
@@ -28,27 +28,27 @@ $ xa '
 
 ---
 
-Labels are managed in a table separate from variables and can only be referenced from the left side of the return operator.
+Labels are managed in a separate table from variables and can only be referenced from the left operand of the return operator.
 
 ---
 
-The label operator `formula !: label` has a very distinctive appearance, which is designed with awareness of the similarity to the Elvis operator `value ?: default`.
+The label operator `formula !: label` has a very distinctive appearance, intentionally designed to be similar to the Elvis operator `value ?: default`.
 
-Both can have special states on the left side, which are received on the right side.
+Both operators can have special states on the left side that are handled on the right side.
 
-However, the label operator has low binding precedence, and `formula` can include pipe `|` or right-execution pipe `>>`.
+However, the label operator has low binding precedence, allowing `formula` to include pipes `|` or right-execution pipes `>>`.
 
 ---
 
 The return operator `label!! value` provides decent readability when `label` is a string like `return`, as in `return!! "Result"`.
 
-The appearance of operator `!!` corresponds to the throw operator `!! error`, and their behaviors are similar.
+The `!!` operator's appearance corresponds to the throw operator `!! error`, and their behaviors are also similar.
 
 ## Escaping from Loops
 
-Return can also be used for mid-loop escape.
+Return can also be used to escape from loops mid-iteration.
 
-In the following example, we loop through integers from 1 to 100 in order, looking for a number divisible by 2, 3, and 5.
+In the following example, we loop through integers from 1 to 100, searching for a number divisible by 2, 3, and 5.
 
 ```shell
 $ xa '
