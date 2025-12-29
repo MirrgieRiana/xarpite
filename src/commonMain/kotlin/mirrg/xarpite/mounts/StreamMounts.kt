@@ -563,6 +563,14 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 usage("<T> PIPE(stream: STREAM<T>): STREAM<T>")
             }
         },
+        "CACHE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                stream.cache()
+            } else {
+                usage("CACHE(stream: STREAM): STREAM")
+            }
+        },
         "VOID" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
@@ -570,14 +578,6 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 FluoriteNull
             } else {
                 usage("VOID(stream: STREAM): NULL")
-            }
-        },
-        "CACHE" to FluoriteFunction { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                stream.cache()
-            } else {
-                usage("CACHE(stream: STREAM): STREAM")
             }
         },
     ).let { listOf(it) }
