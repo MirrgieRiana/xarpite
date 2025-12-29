@@ -28,9 +28,7 @@ Download the Xarpite release into `./xarpite`.
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 ```
 
-This is useful if you want to place Xarpite in the current directory without installing commands into `/usr/local/bin`.
-
-You can verify the installation by running:
+You can verify that the downloaded Xarpite works with the following command:
 
 ```shell
 ./xarpite/xarpite -e '1 .. 9 | [1 .. _]'
