@@ -208,4 +208,50 @@ class StreamMountsTest {
         """).int)
     }
 
+    @Test
+    fun void() = runTest {
+        // VOIDはストリームを解決してNULLを返す
+        assertEquals(FluoriteNull, eval("VOID(1, 2, 3)"))
+        
+        // VOIDは副作用を実行する
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            VOID(1 .. 3 | array::push << _)
+            array
+        """).array())
+        
+        // 非ストリームでも動作する
+        assertEquals(FluoriteNull, eval("VOID(42)"))
+        
+        // 空ストリームでも動作する
+        assertEquals(FluoriteNull, eval("VOID(,)"))
+    }
+
+    @Test
+    fun cache() = runTest {
+        // CACHEはストリームをキャッシュする
+        assertEquals("1,2,3", eval("""
+            cached := CACHE(1 .. 3)
+            cached
+        """).stream())
+        
+        // CACHEは副作用を1度だけ実行する
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            cached := CACHE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            cached
+            cached
+            array
+        """).array())
+        
+        // 非ストリームでもそのまま返す
+        assertEquals(42, eval("CACHE(42)").int)
+        
+        // 空ストリームも正しくキャッシュする
+        assertEquals("", eval("CACHE(,)").stream())
+    }
+
 }
