@@ -102,10 +102,11 @@ fun parseArguments(args: Iterable<String>): Options {
 
 fun showUsage() {
     val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
-    val version = getEnv()["XARPITE_VERSION"] ?: "unknown"
+    val engine = getEnv()["XARPITE_ENGINE"] ?: "native"
+    val version = getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
     val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "script" else "scriptfile"
-    println("Xarpite version $version")
+    println("Xarpite (xa) $version $engine")
     println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
     println("Launcher Options:")
     println("  --native                 Use the native engine")
@@ -122,6 +123,6 @@ fun showUsage() {
 }
 
 fun showVersion() {
-    val version = getEnv()["XARPITE_VERSION"] ?: "unknown"
+    val version = getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
     println(version)
 }
