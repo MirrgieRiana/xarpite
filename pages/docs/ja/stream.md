@@ -660,6 +660,29 @@ a | b =>
 
 # ストリーム系関数
 
+## `GENERATE`: 関数からストリームを生成
+
+`GENERATE(generator: (yield: (value: VALUE) -> NULL) -> NULL | STREAM): STREAM<VALUE>`
+
+第1引数のジェネレータ関数を実行し、その関数内で `yield` 関数に渡された値をストリームとして返します。
+
+`yield` 関数がストリームを返した場合、そのストリームは1回だけイテレートされます。
+
+`yield` 関数は呼び出されるとサスペンドします。
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    yield << 1
+    yield << 2
+    yield << 3
+  )
+'
+# 1
+# 2
+# 3
+```
+
 ## `PIPE`: 読み取り位置を記憶するストリームを生成する
 
 `<T> PIPE(stream: STREAM<T>): STREAM<T>`
