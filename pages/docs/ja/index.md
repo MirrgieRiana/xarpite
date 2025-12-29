@@ -20,18 +20,8 @@ Xarpiteはワンライナー向けに設計されたインタプリタ言語で�
 
 Xarpiteを `./xarpite` にダウンロードします。
 
-ダウンロードスクリプトを使用する場合:
-
 ```shell
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
-```
-
-または
-
-git cloneを使用する場合:
-
-```shell
-git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/xarpite.git ./xarpite
 ```
 
 これは `/usr/local/bin` にコマンドをインストールせずに、カレントディレクトリにXarpiteを配置したい場合に便利です。

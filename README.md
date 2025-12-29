@@ -88,18 +88,8 @@ curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-n
 
 Download the Xarpite release into `./xarpite`.
 
-Using the download script:
-
 ```shell
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
-```
-
-or
-
-Using git clone:
-
-```shell
-git clone --single-branch --branch release --depth 1 https://github.com/MirrgieRiana/xarpite.git ./xarpite
 ```
 
 This is useful if you want to place Xarpite in the current directory without installing commands into `/usr/local/bin`.
