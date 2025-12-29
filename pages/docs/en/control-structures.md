@@ -82,3 +82,26 @@ $ xa '
 # 2
 # NULL
 ```
+
+---
+
+If `block` returns a stream, the stream is resolved and its result is discarded.
+
+Therefore, the side effect of `block` always occurs exactly once.
+
+```shell
+$ xa -q '
+  i := 0
+  WHILE [ => i < 4 ] ( =>
+    0 ~ 2 | (
+      OUT << i
+      i = i + 1
+    )
+  )
+  NULL
+'
+# 0
+# 1
+# 2
+# 3
+```
