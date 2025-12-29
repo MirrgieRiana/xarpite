@@ -6,15 +6,15 @@ title: "Array Overview"
 
 # Array Overview
 
-Arrays are data structures that handle multiple elements managed by order.
+Arrays are data structures that handle multiple elements organized by order.
 
-Arrays in Xarpite are mutable, allowing element assignment and length changes.
+Arrays in Xarpite are mutable, allowing element assignment and length modification.
 
 Array indices start from 0.
 
 # Creating Arrays
 
-Arrays are created by array literals `[value; ...]`.
+Arrays are created using array literals `[value; ...]`.
 
 Within square brackets, you can write zero or more values separated by `;`.
 
@@ -27,9 +27,9 @@ $ xa '[1; 2; 3]'
 
 The notation of `;` in array literals is flexible.
 
-Having extra `;` before, after, or between items is not a problem.
+Extra `;` before, after, or between items is not a problem.
 
-Also, line breaks act as a substitute for `;`.
+Also, newlines can substitute for `;`.
 
 ```shell
 $ xa '
@@ -44,7 +44,7 @@ $ xa '
 
 ## Creating Arrays from Streams
 
-If items separated by `;` are streams, each element of the stream is stored in the array, not the stream itself.
+When items separated by `;` are streams, each element of the stream is stored in the array, not the stream itself.
 
 ```shell
 $ xa '[1 .. 3; 4, 5, 6]'

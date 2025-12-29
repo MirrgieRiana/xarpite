@@ -2,11 +2,11 @@
 title: "Built-in Object Class Constants"
 ---
 
-Built-in constants are constants that come with language features and can be used without being defined in code.
+Built-in constants are constants provided by the language that can be used without being defined in code.
 
 Built-in constants are defined using only uppercase letters and `_`.
 
-Built-in functions are also provided by the same mechanism as built-in constants.
+Built-in functions are also provided through the same mechanism as built-in constants.
 
 <!-- toc -->
 
@@ -74,11 +74,11 @@ $ xa 'ABS(-10)'
 # 10
 ```
 
-## `FLOOR` Round Down Decimal Places
+## `FLOOR` Round Down to Integer
 
 `FLOOR(number: NUMBER): INTEGER`
 
-Rounds the first argument to the smaller integer.
+Rounds the first argument down to the nearest smaller integer.
 
 ```shell
 $ xa 'FLOOR(1.5)'
@@ -97,6 +97,10 @@ $ xa 'DIV(10; 3)'
 ```
 
 ## `SQRT` Get Square Root
+
+`SQRT(number: NUMBER): NUMBER`
+
+Returns the positive square root of the first argument.
 
 `SQRT(number: NUMBER): NUMBER`
 
@@ -213,13 +217,13 @@ Returns a stream with the elements of `stream` randomly rearranged.
 
 Returns a stream with duplicate elements removed.
 
-`DISTINCT` has 2 ways of calling.
+`DISTINCT` can be called in 2 ways.
 
 ### Duplicate Determination by Elements Themselves
 
 `DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>`
 
-When called with 1 argument, uses the stream's elements themselves to determine duplicates and returns a stream with duplicates removed.
+When called with 1 argument, it uses the stream's elements themselves to determine duplicates and returns a stream with duplicates removed.
 
 ```shell
 $ xa '1, 2, 3, 3, 3, 2, 1, 0 >> DISTINCT'
@@ -233,9 +237,9 @@ $ xa '1, 2, 3, 3, 3, 2, 1, 0 >> DISTINCT'
 
 `DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If the first argument is a `by` parameter, applies the `keyGetter` function to each element of the second argument and determines duplicates by the result.
+When the first argument is a `by` parameter, it applies the `keyGetter` function to each element of the second argument and determines duplicates based on the result.
 
-The following example determines duplicates by the remainder when dividing each element by 10.
+The following example determines duplicates by the remainder when each element is divided by 10.
 
 ```shell
 $ xa '13, 21, 24, 33, 31, 34 >> DISTINCT[by: x -> x % 10]'
@@ -260,7 +264,7 @@ $ xa 'JOIN("a", "b", "c")'
 
 ---
 
-Separator and each element of the stream are stringified.
+The separator and each element of the stream are stringified.
 
 ```shell
 $ xa 'JOIN(0; 1, "b", {`&_`: _ -> "c"}{})'
@@ -269,7 +273,7 @@ $ xa 'JOIN(0; 1, "b", {`&_`: _ -> "c"}{})'
 
 ---
 
-By using with partial application, it becomes easier to incorporate into pipe chains.
+When used with partial application, it becomes easier to incorporate into pipe chains.
 
 ```shell
 $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
