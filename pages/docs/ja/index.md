@@ -30,7 +30,7 @@ curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 
 以下のコマンドでダウンロードされたXarpiteが動作することを確認できます。
 
-```shell
+```sh
 $ ./xarpite/xarpite -e ' "Hello, World!!" '
 Hello, World!!
 ```

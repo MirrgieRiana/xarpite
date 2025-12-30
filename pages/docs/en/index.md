@@ -30,7 +30,7 @@ curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 
 You can verify that the downloaded Xarpite works with the following command:
 
-```shell
+```sh
 $ ./xarpite/xarpite -e ' "Hello, World!!" '
 Hello, World!!
 ```
