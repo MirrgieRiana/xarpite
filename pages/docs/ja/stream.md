@@ -686,7 +686,7 @@ $ xa '
 返されるストリームは内部キャッシュを持たないため、安全に無限ストリームを生成することが可能です。
 
 ```shell
-$ xa '
+$ xa -q '
   stream := GENERATE ( yield =>
     OUT << "Called"
   )
