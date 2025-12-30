@@ -695,7 +695,7 @@ $ xa '
   OUT << "B"
   stream
   OUT << "C"
-`
+'
 # A
 # Called
 # B
