@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.ShowUsage
+import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -336,6 +337,21 @@ class CliTest {
     // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
 
     @Test
+    fun versionOptionThrowsShowVersion() = runTest {
+        // -v オプションで ShowVersion がスローされる
+        assertFailsWith<ShowVersion> {
+            parseArguments(listOf("-v"))
+        }
+    }
+
+    @Test
+    fun versionLongOptionThrowsShowVersion() = runTest {
+        // --version オプションで ShowVersion がスローされる
+        assertFailsWith<ShowVersion> {
+            parseArguments(listOf("--version"))
+        }
+    }
+
     fun execRunsSimpleCommand() = runTest {
         try {
             val result = cliEval("""EXEC("bash", "-c", "echo hello")""")

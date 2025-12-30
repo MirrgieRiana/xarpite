@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUTPUT_DIR="${1:-$ROOT_DIR/build/bundleRelease}"
+OUTPUT_DIR="${1:-$ROOT_DIR/build/bundlePages}"
 
 (
   cd "$ROOT_DIR/pages"
@@ -11,7 +11,7 @@ OUTPUT_DIR="${1:-$ROOT_DIR/build/bundleRelease}"
 )
 
 if [ ! -d "$OUTPUT_DIR" ]; then
-  echo "Error: $OUTPUT_DIR not found. Ensure bundleRelease was built." >&2
+  echo "Error: $OUTPUT_DIR not found. Ensure bundlePages was built." >&2
   exit 1
 fi
 if [ ! -d "$ROOT_DIR/pages/_site" ]; then

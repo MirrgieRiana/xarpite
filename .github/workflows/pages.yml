@@ -53,7 +53,10 @@ jobs:
       - name: バージョンの取得
         run: |
           set -e
-          command -v kotlin >/dev/null || { echo "Kotlin runtime not available in PATH. Ensure Kotlin is installed." >&2; exit 1; }
+          command -v kotlin > /dev/null || {
+            echo "Kotlin runtime not available in PATH. Ensure Kotlin is installed." >&2
+            exit 1
+          }
           APP_VERSION=$(kotlin ./scripts/get-version.kts)
           echo "Derived APP_VERSION: ${APP_VERSION}"
           if [ -z "${APP_VERSION}" ]; then
@@ -64,8 +67,8 @@ jobs:
 
       - name: bundleReleaseとJekyllをビルドして配置
         run: |
-          ./gradlew clean bundleRelease --stacktrace
-          ./scripts/build-pages.sh build/bundleRelease
+          ./gradlew clean bundlePages --stacktrace
+          ./scripts/build-pages.sh build/bundlePages
 
           echo "### $(pwd)"
           find -type f . | sort
@@ -77,7 +80,7 @@ jobs:
       - name: アーティファクトをアップロード
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/bundleRelease
+          path: build/bundlePages
 
   deploy:
     environment:
