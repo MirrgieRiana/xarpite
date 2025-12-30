@@ -383,6 +383,200 @@ class CliTest {
         }
     }
 
+    @Test
+    fun execWithMultipleArguments() = runTest {
+        try {
+            val result = cliEval("""EXEC("echo", "hello", "world", "test")""")
+            val output = result.toFluoriteString().value.trim()
+            assertEquals("hello world test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEmptyOutput() = runTest {
+        try {
+            val result = cliEval("""EXEC("bash", "-c", "")""")
+            val output = result.toFluoriteString().value
+            assertEquals("", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithSpecialCharactersInArguments() = runTest {
+        try {
+            // 特殊文字を含む引数（シングルクォート、セミコロンなど）
+            val result = cliEval("""EXEC("printf", "%s %s", "hello;world", "test|pipe")""")
+            val output = result.toFluoriteString().value
+            assertEquals("hello;world test|pipe", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execThrowsOnCommandNotFound() = runTest {
+        try {
+            // 存在しないコマンドは例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval("""EXEC("nonexistent_command_xyz_12345")""")
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithNoTrailingNewline() = runTest {
+        try {
+            val result = cliEval("""EXEC("printf", "test")""")
+            val output = result.toFluoriteString().value
+            // printfは末尾に改行を追加しない
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithDifferentExitCodes() = runTest {
+        try {
+            // 終了コード2でテスト
+            var exceptionThrown = false
+            try {
+                cliEval("""EXEC("bash", "-c", "exit 2")""")
+            } catch (e: FluoriteException) {
+                // FluoriteExceptionが期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithLongRunningCommand() = runTest {
+        try {
+            // 少し時間がかかるコマンド
+            val result = cliEval("""EXEC("bash", "-c", "sleep 0.1 && printf done")""")
+            val output = result.toFluoriteString().value
+            assertEquals("done", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithPipeInCommand() = runTest {
+        try {
+            // パイプを使用するコマンド
+            val result = cliEval("""EXEC("bash", "-c", "printf 'a\nb\nc' | grep b")""")
+            val output = result.toFluoriteString().value.trim()
+            assertEquals("b", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentVariables() = runTest {
+        try {
+            // 環境変数PATHは常に設定されている
+            val result = cliEval("""EXEC("bash", "-c", "test -n \"\${'$'}PATH\" && printf ok")""")
+            val output = result.toFluoriteString().value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEmptyArgumentList() = runTest {
+        try {
+            // 空の引数リストは例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval("""EXEC([])""")
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithVeryLongArgument() = runTest {
+        try {
+            // 長い引数
+            val longString = "a".repeat(500)
+            val result = cliEval("""EXEC("printf", "$longString")""")
+            val output = result.toFluoriteString().value
+            assertEquals(longString, output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithUnicodeCharacters() = runTest {
+        try {
+            // Unicode文字を含む引数
+            val result = cliEval("""EXEC("printf", "こんにちは世界")""")
+            val output = result.toFluoriteString().value
+            assertEquals("こんにちは世界", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithMultipleCommandsInStream() = runTest {
+        try {
+            // 複数のコマンドを&&で繋ぐ
+            val result = cliEval("""EXEC("bash", "-c", "printf a && printf b && printf c")""")
+            val output = result.toFluoriteString().value
+            assertEquals("abc", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithRedirection() = runTest {
+        try {
+            // リダイレクションを使用
+            val result = cliEval("""EXEC("bash", "-c", "printf test > /dev/null && printf ok")""")
+            val output = result.toFluoriteString().value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithBackslashInArgument() = runTest {
+        try {
+            // バックスラッシュを含む引数
+            val result = cliEval("""EXEC("printf", "a\\b")""")
+            val output = result.toFluoriteString().value
+            assertTrue(output.contains("a"))
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {

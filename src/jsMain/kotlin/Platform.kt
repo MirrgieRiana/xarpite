@@ -28,5 +28,5 @@ var writeBytesToStdoutImpl: (suspend (ByteArray) -> Unit)? = null
 actual suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl!!(bytes)
 
 actual suspend fun executeProcess(process: String, args: List<String>): String {
-    throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM platform")
+    throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
