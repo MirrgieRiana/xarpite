@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
+import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -29,6 +30,25 @@ import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return mapOf(
+        "GENERATE" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
+            val generator = arguments[0]
+            FluoriteStream {
+                val yieldFunction = FluoriteFunction { arguments2 ->
+                    if (arguments2.size != 1) usage("yield: (item: STREAM<T>) -> NULL")
+                    val value = arguments2[0]
+                    if (value is FluoriteStream) {
+                        value.collect { item ->
+                            emit(item)
+                        }
+                    } else {
+                        emit(value)
+                    }
+                    FluoriteNull
+                }
+                generator.invoke(arrayOf(yieldFunction)).consume()
+            }
+        },
         "REVERSE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]

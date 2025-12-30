@@ -662,13 +662,9 @@ a | b =>
 
 ## `GENERATE`: 関数からストリームを生成
 
-`GENERATE(generator: (yield: (value: VALUE) -> NULL) -> NULL | STREAM): STREAM<VALUE>`
+`<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>`
 
-第1引数のジェネレータ関数を実行し、その関数内で `yield` 関数に渡された値をストリームとして返します。
-
-`yield` 関数がストリームを返した場合、そのストリームは1回だけイテレートされます。
-
-`yield` 関数は呼び出されるとサスペンドします。
+`generator` を実行し、その関数内で `yield` 関数に渡された `item` を順番に返すようなストリームを生成します。
 
 ```shell
 $ xa '
@@ -676,6 +672,66 @@ $ xa '
     yield << 1
     yield << 2
     yield << 3
+  )
+'
+# 1
+# 2
+# 3
+```
+
+---
+
+この関数は戻り値のストリームを解決せず、 `generator` の副作用は `GENERATE` 関数の戻り値のストリームの評価の都度発生します。
+
+返されるストリームは内部キャッシュを持たないため、安全に無限ストリームを生成することが可能です。
+
+```shell
+$ xa '
+  stream := GENERATE ( yield =>
+    OUT << "Called"
+  )
+  OUT << "A"
+  stream
+  OUT << "B"
+  stream
+  OUT << "C"
+`
+# A
+# Called
+# B
+# Called
+# C
+```
+
+---
+
+`item` がストリームであった場合、そのストリームは平坦化されて返されます。
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    yield << 1 .. 3
+    yield << 4 .. 6
+  )
+'
+# 1
+# 2
+# 3
+# 4
+# 5
+# 6
+```
+
+---
+
+`generator` の戻り値がストリームであった場合、そのストリームは1度だけ評価され、その結果1度だけ副作用が発生します。
+
+`yield` 関数の呼び出しによる要素の出力が「副作用」であることに留意してください。
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    1 .. 3 | yield << _
   )
 '
 # 1
