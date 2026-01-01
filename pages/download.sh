@@ -16,6 +16,7 @@ check curl
 # Determine the downloading version
 
 echo "Fetching metadata"
+
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
 version=$(
@@ -27,7 +28,10 @@ version=$(
     }
   ' | sort -Vr | head -n 1
 )
+[ -z "$version" ] && error "Error: Failed to determine latest version."
 echo "Latest version: $version"
+
+echo
 
 
 # Download and extract
@@ -36,10 +40,9 @@ file="xarpite-bin-$version-all.tar.gz"
 dir="xarpite"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
-[ -e "$dir" ] && error "Error: Already exists: $dir"
-
 echo "Downloading from: $url"
+
+[ -e "$dir" ] && error "Error: Already exists: $dir"
 mkdir "$dir"
 curl -L -o - "$url" | tar -xzf - -C "$dir"
-
 echo "Successfully downloaded and extracted to: $dir"
