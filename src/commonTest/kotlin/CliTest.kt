@@ -1,7 +1,9 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -581,16 +583,18 @@ class CliTest {
     fun execParallelExecution() = runTest {
         try {
             // 16並列でEXECを実行してデッドロックが発生しないことを確認
-            val jobs = (1..16).map { i ->
-                kotlinx.coroutines.async {
-                    cliEval("""EXEC("printf", "test$i")""")
+            coroutineScope {
+                val jobs = (1..16).map { i ->
+                    async {
+                        cliEval("""EXEC("printf", "test$i")""")
+                    }
                 }
-            }
-            val results = jobs.map { it.await() }
-            // すべての結果が正しいことを確認
-            results.forEachIndexed { index, result ->
-                val output = result.toFluoriteString().value
-                assertEquals("test${index + 1}", output)
+                val results = jobs.map { it.await() }
+                // すべての結果が正しいことを確認
+                results.forEachIndexed { index, result ->
+                    val output = result.toFluoriteString().value
+                    assertEquals("test${index + 1}", output)
+                }
             }
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
