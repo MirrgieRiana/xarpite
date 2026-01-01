@@ -10,7 +10,7 @@ command -v curl > /dev/null 2>&1 || {
 
 # Determine the downloading version
 
-echo "Fetching metadata..."
+echo "Fetching metadata"
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
 version=$(
