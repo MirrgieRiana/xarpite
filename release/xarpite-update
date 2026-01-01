@@ -2,10 +2,19 @@
 
 set -euo pipefail
 
-command -v curl > /dev/null 2>&1 || {
-  echo "Error: curl is required but not installed." >&2
+error() {
+  echo "$1" >&2
   exit 1
 }
+
+check() {
+  command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
+}
+check curl
+check tar
+check perl
+check sort
+check rsync
 
 cd "$(dirname "$0")"
 
@@ -25,6 +34,7 @@ version=$(
     }
   ' | sort -Vr | head -n 1
 )
+[ -z "$version" ] && error "Error: Failed to determine latest version."
 echo "Latest version: $version"
 
 echo
@@ -38,10 +48,7 @@ url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/
 
 echo "Downloading from: $url"
 
-if [ -e "$dir" ]; then
-  echo "Error: Already exists: $dir" >&2
-  exit 1
-fi
+[ -e "$dir" ] && error "Error: Already exists: $dir"
 mkdir "$dir"
 curl -L -o - "$url" | tar -xzf - -C "$dir"
 echo "Successfully downloaded and extracted to: $dir"
@@ -53,16 +60,15 @@ echo
 
 echo "Updating"
 
-echo "--- Dry run (no changes) ---" >&2
-rsync -n --itemize-changes -a --delete --exclude=/"$dir"/ ./"$dir"/ ./ >&2
+echo "--- Dry run (no changes) ---"
+rsync -n --itemize-changes -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r -n 1 answer
 echo
 [ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
-  echo "Cancelled." >&2
   rm -rf "$dir"
-  exit 1
+  error "Cancelled."
 }
 echo "Syncing"
 rsync -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
