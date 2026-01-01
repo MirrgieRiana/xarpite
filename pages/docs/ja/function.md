@@ -739,3 +739,61 @@ $ xa '
 '
 # 6
 ```
+
+## `LET` 値をブロックに渡してブロックの戻り値を返す
+
+`LET(value: VALUE; block: VALUE -> VALUE): VALUE`
+
+第1引数の値を第2引数のブロックに渡して実行し、ブロックの戻り値を返します。
+
+値を変換するのに便利です。
+
+```shell
+$ xa '
+  value := LET(10; x -> x + x)
+  value
+'
+# 20
+```
+
+---
+
+`LET`は連鎖して使用することもできます。
+
+```shell
+$ xa 'LET(LET(10; x -> x + x); y -> y * 10)'
+# 200
+```
+
+## `ALSO` 値をブロックに渡して元の値を返す
+
+`ALSO(value: VALUE; block: VALUE -> VALUE): VALUE`
+
+第1引数の値を第2引数のブロックに渡して実行し、元の値を返します。
+
+ブロックは実行されますが、その戻り値は破棄され、`ALSO`は常に第1引数の値を返します。
+
+これは、値を変数に代入したり、ログ出力したりといった副作用を起こしつつ、その値をパイプチェーンに流したい場合に便利です。
+
+```shell
+$ xa '
+  result := NULL
+  value := ALSO(123; x -> result = x + x)
+  "$result, $value"
+'
+# 246, 123
+```
+
+---
+
+`ALSO`は連鎖して使用することもできます。
+
+```shell
+$ xa '
+  result1 := NULL
+  result2 := NULL
+  value := ALSO(ALSO(100; x -> result1 = x); y -> result2 = y)
+  "$result1, $result2, $value"
+'
+# 100, 100, 100
+```
