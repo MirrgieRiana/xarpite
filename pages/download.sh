@@ -2,10 +2,15 @@
 
 set -euo pipefail
 
-command -v curl > /dev/null 2>&1 || {
-  echo "Error: curl is required but not installed." >&2
+error() {
+  echo "$1" >&2
   exit 1
 }
+
+check() {
+  command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
+}
+check curl
 
 
 # Determine the downloading version
@@ -31,10 +36,7 @@ file="xarpite-bin-$version-all.tar.gz"
 dir="xarpite"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
-if [ -e "$dir" ]; then
-  echo "Error: Already exists: $dir" >&2
-  exit 1
-fi
+[ -e "$dir" ] && error "Error: Already exists: $dir"
 
 echo "Downloading from: $url"
 mkdir "$dir"
