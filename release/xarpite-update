@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+command -v curl > /dev/null 2>&1 || {
+  echo "Error: curl is required but not installed." >&2
+  exit 1
+}
+
+cd "$(dirname "$0")"
+
+
+# Determine the downloading version
+
+echo "Fetching metadata"
+
+export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
+
+version=$(
+  perl -E '
+    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+    my $versions = $1;
+    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+        say $1;
+    }
+  ' | sort -Vr | head -n 1
+)
+echo "Latest version: $version"
+
+echo
+
+
+# Download and extract
+
+file="xarpite-bin-$version-all.tar.gz"
+dir=".tmp"
+url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
+
+echo "Downloading from: $url"
+
+if [ -e "$dir" ]; then
+  echo "Error: Already exists: $dir" >&2
+  exit 1
+fi
+mkdir "$dir"
+curl -L -o - "$url" | tar -xzf - -C "$dir"
+echo "Successfully downloaded and extracted to: $dir"
+
+echo
+
+
+# Update
+
+echo "Updating"
+
+echo "--- Dry run (no changes) ---" >&2
+rsync -n --itemize-changes -a --delete --exclude=/"$dir"/ ./"$dir"/ ./ >&2
+echo
+printf "Type Y to apply (otherwise cancel): " >&2
+read -r -n 1 answer
+echo
+[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
+  echo "Cancelled." >&2
+  rm -rf "$dir"
+  exit 1
+}
+echo "Syncing"
+rsync -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
+
+echo "Removing temporary files"
+rm -rf "$dir"
+
+echo
+
+
+echo "Successfully Updated"
