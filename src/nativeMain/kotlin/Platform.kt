@@ -14,6 +14,8 @@ import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -66,6 +68,11 @@ const val STDERR_WRITE_MAX_RETRIES = 100
 const val STDERR_WRITE_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 const val IO_POLLING_SLEEP_MICROS = 10000u // 10ミリ秒
 const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
+
+// fork()呼び出しを直列化するためのMutex
+// fork()はマルチスレッド環境では安全ではないため、同時に複数のスレッドから呼び出されると
+// デッドロックが発生する可能性がある。このMutexを使用してfork()呼び出しを直列化する。
+private val forkMutex = Mutex()
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
@@ -179,7 +186,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
         }
         
-        val pid: pid_t = fork()
+        // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
+        val pid: pid_t = forkMutex.withLock {
+            fork()
+        }
         
         when {
             pid < 0 -> {
