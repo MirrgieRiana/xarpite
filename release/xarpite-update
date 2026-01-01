@@ -11,6 +11,12 @@ check() {
   command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
 }
 check curl
+check tar
+check perl
+check sort
+check rsync
+
+cd "$(dirname "$0")"
 
 
 # Determine the downloading version
@@ -37,7 +43,7 @@ echo
 # Download and extract
 
 file="xarpite-bin-$version-all.tar.gz"
-dir="xarpite"
+dir=".tmp"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
@@ -46,3 +52,31 @@ echo "Downloading from: $url"
 mkdir "$dir"
 curl -L -o - "$url" | tar -xzf - -C "$dir"
 echo "Successfully downloaded and extracted to: $dir"
+
+echo
+
+
+# Update
+
+echo "Updating"
+
+echo "--- Dry run (no changes) ---"
+rsync -n --itemize-changes -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
+echo
+printf "Type Y to apply (otherwise cancel): " >&2
+read -r -n 1 answer
+echo
+[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
+  rm -rf "$dir"
+  error "Cancelled."
+}
+echo "Syncing"
+rsync -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
+
+echo "Removing temporary files"
+rm -rf "$dir"
+
+echo
+
+
+echo "Successfully Updated"
