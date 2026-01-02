@@ -193,12 +193,8 @@ private fun setCloexec(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String {
-    // Dispatchers.IOを使用しない
-    // 理由：複数の並列実行時にDispatchers.IOのスレッドプールが枯渇し、
-    // すべてのスレッドがwaitpid()でブロックされてデッドロックが発生する
-    // fork()はforkMutexで保護されているため、現在のコンテキストで実行しても安全
-    return memScoped {
+actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
+    memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
@@ -215,7 +211,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String {
         }
         
         // パイプのファイルディスクリプタにFD_CLOEXECを設定
-        // これにより、execvp()時に自動的に閉じられ、他のプロセスへの漏洩を防ぐ
+        // これにより、execvp()時に自動的に閉じられる
         try {
             setCloexec(stdoutPipe[0], "stdout read")
             setCloexec(stdoutPipe[1], "stdout write")
