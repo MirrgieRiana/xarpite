@@ -25,8 +25,10 @@ import platform.posix.EAGAIN
 import platform.posix.EINTR
 import platform.posix.ENOENT
 import platform.posix.EWOULDBLOCK
+import platform.posix.FD_CLOEXEC
 import platform.posix.F_GETFL
 import platform.posix.F_SETFL
+import platform.posix.F_SETFD
 import platform.posix.O_NONBLOCK
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
@@ -168,6 +170,20 @@ private fun setNonBlocking(fd: Int, name: String) {
     }
 }
 
+/**
+ * パイプをclose-on-execに設定するヘルパー関数
+ * @param fd ファイルディスクリプタ
+ * @param name デバッグ用の名前
+ * @throws FluoriteException 設定に失敗した場合
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun setCloseOnExec(fd: Int, name: String) {
+    if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+        perror("fcntl F_SETFD $name")
+        throw FluoriteException("Failed to set close-on-exec for $name pipe".toFluoriteString())
+    }
+}
+
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
@@ -184,6 +200,19 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
+        }
+
+        try {
+            setCloseOnExec(stdoutPipe[0], "stdout read")
+            setCloseOnExec(stdoutPipe[1], "stdout write")
+            setCloseOnExec(stderrPipe[0], "stderr read")
+            setCloseOnExec(stderrPipe[1], "stderr write")
+        } catch (e: Throwable) {
+            close(stdoutPipe[0])
+            close(stdoutPipe[1])
+            close(stderrPipe[0])
+            close(stderrPipe[1])
+            throw e
         }
         
         // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
