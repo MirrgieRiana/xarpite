@@ -61,7 +61,7 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
+rsync -n --itemize-changes -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r -n 1 answer
@@ -71,7 +71,7 @@ echo
   error "Cancelled."
 }
 echo "Syncing"
-rsync -a --delete --exclude=/"$dir"/ ./"$dir"/ ./
+rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 
 echo "Removing temporary files"
 rm -rf "$dir"
