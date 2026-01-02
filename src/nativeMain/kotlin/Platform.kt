@@ -13,6 +13,8 @@ import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -59,6 +61,8 @@ import platform.posix.waitpid
 import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
 
+@OptIn(ExperimentalCoroutinesApi::class)
+
 // EXEC関数の定数
 const val EXEC_MAX_BUFFER_SIZE = 4096
 
@@ -77,10 +81,8 @@ const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 private val forkMutex = Mutex()
 
 // executeProcessで使用するカスタムディスパッチャー
-// Dispatchers.IOはnativeで内部APIのため使用できないが、
-// Dispatchers.Defaultの制限付き並列化を使用することで同等の機能を実現
-// 64スレッドまで並列実行可能（Dispatchers.IOのデフォルト値と同等）
-private val ioDispatcher = Dispatchers.Default.limitedParallelism(64)
+// Dispatchers.IOを使用（@OptIn(ExperimentalCoroutinesApi::class)で許可）
+private val ioDispatcher = Dispatchers.IO
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
