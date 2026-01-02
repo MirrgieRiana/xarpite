@@ -210,15 +210,23 @@ class StreamMountsTest {
 
     @Test
     fun void() = runTest {
-        // VOIDはストリームを解決してNULLを返す
-        assertEquals(FluoriteNull, eval("VOID(1, 2, 3)"))
-        
-        // VOIDは副作用を実行する
-        assertEquals("[1;2;3]", eval("""
+        // VOIDの呼び出しごとにstreamは1回イテレートされる
+        assertEquals("[1;2;3;1;2;3]", eval("""
             array := []
-            VOID(1 .. 3 | array::push << _)
+            stream := 1 .. 3 | (
+                array::push << _
+                _
+            )
+            VOID(stream)
+            VOID(stream)
             array
         """).array())
+        
+        // VOIDの戻り値はNULLで、元のストリームとは無関係
+        assertEquals(FluoriteNull, eval("""
+            null := VOID(1 .. 3)
+            null
+        """))
         
         // 非ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(42)"))
@@ -227,15 +235,22 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("VOID(,)"))
     }
 
+
     @Test
     fun cache() = runTest {
-        // CACHEはストリームをキャッシュする
-        assertEquals("1,2,3", eval("""
-            cached := CACHE(1 .. 3)
-            cached
-        """).stream())
+        // CACHEの呼び出しごとにstreamは1回イテレートされる
+        assertEquals("[1;2;3;1;2;3]", eval("""
+            array := []
+            stream := 1 .. 3 | (
+                array::push << _
+                _
+            )
+            CACHE(stream)
+            CACHE(stream)
+            array
+        """).array())
         
-        // CACHEは副作用を1度だけ実行する
+        // CACHEの戻り値のストリームは何度評価しても副作用が発生しない
         assertEquals("[1;2;3]", eval("""
             array := []
             cached := CACHE(1 .. 3 | (
@@ -253,5 +268,6 @@ class StreamMountsTest {
         // 空ストリームも正しくキャッシュする
         assertEquals("", eval("CACHE(,)").stream())
     }
+
 
 }

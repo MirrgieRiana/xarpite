@@ -568,7 +568,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 val stream = arguments[0]
                 stream.cache()
             } else {
-                usage("CACHE(stream: STREAM): STREAM")
+                usage("<T> CACHE(stream: STREAM<T>): STREAM<T>")
             }
         },
         "VOID" to FluoriteFunction { arguments ->
