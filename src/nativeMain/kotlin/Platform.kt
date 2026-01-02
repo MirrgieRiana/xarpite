@@ -13,7 +13,7 @@ import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -77,12 +77,6 @@ const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 // デッドロックが発生する可能性がある。このMutexを使用してfork()呼び出しを直列化する。
 private val forkMutex = Mutex()
 
-// executeProcessで使用するカスタムディスパッチャー
-// Dispatchers.IOは内部APIのため、Dispatchers.Default.limitedParallelism(64)を使用
-// これにより、Dispatchers.IOと同等の64並列をサポートしながら、内部APIに依存しない
-@OptIn(ExperimentalCoroutinesApi::class)
-private val ioDispatcher = Dispatchers.Default.limitedParallelism(64)
-
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
 private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
@@ -118,10 +112,10 @@ actual fun getEnv(): Map<String, String> {
 
 actual fun hasFreeze() = true
 
-actual suspend fun readLineFromStdin(): String? = withContext(ioDispatcher) { readlnOrNull() }
+actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(ioDispatcher) {
+actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
         set_posix_errno(0)
@@ -137,7 +131,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(ioDispatcher) 
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(ioDispatcher) {
+actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stdout)
@@ -199,7 +193,7 @@ private fun setCloexec(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(ioDispatcher) {
+actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
