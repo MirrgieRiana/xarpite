@@ -193,34 +193,31 @@ private fun setCloseOnExec(fd: Int, name: String) {
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
-        // パイプを作成（標準出力用と標準エラー出力用）
+        // パイプ作成とforkを同一クリティカルセクションで直列化し、他スレッドのパイプFDを子プロセスが継承しないようにする
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
-        
-        if (pipe(stdoutPipe) != 0) {
-            throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
-        }
-        
-        if (pipe(stderrPipe) != 0) {
-            // stdoutパイプをクリーンアップ
-            close(stdoutPipe[0])
-            close(stdoutPipe[1])
-            throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
-        }
-
-        try {
-            setCloseOnExec(stdoutPipe[0], "stdout read")
-            setCloseOnExec(stderrPipe[0], "stderr read")
-        } catch (e: Throwable) {
-            close(stdoutPipe[0])
-            close(stdoutPipe[1])
-            close(stderrPipe[0])
-            close(stderrPipe[1])
-            throw e
-        }
-        
-        // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
         val pid: pid_t = forkMutex.withLock {
+            if (pipe(stdoutPipe) != 0) {
+                throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
+            }
+
+            if (pipe(stderrPipe) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
+            }
+
+            try {
+                setCloseOnExec(stdoutPipe[0], "stdout read")
+                setCloseOnExec(stderrPipe[0], "stderr read")
+            } catch (e: Throwable) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
+                throw e
+            }
+
             fork()
         }
         
