@@ -25,7 +25,10 @@ import platform.posix.EAGAIN
 import platform.posix.EINTR
 import platform.posix.ENOENT
 import platform.posix.EWOULDBLOCK
+import platform.posix.FD_CLOEXEC
+import platform.posix.F_GETFD
 import platform.posix.F_GETFL
+import platform.posix.F_SETFD
 import platform.posix.F_SETFL
 import platform.posix.O_NONBLOCK
 import platform.posix.STDERR_FILENO
@@ -168,9 +171,34 @@ private fun setNonBlocking(fd: Int, name: String) {
     }
 }
 
+/**
+ * ファイルディスクリプタにFD_CLOEXECフラグを設定するヘルパー関数
+ * これにより、exec()時に自動的にファイルディスクリプタが閉じられ、
+ * 他のプロセスにファイルディスクリプタが漏洩するのを防ぐ
+ * @param fd ファイルディスクリプタ
+ * @param name デバッグ用の名前
+ * @throws FluoriteException 設定に失敗した場合
+ */
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
-    memScoped {
+private fun setCloexec(fd: Int, name: String) {
+    val flags = fcntl(fd, F_GETFD, 0)
+    if (flags == -1) {
+        perror("fcntl F_GETFD $name")
+        throw FluoriteException("Failed to get fd flags for $name pipe".toFluoriteString())
+    }
+    if (fcntl(fd, F_SETFD, flags or FD_CLOEXEC) == -1) {
+        perror("fcntl F_SETFD $name")
+        throw FluoriteException("Failed to set FD_CLOEXEC for $name pipe".toFluoriteString())
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun executeProcess(process: String, args: List<String>): String {
+    // Dispatchers.IOを使用しない
+    // 理由：複数の並列実行時にDispatchers.IOのスレッドプールが枯渇し、
+    // すべてのスレッドがwaitpid()でブロックされてデッドロックが発生する
+    // fork()はforkMutexで保護されているため、現在のコンテキストで実行しても安全
+    return memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
@@ -184,6 +212,21 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
+        }
+        
+        // パイプのファイルディスクリプタにFD_CLOEXECを設定
+        // これにより、execvp()時に自動的に閉じられ、他のプロセスへの漏洩を防ぐ
+        try {
+            setCloexec(stdoutPipe[0], "stdout read")
+            setCloexec(stdoutPipe[1], "stdout write")
+            setCloexec(stderrPipe[0], "stderr read")
+            setCloexec(stderrPipe[1], "stderr write")
+        } catch (e: Throwable) {
+            close(stdoutPipe[0])
+            close(stdoutPipe[1])
+            close(stderrPipe[0])
+            close(stderrPipe[1])
+            throw e
         }
         
         // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
