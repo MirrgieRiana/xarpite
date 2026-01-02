@@ -111,10 +111,10 @@ actual fun getEnv(): Map<String, String> {
 
 actual fun hasFreeze() = true
 
-actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.Default) { readlnOrNull() }
+actual suspend fun readLineFromStdin(): String? = readlnOrNull()
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.Default) {
+actual suspend fun readBytesFromStdin(): ByteArray? {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
         set_posix_errno(0)
@@ -130,7 +130,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.De
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.Default) {
+actual suspend fun writeBytesToStdout(bytes: ByteArray) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stdout)
