@@ -26,7 +26,11 @@ import platform.posix.EINTR
 import platform.posix.ENOENT
 import platform.posix.EWOULDBLOCK
 import platform.posix.F_GETFL
+import platform.posix.F_GETFD
+import platform.posix.F_SETFD
 import platform.posix.F_SETFL
+import platform.posix.FD_CLOEXEC
+import platform.posix.O_CLOEXEC
 import platform.posix.O_NONBLOCK
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
@@ -168,6 +172,26 @@ private fun setNonBlocking(fd: Int, name: String) {
     }
 }
 
+/**
+ * ファイルディスクリプタにCLOEXECフラグを設定するヘルパー関数
+ * exec時に自動的にファイルディスクリプタを閉じるようにする
+ * @param fd ファイルディスクリプタ
+ * @param name デバッグ用の名前
+ * @throws FluoriteException 設定に失敗した場合
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun setCloexec(fd: Int, name: String) {
+    val flags = fcntl(fd, F_GETFD, 0)
+    if (flags == -1) {
+        perror("fcntl F_GETFD $name")
+        throw FluoriteException("Failed to get FD flags for $name pipe".toFluoriteString())
+    }
+    if (fcntl(fd, F_SETFD, flags or FD_CLOEXEC) == -1) {
+        perror("fcntl F_SETFD $name")
+        throw FluoriteException("Failed to set CLOEXEC flag for $name pipe".toFluoriteString())
+    }
+}
+
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
     memScoped {
@@ -175,19 +199,43 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
         
-        if (pipe(stdoutPipe) != 0) {
-            throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
-        }
-        
-        if (pipe(stderrPipe) != 0) {
-            // stdoutパイプをクリーンアップ
-            close(stdoutPipe[0])
-            close(stdoutPipe[1])
-            throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
-        }
-        
-        // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
+        // fork()とパイプ作成はマルチスレッド環境では安全ではないため、Mutexで保護する
+        // パイプ作成も含めて保護することで、複数のスレッドが同時にパイプを作成して
+        // ファイルディスクリプタが混在することを防ぐ
         val pid: pid_t = forkMutex.withLock {
+            if (pipe(stdoutPipe) != 0) {
+                throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
+            }
+            
+            // exec時に他のEXEC呼び出しのパイプが自動的に閉じられるようにCLOEXECを設定
+            // これにより、子プロセスが親の他のパイプを継承して混線することを防ぐ
+            try {
+                setCloexec(stdoutPipe[0], "stdout read")
+                setCloexec(stdoutPipe[1], "stdout write")
+            } catch (e: Throwable) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                throw e
+            }
+            
+            if (pipe(stderrPipe) != 0) {
+                // stdoutパイプをクリーンアップ
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
+            }
+            
+            try {
+                setCloexec(stderrPipe[0], "stderr read")
+                setCloexec(stderrPipe[1], "stderr write")
+            } catch (e: Throwable) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
+                throw e
+            }
+            
             fork()
         }
         
