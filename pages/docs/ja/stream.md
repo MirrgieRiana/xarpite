@@ -868,3 +868,121 @@ $ xa '
 # [0;1;2;3;4;5;6;7;8;9]
 # Finished
 ```
+
+## `CACHE`: ストリームを解決して結果をキャッシュする
+
+`<T> CACHE(stream: STREAM<T>): STREAM<T>`
+
+`stream` を解決し、その結果をキャッシュしたストリームを返します。
+
+`VOID` 関数と異なり結果を受け取ることができますが、結果のキャッシュのための内部配列にメモリを消費します。
+
+---
+
+`CACHE` の呼び出しごとに `stream` は丁度1回全体がイテレートされ、その際に副作用も丁度1回発生します。
+
+```shell
+$ xa -q '
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  CACHE(stream)
+  OUT << "Second"
+  CACHE(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
+```
+
+---
+
+一方、 `CACHE` の戻り値のストリームは何度評価しても副作用が発生しません。
+
+この挙動は配列化と配列のストリーム化のペア `[stream]()` に相当します。
+
+```shell
+$ xa -q '
+  stream := CACHE(1 .. 3 | OUT << _)
+  OUT << "First"
+  stream
+  OUT << "Second"
+  stream
+  OUT << "Done"
+'
+# 1
+# 2
+# 3
+# First
+# Second
+# Done
+```
+
+---
+
+`CACHE` に対して無限ストリームを渡した場合、無限ループと内部配列の無限増加によりプロセスがメモリ不足でクラッシュする可能性があります。
+
+## `VOID`: ストリームを解決して結果を破棄する
+
+`VOID(stream: STREAM): NULL`
+
+`stream` を解決し、その結果を破棄して `NULL` を返します。
+
+`CACHE` 関数と異なり結果のキャッシュのための内部配列にメモリを消費しませんが、結果を受け取ることができません。
+
+---
+
+`VOID` の呼び出しごとに `stream` は丁度1回全体がイテレートされ、その際に副作用も丁度1回発生します。
+
+```shell
+$ xa -q '
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  VOID(stream)
+  OUT << "Second"
+  VOID(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
+```
+
+---
+
+`VOID` は戻り値がNULLであり、元のストリームとは関係性がありません。
+
+この挙動はストリームを文（runner）コンテキストで実行すること `(stream;)` に相当します。
+
+```shell
+$ xa -q '
+  null := VOID(1 .. 3 | OUT << _)
+  OUT << "First"
+  null
+  OUT << "Second"
+  null
+  OUT << "Done"
+'
+# 1
+# 2
+# 3
+# First
+# Second
+# Done
+```
+
+---
+
+`VOID` に対して無限ストリームを渡した場合、無限ループによりプロセスが応答不能になる可能性があります。

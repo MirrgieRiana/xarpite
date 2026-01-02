@@ -26,6 +26,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.compilers.objects.cache
+import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
@@ -579,6 +581,23 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 }
             } else {
                 usage("<T> PIPE(stream: STREAM<T>): STREAM<T>")
+            }
+        },
+        "CACHE" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                stream.cache()
+            } else {
+                usage("<T> CACHE(stream: STREAM<T>): STREAM<T>")
+            }
+        },
+        "VOID" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                stream.consume()
+                FluoriteNull
+            } else {
+                usage("VOID(stream: STREAM): NULL")
             }
         },
     ).let { listOf(it) }
