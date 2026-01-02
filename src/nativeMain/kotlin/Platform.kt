@@ -269,6 +269,14 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 }
                 close(stderrPipe[1])
                 
+                // 他のEXEC呼び出しのパイプFDを含む、不要なFDをすべて閉じる
+                // これにより、bashなどがforkした子プロセスが他のパイプを継承することを防ぐ
+                // stdin(0), stdout(1), stderr(2)以外のすべてのFDを閉じる
+                // 通常、最大1024個のFDで十分（sysconf(_SC_OPEN_MAX)を使うこともできるが、簡潔さのため固定値を使用）
+                for (fd in 3..1023) {
+                    close(fd) // 失敗は無視（そのFDが開いていない場合）
+                }
+                
                 // 引数配列を構築
                 // cstrオブジェクトをリストに保持してGCから保護
                 val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
