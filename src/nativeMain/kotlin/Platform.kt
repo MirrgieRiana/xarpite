@@ -76,6 +76,12 @@ const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 // デッドロックが発生する可能性がある。このMutexを使用してfork()呼び出しを直列化する。
 private val forkMutex = Mutex()
 
+// executeProcessで使用するカスタムディスパッチャー
+// Dispatchers.IOはnativeで内部APIのため使用できないが、
+// Dispatchers.Defaultの制限付き並列化を使用することで同等の機能を実現
+// 64スレッドまで並列実行可能（Dispatchers.IOのデフォルト値と同等）
+private val ioDispatcher = Dispatchers.Default.limitedParallelism(64)
+
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
 private fun WIFEXITED(status: Int): Boolean = ((status and 0x7f) == 0)
@@ -111,10 +117,10 @@ actual fun getEnv(): Map<String, String> {
 
 actual fun hasFreeze() = true
 
-actual suspend fun readLineFromStdin(): String? = readlnOrNull()
+actual suspend fun readLineFromStdin(): String? = withContext(ioDispatcher) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(): ByteArray? {
+actual suspend fun readBytesFromStdin(): ByteArray? = withContext(ioDispatcher) {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
         set_posix_errno(0)
@@ -130,7 +136,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStdout(bytes: ByteArray) {
+actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(ioDispatcher) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stdout)
@@ -192,7 +198,7 @@ private fun setCloexec(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.Default) {
+actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(ioDispatcher) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
