@@ -176,8 +176,9 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         val stderrPipe = allocArray<IntVar>(2)
         var pid: pid_t = -1
         forkMutex.withLock {
-            // パイプ生成からfork、親側の書き込み端クローズまでを直列化し、
-            // 書き込み端が他の子プロセスに継承されるレースを防ぐ
+            // パイプ生成からfork、親側のパイプFDクローズまでを直列化し、
+            // 並行するEXEC呼び出しで生成された子プロセスにパイプFD
+            // （読み／書き両端）が継承されるレースを防ぐ
             if (pipe(stdoutPipe) != 0) {
                 throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
             }
