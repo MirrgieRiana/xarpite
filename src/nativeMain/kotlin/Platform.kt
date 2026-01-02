@@ -26,6 +26,7 @@ import platform.posix.EINTR
 import platform.posix.ENOENT
 import platform.posix.EWOULDBLOCK
 import platform.posix.FD_CLOEXEC
+import platform.posix.F_GETFD
 import platform.posix.F_GETFL
 import platform.posix.F_SETFL
 import platform.posix.F_SETFD
@@ -178,7 +179,12 @@ private fun setNonBlocking(fd: Int, name: String) {
  */
 @OptIn(ExperimentalForeignApi::class)
 private fun setCloseOnExec(fd: Int, name: String) {
-    if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1) {
+    val flags = fcntl(fd, F_GETFD, 0)
+    if (flags == -1) {
+        perror("fcntl F_GETFD $name")
+        throw FluoriteException("Failed to get descriptor flags for $name pipe".toFluoriteString())
+    }
+    if (fcntl(fd, F_SETFD, flags or FD_CLOEXEC) == -1) {
         perror("fcntl F_SETFD $name")
         throw FluoriteException("Failed to set close-on-exec for $name pipe".toFluoriteString())
     }
@@ -204,9 +210,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
 
         try {
             setCloseOnExec(stdoutPipe[0], "stdout read")
-            setCloseOnExec(stdoutPipe[1], "stdout write")
             setCloseOnExec(stderrPipe[0], "stderr read")
-            setCloseOnExec(stderrPipe[1], "stderr write")
         } catch (e: Throwable) {
             close(stdoutPipe[0])
             close(stdoutPipe[1])
