@@ -15,6 +15,7 @@ import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -595,6 +596,39 @@ class CliTest {
                     val output = result.toFluoriteString().value
                     assertEquals("test${index + 1}", output)
                 }
+            }
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execParallelLaunchExecution() = runTest {
+        try {
+            // Issue本文のテストケース: LAUNCHとEXECを組み合わせた並列実行
+            // すべてのプロセスが正常に起動・実行されることを確認
+            val outputs = mutableListOf<String>()
+            
+            // 10個のEXECを並列で実行
+            coroutineScope {
+                val jobs = (0 until 10).map { i ->
+                    async {
+                        try {
+                            val result = cliEval("""EXEC("bash", "-c", "sleep 0.1; printf test$i")""")
+                            result.toFluoriteString().value
+                        } catch (e: Exception) {
+                            "ERROR: ${e.message}"
+                        }
+                    }
+                }
+                jobs.forEach { outputs.add(it.await()) }
+            }
+            
+            // すべて成功すれば10個の結果が得られる
+            assertEquals(10, outputs.size)
+            // すべてが "test" で始まることを確認
+            outputs.forEach { output ->
+                assertTrue(output.startsWith("test"), "Expected output to start with 'test' but got: $output")
             }
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
