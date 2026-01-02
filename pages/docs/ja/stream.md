@@ -818,85 +818,120 @@ $ xa '
 # Finished
 ```
 
-## `CACHE`: ストリームをキャッシュする
+## `CACHE`: ストリームを解決して結果をキャッシュする
 
-`CACHE(stream: STREAM): STREAM`
+`<T> CACHE(stream: STREAM<T>): STREAM<T>`
 
 `stream` を解決し、その結果をキャッシュしたストリームを返します。
 
----
-
-`CACHE` を使うと、ストリームの評価結果が保存され、複数回イテレートしても副作用は1度だけ発生します。
-
-```shell
-$ xa '
-  array := []
-  cached := CACHE(1 .. 3 | (
-    array::push << _
-    _
-  ))
-  cached
-  cached
-  array
-'
-# 1
-# 2
-# 3
-# 1
-# 2
-# 3
-# [1;2;3]
-```
+`VOID` 関数と異なり結果を受け取ることができますが、結果のキャッシュのための内部配列にメモリを消費します。
 
 ---
 
-`CACHE` はストリームを完全に評価するため、無限ストリームに対して使用すると無限ループに陥ります。
-
-有限のストリームに対してのみ使用してください。
-
-```shell
-$ xa '
-  cached := CACHE(1 .. 5)
-  [cached]
-'
-# [1;2;3;4;5]
-```
-
-## `VOID`: ストリームを解決して結果を捨てる
-
-`VOID(stream: STREAM): NULL`
-
-`stream` を解決し、その結果を捨てて `NULL` を返します。
-
----
-
-`VOID` は主にストリームの副作用を確実に実行するために使われます。
-
-副作用を伴うストリームを変数に代入しただけでは、そのストリームは遅延評価のため実行されません。
-
-`VOID` を使うことで、ストリームを即座に解決し、副作用を発生させることができます。
-
-```shell
-$ xa '
-  array := []
-  VOID(1 .. 3 | array::push << _)
-  array
-'
-# [1;2;3]
-```
-
----
-
-`VOID` は常に `NULL` を返すため、戻り値が不要な場合に便利です。
+`CACHE` の呼び出しごとに `stream` は丁度1回全体がイテレートされ、その際に副作用も丁度1回発生します。
 
 ```shell
 $ xa -q '
-  VOID(1 .. 5 | OUT << _)
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  CACHE(stream)
+  OUT << "Second"
+  CACHE(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
+```
+
+---
+
+一方、 `CACHE` の戻り値のストリームは何度評価しても副作用が発生しません。
+
+この挙動は配列化と配列のストリーム化のペア `[stream]()` に相当します。
+
+```shell
+$ xa -q '
+  stream := CACHE(1 .. 3 | OUT << _)
+  OUT << "First"
+  stream
+  OUT << "Second"
+  stream
+  OUT << "Done"
 '
 # 1
 # 2
 # 3
-# 4
-# 5
+# First
+# Second
+# Done
 ```
+
+---
+
+`CACHE` に対して無限ストリームを渡した場合、無限ループと内部配列の無限増加によりプロセスがメモリ不足でクラッシュする可能性があります。
+
+## `VOID`: ストリームを解決して結果を破棄する
+
+`VOID(stream: STREAM): NULL`
+
+`stream` を解決し、その結果を破棄して `NULL` を返します。
+
+`CACHE` 関数と異なり結果のキャッシュのための内部配列にメモリを消費しませんが、結果を受け取ることができません。
+
+---
+
+`VOID` の呼び出しごとに `stream` は丁度1回全体がイテレートされ、その際に副作用も丁度1回発生します。
+
+```shell
+$ xa -q '
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  VOID(stream)
+  OUT << "Second"
+  VOID(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
 ```
+
+---
+
+`VOID` は戻り値がNULLであり、元のストリームとは関係性がありません。
+
+この挙動はストリームを文（runner）コンテキストで実行すること `(stream;)` に相当します。
+
+```shell
+$ xa -q '
+  null := VOID(1 .. 3 | OUT << _)
+  OUT << "First"
+  null
+  OUT << "Second"
+  null
+  OUT << "Done"
+'
+# 1
+# 2
+# 3
+# First
+# Second
+# Done
+```
+
+---
+
+`VOID` に対して無限ストリームを渡した場合、無限ループによりプロセスが応答不能になる可能性があります。
