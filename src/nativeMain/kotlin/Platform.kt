@@ -174,250 +174,249 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
-        
-        if (pipe(stdoutPipe) != 0) {
-            throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
-        }
-        
-        if (pipe(stderrPipe) != 0) {
-            // stdoutパイプをクリーンアップ
-            close(stdoutPipe[0])
-            close(stdoutPipe[1])
-            throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
-        }
-        
-        // fork()はマルチスレッド環境では安全ではないため、Mutexで保護する
-        val pid: pid_t = forkMutex.withLock {
-            fork()
-        }
-        
-        when {
-            pid < 0 -> {
-                // fork失敗
+        var pid: pid_t = -1
+        forkMutex.withLock {
+            if (pipe(stdoutPipe) != 0) {
+                throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
+            }
+            
+            if (pipe(stderrPipe) != 0) {
+                // stdoutパイプをクリーンアップ
                 close(stdoutPipe[0])
                 close(stdoutPipe[1])
-                close(stderrPipe[0])
-                close(stderrPipe[1])
-                throw FluoriteException("Failed to fork process".toFluoriteString())
+                throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
             }
-            pid == 0 -> {
-                // 子プロセス
-                // 標準出力と標準エラー出力をパイプに接続
-                close(stdoutPipe[0]) // 読み取り側を閉じる
-                close(stderrPipe[0])
-                
-                if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1) {
-                    perror("dup2 stdout")
-                    close(stdoutPipe[1])
-                    close(stderrPipe[1])
-                    _exit(1)
-                }
-                close(stdoutPipe[1])
-                
-                if (dup2(stderrPipe[1], STDERR_FILENO) == -1) {
-                    perror("dup2 stderr")
-                    close(stderrPipe[1])
-                    _exit(1)
-                }
-                close(stderrPipe[1])
-                
-                // 引数配列を構築
-                // cstrオブジェクトをリストに保持してGCから保護
-                val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
-                val argv = allocArrayOf(
-                    *cstrArgs.map { it.ptr }.toTypedArray(),
-                    null
-                )
-                
-                // プロセスを実行
-                execvp(process, argv)
-                
-                // execvpが戻ってきた場合はエラー
-                // エラーの種類に応じて異なる終了コードを使用
-                // _exit()を使用してatexit ハンドラやstdioバッファのフラッシュを避ける
-                val exitCode = when (errno) {
-                    ENOENT -> 127 // コマンドが見つからない
-                    EACCES -> 126 // 実行権限がない
-                    else -> 125 // その他のエラー
-                }
-                _exit(exitCode)
-                @Suppress("UNREACHABLE_CODE")
-                error("Should not reach here")
-            }
-            else -> {
-                // 親プロセス
-                close(stdoutPipe[1]) // 書き込み側を閉じる
-                close(stderrPipe[1])
-                
-                // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
-                try {
-                    setNonBlocking(stdoutPipe[0], "stdout")
-                    setNonBlocking(stderrPipe[0], "stderr")
-                } catch (e: Throwable) {
+            
+            pid = fork()
+            
+            when {
+                pid < 0 -> {
+                    // fork失敗
                     close(stdoutPipe[0])
+                    close(stdoutPipe[1])
                     close(stderrPipe[0])
-                    throw e
+                    close(stderrPipe[1])
+                    throw FluoriteException("Failed to fork process".toFluoriteString())
+                }
+                pid == 0 -> {
+                    // 子プロセス
+                    // 標準出力と標準エラー出力をパイプに接続
+                    close(stdoutPipe[0]) // 読み取り側を閉じる
+                    close(stderrPipe[0])
+                    
+                    if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1) {
+                        perror("dup2 stdout")
+                        close(stdoutPipe[1])
+                        close(stderrPipe[1])
+                        _exit(1)
+                    }
+                    close(stdoutPipe[1])
+                    
+                    if (dup2(stderrPipe[1], STDERR_FILENO) == -1) {
+                        perror("dup2 stderr")
+                        close(stderrPipe[1])
+                        _exit(1)
+                    }
+                    close(stderrPipe[1])
+                    
+                    // 引数配列を構築
+                    // cstrオブジェクトをリストに保持してGCから保護
+                    val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
+                    val argv = allocArrayOf(
+                        *cstrArgs.map { it.ptr }.toTypedArray(),
+                        null
+                    )
+                    
+                    // プロセスを実行
+                    execvp(process, argv)
+                    
+                    // execvpが戻ってきた場合はエラー
+                    // エラーの種類に応じて異なる終了コードを使用
+                    // _exit()を使用してatexit ハンドラやstdioバッファのフラッシュを避ける
+                    val exitCode = when (errno) {
+                        ENOENT -> 127 // コマンドが見つからない
+                        EACCES -> 126 // 実行権限がない
+                        else -> 125 // その他のエラー
+                    }
+                    _exit(exitCode)
+                    @Suppress("UNREACHABLE_CODE")
+                    error("Should not reach here")
+                }
+                else -> {
+                    // 親プロセス
+                    close(stdoutPipe[1]) // 書き込み側を閉じる
+                    close(stderrPipe[1])
+                }
+            }
+        }
+        
+        // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
+        try {
+            setNonBlocking(stdoutPipe[0], "stdout")
+            setNonBlocking(stderrPipe[0], "stderr")
+        } catch (e: Throwable) {
+            close(stdoutPipe[0])
+            close(stderrPipe[0])
+            throw e
+        }
+        
+        try {
+            // 標準出力を読み取る
+            val outputBytes = mutableListOf<Byte>()
+            val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+            
+            // 標準エラー出力を読み取る
+            val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+            
+            // 両方のパイプから非ブロッキングで読み取る
+            // これによりデッドロックを防ぎ、stdoutとstderrを並行して処理できる
+            var stdoutClosed = false
+            var stderrClosed = false
+            
+            while (!stdoutClosed || !stderrClosed) {
+                var dataRead = false
+                
+                // 標準出力を読み取り
+                if (!stdoutClosed) {
+                    val bytesRead = read(stdoutPipe[0], stdoutBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
+                    when {
+                        bytesRead > 0 -> {
+                            dataRead = true
+                            // バッファからバイトを収集
+                            for (i in 0 until bytesRead.toInt()) {
+                                outputBytes.add(stdoutBuffer[i])
+                            }
+                        }
+                        bytesRead == 0L -> stdoutClosed = true // EOF
+                        bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                        bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                            // データが利用可能になるまで待つ（非ブロッキング）
+                        }
+                        bytesRead == -1L -> {
+                            // その他のエラー
+                            val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
+                            throw FluoriteException(
+                                "Failed to read from child process stdout: $errorMessage (errno=$errno)".toFluoriteString()
+                            )
+                        }
+                        else -> error("Unexpected read result: $bytesRead")
+                    }
                 }
                 
-                try {
-                    // 標準出力を読み取る
-                    val outputBytes = mutableListOf<Byte>()
-                    val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
-                    
-                    // 標準エラー出力を読み取る
-                    val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
-                    
-                    // 両方のパイプから非ブロッキングで読み取る
-                    // これによりデッドロックを防ぎ、stdoutとstderrを並行して処理できる
-                    var stdoutClosed = false
-                    var stderrClosed = false
-                    
-                    while (!stdoutClosed || !stderrClosed) {
-                        var dataRead = false
-                        
-                        // 標準出力を読み取り
-                        if (!stdoutClosed) {
-                            val bytesRead = read(stdoutPipe[0], stdoutBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
-                            when {
-                                bytesRead > 0 -> {
-                                    dataRead = true
-                                    // バッファからバイトを収集
-                                    for (i in 0 until bytesRead.toInt()) {
-                                        outputBytes.add(stdoutBuffer[i])
-                                    }
-                                }
-                                bytesRead == 0L -> stdoutClosed = true // EOF
-                                bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
-                                bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
-                                    // データが利用可能になるまで待つ（非ブロッキング）
-                                }
-                                bytesRead == -1L -> {
-                                    // その他のエラー
-                                    val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
-                                    throw FluoriteException(
-                                        "Failed to read from child process stdout: $errorMessage (errno=$errno)".toFluoriteString()
-                                    )
-                                }
-                                else -> error("Unexpected read result: $bytesRead")
-                            }
-                        }
-                        
-                        // 標準エラー出力を読み取り、Xarpiteのstderrに転送
-                        if (!stderrClosed) {
-                            val bytesRead = read(stderrPipe[0], stderrBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
-                            when {
-                                bytesRead > 0 -> {
-                                    dataRead = true
-                                    // stderrに書き込む（部分書き込みとEINTRを考慮）
-                                    var totalWritten = 0
-                                    var writeRetryCount = 0
-                                    while (totalWritten < bytesRead.toInt()) {
-                                        val remaining = (bytesRead.toInt() - totalWritten).toULong()
-                                        // ポインター演算でstderrバッファの適切な位置を取得
-                                        val ptr = stderrBuffer + totalWritten
-                                        val written = write(STDERR_FILENO, ptr, remaining)
-                                        when {
-                                            written > 0 -> {
-                                                totalWritten += written.toInt()
-                                                writeRetryCount = 0 // リセット
-                                            }
-                                            written == -1L && errno == EINTR -> {
-                                                // シグナルによる一時的な中断は再試行
-                                                continue
-                                            }
-                                            written == 0L -> {
-                                                // 進捗なし: ビジーウェイトを避けるためスリープ
-                                                writeRetryCount++
-                                                if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
-                                                    // 無限ループ防止: 諦める
-                                                    perror("stderr write: too many retries with no progress")
-                                                    break
-                                                }
-                                                usleep(STDERR_WRITE_RETRY_SLEEP_MICROS)
-                                            }
-                                            else -> {
-                                                // それ以外のエラーの場合は、このチャンクの転送を諦める
-                                                val errMsg = strerror(errno)?.toKString() ?: "unknown"
-                                                perror("stderr write failed: $errMsg (errno=$errno)")
-                                                break
-                                            }
-                                        }
-                                    }
-                                }
-                                bytesRead == 0L -> stderrClosed = true // EOF
-                                bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
-                                bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
-                                    // データが利用可能になるまで待つ（非ブロッキング）
-                                }
-                                bytesRead == -1L -> {
-                                    // stderrの読み取りエラーは無視
-                                    // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
-                                    stderrClosed = true
-                                }
-                                else -> stderrClosed = true
-                            }
-                        }
-                        
-                        // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
-                        if (!dataRead && (!stdoutClosed || !stderrClosed)) {
-                            usleep(IO_POLLING_SLEEP_MICROS)
-                        }
-                    }
-                    
-                    // 子プロセスの終了を待つ
-                    val statusPtr = alloc<IntVar>()
-                    var waitResult: pid_t
-                    var waitRetryCount = 0
-                    do {
-                        waitResult = waitpid(pid, statusPtr.ptr, 0)
-                        if (waitResult.toLong() == -1L && errno == EINTR) {
-                            waitRetryCount++
-                            if (waitRetryCount >= WAITPID_MAX_RETRIES) {
-                                throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
-                            }
-                            usleep(WAITPID_RETRY_SLEEP_MICROS)
-                        }
-                    } while (waitResult.toLong() == -1L && errno == EINTR)
-                    
-                    if (waitResult.toLong() == -1L) {
-                        val errMsg = strerror(errno)?.toKString() ?: "Unknown error"
-                        throw FluoriteException("waitpid failed: $errMsg (errno=$errno)".toFluoriteString())
-                    }
-                    
-                    val status = statusPtr.value
-                    
-                    // 終了コードをチェック
+                // 標準エラー出力を読み取り、Xarpiteのstderrに転送
+                if (!stderrClosed) {
+                    val bytesRead = read(stderrPipe[0], stderrBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
                     when {
-                        WIFEXITED(status) -> {
-                            val exitCode = WEXITSTATUS(status)
-                            if (exitCode != 0) {
-                                throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+                        bytesRead > 0 -> {
+                            dataRead = true
+                            // stderrに書き込む（部分書き込みとEINTRを考慮）
+                            var totalWritten = 0
+                            var writeRetryCount = 0
+                            while (totalWritten < bytesRead.toInt()) {
+                                val remaining = (bytesRead.toInt() - totalWritten).toULong()
+                                // ポインター演算でstderrバッファの適切な位置を取得
+                                val ptr = stderrBuffer + totalWritten
+                                val written = write(STDERR_FILENO, ptr, remaining)
+                                when {
+                                    written > 0 -> {
+                                        totalWritten += written.toInt()
+                                        writeRetryCount = 0 // リセット
+                                    }
+                                    written == -1L && errno == EINTR -> {
+                                        // シグナルによる一時的な中断は再試行
+                                        continue
+                                    }
+                                    written == 0L -> {
+                                        // 進捗なし: ビジーウェイトを避けるためスリープ
+                                        writeRetryCount++
+                                        if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
+                                            // 無限ループ防止: 諦める
+                                            perror("stderr write: too many retries with no progress")
+                                            break
+                                        }
+                                        usleep(STDERR_WRITE_RETRY_SLEEP_MICROS)
+                                    }
+                                    else -> {
+                                        // それ以外のエラーの場合は、このチャンクの転送を諦める
+                                        val errMsg = strerror(errno)?.toKString() ?: "unknown"
+                                        perror("stderr write failed: $errMsg (errno=$errno)")
+                                        break
+                                    }
+                                }
                             }
                         }
-                        WIFSIGNALED(status) -> {
-                            val signalNumber = WTERMSIG(status)
-                            throw FluoriteException("Process terminated by signal $signalNumber".toFluoriteString())
+                        bytesRead == 0L -> stderrClosed = true // EOF
+                        bytesRead == -1L && errno == EINTR -> {} // シグナルで中断された場合は再試行
+                        bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                            // データが利用可能になるまで待つ（非ブロッキング）
                         }
-                        else -> {
-                            throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
+                        bytesRead == -1L -> {
+                            // stderrの読み取りエラーは無視
+                            // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
+                            stderrClosed = true
                         }
-                    }
-                    
-                    // バイト配列を文字列に変換
-                    outputBytes.toByteArray().decodeToString()
-                } finally {
-                    // close()が失敗してもtryブロックの例外をマスクしないようにする
-                    try {
-                        close(stdoutPipe[0])
-                    } catch (_: Throwable) {
-                        // close失敗は無視してtryブロックの例外を優先
-                    }
-                    try {
-                        close(stderrPipe[0])
-                    } catch (_: Throwable) {
-                        // close失敗は無視してtryブロックの例外を優先
+                        else -> stderrClosed = true
                     }
                 }
+                
+                // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
+                if (!dataRead && (!stdoutClosed || !stderrClosed)) {
+                    usleep(IO_POLLING_SLEEP_MICROS)
+                }
+            }
+            
+            // 子プロセスの終了を待つ
+            val statusPtr = alloc<IntVar>()
+            var waitResult: pid_t
+            var waitRetryCount = 0
+            do {
+                waitResult = waitpid(pid, statusPtr.ptr, 0)
+                if (waitResult.toLong() == -1L && errno == EINTR) {
+                    waitRetryCount++
+                    if (waitRetryCount >= WAITPID_MAX_RETRIES) {
+                        throw FluoriteException("waitpid interrupted by signal too many times".toFluoriteString())
+                    }
+                    usleep(WAITPID_RETRY_SLEEP_MICROS)
+                }
+            } while (waitResult.toLong() == -1L && errno == EINTR)
+            
+            if (waitResult.toLong() == -1L) {
+                val errMsg = strerror(errno)?.toKString() ?: "Unknown error"
+                throw FluoriteException("waitpid failed: $errMsg (errno=$errno)".toFluoriteString())
+            }
+            
+            val status = statusPtr.value
+            
+            // 終了コードをチェック
+            when {
+                WIFEXITED(status) -> {
+                    val exitCode = WEXITSTATUS(status)
+                    if (exitCode != 0) {
+                        throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
+                    }
+                }
+                WIFSIGNALED(status) -> {
+                    val signalNumber = WTERMSIG(status)
+                    throw FluoriteException("Process terminated by signal $signalNumber".toFluoriteString())
+                }
+                else -> {
+                    throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
+                }
+            }
+            
+            // バイト配列を文字列に変換
+            outputBytes.toByteArray().decodeToString()
+        } finally {
+            // close()が失敗してもtryブロックの例外をマスクしないようにする
+            try {
+                close(stdoutPipe[0])
+            } catch (_: Throwable) {
+                // close失敗は無視してtryブロックの例外を優先
+            }
+            try {
+                close(stderrPipe[0])
+            } catch (_: Throwable) {
+                // close失敗は無視してtryブロックの例外を優先
             }
         }
     }
