@@ -32,7 +32,9 @@ kotlin {
     }
     linuxX64 {
         binaries {
-            executable("xarpite")
+            executable("xarpite") {
+                linkerOpts("-lpthread")
+            }
         }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
