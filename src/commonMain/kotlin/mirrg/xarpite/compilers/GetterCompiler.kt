@@ -80,6 +80,9 @@ import mirrg.xarpite.UnaryExclamationNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
 import mirrg.xarpite.UnaryQuestionNode
+import mirrg.xarpite.UnaryIncrementNode
+import mirrg.xarpite.UnaryDecrementNode
+import mirrg.xarpite.Side
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
@@ -113,6 +116,8 @@ import mirrg.xarpite.operations.GetterObjectInitializer
 import mirrg.xarpite.operations.GreaterComparator
 import mirrg.xarpite.operations.GreaterEqualComparator
 import mirrg.xarpite.operations.IfGetter
+import mirrg.xarpite.operations.IncrementGetter
+import mirrg.xarpite.operations.DecrementGetter
 import mirrg.xarpite.operations.InstanceOfComparator
 import mirrg.xarpite.operations.ItemAccessGetter
 import mirrg.xarpite.operations.LabelGetter
@@ -245,6 +250,20 @@ fun Frame.compileToGetter(node: Node): Getter {
             val variableIndex = newFrame.defineVariable("_")
             val getter = newFrame.compileToGetter(node.main)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+        }
+
+        is UnaryIncrementNode -> {
+            val getter = compileToGetter(node.main)
+            val setter = compileToSetter(node.main)
+            val isPrefix = node.side == Side.LEFT
+            IncrementGetter(getter, setter, isPrefix)
+        }
+
+        is UnaryDecrementNode -> {
+            val getter = compileToGetter(node.main)
+            val setter = compileToSetter(node.main)
+            val isPrefix = node.side == Side.LEFT
+            DecrementGetter(getter, setter, isPrefix)
         }
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))

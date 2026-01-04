@@ -136,6 +136,8 @@ object XarpiteGrammar {
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side) -> Node> = or(
+        -"++" map { ::UnaryIncrementNode },
+        -"--" map { ::UnaryDecrementNode },
         -'+' map { ::UnaryPlusNode },
         -'-' map { ::UnaryMinusNode },
         -'?' map { ::UnaryQuestionNode },
@@ -155,6 +157,9 @@ object XarpiteGrammar {
         -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
+
+        -b * -"++" map { { main -> UnaryIncrementNode(main, Side.RIGHT) } },
+        -b * -"--" map { { main -> UnaryDecrementNode(main, Side.RIGHT) } },
 
         -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
         -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },

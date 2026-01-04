@@ -732,6 +732,34 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
     override val code get() = "AssignmentGetter[${setter.code};${getter.code}]"
 }
 
+class IncrementGetter(private val getter: Getter, private val setter: Setter, private val isPrefix: Boolean) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = oldValue.plus(FluoriteInt.ONE)
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return if (isPrefix) newValue else oldValue
+    }
+
+    override val code get() = "IncrementGetter[${getter.code};${setter.code};$isPrefix]"
+}
+
+class DecrementGetter(private val getter: Getter, private val setter: Setter, private val isPrefix: Boolean) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value - 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value - 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return if (isPrefix) newValue else oldValue
+    }
+
+    override val code get() = "DecrementGetter[${getter.code};${setter.code};$isPrefix]"
+}
+
 class TryCatchWithVariableGetter(private val leftGetter: Getter, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
