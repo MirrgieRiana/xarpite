@@ -13,6 +13,7 @@ import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.sizeOf
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,7 @@ import platform.posix.EWOULDBLOCK
 import platform.posix.F_GETFL
 import platform.posix.F_SETFL
 import platform.posix.O_NONBLOCK
+import platform.posix.SIGKILL
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
 import platform.posix.__environ
@@ -41,6 +43,7 @@ import platform.posix.ferror
 import platform.posix.fread
 import platform.posix.fflush
 import platform.posix.fwrite
+import platform.posix.kill
 import platform.posix.perror
 import platform.posix.pid_t
 import platform.posix.pipe
@@ -180,10 +183,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         }
         
         // posix_spawn_file_actions_tは不透明な型（opaque type）として扱う
-        // 実際のサイズ（80バイト）分のメモリを確保し、適切な型にキャストする
-        // この方法により、Kotlin/Nativeのcinteropツールを使用せずに構造体を扱える
+        // sizeOf演算子を使用してシステム依存のサイズを動的に取得し、
+        // 適切な型にキャストする。この方法により、システムアップデートで
+        // 構造体サイズが変更されてもメモリ破壊を防ぐことができる
         @Suppress("UNCHECKED_CAST")
-        val fileActionsPtr = allocArray<ByteVar>(80) as CPointer<posix_spawn_file_actions_t>
+        val fileActionsPtr = allocArray<ByteVar>(sizeOf<posix_spawn_file_actions_t>().toInt()) as CPointer<posix_spawn_file_actions_t>
         
         // posix_spawn_file_actionsを初期化
         if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
@@ -274,8 +278,15 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 setNonBlocking(stdoutPipe[0], "stdout")
                 setNonBlocking(stderrPipe[0], "stderr")
             } catch (e: Throwable) {
+                // setNonBlocking()失敗時もパイプをクローズし、子プロセスを適切に待機して
+                // ゾンビプロセスを防ぐ
                 close(stdoutPipe[0])
                 close(stderrPipe[0])
+                // 子プロセスを終了させるためにSIGKILLを送信
+                kill(pid, SIGKILL)
+                // 子プロセスの終了を待機してゾンビプロセスを回避
+                val statusPtr = alloc<IntVar>()
+                waitpid(pid, statusPtr.ptr, 0)
                 throw e
             }
             
