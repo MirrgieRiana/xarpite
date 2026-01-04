@@ -1,7 +1,6 @@
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.CPointerVar
-import kotlinx.cinterop.CStructVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
@@ -13,6 +12,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
+import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
+import platform.linux.*
 import platform.posix.EACCES
 import platform.posix.EAGAIN
 import platform.posix.EINTR
@@ -53,46 +54,6 @@ import platform.posix.usleep
 import platform.posix.waitpid
 import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
-import kotlin.native.internal.GCUnsafeCall
-
-// posix_spawn_file_actions_t構造体の定義（不透明な型として扱う）
-@OptIn(ExperimentalForeignApi::class)
-internal class posix_spawn_file_actions_t(rawPtr: kotlinx.cinterop.NativePtr) : CStructVar(rawPtr) {
-    companion object : CStructVar.Type(80, 8)
-}
-
-// posix_spawnp関連のC関数を外部宣言
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "OPT_IN_USAGE_ERROR")
-@OptIn(ExperimentalForeignApi::class)
-@GCUnsafeCall("posix_spawn_file_actions_init")
-internal external fun posix_spawn_file_actions_init(file_actions: CPointer<posix_spawn_file_actions_t>?): Int
-
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "OPT_IN_USAGE_ERROR")
-@OptIn(ExperimentalForeignApi::class)
-@GCUnsafeCall("posix_spawn_file_actions_destroy")
-internal external fun posix_spawn_file_actions_destroy(file_actions: CPointer<posix_spawn_file_actions_t>?): Int
-
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "OPT_IN_USAGE_ERROR")
-@OptIn(ExperimentalForeignApi::class)
-@GCUnsafeCall("posix_spawn_file_actions_addclose")
-internal external fun posix_spawn_file_actions_addclose(file_actions: CPointer<posix_spawn_file_actions_t>?, fd: Int): Int
-
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "OPT_IN_USAGE_ERROR")
-@OptIn(ExperimentalForeignApi::class)
-@GCUnsafeCall("posix_spawn_file_actions_adddup2")
-internal external fun posix_spawn_file_actions_adddup2(file_actions: CPointer<posix_spawn_file_actions_t>?, fd: Int, newfd: Int): Int
-
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "OPT_IN_USAGE_ERROR")
-@OptIn(ExperimentalForeignApi::class)
-@GCUnsafeCall("posix_spawnp")
-internal external fun posix_spawnp(
-    pid: CPointer<IntVar>?,
-    file: String?,
-    file_actions: CPointer<posix_spawn_file_actions_t>?,
-    attrp: CPointer<*>?,
-    argv: CPointer<CPointerVar<ByteVar>>?,
-    envp: CPointer<CPointerVar<ByteVar>>?
-): Int
 
 // EXEC関数の定数
 const val EXEC_MAX_BUFFER_SIZE = 4096
@@ -218,8 +179,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         }
         
         // posix_spawn用のfile actionsを設定
-        val fileActions = alloc<posix_spawn_file_actions_t>()
-        if (posix_spawn_file_actions_init(fileActions.ptr) != 0) {
+        // posix_spawn_file_actions_tは不透明な型なので、必要なサイズのメモリを確保
+        @Suppress("UNCHECKED_CAST")
+        val fileActionsPtr = allocArray<ByteVar>(80) as CPointer<posix_spawn_file_actions_t>
+        if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             close(stderrPipe[0])
@@ -229,27 +192,27 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         
         try {
             // 子プロセス側で標準出力をパイプに接続
-            if (posix_spawn_file_actions_adddup2(fileActions.ptr, stdoutPipe[1], STDOUT_FILENO) != 0) {
+            if (posix_spawn_file_actions_adddup2(fileActionsPtr, stdoutPipe[1], STDOUT_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stdout".toFluoriteString())
             }
             // 子プロセス側で標準エラー出力をパイプに接続
-            if (posix_spawn_file_actions_adddup2(fileActions.ptr, stderrPipe[1], STDERR_FILENO) != 0) {
+            if (posix_spawn_file_actions_adddup2(fileActionsPtr, stderrPipe[1], STDERR_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stderr".toFluoriteString())
             }
             
             // 子プロセス側でパイプの読み取り側を閉じる
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stdoutPipe[0]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[0]) != 0) {
                 throw FluoriteException("Failed to add close for stdout read end".toFluoriteString())
             }
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stderrPipe[0]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[0]) != 0) {
                 throw FluoriteException("Failed to add close for stderr read end".toFluoriteString())
             }
             
             // 子プロセス側でパイプの書き込み側を閉じる（dup2の後なので不要になる）
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stdoutPipe[1]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[1]) != 0) {
                 throw FluoriteException("Failed to add close for stdout write end".toFluoriteString())
             }
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stderrPipe[1]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[1]) != 0) {
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
             }
             
@@ -262,7 +225,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             
             // posix_spawnpでプロセスを起動（PATH検索機能付き）
             val pidVar = alloc<IntVar>()
-            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActions.ptr, null, argv, __environ)
+            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
             
             // 親プロセス側でパイプの書き込み側を閉じる
             close(stdoutPipe[1])
@@ -423,7 +386,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 } catch (_: Throwable) {}
             }
         } finally {
-            posix_spawn_file_actions_destroy(fileActions.ptr)
+            posix_spawn_file_actions_destroy(fileActionsPtr)
         }
     }
 }
