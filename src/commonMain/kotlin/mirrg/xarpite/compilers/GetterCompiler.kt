@@ -80,8 +80,12 @@ import mirrg.xarpite.UnaryExclamationNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
 import mirrg.xarpite.UnaryQuestionNode
+import mirrg.xarpite.UnaryPlusPlusNode
+import mirrg.xarpite.UnaryMinusMinusNode
+import mirrg.xarpite.Side
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
@@ -119,6 +123,10 @@ import mirrg.xarpite.operations.LabelGetter
 import mirrg.xarpite.operations.LessComparator
 import mirrg.xarpite.operations.LessEqualComparator
 import mirrg.xarpite.operations.LinesGetter
+import mirrg.xarpite.operations.PrefixIncrementGetter
+import mirrg.xarpite.operations.SuffixIncrementGetter
+import mirrg.xarpite.operations.PrefixDecrementGetter
+import mirrg.xarpite.operations.SuffixDecrementGetter
 import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.LiteralStringGetter
 import mirrg.xarpite.operations.MatchGetter
@@ -154,6 +162,7 @@ import mirrg.xarpite.operations.TryCatchGetter
 import mirrg.xarpite.operations.TryCatchWithVariableGetter
 import mirrg.xarpite.operations.VariableDefinitionObjectInitializer
 import mirrg.xarpite.operations.VariableGetter
+import mirrg.xarpite.operations.VariableSetter
 
 fun Frame.compileToGetter(node: Node): Getter {
     return when (node) {
@@ -245,6 +254,26 @@ fun Frame.compileToGetter(node: Node): Getter {
             val variableIndex = newFrame.defineVariable("_")
             val getter = newFrame.compileToGetter(node.main)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+        }
+
+        is UnaryPlusPlusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            if (node.side == Side.LEFT) {
+                PrefixIncrementGetter(getter, setter)
+            } else {
+                SuffixIncrementGetter(getter, setter)
+            }
+        }
+
+        is UnaryMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            if (node.side == Side.LEFT) {
+                PrefixDecrementGetter(getter, setter)
+            } else {
+                SuffixDecrementGetter(getter, setter)
+            }
         }
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))

@@ -267,3 +267,97 @@ The subtraction operator subtracts two values.
 $ xa '3 - 1'
 # 2
 ```
+
+## Increment `++value` / `value++`
+
+The increment operator increments the value of a variable by 1.
+
+It has prefix and postfix forms, each returning a different value.
+
+### Prefix Increment `++value`
+
+The prefix increment operator adds 1 to the value and returns the new value.
+
+```shell
+$ xa 'a := 10; ++a'
+# 11
+```
+
+This is equivalent to `a = a + 1`, but returns the value after addition.
+
+### Postfix Increment `value++`
+
+The postfix increment operator adds 1 to the value and returns the old value.
+
+```shell
+$ xa 'a := 10; a++'
+# 10
+```
+
+The value is incremented, but the returned value is the value before increment.
+
+```shell
+$ xa 'a := 10; a++; a'
+# 11
+```
+
+### Use in Expressions
+
+The increment operator can be used within expressions.
+
+```shell
+$ xa 'a := 10; ++a + 10'
+# 21
+
+$ xa 'a := 10; a++ + 10'
+# 20
+```
+
+## Decrement `--value` / `value--`
+
+The decrement operator decrements the value of a variable by 1.
+
+It has prefix and postfix forms, each returning a different value.
+
+### Prefix Decrement `--value`
+
+The prefix decrement operator subtracts 1 from the value and returns the new value.
+
+```shell
+$ xa 'a := 10; --a'
+# 9
+```
+
+### Postfix Decrement `value--`
+
+The postfix decrement operator subtracts 1 from the value and returns the old value.
+
+```shell
+$ xa 'a := 10; a--'
+# 10
+```
+
+### Use in Expressions
+
+The decrement operator can be used within expressions.
+
+```shell
+$ xa 'a := 10; --a + 10'
+# 19
+
+$ xa 'a := 10; a-- + 10'
+# 20
+```
+
+### Implementation Details
+
+Increment and decrement operators are pure syntactic sugar for addition/subtraction assignment, and no dedicated method override exists.
+
+`a++` is internally equivalent to the following process:
+
+1. Get the current value of variable `a`
+2. Add 1 to that value
+3. Assign the result back to variable `a`
+4. Return the new value for prefix version, or the old value for postfix version
+
+The decrement operator works similarly, performing subtraction of 1 instead of addition.
