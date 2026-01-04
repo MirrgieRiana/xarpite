@@ -33,6 +33,8 @@ kotlin {
     linuxX64 {
         binaries {
             executable("xarpite") {
+                // posix_spawnp関連の関数がlibpthreadにリンクされているため、
+                // リンカーオプションに-lpthreadを追加する必要がある
                 linkerOpts("-lpthread")
             }
         }

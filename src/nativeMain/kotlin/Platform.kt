@@ -173,15 +173,19 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         }
         
         if (pipe(stderrPipe) != 0) {
+            // stdoutパイプをクリーンアップ
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
         }
         
-        // posix_spawn用のfile actionsを設定
-        // posix_spawn_file_actions_tは不透明な型なので、必要なサイズのメモリを確保
+        // posix_spawn_file_actions_tは不透明な型（opaque type）として扱う
+        // 実際のサイズ（80バイト）分のメモリを確保し、適切な型にキャストする
+        // この方法により、Kotlin/Nativeのcinteropツールを使用せずに構造体を扱える
         @Suppress("UNCHECKED_CAST")
         val fileActionsPtr = allocArray<ByteVar>(80) as CPointer<posix_spawn_file_actions_t>
+        
+        // posix_spawn_file_actionsを初期化
         if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
             close(stdoutPipe[0])
             close(stdoutPipe[1])
@@ -191,16 +195,22 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         }
         
         try {
-            // 子プロセス側で標準出力をパイプに接続
+            // 子プロセスでのファイルディスクリプタ操作を設定
+            // これらの操作はposix_spawnp()が子プロセスを起動した直後、
+            // 指定されたプログラムを実行する前に実行される
+            
+            // 子プロセス側で標準出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stdoutPipe[1], STDOUT_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stdout".toFluoriteString())
             }
-            // 子プロセス側で標準エラー出力をパイプに接続
+            
+            // 子プロセス側で標準エラー出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stderrPipe[1], STDERR_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stderr".toFluoriteString())
             }
             
-            // 子プロセス側でパイプの読み取り側を閉じる
+            // 子プロセス側で不要になったパイプの読み取り側を閉じる
+            // これにより、子プロセスが親プロセスのパイプFDを継承しないようにする
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[0]) != 0) {
                 throw FluoriteException("Failed to add close for stdout read end".toFluoriteString())
             }
@@ -208,7 +218,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 throw FluoriteException("Failed to add close for stderr read end".toFluoriteString())
             }
             
-            // 子プロセス側でパイプの書き込み側を閉じる（dup2の後なので不要になる）
+            // 子プロセス側でパイプの書き込み側も閉じる
+            // dup2でSTDOUT_FILENO/STDERR_FILENOにコピーした後は元のFDは不要
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[1]) != 0) {
                 throw FluoriteException("Failed to add close for stdout write end".toFluoriteString())
             }
@@ -217,20 +228,27 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             }
             
             // 引数配列を構築
+            // cstrオブジェクトをリストに保持してGCから保護する
             val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
             val argv = allocArrayOf(
                 *cstrArgs.map { it.ptr }.toTypedArray(),
-                null
+                null  // 配列の終端をnullでマーク（POSIX要件）
             )
             
-            // posix_spawnpでプロセスを起動（PATH検索機能付き）
+            // posix_spawnpでプロセスを起動
+            // posix_spawnpはPATH環境変数を検索してプログラムを見つける（execvpと同等）
+            // fork()とは異なり、posix_spawnp()はスレッドセーフであるため、
+            // マルチスレッド環境でも安全に使用できる
             val pidVar = alloc<IntVar>()
             val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
             
             // 親プロセス側でパイプの書き込み側を閉じる
+            // これにより、子プロセスが終了したときにEOFを正しく検出できる
             close(stdoutPipe[1])
             close(stderrPipe[1])
             
+            // posix_spawnp()のエラーチェック
+            // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）
             if (spawnResult != 0) {
                 close(stdoutPipe[0])
                 close(stderrPipe[0])
@@ -248,6 +266,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             val pid = pidVar.value
             
             // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
+            // 子プロセスが大量のデータを書き込む場合、パイプバッファが満杯になると
+            // 子プロセスがブロックし、親プロセスも別のパイプの読み取りでブロックすると
+            // デッドロックが発生する可能性がある。非ブロッキングモードにすることで、
+            // 両方のパイプ（stdoutとstderr）を並行して読み取ることができる
             try {
                 setNonBlocking(stdoutPipe[0], "stdout")
                 setNonBlocking(stderrPipe[0], "stderr")
@@ -258,10 +280,15 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             }
             
             try {
+                // 標準出力を読み取る
                 val outputBytes = mutableListOf<Byte>()
                 val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
+                
+                // 標準エラー出力を読み取る
                 val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
                 
+                // 両方のパイプから非ブロッキングで読み取る
+                // これによりデッドロックを防ぎ、stdoutとstderrを並行して処理できる
                 var stdoutClosed = false
                 var stderrClosed = false
                 
@@ -274,14 +301,18 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         when {
                             bytesRead > 0 -> {
                                 dataRead = true
+                                // バッファからバイトを収集
                                 for (i in 0 until bytesRead.toInt()) {
                                     outputBytes.add(stdoutBuffer[i])
                                 }
                             }
-                            bytesRead == 0L -> stdoutClosed = true
-                            bytesRead == -1L && errno == EINTR -> {}
-                            bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {}
+                            bytesRead == 0L -> stdoutClosed = true  // EOF
+                            bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
+                            bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                                // データが利用可能になるまで待つ（非ブロッキング）
+                            }
                             bytesRead == -1L -> {
+                                // その他のエラー
                                 val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
                                 throw FluoriteException(
                                     "Failed to read from child process stdout: $errorMessage (errno=$errno)".toFluoriteString()
@@ -297,27 +328,35 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         when {
                             bytesRead > 0 -> {
                                 dataRead = true
+                                // stderrに書き込む（部分書き込みとEINTRを考慮）
                                 var totalWritten = 0
                                 var writeRetryCount = 0
                                 while (totalWritten < bytesRead.toInt()) {
                                     val remaining = (bytesRead.toInt() - totalWritten).toULong()
+                                    // ポインター演算でstderrバッファの適切な位置を取得
                                     val ptr = stderrBuffer + totalWritten
                                     val written = write(STDERR_FILENO, ptr, remaining)
                                     when {
                                         written > 0 -> {
                                             totalWritten += written.toInt()
-                                            writeRetryCount = 0
+                                            writeRetryCount = 0  // リセット
                                         }
-                                        written == -1L && errno == EINTR -> continue
+                                        written == -1L && errno == EINTR -> {
+                                            // シグナルによる一時的な中断は再試行
+                                            continue
+                                        }
                                         written == 0L -> {
+                                            // 進捗なし: ビジーウェイトを避けるためスリープ
                                             writeRetryCount++
                                             if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
+                                                // 無限ループ防止: 諦める
                                                 perror("stderr write: too many retries with no progress")
                                                 break
                                             }
                                             usleep(STDERR_WRITE_RETRY_SLEEP_MICROS)
                                         }
                                         else -> {
+                                            // それ以外のエラーの場合は、このチャンクの転送を諦める
                                             val errMsg = strerror(errno)?.toKString() ?: "unknown"
                                             perror("stderr write failed: $errMsg (errno=$errno)")
                                             break
@@ -325,14 +364,21 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     }
                                 }
                             }
-                            bytesRead == 0L -> stderrClosed = true
-                            bytesRead == -1L && errno == EINTR -> {}
-                            bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {}
-                            bytesRead == -1L -> stderrClosed = true
+                            bytesRead == 0L -> stderrClosed = true  // EOF
+                            bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
+                            bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
+                                // データが利用可能になるまで待つ（非ブロッキング）
+                            }
+                            bytesRead == -1L -> {
+                                // stderrの読み取りエラーは無視
+                                // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
+                                stderrClosed = true
+                            }
                             else -> stderrClosed = true
                         }
                     }
                     
+                    // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
                     if (!dataRead && (!stdoutClosed || !stderrClosed)) {
                         usleep(IO_POLLING_SLEEP_MICROS)
                     }
@@ -360,6 +406,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 
                 val status = statusPtr.value
                 
+                // 終了コードをチェック
                 when {
                     WIFEXITED(status) -> {
                         val exitCode = WEXITSTATUS(status)
@@ -376,16 +423,24 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     }
                 }
                 
+                // バイト配列を文字列に変換
                 outputBytes.toByteArray().decodeToString()
             } finally {
+                // close()が失敗してもtryブロックの例外をマスクしないようにする
                 try {
                     close(stdoutPipe[0])
-                } catch (_: Throwable) {}
+                } catch (_: Throwable) {
+                    // close失敗は無視してtryブロックの例外を優先
+                }
                 try {
                     close(stderrPipe[0])
-                } catch (_: Throwable) {}
+                } catch (_: Throwable) {
+                    // close失敗は無視してtryブロックの例外を優先
+                }
             }
         } finally {
+            // file actionsをクリーンアップ
+            // posix_spawn_file_actions_init()で確保されたリソースを解放
             posix_spawn_file_actions_destroy(fileActionsPtr)
         }
     }
