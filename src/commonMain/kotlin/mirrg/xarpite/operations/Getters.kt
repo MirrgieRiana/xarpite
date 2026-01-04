@@ -735,7 +735,11 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
 class IncrementGetter(private val getter: Getter, private val setter: Setter, private val isPrefix: Boolean) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val oldValue = getter.evaluate(env)
-        val newValue = oldValue.plus(FluoriteInt.ONE)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value + 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value + 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
         val setterFn = setter.evaluate(env)
         setterFn.invoke(newValue)
         return if (isPrefix) newValue else oldValue
