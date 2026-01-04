@@ -123,6 +123,10 @@ import mirrg.xarpite.operations.LabelGetter
 import mirrg.xarpite.operations.LessComparator
 import mirrg.xarpite.operations.LessEqualComparator
 import mirrg.xarpite.operations.LinesGetter
+import mirrg.xarpite.operations.PrefixIncrementGetter
+import mirrg.xarpite.operations.SuffixIncrementGetter
+import mirrg.xarpite.operations.PrefixDecrementGetter
+import mirrg.xarpite.operations.SuffixDecrementGetter
 import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.LiteralStringGetter
 import mirrg.xarpite.operations.MatchGetter
@@ -159,52 +163,6 @@ import mirrg.xarpite.operations.TryCatchWithVariableGetter
 import mirrg.xarpite.operations.VariableDefinitionObjectInitializer
 import mirrg.xarpite.operations.VariableGetter
 import mirrg.xarpite.operations.VariableSetter
-import mirrg.xarpite.operations.VariableDefinitionSetter
-import mirrg.xarpite.operations.AssignmentRunner
-
-/**
- * インクリメント/デクリメント演算子のコンパイルを行うヘルパー関数
- * @param node 対象ノード
- * @param isPrefix 前置版かどうか
- * @param operation 加算(PlusGetter)か減算(MinusGetter)を生成する関数
- */
-private fun Frame.compileIncrementDecrement(
-    node: Node,
-    isPrefix: Boolean,
-    operation: (Getter, Getter) -> Getter
-): Getter {
-    // 他の代入との一貫性のため、setterを先にコンパイル
-    val setter = compileToSetter(node)
-    val getter = compileToGetter(node)
-    
-    if (isPrefix) {
-        // 前置版: (a = a op 1) と同じで、新しい値を返す
-        return AssignmentGetter(setter, operation(getter, LiteralGetter(FluoriteInt.ONE)))
-    } else {
-        // 後置版: 古い値を取得→新しい値を計算・代入→古い値を返す
-        // Frameを作らずにやる方法はIncrementGetter/DecrementGetterを作る以外にない
-        val newFrame = Frame(this)
-        val oldValueVarIndex = newFrame.defineVariable("__oldval")
-        return NewEnvironmentGetter(
-            newFrame.nextVariableIndex,
-            newFrame.mountCount,
-            LinesGetter(
-                listOf(
-                    // 古い値を取得して一時変数に保存（初期化）
-                    AssignmentRunner(VariableDefinitionSetter(newFrame.frameIndex, oldValueVarIndex), getter)
-                ),
-                LinesGetter(
-                    listOf(
-                        // 新しい値を計算して代入（一時変数 op 1を代入）
-                        AssignmentRunner(setter, operation(VariableGetter(newFrame.frameIndex, oldValueVarIndex), LiteralGetter(FluoriteInt.ONE)))
-                    ),
-                    // 古い値を返す
-                    VariableGetter(newFrame.frameIndex, oldValueVarIndex)
-                )
-            )
-        )
-    }
-}
 
 fun Frame.compileToGetter(node: Node): Getter {
     return when (node) {
@@ -298,9 +256,25 @@ fun Frame.compileToGetter(node: Node): Getter {
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
         }
 
-        is UnaryPlusPlusNode -> compileIncrementDecrement(node.main, node.side == Side.LEFT, ::PlusGetter)
+        is UnaryPlusPlusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            if (node.side == Side.LEFT) {
+                PrefixIncrementGetter(getter, setter)
+            } else {
+                SuffixIncrementGetter(getter, setter)
+            }
+        }
 
-        is UnaryMinusMinusNode -> compileIncrementDecrement(node.main, node.side == Side.LEFT, ::MinusGetter)
+        is UnaryMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            if (node.side == Side.LEFT) {
+                PrefixDecrementGetter(getter, setter)
+            } else {
+                SuffixDecrementGetter(getter, setter)
+            }
+        }
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))
 

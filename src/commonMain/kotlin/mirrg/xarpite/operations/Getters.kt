@@ -732,6 +732,70 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
     override val code get() = "AssignmentGetter[${setter.code};${getter.code}]"
 }
 
+class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value + 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value + 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return newValue
+    }
+
+    override val code get() = "PrefixIncrementGetter[${getter.code};${setter.code}]"
+}
+
+class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value + 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value + 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return oldValue
+    }
+
+    override val code get() = "SuffixIncrementGetter[${getter.code};${setter.code}]"
+}
+
+class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value - 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value - 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return newValue
+    }
+
+    override val code get() = "PrefixDecrementGetter[${getter.code};${setter.code}]"
+}
+
+class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val oldValue = getter.evaluate(env)
+        val newValue = when (oldValue) {
+            is FluoriteInt -> FluoriteInt(oldValue.value - 1)
+            is FluoriteDouble -> FluoriteDouble(oldValue.value - 1.0)
+            else -> throw IllegalArgumentException("Can not convert to number: ${oldValue::class}")
+        }
+        val setterFn = setter.evaluate(env)
+        setterFn.invoke(newValue)
+        return oldValue
+    }
+
+    override val code get() = "SuffixDecrementGetter[${getter.code};${setter.code}]"
+}
+
 class TryCatchWithVariableGetter(private val leftGetter: Getter, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
