@@ -1,4 +1,6 @@
 import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.CPointerVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
@@ -40,12 +42,6 @@ import platform.posix.fwrite
 import platform.posix.perror
 import platform.posix.pid_t
 import platform.posix.pipe
-import platform.posix.posix_spawn
-import platform.posix.posix_spawn_file_actions_addclose
-import platform.posix.posix_spawn_file_actions_adddup2
-import platform.posix.posix_spawn_file_actions_destroy
-import platform.posix.posix_spawn_file_actions_init
-import platform.posix.posix_spawn_file_actions_tVar
 import platform.posix.read
 import platform.posix.set_posix_errno
 import platform.posix.stdin
@@ -56,6 +52,7 @@ import platform.posix.usleep
 import platform.posix.waitpid
 import platform.posix.write
 import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.CName
 
 // EXEC関数の定数
 const val EXEC_MAX_BUFFER_SIZE = 4096
@@ -68,6 +65,35 @@ const val STDERR_WRITE_MAX_RETRIES = 100
 const val STDERR_WRITE_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
 const val IO_POLLING_SLEEP_MICROS = 10000u // 10ミリ秒
 const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
+
+// posix_spawn関連のC関数宣言
+// Kotlin/Nativeの標準ライブラリにはこれらの関数が含まれていないため、直接宣言する
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@CName("posix_spawn_file_actions_init")
+external fun posix_spawn_file_actions_init(file_actions: CPointer<*>?): Int
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@CName("posix_spawn_file_actions_destroy")
+external fun posix_spawn_file_actions_destroy(file_actions: CPointer<*>?): Int
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@CName("posix_spawn_file_actions_addclose")
+external fun posix_spawn_file_actions_addclose(file_actions: CPointer<*>?, fd: Int): Int
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@CName("posix_spawn_file_actions_adddup2")
+external fun posix_spawn_file_actions_adddup2(file_actions: CPointer<*>?, fd: Int, newfd: Int): Int
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+@CName("posix_spawn")
+external fun posix_spawn(
+    pid: CPointer<IntVar>?,
+    path: String?,
+    file_actions: CPointer<*>?,
+    attrp: CPointer<*>?,
+    argv: CPointer<CPointerVar<ByteVar>>?,
+    envp: CPointer<CPointerVar<ByteVar>>?
+): Int
 
 // POSIXマクロの実装（Kotlin/Nativeでは関数として提供されていない場合がある）
 // 注: これらのビットマスクはLinux固有の実装です。他のPOSIXシステムでは異なる可能性があります。
@@ -182,8 +208,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         }
         
         // posix_spawn用のfile actionsを設定
-        val fileActions = alloc<posix_spawn_file_actions_tVar>()
-        if (posix_spawn_file_actions_init(fileActions.ptr) != 0) {
+        // posix_spawn_file_actions_t構造体用のメモリを確保（通常80バイト程度だが、余裕を持って128バイト確保）
+        val fileActions = allocArray<ByteVar>(128)
+        val fileActionsPtr: CPointer<*> = fileActions
+        if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             close(stderrPipe[0])
@@ -193,27 +221,27 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
         
         try {
             // 子プロセス側で標準出力をパイプに接続
-            if (posix_spawn_file_actions_adddup2(fileActions.ptr, stdoutPipe[1], STDOUT_FILENO) != 0) {
+            if (posix_spawn_file_actions_adddup2(fileActionsPtr, stdoutPipe[1], STDOUT_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stdout".toFluoriteString())
             }
             // 子プロセス側で標準エラー出力をパイプに接続
-            if (posix_spawn_file_actions_adddup2(fileActions.ptr, stderrPipe[1], STDERR_FILENO) != 0) {
+            if (posix_spawn_file_actions_adddup2(fileActionsPtr, stderrPipe[1], STDERR_FILENO) != 0) {
                 throw FluoriteException("Failed to add dup2 for stderr".toFluoriteString())
             }
             
             // 子プロセス側でパイプの読み取り側を閉じる
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stdoutPipe[0]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[0]) != 0) {
                 throw FluoriteException("Failed to add close for stdout read end".toFluoriteString())
             }
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stderrPipe[0]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[0]) != 0) {
                 throw FluoriteException("Failed to add close for stderr read end".toFluoriteString())
             }
             
             // 子プロセス側でパイプの書き込み側を閉じる（dup2の後なので不要になる）
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stdoutPipe[1]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[1]) != 0) {
                 throw FluoriteException("Failed to add close for stdout write end".toFluoriteString())
             }
-            if (posix_spawn_file_actions_addclose(fileActions.ptr, stderrPipe[1]) != 0) {
+            if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[1]) != 0) {
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
             }
             
@@ -227,7 +255,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             
             // posix_spawnでプロセスを起動
             val pidVar = alloc<IntVar>()
-            val spawnResult = posix_spawn(pidVar.ptr, process, fileActions.ptr, null, argv, __environ)
+            val spawnResult = posix_spawn(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
             
             // 親プロセス側でパイプの書き込み側を閉じる
             close(stdoutPipe[1])
@@ -420,7 +448,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 }
             }
         } finally {
-            posix_spawn_file_actions_destroy(fileActions.ptr)
+            posix_spawn_file_actions_destroy(fileActionsPtr)
         }
     }
 }
