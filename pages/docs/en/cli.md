@@ -631,12 +631,12 @@ In `command`, specify the process and its arguments one element at a time.
 The return value is a stream that reads the standard output of that process line by line.
 
 ```shell
-$ xa --jvm 'EXEC("echo", "Hello, World!")'
+$ xa 'EXEC("echo", "Hello, World!")'
 # Hello, World!
 ```
 
 ```shell
-$ xa --jvm 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
+$ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 3
 # 13
 # 23
@@ -648,7 +648,7 @@ $ xa --jvm 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 If the called process exits with a non-zero exit code, an exception is thrown.
 
 ```shell
-$ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
+$ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 # ERROR
 ```
 
@@ -657,7 +657,7 @@ $ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 The standard error output of the called process is redirected to Xarpite's standard error output.
 
 ```shell
-$ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
+$ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 # ERROR
 ```
 
