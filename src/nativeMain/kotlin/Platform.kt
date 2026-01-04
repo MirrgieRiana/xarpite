@@ -25,12 +25,6 @@ import platform.posix.stderr
 import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
-// EXEC関数の定数（linuxX64Mainに移動）
-// linuxX64Mainで使用される定数はそちらで定義されています
-
-// POSIXマクロの実装（linuxX64Mainに移動）
-// linuxX64Mainで使用されるPOSIXマクロはそちらで定義されています
-
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
 
