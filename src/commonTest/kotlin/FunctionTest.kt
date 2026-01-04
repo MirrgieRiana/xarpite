@@ -99,6 +99,39 @@ class FunctionTest {
     }
 
     @Test
+    fun also() = runTest {
+        // ALSO は値をブロックに渡して、元の値を返す
+        assertEquals(10, eval("ALSO(10; x -> NULL)").int) // ブロックは実行されるが、元の値を返す
+
+        // ALSO を使って副作用を起こしつつ、値を返す
+        """
+            result := NULL
+            value := ALSO(123; x -> result = x + x)
+            [result; value]
+        """.let { assertEquals("[246;123]", eval(it).array()) }
+
+        // 連鎖した使用例
+        """
+            result1 := NULL
+            result2 := NULL
+            value := ALSO(ALSO(100; x -> result1 = x); y -> result2 = y)
+            [result1; result2; value]
+        """.let { assertEquals("[100;100;100]", eval(it).array()) }
+    }
+
+    @Test
+    fun let() = runTest {
+        // LET は値をブロックに渡して、ブロックの戻り値を返す
+        assertEquals(20, eval("LET(10; x -> x + x)").int) // ブロックの戻り値を返す
+
+        // LET を使って値を変換する
+        assertEquals(246, eval("LET(123; x -> x + x)").int)
+
+        // 連鎖した使用例
+        assertEquals(200, eval("LET(LET(10; x -> x + x); y -> y + y + y + y + y + y + y + y + y + y)").int)
+    }
+
+    @Test
     fun setCall() = runTest {
 
         // 代入呼び出しができる
