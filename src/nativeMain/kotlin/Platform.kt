@@ -205,29 +205,53 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             
             // 子プロセス側で標準出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stdoutPipe[1], STDOUT_FILENO) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add dup2 for stdout".toFluoriteString())
             }
             
             // 子プロセス側で標準エラー出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stderrPipe[1], STDERR_FILENO) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add dup2 for stderr".toFluoriteString())
             }
             
             // 子プロセス側で不要になったパイプの読み取り側を閉じる
             // これにより、子プロセスが親プロセスのパイプFDを継承しないようにする
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[0]) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stdout read end".toFluoriteString())
             }
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[0]) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stderr read end".toFluoriteString())
             }
             
             // 子プロセス側でパイプの書き込み側も閉じる
             // dup2でSTDOUT_FILENO/STDERR_FILENOにコピーした後は元のFDは不要
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[1]) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stdout write end".toFluoriteString())
             }
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stderrPipe[1]) != 0) {
+                close(stdoutPipe[0])
+                close(stdoutPipe[1])
+                close(stderrPipe[0])
+                close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
             }
             
@@ -246,16 +270,14 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             val pidVar = alloc<IntVar>()
             val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
             
-            // 親プロセス側でパイプの書き込み側を閉じる
-            // これにより、子プロセスが終了したときにEOFを正しく検出できる
-            close(stdoutPipe[1])
-            close(stderrPipe[1])
-            
             // posix_spawnp()のエラーチェック
             // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）
             if (spawnResult != 0) {
+                // posix_spawnp()失敗時はパイプをすべてクローズ
                 close(stdoutPipe[0])
+                close(stdoutPipe[1])
                 close(stderrPipe[0])
+                close(stderrPipe[1])
                 val errorMessage = when (spawnResult) {
                     ENOENT -> "Command not found: $process"
                     EACCES -> "Permission denied: $process"
@@ -266,6 +288,12 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 }
                 throw FluoriteException(errorMessage.toFluoriteString())
             }
+            
+            // 親プロセス側でパイプの書き込み側を閉じる
+            // これにより、子プロセスが終了したときにEOFを正しく検出できる
+            // posix_spawnp()成功後にのみクローズする
+            close(stdoutPipe[1])
+            close(stderrPipe[1])
             
             val pid = pidVar.value
             
