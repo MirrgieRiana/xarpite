@@ -51,12 +51,12 @@ import platform.posix.strerror
 import platform.posix.usleep
 import platform.posix.waitpid
 import platform.posix.write
-import platform.posix.spawn.posix_spawn
-import platform.posix.spawn.posix_spawn_file_actions_addclose
-import platform.posix.spawn.posix_spawn_file_actions_adddup2
-import platform.posix.spawn.posix_spawn_file_actions_destroy
-import platform.posix.spawn.posix_spawn_file_actions_init
-import platform.posix.spawn.posix_spawn_file_actions_tVar
+import spawn.posix_spawn
+import spawn.posix_spawn_file_actions_addclose
+import spawn.posix_spawn_file_actions_adddup2
+import spawn.posix_spawn_file_actions_destroy
+import spawn.posix_spawn_file_actions_init
+import spawn.posix_spawn_file_actions_tVar
 import kotlin.experimental.ExperimentalNativeApi
 
 // EXEC関数の定数

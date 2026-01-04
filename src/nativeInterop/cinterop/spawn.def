@@ -1,3 +1,2 @@
 headers = spawn.h
-headerFilter = spawn.h
-package = platform.posix.spawn
+linkerOpts = -lpthread
