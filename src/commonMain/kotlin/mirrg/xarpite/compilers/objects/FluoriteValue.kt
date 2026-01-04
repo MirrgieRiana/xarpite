@@ -89,5 +89,6 @@ suspend fun FluoriteValue.getLength() = this.callMethod(OperatorMethod.GET_LENGT
 suspend fun FluoriteValue.contains(value: FluoriteValue) = this.callMethod(OperatorMethod.CONTAINS.methodName, arrayOf(value)).toFluoriteBoolean()
 suspend fun FluoriteValue.match(value: FluoriteValue) = this.callMethod(OperatorMethod.MATCH.methodName, arrayOf(value))
 suspend fun FluoriteValue.plus(value: FluoriteValue) = this.callMethod(OperatorMethod.PLUS.methodName, arrayOf(value))
+suspend fun FluoriteValue.minus(value: FluoriteValue) = this.callMethod(OperatorMethod.MINUS.methodName, arrayOf(value))
 suspend fun FluoriteValue.compareTo(value: FluoriteValue) = this.callMethod(OperatorMethod.COMPARE.methodName, arrayOf(value)) as FluoriteInt
 suspend fun FluoriteValue.fluoriteEquals(value: FluoriteValue) = this == value
