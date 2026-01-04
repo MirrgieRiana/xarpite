@@ -34,6 +34,13 @@ kotlin {
         binaries {
             executable("xarpite")
         }
+        compilations.getByName("main") {
+            cinterops {
+                val spawn by creating {
+                    defFile(project.file("src/nativeInterop/cinterop/spawn.def"))
+                }
+            }
+        }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
     //mingwX64 {
