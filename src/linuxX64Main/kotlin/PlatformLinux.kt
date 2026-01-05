@@ -10,7 +10,7 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.sizeOf
+import kotlinx.cinterop.set
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
@@ -41,8 +41,12 @@ import platform.posix.errno
 import platform.posix.fcntl
 import platform.posix.kill
 import platform.posix.perror
+import platform.posix.POLLIN
 import platform.posix.pid_t
+import platform.posix.pid_tVar
 import platform.posix.pipe
+import platform.posix.poll
+import platform.posix.pollfd
 import platform.posix.read
 import platform.posix.strerror
 import platform.posix.usleep
@@ -66,6 +70,16 @@ private fun WIFSIGNALED(status: Int): Boolean {
     return termsig != 0 && termsig != 0x7f
 }
 private fun WTERMSIG(status: Int): Int = (status and 0x7f)
+
+// CPointer<ByteVar>からByteArrayを作成するヘルパー関数
+@OptIn(ExperimentalForeignApi::class)
+private fun CPointer<ByteVar>.copyToByteArray(size: Int): ByteArray {
+    val result = ByteArray(size)
+    for (i in 0 until size) {
+        result[i] = this[i]
+    }
+    return result
+}
 
 /**
  * パイプを非ブロッキングモードに設定するヘルパー関数
@@ -104,12 +118,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
         }
         
-        // posix_spawn_file_actions_tは不透明な型（opaque type）として扱う
-        // sizeOf演算子を使用してシステム依存のサイズを動的に取得し、
-        // 適切な型にキャストする。この方法により、システムアップデートで
-        // 構造体サイズが変更されてもメモリ破壊を防ぐことができる
-        @Suppress("UNCHECKED_CAST")
-        val fileActionsPtr = allocArray<ByteVar>(sizeOf<posix_spawn_file_actions_t>().toInt()) as CPointer<posix_spawn_file_actions_t>
+        // posix_spawn_file_actions_tのメモリを適切なアラインメントで確保
+        // alloc<>を使用することで、型に応じた適切なサイズとアラインメントでメモリが確保される
+        // ByteVar配列でのメモリ確保とキャストは、アラインメント要件を満たさない可能性がある
+        val fileActionsPtr = alloc<posix_spawn_file_actions_t>().ptr
         
         // posix_spawn_file_actionsを初期化
         if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
@@ -189,25 +201,22 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             // posix_spawnpはPATH環境変数を検索してプログラムを見つける（execvpと同等）
             // fork()とは異なり、posix_spawnp()はスレッドセーフであるため、
             // マルチスレッド環境でも安全に使用できる
-            val pidVar = alloc<IntVar>()
+            // pid_tは環境依存の整数型のため、pid_tVarを使用する
+            val pidVar = alloc<pid_tVar>()
             val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
             
             // posix_spawnp()のエラーチェック
             // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）
+            // glibcでは子側のexec失敗時は親に0を返し、終了コード127になる実装のため、
+            // spawnResultからENOENT/EACCESを断定できない
             if (spawnResult != 0) {
                 // posix_spawnp()失敗時はパイプをすべてクローズ
                 close(stdoutPipe[0])
                 close(stdoutPipe[1])
                 close(stderrPipe[0])
                 close(stderrPipe[1])
-                val errorMessage = when (spawnResult) {
-                    ENOENT -> "Command not found: $process"
-                    EACCES -> "Permission denied: $process"
-                    else -> {
-                        val msg = strerror(spawnResult)?.toKString()
-                        "Failed to spawn process: $process${if (msg.isNullOrBlank()) "" else " ($msg)"}"
-                    }
-                }
+                val msg = strerror(spawnResult)?.toKString()
+                val errorMessage = "Failed to spawn process: $process (error code: $spawnResult${if (msg.isNullOrBlank()) "" else ", $msg"})"
                 throw FluoriteException(errorMessage.toFluoriteString())
             }
             
@@ -241,11 +250,12 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             }
             
             try {
-                // 標準出力を読み取る
-                val outputBytes = mutableListOf<Byte>()
+                // 標準出力を読み取る（ByteArray chunk化で効率化）
+                val outputChunks = mutableListOf<ByteArray>()
                 val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
                 
-                // 標準エラー出力を読み取る
+                // 標準エラー出力を読み取る（バッファリングでデッドロック回避）
+                val stderrChunks = mutableListOf<ByteArray>()
                 val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
                 
                 // 両方のパイプから非ブロッキングで読み取る
@@ -262,10 +272,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         when {
                             bytesRead > 0 -> {
                                 dataRead = true
-                                // バッファからバイトを収集
-                                for (i in 0 until bytesRead.toInt()) {
-                                    outputBytes.add(stdoutBuffer[i])
-                                }
+                                // ByteArrayの塊として取り込む（1バイトずつList追加するよりも効率的）
+                                outputChunks.add(stdoutBuffer.copyToByteArray(bytesRead.toInt()))
                             }
                             bytesRead == 0L -> stdoutClosed = true  // EOF
                             bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
@@ -289,41 +297,10 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         when {
                             bytesRead > 0 -> {
                                 dataRead = true
-                                // stderrに書き込む（部分書き込みとEINTRを考慮）
-                                var totalWritten = 0
-                                var writeRetryCount = 0
-                                while (totalWritten < bytesRead.toInt()) {
-                                    val remaining = (bytesRead.toInt() - totalWritten).toULong()
-                                    // ポインター演算でstderrバッファの適切な位置を取得
-                                    val ptr = stderrBuffer + totalWritten
-                                    val written = write(STDERR_FILENO, ptr, remaining)
-                                    when {
-                                        written > 0 -> {
-                                            totalWritten += written.toInt()
-                                            writeRetryCount = 0  // リセット
-                                        }
-                                        written == -1L && errno == EINTR -> {
-                                            // シグナルによる一時的な中断は再試行
-                                            continue
-                                        }
-                                        written == 0L -> {
-                                            // 進捗なし: ビジーウェイトを避けるためスリープ
-                                            writeRetryCount++
-                                            if (writeRetryCount >= STDERR_WRITE_MAX_RETRIES) {
-                                                // 無限ループ防止: 諦める
-                                                perror("stderr write: too many retries with no progress")
-                                                break
-                                            }
-                                            usleep(STDERR_WRITE_RETRY_SLEEP_MICROS)
-                                        }
-                                        else -> {
-                                            // それ以外のエラーの場合は、このチャンクの転送を諦める
-                                            val errMsg = strerror(errno)?.toKString() ?: "unknown"
-                                            perror("stderr write failed: $errMsg (errno=$errno)")
-                                            break
-                                        }
-                                    }
-                                }
+                                // stderrはバッファに溜める（デッドロック回避のため即時転送しない）
+                                // 親のSTDERR_FILENOがパイプ等にリダイレクトされて読み手が詰まると
+                                // write()がブロックし、デッドロックが成立する可能性がある
+                                stderrChunks.add(stderrBuffer.copyToByteArray(bytesRead.toInt()))
                             }
                             bytesRead == 0L -> stderrClosed = true  // EOF
                             bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
@@ -339,9 +316,25 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         }
                     }
                     
-                    // 両方のパイプにデータがない場合、短時間スリープしてCPU使用率を抑える
+                    // 両方のパイプにデータがない場合、poll()で読み取り可能待ち
+                    // usleepによるポーリングよりもCPUとレイテンシの両面で有利
                     if (!dataRead && (!stdoutClosed || !stderrClosed)) {
-                        usleep(IO_POLLING_SLEEP_MICROS)
+                        memScoped {
+                            val fds = allocArray<pollfd>(2)
+                            var nfds = 0
+                            if (!stdoutClosed) {
+                                fds[nfds].fd = stdoutPipe[0]
+                                fds[nfds].events = POLLIN.toShort()
+                                nfds++
+                            }
+                            if (!stderrClosed) {
+                                fds[nfds].fd = stderrPipe[0]
+                                fds[nfds].events = POLLIN.toShort()
+                                nfds++
+                            }
+                            // タイムアウト100msで待機（EINTRは自動的に継続）
+                            poll(fds, nfds.toULong(), 100)
+                        }
                     }
                 }
                 
@@ -371,7 +364,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 when {
                     WIFEXITED(status) -> {
                         val exitCode = WEXITSTATUS(status)
-                        if (exitCode != 0) {
+                        if (exitCode == 127) {
+                            // 終了コード127は子プロセスのexec失敗の可能性を示す
+                            // （ただし127を正規終了コードとして使うプログラムと区別不能）
+                            throw FluoriteException("Process may have failed to execute (exit code 127 - possible exec failure): $process".toFluoriteString())
+                        } else if (exitCode != 0) {
                             throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
                         }
                     }
@@ -384,8 +381,35 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                     }
                 }
                 
-                // バイト配列を文字列に変換
-                outputBytes.toByteArray().decodeToString()
+                // 子プロセスが正常終了した後、バッファリングしたstderrを出力
+                // デッドロック回避のため、子プロセス終了後にまとめて出力する
+                if (stderrChunks.isNotEmpty()) {
+                    val stderrBytes = stderrChunks.fold(ByteArray(0)) { acc, chunk -> acc + chunk }
+                    if (stderrBytes.isNotEmpty()) {
+                        // 部分書き込みとEINTRを考慮してSTDERR_FILENOに書き込む
+                        var totalWritten = 0
+                        while (totalWritten < stderrBytes.size) {
+                            val remaining = stderrBytes.size - totalWritten
+                            // 残りのバイトをCPointerに変換してwrite
+                            memScoped {
+                                val tempBuffer = allocArray<ByteVar>(remaining)
+                                // ByteArrayの内容を1バイトずつコピー
+                                for (i in 0 until remaining) {
+                                    tempBuffer[i] = stderrBytes[totalWritten + i]
+                                }
+                                val written = write(STDERR_FILENO, tempBuffer, remaining.toULong())
+                                when {
+                                    written > 0 -> totalWritten += written.toInt()
+                                    written == -1L && errno == EINTR -> continue  // シグナル中断は再試行
+                                    else -> break  // その他のエラーは諦める（デバッグ情報のため）
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // ByteArrayのchunkを連結して文字列に変換
+                outputChunks.fold(ByteArray(0)) { acc, chunk -> acc + chunk }.decodeToString()
             } finally {
                 // close()が失敗してもtryブロックの例外をマスクしないようにする
                 try {
