@@ -10,6 +10,7 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
+import kotlinx.cinterop.refTo
 import kotlinx.cinterop.set
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
@@ -396,33 +397,32 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 
                 // 子プロセスが正常終了した後、バッファリングしたstderrを出力
                 // デッドロック回避のため、子プロセス終了後にまとめて出力する
-                if (stderrChunks.isNotEmpty()) {
-                    val stderrBytes = stderrChunks.fold(ByteArray(0)) { acc, chunk -> acc + chunk }
-                    if (stderrBytes.isNotEmpty()) {
+                // chunk単位で出力することでO(n^2)の全量連結とtempBufferコピーを回避
+                for (chunk in stderrChunks) {
+                    if (chunk.isNotEmpty()) {
                         // 部分書き込みとEINTRを考慮してSTDERR_FILENOに書き込む
                         var totalWritten = 0
-                        while (totalWritten < stderrBytes.size) {
-                            val remaining = stderrBytes.size - totalWritten
-                            // 残りのバイトをCPointerに変換してwrite
-                            memScoped {
-                                val tempBuffer = allocArray<ByteVar>(remaining)
-                                // ByteArrayの内容を1バイトずつコピー
-                                for (i in 0 until remaining) {
-                                    tempBuffer[i] = stderrBytes[totalWritten + i]
-                                }
-                                val written = write(STDERR_FILENO, tempBuffer, remaining.toULong())
-                                when {
-                                    written > 0 -> totalWritten += written.toInt()
-                                    written == -1L && errno == EINTR -> continue  // シグナル中断は再試行
-                                    else -> break  // その他のエラーは諦める（デバッグ情報のため）
-                                }
+                        while (totalWritten < chunk.size) {
+                            val written = write(STDERR_FILENO, chunk.refTo(totalWritten), (chunk.size - totalWritten).toULong())
+                            when {
+                                written > 0 -> totalWritten += written.toInt()
+                                written == -1L && errno == EINTR -> continue  // シグナル中断は再試行
+                                else -> break  // その他のエラーは諦める（デバッグ情報のため）
                             }
                         }
                     }
                 }
                 
                 // ByteArrayのchunkを連結して文字列に変換
-                outputChunks.fold(ByteArray(0)) { acc, chunk -> acc + chunk }.decodeToString()
+                // 事前に総サイズを算出して1回だけByteArrayを確保し、copyIntoで詰めることでO(n^2)を回避
+                val outputSize = outputChunks.sumOf { it.size }
+                val outputBytes = ByteArray(outputSize)
+                var outputOffset = 0
+                for (chunk in outputChunks) {
+                    chunk.copyInto(outputBytes, outputOffset)
+                    outputOffset += chunk.size
+                }
+                outputBytes.decodeToString()
             } finally {
                 // close()が失敗してもtryブロックの例外をマスクしないようにする
                 try {
