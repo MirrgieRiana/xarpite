@@ -571,7 +571,7 @@ class CliTest {
     fun execWithBackslashInArgument() = runTest {
         try {
             // バックスラッシュを含む引数
-            val result = cliEval("""EXEC("bash", "-c", "printf 'a\\\\b'")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf '%s' 'a\\b'")""")
             val output = result.toFluoriteString().value
             assertTrue(output.contains("a"))
         } catch (e: WorkInProgressError) {
@@ -586,7 +586,8 @@ class CliTest {
             coroutineScope {
                 val jobs = (1..16).map { i ->
                     async {
-                        cliEval("""EXEC("bash", "-c", "printf 'test${i}'")""")
+                        val command = "printf 'test$i'"
+                        cliEval("""EXEC("bash", "-c", "$command")""")
                     }
                 }
                 val results = jobs.map { it.await() }
