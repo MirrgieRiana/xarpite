@@ -523,7 +523,7 @@ class CliTest {
         try {
             // 長い引数
             val longString = "a".repeat(500)
-            val result = cliEval("""EXEC("bash", "-c", "printf \"%s\" \"$longString\"")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf '%s' '$longString'")""")
             val output = result.toFluoriteString().value
             assertEquals(longString, output)
         } catch (e: WorkInProgressError) {
@@ -586,7 +586,7 @@ class CliTest {
             coroutineScope {
                 val jobs = (1..16).map { i ->
                     async {
-                        cliEval("""EXEC("bash", "-c", "printf \"test$i\"")""")
+                        cliEval("""EXEC("bash", "-c", "printf 'test$i'")""")
                     }
                 }
                 val results = jobs.map { it.await() }
