@@ -586,8 +586,7 @@ class CliTest {
             coroutineScope {
                 val jobs = (1..16).map { i ->
                     async {
-                        val command = "printf 'test$i'"
-                        cliEval("""EXEC("bash", "-c", "$command")""")
+                        cliEval("""EXEC("bash", "-c", "printf '%s' \"test$i\"")""")
                     }
                 }
                 val results = jobs.map { it.await() }
