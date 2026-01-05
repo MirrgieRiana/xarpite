@@ -493,7 +493,7 @@ class CliTest {
     fun execWithEnvironmentVariables() = runTest {
         try {
             // 環境変数PATHは常に設定されている
-            val result = cliEval($$"""EXEC("bash", "-c", "test -n "$PATH" && printf ok")""")
+            val result = cliEval($$"""EXEC("bash", "-c", %>test -n "$PATH" && printf ok<%)""")
             val output = result.toFluoriteString().value
             assertEquals("ok", output)
         } catch (e: WorkInProgressError) {
