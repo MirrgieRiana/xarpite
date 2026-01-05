@@ -571,7 +571,7 @@ class CliTest {
     fun execWithBackslashInArgument() = runTest {
         try {
             // バックスラッシュを含む引数
-            val result = cliEval("""EXEC("bash", "-c", "printf 'a\\b'")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf 'a\\\\b'")""")
             val output = result.toFluoriteString().value
             assertTrue(output.contains("a"))
         } catch (e: WorkInProgressError) {
