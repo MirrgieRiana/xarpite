@@ -388,7 +388,7 @@ class CliTest {
     @Test
     fun execWithMultipleArguments() = runTest {
         try {
-            val result = cliEval("""EXEC("echo", "hello", "world", "test")""")
+            val result = cliEval("""EXEC("bash", "-c", "echo hello world test")""")
             val output = result.toFluoriteString().value.trim()
             assertEquals("hello world test", output)
         } catch (e: WorkInProgressError) {
@@ -411,7 +411,7 @@ class CliTest {
     fun execWithSpecialCharactersInArguments() = runTest {
         try {
             // 特殊文字を含む引数（シングルクォート、セミコロンなど）
-            val result = cliEval("""EXEC("printf", "%s %s", "hello;world", "test|pipe")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf '%s %s' 'hello;world' 'test|pipe'")""")
             val output = result.toFluoriteString().value
             assertEquals("hello;world test|pipe", output)
         } catch (e: WorkInProgressError) {
@@ -425,7 +425,7 @@ class CliTest {
             // 存在しないコマンドは例外をスロー
             var exceptionThrown = false
             try {
-                cliEval("""EXEC("nonexistent_command_xyz_12345")""")
+                cliEval("""EXEC("bash", "-c", "nonexistent_command_xyz_12345")""")
             } catch (e: Exception) {
                 // FluoriteExceptionまたはその他の例外が期待される
                 exceptionThrown = true
@@ -439,7 +439,7 @@ class CliTest {
     @Test
     fun execWithNoTrailingNewline() = runTest {
         try {
-            val result = cliEval("""EXEC("printf", "test")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf 'test'")""")
             val output = result.toFluoriteString().value
             // printfは末尾に改行を追加しない
             assertEquals("test", output)
@@ -523,7 +523,7 @@ class CliTest {
         try {
             // 長い引数
             val longString = "a".repeat(500)
-            val result = cliEval("""EXEC("printf", "$longString")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf '%s' '$longString'")""")
             val output = result.toFluoriteString().value
             assertEquals(longString, output)
         } catch (e: WorkInProgressError) {
@@ -535,7 +535,7 @@ class CliTest {
     fun execWithUnicodeCharacters() = runTest {
         try {
             // Unicode文字を含む引数
-            val result = cliEval("""EXEC("printf", "こんにちは世界")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf 'こんにちは世界'")""")
             val output = result.toFluoriteString().value
             assertEquals("こんにちは世界", output)
         } catch (e: WorkInProgressError) {
@@ -571,7 +571,7 @@ class CliTest {
     fun execWithBackslashInArgument() = runTest {
         try {
             // バックスラッシュを含む引数
-            val result = cliEval("""EXEC("printf", "a\\b")""")
+            val result = cliEval("""EXEC("bash", "-c", "printf '%s' 'a\\b'")""")
             val output = result.toFluoriteString().value
             assertTrue(output.contains("a"))
         } catch (e: WorkInProgressError) {
@@ -586,7 +586,7 @@ class CliTest {
             coroutineScope {
                 val jobs = (1..16).map { i ->
                     async {
-                        cliEval("""EXEC("printf", "test$i")""")
+                        cliEval("""EXEC("bash", "-c", "printf 'test$i'")""")
                     }
                 }
                 val results = jobs.map { it.await() }
