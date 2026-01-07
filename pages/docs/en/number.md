@@ -267,3 +267,18 @@ The subtraction operator subtracts two values.
 $ xa '3 - 1'
 # 2
 ```
+
+### Overriding Subtraction Operation
+
+You can customize the subtraction operation of an object by implementing the subtraction method `_-_`.
+
+```shell
+$ xa '
+  Obj := {
+    `_-_`: this, other -> this.value - other.value
+  }
+
+  Obj{value: 100} - Obj{value: 23}
+'
+# 77
+```
