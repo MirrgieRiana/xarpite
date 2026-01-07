@@ -109,7 +109,7 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         val defaultBuiltinMounts = listOf(
-            createCommonMounts(this, daemonScope) {},
+            createCommonMounts(this, daemonScope, {}, {}),
             createCliMounts(args.toList()),
         ).flatten()
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
