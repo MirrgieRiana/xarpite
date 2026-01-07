@@ -634,32 +634,20 @@ class CliTest {
 
     @Test
     fun errb() = runTest {
-        val errOutput = mutableListOf<ByteArray>()
-        
-        // writeBytesToStderrをモックする
-        var originalWriteBytesToStderr: (suspend (ByteArray) -> Unit)? = null
+        val evaluator = Evaluator()
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            // テスト用のwriteBytesToStderr実装を設定
-            val evaluator = Evaluator()
-            val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-            try {
-                val defaultBuiltinMounts = listOf(
-                    createCommonMounts(this, daemonScope, {}, {}),
-                    // ERRB は CliMounts で定義されているので、実際の writeBytesToStderr が呼ばれる
-                    // テストでは writeBytesToStderr の動作を検証する代わりに、
-                    // ERRB が正しく NULL を返すことだけを確認する
-                    createCliMounts(emptyList()),
-                ).flatten()
-                evaluator.defineMounts(defaultBuiltinMounts)
-                
-                // ERRB がNULLを返すことを確認
-                val result = evaluator.get("ERRB(BLOB.of([65, 66, 67]))")
-                assertEquals("NULL", result.toFluoriteString().value)
-            } finally {
-                daemonScope.cancel()
-            }
+            val defaultBuiltinMounts = listOf(
+                createCommonMounts(this, daemonScope, {}, {}),
+                createCliMounts(emptyList()),
+            ).flatten()
+            evaluator.defineMounts(defaultBuiltinMounts)
+            
+            // ERRB がNULLを返すことを確認
+            val result = evaluator.get("ERRB(BLOB.of([65, 66, 67]))")
+            assertEquals("NULL", result.toFluoriteString().value)
         } finally {
-            // クリーンアップ（必要に応じて）
+            daemonScope.cancel()
         }
     }
 
