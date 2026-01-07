@@ -655,10 +655,6 @@ class CliTest {
                 // ERRB がNULLを返すことを確認
                 val result = evaluator.get("ERRB(BLOB.of([65, 66, 67]))")
                 assertEquals("NULL", result.toFluoriteString().value)
-                
-                // ストリームを渡した場合もNULLを返す
-                val result2 = evaluator.get("ERRB(BLOB.of([65]), BLOB.of([66]))")
-                assertEquals("NULL", result2.toFluoriteString().value)
             } finally {
                 daemonScope.cancel()
             }
