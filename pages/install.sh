@@ -54,7 +54,6 @@ echo "Downloading from: $url"
 
 [ -e "$install_dir" ] && error "Error: Already exists: $install_dir"
 mkdir -p "$install_dir"
-install_dir="$(cd "$install_dir" && pwd)"
 curl -L -o - "$url" | tar -xzf - -C "$install_dir"
 echo "Successfully downloaded and extracted to: $install_dir"
 
@@ -72,7 +71,7 @@ link() {
   local destination="$bin_dir/$name"
   echo "Updating $destination"
   rm -f "$destination"
-  ln -s "$install_dir/$name" "$destination"
+  ln -s "$(cd "$install_dir" && pwd)/$name" "$destination"
 }
 
 link xarpite
