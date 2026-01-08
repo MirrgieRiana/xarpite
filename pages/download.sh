@@ -46,6 +46,6 @@ url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/
 echo "Downloading from: $url"
 
 [ -e "$install_dir" ] && error "Error: Already exists: $install_dir"
-mkdir "$install_dir"
+mkdir -p "$install_dir"
 curl -L -o - "$url" | tar -xzf - -C "$install_dir"
 echo "Successfully downloaded and extracted to: $install_dir"
