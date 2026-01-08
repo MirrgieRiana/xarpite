@@ -40,12 +40,12 @@ echo
 # Download and extract
 
 file="xarpite-bin-$version-all.tar.gz"
-dir="xarpite"
+install_dir="xarpite"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-[ -e "$dir" ] && error "Error: Already exists: $dir"
-mkdir "$dir"
-curl -L -o - "$url" | tar -xzf - -C "$dir"
-echo "Successfully downloaded and extracted to: $dir"
+[ -e "$install_dir" ] && error "Error: Already exists: $install_dir"
+mkdir "$install_dir"
+curl -L -o - "$url" | tar -xzf - -C "$install_dir"
+echo "Successfully downloaded and extracted to: $install_dir"
