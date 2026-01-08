@@ -11,6 +11,9 @@ check() {
   command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
 }
 check curl
+check tar
+check perl
+check sort
 
 
 # Determine the downloading version
