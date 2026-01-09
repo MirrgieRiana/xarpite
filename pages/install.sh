@@ -64,14 +64,11 @@ echo
 
 echo "Preparing bin directory: $bin_dir"
 mkdir -p "$bin_dir"
-bin_dir="$(cd "$bin_dir" && pwd)"
 
 link() {
-  local name="$1"
-  local destination="$bin_dir/$name"
-  echo "Updating $destination"
-  rm -f "$destination"
-  ln -s "$(cd "$install_dir" && pwd)/$name" "$destination"
+  echo "Updating $bin_dir/$1"
+  rm -f "$bin_dir/$1"
+  ln -s "$(cd "$install_dir" && pwd)/$1" "$bin_dir/$1"
 }
 
 link xarpite
