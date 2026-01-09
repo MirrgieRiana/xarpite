@@ -40,7 +40,7 @@ Hello, World!
 以下のコマンドでXarpiteを任意のディレクトリに展開し、任意のディレクトリに実行ファイルへのリンクを作成します。
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- <install_dir> <bin_dir>
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s <install_dir> <bin_dir>
 ```
 
 ---
@@ -48,7 +48,7 @@ curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- <install_
 以下のコマンドはユーザー環境にインストールする例です。
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- ~/.local/share/xarpite ~/.local/bin
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s ~/.local/share/xarpite ~/.local/bin
 ```
 
 ---
@@ -56,5 +56,5 @@ curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- ~/.local/
 以下のコマンドはシステム全体にインストールする例です。
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s -- /usr/local/lib/xarpite /usr/local/bin
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s /usr/local/lib/xarpite /usr/local/bin
 ```

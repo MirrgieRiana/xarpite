@@ -78,7 +78,7 @@ Hello, World!
 Run the following command to install Xarpite into any directory and create links to the executables in any directory.
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- <install_dir> <bin_dir>
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s <install_dir> <bin_dir>
 ```
 
 ---
@@ -86,7 +86,7 @@ curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- <install_
 The following command installs it for a single user.
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- ~/.local/share/xarpite ~/.local/bin
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s ~/.local/share/xarpite ~/.local/bin
 ```
 
 ---
@@ -94,7 +94,7 @@ curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- ~/.local/
 The following command installs it system-wide.
 
 ```sh
-curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s -- /usr/local/lib/xarpite /usr/local/bin
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s /usr/local/lib/xarpite /usr/local/bin
 ```
 
 # DOCUMENTATION
