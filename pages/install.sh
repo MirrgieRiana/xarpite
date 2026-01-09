@@ -15,6 +15,14 @@ check tar
 check perl
 check sort
 
+if [ "$#" -ne 2 ]
+then
+  error "Usage: $0 <install_dir> <bin_dir>"
+fi
+
+install_dir="$1"
+bin_dir="$2"
+
 
 # Determine the downloading version
 
@@ -40,7 +48,6 @@ echo
 # Download and extract
 
 file="xarpite-bin-$version-all.tar.gz"
-install_dir="xarpite"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
@@ -49,3 +56,23 @@ echo "Downloading from: $url"
 mkdir -p "$install_dir"
 curl -L -o - "$url" | tar -xzf - -C "$install_dir"
 echo "Successfully downloaded and extracted to: $install_dir"
+
+echo
+
+
+# Install bin links
+
+echo "Preparing bin directory: $bin_dir"
+mkdir -p "$bin_dir"
+
+link() {
+  echo "Updating $bin_dir/$1"
+  rm -f "$bin_dir/$1"
+  ln -s "$(cd "$install_dir" && pwd)/$1" "$bin_dir/$1"
+}
+
+link xarpite
+link xa
+link xarpite-update
+
+echo "OK"
