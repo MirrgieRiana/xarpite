@@ -56,48 +56,45 @@ An online playground is available for running Xarpite and trying examples intera
 
 [Xarpite Playground](https://mirrgieriana.github.io/xarpite/playground/)
 
-# INSTALL
-
-## Install in a Linux environment
-
-Download the Xarpite release into `./xarpite` and install it in `/usr/local/bin/xarpite`, `/usr/local/bin/xa` and `/usr/local/bin/xarpite-update`.
-
-Using the native binary by default:
-
-```shell
-curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-native.sh | sudo bash
-```
-
-or
-
-Using the JVM version by default:
-
-```shell
-curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-jvm.sh | sudo bash
-```
-
-or
-
-Using the Node.js version by default:
-
-```shell
-curl -s https://raw.githubusercontent.com/MirrgieRiana/xarpite/release/install-node.sh | sudo bash
-```
+# INSTALLATION
 
 ## Download into the current directory
 
-Download the Xarpite release into `./xarpite`.
+Run the following command to download Xarpite into `./xarpite/` in the current directory.
 
-```shell
+```sh
 curl -s https://mirrgieriana.github.io/xarpite/download.sh | bash
 ```
 
-This is useful if you want to place Xarpite in the current directory without installing commands into `/usr/local/bin`.
+Verify the downloaded Xarpite with the following command:
 
-You can verify the installation by running:
+```sh
+$ ./xarpite/xarpite -e ' "Hello, World!" '
+Hello, World!
+```
 
-```shell
-./xarpite/xarpite -e '1 .. 9 | [1 .. _]'
+## Install into your environment
+
+Run the following command to install Xarpite into any directory and create links to the executables in any directory.
+
+```sh
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- <install_dir> <bin_dir>
+```
+
+---
+
+The following command installs it for a single user.
+
+```sh
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | bash -s -- ~/.local/share/xarpite ~/.local/bin
+```
+
+---
+
+The following command installs it system-wide.
+
+```sh
+curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s -- /usr/local/lib/xarpite /usr/local/bin
 ```
 
 # DOCUMENTATION
