@@ -15,8 +15,9 @@ check tar
 check perl
 check sort
 check rsync
+check readlink
 
-cd "$(dirname "$0")"
+cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
 
 # Determine the downloading version
