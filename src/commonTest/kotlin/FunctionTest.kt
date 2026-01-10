@@ -100,30 +100,23 @@ class FunctionTest {
 
     @Test
     fun extensionLet() = runTest {
-        // LET拡張関数を定義
-        val letDef = "`::LET` := (VALUE): this, block -> block(this)"
-        
         // LET は値をブロックに渡して、ブロックの戻り値を返す
-        assertEquals(20, eval("$letDef; 10::LET(x -> x + x)").int)
+        assertEquals(20, eval("10::LET(x -> x + x)").int)
 
         // LET を使って値を変換する
-        assertEquals(246, eval("$letDef; 123::LET(x -> x + x)").int)
+        assertEquals(246, eval("123::LET(x -> x + x)").int)
 
         // 連鎖した使用例
-        assertEquals(200, eval("$letDef; 10::LET(x -> x + x)::LET(y -> y + y + y + y + y + y + y + y + y + y)").int)
+        assertEquals(200, eval("10::LET(x -> x + x)::LET(y -> y + y + y + y + y + y + y + y + y + y)").int)
     }
 
     @Test
     fun extensionAlso() = runTest {
-        // ALSO拡張関数を定義
-        val alsoDef = "`::ALSO` := (VALUE): this, block -> (block(this); this)"
-        
         // ALSO は値をブロックに渡して、元の値を返す
-        assertEquals(10, eval("$alsoDef; 10::ALSO(x -> NULL)").int)
+        assertEquals(10, eval("10::ALSO(x -> NULL)").int)
 
         // ALSO を使って副作用を起こしつつ、値を返す
         """
-            $alsoDef
             result := NULL
             value := 123::ALSO(x -> result = x + x)
             [result; value]
@@ -131,7 +124,6 @@ class FunctionTest {
 
         // 連鎖した使用例
         """
-            $alsoDef
             result1 := NULL
             result2 := NULL
             value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)

@@ -18,7 +18,7 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
-    return mapOf(
+    val baseFunctions = mapOf(
         "NULL" to FluoriteNull,
         "N" to FluoriteNull,
         "TRUE" to FluoriteBoolean.TRUE,
@@ -94,5 +94,41 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
             FluoriteNull
         },
-    ).let { listOf(it) }
+    )
+    
+    val extensionFunctions = mapOf(
+        "`::LET`" to FluoriteArray(
+            mutableListOf(
+                FluoriteArray(
+                    mutableListOf(
+                        FluoriteValue.fluoriteClass,
+                        FluoriteFunction { arguments ->
+                            if (arguments.size != 2) usage("VALUE::LET(block: VALUE -> VALUE): VALUE")
+                            val thisValue = arguments[0]
+                            val block = arguments[1]
+                            block.invoke(arrayOf(thisValue))
+                        }
+                    )
+                )
+            )
+        ),
+        "`::ALSO`" to FluoriteArray(
+            mutableListOf(
+                FluoriteArray(
+                    mutableListOf(
+                        FluoriteValue.fluoriteClass,
+                        FluoriteFunction { arguments ->
+                            if (arguments.size != 2) usage("VALUE::ALSO(block: VALUE -> VALUE): VALUE")
+                            val thisValue = arguments[0]
+                            val block = arguments[1]
+                            block.invoke(arrayOf(thisValue))
+                            thisValue
+                        }
+                    )
+                )
+            )
+        ),
+    )
+    
+    return listOf(baseFunctions, extensionFunctions)
 }
