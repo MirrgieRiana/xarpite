@@ -42,15 +42,6 @@ title: "組み込みオブジェクトのクラス定数"
 
 ---
 
-数学系の組み込み定数です。
-
-| 定数        | 意味    |
-|-----------|-------|
-| `MATH.PI` | 円周率   |
-| `MATH.E`  | ネイピア数 |
-
----
-
 文字列系の組み込み定数です。
 
 | 定数     | 意味  |
@@ -60,133 +51,6 @@ title: "組み込みオブジェクトのクラス定数"
 | `AMP`  | `&` |
 | `APOS` | `'` |
 | `QUOT` | `"` |
-
-# 数学系関数
-
-## `ABS` 絶対値の取得
-
-`ABS(value: NUMBER): NUMBER`
-
-第1引数の絶対値を返します。
-
-```shell
-$ xa 'ABS(-10)'
-# 10
-```
-
-## `FLOOR` 小数点以下切り捨て
-
-`FLOOR(number: NUMBER): INTEGER`
-
-第1引数の数値を、値が小さい方の整数に丸めます。
-
-```shell
-$ xa 'FLOOR(1.5)'
-# 1
-```
-
-## `DIV` 除算の整数部
-
-`DIV(x: NUMBER; y: NUMBER): NUMBER`
-
-`x` を `y` で割り、その結果の整数部分を返します。
-
-```shell
-$ xa 'DIV(10; 3)'
-# 3
-```
-
-## `SQRT` 平方根の取得
-
-`SQRT(number: NUMBER): NUMBER`
-
-第1引数の正の平方根を返します。
-
-```shell
-$ xa '"$%.3f(  SQRT(100.0)  )"'
-# 10.000
-```
-
-## `SIN` 正弦
-
-`SIN(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その正弦を返します。
-
-```shell
-$ xa '"$%.3f(  SIN(PI / 2)  )"'
-# 1.000
-```
-
-## `COS` 余弦
-
-`COS(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その余弦を返します。
-
-```shell
-$ xa '"$%.3f(  COS(0)  )"'
-# 1.000
-```
-
-## `TAN` 正接
-
-`TAN(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その正接を返します。
-
-```shell
-$ xa '"$%.3f(  TAN(PI / 4)  )"'
-# 1.000
-```
-
-## `POW` べき乗
-
-`POW(base: NUMBER; exponent: NUMBER): NUMBER`
-
-第1引数を第2引数でべき乗した結果を返します。
-
-```shell
-$ xa 'POW(2; 3)'
-# 8.0
-```
-
-## `EXP` 指数関数
-
-`EXP(number: NUMBER): NUMBER`
-
-第1引数の指数関数（底 e）を返します。
-
-```shell
-$ xa '"$%.3f(  EXP(1)  )"'
-# 2.718
-
-$ xa '"$%.3f(  EXP(2)  )"'
-# 7.389
-```
-
-## `LOG` 自然対数
-
-`LOG(number: NUMBER): NUMBER`
-
-第1引数の自然対数（底 e）を返します。
-
-```shell
-$ xa '"$%.3f(  LOG(MATH.E)  )"'
-# 1.000
-```
-
-## `RAND` 乱数の取得
-
-`RAND(): DOUBLE`
-
-`RAND([from: NUMBER; ]until: NUMBER): INT`
-
-引数なしで呼び出された場合、0以上1未満の小数を返します。
-
-1引数で呼び出された場合、0以上 `until` 未満の整数を返します。
-
-2引数で呼び出された場合、`from` 以上 `until` 未満の整数を返します。
 
 # ストリーム系関数
 
@@ -683,25 +547,6 @@ $ xa 'TO_STRING(123)'
 
 $ xa '1, 2, 3 >> TO_STRING'
 # 123
-```
-
-## `TO_NUMBER` 数値化
-
-`TO_NUMBER(value: VALUE): NUMBER`
-
-値を数値に変換します。
-
-`+value` 演算子と同じ動作をします。
-
-```shell
-$ xa 'TO_NUMBER("123")'
-# 123
-
-$ xa '1, 2, 3 >> TO_NUMBER'
-# 6
-
-$ xa 'TO_NUMBER(NULL)'
-# 0
 ```
 
 ## `TO_BOOLEAN` 論理値化
