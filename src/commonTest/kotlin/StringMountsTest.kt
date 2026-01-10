@@ -27,5 +27,18 @@ class StringMountsTest {
         assertEquals("&", eval("AMP").string) // AMP定数は & を返す
         assertEquals("'", eval("APOS").string) // APOS定数は ' を返す
         assertEquals("\"", eval("QUOT").string) // QUOT定数は " を返す
+        assertEquals("\uFEFF", eval("BOM").string) // BOM定数は \uFEFF を返す
+    }
+
+    @Test
+    fun bom() = runTest {
+        // BOM定数は文字列 "\uFEFF" を返す
+        assertEquals("\uFEFF", eval("BOM").string)
+
+        // BOMをUTF8でエンコードすると、UTF-8 BOMのバイト列になる
+        assertEquals("BLOB.of([239;187;191])", eval("BOM >> UTF8 >> TO_STRING").string)
+
+        // BOMとUTF8を組み合わせてBOM付きUTF-8を生成できる
+        assertEquals("BLOB.of([239;187;191;97;98;99])", eval("BOM + 'abc' >> UTF8 >> TO_STRING").string)
     }
 }
