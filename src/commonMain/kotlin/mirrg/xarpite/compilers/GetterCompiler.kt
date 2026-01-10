@@ -80,8 +80,10 @@ import mirrg.xarpite.UnaryExclamationNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
 import mirrg.xarpite.UnaryQuestionNode
-import mirrg.xarpite.UnaryPlusPlusNode
-import mirrg.xarpite.UnaryMinusMinusNode
+import mirrg.xarpite.PrefixPlusPlusNode
+import mirrg.xarpite.SuffixPlusPlusNode
+import mirrg.xarpite.PrefixMinusMinusNode
+import mirrg.xarpite.SuffixMinusMinusNode
 import mirrg.xarpite.Side
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -256,24 +258,28 @@ fun Frame.compileToGetter(node: Node): Getter {
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
         }
 
-        is UnaryPlusPlusNode -> {
+        is PrefixPlusPlusNode -> {
             val setter = compileToSetter(node.main)
             val getter = compileToGetter(node.main)
-            if (node.side == Side.LEFT) {
-                PrefixIncrementGetter(getter, setter)
-            } else {
-                SuffixIncrementGetter(getter, setter)
-            }
+            PrefixIncrementGetter(getter, setter)
         }
 
-        is UnaryMinusMinusNode -> {
+        is SuffixPlusPlusNode -> {
             val setter = compileToSetter(node.main)
             val getter = compileToGetter(node.main)
-            if (node.side == Side.LEFT) {
-                PrefixDecrementGetter(getter, setter)
-            } else {
-                SuffixDecrementGetter(getter, setter)
-            }
+            SuffixIncrementGetter(getter, setter)
+        }
+
+        is PrefixMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            PrefixDecrementGetter(getter, setter)
+        }
+
+        is SuffixMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            SuffixDecrementGetter(getter, setter)
         }
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))

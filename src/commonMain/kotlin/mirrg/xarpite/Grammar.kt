@@ -136,8 +136,6 @@ object XarpiteGrammar {
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side) -> Node> = or(
-        -"++" map { ::UnaryPlusPlusNode },
-        -"--" map { ::UnaryMinusMinusNode },
         -'+' map { ::UnaryPlusNode },
         -'-' map { ::UnaryMinusNode },
         -'?' map { ::UnaryQuestionNode },
@@ -150,6 +148,10 @@ object XarpiteGrammar {
         -'@' map { ::UnaryAtNode },
         -'\\' map { ::UnaryBackslashNode },
     )
+    val prefixIncrementDecrementOperator: Parser<(Node) -> Node> = or(
+        -"++" map { { main -> PrefixPlusPlusNode(main) } },
+        -"--" map { { main -> PrefixMinusMinusNode(main) } },
+    )
     val rightOperator: Parser<(Node) -> Node> = or(
         -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
@@ -158,14 +160,15 @@ object XarpiteGrammar {
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
 
-        -b * -"++" map { { main -> UnaryPlusPlusNode(main, Side.RIGHT) } },
-        -b * -"--" map { { main -> UnaryMinusMinusNode(main, Side.RIGHT) } },
+        -b * -"++" map { { main -> SuffixPlusPlusNode(main) } },
+        -b * -"--" map { { main -> SuffixMinusMinusNode(main) } },
 
         -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
         -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },
         -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
         -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
 
+        -b * -'.' * -b * prefixIncrementDecrementOperator map { { main -> it(main) } },
         -b * -'.' * unaryOperator map { { main -> it(main, Side.LEFT) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
@@ -173,7 +176,11 @@ object XarpiteGrammar {
         val right = it.b.a
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
-    val left: Parser<Node> = (unaryOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node, Side.LEFT) } }
+    val leftPrefixOperator: Parser<(Node) -> Node> = or(
+        prefixIncrementDecrementOperator,
+        unaryOperator map { f -> { node -> f(node, Side.LEFT) } },
+    )
+    val left: Parser<Node> = (leftPrefixOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node) } }
 
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
