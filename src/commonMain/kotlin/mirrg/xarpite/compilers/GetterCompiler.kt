@@ -80,6 +80,8 @@ import mirrg.xarpite.UnaryExclamationNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
 import mirrg.xarpite.UnaryQuestionNode
+import mirrg.xarpite.UnaryPlusPlusNode
+import mirrg.xarpite.UnaryMinusMinusNode
 import mirrg.xarpite.PrefixPlusPlusNode
 import mirrg.xarpite.SuffixPlusPlusNode
 import mirrg.xarpite.PrefixMinusMinusNode
@@ -256,6 +258,18 @@ fun Frame.compileToGetter(node: Node): Getter {
             val variableIndex = newFrame.defineVariable("_")
             val getter = newFrame.compileToGetter(node.main)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+        }
+
+        is UnaryPlusPlusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            PrefixIncrementGetter(getter, setter)
+        }
+
+        is UnaryMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            PrefixDecrementGetter(getter, setter)
         }
 
         is PrefixPlusPlusNode -> {
