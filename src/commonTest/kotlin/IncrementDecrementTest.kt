@@ -38,15 +38,15 @@ class IncrementDecrementTest {
 
     @Test
     fun postfixOfPrefixIncrementTest() = runTest {
-        // a.++ は後置演算子として動作する（Side.RIGHT なので）
-        assertEquals(10, eval("a := 10; a.++").int)
+        // a.++ は「後置版前置演算子」で、前置版と同じ挙動（新しい値を返す）
+        assertEquals(11, eval("a := 10; a.++").int)
         assertEquals(11, eval("a := 10; a.++; a").int)
     }
 
     @Test
     fun postfixOfPrefixDecrementTest() = runTest {
-        // a.-- は後置演算子として動作する（Side.RIGHT なので）
-        assertEquals(10, eval("a := 10; a.--").int)
+        // a.-- は「後置版前置演算子」で、前置版と同じ挙動（新しい値を返す）
+        assertEquals(9, eval("a := 10; a.--").int)
         assertEquals(9, eval("a := 10; a.--; a").int)
     }
 
