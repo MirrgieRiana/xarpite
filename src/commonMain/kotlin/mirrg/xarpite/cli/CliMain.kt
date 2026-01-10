@@ -11,13 +11,12 @@ import mirrg.xarpite.mounts.createCommonMounts
 suspend fun main(options: Options, coroutineScope: CoroutineScope, daemonScope: CoroutineScope, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     val evaluator = Evaluator()
     val defaultBuiltinMounts = listOf(
-        createCommonMounts(
-            coroutineScope,
-            daemonScope,
+        createCommonMounts(coroutineScope, daemonScope),
+        createCliMounts(
+            options.arguments,
             out = { println(it.toFluoriteString().value) },
             err = { System.err.println(it.toFluoriteString().value) }
         ),
-        createCliMounts(options.arguments),
         createExtraMounts(),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>

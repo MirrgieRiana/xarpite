@@ -14,6 +14,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
@@ -24,7 +25,7 @@ import writeBytesToStderr
 
 val INB_MAX_BUFFER_SIZE = 8192
 
-fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
+fun createCliMounts(args: List<String>, out: suspend (FluoriteValue) -> Unit, err: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
@@ -40,6 +41,30 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 @OptIn(ExperimentalUnsignedTypes::class)
                 emit(bytes.asUByteArray().asFluoriteBlob())
             }
+        },
+        "OUT" to FluoriteFunction { arguments ->
+            arguments.forEach {
+                if (it is FluoriteStream) {
+                    it.collect { item ->
+                        out(item)
+                    }
+                } else {
+                    out(it)
+                }
+            }
+            FluoriteNull
+        },
+        "ERR" to FluoriteFunction { arguments ->
+            arguments.forEach {
+                if (it is FluoriteStream) {
+                    it.collect { item ->
+                        err(item)
+                    }
+                } else {
+                    err(it)
+                }
+            }
+            FluoriteNull
         },
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")

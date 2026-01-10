@@ -61,7 +61,7 @@ class FunctionTest {
         val evaluator = Evaluator()
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            evaluator.defineMounts(createCommonMounts(this, daemonScope, {}, {}))
+            evaluator.defineMounts(createCommonMounts(this, daemonScope))
 
             // _::_ でフォールバックメソッドを定義する
             """
