@@ -33,7 +33,7 @@ suspend fun CoroutineScope.eval(src: String): FluoriteValue {
     val evaluator = Evaluator()
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
-        evaluator.defineMounts(createCommonMounts(this, daemonScope, {}))
+        evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
         return evaluator.get(src).cache()
     } finally {
         daemonScope.cancel()
