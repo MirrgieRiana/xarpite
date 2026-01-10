@@ -73,4 +73,10 @@ class IncrementDecrementTest {
         assertEquals("10.5", eval("a := 10.5; a++").toString())
         assertEquals("11.5", eval("a := 10.5; a++; a").toString())
     }
+
+    @Test
+    fun nonNumericIncrementTest() = runTest {
+        // 数値以外の型でも動作する（加算が定義されていれば）
+        assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
+    }
 }

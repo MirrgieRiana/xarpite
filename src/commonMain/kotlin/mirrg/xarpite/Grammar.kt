@@ -149,8 +149,8 @@ object XarpiteGrammar {
         -'\\' map { ::UnaryBackslashNode },
     )
     val prefixIncrementDecrementOperator: Parser<(Node) -> Node> = or(
-        -"++" map { { main -> PrefixPlusPlusNode(main) } },
-        -"--" map { { main -> PrefixMinusMinusNode(main) } },
+        -"++" map { { main -> UnaryPlusPlusNode(main, Side.LEFT) } },
+        -"--" map { { main -> UnaryMinusMinusNode(main, Side.LEFT) } },
     )
     val unaryIncrementDecrementOperator: Parser<(Node, Side) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },

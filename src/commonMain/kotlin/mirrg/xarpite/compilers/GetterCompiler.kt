@@ -82,9 +82,7 @@ import mirrg.xarpite.UnaryPlusNode
 import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.UnaryPlusPlusNode
 import mirrg.xarpite.UnaryMinusMinusNode
-import mirrg.xarpite.PrefixPlusPlusNode
 import mirrg.xarpite.SuffixPlusPlusNode
-import mirrg.xarpite.PrefixMinusMinusNode
 import mirrg.xarpite.SuffixMinusMinusNode
 import mirrg.xarpite.Side
 import mirrg.xarpite.compilers.objects.FluoriteRegex
@@ -272,22 +270,10 @@ fun Frame.compileToGetter(node: Node): Getter {
             PrefixDecrementGetter(getter, setter)
         }
 
-        is PrefixPlusPlusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            PrefixIncrementGetter(getter, setter)
-        }
-
         is SuffixPlusPlusNode -> {
             val setter = compileToSetter(node.main)
             val getter = compileToGetter(node.main)
             SuffixIncrementGetter(getter, setter)
-        }
-
-        is PrefixMinusMinusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            PrefixDecrementGetter(getter, setter)
         }
 
         is SuffixMinusMinusNode -> {
