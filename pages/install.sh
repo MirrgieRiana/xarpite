@@ -14,10 +14,14 @@ check curl
 check tar
 check perl
 check sort
-check rsync
-check readlink
 
-cd -- "$(dirname -- "$(readlink -f -- "$0")")"
+if [ "$#" -ne 2 ]
+then
+  error "Usage: $0 <install_dir> <bin_dir>"
+fi
+
+install_dir="$1"
+bin_dir="$2"
 
 
 # Determine the downloading version
@@ -44,40 +48,31 @@ echo
 # Download and extract
 
 file="xarpite-bin-$version-all.tar.gz"
-dir=".tmp"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-[ -e "$dir" ] && error "Error: Already exists: $dir"
-mkdir "$dir"
-curl -L -o - "$url" | tar -xzf - -C "$dir"
-echo "Successfully downloaded and extracted to: $dir"
+[ -e "$install_dir" ] && error "Error: Already exists: $install_dir"
+mkdir -p "$install_dir"
+curl -L -o - "$url" | tar -xzf - -C "$install_dir"
+echo "Successfully downloaded and extracted to: $install_dir"
 
 echo
 
 
-# Update
+# Install bin links
 
-echo "Updating"
+echo "Preparing bin directory: $bin_dir"
+mkdir -p "$bin_dir"
 
-echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
-echo
-printf "Type Y to apply (otherwise cancel): " >&2
-read -r -n 1 answer
-echo
-[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
-  rm -rf "$dir"
-  error "Cancelled."
+link() {
+  echo "Updating $bin_dir/$1"
+  rm -f "$bin_dir/$1"
+  ln -s "$(cd "$install_dir" && pwd)/$1" "$bin_dir/$1"
 }
-echo "Syncing"
-rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 
-echo "Removing temporary files"
-rm -rf "$dir"
+link xarpite
+link xa
+link xarpite-update
 
-echo
-
-
-echo "Successfully Updated"
+echo "OK"

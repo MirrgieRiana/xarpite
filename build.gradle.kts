@@ -32,11 +32,7 @@ kotlin {
     }
     linuxX64 {
         binaries {
-            executable("xarpite") {
-                // posix_spawnp関連の関数がlibpthreadにリンクされているため、
-                // リンカーオプションに-lpthreadを追加する必要がある
-                linkerOpts("-lpthread")
-            }
+            executable("xarpite")
         }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
@@ -88,33 +84,9 @@ tasks.named<Jar>("jvmJar") {
 
 // Release
 
-fun registerGenerateInstallTask(engine: String): TaskProvider<Sync> {
-    return tasks.register<Sync>("generateInstall${engine.uppercaseFirstChar()}") {
-        from(file("release-template/install.sh"))
-        filteringCharset = "UTF-8"
-        filter {
-            it
-                .replace("@ENGINE@", engine)
-                .replace("@SCRIPT_NAME@", "install-$engine.sh")
-        }
-        filePermissions {
-            unix("rwxr-xr-x")
-        }
-        rename("install.sh", "install-$engine.sh")
-        into(project.layout.buildDirectory.dir("generateInstall${engine.uppercaseFirstChar()}"))
-    }
-}
-
-val generateInstallNative = registerGenerateInstallTask("native")
-val generateInstallJvm = registerGenerateInstallTask("jvm")
-val generateInstallNode = registerGenerateInstallTask("node")
-
 val bundlePages = tasks.register<Sync>("bundlePages") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundlePages"))
-    from(generateInstallNative)
-    from(generateInstallJvm)
-    from(generateInstallNode)
     from("pages")
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
@@ -133,9 +105,6 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
             }
         }
     }
-    from(generateInstallNative)
-    from(generateInstallJvm)
-    from(generateInstallNode)
     from(releaseExecutable.linkTaskProvider) {
         into("bin/native")
         rename("xarpite.kexe", "xarpite")
