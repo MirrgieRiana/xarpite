@@ -13,12 +13,13 @@ import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
+import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
-    val baseFunctions = mapOf(
+    return mapOf(
         "NULL" to FluoriteNull,
         "N" to FluoriteNull,
         "TRUE" to FluoriteBoolean.TRUE,
@@ -94,41 +95,26 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
             FluoriteNull
         },
-    )
-    
-    val extensionFunctions = mapOf(
         "::LET" to FluoriteArray(
             mutableListOf(
-                FluoriteArray(
-                    mutableListOf(
-                        FluoriteValue.fluoriteClass,
-                        FluoriteFunction { arguments ->
-                            if (arguments.size != 2) usage("VALUE::LET(block: VALUE -> VALUE): VALUE")
-                            val thisValue = arguments[0]
-                            val block = arguments[1]
-                            block.invoke(arrayOf(thisValue))
-                        }
-                    )
-                )
+                FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                    if (arguments.size != 2) usage("VALUE::LET(block: VALUE -> VALUE): VALUE")
+                    val thisValue = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(thisValue))
+                }
             )
         ),
         "::ALSO" to FluoriteArray(
             mutableListOf(
-                FluoriteArray(
-                    mutableListOf(
-                        FluoriteValue.fluoriteClass,
-                        FluoriteFunction { arguments ->
-                            if (arguments.size != 2) usage("VALUE::ALSO(block: VALUE -> VALUE): VALUE")
-                            val thisValue = arguments[0]
-                            val block = arguments[1]
-                            block.invoke(arrayOf(thisValue))
-                            thisValue
-                        }
-                    )
-                )
+                FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                    if (arguments.size != 2) usage("VALUE::ALSO(block: VALUE -> VALUE): VALUE")
+                    val thisValue = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(thisValue))
+                    thisValue
+                }
             )
         ),
-    )
-    
-    return listOf(baseFunctions, extensionFunctions)
+    ).let { listOf(it) }
 }
