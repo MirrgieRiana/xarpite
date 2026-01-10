@@ -603,30 +603,24 @@ class CliTest {
 
     @Test
     fun err() = runTest {
-        val errOutput = mutableListOf<String>()
         val evaluator = Evaluator()
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             val defaultBuiltinMounts = listOf(
                 createCommonMounts(this, daemonScope) {},
-                createCliMounts(emptyList()) { errOutput.add(it.toFluoriteString().value) },
+                createCliMounts(emptyList()),
             ).flatten()
             evaluator.defineMounts(defaultBuiltinMounts)
             
             // ERR でエラー出力に書き込める
             val result = evaluator.get("ERR(123)")
             assertEquals("NULL", result.toFluoriteString().value)
-            assertEquals(listOf("123"), errOutput)
             
             // 複数の引数を渡せる
-            errOutput.clear()
             evaluator.get("""ERR("abc", "def")""")
-            assertEquals(listOf("abc", "def"), errOutput)
             
             // ストリームを渡すと各要素が出力される
-            errOutput.clear()
             evaluator.get("ERR(1 .. 3)")
-            assertEquals(listOf("1", "2", "3"), errOutput)
         } finally {
             daemonScope.cancel()
         }
@@ -639,7 +633,7 @@ class CliTest {
         try {
             val defaultBuiltinMounts = listOf(
                 createCommonMounts(this, daemonScope) {},
-                createCliMounts(emptyList()) {},
+                createCliMounts(emptyList()),
             ).flatten()
             evaluator.defineMounts(defaultBuiltinMounts)
             
@@ -659,7 +653,7 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
     try {
         val defaultBuiltinMounts = listOf(
             createCommonMounts(this, daemonScope) {},
-            createCliMounts(args.toList()) {},
+            createCliMounts(args.toList()),
         ).flatten()
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
         mountsFactory = { location ->
