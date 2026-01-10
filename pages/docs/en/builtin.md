@@ -53,13 +53,14 @@ Mathematical built-in constants.
 
 String-related built-in constants.
 
-| Constant | Meaning |
-|----------|---------|
-| `LT`     | `<`     |
-| `GT`     | `>`     |
-| `AMP`    | `&`     |
-| `APOS`   | `'`     |
-| `QUOT`   | `"`     |
+| Constant | Meaning                      |
+|----------|------------------------------|
+| `LT`     | `<`                          |
+| `GT`     | `>`                          |
+| `AMP`    | `&`                          |
+| `APOS`   | `'`                          |
+| `QUOT`   | `"`                          |
+| `BOM`    | `"\uFEFF"` (Byte Order Mark) |
 
 # Mathematical Functions
 
