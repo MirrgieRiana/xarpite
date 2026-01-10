@@ -5,10 +5,10 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 
 fun usage(vararg usages: String): Nothing = throw IllegalArgumentException(listOf("Usage:", *usages.map { "  $it" }.toTypedArray()).joinToString("\n"))
 
-fun createCommonMounts(coroutineScope: CoroutineScope, daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
+fun createCommonMounts(coroutineScope: CoroutineScope, daemonScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit, err: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return listOf(
         createClassMounts(),
-        createLangMounts(coroutineScope),
+        createLangMounts(coroutineScope, out),
         createControlStructuresMounts(),
         createMathMounts(),
         createConvertMounts(),

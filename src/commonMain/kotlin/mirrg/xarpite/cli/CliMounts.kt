@@ -25,7 +25,7 @@ import writeBytesToStderr
 
 val INB_MAX_BUFFER_SIZE = 8192
 
-fun createCliMounts(args: List<String>, out: suspend (FluoriteValue) -> Unit, err: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
+fun createCliMounts(args: List<String>, err: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
@@ -41,18 +41,6 @@ fun createCliMounts(args: List<String>, out: suspend (FluoriteValue) -> Unit, er
                 @OptIn(ExperimentalUnsignedTypes::class)
                 emit(bytes.asUByteArray().asFluoriteBlob())
             }
-        },
-        "OUT" to FluoriteFunction { arguments ->
-            arguments.forEach {
-                if (it is FluoriteStream) {
-                    it.collect { item ->
-                        out(item)
-                    }
-                } else {
-                    out(it)
-                }
-            }
-            FluoriteNull
         },
         "ERR" to FluoriteFunction { arguments ->
             arguments.forEach {

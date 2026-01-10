@@ -17,7 +17,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 
-fun createLangMounts(coroutineScope: CoroutineScope): List<Map<String, FluoriteValue>> {
+fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
         "NULL" to FluoriteNull,
         "N" to FluoriteNull,
@@ -68,6 +68,18 @@ fun createLangMounts(coroutineScope: CoroutineScope): List<Map<String, FluoriteV
                 }
             }
             promise
+        },
+        "OUT" to FluoriteFunction { arguments ->
+            arguments.forEach {
+                if (it is FluoriteStream) {
+                    it.collect { item ->
+                        out(item)
+                    }
+                } else {
+                    out(it)
+                }
+            }
+            FluoriteNull
         },
     ).let { listOf(it) }
 }
