@@ -414,7 +414,7 @@ $ xa '
   s++
   s
 '
-# "abc1"
+# abc1
 ```
 
 ## Built-in Constants
