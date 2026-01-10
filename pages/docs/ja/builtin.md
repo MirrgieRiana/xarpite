@@ -747,14 +747,14 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 ## `::LET` 値をブロックに渡してブロックの戻り値を返す
 
-`VALUE::LET(block: VALUE -> VALUE): VALUE`
+`<I, O> I::LET(block: I -> O): O`
 
 レシーバーの値をブロックに渡して実行し、ブロックの戻り値を返す拡張関数です。
 
 値を変換するのに便利です。
 
 ```shell
-$ xa '10::LET[x -> x + x]'
+$ xa '10::LET(x => x + x)'
 # 20
 ```
 
@@ -763,7 +763,7 @@ $ xa '10::LET[x -> x + x]'
 `::LET`は連鎖して使用することもできます。
 
 ```shell
-$ xa '10::LET[x -> x + x]::LET[y -> y * 10]'
+$ xa '10::LET(x => x + x)::LET(y => y * 10)'
 # 200
 ```
 
@@ -772,13 +772,13 @@ $ xa '10::LET[x -> x + x]::LET[y -> y * 10]'
 ストリームに対して`::LET`を呼び出した場合、ブロックにはストリーム自体が渡されます。
 
 ```shell
-$ xa '1, 2, 3 >> [s -> s::LET[stream -> stream >> [x -> x + x]]]'
-# 246
+$ xa '1, 2, 3 >> LET(stream => stream >> SUM)'
+# 6
 ```
 
 ## `::ALSO` 値をブロックに渡して元の値を返す
 
-`VALUE::ALSO(block: VALUE -> VALUE): VALUE`
+`<T> T::ALSO(block: T -> VALUE): T`
 
 レシーバーの値をブロックに渡して実行し、元の値を返す拡張関数です。
 
@@ -787,12 +787,9 @@ $ xa '1, 2, 3 >> [s -> s::LET[stream -> stream >> [x -> x + x]]]'
 これは、値を変数に代入したり、ログ出力したりといった副作用を起こしつつ、その値をパイプチェーンに流したい場合に便利です。
 
 ```shell
-$ xa 'NULL::ALSO[result -> OUT << "start"] >> [10, 20, 30] >> [x -> x::ALSO[v -> OUT << v]]'
-# start
-# 10
-# 20
-# 30
-# 102030
+$ xa '123::ALSO(x => OUT << x)'
+# 123
+# 123
 ```
 
 ---
@@ -800,7 +797,7 @@ $ xa 'NULL::ALSO[result -> OUT << "start"] >> [10, 20, 30] >> [x -> x::ALSO[v ->
 `::ALSO`は連鎖して使用することもできます。
 
 ```shell
-$ xa '100::ALSO[x -> OUT << x]::ALSO[y -> OUT << (y + 10)]'
+$ xa '100::ALSO(x => OUT << x)::ALSO(y => OUT << (y + 10))'
 # 100
 # 110
 # 100
@@ -811,7 +808,7 @@ $ xa '100::ALSO[x -> OUT << x]::ALSO[y -> OUT << (y + 10)]'
 ストリームに対して`::ALSO`を呼び出した場合、ブロックにはストリーム自体が渡されます。
 
 ```shell
-$ xa '1, 2, 3 >> [s -> s::ALSO[stream -> OUT << "stream"]]'
-# stream
+$ xa '1, 2, 3 >> ALSO(stream => OUT << "Processing stream")'
+# Processing stream
 # 123
 ```
