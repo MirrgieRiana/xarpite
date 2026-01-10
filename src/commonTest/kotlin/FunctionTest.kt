@@ -99,36 +99,50 @@ class FunctionTest {
     }
 
     @Test
-    fun also() = runTest {
+    fun extensionLet() = runTest {
+        // LET は値をブロックに渡して、ブロックの戻り値を返す
+        """
+            `::LET` := (VALUE): this, block -> block(this)
+            10::LET(x -> x + x)
+        """.let { assertEquals(20, eval(it).int) }
+
+        // LET を使って値を変換する
+        """
+            `::LET` := (VALUE): this, block -> block(this)
+            123::LET(x -> x + x)
+        """.let { assertEquals(246, eval(it).int) }
+
+        // 連鎖した使用例
+        """
+            `::LET` := (VALUE): this, block -> block(this)
+            10::LET(x -> x + x)::LET(y -> y + y + y + y + y + y + y + y + y + y)
+        """.let { assertEquals(200, eval(it).int) }
+    }
+
+    @Test
+    fun extensionAlso() = runTest {
         // ALSO は値をブロックに渡して、元の値を返す
-        assertEquals(10, eval("ALSO(10; x -> NULL)").int) // ブロックは実行されるが、元の値を返す
+        """
+            `::ALSO` := (VALUE): this, block -> (block(this); this)
+            10::ALSO(x -> NULL)
+        """.let { assertEquals(10, eval(it).int) }
 
         // ALSO を使って副作用を起こしつつ、値を返す
         """
+            `::ALSO` := (VALUE): this, block -> (block(this); this)
             result := NULL
-            value := ALSO(123; x -> result = x + x)
+            value := 123::ALSO(x -> result = x + x)
             [result; value]
         """.let { assertEquals("[246;123]", eval(it).array()) }
 
         // 連鎖した使用例
         """
+            `::ALSO` := (VALUE): this, block -> (block(this); this)
             result1 := NULL
             result2 := NULL
-            value := ALSO(ALSO(100; x -> result1 = x); y -> result2 = y)
+            value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)
             [result1; result2; value]
         """.let { assertEquals("[100;100;100]", eval(it).array()) }
-    }
-
-    @Test
-    fun let() = runTest {
-        // LET は値をブロックに渡して、ブロックの戻り値を返す
-        assertEquals(20, eval("LET(10; x -> x + x)").int) // ブロックの戻り値を返す
-
-        // LET を使って値を変換する
-        assertEquals(246, eval("LET(123; x -> x + x)").int)
-
-        // 連鎖した使用例
-        assertEquals(200, eval("LET(LET(10; x -> x + x); y -> y + y + y + y + y + y + y + y + y + y)").int)
     }
 
     @Test

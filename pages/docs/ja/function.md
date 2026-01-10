@@ -740,17 +740,23 @@ $ xa '
 # 6
 ```
 
-## `LET` 値をブロックに渡してブロックの戻り値を返す
+# 拡張関数
 
-`LET(value: VALUE; block: VALUE -> VALUE): VALUE`
+`LET` と `ALSO` は拡張関数として提供されます。使用する前に定義する必要があります。
 
-第1引数の値を第2引数のブロックに渡して実行し、ブロックの戻り値を返します。
+## `::LET` 値をブロックに渡してブロックの戻り値を返す
+
+`` `::LET` := (VALUE): this, block -> block(this) ``
+
+値をブロックに渡して実行し、ブロックの戻り値を返します。
 
 値を変換するのに便利です。
 
 ```shell
 $ xa '
-  value := LET(10; x -> x + x)
+  `::LET` := (VALUE): this, block -> block(this)
+
+  value := 10::LET(x -> x + x)
   value
 '
 # 20
@@ -758,27 +764,33 @@ $ xa '
 
 ---
 
-`LET`は連鎖して使用することもできます。
+`::LET`は連鎖して使用することもできます。
 
 ```shell
-$ xa 'LET(LET(10; x -> x + x); y -> y * 10)'
+$ xa '
+  `::LET` := (VALUE): this, block -> block(this)
+
+  10::LET(x -> x + x)::LET(y -> y * 10)
+'
 # 200
 ```
 
-## `ALSO` 値をブロックに渡して元の値を返す
+## `::ALSO` 値をブロックに渡して元の値を返す
 
-`ALSO(value: VALUE; block: VALUE -> VALUE): VALUE`
+`` `::ALSO` := (VALUE): this, block -> (block(this); this) ``
 
-第1引数の値を第2引数のブロックに渡して実行し、元の値を返します。
+値をブロックに渡して実行し、元の値を返します。
 
-ブロックは実行されますが、その戻り値は破棄され、`ALSO`は常に第1引数の値を返します。
+ブロックは実行されますが、その戻り値は破棄され、`::ALSO`は常にレシーバーの値を返します。
 
 これは、値を変数に代入したり、ログ出力したりといった副作用を起こしつつ、その値をパイプチェーンに流したい場合に便利です。
 
 ```shell
 $ xa '
+  `::ALSO` := (VALUE): this, block -> (block(this); this)
+
   result := NULL
-  value := ALSO(123; x -> result = x + x)
+  value := 123::ALSO(x -> result = x + x)
   "$result, $value"
 '
 # 246, 123
@@ -786,13 +798,15 @@ $ xa '
 
 ---
 
-`ALSO`は連鎖して使用することもできます。
+`::ALSO`は連鎖して使用することもできます。
 
 ```shell
 $ xa '
+  `::ALSO` := (VALUE): this, block -> (block(this); this)
+
   result1 := NULL
   result2 := NULL
-  value := ALSO(ALSO(100; x -> result1 = x); y -> result2 = y)
+  value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)
   "$result1, $result2, $value"
 '
 # 100, 100, 100
