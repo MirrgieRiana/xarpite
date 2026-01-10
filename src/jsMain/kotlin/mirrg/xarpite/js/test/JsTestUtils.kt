@@ -13,7 +13,7 @@ import kotlin.coroutines.coroutineContext
 
 fun CoroutineScope.createDefaultBuiltinMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return listOf(
-        createCommonMounts(this, daemonScope, {}, {}),
+        createCommonMounts(this, daemonScope, {}),
         createJsMounts(),
     ).flatten()
 }

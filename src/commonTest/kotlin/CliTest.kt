@@ -608,7 +608,7 @@ class CliTest {
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             val defaultBuiltinMounts = listOf(
-                createCommonMounts(this, daemonScope, {}, {}),
+                createCommonMounts(this, daemonScope, {}),
                 createCliMounts(emptyList(), { errOutput.add(it.toFluoriteString().value) }),
             ).flatten()
             evaluator.defineMounts(defaultBuiltinMounts)
@@ -638,7 +638,7 @@ class CliTest {
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             val defaultBuiltinMounts = listOf(
-                createCommonMounts(this, daemonScope, {}, {}),
+                createCommonMounts(this, daemonScope, {}),
                 createCliMounts(emptyList(), {}),
             ).flatten()
             evaluator.defineMounts(defaultBuiltinMounts)
@@ -658,7 +658,7 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         val defaultBuiltinMounts = listOf(
-            createCommonMounts(this, daemonScope, {}, {}),
+            createCommonMounts(this, daemonScope, {}),
             createCliMounts(args.toList(), {}),
         ).flatten()
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>

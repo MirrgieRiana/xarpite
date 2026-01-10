@@ -14,8 +14,7 @@ suspend fun main(options: Options, coroutineScope: CoroutineScope, daemonScope: 
         createCommonMounts(
             coroutineScope,
             daemonScope,
-            out = { println(it.toFluoriteString().value) },
-            err = { System.err.println(it.toFluoriteString().value) }
+            out = { println(it.toFluoriteString().value) }
         ),
         createCliMounts(
             options.arguments,
