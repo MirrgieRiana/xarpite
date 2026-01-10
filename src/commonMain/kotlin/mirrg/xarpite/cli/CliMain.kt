@@ -7,12 +7,13 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
+import writeBytesToStderr
 
 suspend fun main(options: Options, coroutineScope: CoroutineScope, daemonScope: CoroutineScope, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     val evaluator = Evaluator()
     val defaultBuiltinMounts = listOf(
         createCommonMounts(coroutineScope, daemonScope) { println(it.toFluoriteString().value) },
-        createCliMounts(options.arguments) { System.err.println(it.toFluoriteString().value) },
+        createCliMounts(options.arguments) { writeBytesToStderr((it.toFluoriteString().value + "\n").encodeToByteArray()) },
         createExtraMounts(),
     ).flatten()
     lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>

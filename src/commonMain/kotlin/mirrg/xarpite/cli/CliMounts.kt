@@ -10,11 +10,11 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
+import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
-import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
