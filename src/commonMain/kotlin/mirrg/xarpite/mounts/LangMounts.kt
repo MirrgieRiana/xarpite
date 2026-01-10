@@ -97,7 +97,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
     )
     
     val extensionFunctions = mapOf(
-        "`::LET`" to FluoriteArray(
+        "::LET" to FluoriteArray(
             mutableListOf(
                 FluoriteArray(
                     mutableListOf(
@@ -112,7 +112,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                 )
             )
         ),
-        "`::ALSO`" to FluoriteArray(
+        "::ALSO" to FluoriteArray(
             mutableListOf(
                 FluoriteArray(
                     mutableListOf(

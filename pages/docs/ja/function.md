@@ -742,9 +742,7 @@ $ xa '
 
 # lang mounts拡張関数
 
-以下は、langカテゴリに属する便利な拡張関数の定義です。
-
-これらは組み込みではないため、使用する前にコード内で定義する必要があります。
+以下は、langカテゴリに属する組み込み拡張関数です。
 
 ## `::LET` 値をブロックに渡してブロックの戻り値を返す
 
@@ -756,8 +754,6 @@ $ xa '
 
 ```shell
 $ xa '
-  `::LET` := (VALUE): this, block -> block(this)
-
   value := 10::LET(x -> x + x)
   value
 '
@@ -770,8 +766,6 @@ $ xa '
 
 ```shell
 $ xa '
-  `::LET` := (VALUE): this, block -> block(this)
-
   10::LET(x -> x + x)::LET(y -> y * 10)
 '
 # 200
@@ -789,8 +783,6 @@ $ xa '
 
 ```shell
 $ xa '
-  `::ALSO` := (VALUE): this, block -> (block(this); this)
-
   result := NULL
   value := 123::ALSO(x -> result = x + x)
   "$result, $value"
@@ -804,8 +796,6 @@ $ xa '
 
 ```shell
 $ xa '
-  `::ALSO` := (VALUE): this, block -> (block(this); this)
-
   result1 := NULL
   result2 := NULL
   value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)
