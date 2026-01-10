@@ -105,6 +105,7 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
             }
         }
     }
+    from("LICENSE")
     from(releaseExecutable.linkTaskProvider) {
         into("bin/native")
         rename("xarpite.kexe", "xarpite")
