@@ -6,10 +6,10 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 
 class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFn = setter.evaluate(env)
+        val setter = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = PlusGetter(LiteralGetter(oldValue), LiteralGetter(FluoriteInt.ONE)).evaluate(env)
-        setterFn.invoke(newValue)
+        setter.invoke(newValue)
         return newValue
     }
 
@@ -18,10 +18,10 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFn = setter.evaluate(env)
+        val setter = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = PlusGetter(LiteralGetter(oldValue), LiteralGetter(FluoriteInt.ONE)).evaluate(env)
-        setterFn.invoke(newValue)
+        setter.invoke(newValue)
         return oldValue
     }
 
@@ -30,10 +30,10 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFn = setter.evaluate(env)
+        val setter = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = MinusGetter(LiteralGetter(oldValue), LiteralGetter(FluoriteInt.ONE)).evaluate(env)
-        setterFn.invoke(newValue)
+        setter.invoke(newValue)
         return newValue
     }
 
@@ -42,10 +42,10 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFn = setter.evaluate(env)
+        val setter = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = MinusGetter(LiteralGetter(oldValue), LiteralGetter(FluoriteInt.ONE)).evaluate(env)
-        setterFn.invoke(newValue)
+        setter.invoke(newValue)
         return oldValue
     }
 
