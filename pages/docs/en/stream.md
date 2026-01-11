@@ -35,13 +35,12 @@ $ xa '3 .. 1'
 When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
 
 ```shell
-$ xa '"a" .. "z"'
+$ xa '"a" .. "e"'
 # a
 # b
 # c
-# ...
-# y
-# z
+# d
+# e
 ```
 
 If either `start` or `end` is not a single character, an error occurs.
@@ -72,11 +71,10 @@ $ xa '[3 ~ 1]'
 When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
 
 ```shell
-$ xa '"a" ~ "e"'
+$ xa '"a" ~ "d"'
 # a
 # b
 # c
-# d
 ```
 
 If either `start` or `end` is not a single character, an error occurs.
