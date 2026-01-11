@@ -344,6 +344,24 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 # 3
 ```
 
+## `INVERT` Returns Object Mapping Values to Keys
+
+`INVERT(object: OBJECT<VALUE>): OBJECT<STRING>`
+
+Returns a new object where the values of `object` map to their corresponding keys.
+
+Values are stringified when treated as keys.
+
+If values are duplicated, one of the keys for that value will be mapped.
+
+```shell
+$ xa 'INVERT({a: 1; b: 2; c: 3})'
+# {1:a;2:b;3:c}
+
+$ xa 'INVERT({a: "x"; b: "y"; c: "x"})'
+# {x:c;y:b}
+```
+
 ## `SUM` Sum of Stream Elements
 
 `SUM(numbers: STREAM<NUMBER>): NUMBER`
