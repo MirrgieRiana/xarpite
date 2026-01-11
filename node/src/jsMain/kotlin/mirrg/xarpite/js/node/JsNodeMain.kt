@@ -25,6 +25,7 @@ import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
 import writeBytesToStdoutImpl
+import writeBytesToStderrImpl
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
@@ -47,6 +48,24 @@ suspend fun main() {
         }
         suspendCancellableCoroutine { cont ->
             process.stdout.write(uint8Array) { error ->
+                if (!cont.isActive) return@write
+                if (error == null) {
+                    cont.resume(Unit)
+                } else {
+                    cont.resumeWithException(error.unsafeCast<Throwable>())
+                }
+            }
+        }
+    }
+    writeBytesToStderrImpl = { bytes ->
+        val uint8Array = js("new Uint8Array(bytes.length)")
+        var i = 0
+        while (i < bytes.size) {
+            uint8Array[i] = bytes[i].toUByte().toInt()
+            i++
+        }
+        suspendCancellableCoroutine { cont ->
+            process.stderr.write(uint8Array) { error ->
                 if (!cont.isActive) return@write
                 if (error == null) {
                     cont.resume(Unit)

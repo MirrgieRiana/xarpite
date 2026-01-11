@@ -472,7 +472,7 @@ Outputs to standard error output.
 This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
 
 ```shell
-$ xa -q 'ERR("Error!")' > /dev/null
+$ xa -q 'ERR("Error!")' 2>&1 > /dev/null
 # Error!
 ```
 
@@ -485,7 +485,7 @@ Converts `blobLike` to a byte sequence and outputs it as a byte sequence to stan
 This function operates similarly to the `OUTB` function, but writes to standard error output instead of standard output.
 
 ```shell
-$ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
+$ xa -q '65, 66, 67, 10 >> ERRB' 2>&1 > /dev/null
 # ABC
 ```
 
