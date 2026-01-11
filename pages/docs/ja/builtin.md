@@ -754,7 +754,7 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 値を変換するのに便利です。
 
 ```shell
-$ xa '10::LET(x => x + x)'
+$ xa '10::LET ( x => x + x )'
 # 20
 ```
 
@@ -763,7 +763,7 @@ $ xa '10::LET(x => x + x)'
 `::LET`は連鎖して使用することもできます。
 
 ```shell
-$ xa '10::LET(x => x + x)::LET(y => y * 10)'
+$ xa '10::LET ( x => x + x )::LET ( y => y * 10 )'
 # 200
 ```
 
@@ -772,7 +772,7 @@ $ xa '10::LET(x => x + x)::LET(y => y * 10)'
 ストリームに対して`::LET`を呼び出した場合、ブロックにはストリーム自体が渡されます。
 
 ```shell
-$ xa '(1, 2, 3)::LET(s => s >> SUM)'
+$ xa '(1, 2, 3)::LET ( s => s >> SUM )'
 # 6
 ```
 
@@ -790,7 +790,7 @@ $ xa '(1, 2, 3)::LET(s => s >> SUM)'
 
 ```shell
 $ xa '
-  123::ALSO(x => 
+  123::ALSO ( x => 
     OUT << x
   )
 '
@@ -804,9 +804,9 @@ $ xa '
 
 ```shell
 $ xa '
-  100::ALSO(x => 
+  100::ALSO ( x => 
     OUT << x
-  )::ALSO(y => 
+  )::ALSO ( y => 
     OUT << (y + 10)
   )
 '
@@ -821,7 +821,7 @@ $ xa '
 
 ```shell
 $ xa '
-  (1, 2, 3)::ALSO(s => 
+  (1, 2, 3)::ALSO ( s => 
     OUT << "Processing"
   )
 '

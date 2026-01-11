@@ -111,7 +111,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                 val block = arguments[1]
                 val result = block.invoke(arrayOf(self))
                 if (result is FluoriteStream) {
-                    result.collect { }
+                    result.consume()
                 }
                 self
             },
