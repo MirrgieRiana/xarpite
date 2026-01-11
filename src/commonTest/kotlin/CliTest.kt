@@ -621,8 +621,6 @@ class CliTest {
             
             // ストリームを渡すと各要素が出力される
             evaluator.get("ERR(1 .. 3)")
-        } catch (e: NullPointerException) {
-            // JS環境でwriteBytesToStderrImplが初期化されていない場合はスキップ
         } finally {
             daemonScope.cancel()
         }
@@ -642,8 +640,6 @@ class CliTest {
             // ERRB がNULLを返すことを確認
             val result = evaluator.get("ERRB(BLOB.of([65, 66, 67]))")
             assertEquals("NULL", result.toFluoriteString().value)
-        } catch (e: NullPointerException) {
-            // JS環境でwriteBytesToStderrImplが初期化されていない場合はスキップ
         } finally {
             daemonScope.cancel()
         }
