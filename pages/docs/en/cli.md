@@ -461,7 +461,33 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-When using `OUTB`, note that `OUTB` returns NULL, and
+When using `OUTB`, note that `OUTB` returns NULL, and remember to use the `-q` option.
+
+### `ERR`: Output to Standard Error
+
+`ERR(value: VALUE): NULL`
+
+Outputs to standard error output.
+
+This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
+
+```shell
+$ xa -q 'ERR("Error!")' 2>&1
+# Error!
+```
+
+### `ERRB`: Output Byte Data to Standard Error
+
+`ERRB(blobLike: BLOB_LIKE): NULL`
+
+Converts `blobLike` to a byte sequence and outputs it as a byte sequence to standard error output.
+
+This function operates similarly to the `OUTB` function, but writes to standard error output instead of standard output.
+
+```shell
+$ xa -q '65, 66, 67, 10 >> ERRB' 2>&1
+# ABC
+```
 
 ### `FILES`: Get List of Files in Directory
 

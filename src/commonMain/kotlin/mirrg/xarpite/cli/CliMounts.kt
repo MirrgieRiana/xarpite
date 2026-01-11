@@ -10,6 +10,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
+import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -20,6 +21,7 @@ import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
 import writeBytesToStdout
+import writeBytesToStderr
 
 val INB_MAX_BUFFER_SIZE = 8192
 
@@ -40,10 +42,29 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 emit(bytes.asUByteArray().asFluoriteBlob())
             }
         },
+        "ERR" to FluoriteFunction { arguments ->
+            arguments.forEach {
+                if (it is FluoriteStream) {
+                    it.collect { item ->
+                        writeBytesToStderr((item.toFluoriteString().value + "\n").encodeToByteArray())
+                    }
+                } else {
+                    writeBytesToStderr((it.toFluoriteString().value + "\n").encodeToByteArray())
+                }
+            }
+            FluoriteNull
+        },
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 writeBytesToStdout(bytes)
+            }
+            FluoriteNull
+        },
+        "ERRB" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
+            iterateBlobs(arguments[0]) { bytes ->
+                writeBytesToStderr(bytes)
             }
             FluoriteNull
         },

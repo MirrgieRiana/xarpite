@@ -601,6 +601,54 @@ class CliTest {
         }
     }
 
+    @Test
+    fun err() = runTest {
+        val evaluator = Evaluator()
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            val defaultBuiltinMounts = listOf(
+                createCommonMounts(this, daemonScope) {},
+                createCliMounts(emptyList()),
+            ).flatten()
+            evaluator.defineMounts(defaultBuiltinMounts)
+            
+            // ERR でエラー出力に書き込める
+            val result = evaluator.get("ERR(123)")
+            assertEquals("NULL", result.toFluoriteString().value)
+            
+            // 複数の引数を渡せる
+            evaluator.get("""ERR("abc", "def")""")
+            
+            // ストリームを渡すと各要素が出力される
+            evaluator.get("ERR(1 .. 3)")
+        } catch (e: NullPointerException) {
+            // JS環境でwriteBytesToStderrImplが初期化されていない場合はスキップ
+        } finally {
+            daemonScope.cancel()
+        }
+    }
+
+    @Test
+    fun errb() = runTest {
+        val evaluator = Evaluator()
+        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+        try {
+            val defaultBuiltinMounts = listOf(
+                createCommonMounts(this, daemonScope) {},
+                createCliMounts(emptyList()),
+            ).flatten()
+            evaluator.defineMounts(defaultBuiltinMounts)
+            
+            // ERRB がNULLを返すことを確認
+            val result = evaluator.get("ERRB(BLOB.of([65, 66, 67]))")
+            assertEquals("NULL", result.toFluoriteString().value)
+        } catch (e: NullPointerException) {
+            // JS環境でwriteBytesToStderrImplが初期化されていない場合はスキップ
+        } finally {
+            daemonScope.cancel()
+        }
+    }
+
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {

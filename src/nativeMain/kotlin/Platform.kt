@@ -88,3 +88,25 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    memScoped {
+        if (bytes.isEmpty()) {
+            fflush(stderr)
+            return@memScoped
+        }
+        set_posix_errno(0)
+        val writtenSize = fwrite(bytes.refTo(0), 1u, bytes.size.toULong(), stderr)
+        val errorFlag = ferror(stderr)
+        if (writtenSize.toInt() != bytes.size || errorFlag != 0) {
+            val e = errno
+            val msg = strerror(e)?.toKString()
+            if (errorFlag != 0) {
+                clearerr(stderr)
+            }
+            throw IllegalStateException("fwrite(stderr) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
+        }
+        fflush(stderr)
+    }
+}
+
