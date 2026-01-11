@@ -99,6 +99,39 @@ class FunctionTest {
     }
 
     @Test
+    fun extensionLet() = runTest {
+        // LET は値をブロックに渡して、ブロックの戻り値を返す
+        assertEquals(20, eval("10::LET(x -> x + x)").int)
+
+        // LET を使って値を変換する
+        assertEquals(246, eval("123::LET(x -> x + x)").int)
+
+        // 連鎖した使用例
+        assertEquals(200, eval("10::LET(x -> x + x)::LET(y -> y + y + y + y + y + y + y + y + y + y)").int)
+    }
+
+    @Test
+    fun extensionAlso() = runTest {
+        // ALSO は値をブロックに渡して、元の値を返す
+        assertEquals(10, eval("10::ALSO(x -> NULL)").int)
+
+        // ALSO を使って副作用を起こしつつ、値を返す
+        """
+            result := NULL
+            value := 123::ALSO(x -> result = x + x)
+            [result; value]
+        """.let { assertEquals("[246;123]", eval(it).array()) }
+
+        // 連鎖した使用例
+        """
+            result1 := NULL
+            result2 := NULL
+            value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)
+            [result1; result2; value]
+        """.let { assertEquals("[100;100;100]", eval(it).array()) }
+    }
+
+    @Test
     fun setCall() = runTest {
 
         // 代入呼び出しができる

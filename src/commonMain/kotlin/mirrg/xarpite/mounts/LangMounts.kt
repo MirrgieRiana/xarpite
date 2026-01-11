@@ -13,8 +13,10 @@ import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
+import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
@@ -81,5 +83,22 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
             FluoriteNull
         },
+        "::LET" to fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("<I, O> I::LET(block: I -> O): O")
+                val self = arguments[0]
+                val block = arguments[1]
+                block.invoke(arrayOf(self))
+            },
+        ),
+        "::ALSO" to fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("<T> T::ALSO(block: T -> VALUE): T")
+                val self = arguments[0]
+                val block = arguments[1]
+                block.invoke(arrayOf(self)).consume()
+                self
+            },
+        ),
     ).let { listOf(it) }
 }
