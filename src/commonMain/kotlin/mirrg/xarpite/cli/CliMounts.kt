@@ -4,12 +4,12 @@ import executeProcess
 import getEnv
 import getFileSystem
 import mirrg.xarpite.compilers.objects.FluoriteFunction
-import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
+import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -36,8 +36,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "INB" to FluoriteStream {
             while (true) {
                 val bytes = readBytesFromStdin() ?: break
-                @OptIn(ExperimentalUnsignedTypes::class)
-                emit(bytes.asUByteArray().asFluoriteBlob())
+                emit(bytes.asFluoriteBlob())
             }
         },
         "OUTB" to FluoriteFunction { arguments ->
