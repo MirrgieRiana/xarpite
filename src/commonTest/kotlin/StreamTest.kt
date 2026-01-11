@@ -73,4 +73,33 @@ class StreamTest {
         """.let { assertEquals(6.0, eval(it).double, 0.0001) } // 小数の長さを持つストリームの合計
     }
 
+    @Test
+    fun rangeOperatorWithStrings() = runTest {
+        // 閉区間演算子 .. で1文字文字列の範囲
+        assertEquals("a,b,c", eval("\"a\" .. \"c\"").stream()) // 昇順の文字範囲
+        assertEquals("z,y,x", eval("\"z\" .. \"x\"").stream()) // 降順の文字範囲
+        assertEquals("あ,ぃ,い,ぅ,う", eval("\"あ\" .. \"う\"").stream()) // ひらがなの範囲（文字コード順）
+        assertEquals("ん,を", eval("\"ん\" .. \"を\"").stream()) // ひらがなの降順範囲（ん U+3093 > を U+3092）
+        
+        // 半開区間演算子 ~ で1文字文字列の範囲
+        assertEquals("a,b,c", eval("\"a\" ~ \"d\"").stream()) // 昇順の文字範囲（半開区間）
+        assertEquals("", eval("\"d\" ~ \"a\"").stream()) // 降順の半開区間は空ストリーム
+        assertEquals("あ,ぃ,い,ぅ", eval("\"あ\" ~ \"う\"").stream()) // ひらがなの半開区間（文字コード順）
+        
+        // 1文字でない場合はエラー
+        try {
+            eval("\"ab\" .. \"cd\"").stream()
+            throw AssertionError("Should throw IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            // 期待通り
+        }
+        
+        try {
+            eval("\"a\" .. \"bc\"").stream()
+            throw AssertionError("Should throw IllegalArgumentException")
+        } catch (e: IllegalArgumentException) {
+            // 期待通り
+        }
+    }
+
 }

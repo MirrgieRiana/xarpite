@@ -30,6 +30,21 @@ $ xa '3 .. 1'
 # 1
 ```
 
+---
+
+When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
+
+```shell
+$ xa '"a" .. "e"'
+# a
+# b
+# c
+# d
+# e
+```
+
+If either `start` or `end` is not a single character, an error occurs.
+
 ## Half-Open Interval `start ~ end`
 
 The half-open interval operator creates a stream of integers from the left operand up to (but not including) the right operand.
@@ -50,6 +65,19 @@ Unlike the closed interval operator, the half-open interval operator creates an 
 $ xa '[3 ~ 1]'
 # []
 ```
+
+---
+
+When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
+
+```shell
+$ xa '"a" ~ "d"'
+# a
+# b
+# c
+```
+
+If either `start` or `end` is not a single character, an error occurs.
 
 # Stream Concatenation Operators
 
