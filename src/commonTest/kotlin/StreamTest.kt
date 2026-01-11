@@ -78,13 +78,13 @@ class StreamTest {
         // 閉区間演算子 .. で1文字文字列の範囲
         assertEquals("a,b,c", eval("\"a\" .. \"c\"").stream()) // 昇順の文字範囲
         assertEquals("z,y,x", eval("\"z\" .. \"x\"").stream()) // 降順の文字範囲
-        assertEquals("あ,い,う", eval("\"あ\" .. \"う\"").stream()) // ひらがなの範囲
-        assertEquals("ん,を,ゑ", eval("\"ん\" .. \"ゑ\"").stream()) // ひらがなの降順範囲
+        assertEquals("あ,ぃ,い,ぅ,う", eval("\"あ\" .. \"う\"").stream()) // ひらがなの範囲（文字コード順）
+        assertEquals("ん,を", eval("\"ん\" .. \"を\"").stream()) // ひらがなの降順範囲（ん U+3093 > を U+3092）
         
         // 半開区間演算子 ~ で1文字文字列の範囲
         assertEquals("a,b,c", eval("\"a\" ~ \"d\"").stream()) // 昇順の文字範囲（半開区間）
         assertEquals("", eval("\"d\" ~ \"a\"").stream()) // 降順の半開区間は空ストリーム
-        assertEquals("あ,い", eval("\"あ\" ~ \"う\"").stream()) // ひらがなの半開区間
+        assertEquals("あ,ぃ,い,ぅ", eval("\"あ\" ~ \"う\"").stream()) // ひらがなの半開区間（文字コード順）
         
         // 1文字でない場合はエラー
         try {
