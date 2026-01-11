@@ -772,7 +772,7 @@ $ xa '10::LET(x => x + x)::LET(y => y * 10)'
 ストリームに対して`::LET`を呼び出した場合、ブロックにはストリーム自体が渡されます。
 
 ```shell
-$ xa '1, 2, 3 >> LET(stream => stream >> SUM)'
+$ xa '(1, 2, 3)::LET(s => s >> SUM)'
 # 6
 ```
 
@@ -808,7 +808,7 @@ $ xa '100::ALSO(x => OUT << x)::ALSO(y => OUT << (y + 10))'
 ストリームに対して`::ALSO`を呼び出した場合、ブロックにはストリーム自体が渡されます。
 
 ```shell
-$ xa '1, 2, 3 >> ALSO(stream => OUT << "Processing stream")'
-# Processing stream
+$ xa '(1, 2, 3)::ALSO(s => OUT << "Processing")'
+# Processing
 # 123
 ```
