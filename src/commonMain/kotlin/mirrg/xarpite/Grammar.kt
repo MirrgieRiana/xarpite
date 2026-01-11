@@ -166,7 +166,7 @@ object XarpiteGrammar {
         -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
         -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
 
-        -b * -'.' * unaryOperator map { { main -> it(main, Side.LEFT) } },
+        -b * -'.' * -b * unaryOperator map { { main -> it(main, Side.LEFT) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
     val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
