@@ -16,6 +16,7 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
@@ -95,26 +96,25 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
             FluoriteNull
         },
-        "::LET" to FluoriteArray(
-            mutableListOf(
-                FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
-                    if (arguments.size != 2) usage("<I, O> I::LET(block: I -> O): O")
-                    val thisValue = arguments[0]
-                    val block = arguments[1]
-                    block.invoke(arrayOf(thisValue))
-                }
-            )
+        "::LET" to fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("<I, O> I::LET(block: I -> O): O")
+                val self = arguments[0]
+                val block = arguments[1]
+                block.invoke(arrayOf(self))
+            },
         ),
-        "::ALSO" to FluoriteArray(
-            mutableListOf(
-                FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
-                    if (arguments.size != 2) usage("<T> T::ALSO(block: T -> VALUE): T")
-                    val thisValue = arguments[0]
-                    val block = arguments[1]
-                    block.invoke(arrayOf(thisValue))
-                    thisValue
+        "::ALSO" to fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("<T> T::ALSO(block: T -> VALUE): T")
+                val self = arguments[0]
+                val block = arguments[1]
+                val result = block.invoke(arrayOf(self))
+                if (result is FluoriteStream) {
+                    result.collect { }
                 }
-            )
+                self
+            },
         ),
     ).let { listOf(it) }
 }
