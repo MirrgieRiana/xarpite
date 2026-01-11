@@ -12,6 +12,7 @@ enum class OperatorMethod(val methodName: String) {
     TO_STRING("&_"),
     GET_LENGTH("$#_"),
     PLUS("_+_"),
+    MINUS("_-_"),
     COMPARE("_<=>_"),
     CONTAINS("_@_"),
     MATCH("_=~_"),
