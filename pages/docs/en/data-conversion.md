@@ -23,26 +23,23 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 Decodes `blobLike` as a byte sequence encoded in UTF-8 into a single string.
 
-For details about `BLOB_LIKE`, see [BLOB](./blob.md).
-
-If `blobLike` is a stream, it converts the byte sequence obtained by concatenating all elements into a UTF-8 string.
-
-Therefore, this function works correctly even when BLOB boundaries are split in the middle of UTF-8 characters.
+For `BLOB_LIKE`, see [BLOB](./blob.md).
 
 This function does not normalize newline characters.
 
 ```shell
-$ xa '
-  BLOB.of([ 97,  98,  99]),
-  BLOB.of([ 49,  50,  51]),
-  BLOB.of([206, 177, 206]),
-  BLOB.of([178, 206, 179]),
-  >> UTF8D
-'
-# abc123αβγ
+$ xa 'BLOB.of([97, 98, 99, 49, 50, 51]) >> UTF8D'
+# abc123
+```
 
-$ xa ' [97, 98, 99, 49, 50, 51, 206, 177, 206, 178, 206, 179] >> UTF8D '
-# abc123αβγ
+---
+
+This function works correctly even when the input byte sequence boundaries are split in the middle of UTF-8 characters.
+
+```shell
+$ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
+'
+# αβγ
 ```
 
 ## `JSON` Convert Value to JSON String
