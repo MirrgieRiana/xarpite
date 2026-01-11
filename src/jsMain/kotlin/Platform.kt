@@ -27,7 +27,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = readBytesFromStdinImpl!!()
 var writeBytesToStdoutImpl: (suspend (ByteArray) -> Unit)? = null
 actual suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl!!(bytes)
 
-var writeBytesToStderrImpl: (suspend (ByteArray) -> Unit)? = { }
+var writeBytesToStderrImpl: (suspend (ByteArray) -> Unit)? = null
 actual suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl!!(bytes)
 
 actual suspend fun executeProcess(process: String, args: List<String>): String {
