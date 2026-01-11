@@ -340,6 +340,24 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 # 3
 ```
 
+## `INVERT` 値からキーを引くオブジェクトを返す
+
+`INVERT(object: OBJECT<VALUE>): OBJECT<STRING>`
+
+`object` の各エントリーの値からキーを引くオブジェクトを生成して返します。
+
+値はキーとして扱ううえで一度文字列化されます。
+
+値が重複していた場合、その中のいずれかのエントリーのキーがマッピングされます。
+
+```shell
+$ xa 'INVERT({a: 1; b: 2; c: 3})'
+# {1:a;2:b;3:c}
+
+$ xa 'INVERT({a: "x"; b: "y"; c: "x"})'
+# {x:c;y:b}
+```
+
 ## `SUM` ストリームの要素の合計
 
 `SUM(numbers: STREAM<NUMBER>): NUMBER`

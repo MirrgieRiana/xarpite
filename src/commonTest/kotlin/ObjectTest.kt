@@ -42,6 +42,12 @@ class ObjectTest {
     }
 
     @Test
+    fun invert() = runTest {
+        assertEquals("{1:a;2:b;3:c}", eval("INVERT({a: 1; b: 2; c: 3})").obj) // INVERT でキーと値を反転する
+        assertEquals("{x:c;y:b}", eval("INVERT({a: \"x\"; b: \"y\"; c: \"x\"})").obj) // 値が重複している場合はいずれかのキーがマッピングされる
+    }
+
+    @Test
     fun assignment() = runTest {
         assertEquals("{a:1;b:9}", eval("o := {a: 1; b: 2}; o.b = 9; o").obj) // オブジェクトのフィールドに代入できる
         assertEquals("{a:1;b:2;c:9}", eval("o := {a: 1; b: 2}; o.c = 9; o").obj) // 存在しないフィールドに代入すると新規追加される

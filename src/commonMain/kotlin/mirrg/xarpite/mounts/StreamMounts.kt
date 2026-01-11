@@ -203,6 +203,22 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 usage("VALUES(object: OBJECT): STREAM<VALUE>")
             }
         },
+        "INVERT" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val obj = arguments[0]
+                if (obj is FluoriteObject) {
+                    val invertedMap = mutableMapOf<String, FluoriteValue>()
+                    for ((key, value) in obj.map) {
+                        invertedMap[value.toString()] = key.toFluoriteString()
+                    }
+                    FluoriteObject(FluoriteObject.fluoriteClass, invertedMap)
+                } else {
+                    usage("INVERT(object: OBJECT<VALUE>): OBJECT<STRING>")
+                }
+            } else {
+                usage("INVERT(object: OBJECT<VALUE>): OBJECT<STRING>")
+            }
+        },
         "SUM" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
