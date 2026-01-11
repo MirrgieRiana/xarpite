@@ -136,8 +136,6 @@ object XarpiteGrammar {
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side) -> Node> = or(
-        -"++" map { ::UnaryPlusPlusNode },
-        -"--" map { ::UnaryMinusMinusNode },
         -'+' map { ::UnaryPlusNode },
         -'-' map { ::UnaryMinusNode },
         -'?' map { ::UnaryQuestionNode },
@@ -149,6 +147,14 @@ object XarpiteGrammar {
         -"$*" map { ::UnaryDollarAsteriskNode },
         -'@' map { ::UnaryAtNode },
         -'\\' map { ::UnaryBackslashNode },
+    )
+    val prefixIncrementDecrementOperator: Parser<(Node) -> Node> = or(
+        -"++" map { { main -> UnaryPlusPlusNode(main, Side.LEFT) } },
+        -"--" map { { main -> UnaryMinusMinusNode(main, Side.LEFT) } },
+    )
+    val unaryIncrementDecrementOperator: Parser<(Node, Side) -> Node> = or(
+        -"++" map { ::UnaryPlusPlusNode },
+        -"--" map { ::UnaryMinusMinusNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
         -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
@@ -166,14 +172,18 @@ object XarpiteGrammar {
         -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
         -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
 
-        -b * -'.' * -b * unaryOperator map { { main -> it(main, Side.LEFT) } },
+        -b * -'.' * -b * unaryIncrementDecrementOperator map { { main -> it(main, Side.LEFT) } },
+        -b * -'.' * unaryOperator map { { main -> it(main, Side.LEFT) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
     val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
         val right = it.b.a
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
-    val leftPrefixOperator: Parser<(Node) -> Node> = unaryOperator map { f -> { node -> f(node, Side.LEFT) } }
+    val leftPrefixOperator: Parser<(Node) -> Node> = or(
+        prefixIncrementDecrementOperator,
+        unaryOperator map { f -> { node -> f(node, Side.LEFT) } },
+    )
     val left: Parser<Node> = (leftPrefixOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node) } }
 
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
