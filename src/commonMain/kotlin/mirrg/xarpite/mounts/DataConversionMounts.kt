@@ -6,6 +6,7 @@ import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.aggregateToBlob
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
@@ -28,26 +29,16 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             utf8Bytes.asFluoriteBlob()
         },
         "UTF8D" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
-            fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")
+            fun usage(): Nothing = usage("UTF8D(blobLike: BLOB_LIKE): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
 
-            val allBytes = mutableListOf<UByte>()
-
-            // Collect all bytes from BLOB(s)
-            if (value is FluoriteStream) {
-                value.collect { item ->
-                    val blob = item as? FluoriteBlob ?: usage()
-                    allBytes.addAll(blob.value.toList())
-                }
-            } else {
-                val blob = value as? FluoriteBlob ?: usage()
-                allBytes.addAll(blob.value.toList())
-            }
-
+            // Use aggregateToBlob to handle BLOB_LIKE
+            val blob = aggregateToBlob(value)
+            val byteArray = blob.value.asByteArray()
+            
             // Convert UTF-8 bytes to string
             // decodeToString() will throw IllegalArgumentException for invalid UTF-8 sequences
-            val byteArray = allBytes.toUByteArray().asByteArray()
             val resultString = byteArray.decodeToString()
             resultString.toFluoriteString()
         },

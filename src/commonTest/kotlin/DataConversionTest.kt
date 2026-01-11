@@ -139,6 +139,22 @@ class DataConversionTest {
         assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> UTF8D """).string)
         assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> UTF8 >> UTF8D """).string) // 絵文字も正しく変換される
         assertEquals("a\r\nb\nc\rd", eval(""" "a\r\nb\nc\rd" >> UTF8 >> UTF8D """).string) // 改行文字も正規化されずに保持される
+
+        // UTF8D はARRAYも受け付ける
+        assertEquals("abc123αβγ", eval(""" [97, 98, 99, 49, 50, 51, 206, 177, 206, 178, 206, 179] >> UTF8D """).string) // 配列から直接デコード
+        
+        // UTF8D は数値も受け付ける
+        assertEquals("a", eval(""" 97 >> UTF8D """).string) // 単一の数値
+        
+        // UTF8D はARRAYとBLOBの混在したストリームも受け付ける
+        assertEquals("abc123αβγ", eval("""
+            [97, 98, 99],
+            BLOB.of([49, 50, 51]),
+            [206, 177, 206],
+            BLOB.of([178, 206, 179])
+            >> UTF8D
+        """).string) // 配列とBLOBの混在ストリームをデコード
     }
+
 
 }
