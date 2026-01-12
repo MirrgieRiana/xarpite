@@ -595,19 +595,19 @@ class RangeGetter(private val leftGetter: Getter, private val rightGetter: Gette
                 }
             }
         }
-        
+
         // 1文字文字列の範囲
         if (leftValue is FluoriteString && rightValue is FluoriteString) {
             val leftStr = leftValue.value
             val rightStr = rightValue.value
-            
+
             if (leftStr.length != 1 || rightStr.length != 1) {
                 throw IllegalArgumentException("Range operator with strings requires both operands to be single characters")
             }
-            
+
             val leftCode = leftStr[0].code
             val rightCode = rightStr[0].code
-            
+
             return if (leftCode > rightCode) {
                 // 下降
                 FluoriteStream {
@@ -628,7 +628,7 @@ class RangeGetter(private val leftGetter: Getter, private val rightGetter: Gette
                 }
             }
         }
-        
+
         throw IllegalArgumentException("Range operator requires both operands to be integers or single-character strings")
     }
 
@@ -640,7 +640,7 @@ class ExclusiveRangeGetter(private val leftGetter: Getter, private val rightGett
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val leftValue = leftGetter.evaluate(env)
         val rightValue = rightGetter.evaluate(env)
-        
+
         // 整数の範囲
         if (leftValue is FluoriteInt && rightValue is FluoriteInt) {
             val left = leftValue.value
@@ -653,19 +653,19 @@ class ExclusiveRangeGetter(private val leftGetter: Getter, private val rightGett
                 }
             }
         }
-        
+
         // 1文字文字列の範囲
         if (leftValue is FluoriteString && rightValue is FluoriteString) {
             val leftStr = leftValue.value
             val rightStr = rightValue.value
-            
+
             if (leftStr.length != 1 || rightStr.length != 1) {
                 throw IllegalArgumentException("Range operator with strings requires both operands to be single characters")
             }
-            
+
             val leftCode = leftStr[0].code
             val rightCode = rightStr[0].code
-            
+
             return FluoriteStream {
                 var i = leftCode
                 while (i < rightCode) {
@@ -674,7 +674,7 @@ class ExclusiveRangeGetter(private val leftGetter: Getter, private val rightGett
                 }
             }
         }
-        
+
         throw IllegalArgumentException("Range operator requires both operands to be integers or single-character strings")
     }
 
