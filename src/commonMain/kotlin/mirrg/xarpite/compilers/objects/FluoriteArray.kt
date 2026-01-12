@@ -126,7 +126,6 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeLast()
-                        FluoriteNull
                     },
                     "unshift" to FluoriteFunction { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
@@ -147,7 +146,6 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeFirst()
-                        FluoriteNull
                     },
                 )
             )

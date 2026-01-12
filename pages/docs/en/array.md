@@ -363,12 +363,12 @@ The `unshift` `shift` `push` `pop` methods add/remove elements at the beginning/
 
 These methods perform destructive operations.
 
-| Method    | Target | Operation     |
-|-----------|--------|---------------|
-| `unshift` | Start  | Add element   |
-| `shift`   | Start  | Remove element|
-| `push`    | End    | Add element   |
-| `pop`     | End    | Remove element|
+| Method    | Target | Operation      | Return Value      |
+|-----------|--------|----------------|-------------------|
+| `unshift` | Start  | Add element    | `NULL`            |
+| `shift`   | Start  | Remove element | Removed element   |
+| `push`    | End    | Add element    | `NULL`            |
+| `pop`     | End    | Remove element | Removed element   |
 
 ```shell
 $ xa -q '
@@ -377,19 +377,21 @@ $ xa -q '
   array::unshift("minus one")
   OUT << array
 
-  array::shift()
+  OUT << array::shift()
   OUT << array
 
   array::push("five")
   OUT << array
 
-  array::pop()
+  OUT << array::pop()
   OUT << array
 '
 # [minus one;zero;one;two;three;four]
-# [zero;one;two;three;four]
-# [zero;one;two;three;four;five]
-# [zero;one;two;three;four]
+# zero
+# [one;two;three;four]
+# [one;two;three;four;five]
+# five
+# [one;two;three;four]
 ```
 
 ## `unshift` `push` with Streams

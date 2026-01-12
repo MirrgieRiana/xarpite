@@ -363,12 +363,12 @@ $ xa '
 
 これらのメソッドは、破壊的な操作を行います。
 
-| メソッド      | 操作対象 | 操作内容  |
-|-----------|------|-------|
-| `unshift` | 先頭   | 要素を追加 |
-| `shift`   | 先頭   | 要素を削除 |
-| `push`    | 末尾   | 要素を追加 |
-| `pop`     | 末尾   | 要素を削除 |
+| メソッド      | 操作対象 | 操作内容  | 返り値       |
+|-----------|------|-------|-----------|
+| `unshift` | 先頭   | 要素を追加 | `NULL`    |
+| `shift`   | 先頭   | 要素を削除 | 削除した要素    |
+| `push`    | 末尾   | 要素を追加 | `NULL`    |
+| `pop`     | 末尾   | 要素を削除 | 削除した要素    |
 
 ```shell
 $ xa -q '
@@ -377,19 +377,21 @@ $ xa -q '
   array::unshift("minus one")
   OUT << array
 
-  array::shift()
+  OUT << array::shift()
   OUT << array
 
   array::push("five")
   OUT << array
 
-  array::pop()
+  OUT << array::pop()
   OUT << array
 '
 # [minus one;zero;one;two;three;four]
-# [zero;one;two;three;four]
-# [zero;one;two;three;four;five]
-# [zero;one;two;three;four]
+# zero
+# [one;two;three;four]
+# [one;two;three;four;five]
+# five
+# [one;two;three;four]
 ```
 
 ## ストリームの `unshift` `push`
