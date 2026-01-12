@@ -204,6 +204,21 @@ $ xa '3 - 1'
 # 2
 ```
 
+---
+
+Like the addition operator, the subtraction operator can be overridden.
+
+```shell
+$ xa '
+  Obj := {
+    `_-_`: this, other -> this.value - other.value
+  }
+
+  Obj{value: 123} - Obj{value: 23}
+'
+# 100
+```
+
 ## Multiplication/Division Operators
 
 Multiplication/division operators consist of operators that perform multiplication/division-like operations.
