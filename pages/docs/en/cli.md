@@ -472,8 +472,8 @@ Outputs to standard error output.
 This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
 
 ```shell
-$ xa -q 'ERR("Error!")' > /dev/null
-# Error!
+$ xa -q 'ERR("Error!")'
+Error!
 ```
 
 ### `ERRB`: Output Byte Data to Standard Error
@@ -485,8 +485,8 @@ Converts `blobLike` to a byte sequence and outputs it as a byte sequence to stan
 This function operates similarly to the `OUTB` function, but writes to standard error output instead of standard output.
 
 ```shell
-$ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
-# ABC
+$ xa -q '65, 66, 67, 10 >> ERRB'
+ABC
 ```
 
 ### `FILES`: Get List of Files in Directory
