@@ -387,11 +387,11 @@ $ xa -q '
   OUT << array
 '
 # [minus one;zero;one;two;three;four]
-# zero
-# [one;two;three;four]
-# [one;two;three;four;five]
+# minus one
+# [zero;one;two;three;four]
+# [zero;one;two;three;four;five]
 # five
-# [one;two;three;four]
+# [zero;one;two;three;four]
 ```
 
 ## `unshift` `push` with Streams
