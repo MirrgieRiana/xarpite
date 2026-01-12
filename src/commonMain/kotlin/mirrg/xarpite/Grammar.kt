@@ -158,8 +158,8 @@ object XarpiteGrammar {
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
 
-        -b * -"++" map { { main -> SuffixPlusPlusNode(main) } },
-        -b * -"--" map { { main -> SuffixMinusMinusNode(main) } },
+        -s * -"++" map { { main -> SuffixPlusPlusNode(main) } },
+        -s * -"--" map { { main -> SuffixMinusMinusNode(main) } },
 
         -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
         -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },
