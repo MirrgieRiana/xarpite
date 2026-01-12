@@ -27,6 +27,14 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
+                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                        val left = arguments[0] as FluoriteInt
+                        when (val right = arguments[1]) {
+                            is FluoriteInt -> FluoriteInt(left.value - right.value)
+                            is FluoriteDouble -> FluoriteDouble(left.value - right.value)
+                            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+                        }
+                    },
                     OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
@@ -63,6 +71,14 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value + right.value)
                             is FluoriteDouble -> FluoriteDouble(left.value + right.value)
+                            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+                        }
+                    },
+                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                        val left = arguments[0] as FluoriteDouble
+                        when (val right = arguments[1]) {
+                            is FluoriteInt -> FluoriteDouble(left.value - right.value)
+                            is FluoriteDouble -> FluoriteDouble(left.value - right.value)
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
