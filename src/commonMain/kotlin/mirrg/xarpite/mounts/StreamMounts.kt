@@ -209,7 +209,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 if (obj is FluoriteObject) {
                     val invertedMap = mutableMapOf<String, FluoriteValue>()
                     for ((key, value) in obj.map) {
-                        invertedMap[value.toString()] = key.toFluoriteString()
+                        invertedMap[value.toFluoriteString().toString()] = key.toFluoriteString()
                     }
                     FluoriteObject(FluoriteObject.fluoriteClass, invertedMap)
                 } else {
