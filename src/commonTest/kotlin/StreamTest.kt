@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.empty
 import mirrg.xarpite.test.eval
@@ -71,6 +72,37 @@ class StreamTest {
           line2 := Line{a: [0; 0]; b: [1; 0]}
           $#(line1, line2)
         """.let { assertEquals(6.0, eval(it).double, 0.0001) } // 小数の長さを持つストリームの合計
+    }
+
+    @Test
+    fun rangeOperatorWithStrings() = runTest {
+        // 閉区間演算子 .. で1文字文字列の範囲
+        assertEquals("a,b,c", eval("\"a\" .. \"c\"").stream()) // ラテン文字の範囲（ドキュメントの例）
+        assertEquals("α,β,γ", eval("\"α\" .. \"γ\"").stream()) // ギリシャ文字の範囲（ドキュメントの例）
+        assertEquals("z,y,x", eval("\"z\" .. \"x\"").stream()) // 降順の文字範囲
+        assertEquals("あ,ぃ,い,ぅ,う", eval("\"あ\" .. \"う\"").stream()) // ひらがなの範囲（文字コード順）
+        assertEquals("ん,を", eval("\"ん\" .. \"を\"").stream()) // ひらがなの降順範囲（ん U+3093 > を U+3092）
+        
+        // 半開区間演算子 ~ で1文字文字列の範囲
+        assertEquals("a,b,c", eval("\"a\" ~ \"d\"").stream()) // ラテン文字の半開区間（ドキュメントの例）
+        assertEquals("α,β,γ", eval("\"α\" ~ \"δ\"").stream()) // ギリシャ文字の半開区間（ドキュメントの例）
+        assertEquals("", eval("\"d\" ~ \"a\"").stream()) // 降順の半開区間は空ストリーム
+        assertEquals("あ,ぃ,い,ぅ", eval("\"あ\" ~ \"う\"").stream()) // ひらがなの半開区間（文字コード順）
+        
+        // 1文字でない場合はエラー
+        try {
+            eval("\"ab\" .. \"cd\"").stream()
+            throw AssertionError("Should throw IllegalArgumentException")
+        } catch (e: FluoriteException) {
+            // 期待通り
+        }
+        
+        try {
+            eval("\"a\" .. \"bc\"").stream()
+            throw AssertionError("Should throw IllegalArgumentException")
+        } catch (e: FluoriteException) {
+            // 期待通り
+        }
     }
 
 }
