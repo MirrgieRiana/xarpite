@@ -402,6 +402,47 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 # -abab--abab-
 ```
 
+# 文字列の最初の出現個所の置換
+
+`STRING::replaceFirst(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+`replaceFirst` メソッドで文字列内の最初の出現個所のみを置換することができます。
+
+## 文字列による置換
+
+`old` に文字列が渡された場合、その文字列の最初の出現個所のみを置換します。
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst("ab"; "AB")'
+# -AB--ab-
+```
+
+## 正規表現による置換
+
+`old` に正規表現が渡された場合、その正規表現にマッチした最初の部分のみを置換します。
+
+正規表現オブジェクトがグローバルであるかどうかに関わらず、常に最初にマッチした部分のみが置換対象となります。
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/; "xx")'
+# -xx--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; "xx")'
+# -xx--ab-
+```
+
+## 関数への置換
+
+`new` に関数が渡された場合、最初にマッチした部分に対してその関数が呼び出され、その戻り値で置換されます。
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst("ab"; m -> m.0 * 2)'
+# -abab--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; m -> m.0 * 2)'
+# -abab--ab-
+```
+
 # 文字列ユーティリティ関数
 
 ## `UC` 大文字に変換

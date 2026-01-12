@@ -402,6 +402,47 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 # -abab--abab-
 ```
 
+# Replacing the First Occurrence in a String
+
+`STRING::replaceFirst(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+The `replaceFirst` method replaces only the first occurrence within a string.
+
+## Replacement with Strings
+
+If a string is passed to `old`, only the first occurrence of that string is replaced.
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst("ab"; "AB")'
+# -AB--ab-
+```
+
+## Replacement with Regular Expressions
+
+If a regular expression is passed to `old`, only the first part matching that regular expression is replaced.
+
+Regardless of whether the regular expression object is global or not, only the first matching part is always replaced.
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/; "xx")'
+# -xx--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; "xx")'
+# -xx--ab-
+```
+
+## Replacement with Functions
+
+If a function is passed to `new`, that function is called for the first matched part, and replacement is done with its return value.
+
+```shell
+$ xa '"-ab--ab-"::replaceFirst("ab"; m -> m.0 * 2)'
+# -abab--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; m -> m.0 * 2)'
+# -abab--ab-
+```
+
 # String Utility Functions
 
 ## `UC` Convert to Uppercase
