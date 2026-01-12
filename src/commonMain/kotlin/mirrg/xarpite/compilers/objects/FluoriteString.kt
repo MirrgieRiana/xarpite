@@ -162,6 +162,49 @@ data class FluoriteString(val value: String) : FluoriteValue {
 
                         sb.toString().toFluoriteString()
                     },
+                    "replaceFirst" to FluoriteFunction { arguments ->
+                        if (arguments.size != 3) throw IllegalArgumentException("STRING::replaceFirst(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING")
+                        val string = arguments[0] as FluoriteString
+                        val old = arguments[1]
+                        val new = arguments[2]
+
+                        val sb = StringBuilder()
+                        var index = 0
+
+                        suspend fun yield(matchResult: FluoriteValue, fromIndex: Int, toIndex: Int) {
+                            sb.append(string.value, index, fromIndex)
+                            val newValue = if (new is FluoriteFunction) {
+                                new.invoke(arrayOf(matchResult))
+                            } else {
+                                new
+                            }
+                            sb.append(newValue.toFluoriteString().value)
+                            index = toIndex
+                        }
+
+                        when (old) {
+                            is FluoriteRegex -> {
+                                old.regexCache.find(string.value)?.let { result ->
+                                    yield(result.toFluoriteValue(), result.range.first, result.range.last + 1)
+                                }
+                            }
+
+                            else -> {
+                                val oldString = old.toFluoriteString().value
+                                if (oldString.isNotEmpty()) {
+                                    val foundIndex = string.value.indexOf(oldString, index)
+                                    if (foundIndex != -1) {
+                                        yield(createFluoriteMatchResult(listOf(oldString)), foundIndex, foundIndex + oldString.length)
+                                    }
+                                } else {
+                                    yield(createFluoriteMatchResult(listOf("")), 0, 0)
+                                }
+                            }
+                        }
+                        sb.append(string.value, index, string.value.length)
+
+                        sb.toString().toFluoriteString()
+                    },
                 )
             )
         }
