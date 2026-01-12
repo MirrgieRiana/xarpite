@@ -67,6 +67,8 @@ import mirrg.xarpite.RawStringNode
 import mirrg.xarpite.RegexNode
 import mirrg.xarpite.ReturnNode
 import mirrg.xarpite.SemicolonsNode
+import mirrg.xarpite.SuffixMinusMinusNode
+import mirrg.xarpite.SuffixPlusPlusNode
 import mirrg.xarpite.TemplateStringNode
 import mirrg.xarpite.ThrowNode
 import mirrg.xarpite.UnaryAmpersandNode
@@ -77,17 +79,13 @@ import mirrg.xarpite.UnaryDollarAmpersandNode
 import mirrg.xarpite.UnaryDollarAsteriskNode
 import mirrg.xarpite.UnaryDollarSharpNode
 import mirrg.xarpite.UnaryExclamationNode
+import mirrg.xarpite.UnaryMinusMinusNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
-import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.UnaryPlusPlusNode
-import mirrg.xarpite.UnaryMinusMinusNode
-import mirrg.xarpite.SuffixPlusPlusNode
-import mirrg.xarpite.SuffixMinusMinusNode
-import mirrg.xarpite.Side
+import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
-import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
@@ -125,10 +123,6 @@ import mirrg.xarpite.operations.LabelGetter
 import mirrg.xarpite.operations.LessComparator
 import mirrg.xarpite.operations.LessEqualComparator
 import mirrg.xarpite.operations.LinesGetter
-import mirrg.xarpite.operations.PrefixIncrementGetter
-import mirrg.xarpite.operations.SuffixIncrementGetter
-import mirrg.xarpite.operations.PrefixDecrementGetter
-import mirrg.xarpite.operations.SuffixDecrementGetter
 import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.LiteralStringGetter
 import mirrg.xarpite.operations.MatchGetter
@@ -147,11 +141,15 @@ import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
 import mirrg.xarpite.operations.PlusGetter
 import mirrg.xarpite.operations.PowerGetter
+import mirrg.xarpite.operations.PrefixDecrementGetter
+import mirrg.xarpite.operations.PrefixIncrementGetter
 import mirrg.xarpite.operations.RangeGetter
 import mirrg.xarpite.operations.ReturnGetter
 import mirrg.xarpite.operations.SpaceshipGetter
 import mirrg.xarpite.operations.StreamConcatenationGetter
 import mirrg.xarpite.operations.StringConcatenationGetter
+import mirrg.xarpite.operations.SuffixDecrementGetter
+import mirrg.xarpite.operations.SuffixIncrementGetter
 import mirrg.xarpite.operations.ThrowGetter
 import mirrg.xarpite.operations.TimesGetter
 import mirrg.xarpite.operations.ToBooleanGetter
@@ -164,7 +162,6 @@ import mirrg.xarpite.operations.TryCatchGetter
 import mirrg.xarpite.operations.TryCatchWithVariableGetter
 import mirrg.xarpite.operations.VariableDefinitionObjectInitializer
 import mirrg.xarpite.operations.VariableGetter
-import mirrg.xarpite.operations.VariableSetter
 
 fun Frame.compileToGetter(node: Node): Getter {
     return when (node) {
