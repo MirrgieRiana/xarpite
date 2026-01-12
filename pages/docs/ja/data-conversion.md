@@ -42,6 +42,88 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `URL` 文字列をURLエンコード
+
+`URL(string: STRING): STRING`
+
+`string` を `application/x-www-form-urlencoded` 形式でエンコードします。
+
+`A-Z a-z 0-9 - _ . ~` およびスペース以外の文字はUTF-8バイト列にして `%XX` 形式でエンコードされます。
+
+スペースは `+` に変換されます。
+
+```shell
+$ xa ' "Hello World" >> URL '
+# Hello+World
+
+$ xa ' "a=b&c=d" >> URL '
+# a%3Db%26c%3Dd
+
+$ xa ' "こんにちは" >> URL '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+## `URLD` URLエンコードされた文字列をデコード
+
+`URLD(string: STRING): STRING`
+
+`application/x-www-form-urlencoded` 形式でエンコードされた文字列をデコードします。
+
+`+` はスペースに変換されます。
+
+`%XX` 形式のシーケンスはUTF-8バイト列として解釈され、文字列にデコードされます。
+
+```shell
+$ xa ' "Hello+World" >> URLD '
+# Hello World
+
+$ xa ' "a%3Db%26c%3Dd" >> URLD '
+# a=b&c=d
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
+# こんにちは
+```
+
+## `PERCENT` 文字列をパーセントエンコード
+
+`PERCENT(string: STRING): STRING`
+
+`string` をパーセントエンコードします。
+
+`a-z A-Z 0-9` 以外の文字はすべてUTF-8バイト列にして `%XX` 形式でエンコードされます。
+
+この関数は汎用的なエスケープ用途に使用でき、`%` 以外の記号が一切出現しない安全な文字列を生成します。
+
+```shell
+$ xa ' "Hello World" >> PERCENT '
+# Hello%20World
+
+$ xa ' "a-b_c.d" >> PERCENT '
+# a%2Db%5Fc%2Ed
+
+$ xa ' "こんにちは" >> PERCENT '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+## `PERCENTD` パーセントエンコードされた文字列をデコード
+
+`PERCENTD(string: STRING): STRING`
+
+パーセントエンコードされた文字列をデコードします。
+
+`%XX` 形式のシーケンスはUTF-8バイト列として解釈され、文字列にデコードされます。
+
+```shell
+$ xa ' "Hello%20World" >> PERCENTD '
+# Hello World
+
+$ xa ' "a%2Db%5Fc%2Ed" >> PERCENTD '
+# a-b_c.d
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
+# こんにちは
+```
+
 ## `JSON` 値をJSON文字列に変換
 
 `JSON(["indent": indent: STRING; ]value: VALUE): STRING`

@@ -42,6 +42,88 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `URL` Encode String to URL Format
+
+`URL(string: STRING): STRING`
+
+Encodes `string` in `application/x-www-form-urlencoded` format.
+
+Characters other than `A-Z a-z 0-9 - _ . ~` and space are encoded as UTF-8 byte sequences in `%XX` format.
+
+Spaces are converted to `+`.
+
+```shell
+$ xa ' "Hello World" >> URL '
+# Hello+World
+
+$ xa ' "a=b&c=d" >> URL '
+# a%3Db%26c%3Dd
+
+$ xa ' "こんにちは" >> URL '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+## `URLD` Decode URL-Encoded String
+
+`URLD(string: STRING): STRING`
+
+Decodes a string encoded in `application/x-www-form-urlencoded` format.
+
+`+` is converted to space.
+
+`%XX` format sequences are interpreted as UTF-8 byte sequences and decoded to a string.
+
+```shell
+$ xa ' "Hello+World" >> URLD '
+# Hello World
+
+$ xa ' "a%3Db%26c%3Dd" >> URLD '
+# a=b&c=d
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
+# こんにちは
+```
+
+## `PERCENT` Encode String with Percent Encoding
+
+`PERCENT(string: STRING): STRING`
+
+Encodes `string` with percent encoding.
+
+All characters other than `a-z A-Z 0-9` are encoded as UTF-8 byte sequences in `%XX` format.
+
+This function is for general-purpose escaping and generates safe strings with no symbols other than `%`.
+
+```shell
+$ xa ' "Hello World" >> PERCENT '
+# Hello%20World
+
+$ xa ' "a-b_c.d" >> PERCENT '
+# a%2Db%5Fc%2Ed
+
+$ xa ' "こんにちは" >> PERCENT '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+## `PERCENTD` Decode Percent-Encoded String
+
+`PERCENTD(string: STRING): STRING`
+
+Decodes a percent-encoded string.
+
+`%XX` format sequences are interpreted as UTF-8 byte sequences and decoded to a string.
+
+```shell
+$ xa ' "Hello%20World" >> PERCENTD '
+# Hello World
+
+$ xa ' "a%2Db%5Fc%2Ed" >> PERCENTD '
+# a-b_c.d
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
+# こんにちは
+```
+
 ## `JSON` Convert Value to JSON String
 
 `JSON(["indent": indent: STRING; ]value: VALUE): STRING`
