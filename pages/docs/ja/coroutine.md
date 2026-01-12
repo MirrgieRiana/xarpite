@@ -22,6 +22,8 @@ title: "コルーチン"
 
 この関数は `function` の戻り値もしくは `function` 内でスローされた例外が格納される `PROMISE` を返します。
 
+`function` 内で例外がスローされた場合、その例外は標準エラー出力にも出力されます。
+
 ```shell
 $ xa '
   promise := LAUNCH ( =>
