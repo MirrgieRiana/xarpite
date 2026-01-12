@@ -172,15 +172,18 @@ object XarpiteGrammar {
         -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
         -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
 
-        -b * -'.' * -b * unaryIncrementDecrementOperator map { { main -> it(main, Side.RIGHT) } },
-        -b * -'.' * -b * unaryOperator map { { main -> it(main, Side.RIGHT) } },
+        -b * -'.' * unaryIncrementDecrementOperator map { { main -> it(main, Side.RIGHT) } },
+        -b * -'.' * unaryOperator map { { main -> it(main, Side.RIGHT) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
     val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
         val right = it.b.a
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
-    val left: Parser<Node> = (prefixIncrementDecrementOperator + (unaryOperator map { f -> { node -> f(node, Side.LEFT) } }) * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node) } }
+    val left: Parser<Node> = ((or(
+        prefixIncrementDecrementOperator,
+        unaryOperator map { f -> { node -> f(node, Side.LEFT) } },
+    )) * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node) } }
 
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
