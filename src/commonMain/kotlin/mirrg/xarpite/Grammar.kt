@@ -173,7 +173,7 @@ object XarpiteGrammar {
         val right = it.b.a
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
-    val left: Parser<Node> = ((unaryOperator map { f -> { node: Node -> f(node, Side.LEFT) } }) * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node) } }
+    val left: Parser<Node> = (unaryOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node, Side.LEFT) } }
 
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
