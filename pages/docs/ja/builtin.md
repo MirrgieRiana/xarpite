@@ -346,17 +346,44 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 
 `object` の各エントリーの値からキーを引くオブジェクトを生成して返します。
 
+```shell
+$ xa 'INVERT({a: "apple"; b: "banana"; c: "cherry"})'
+# {apple:a;banana:b;cherry:c}
+```
+
+---
+
 値はキーとして扱ううえで一度文字列化されます。
+
+```shell
+$ xa '
+  Fruit := {
+    new: value -> Fruit{value: value}
+    `&_`: this -> "Fruit[$(this.value)]"
+  }
+  INVERT({
+    a: Fruit.new("apple")
+    b: Fruit.new("banana")
+    c: Fruit.new("cherry")
+  })
+'
+# {Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}
+```
+
+---
 
 値が重複していた場合、その中のいずれかのエントリーのキーがマッピングされます。
 
 ```shell
-$ xa 'INVERT({a: 1; b: 2; c: 3})'
-# {1:a;2:b;3:c}
-
-$ xa 'INVERT({a: "x"; b: "y"; c: "x"})'
-# {x:c;y:b}
+$ xa '
+  object   := {a: "apple"; b: "banana"; c: "apple"}
+  inverted := INVERT(object)
+  inverted.apple >> object
+'
+# apple
 ```
+
+どのキーがマッピングされるかは未定義です。
 
 ## `SUM` ストリームの要素の合計
 
