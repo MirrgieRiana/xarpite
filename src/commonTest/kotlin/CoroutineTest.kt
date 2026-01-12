@@ -98,6 +98,18 @@ class CoroutineTest {
         assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isCompleted()").boolean) // 完了すると完了になる
         assertEquals(true, eval("promise := PROMISE.new(); promise::fail(); promise::isCompleted()").boolean) // エラーで完了すると完了になる
 
+        // LAUNCH 内で例外が発生した場合、その例外は await() 時にスローされ、stderrにも出力される
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            (
+                job::await()
+                !!"Should not reach here"
+            ) !? (e => e)
+        """.let { assertEquals("Error in LAUNCH", eval(it).string) }
+
     }
 
     @Test
