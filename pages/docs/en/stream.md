@@ -35,15 +35,16 @@ $ xa '3 .. 1'
 When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
 
 ```shell
-$ xa '"a" .. "e"'
+$ xa '"a" .. "c"'
 # a
 # b
 # c
-# d
-# e
-```
 
-If either `start` or `end` is not a single character, an error occurs.
+$ xa '"α" .. "γ"'
+# α
+# β
+# γ
+```
 
 ## Half-Open Interval `start ~ end`
 
@@ -75,9 +76,12 @@ $ xa '"a" ~ "d"'
 # a
 # b
 # c
-```
 
-If either `start` or `end` is not a single character, an error occurs.
+$ xa '"α" ~ "δ"'
+# α
+# β
+# γ
+```
 
 # Stream Concatenation Operators
 
