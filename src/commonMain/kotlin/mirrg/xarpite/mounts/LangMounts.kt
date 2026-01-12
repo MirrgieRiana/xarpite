@@ -16,6 +16,7 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
+import writeBytesToStderr
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -64,6 +65,13 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                 try {
                     promise.deferred.complete(function.invoke(emptyArray()).cache())
                 } catch (e: Throwable) {
+                    // 例外をstderrに出力
+                    try {
+                        val errorMessage = "Exception in LAUNCH: ${e.message ?: e.toString()}\n"
+                        writeBytesToStderr(errorMessage.encodeToByteArray())
+                    } catch (_: Throwable) {
+                        // stderrへの出力に失敗しても、元の例外処理は継続する
+                    }
                     promise.deferred.completeExceptionally(e)
                 }
             }
