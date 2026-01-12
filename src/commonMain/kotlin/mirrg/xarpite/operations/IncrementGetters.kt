@@ -8,10 +8,10 @@ import mirrg.xarpite.compilers.objects.plus
 
 class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setter = setter.evaluate(env)
+        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = oldValue.plus(FluoriteInt.ONE)
-        setter(newValue)
+        setterFunction(newValue)
         return newValue
     }
 
@@ -20,10 +20,10 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setter = setter.evaluate(env)
+        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = oldValue.plus(FluoriteInt.ONE)
-        setter(newValue)
+        setterFunction(newValue)
         return oldValue
     }
 
@@ -32,10 +32,10 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setter = setter.evaluate(env)
+        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = oldValue.minus(FluoriteInt.ONE)
-        setter(newValue)
+        setterFunction(newValue)
         return newValue
     }
 
@@ -44,10 +44,10 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setter = setter.evaluate(env)
+        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         val newValue = oldValue.minus(FluoriteInt.ONE)
-        setter(newValue)
+        setterFunction(newValue)
         return oldValue
     }
 
