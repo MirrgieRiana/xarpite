@@ -28,6 +28,7 @@ import mirrg.xarpite.compilers.objects.getMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
+import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -376,26 +377,11 @@ class PlusGetter(private val leftGetter: Getter, private val rightGetter: Getter
     override val code get() = "PlusGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-// TODO to method
 class MinusGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return when (left) {
-            is FluoriteInt -> when (right) {
-                is FluoriteInt -> FluoriteInt(left.value - right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value - right.value)
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            is FluoriteDouble -> when (right) {
-                is FluoriteInt -> FluoriteDouble(left.value - right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value - right.value)
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
-        }
+        return left.minus(right)
     }
 
     override val code get() = "MinusGetter[${leftGetter.code};${rightGetter.code}]"
