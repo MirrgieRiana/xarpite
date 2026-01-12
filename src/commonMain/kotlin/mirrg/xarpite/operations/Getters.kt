@@ -667,7 +667,7 @@ class ExclusiveRangeGetter(private val leftGetter: Getter, private val rightGett
             }
         }
 
-        throw IllegalArgumentException("Range operator requires both operands to be integers or single-character strings")
+        throw FluoriteException("Range operator requires both operands to be integers or single-character strings".toFluoriteString())
     }
 
     override val code get() = "ExclusiveRangeGetter[${leftGetter.code};${rightGetter.code}]"

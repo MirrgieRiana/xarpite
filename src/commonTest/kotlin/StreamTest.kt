@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.empty
 import mirrg.xarpite.test.eval
@@ -92,14 +93,14 @@ class StreamTest {
         try {
             eval("\"ab\" .. \"cd\"").stream()
             throw AssertionError("Should throw IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
+        } catch (e: FluoriteException) {
             // 期待通り
         }
         
         try {
             eval("\"a\" .. \"bc\"").stream()
             throw AssertionError("Should throw IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
+        } catch (e: FluoriteException) {
             // 期待通り
         }
     }
