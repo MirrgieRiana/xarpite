@@ -59,7 +59,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                         bytes.add(' '.code.toByte())
                         i++
                     }
-                    char == '%' && i + 2 < string.length -> {
+                    char == '%' && i + 3 <= string.length -> {
                         val hex = string.substring(i + 1, i + 3)
                         bytes.add(hex.toInt(16).toByte())
                         i += 3
@@ -95,7 +95,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             while (i < string.length) {
                 val char = string[i]
                 when {
-                    char == '%' && i + 2 < string.length -> {
+                    char == '%' && i + 3 <= string.length -> {
                         val hex = string.substring(i + 1, i + 3)
                         bytes.add(hex.toInt(16).toByte())
                         i += 3
