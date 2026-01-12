@@ -9,19 +9,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
-import writeBytesToStdoutImpl
-import writeBytesToStderrImpl
 import kotlin.coroutines.coroutineContext
-
-// Initialize stdout and stderr for JS tests when module loads
-private val testInit = run {
-    if (writeBytesToStdoutImpl == null) {
-        writeBytesToStdoutImpl = {}
-    }
-    if (writeBytesToStderrImpl == null) {
-        writeBytesToStderrImpl = {}
-    }
-}
 
 fun CoroutineScope.createDefaultBuiltinMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
     return listOf(

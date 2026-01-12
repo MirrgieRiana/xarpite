@@ -12,9 +12,6 @@ import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-// Ensure test initialization runs
-private val ensureInit = initJsTestPlatform
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class JsTest {
 
