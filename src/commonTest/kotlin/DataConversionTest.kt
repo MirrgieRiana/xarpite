@@ -156,5 +156,49 @@ class DataConversionTest {
         """).string) // 配列とBLOBの混在ストリームをデコード
     }
 
+    @Test
+    fun url() = runTest {
+        // URL で文字列をURLエンコード
+        assertEquals("Hello+World", eval(""" "Hello World" >> URL """).string) // スペースは+に変換される
+        assertEquals("a%3Db%26c%3Dd", eval(""" "a=b&c=d" >> URL """).string) // 記号はエンコードされる
+        assertEquals("%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF", eval(""" "こんにちは" >> URL """).string) // マルチバイト文字はエンコードされる
+        assertEquals("abc123", eval(""" "abc123" >> URL """).string) // 英数字はそのまま
+        assertEquals("A-Z_a-z.0-9~", eval(""" "A-Z_a-z.0-9~" >> URL """).string) // URL安全文字はそのまま
+
+        // URLD でURLエンコードされた文字列をデコード
+        assertEquals("Hello World", eval(""" "Hello+World" >> URLD """).string) // +はスペースに変換される
+        assertEquals("a=b&c=d", eval(""" "a%3Db%26c%3Dd" >> URLD """).string) // エンコードされた記号がデコードされる
+        assertEquals("こんにちは", eval(""" "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD """).string) // エンコードされたマルチバイト文字がデコードされる
+        assertEquals("abc123", eval(""" "abc123" >> URLD """).string) // 英数字はそのまま
+        assertEquals("A-Z_a-z.0-9~", eval(""" "A-Z_a-z.0-9~" >> URLD """).string) // URL安全文字はそのまま
+
+        // URLとURLDは逆変換の関係
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> URL >> URLD """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> URL >> URLD """).string)
+        assertEquals("a=b&c=d test", eval(""" "a=b&c=d test" >> URL >> URLD """).string)
+    }
+
+    @Test
+    fun percent() = runTest {
+        // PERCENT で文字列をパーセントエンコード
+        assertEquals("Hello%20World", eval(""" "Hello World" >> PERCENT """).string) // スペースは%20に変換される
+        assertEquals("a%3Db%26c%3Dd", eval(""" "a=b&c=d" >> PERCENT """).string) // 記号はエンコードされる
+        assertEquals("%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF", eval(""" "こんにちは" >> PERCENT """).string) // マルチバイト文字はエンコードされる
+        assertEquals("abc123", eval(""" "abc123" >> PERCENT """).string) // 英数字はそのまま
+        assertEquals("A%2DZ%5Fa%2Dz%2E0%2D9%7E", eval(""" "A-Z_a-z.0-9~" >> PERCENT """).string) // URL安全文字もエンコードされる（PERCENTは英数字のみ保持）
+
+        // PERCENTD でパーセントエンコードされた文字列をデコード
+        assertEquals("Hello World", eval(""" "Hello%20World" >> PERCENTD """).string) // %20はスペースに変換される
+        assertEquals("a=b&c=d", eval(""" "a%3Db%26c%3Dd" >> PERCENTD """).string) // エンコードされた記号がデコードされる
+        assertEquals("こんにちは", eval(""" "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD """).string) // エンコードされたマルチバイト文字がデコードされる
+        assertEquals("abc123", eval(""" "abc123" >> PERCENTD """).string) // 英数字はそのまま
+        assertEquals("A-Z_a-z.0-9~", eval(""" "A%2DZ%5Fa%2Dz%2E0%2D9%7E" >> PERCENTD """).string) // エンコードされた記号がデコードされる
+
+        // PERCENTとPERCENTDは逆変換の関係
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> PERCENT >> PERCENTD """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> PERCENT >> PERCENTD """).string)
+        assertEquals("a=b&c=d test", eval(""" "a=b&c=d test" >> PERCENT >> PERCENTD """).string)
+    }
+
 
 }

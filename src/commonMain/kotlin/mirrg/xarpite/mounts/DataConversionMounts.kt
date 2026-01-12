@@ -30,6 +30,84 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             val value = arguments[0]
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
         },
+        "URL" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URL(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when {
+                    char in 'A'..'Z' || char in 'a'..'z' || char in '0'..'9' -> sb.append(char)
+                    char == '-' || char == '_' || char == '.' || char == '~' -> sb.append(char)
+                    char == ' ' -> sb.append('+')
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        "URLD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URLD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val bytes = mutableListOf<Byte>()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when {
+                    char == '+' -> {
+                        bytes.add(' '.code.toByte())
+                        i++
+                    }
+                    char == '%' && i + 2 < string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        bytes.add(hex.toInt(16).toByte())
+                        i += 3
+                    }
+                    else -> {
+                        bytes.add(char.code.toByte())
+                        i++
+                    }
+                }
+            }
+            bytes.toByteArray().decodeToString().toFluoriteString()
+        },
+        "PERCENT" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when {
+                    char in 'A'..'Z' || char in 'a'..'z' || char in '0'..'9' -> sb.append(char)
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        "PERCENTD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val bytes = mutableListOf<Byte>()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when {
+                    char == '%' && i + 2 < string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        bytes.add(hex.toInt(16).toByte())
+                        i += 3
+                    }
+                    else -> {
+                        bytes.add(char.code.toByte())
+                        i++
+                    }
+                }
+            }
+            bytes.toByteArray().decodeToString().toFluoriteString()
+        },
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
             val (indent, value) = when (arguments.size) {
