@@ -344,6 +344,51 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 # 3
 ```
 
+## `INVERT` Returns Object Mapping Values to Keys
+
+`INVERT(object: OBJECT<VALUE>): OBJECT<STRING>`
+
+Returns a new object where the values of `object` map to their corresponding keys.
+
+```shell
+$ xa 'INVERT({a: "apple"; b: "banana"; c: "cherry"})'
+# {apple:a;banana:b;cherry:c}
+```
+
+---
+
+Values are stringified when treated as keys.
+
+```shell
+$ xa '
+  Fruit := {
+    new: value -> Fruit{value: value}
+    `&_`: this -> "Fruit[$(this.value)]"
+  }
+  INVERT({
+    a: Fruit.new("apple")
+    b: Fruit.new("banana")
+    c: Fruit.new("cherry")
+  })
+'
+# {Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}
+```
+
+---
+
+If values are duplicated, one of the keys for that value will be mapped.
+
+```shell
+$ xa '
+  object   := {a: "apple"; b: "banana"; c: "apple"}
+  inverted := INVERT(object)
+  inverted.apple >> object
+'
+# apple
+```
+
+Which key is mapped is undefined.
+
 ## `SUM` Sum of Stream Elements
 
 `SUM(numbers: STREAM<NUMBER>): NUMBER`

@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
@@ -26,8 +27,6 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
-import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
@@ -201,6 +200,22 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 }
             } else {
                 usage("VALUES(object: OBJECT): STREAM<VALUE>")
+            }
+        },
+        "INVERT" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val obj = arguments[0]
+                if (obj is FluoriteObject) {
+                    val map = mutableMapOf<String, FluoriteValue>()
+                    obj.map.forEach { (key, value) ->
+                        map[value.toFluoriteString().value] = key.toFluoriteString()
+                    }
+                    FluoriteObject(FluoriteObject.fluoriteClass, map)
+                } else {
+                    usage("INVERT(object: OBJECT<VALUE>): OBJECT<STRING>")
+                }
+            } else {
+                usage("INVERT(object: OBJECT<VALUE>): OBJECT<STRING>")
             }
         },
         "SUM" to FluoriteFunction { arguments ->

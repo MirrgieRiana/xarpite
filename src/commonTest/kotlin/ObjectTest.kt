@@ -7,6 +7,7 @@ import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ObjectTest {
@@ -40,6 +41,46 @@ class ObjectTest {
         assertEquals("a,b,c", eval("KEYS({a: 1; b: 2; c: 3})").stream()) // KEYS でオブジェクトのキーを得る
         assertEquals("1,2,3", eval("VALUES({a: 1; b: 2; c: 3})").stream()) // VALUES でオブジェクトの値を得る
     }
+
+    @Test
+    fun invert() = runTest {
+        // 基本的な反転
+        assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)
+        
+        // 数値も文字列化される
+        assertEquals("{1:a;2:b;3:c}", eval("INVERT({a: 1; b: 2; c: 3})").obj)
+        
+        // カスタムオブジェクトの文字列化
+        assertEquals("{Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}", eval("""
+            Fruit := {
+                new: value -> Fruit{value: value}
+                `&_`: this -> "Fruit[${'$'}(this.value)]"
+            }
+            INVERT({
+                a: Fruit.new("apple")
+                b: Fruit.new("banana")
+                c: Fruit.new("cherry")
+            })
+        """).obj)
+        
+        // 値が重複している場合はいずれかのキーがマッピングされる
+        val invertedKey = eval("""
+            object   := {a: "apple"; b: "banana"; c: "apple"}
+            inverted := INVERT(object)
+            inverted.apple
+        """).toString()
+        // inverted.appleの結果は "a" または "c" のいずれか
+        assertTrue(invertedKey == "a" || invertedKey == "c")
+        
+        // そのキーをobjectで引くと元の値"apple"が返る
+        val finalResult = eval("""
+            object   := {a: "apple"; b: "banana"; c: "apple"}
+            inverted := INVERT(object)
+            inverted.apple >> object
+        """).toString()
+        assertEquals("apple", finalResult)
+    }
+
 
     @Test
     fun assignment() = runTest {
