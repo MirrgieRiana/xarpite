@@ -365,15 +365,37 @@ $ xa '"abcde"[1..3]'
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
 
-`replace` メソッドで文字列内の置換を行うことができます。
+`STRING::replaceAll(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+`STRING::replaceFirst(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+`replace` `replaceAll` `replaceFirst` メソッドで文字列内の置換を行うことができます。
+
+## 置換対象
+
+各メソッドの置換対象は以下の通りです。
+
+| メソッド           | 文字列の置換対象 | 正規表現の置換対象      |
+|----------------|----------|----------------|
+| `replace`      | すべての出現個所 | グローバルマッチフラグに従う |
+| `replaceAll`   | すべての出現個所 | すべてのマッチ部分      |
+| `replaceFirst` | 最初の出現個所  | 最初のマッチ部分       |
 
 ## 文字列による置換
 
-`old` に文字列が渡された場合、その文字列のすべての出現個所を置換します。
+`old` に文字列が渡された場合、その文字列と完全に一致する出現個所を置換します。
+
+文字列版 `replace` メソッドは `replaceAll` メソッドと同じ動作をします。
 
 ```shell
-$ xa '"-ab--ab-"::replace("ab"; "AB")'
-# -AB--AB-
+$ xa '"-ab--ab-"::replace("ab"; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceAll("ab"; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceFirst("ab"; "XX")'
+# -XX--ab-
 ```
 
 ## 正規表現による置換
@@ -383,11 +405,29 @@ $ xa '"-ab--ab-"::replace("ab"; "AB")'
 正規表現オブジェクトがグローバルでない場合、最初にマッチした部分のみが置換対象となります。
 
 ```shell
-$ xa '"-ab--ab-"::replace(/[a-z]{2}/; "xx")'
-# -xx--ab-
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/; "XX")'
+# -XX--ab-
 
-$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; "xx")'
-# -xx--xx-
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; "XX")'
+# -XX--XX-
+```
+
+---
+
+`replaceAll` メソッドと `replaceFirst` メソッドは正規表現のグローバルマッチフラグを無視します。
+
+```shell
+$ xa '"-ab--ab-"::replaceAll(/[a-z]{2}/; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceAll(/[a-z]{2}/g; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/; "XX")'
+# -XX--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; "XX")'
+# -XX--ab-
 ```
 
 ## 関数への置換
