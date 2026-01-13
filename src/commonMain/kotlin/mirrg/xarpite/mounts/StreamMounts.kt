@@ -539,39 +539,69 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
             )
         },
         "GROUP" to FluoriteFunction { arguments ->
-            fun error(): Nothing = usage("<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],")
+            run { // GROUP(stream: STREAM<VALUE>): STREAM<[VALUE; ARRAY<VALUE>]>
+                if (arguments.size != 1) return@run
+                val stream = arguments[0]
 
-            if (arguments.size != 2) error()
-            val entry = arguments[0]
-            if (entry !is FluoriteArray) error()
-            if (entry.values.size != 2) error()
-            val parameterName = entry.values[0]
-            if (parameterName !is FluoriteString) error()
-            if (parameterName.value != "by") error()
-            val keyGetter = entry.values[1]
-            val stream = arguments[1]
+                return@FluoriteFunction FluoriteStream {
+                    val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
-            return@FluoriteFunction FluoriteStream {
-                val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
-
-                suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter.invoke(arrayOf(value))
-                    val list = groups.getOrPut(key) { mutableListOf() }
-                    list += value
-                }
-
-                if (stream is FluoriteStream) {
-                    stream.collect { item ->
-                        add(item)
+                    suspend fun add(value: FluoriteValue) {
+                        val key = value
+                        val list = groups.getOrPut(key) { mutableListOf() }
+                        list += value
                     }
-                } else {
-                    add(stream)
-                }
 
-                groups.forEach { (key, list) ->
-                    emit(key colon list.toFluoriteArray())
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            add(item)
+                        }
+                    } else {
+                        add(stream)
+                    }
+
+                    groups.forEach { (key, list) ->
+                        emit(key colon list.toFluoriteArray())
+                    }
                 }
             }
+            run { // GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],
+                if (arguments.size != 2) return@run
+                val entry = arguments[0]
+                if (entry !is FluoriteArray) return@run
+                if (entry.values.size != 2) return@run
+                val parameterName = entry.values[0]
+                if (parameterName !is FluoriteString) return@run
+                if (parameterName.value != "by") return@run
+                val keyGetter = entry.values[1]
+                val stream = arguments[1]
+
+                return@FluoriteFunction FluoriteStream {
+                    val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
+
+                    suspend fun add(value: FluoriteValue) {
+                        val key = keyGetter.invoke(arrayOf(value))
+                        val list = groups.getOrPut(key) { mutableListOf() }
+                        list += value
+                    }
+
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            add(item)
+                        }
+                    } else {
+                        add(stream)
+                    }
+
+                    groups.forEach { (key, list) ->
+                        emit(key colon list.toFluoriteArray())
+                    }
+                }
+            }
+            usage(
+                "<T> GROUP(stream: T,): [T; [T,]],",
+                "<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],",
+            )
         },
         "PIPE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
