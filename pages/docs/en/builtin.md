@@ -799,6 +799,8 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 `<I, O> I::LET(block: I -> O): O`
 
+`<I, O> LET(receiver: I; block: I -> O): O`
+
 An extension function that passes the receiver's value to `block`, executes it, and returns the `block`'s return value.
 
 Useful for transforming values in the middle of method chains.
@@ -858,6 +860,8 @@ $ xa '
 ## `::ALSO` / `ALSO` Pass Value to Block and Return Original Value
 
 `<T> T::ALSO(block: T -> VALUE): T`
+
+`<T> ALSO(receiver: T; block: T -> VALUE): T`
 
 An extension function that passes the receiver's value to `block`, executes it, and returns the receiver's value.
 

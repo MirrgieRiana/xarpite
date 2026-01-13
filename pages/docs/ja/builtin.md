@@ -640,6 +640,8 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 
 `<I, O> I::LET(block: I -> O): O`
 
+`<I, O> LET(receiver: I; block: I -> O): O`
+
 レシーバーの値を `block` に渡して実行し、 `block` の戻り値を返す拡張関数です。
 
 メソッドチェーンの途中で値を変換するのに便利です。
@@ -699,6 +701,8 @@ $ xa '
 ## `::ALSO` / `ALSO` 値をブロックに渡して元の値を返す
 
 `<T> T::ALSO(block: T -> VALUE): T`
+
+`<T> ALSO(receiver: T; block: T -> VALUE): T`
 
 レシーバーの値を `block` に渡して実行し、レシーバーの値を返す拡張関数です。
 
