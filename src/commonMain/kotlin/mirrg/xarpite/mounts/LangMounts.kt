@@ -21,7 +21,7 @@ import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
-    
+
     mounts["NULL"] = FluoriteNull
     mounts["N"] = FluoriteNull
     mounts["TRUE"] = FluoriteBoolean.TRUE
@@ -97,7 +97,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         }
         FluoriteNull
     }
-    
+
     FluoriteFunction { arguments ->
         if (arguments.size == 2) {
             val self = arguments[0]
@@ -119,7 +119,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             FluoriteValue.fluoriteClass colon it,
         )
     }
-    
+
     FluoriteFunction { arguments ->
         if (arguments.size == 2) {
             val self = arguments[0]
@@ -144,6 +144,6 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             FluoriteValue.fluoriteClass colon it,
         )
     }
-    
+
     return listOf(mounts)
 }
