@@ -15,6 +15,7 @@ import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import okio.Buffer
 
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -29,6 +30,87 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             if (arguments.size != 1) usage()
             val value = arguments[0]
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
+        },
+        "URL" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URL(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
+                    '-', '_', '.', '~' -> sb.append(char)
+                    ' ' -> sb.append('+')
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        "URLD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URLD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val buffer = Buffer()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when (char) {
+                    '+' -> {
+                        buffer.writeByte(' '.code)
+                        i++
+                    }
+
+                    '%' if i + 3 <= string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        buffer.writeByte(hex.toInt(16))
+                        i += 3
+                    }
+
+                    else -> {
+                        buffer.writeUtf8CodePoint(char.code)
+                        i++
+                    }
+                }
+            }
+            buffer.readUtf8().toFluoriteString()
+        },
+        "PERCENT" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        "PERCENTD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val buffer = Buffer()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when (char) {
+                    '%' if i + 3 <= string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        buffer.writeByte(hex.toInt(16))
+                        i += 3
+                    }
+
+                    else -> {
+                        buffer.writeUtf8CodePoint(char.code)
+                        i++
+                    }
+                }
+            }
+            buffer.readUtf8().toFluoriteString()
         },
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
