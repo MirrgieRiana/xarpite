@@ -335,3 +335,61 @@ $ xa '
 ```
 
 This specification is provided to prevent unintended use of mounts.
+
+# Delegated Variables
+
+When you declare a variable with a prefix `\` like `\variable`, it becomes a delegated variable.
+
+Delegated variables execute the assigned function instead of accessing the variable entity when getting or setting.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := () -> time
+
+  time = 100
+  OUT << now
+  time = 110
+  OUT << now
+'
+# 100
+# 110
+```
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> time = _
+
+  now = 100
+  OUT << time
+  now = 110
+  OUT << time
+'
+# 100
+# 110
+```
+
+## Delegated Variables Supporting Both Get and Set
+
+To create a delegated variable that supports both getting and setting, the delegated function determines the number of arguments.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> __.$# == 0 ? time : (time = _)
+
+  now = 100
+  OUT << [time, now] >> CSV
+  now = 110
+  OUT << [time, now] >> CSV
+'
+# 100,100
+# 110,110
+```
+
+## Delegated Variables Cannot Be Used in Object Properties
+
+Delegated variables are only valid in sequential execution side variable declaration statements.
+
+Using delegated variables in object properties will result in an error.
