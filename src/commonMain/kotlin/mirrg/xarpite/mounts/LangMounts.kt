@@ -18,6 +18,8 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import writeBytesToStderr
 
+private var nextCoroutineId = 1
+
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
     return mapOf(
         "NULL" to FluoriteNull,
@@ -61,13 +63,13 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
             val function = arguments[0]
             val promise = FluoritePromise()
+            val coroutineId = nextCoroutineId
             coroutineScope.launch {
                 try {
                     promise.deferred.complete(function.invoke(emptyArray()).cache())
                 } catch (e: Throwable) {
-                    // 例外をstderrに出力
                     try {
-                        val errorMessage = "Exception in LAUNCH: ${e.message ?: e.toString()}\n"
+                        val errorMessage = "COROUTINE[$coroutineId]: ${e.message ?: e.toString()}\n"
                         writeBytesToStderr(errorMessage.encodeToByteArray())
                     } catch (_: Throwable) {
                         // stderrへの出力に失敗しても、元の例外処理は継続する
@@ -75,6 +77,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
                     promise.deferred.completeExceptionally(e)
                 }
             }
+            nextCoroutineId++
             promise
         },
         "OUT" to FluoriteFunction { arguments ->
