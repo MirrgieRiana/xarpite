@@ -14,6 +14,9 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.colon
+import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
@@ -80,6 +83,41 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             }
         }
         FluoriteNull
+    }
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self))
+                } else {
+                    usage(signature)
+                }
+            }
+        }
+        mounts["LET"] = create("<I, O> LET(receiver: I; block: I -> O): O")
+        mounts["::LET"] = fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon create("<I, O> I::LET(block: I -> O): O"),
+        )
+    }
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self)).consume()
+                    self
+                } else {
+                    usage(signature)
+                }
+            }
+        }
+        mounts["ALSO"] = create("<T> ALSO(receiver: T; block: T -> VALUE): T")
+        mounts["::ALSO"] = fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
+        )
     }
 
     return listOf(mounts)

@@ -32,22 +32,22 @@ You can reference classes of various built-in objects.
 
 Various constants representing special values.
 
-| Constant      | Meaning                               |
-|---------------|---------------------------------------|
-| `NULL` `N`    | NULL value                            |
-| `TRUE` `T`    | True                                  |
-| `FALSE` `F`   | False                                 |
-| `EMPTY` `E`   | Empty stream                          |
-| `LOOP`        | Stream that infinitely generates NULL |
+| Constant    | Meaning                               |
+|-------------|---------------------------------------|
+| `NULL` `N`  | NULL value                            |
+| `TRUE` `T`  | True                                  |
+| `FALSE` `F` | False                                 |
+| `EMPTY` `E` | Empty stream                          |
+| `LOOP`      | Stream that infinitely generates NULL |
 
 ---
 
 Mathematical built-in constants.
 
-| Constant    | Meaning          |
-|-------------|------------------|
-| `MATH.PI`   | Pi               |
-| `MATH.E`    | Napier's number  |
+| Constant  | Meaning         |
+|-----------|-----------------|
+| `MATH.PI` | Pi              |
+| `MATH.E`  | Napier's number |
 
 ---
 
@@ -794,3 +794,90 @@ Converts each element of the first argument stream into an object as entries.
 $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 # {a:1;b:2;c:3}
 ```
+
+## `::LET` / `LET` Pass Value to Block and Return Block's Result
+
+`<I, O> I::LET(block: I -> O): O`
+
+`<I, O> LET(receiver: I; block: I -> O): O`
+
+An extension function that passes the receiver's value to `block`, executes it, and returns the `block`'s return value.
+
+Useful for transforming values in the middle of method chains.
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::UC()'
+# APPLEBANANA
+```
+
+---
+
+`::LET` can also be used in a chain.
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::LET ( s => s::UC() )'
+# APPLEBANANA
+```
+
+### Usage with Streams
+
+Due to the nature of streams applying all methods to each element, the `::LET` extension method cannot be used with streams.
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::LET ( s => s.value >> SUM )
+'
+# LET!
+# LET!
+# LET!
+```
+
+---
+
+Instead, use the `LET` function which can also handle streams.
+
+While 2 characters longer, it works roughly the same way as `stream::(LET) ( s => ... )`.
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::(LET) ( s => s.value >> SUM )
+'
+# 6
+```
+
+## `::ALSO` / `ALSO` Pass Value to Block and Return Original Value
+
+`<T> T::ALSO(block: T -> VALUE): T`
+
+`<T> ALSO(receiver: T; block: T -> VALUE): T`
+
+An extension function that passes the receiver's value to `block`, executes it, and returns the receiver's value.
+
+Per invocation, the side effects of `block` occur exactly once.
+
+Useful for using or modifying values in the middle of method chains.
+
+```shell
+$ xa '
+  variable := ""
+  "apple"::ALSO ( s => 
+    variable = variable & s
+  )
+  variable
+'
+# apple
+```
+
+Other characteristics are generally the same as `LET`.
