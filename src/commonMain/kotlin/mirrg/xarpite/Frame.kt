@@ -3,6 +3,7 @@ package mirrg.xarpite
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.operations.BuiltinMountRunner
 import mirrg.xarpite.operations.Runner
 import mirrg.xarpite.parser.parseAllOrThrow
@@ -39,6 +40,15 @@ class LocalVariable(var value: FluoriteValue) : Variable {
     override suspend fun get(env: Environment) = value
     override suspend fun set(env: Environment, value: FluoriteValue) {
         this.value = value
+    }
+}
+
+class DelegatedVariable(private val function: FluoriteValue) : Variable {
+    override suspend fun get(env: Environment): FluoriteValue {
+        return function.invoke(emptyArray())
+    }
+    override suspend fun set(env: Environment, value: FluoriteValue) {
+        function.invoke(arrayOf(value))
     }
 }
 
