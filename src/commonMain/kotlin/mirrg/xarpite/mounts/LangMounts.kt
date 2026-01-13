@@ -13,8 +13,8 @@ import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
@@ -84,49 +84,39 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         }
         FluoriteNull
     }
-    FluoriteFunction { arguments ->
-        if (arguments.size == 2) {
-            val self = arguments[0]
-            val block = arguments[1]
-            block.invoke(arrayOf(self))
-        } else if (arguments.size == 1) {
-            // When called as regular function with just the block
-            val block = arguments[0]
-            FluoriteFunction { arguments2 ->
-                if (arguments2.size != 1) usage("<I, O> LET(block: I -> O): I -> O")
-                block.invoke(arrayOf(arguments2[0]))
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self))
+                } else {
+                    usage(signature)
+                }
             }
-        } else {
-            usage("<I, O> I::LET(block: I -> O): O | <I, O> LET(block: I -> O): I -> O")
         }
-    }.also {
-        mounts["LET"] = it
+        mounts["LET"] = create("<I, O> LET(receiver: I; block: I -> O): O")
         mounts["::LET"] = fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon it,
+            FluoriteValue.fluoriteClass colon create("<I, O> I::LET(block: I -> O): O"),
         )
     }
-    FluoriteFunction { arguments ->
-        if (arguments.size == 2) {
-            val self = arguments[0]
-            val block = arguments[1]
-            block.invoke(arrayOf(self)).consume()
-            self
-        } else if (arguments.size == 1) {
-            // When called as regular function with just the block
-            val block = arguments[0]
-            FluoriteFunction { arguments2 ->
-                if (arguments2.size != 1) usage("<T> ALSO(block: T -> VALUE): T -> T")
-                val self = arguments2[0]
-                block.invoke(arrayOf(self)).consume()
-                self
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self)).consume()
+                    self
+                } else {
+                    usage(signature)
+                }
             }
-        } else {
-            usage("<T> T::ALSO(block: T -> VALUE): T | <T> ALSO(block: T -> VALUE): T -> T")
         }
-    }.also {
-        mounts["ALSO"] = it
+        mounts["ALSO"] = create("<T> ALSO(receiver: T; block: T -> VALUE): T")
         mounts["::ALSO"] = fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon it,
+            FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
         )
     }
 
