@@ -32,22 +32,22 @@ You can reference classes of various built-in objects.
 
 Various constants representing special values.
 
-| Constant      | Meaning                               |
-|---------------|---------------------------------------|
-| `NULL` `N`    | NULL value                            |
-| `TRUE` `T`    | True                                  |
-| `FALSE` `F`   | False                                 |
-| `EMPTY` `E`   | Empty stream                          |
-| `LOOP`        | Stream that infinitely generates NULL |
+| Constant    | Meaning                               |
+|-------------|---------------------------------------|
+| `NULL` `N`  | NULL value                            |
+| `TRUE` `T`  | True                                  |
+| `FALSE` `F` | False                                 |
+| `EMPTY` `E` | Empty stream                          |
+| `LOOP`      | Stream that infinitely generates NULL |
 
 ---
 
 Mathematical built-in constants.
 
-| Constant    | Meaning          |
-|-------------|------------------|
-| `MATH.PI`   | Pi               |
-| `MATH.E`    | Napier's number  |
+| Constant  | Meaning         |
+|-----------|-----------------|
+| `MATH.PI` | Pi              |
+| `MATH.E`  | Napier's number |
 
 ---
 
