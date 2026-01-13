@@ -15,6 +15,7 @@ import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import okio.Buffer
 
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
@@ -37,10 +38,10 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             val sb = StringBuilder()
             string.encodeToByteArray().forEach { byte ->
                 val char = byte.toInt().toChar()
-                when {
-                    char in 'A'..'Z' || char in 'a'..'z' || char in '0'..'9' -> sb.append(char)
-                    char == '-' || char == '_' || char == '.' || char == '~' -> sb.append(char)
-                    char == ' ' -> sb.append('+')
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
+                    '-', '_', '.', '~' -> sb.append(char)
+                    ' ' -> sb.append('+')
                     else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
                 }
             }
@@ -50,27 +51,29 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             fun usage(): Nothing = usage("URLD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
-            val bytes = mutableListOf<Byte>()
+            val buffer = Buffer()
             var i = 0
             while (i < string.length) {
                 val char = string[i]
-                when {
-                    char == '+' -> {
-                        bytes.add(' '.code.toByte())
+                when (char) {
+                    '+' -> {
+                        buffer.writeByte(' '.code)
                         i++
                     }
-                    char == '%' && i + 3 <= string.length -> {
+
+                    '%' if i + 3 <= string.length -> {
                         val hex = string.substring(i + 1, i + 3)
-                        bytes.add(hex.toInt(16).toByte())
+                        buffer.writeByte(hex.toInt(16))
                         i += 3
                     }
+
                     else -> {
-                        bytes.add(char.code.toByte())
+                        buffer.writeUtf8CodePoint(char.code)
                         i++
                     }
                 }
             }
-            bytes.toByteArray().decodeToString().toFluoriteString()
+            buffer.readUtf8().toFluoriteString()
         },
         "PERCENT" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
@@ -79,8 +82,8 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             val sb = StringBuilder()
             string.encodeToByteArray().forEach { byte ->
                 val char = byte.toInt().toChar()
-                when {
-                    char in 'A'..'Z' || char in 'a'..'z' || char in '0'..'9' -> sb.append(char)
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
                     else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
                 }
             }
@@ -90,23 +93,24 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
-            val bytes = mutableListOf<Byte>()
+            val buffer = Buffer()
             var i = 0
             while (i < string.length) {
                 val char = string[i]
-                when {
-                    char == '%' && i + 3 <= string.length -> {
+                when (char) {
+                    '%' if i + 3 <= string.length -> {
                         val hex = string.substring(i + 1, i + 3)
-                        bytes.add(hex.toInt(16).toByte())
+                        buffer.writeByte(hex.toInt(16))
                         i += 3
                     }
+
                     else -> {
-                        bytes.add(char.code.toByte())
+                        buffer.writeUtf8CodePoint(char.code)
                         i++
                     }
                 }
             }
-            bytes.toByteArray().decodeToString().toFluoriteString()
+            buffer.readUtf8().toFluoriteString()
         },
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
