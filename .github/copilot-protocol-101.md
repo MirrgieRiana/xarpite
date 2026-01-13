@@ -1,6 +1,9 @@
 # プロトコル-101
 
-検索用: プロトコル-101 プロトコル101 プロトコル 101 Protocol-101 Protocol101 Protocol 101 PTC-101 PTC101 PTC 101
+検索用:
+プロトコル-101 プロトコル101 プロトコル 101
+Protocol-101 Protocol101 Protocol 101 protocol-101 protocol101 protocol 101
+PTC-101 PTC101 PTC 101 ptc-101 ptc101 ptc 101
 
 本ファイルの規定は、ユーザーが本プロトコルを宣言した場合に限り有効です。
 また、本プロトコルの有効化でも、本規定以外のインストラクションやAGENTS.md類にも依然として準拠しなければなりません。
