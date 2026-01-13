@@ -53,7 +53,7 @@ $ xa '
 
 ```shell
 $ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
-# Error!
+# COROUTINE[1]: Error!
 ```
 
 ---
