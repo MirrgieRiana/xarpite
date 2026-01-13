@@ -48,37 +48,41 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 
 Encodes `string` in `application/x-www-form-urlencoded` format.
 
-Characters other than `A-Z a-z 0-9 - _ . ~` and space are encoded as UTF-8 byte sequences in `%XX` format.
-
-Spaces are converted to `+`.
-
 ```shell
 $ xa ' "Hello World" >> URL '
 # Hello+World
 
-$ xa ' "a=b&c=d" >> URL '
-# a%3Db%26c%3Dd
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> URL '
+# user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F
 
 $ xa ' "こんにちは" >> URL '
 # %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
 ```
 
+---
+
+Each character is encoded as follows:
+
+| Character                         | Encoding Method                         |
+|-----------------------------------|-----------------------------------------|
+| `A-Z` `a-z` `0-9` `-` `_` `.` `~` | The character itself                    |
+| Space                             | `+`                                     |
+| Other characters                  | UTF-8 byte sequence in `%XX` hex format |
+
 ## `URLD` Decode URL-Encoded String
 
 `URLD(string: STRING): STRING`
 
-Decodes a string encoded in `application/x-www-form-urlencoded` format.
+Decodes `string` encoded in `application/x-www-form-urlencoded` format.
 
-`+` is converted to space.
-
-`%XX` format sequences are interpreted as UTF-8 byte sequences and decoded to a string.
+This function is the inverse of the `URL` function.
 
 ```shell
 $ xa ' "Hello+World" >> URLD '
 # Hello World
 
-$ xa ' "a%3Db%26c%3Dd" >> URLD '
-# a=b&c=d
+$ xa ' "user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F" >> URLD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
 
 $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
 # こんにちは
@@ -90,35 +94,44 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
 
 Encodes `string` with percent encoding.
 
-All characters other than `a-z A-Z 0-9` are encoded as UTF-8 byte sequences in `%XX` format.
+Unlike the `URL` function, all non-alphanumeric characters including spaces are encoded in `%XX` format.
 
-This function is for general-purpose escaping and generates safe strings with no symbols other than `%`.
+As a result, the encoded string contains no symbols other than `%`.
 
 ```shell
 $ xa ' "Hello World" >> PERCENT '
 # Hello%20World
 
-$ xa ' "a-b_c.d" >> PERCENT '
-# a%2Db%5Fc%2Ed
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> PERCENT '
+# user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F
 
 $ xa ' "こんにちは" >> PERCENT '
 # %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
 ```
 
+---
+
+Each character is encoded as follows:
+
+| Character         | Encoding Method                         |
+|-------------------|-----------------------------------------|
+| `A-Z` `a-z` `0-9` | The character itself                    |
+| Other characters  | UTF-8 byte sequence in `%XX` hex format |
+
 ## `PERCENTD` Decode Percent-Encoded String
 
 `PERCENTD(string: STRING): STRING`
 
-Decodes a percent-encoded string.
+Decodes percent-encoded `string`.
 
-`%XX` format sequences are interpreted as UTF-8 byte sequences and decoded to a string.
+This function is the inverse of the `PERCENT` function.
 
 ```shell
 $ xa ' "Hello%20World" >> PERCENTD '
 # Hello World
 
-$ xa ' "a%2Db%5Fc%2Ed" >> PERCENTD '
-# a-b_c.d
+$ xa ' "user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F" >> PERCENTD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
 
 $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 # こんにちは
