@@ -1,7 +1,6 @@
 package mirrg.xarpite.mounts
 
 import mirrg.xarpite.compilers.objects.FluoriteArray
-import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -9,47 +8,109 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.toByteArrayAsBlobLike
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.pop
 import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import okio.Buffer
 
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
-        "UTF8" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
+        "UTF8" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString().value
-
-            // Convert string to UTF-8 bytes and return as a single BLOB
-            val utf8Bytes = string.encodeToByteArray().asUByteArray()
-            utf8Bytes.asFluoriteBlob()
+            string.encodeToByteArray().asFluoriteBlob()
         },
-        "UTF8D" to FluoriteFunction @OptIn(ExperimentalUnsignedTypes::class) { arguments ->
-            fun usage(): Nothing = usage("UTF8D(blob: STREAM<BLOB>): STRING")
+        "UTF8D" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("UTF8D(blobLike: BLOB_LIKE): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
-
-            val allBytes = mutableListOf<UByte>()
-
-            // Collect all bytes from BLOB(s)
-            if (value is FluoriteStream) {
-                value.collect { item ->
-                    val blob = item as? FluoriteBlob ?: usage()
-                    allBytes.addAll(blob.value.toList())
+            value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
+        },
+        "URL" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URL(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
+                    '-', '_', '.', '~' -> sb.append(char)
+                    ' ' -> sb.append('+')
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
                 }
-            } else {
-                val blob = value as? FluoriteBlob ?: usage()
-                allBytes.addAll(blob.value.toList())
             }
+            sb.toString().toFluoriteString()
+        },
+        "URLD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("URLD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val buffer = Buffer()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when (char) {
+                    '+' -> {
+                        buffer.writeByte(' '.code)
+                        i++
+                    }
 
-            // Convert UTF-8 bytes to string
-            // decodeToString() will throw IllegalArgumentException for invalid UTF-8 sequences
-            val byteArray = allBytes.toUByteArray().asByteArray()
-            val resultString = byteArray.decodeToString()
-            resultString.toFluoriteString()
+                    '%' if i + 3 <= string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        buffer.writeByte(hex.toInt(16))
+                        i += 3
+                    }
+
+                    else -> {
+                        buffer.writeUtf8CodePoint(char.code)
+                        i++
+                    }
+                }
+            }
+            buffer.readUtf8().toFluoriteString()
+        },
+        "PERCENT" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val sb = StringBuilder()
+            string.encodeToByteArray().forEach { byte ->
+                val char = byte.toInt().toChar()
+                when (char) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9' -> sb.append(char)
+                    else -> sb.append("%${byte.toUByte().toString(16).uppercase().padStart(2, '0')}")
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        "PERCENTD" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString().value
+            val buffer = Buffer()
+            var i = 0
+            while (i < string.length) {
+                val char = string[i]
+                when (char) {
+                    '%' if i + 3 <= string.length -> {
+                        val hex = string.substring(i + 1, i + 3)
+                        buffer.writeByte(hex.toInt(16))
+                        i += 3
+                    }
+
+                    else -> {
+                        buffer.writeUtf8CodePoint(char.code)
+                        i++
+                    }
+                }
+            }
+            buffer.readUtf8().toFluoriteString()
         },
         "JSON" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")

@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
-CONFIG_FILE=$SCRIPT_DIR/default_engine
+VERSION_FILE=$SCRIPT_DIR/version
+DEFAULT_ENGINE_FILE=$SCRIPT_DIR/default_engine
 
 # Set environment variable for actual program name of Xarpite
 if [ -z "$XARPITE_PROGRAM_NAME" ]
 then
   XARPITE_PROGRAM_NAME=${0##*/}
   export XARPITE_PROGRAM_NAME
+fi
+
+# Set environment variable for version of Xarpite
+if [ -f "$VERSION_FILE" ]
+then
+  export XARPITE_VERSION="$(cat "$VERSION_FILE")"
+else
+  export XARPITE_VERSION="0.0.0-SNAPSHOT"
 fi
 
 # Parse launcher options
@@ -31,22 +40,22 @@ done
 # Determine xarpite engine
 if [ -n "$LAUNCHER_OPTION_ENGINE" ]
 then
-  ENGINE="$LAUNCHER_OPTION_ENGINE"
+  export XARPITE_ENGINE="$LAUNCHER_OPTION_ENGINE"
 elif [ -n "$XARPITE_ENGINE" ]
 then
-  ENGINE="$XARPITE_ENGINE"
-elif [ -f "$CONFIG_FILE" ]
+  export XARPITE_ENGINE
+elif [ -f "$DEFAULT_ENGINE_FILE" ]
 then
-  ENGINE="$(cat "$CONFIG_FILE")"
+  export XARPITE_ENGINE="$(cat "$DEFAULT_ENGINE_FILE")"
 else
-  ENGINE="native"
+  export XARPITE_ENGINE="native"
 fi
 
 # Execute Xarpite
-if [ "$ENGINE" = "native" ]
+if [ "$XARPITE_ENGINE" = "native" ]
 then
   exec "$SCRIPT_DIR/bin/native/xarpite" "$@"
-elif [ "$ENGINE" = "jvm" ]
+elif [ "$XARPITE_ENGINE" = "jvm" ]
 then
   # JAVA_HOME is set by the system or user environment
   if [ -n "$JAVA_HOME" ]
@@ -55,10 +64,10 @@ then
   else
     exec java -jar "$SCRIPT_DIR/bin/jvm/xarpite-jvm.jar" "$@"
   fi
-elif [ "$ENGINE" = "node" ]
+elif [ "$XARPITE_ENGINE" = "node" ]
 then
   exec node "$SCRIPT_DIR/bin/node/xarpite-node.mjs" "$@"
 else
-  echo "Unsupported engine: $ENGINE" 1>&2
+  echo "Unsupported engine: $XARPITE_ENGINE" 1>&2
   exit 1
 fi

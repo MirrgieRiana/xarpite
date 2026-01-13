@@ -28,6 +28,7 @@ import mirrg.xarpite.compilers.objects.getMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
+import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -376,26 +377,11 @@ class PlusGetter(private val leftGetter: Getter, private val rightGetter: Getter
     override val code get() = "PlusGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-// TODO to method
 class MinusGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return when (left) {
-            is FluoriteInt -> when (right) {
-                is FluoriteInt -> FluoriteInt(left.value - right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value - right.value)
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            is FluoriteDouble -> when (right) {
-                is FluoriteInt -> FluoriteDouble(left.value - right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value - right.value)
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
-        }
+        return left.minus(right)
     }
 
     override val code get() = "MinusGetter[${leftGetter.code};${rightGetter.code}]"
@@ -568,27 +554,64 @@ class PowerGetter(private val leftGetter: Getter, private val rightGetter: Gette
 // TODO to method
 class RangeGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val left = (leftGetter.evaluate(env) as FluoriteInt).value
-        val right = (rightGetter.evaluate(env) as FluoriteInt).value
-        return if (left > right) {
-            // 下降
-            FluoriteStream {
-                var i = left
-                while (i >= right) {
-                    emit(FluoriteInt(i))
-                    i--
+        val leftValue = leftGetter.evaluate(env)
+        val rightValue = rightGetter.evaluate(env)
+
+        // 整数
+        if (leftValue is FluoriteInt && rightValue is FluoriteInt) {
+            val left = leftValue.value
+            val right = rightValue.value
+            return if (left > right) {
+                // 下降
+                FluoriteStream {
+                    var i = left
+                    while (i >= right) {
+                        emit(FluoriteInt(i))
+                        i--
+                    }
                 }
-            }
-        } else {
-            // 上昇
-            FluoriteStream {
-                var i = left
-                while (i <= right) {
-                    emit(FluoriteInt(i))
-                    i++
+            } else {
+                // 上昇
+                FluoriteStream {
+                    var i = left
+                    while (i <= right) {
+                        emit(FluoriteInt(i))
+                        i++
+                    }
                 }
             }
         }
+
+        // 1文字文字列
+        if (leftValue is FluoriteString && rightValue is FluoriteString) {
+            val leftString = leftValue.value
+            val rightString = rightValue.value
+            if (leftString.length == 1 && rightString.length == 1) {
+                val leftCode = leftString[0].code
+                val rightCode = rightString[0].code
+                return if (leftCode > rightCode) {
+                    // 下降
+                    FluoriteStream {
+                        var i = leftCode
+                        while (i >= rightCode) {
+                            emit(FluoriteString(i.toChar().toString()))
+                            i--
+                        }
+                    }
+                } else {
+                    // 上昇
+                    FluoriteStream {
+                        var i = leftCode
+                        while (i <= rightCode) {
+                            emit(FluoriteString(i.toChar().toString()))
+                            i++
+                        }
+                    }
+                }
+            }
+        }
+
+        throw FluoriteException("Range operator requires both operands to be integers or single-character strings".toFluoriteString())
     }
 
     override val code get() = "RangeGetter[${leftGetter.code};${rightGetter.code}]"
@@ -597,15 +620,40 @@ class RangeGetter(private val leftGetter: Getter, private val rightGetter: Gette
 // TODO to method
 class ExclusiveRangeGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val left = (leftGetter.evaluate(env) as FluoriteInt).value
-        val right = (rightGetter.evaluate(env) as FluoriteInt).value
-        return FluoriteStream {
-            var i = left
-            while (i < right) {
-                emit(FluoriteInt(i))
-                i++
+        val leftValue = leftGetter.evaluate(env)
+        val rightValue = rightGetter.evaluate(env)
+
+        // 整数
+        if (leftValue is FluoriteInt && rightValue is FluoriteInt) {
+            val left = leftValue.value
+            val right = rightValue.value
+            return FluoriteStream {
+                var i = left
+                while (i < right) {
+                    emit(FluoriteInt(i))
+                    i++
+                }
             }
         }
+
+        // 1文字文字列
+        if (leftValue is FluoriteString && rightValue is FluoriteString) {
+            val leftString = leftValue.value
+            val rightString = rightValue.value
+            if (leftString.length == 1 && rightString.length == 1) {
+                val leftCode = leftString[0].code
+                val rightCode = rightString[0].code
+                return FluoriteStream {
+                    var i = leftCode
+                    while (i < rightCode) {
+                        emit(FluoriteString(i.toChar().toString()))
+                        i++
+                    }
+                }
+            }
+        }
+
+        throw FluoriteException("Range operator requires both operands to be integers or single-character strings".toFluoriteString())
     }
 
     override val code get() = "ExclusiveRangeGetter[${leftGetter.code};${rightGetter.code}]"

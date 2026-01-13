@@ -14,7 +14,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     "of" to FluoriteFunction { arguments ->
                         if (arguments.size == 1) {
-                            aggregateToBlob(arguments[0])
+                            arguments[0].toBlobAsBlobLike()
                         } else {
                             usage("BLOB.of(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB")
                         }
@@ -57,7 +57,10 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
 @OptIn(ExperimentalUnsignedTypes::class)
 fun UByteArray.asFluoriteBlob() = FluoriteBlob(this)
 
-private suspend fun aggregateValueToBytes(value: FluoriteValue): ByteArray {
+@OptIn(ExperimentalUnsignedTypes::class)
+fun ByteArray.asFluoriteBlob() = this.asUByteArray().asFluoriteBlob()
+
+suspend fun FluoriteValue.toByteArrayAsBlobLike(): ByteArray {
     return Buffer().use { buffer ->
         fun processItem(item: FluoriteValue) {
             when (item) {
@@ -81,30 +84,26 @@ private suspend fun aggregateValueToBytes(value: FluoriteValue): ByteArray {
             }
         }
 
-        if (value is FluoriteStream) {
-            value.collect { item ->
+        if (this is FluoriteStream) {
+            this.collect { item ->
                 processItem(item)
             }
         } else {
-            processItem(value)
+            processItem(this)
         }
 
         buffer.readByteArray()
     }
 }
 
-suspend fun aggregateToBlob(value: FluoriteValue): FluoriteBlob {
-    val bytes = aggregateValueToBytes(value)
-    @OptIn(ExperimentalUnsignedTypes::class)
-    return bytes.asUByteArray().asFluoriteBlob()
-}
+suspend fun FluoriteValue.toBlobAsBlobLike() = toByteArrayAsBlobLike().asFluoriteBlob()
 
 suspend fun iterateBlobs(value: FluoriteValue, callback: suspend (ByteArray) -> Unit) {
     if (value is FluoriteStream) {
         value.collect { item ->
-            callback(aggregateValueToBytes(item))
+            callback(item.toByteArrayAsBlobLike())
         }
     } else {
-        callback(aggregateValueToBytes(value))
+        callback(value.toByteArrayAsBlobLike())
     }
 }

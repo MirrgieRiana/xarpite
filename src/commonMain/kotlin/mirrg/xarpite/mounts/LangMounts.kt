@@ -72,19 +72,6 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         }
         promise
     }
-    mounts["GENERATE"] = FluoriteFunction { arguments ->
-        if (arguments.size != 1) usage("GENERATE(generator: (yield: (value: VALUE) -> NULL) -> NULL | STREAM): STREAM<VALUE>")
-        val generator = arguments[0]
-        FluoriteStream {
-            val yieldFunction = FluoriteFunction { arguments2 ->
-                if (arguments2.size != 1) usage("yield(value: VALUE): NULL")
-                val value = arguments2[0]
-                emit(value)
-                FluoriteNull
-            }
-            generator.invoke(arrayOf(yieldFunction)).consume()
-        }
-    }
     mounts["OUT"] = FluoriteFunction { arguments ->
         arguments.forEach {
             if (it is FluoriteStream) {
@@ -97,7 +84,6 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         }
         FluoriteNull
     }
-
     FluoriteFunction { arguments ->
         if (arguments.size == 2) {
             val self = arguments[0]
@@ -119,7 +105,6 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
             FluoriteValue.fluoriteClass colon it,
         )
     }
-
     FluoriteFunction { arguments ->
         if (arguments.size == 2) {
             val self = arguments[0]

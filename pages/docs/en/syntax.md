@@ -1,28 +1,28 @@
 ---
-title: "Factor"
+title: "Factors and Operators"
 ---
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
 
 <!-- toc -->
 
-# Factor
+# Factors
 
-Factors are literals and parentheses that function independently.
+Factors refer to literals and parenthetical constructs that function independently.
 
-Factors have atomic properties in operator binding.
+Factors have atomic properties in terms of operator binding.
 
 # Postfix Operators
 
-Postfix operators are operators placed after the base.
+Postfix operators are operators that are appended after their operand.
 
-Postfix operators are divided into unary and binary ones, both with left-associative binding.
+Postfix operators are divided into unary and binary types, both with left-associative binding.
 
 ## Postfix Representation of Prefix Unary Operators `value.+` ...
 
-All prefix unary operators have a postfix operator variation that is written following `.`.
+All prefix unary operators have a postfix operator variant written after a `.`.
 
-The following pairs all work the same way:
+The following pairs all function identically:
 
 ```
  +A  A.+
@@ -37,38 +37,10 @@ $*A  A.$*
  \A  A.\
 ```
 
-Using the postfix representation can reduce parentheses in some syntaxes and improve readability.
+Using postfix representation can reduce parentheses in some syntactic contexts and improve readability.
 
 # Prefix Operators
 
-Prefix operators are operators placed before the base.
+Prefix operators are operators that are prepended before their operand.
 
 Prefix operators have right-associative binding.
-
-## Getting Length `$#value`
-
-The prefix `$#` operator gets the "length" of a value.
-
-```shell
-$ xa '$#"123"'
-# 3
-
-$ xa '$#[1, 2, 3]'
-# 3
-
-$ xa '$#{a: 1; b: 2; c: 3}'
-# 3
-```
-
----
-
-This operator returns different things depending on the type of value.
-
-| Type   | Result                              |
-|--------|-------------------------------------|
-| String | Number of characters in UTF16       |
-| Array  | Number of elements                  |
-| Object | Number of entries, ignoring parent  |
-| BLOB   | Number of bytes                     |
-
-

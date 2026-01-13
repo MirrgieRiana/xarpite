@@ -18,6 +18,7 @@ fun createStringMounts(): List<Map<String, FluoriteValue>> {
     mounts["AMP"] = "&".toFluoriteString()
     mounts["APOS"] = "'".toFluoriteString()
     mounts["QUOT"] = "\"".toFluoriteString()
+    mounts["BOM"] = "\uFEFF".toFluoriteString()
 
     FluoriteFunction { arguments ->
         if (arguments.size == 1) {

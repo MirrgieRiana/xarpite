@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+error() {
+  echo "$1" >&2
+  exit 1
+}
+
+check() {
+  command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
+}
+check curl
+check tar
+check perl
+check sort
+check rsync
+check readlink
+
+cd -- "$(dirname -- "$(readlink -f -- "$0")")"
+
+
+# Determine the downloading version
+
+echo "Fetching metadata"
+
+export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
+
+version=$(
+  perl -E '
+    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+    my $versions = $1;
+    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+        say $1;
+    }
+  ' | sort -Vr | head -n 1
+)
+[ -z "$version" ] && error "Error: Failed to determine latest version."
+echo "Latest version: $version"
+
+echo
+
+
+# Download and extract
+
+file="xarpite-bin-$version-all.tar.gz"
+dir=".tmp"
+url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
+
+echo "Downloading from: $url"
+
+[ -e "$dir" ] && error "Error: Already exists: $dir"
+mkdir "$dir"
+curl -L -o - "$url" | tar -xzf - -C "$dir"
+echo "Successfully downloaded and extracted to: $dir"
+
+echo
+
+
+# Update
+
+echo "Updating"
+
+echo "--- Dry run (no changes) ---"
+rsync -n --itemize-changes -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
+echo
+printf "Type Y to apply (otherwise cancel): " >&2
+read -r -n 1 answer
+echo
+[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
+  rm -rf "$dir"
+  error "Cancelled."
+}
+echo "Syncing"
+rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
+
+echo "Removing temporary files"
+rm -rf "$dir"
+
+echo
+
+
+echo "Successfully Updated"

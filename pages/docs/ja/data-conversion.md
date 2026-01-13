@@ -19,25 +19,122 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 ## `UTF8D` UTF-8でエンコードされたBLOBを文字列に変換
 
-`UTF8D(blob: STREAM<BLOB>): STRING`
+`UTF8D(blobLike: BLOB_LIKE): STRING`
 
-`blob` をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
+`blobLike` をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
 
-`blob` がストリームであった場合、すべてのBLOBを連結したバイト列をUTF-8文字列に変換します。
-
-したがって、この関数はBLOBの境界がUTF-8文字の途中で分割されている場合でも正しく動作します。
+`BLOB_LIKE` については [BLOB](./blob.md) を参照してください。
 
 この関数は改行文字の正規化を行いません。
 
 ```shell
-$ xa '
-  BLOB.of([ 97,  98,  99]),
-  BLOB.of([ 49,  50,  51]),
-  BLOB.of([206, 177, 206]),
-  BLOB.of([178, 206, 179]),
-  >> UTF8D
+$ xa 'BLOB.of([97, 98, 99, 49, 50, 51]) >> UTF8D'
+# abc123
+```
+
+---
+
+この関数は入力されたバイト列の境界がUTF-8文字の途中で分割されている場合でも正しく動作します。
+
+```shell
+$ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 '
-# abc123αβγ
+# αβγ
+```
+
+## `URL` 文字列をURLエンコード
+
+`URL(string: STRING): STRING`
+
+`string` を `application/x-www-form-urlencoded` 形式でエンコードします。
+
+```shell
+$ xa ' "Hello World" >> URL '
+# Hello+World
+
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> URL '
+# user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F
+
+$ xa ' "こんにちは" >> URL '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+---
+
+各文字ごとに、以下の方法でエンコードされます。
+
+| 文字                                | エンコード方法                     |
+|-----------------------------------|-----------------------------|
+| `A-Z` `a-z` `0-9` `-` `_` `.` `~` | その文字自体                      |
+| 半角スペース                            | `+`                         | 
+| 上記を除く文字                           | `%XX` 形式の16進数表記によるUTF-8バイト列 |
+
+## `URLD` URLエンコードされた文字列をデコード
+
+`URLD(string: STRING): STRING`
+
+`application/x-www-form-urlencoded` 形式でエンコードされた文字列である `string` をデコードします。
+
+この関数は `URL` 関数の逆変換です。
+
+```shell
+$ xa ' "Hello+World" >> URLD '
+# Hello World
+
+$ xa ' "user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F" >> URLD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
+# こんにちは
+```
+
+## `PERCENT` 文字列をパーセントエンコード
+
+`PERCENT(string: STRING): STRING`
+
+`string` をパーセントエンコードします。
+
+`URL` 関数と異なり、半角スペースを含むすべての英数字以外の文字が `%XX` 方式でエンコードされます。
+
+その結果、エンコードされた文字列には `%` 以外の記号が一切出現しません。
+
+```shell
+$ xa ' "Hello World" >> PERCENT '
+# Hello%20World
+
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> PERCENT '
+# user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F
+
+$ xa ' "こんにちは" >> PERCENT '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+---
+
+各文字ごとに、以下の方法でエンコードされます。
+
+| 文字                | エンコード方法                     |
+|-------------------|-----------------------------|
+| `A-Z` `a-z` `0-9` | その文字自体                      |
+| 上記を除く文字           | `%XX` 形式の16進数表記によるUTF-8バイト列 |
+
+## `PERCENTD` パーセントエンコードされた文字列をデコード
+
+`PERCENTD(string: STRING): STRING`
+
+パーセントエンコードされた文字列である `string` をデコードします。
+
+この関数は `PERCENT` 関数の逆変換です。
+
+```shell
+$ xa ' "Hello%20World" >> PERCENTD '
+# Hello World
+
+$ xa ' "user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F" >> PERCENTD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
+# こんにちは
 ```
 
 ## `JSON` 値をJSON文字列に変換

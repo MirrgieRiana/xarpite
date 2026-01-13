@@ -1,13 +1,16 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.ShowUsage
+import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -335,9 +338,25 @@ class CliTest {
     // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
     // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
 
+    @Test
+    fun versionOptionThrowsShowVersion() = runTest {
+        // -v オプションで ShowVersion がスローされる
+        assertFailsWith<ShowVersion> {
+            parseArguments(listOf("-v"))
+        }
+    }
+
+    @Test
+    fun versionLongOptionThrowsShowVersion() = runTest {
+        // --version オプションで ShowVersion がスローされる
+        assertFailsWith<ShowVersion> {
+            parseArguments(listOf("--version"))
+        }
+    }
+
     fun execRunsSimpleCommand() = runTest {
         try {
-            val result = cliEval("""EXEC("bash", "-c", "echo hello")""")
+            val result = cliEval(getExecSrcWrappingHexForShell("echo hello"))
             val lines = result.stream()
             assertEquals("hello", lines)
         } catch (e: WorkInProgressError) {
@@ -348,7 +367,7 @@ class CliTest {
     @Test
     fun execRunsComplexCommand() = runTest {
         try {
-            val result = cliEval("""EXEC("bash", "-c", "seq 1 30 | grep 3")""")
+            val result = cliEval(getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
             val lines = result.stream()
             assertEquals("3,13,23,30", lines)
         } catch (e: WorkInProgressError) {
@@ -359,8 +378,224 @@ class CliTest {
     @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
         try {
-            val result = cliEval("""EXEC("bash", "-c", "exit 1") !? "ERROR"""")
+            val result = cliEval("""${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString().value)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithMultipleArguments() = runTest {
+        try {
+            val result = cliEval(getExecSrcWrappingHexForShell("echo hello world test"))
+            val output = result.toFluoriteString().value.trim()
+            assertEquals("hello world test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEmptyOutput() = runTest {
+        try {
+            val result = cliEval(getExecSrcWrappingHexForShell(""))
+            val output = result.toFluoriteString().value
+            assertEquals("", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithSpecialCharactersInArguments() = runTest {
+        try {
+            // 特殊文字を含む引数（シングルクォート、セミコロンなど）
+            val result = cliEval(getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
+            val output = result.toFluoriteString().value
+            assertEquals("hello;world test|pipe", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execThrowsOnCommandNotFound() = runTest {
+        try {
+            // 存在しないコマンドは例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval(getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithNoTrailingNewline() = runTest {
+        try {
+            val result = cliEval(getExecSrcWrappingHexForShell("printf 'test'"))
+            val output = result.toFluoriteString().value
+            // printfは末尾に改行を追加しない
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithDifferentExitCodes() = runTest {
+        try {
+            // 終了コード2でテスト
+            var exceptionThrown = false
+            try {
+                cliEval(getExecSrcWrappingHexForShell("exit 2"))
+            } catch (e: FluoriteException) {
+                // FluoriteExceptionが期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithLongRunningCommand() = runTest {
+        try {
+            // 少し時間がかかるコマンド
+            val result = cliEval(getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
+            val output = result.toFluoriteString().value
+            assertEquals("done", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithPipeInCommand() = runTest {
+        try {
+            // パイプを使用するコマンド
+            val result = cliEval(getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
+            val output = result.toFluoriteString().value.trim()
+            assertEquals("b", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentVariables() = runTest {
+        try {
+            // 環境変数PATHは常に設定されている
+            val result = cliEval(getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
+            val output = result.toFluoriteString().value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEmptyArgumentList() = runTest {
+        try {
+            // 空の引数リストは例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval("""EXEC([])""")
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithVeryLongArgument() = runTest {
+        try {
+            // 長い引数
+            val longString = "a".repeat(500)
+            val result = cliEval(getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
+            val output = result.toFluoriteString().value
+            assertEquals(longString, output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithUnicodeCharacters() = runTest {
+        try {
+            // Unicode文字を含む引数
+            val result = cliEval(getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
+            val output = result.toFluoriteString().value
+            assertEquals("こんにちは世界", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithMultipleCommandsInStream() = runTest {
+        try {
+            // 複数のコマンドを&&で繋ぐ
+            val result = cliEval(getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
+            val output = result.toFluoriteString().value
+            assertEquals("abc", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithRedirection() = runTest {
+        try {
+            // リダイレクションを使用
+            val result = cliEval(getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
+            val output = result.toFluoriteString().value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithBackslashInArgument() = runTest {
+        try {
+            // バックスラッシュを含む引数
+            val result = cliEval(getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
+            val output = result.toFluoriteString().value
+            assertTrue(output.contains("a"))
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execParallelExecution() = runTest {
+        try {
+            // 16並列でEXECを実行してデッドロックが発生しないことを確認
+            coroutineScope {
+                val jobs = (1..16).map { i ->
+                    async {
+                        cliEval(getExecSrcWrappingHexForShell("printf 'test$i'"))
+                    }
+                }
+                val results = jobs.map { it.await() }
+                // すべての結果が正しいことを確認
+                results.forEachIndexed { index, result ->
+                    val output = result.toFluoriteString().value
+                    assertEquals("test${index + 1}", output)
+                }
+            }
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -392,4 +627,10 @@ private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
     return flow { this@collectBlobs.flowProvider(this) }.toList().map { value ->
         value as? FluoriteBlob ?: error("Unexpected element: $value")
     }
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getExecSrcWrappingHexForShell(script: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
 }

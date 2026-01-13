@@ -97,7 +97,8 @@ object XarpiteGrammar {
     val templateString: Parser<Node> = -'"' * templateStringContent.zeroOrMore * -'"' map { TemplateStringNode(it) }
 
     val embeddedStringCharacter: Parser<String> = or(
-        +Regex("""(?:(?!<%)(?: |[^ ]))+""") map { it.value.normalize() }, // 通常文字
+        +Regex("""[^<]+""") map { it.value.normalize() }, // < 以外の通常文字
+        +Regex("""(?:<(?!%))+""") map { it.value.normalize() }, // 通常の < （ (?!<%)< を使うと一部の環境で非常に長い入力でStackOverflowになる）
         -"<%%" map { "<%" }, // <%% で <% になる
     )
     val embeddedStringContent: Parser<StringContent> = or(
@@ -136,6 +137,8 @@ object XarpiteGrammar {
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side) -> Node> = or(
+        -"++" map { ::UnaryPlusPlusNode },
+        -"--" map { ::UnaryMinusMinusNode },
         -'+' map { ::UnaryPlusNode },
         -'-' map { ::UnaryMinusNode },
         -'?' map { ::UnaryQuestionNode },
@@ -155,6 +158,9 @@ object XarpiteGrammar {
         -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
+
+        -s * -"++" map { { main -> SuffixPlusPlusNode(main) } },
+        -s * -"--" map { { main -> SuffixMinusMinusNode(main) } },
 
         -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
         -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },

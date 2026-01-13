@@ -208,4 +208,66 @@ class StreamMountsTest {
         """).int)
     }
 
+    @Test
+    fun void() = runTest {
+        // VOIDの呼び出しごとにstreamは1回イテレートされる
+        assertEquals("[1;2;3;1;2;3]", eval("""
+            array := []
+            stream := 1 .. 3 | (
+                array::push << _
+                _
+            )
+            VOID(stream)
+            VOID(stream)
+            array
+        """).array())
+        
+        // VOIDの戻り値はNULLで、元のストリームとは無関係
+        assertEquals(FluoriteNull, eval("""
+            null := VOID(1 .. 3)
+            null
+        """))
+        
+        // 非ストリームでも動作する
+        assertEquals(FluoriteNull, eval("VOID(42)"))
+        
+        // 空ストリームでも動作する
+        assertEquals(FluoriteNull, eval("VOID(,)"))
+    }
+
+
+    @Test
+    fun cache() = runTest {
+        // CACHEの呼び出しごとにstreamは1回イテレートされる
+        assertEquals("[1;2;3;1;2;3]", eval("""
+            array := []
+            stream := 1 .. 3 | (
+                array::push << _
+                _
+            )
+            CACHE(stream)
+            CACHE(stream)
+            array
+        """).array())
+        
+        // CACHEの戻り値のストリームは何度評価しても副作用が発生しない
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            cached := CACHE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            cached
+            cached
+            array
+        """).array())
+        
+        // 非ストリームでもそのまま返す
+        assertEquals(42, eval("CACHE(42)").int)
+        
+        // 空ストリームも正しくキャッシュする
+        assertEquals("", eval("CACHE(,)").stream())
+    }
+
+
 }

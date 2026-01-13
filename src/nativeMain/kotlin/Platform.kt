@@ -8,18 +8,20 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.errno
 import platform.posix.ferror
-import platform.posix.fread
 import platform.posix.fflush
+import platform.posix.fread
 import platform.posix.fwrite
 import platform.posix.set_posix_errno
 import platform.posix.stdin
 import platform.posix.stdout
+import platform.posix.stderr
 import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -86,6 +88,3 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
     }
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>): String {
-    throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM platform")
-}

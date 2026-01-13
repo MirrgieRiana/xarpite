@@ -33,7 +33,7 @@ CLI上でXarpiteを実行する際には、ランチャーとランタイムと�
 `xarpite` コマンドはXarpiteを実行するための最も基本的なコマンドです。
 
 ```shell
-$ xarpite -h
+$ xarpite -h | tail -n +2
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -41,6 +41,7 @@ $ xarpite -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
 #                            Omit [scriptfile]
@@ -76,7 +77,7 @@ $ {
 `xa` コマンドは `xarpite` コマンドのショートカットです。
 
 ```shell
-$ xa -h
+$ xa -h | tail -n +2
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -84,6 +85,7 @@ $ xa -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
 #                            Omit [script]
@@ -115,6 +117,16 @@ $ xa '100 + 20 + 3'
 一方で、 `xa` コマンドはシェルスクリプトなどのファイル内に記述する利用法を想定していません。
 
 その目的には代わりに `xarpite` コマンドを使用してください。
+
+## ヘルプ系のオプション
+
+### `-h`, `--help`: ヘルプの表示
+
+`-h` または `--help` オプションを指定するとヘルプメッセージが表示されます。
+
+### `-v`, `--version`: バージョン情報の表示
+
+`-v` または `--version` オプションを指定するとXarpiteのバージョンが表示されます。
 
 ## Xarpiteエンジンの指定
 
@@ -461,7 +473,7 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-`OUTB` を使用する際には、 `OUTB` がNULLを返すこと、そして
+`OUTB` を使用する際には、 `OUTB` がNULLを返すこと、そしてXarpiteが末尾式をデフォルトで出力することを考慮しなければなりません。
 
 ### `FILES`: ディレクトリ内のファイルの一覧を取得
 
@@ -631,12 +643,12 @@ $ {
 戻り値はそのプロセスの標準出力を1行ずつ読み取るストリームです。
 
 ```shell
-$ xa --jvm 'EXEC("echo", "Hello, World!")'
+$ xa 'EXEC("echo", "Hello, World!")'
 # Hello, World!
 ```
 
 ```shell
-$ xa --jvm 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
+$ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 3
 # 13
 # 23
@@ -648,7 +660,7 @@ $ xa --jvm 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。
 
 ```shell
-$ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
+$ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 # ERROR
 ```
 
@@ -657,7 +669,7 @@ $ xa --jvm 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
 呼び出したプロセスの標準エラー出力はXarpiteの標準エラー出力にリダイレクトされます。
 
 ```shell
-$ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
+$ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 # ERROR
 ```
 
@@ -671,4 +683,4 @@ $ xa --jvm -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
-**また、この関数は現状JVM版でのみ提供されます。**
+**また、この関数は現状JVM版とNative版で提供されます。**
