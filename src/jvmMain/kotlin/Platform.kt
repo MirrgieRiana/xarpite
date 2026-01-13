@@ -27,11 +27,6 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
     System.out.flush()
 }
 
-actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
-    System.err.write(bytes)
-    System.err.flush()
-}
-
 actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
