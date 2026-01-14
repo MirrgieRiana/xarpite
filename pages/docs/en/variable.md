@@ -364,7 +364,9 @@ $ xa -q '
 
 On set, the receiver function is called exactly once with 1 argument.
 
-The return value of the receiver function is ignored.
+Since the assignment operator returns the right-hand value, the receiver function's return value is always ignored.
+
+If the receiver function returns a stream, the stream is resolved and the result is ignored.
 
 ```shell
 $ xa -q '
