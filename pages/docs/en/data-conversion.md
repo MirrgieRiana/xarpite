@@ -286,7 +286,13 @@ If a section separated by the separator character is empty, an empty string is r
 
 ```shell
 $ xa ' ",1,,3," >> CSVD >> JSON '
-# ["","1","","3",""]
+# [
+#   "",
+#   "1",
+#   "",
+#   "3",
+#   ""
+# ]
 ```
 
 ---
@@ -295,5 +301,11 @@ Half-width spaces and tab characters at the beginning/end of lines or before/aft
 
 ```shell
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
-# ["","1","","3",""]
+# [
+#   "",
+#   "1",
+#   "",
+#   "3",
+#   ""
+# ]
 ```
