@@ -255,6 +255,8 @@ object XarpiteGrammar {
         -":=" map { ::InfixColonEqualNode }, // :=
         -"<<" map { ::InfixLessLessNode }, // <<
         -"->" map { ::InfixMinusGreaterNode }, // ->
+        -"+=" map { ::InfixPlusEqualNode }, // +=
+        -"-=" map { ::InfixMinusEqualNode }, // -=
     )
 
     val pipeOperatorPart: Parser<(Node, Node) -> InfixNode> = -b * pipeOperator * -b + -s * argumentsOperator * -b
