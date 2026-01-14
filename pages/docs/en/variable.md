@@ -342,6 +342,10 @@ When you declare a variable with a prefix `\` like `\variable`, it becomes a del
 
 Delegated variables execute the assigned function instead of accessing the variable entity when getting or setting.
 
+---
+
+On get, the receiver function is called with 0 arguments.
+
 ```shell
 $ xa -q '
   time := 0
@@ -355,6 +359,12 @@ $ xa -q '
 # 100
 # 110
 ```
+
+---
+
+On set, the receiver function is called exactly once with 1 argument.
+
+The return value of the receiver function is ignored.
 
 ```shell
 $ xa -q '
@@ -387,9 +397,3 @@ $ xa -q '
 # 100,100
 # 110,110
 ```
-
-## Delegated Variables Cannot Be Used in Object Properties
-
-Delegated variables are only valid in sequential execution side variable declaration statements.
-
-Using delegated variables in object properties will result in an error.
