@@ -62,10 +62,7 @@ class DataConversionTest {
     @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
-        assertEquals("""[
-  "a",
-  "b"
-]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
+        assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON[indent: ""] """).string) // CSVD で文字列を配列に変換できる
 
         // ストリームは各要素が変換される
         assertEquals("""a,b,c,d""", eval(""" ["a","b"],["c","d"] >> CSV """).stream())
@@ -73,81 +70,36 @@ class DataConversionTest {
 
         // 空文字列は空文字列を1個含む配列になる
         assertEquals("", eval(""" [""] >> CSV """).string)
-        assertEquals("""[
-  ""
-]""", eval(""" "" >> CSVD >> JSON """).string)
+        assertEquals("""[""]""", eval(""" "" >> CSVD >> JSON[indent: ""] """).string)
 
         // 区切り文字を含むセルはクォートされる
         assertEquals("\"a,b\"", eval(""" ["a,b"] >> CSV """).string)
-        assertEquals("""[
-  "a,b"
-]""", eval(""" "\"a,b\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a,b"]""", eval(""" "\"a,b\"" >> CSVD >> JSON[indent: ""] """).string)
 
         // クォートを含むセルはクォートされ、クォートが2重になる
         assertEquals("\"a\"\"b\"", eval(""" ["a\"b"] >> CSV """).string)
-        assertEquals("""[
-  "a\"b"
-]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a\"b"]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSON[indent: ""] """).string)
 
         // 前後に半角空白やタブがあるセルはクォートされる
         assertEquals("\" a \",\"\tb\t\"", eval(""" [" a ","\tb\t"] >> CSV """).string)
-        assertEquals("""[
-  " a ",
-  "\tb\t"
-]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSON """).string)
+        assertEquals("""[" a ","\tb\t"]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSON[indent: ""] """).string)
 
         // 改行を含むセルはクォートされる
         assertEquals("\"a\r\n\",\"\nb\"", eval(""" ["a\r\n","\nb"] >> CSV """).string)
-        assertEquals("""[
-  "a\r\n",
-  "\nb"
-]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a\r\n","\nb"]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSON[indent: ""] """).string)
 
         // 区切り文字とクォート文字の指定
         assertEquals("%a|%|%%%b%", eval(""" ["a|","%b"] >> CSV[separator: "|"; quote: "%"] """).string)
-        assertEquals("""[
-  "a|",
-  "%b"
-]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSON """).string)
+        assertEquals("""["a|","%b"]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSON[indent: ""] """).string)
 
         // CSVDのフォーマット
-        assertEquals("""[
-  "a",
-  "",
-  "b"
-]""", eval(""" "a,,b" >> CSVD >> JSON """).string) // 空のセクションは空文字列になる
-        assertEquals("""[
-  "",
-  "a",
-  "b"
-]""", eval(""" ",a,b" >> CSVD >> JSON """).string) // 先頭のカンマの前は空文字列になる
-        assertEquals("""[
-  "a",
-  "b",
-  ""
-]""", eval(""" "a,b," >> CSVD >> JSON """).string) // 末尾のカンマの後は空文字列になる
-        assertEquals("""[
-  "",
-  "a",
-  "",
-  "c",
-  ""
-]""", eval(""" " , a , , c , " >> CSVD >> JSON """).string) // 余計な空白はトリムされる
+        assertEquals("""["a","","b"]""", eval(""" "a,,b" >> CSVD >> JSON[indent: ""] """).string) // 空のセクションは空文字列になる
+        assertEquals("""["","a","b"]""", eval(""" ",a,b" >> CSVD >> JSON[indent: ""] """).string) // 先頭のカンマの前は空文字列になる
+        assertEquals("""["a","b",""]""", eval(""" "a,b," >> CSVD >> JSON[indent: ""] """).string) // 末尾のカンマの後は空文字列になる
+        assertEquals("""["","a","","c",""]""", eval(""" " , a , , c , " >> CSVD >> JSON[indent: ""] """).string) // 余計な空白はトリムされる
 
-        assertEquals("""[
-  "",
-  "a",
-  "",
-  "b",
-  ""
-]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSON """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
-        assertEquals("""[
-  "",
-  "a",
-  "",
-  "b",
-  ""
-]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSON """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSON[indent: ""] """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSON[indent: ""] """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
     }
 
     @Test
