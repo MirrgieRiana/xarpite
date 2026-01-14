@@ -45,17 +45,18 @@ suspend fun FluoriteValue.toSingleJson(indent: String?): String {
 
     val jsonElement = this.toJsonElement()
 
-    if (indent == null) return Json.encodeToString(jsonElement)
-    val oldJson = jsons[indent]
+    val effectiveIndent = indent ?: "  "
+    if (effectiveIndent == "") return Json.encodeToString(jsonElement)
+    val oldJson = jsons[effectiveIndent]
     val json = if (oldJson != null) {
         oldJson
     } else {
         val newJson = Json {
             prettyPrint = true
-            prettyPrintIndent = indent
+            prettyPrintIndent = effectiveIndent
         }
         if (jsons.size >= 10) jsons.clear()
-        jsons[indent] = newJson
+        jsons[effectiveIndent] = newJson
         newJson
     }
     return json.encodeToString(jsonElement)
@@ -64,14 +65,15 @@ suspend fun FluoriteValue.toSingleJson(indent: String?): String {
 suspend fun FluoriteValue.toSingleJsonFluoriteValue(indent: String?) = this.toSingleJson(indent).toFluoriteString()
 
 suspend fun FluoriteValue.toJsonsFluoriteValue(indent: String?): FluoriteValue {
+    val effectiveIndent = indent ?: ""
     return if (this is FluoriteStream) {
         FluoriteStream {
             this@toJsonsFluoriteValue.collect {
-                emit(it.toSingleJsonFluoriteValue(indent))
+                emit(it.toSingleJsonFluoriteValue(effectiveIndent))
             }
         }
     } else {
-        this.toSingleJsonFluoriteValue(indent)
+        this.toSingleJsonFluoriteValue(effectiveIndent)
     }
 }
 
