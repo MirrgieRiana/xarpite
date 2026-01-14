@@ -19,9 +19,29 @@ class DataConversionTest {
     @Test
     fun jsonFunction() = runTest {
         // JSON
-        assertEquals("{\n  \"a\": [\n    1,\n    2.5,\n    \"3\",\n    true,\n    false,\n    null\n  ]\n}", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
+        assertEquals("""
+{
+  "a": [
+    1,
+    2.5,
+    "3",
+    true,
+    false,
+    null
+  ]
+}
+""".trim(), eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
         assertEquals("1", eval("1 >> JSON").string) // プリミティブを直接指定できる
-        assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
+        assertEquals("""
+[
+  1,
+  [
+    2,
+    3
+  ],
+  4
+]
+""".trim(), eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
         assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONS").stream()) // ストリームを指定するとJsonのストリームになる
 
         // JSOND
@@ -44,8 +64,19 @@ class DataConversionTest {
         assertEquals("true", eval("$&TRUE").string)
         assertEquals("false", eval("$&FALSE").string)
         assertEquals("null", eval("$&NULL").string)
-        assertEquals("[\n  1,\n  2,\n  3\n]", eval("$&[1; 2; 3]").string)
-        assertEquals("{\n  \"a\": 1,\n  \"b\": 2\n}", eval("$&{a: 1; b: 2}").string)
+        assertEquals("""
+[
+  1,
+  2,
+  3
+]
+""".trim(), eval("$&[1; 2; 3]").string)
+        assertEquals("""
+{
+  "a": 1,
+  "b": 2
+}
+""".trim(), eval("$&{a: 1; b: 2}").string)
 
         // $* でjson文字列がFluoriteValueになる
         assertEquals(10, eval("$*'10'").int)
@@ -66,7 +97,7 @@ class DataConversionTest {
 
         // ストリームは各要素が変換される
         assertEquals("""a,b,c,d""", eval(""" ["a","b"],["c","d"] >> CSV """).stream())
-        assertEquals("[\"a\",\"b\"],[\"c\",\"d\"]", eval(""" "a,b","c,d" >> CSVD >> JSONS """).stream())
+        assertEquals("""["a","b"],["c","d"]""", eval(""" "a,b","c,d" >> CSVD >> JSONS """).stream())
 
         // 空文字列は空文字列を1個含む配列になる
         assertEquals("", eval(""" [""] >> CSV """).string)
