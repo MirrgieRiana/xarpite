@@ -41,7 +41,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
             }
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
-            e.stackTrace?.forEach { element ->
+            e.stackTrace?.reversed()?.forEach { element ->
                 context.io.err("  at $element".toFluoriteString())
             }
         }
