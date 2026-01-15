@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
-import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
@@ -40,13 +39,15 @@ class CliTest {
 
     @Test
     fun args() = runTest {
-        assertEquals("[1]", cliEval("ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
-        assertEquals("[]", cliEval("ARGS").array()) // 空の場合
-        assertEquals("[1;2;3]", cliEval("ARGS", "1", "2", "3").array()) // 複数の場合
+        val context = TestIoContext()
+        assertEquals("[1]", cliEval(context, "ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
+        assertEquals("[]", cliEval(context, "ARGS").array()) // 空の場合
+        assertEquals("[1;2;3]", cliEval(context, "ARGS", "1", "2", "3").array()) // 複数の場合
     }
 
     @Test
     fun read() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("read.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
@@ -54,11 +55,12 @@ class CliTest {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval("READ(ARGS.0)", file.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
     }
 
     @Test
     fun files() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val dir = baseDir.resolve("files.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
@@ -70,7 +72,7 @@ class CliTest {
         fileSystem.createDirectory(dir.resolve("banana"))
 
         // FILES 関数でファイル一覧を取得
-        val result = cliEval("FILES(ARGS.0)", dir.toString()).stream()
+        val result = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
 
         // アルファベット順にソートされ、ファイル名のみが返される
         assertEquals("apple.txt,banana,zebra.txt", result)
@@ -84,6 +86,7 @@ class CliTest {
 
     @Test
     fun useEvaluatesFile() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
@@ -91,13 +94,14 @@ class CliTest {
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
-        assertEquals("877", cliEval("""USE("./$file")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString().value)
         fileSystem.delete(file)
         fileSystem.delete(dir)
     }
 
     @Test
     fun useResolvesFromCurrentDirectory() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
@@ -107,7 +111,7 @@ class CliTest {
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
         fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
-        assertEquals("877", cliEval("""USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString().value)
         fileSystem.delete(apple)
         fileSystem.delete(banana)
         fileSystem.delete(dir)
@@ -115,6 +119,7 @@ class CliTest {
 
     @Test
     fun useResolvesXa1WhenExtensionOmitted() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
@@ -122,13 +127,14 @@ class CliTest {
         fileSystem.createDirectory(dir)
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
-        assertEquals("877", cliEval("""USE("./build/test/use.extension.tmp/banana")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString().value)
         fileSystem.delete(module)
         fileSystem.delete(dir)
     }
 
     @Test
     fun useCachesByPath() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
@@ -145,6 +151,7 @@ class CliTest {
             )
         }
         val result = cliEval(
+            context,
             """
             a := USE("./$file")
             b := USE("./$file")
@@ -158,27 +165,29 @@ class CliTest {
 
     @Test
     fun useRequiresRelativePrefix() = runTest {
+        val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
         assertFailsWith<FluoriteException> {
-            cliEval("""USE("$file")""")
+            cliEval(context, """USE("$file")""")
         }
         fileSystem.delete(file)
     }
 
     @Test
     fun inb() = runTest {
+        val context = TestIoContext()
         // INB はストリームとして存在することを確認
-        assertTrue(cliEval("INB ?= STREAM").boolean)
+        assertTrue(cliEval(context, "INB ?= STREAM").boolean)
     }
 
     @Test
     fun inbReadsBinaryStream() = runTest {
         val testData = byteArrayOf(97, 98, 99)
         val context = TestIoContext(stdinBytes = testData)
-        val blobs = cliEvalWithIo(context, "INB").collectBlobs()
+        val blobs = cliEval(context, "INB").collectBlobs()
         assertEquals(1, blobs.size)
         assertContentEquals(ubyteArrayOf(97u, 98u, 99u), blobs.first().value)
     }
@@ -187,7 +196,7 @@ class CliTest {
     fun inbSplitsByBufferSize() = runTest {
         val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
         val context = TestIoContext(stdinBytes = data)
-        val blobs = cliEvalWithIo(context, "INB").collectBlobs()
+        val blobs = cliEval(context, "INB").collectBlobs()
         assertEquals(2, blobs.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertEquals(1, blobs[1].value.size)
@@ -198,14 +207,14 @@ class CliTest {
     @Test
     fun outbWritesBinaryStream() = runTest {
         val context = TestIoContext()
-        cliEvalWithIo(context, "OUTB(BLOB.of([65, 66, 67]))")
+        cliEval(context, "OUTB(BLOB.of([65, 66, 67]))")
         assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
     }
 
     @Test
     fun outbWritesStreamAggregated() = runTest {
         val context = TestIoContext()
-        cliEvalWithIo(context, "OUTB(65 .. 67)")
+        cliEval(context, "OUTB(65 .. 67)")
         assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
     }
 
@@ -393,8 +402,9 @@ class CliTest {
     }
 
     fun execRunsSimpleCommand() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval(getExecSrcWrappingHexForShell("echo hello"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
             val lines = result.stream()
             assertEquals("hello", lines)
         } catch (e: WorkInProgressError) {
@@ -404,8 +414,9 @@ class CliTest {
 
     @Test
     fun execRunsComplexCommand() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval(getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
             val lines = result.stream()
             assertEquals("3,13,23,30", lines)
         } catch (e: WorkInProgressError) {
@@ -415,8 +426,9 @@ class CliTest {
 
     @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval("""${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
+            val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString().value)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -425,8 +437,9 @@ class CliTest {
 
     @Test
     fun execWithMultipleArguments() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval(getExecSrcWrappingHexForShell("echo hello world test"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
             val output = result.toFluoriteString().value.trim()
             assertEquals("hello world test", output)
         } catch (e: WorkInProgressError) {
@@ -436,8 +449,9 @@ class CliTest {
 
     @Test
     fun execWithEmptyOutput() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval(getExecSrcWrappingHexForShell(""))
+            val result = cliEval(context, getExecSrcWrappingHexForShell(""))
             val output = result.toFluoriteString().value
             assertEquals("", output)
         } catch (e: WorkInProgressError) {
@@ -447,9 +461,10 @@ class CliTest {
 
     @Test
     fun execWithSpecialCharactersInArguments() = runTest {
+        val context = TestIoContext()
         try {
             // 特殊文字を含む引数（シングルクォート、セミコロンなど）
-            val result = cliEval(getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
             val output = result.toFluoriteString().value
             assertEquals("hello;world test|pipe", output)
         } catch (e: WorkInProgressError) {
@@ -459,11 +474,12 @@ class CliTest {
 
     @Test
     fun execThrowsOnCommandNotFound() = runTest {
+        val context = TestIoContext()
         try {
             // 存在しないコマンドは例外をスロー
             var exceptionThrown = false
             try {
-                cliEval(getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
+                cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
             } catch (e: Exception) {
                 // FluoriteExceptionまたはその他の例外が期待される
                 exceptionThrown = true
@@ -476,8 +492,9 @@ class CliTest {
 
     @Test
     fun execWithNoTrailingNewline() = runTest {
+        val context = TestIoContext()
         try {
-            val result = cliEval(getExecSrcWrappingHexForShell("printf 'test'"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
             val output = result.toFluoriteString().value
             // printfは末尾に改行を追加しない
             assertEquals("test", output)
@@ -488,11 +505,12 @@ class CliTest {
 
     @Test
     fun execWithDifferentExitCodes() = runTest {
+        val context = TestIoContext()
         try {
             // 終了コード2でテスト
             var exceptionThrown = false
             try {
-                cliEval(getExecSrcWrappingHexForShell("exit 2"))
+                cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
             } catch (e: FluoriteException) {
                 // FluoriteExceptionが期待される
                 exceptionThrown = true
@@ -505,9 +523,10 @@ class CliTest {
 
     @Test
     fun execWithLongRunningCommand() = runTest {
+        val context = TestIoContext()
         try {
             // 少し時間がかかるコマンド
-            val result = cliEval(getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
             val output = result.toFluoriteString().value
             assertEquals("done", output)
         } catch (e: WorkInProgressError) {
@@ -517,9 +536,10 @@ class CliTest {
 
     @Test
     fun execWithPipeInCommand() = runTest {
+        val context = TestIoContext()
         try {
             // パイプを使用するコマンド
-            val result = cliEval(getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
             val output = result.toFluoriteString().value.trim()
             assertEquals("b", output)
         } catch (e: WorkInProgressError) {
@@ -529,9 +549,10 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentVariables() = runTest {
+        val context = TestIoContext()
         try {
             // 環境変数PATHは常に設定されている
-            val result = cliEval(getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
+            val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
             val output = result.toFluoriteString().value
             assertEquals("ok", output)
         } catch (e: WorkInProgressError) {
@@ -541,11 +562,12 @@ class CliTest {
 
     @Test
     fun execWithEmptyArgumentList() = runTest {
+        val context = TestIoContext()
         try {
             // 空の引数リストは例外をスロー
             var exceptionThrown = false
             try {
-                cliEval("""EXEC([])""")
+                cliEval(context, """EXEC([])""")
             } catch (e: Exception) {
                 // FluoriteExceptionまたはその他の例外が期待される
                 exceptionThrown = true
@@ -558,10 +580,11 @@ class CliTest {
 
     @Test
     fun execWithVeryLongArgument() = runTest {
+        val context = TestIoContext()
         try {
             // 長い引数
             val longString = "a".repeat(500)
-            val result = cliEval(getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
             val output = result.toFluoriteString().value
             assertEquals(longString, output)
         } catch (e: WorkInProgressError) {
@@ -571,9 +594,10 @@ class CliTest {
 
     @Test
     fun execWithUnicodeCharacters() = runTest {
+        val context = TestIoContext()
         try {
             // Unicode文字を含む引数
-            val result = cliEval(getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
             val output = result.toFluoriteString().value
             assertEquals("こんにちは世界", output)
         } catch (e: WorkInProgressError) {
@@ -583,9 +607,10 @@ class CliTest {
 
     @Test
     fun execWithMultipleCommandsInStream() = runTest {
+        val context = TestIoContext()
         try {
             // 複数のコマンドを&&で繋ぐ
-            val result = cliEval(getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
             val output = result.toFluoriteString().value
             assertEquals("abc", output)
         } catch (e: WorkInProgressError) {
@@ -595,9 +620,10 @@ class CliTest {
 
     @Test
     fun execWithRedirection() = runTest {
+        val context = TestIoContext()
         try {
             // リダイレクションを使用
-            val result = cliEval(getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
             val output = result.toFluoriteString().value
             assertEquals("ok", output)
         } catch (e: WorkInProgressError) {
@@ -607,9 +633,10 @@ class CliTest {
 
     @Test
     fun execWithBackslashInArgument() = runTest {
+        val context = TestIoContext()
         try {
             // バックスラッシュを含む引数
-            val result = cliEval(getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
+            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
             val output = result.toFluoriteString().value
             assertTrue(output.contains("a"))
         } catch (e: WorkInProgressError) {
@@ -619,12 +646,13 @@ class CliTest {
 
     @Test
     fun execParallelExecution() = runTest {
+        val context = TestIoContext()
         try {
             // 16並列でEXECを実行してデッドロックが発生しないことを確認
             coroutineScope {
                 val jobs = (1..16).map { i ->
                     async {
-                        cliEval(getExecSrcWrappingHexForShell("printf 'test$i'"))
+                        cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
                     }
                 }
                 val results = jobs.map { it.await() }
@@ -643,18 +671,18 @@ class CliTest {
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
-        val result = cliEvalWithIo(context, "ERR(123)")
+        val result = cliEval(context, "ERR(123)")
         assertEquals("NULL", result.toFluoriteString().value)
         assertEquals("123\n", context.stderrBytes.toUtf8String())
 
         // 複数の引数を渡せる
         context.clear()
-        cliEvalWithIo(context, """ERR("abc", "def")""")
+        cliEval(context, """ERR("abc", "def")""")
         assertEquals("abc\ndef\n", context.stderrBytes.toUtf8String())
 
         // ストリームを渡すと各要素が出力される
         context.clear()
-        cliEvalWithIo(context, "ERR(1 .. 3)")
+        cliEval(context, "ERR(1 .. 3)")
         assertEquals("1\n2\n3\n", context.stderrBytes.toUtf8String())
     }
 
@@ -662,7 +690,7 @@ class CliTest {
     fun errb() = runTest {
         val context = TestIoContext()
         // ERRB がNULLを返すことを確認
-        val result = cliEvalWithIo(context, "ERRB(BLOB.of([65, 66, 67]))")
+        val result = cliEval(context, "ERRB(BLOB.of([65, 66, 67]))")
         assertEquals("NULL", result.toFluoriteString().value)
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
@@ -670,25 +698,13 @@ class CliTest {
     @Test
     fun errbWritesStreamAggregated() = runTest {
         val context = TestIoContext()
-        cliEvalWithIo(context, "ERRB(65 .. 67)")
+        cliEval(context, "ERRB(65 .. 67)")
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
 }
 
-private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
-    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
-        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-        mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
-        }
-        evaluator.defineMounts(mountsFactory("./-"))
-        evaluator.get(src).cache()
-    }
-}
-
-private suspend fun CoroutineScope.cliEvalWithIo(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
