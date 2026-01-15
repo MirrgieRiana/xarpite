@@ -130,6 +130,20 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
             FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
         )
     }
+    mounts["LAZY"] = FluoriteFunction { arguments ->
+        if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
+        val initializer = arguments[0]
+        var value: FluoriteValue? = null
+        FluoriteFunction {
+            if (value == null) {
+                val value2 = initializer.invoke(emptyArray()).cache()
+                value = value2
+                value2
+            } else {
+                value
+            }
+        }
+    }
 
     return listOf(mounts)
 }

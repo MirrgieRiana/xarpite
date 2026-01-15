@@ -722,3 +722,47 @@ $ xa '
 ```
 
 その他の性質は概ね `LET` と同じです。
+
+## `LAZY` 遅延評価・キャッシュ関数
+
+`<T> LAZY(initializer: () -> T): () -> T`
+
+遅延評価とキャッシュをする関数を返します。
+
+`initializer` は `LAZY` の戻り値の関数の初回呼び出し時に1度だけ呼び出され、その結果はキャッシュされます。
+
+`initializer` がストリームを返した場合、そのストリームは解決されます。
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY ( =>
+    counter++
+    counter
+  )
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
+```
+
+---
+
+この関数は委譲変数と組み合わせると関数呼び出し演算子を省略できて便利です。
+
+```shell
+$ xa -q '
+  time := 0
+  \now := LAZY ( => time )
+
+  time = 100
+  OUT << now
+  time = 200
+  OUT << now
+'
+# 100
+# 100
+```
