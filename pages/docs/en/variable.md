@@ -88,6 +88,105 @@ $ xa '
 # 10
 ```
 
+# Assignment Statements
+
+## Compound Assignment Operators
+
+Xarpite has compound assignment operators such as the `+=` operator that perform both operation and assignment simultaneously.
+
+`a += b` is equivalent to `a = a + b` in most cases.
+
+```shell
+$ xa -q '
+  x := 100
+  OUT << x
+  x += 23
+  OUT << x
+'
+# 100
+# 123
+```
+
+## Overriding Compound Assignment
+
+There is an overridable method for compound assignment.
+
+The `_+=_` method is called exactly once each time `a += b` is executed.
+
+The return value of this method is ignored.
+
+However, if the return value is a stream, it is resolved and the result is ignored.
+
+The same applies to other compound assignment methods besides `_+=_`.
+
+```shell
+$ xa -q '
+  Array := {
+    `_+=_`: this, item -> this.value::push(item)
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+## List of Compound Assignment Operators
+
+The following is a list of compound assignment operators available in Xarpite.
+
+| Operator | Meaning                  |
+|----------|--------------------------|
+| `+=`     | Add and assign           |
+| `-=`     | Subtract and assign      |
+
+## Compound Assignment Fallback
+
+If the override method for compound assignment does not exist, normal operation and assignment are performed.
+
+```shell
+$ xa -q '
+  Array := {
+    `_+_`: this, item -> Array{value: this.value + [item]}
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+---
+
+Note that at this time, the variable itself is being updated.
+
+```shell
+$ xa -q '
+  array := ["apple"]
+  oldArray := array
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+
+  OUT << "Update!"
+  array += "banana"
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+'
+# Old: [apple]
+# New: [apple]
+# Update!
+# Old: [apple;banana]
+# New: [apple;banana]
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.

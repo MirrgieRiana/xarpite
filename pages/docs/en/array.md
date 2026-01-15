@@ -411,3 +411,20 @@ $ xa -q '
 # [minus two;minus one;zero;one;two;three;four]
 # [minus two;minus one;zero;one;two;three;four;five;six]
 ```
+
+## `array += item`: Adding Elements to an Array
+
+You can add elements to an array using the addition assignment operator.
+
+No assignment operation is performed on the left-hand variable itself; the array itself is modified.
+
+It generally behaves similarly to the `push` method.
+
+```shell
+$ xa '
+  array := ["apple"]
+  array += "banana"
+  array
+'
+# [apple;banana]
+```
