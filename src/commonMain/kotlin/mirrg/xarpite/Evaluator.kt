@@ -58,38 +58,40 @@ class Evaluator {
 
 }
 
-suspend fun CoroutineScope.eval(options: Options, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspend context(RuntimeContext) (Evaluator) -> T): T {
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
-        coroutineScope main@{
-            val context = RuntimeContext(
-                this@main,
-                daemonScope,
-                object : IoContext {
-                    override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
-                },
-            )
-            val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-            lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-            mountsFactory = { location ->
-                mounts + context.run { createModuleMounts(location, mountsFactory) }
-            }
-            val evaluator = Evaluator()
-            evaluator.defineMounts(mountsFactory("./-"))
-            if (options.quiet) {
-                evaluator.run(options.src)
-            } else {
-                val result = evaluator.get(options.src)
-                if (result is FluoriteStream) {
-                    result.collect {
-                        println(it.toFluoriteString())
-                    }
-                } else {
-                    println(result.toFluoriteString())
-                }
+        return coroutineScope main@{
+            RuntimeContext(this, daemonScope, ioContext).run {
+                block(Evaluator())
             }
         }
     } finally {
         daemonScope.cancel()
+    }
+}
+
+suspend fun CoroutineScope.eval(options: Options, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+    withEvaluator(object : IoContext {
+        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
+    }) { evaluator ->
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("./-"))
+        if (options.quiet) {
+            evaluator.run(options.src)
+        } else {
+            val result = evaluator.get(options.src)
+            if (result is FluoriteStream) {
+                result.collect {
+                    println(it.toFluoriteString())
+                }
+            } else {
+                println(result.toFluoriteString())
+            }
+        }
     }
 }
