@@ -19,6 +19,8 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
+private var nextCoroutineId = 1
+
 context(context: RuntimeContext)
 fun createLangMounts(): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
@@ -64,13 +66,21 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
         val function = arguments[0]
         val promise = FluoritePromise()
+        val coroutineId = nextCoroutineId
         context.coroutineScope.launch {
             try {
                 promise.deferred.complete(function.invoke(emptyArray()).cache())
             } catch (e: Throwable) {
+                try {
+                    val errorMessage = "COROUTINE[$coroutineId]: ${e.message ?: e.toString()}\n"
+                    context.io.writeBytesToStderr(errorMessage.encodeToByteArray())
+                } catch (_: Throwable) {
+                    // stderrへの出力に失敗しても、元の例外処理は継続する
+                }
                 promise.deferred.completeExceptionally(e)
             }
         }
+        nextCoroutineId++
         promise
     }
     mounts["OUT"] = FluoriteFunction { arguments ->

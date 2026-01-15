@@ -716,7 +716,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
     }
 }
 
-private class TestIoContext(
+internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
     private val stdinBytes: ByteArray = byteArrayOf()
 ) : IoContext {
@@ -764,7 +764,7 @@ private class TestIoContext(
     }
 }
 
-private class TestByteArrayOutputStream {
+internal class TestByteArrayOutputStream {
     private val buffer = mutableListOf<Byte>()
 
     fun write(bytes: ByteArray) {
