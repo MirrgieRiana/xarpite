@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -9,6 +10,7 @@ import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.toFluoriteString
 
+context(context: RuntimeContext)
 fun createStringMounts(): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
 

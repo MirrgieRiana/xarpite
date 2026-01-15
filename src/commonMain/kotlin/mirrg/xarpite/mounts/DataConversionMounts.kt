@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -17,6 +18,7 @@ import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import okio.Buffer
 
+context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "UTF8" to FluoriteFunction { arguments ->

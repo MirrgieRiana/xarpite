@@ -1,6 +1,6 @@
 package mirrg.xarpite.parser.parsers
 
-import hasFreeze
+import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.parser.ParseContext
 import mirrg.xarpite.parser.ParseResult
 import mirrg.xarpite.parser.Parser

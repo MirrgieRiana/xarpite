@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -17,6 +16,15 @@ project.group = "io.github.mirrgieriana"
 project.version = System.getenv("APP_VERSION") ?: "0.0.0-SNAPSHOT"
 
 kotlin {
+
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            listOf(
+                "-Xmulti-dollar-interpolation",
+                "-Xcontext-parameters",
+            )
+        )
+    }
 
     jvmToolchain(21)
 

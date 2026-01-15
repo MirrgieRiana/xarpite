@@ -1,9 +1,9 @@
 package mirrg.xarpite.mounts
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -19,7 +19,8 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
-fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
+context(context: RuntimeContext)
+fun createLangMounts(): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
 
     mounts["NULL"] = FluoriteNull
@@ -63,7 +64,7 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
         val function = arguments[0]
         val promise = FluoritePromise()
-        coroutineScope.launch {
+        context.coroutineScope.launch {
             try {
                 promise.deferred.complete(function.invoke(emptyArray()).cache())
             } catch (e: Throwable) {
@@ -76,10 +77,10 @@ fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue
         arguments.forEach {
             if (it is FluoriteStream) {
                 it.collect { item ->
-                    out(item)
+                    context.io.out(item)
                 }
             } else {
-                out(it)
+                context.io.out(it)
             }
         }
         FluoriteNull

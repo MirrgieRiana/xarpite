@@ -1,3 +1,5 @@
+package mirrg.xarpite
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -25,6 +27,11 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
 actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.out.write(bytes)
     System.out.flush()
+}
+
+actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    System.err.write(bytes)
+    System.err.flush()
 }
 
 actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {

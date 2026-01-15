@@ -1,11 +1,7 @@
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
-import mirrg.xarpite.cli.main
+import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
@@ -21,13 +17,6 @@ fun main(args: Array<String>) {
         return
     }
     runBlocking {
-        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-        try {
-            coroutineScope {
-                main(options, this, daemonScope)
-            }
-        } finally {
-            daemonScope.cancel()
-        }
+        cliEval(options)
     }
 }

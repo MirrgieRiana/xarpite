@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -18,6 +19,7 @@ import kotlin.math.sqrt
 import kotlin.math.tan
 import kotlin.random.Random
 
+context(context: RuntimeContext)
 fun createMathMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "MATH" to FluoriteObject(
@@ -35,6 +37,7 @@ fun createMathMounts(): List<Map<String, FluoriteValue>> {
                     } else {
                         FluoriteInt(abs(number.value))
                     }
+
                     is FluoriteDouble -> FluoriteDouble(abs(number.value))
                     else -> throw IllegalStateException("Unexpected FluoriteNumber type: ${number::class}")
                 }

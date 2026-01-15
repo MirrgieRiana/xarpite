@@ -1,8 +1,17 @@
 package mirrg.xarpite.cli
 
-import getEnv
-import getFileSystem
-import getProgramName
+import kotlinx.coroutines.CoroutineScope
+import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.getEnv
+import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.getProgramName
+import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
@@ -125,4 +134,34 @@ fun showUsage() {
 fun showVersion() {
     val version = getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
     println(version)
+}
+
+suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+    withEvaluator(object : IoContext {
+        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
+        override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
+        override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
+        override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
+        override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
+        override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
+    }) { context, evaluator ->
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("./-"))
+        if (options.quiet) {
+            evaluator.run(options.src)
+        } else {
+            val result = evaluator.get(options.src)
+            if (result is FluoriteStream) {
+                result.collect {
+                    println(it.toFluoriteString())
+                }
+            } else {
+                println(result.toFluoriteString())
+            }
+        }
+    }
 }
