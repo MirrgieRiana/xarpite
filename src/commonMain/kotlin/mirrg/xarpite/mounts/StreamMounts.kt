@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
+import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
@@ -26,8 +27,6 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
-import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.operations.FluoriteException
 
 fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {

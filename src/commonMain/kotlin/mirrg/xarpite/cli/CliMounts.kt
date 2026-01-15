@@ -20,8 +20,8 @@ import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import readBytesFromStdin
 import readLineFromStdin
-import writeBytesToStdout
 import writeBytesToStderr
+import writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 

@@ -1,7 +1,6 @@
 package mirrg.xarpite.js.test
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import mirrg.xarpite.Evaluator

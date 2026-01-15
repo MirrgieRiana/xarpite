@@ -14,7 +14,6 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
-import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 
 fun createLangMounts(coroutineScope: CoroutineScope, out: suspend (FluoriteValue) -> Unit): List<Map<String, FluoriteValue>> {
