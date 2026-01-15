@@ -1,6 +1,5 @@
 package mirrg.xarpite.operations
 
-import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
@@ -39,6 +38,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
+import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import kotlin.math.pow
