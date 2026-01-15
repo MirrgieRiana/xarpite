@@ -334,6 +334,15 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         },
         "BASE" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASE[radix: NUMBER](number: NUMBER): STRING")
+            
+            suspend fun convertToBase(radix: Int, number: FluoriteValue): FluoriteString {
+                val num = number.toFluoriteNumber()
+                return when (num) {
+                    is FluoriteInt -> num.value.toString(radix).uppercase().toFluoriteString()
+                    else -> usage()
+                }
+            }
+            
             when (arguments.size) {
                 1 -> {
                     // BASE[radix]の形式で部分適用
@@ -347,11 +356,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
                     FluoriteFunction { innerArguments ->
                         if (innerArguments.size != 1) usage()
-                        val number = innerArguments[0].toFluoriteNumber()
-                        when (number) {
-                            is FluoriteInt -> number.value.toString(radix).uppercase().toFluoriteString()
-                            else -> usage()
-                        }
+                        convertToBase(radix, innerArguments[0])
                     }
                 }
                 2 -> {
@@ -362,17 +367,23 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                         else -> usage()
                     }
                     if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
-                    val number = arguments[1].toFluoriteNumber()
-                    when (number) {
-                        is FluoriteInt -> number.value.toString(radix).uppercase().toFluoriteString()
-                        else -> usage()
-                    }
+                    convertToBase(radix, arguments[1])
                 }
                 else -> usage()
             }
         },
         "BASED" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASED[radix: NUMBER](string: STRING): NUMBER")
+            
+            suspend fun convertFromBase(radix: Int, string: FluoriteValue): FluoriteInt {
+                val str = string.toFluoriteString().value
+                return try {
+                    FluoriteInt(str.toInt(radix))
+                } catch (e: NumberFormatException) {
+                    throw IllegalArgumentException("Invalid base-$radix number: $str", e)
+                }
+            }
+            
             when (arguments.size) {
                 1 -> {
                     // BASED[radix]の形式で部分適用
@@ -386,12 +397,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
                     FluoriteFunction { innerArguments ->
                         if (innerArguments.size != 1) usage()
-                        val string = innerArguments[0].toFluoriteString().value
-                        try {
-                            FluoriteInt(string.toInt(radix))
-                        } catch (e: NumberFormatException) {
-                            throw IllegalArgumentException("Invalid base-$radix number: $string", e)
-                        }
+                        convertFromBase(radix, innerArguments[0])
                     }
                 }
                 2 -> {
@@ -402,12 +408,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                         else -> usage()
                     }
                     if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
-                    val string = arguments[1].toFluoriteString().value
-                    try {
-                        FluoriteInt(string.toInt(radix))
-                    } catch (e: NumberFormatException) {
-                        throw IllegalArgumentException("Invalid base-$radix number: $string", e)
-                    }
+                    convertFromBase(radix, arguments[1])
                 }
                 else -> usage()
             }
