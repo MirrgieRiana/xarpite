@@ -483,7 +483,7 @@ $ xa '65, 66, 67, 10 >> OUTB'
 
 ```shell
 $ xa -q 'ERR("Error!")' > /dev/null
-Error!
+# Error!
 ```
 
 ### `ERRB`: バイトデータを標準エラー出力に出力
@@ -496,7 +496,7 @@ Error!
 
 ```shell
 $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
-ABC
+# ABC
 ```
 
 ### `FILES`: ディレクトリ内のファイルの一覧を取得
