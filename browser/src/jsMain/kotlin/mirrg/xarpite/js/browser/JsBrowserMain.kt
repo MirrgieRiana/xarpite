@@ -1,14 +1,8 @@
 package mirrg.xarpite.js.browser
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.await
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.promise
-import mirrg.xarpite.Evaluator
 import mirrg.xarpite.IoContext
-import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -17,32 +11,22 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.withEvaluator
 import kotlin.js.Promise
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport
 fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Promise<dynamic> = scope.promise {
-    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-    try {
-        coroutineScope main@{
-            val context = RuntimeContext(
-                this@main,
-                daemonScope,
-                object : IoContext {
-                    override suspend fun out(value: FluoriteValue) = out(value).await()
-                },
-            )
-            val evaluator = Evaluator()
-            evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
-            if (quiet) {
-                evaluator.run(src)
-                undefined
-            } else {
-                evaluator.get(src).cache()
-            }
+    withEvaluator(object : IoContext {
+        override suspend fun out(value: FluoriteValue) = out(value).await()
+    }) { context, evaluator ->
+        evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
+        if (quiet) {
+            evaluator.run(src)
+            undefined
+        } else {
+            evaluator.get(src).cache()
         }
-    } finally {
-        daemonScope.cancel()
     }
 }
 

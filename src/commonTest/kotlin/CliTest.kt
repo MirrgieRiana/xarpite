@@ -1,15 +1,11 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.Evaluator
 import mirrg.xarpite.IoContext
-import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -26,6 +22,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.stream
+import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -629,27 +626,16 @@ class CliTest {
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
-    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-    try {
-        return coroutineScope main@{
-            val context = RuntimeContext(
-                this@main,
-                daemonScope,
-                object : IoContext {
-                    override suspend fun out(value: FluoriteValue) = Unit
-                },
-            )
-            val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-            lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-            mountsFactory = { location ->
-                mounts + context.run { createModuleMounts(location, mountsFactory) }
-            }
-            val evaluator = Evaluator()
-            evaluator.defineMounts(mountsFactory("./-"))
-            evaluator.get(src).cache()
+    return withEvaluator(object : IoContext {
+        override suspend fun out(value: FluoriteValue) = Unit
+    }) { context, evaluator ->
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-    } finally {
-        daemonScope.cancel()
+        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.get(src).cache()
     }
 }
 
