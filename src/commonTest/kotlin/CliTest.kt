@@ -5,8 +5,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.WorkInProgressError
+import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
@@ -25,6 +27,7 @@ import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -169,6 +172,41 @@ class CliTest {
     fun inb() = runTest {
         // INB はストリームとして存在することを確認
         assertTrue(cliEval("INB ?= STREAM").boolean)
+    }
+
+    @Test
+    fun inbReadsBinaryStream() = runTest {
+        val testData = byteArrayOf(97, 98, 99)
+        val context = TestIoContext(stdinBytes = testData)
+        val blobs = cliEvalWithIo(context, "INB").collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals(ubyteArrayOf(97u, 98u, 99u), blobs.first().value)
+    }
+
+    @Test
+    fun inbSplitsByBufferSize() = runTest {
+        val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
+        val context = TestIoContext(stdinBytes = data)
+        val blobs = cliEvalWithIo(context, "INB").collectBlobs()
+        assertEquals(2, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertEquals(1, blobs[1].value.size)
+        assertContentEquals(data.take(INB_MAX_BUFFER_SIZE).map { it.toUByte() }.toUByteArray(), blobs[0].value)
+        assertEquals(data.last().toUByte(), blobs[1].value[0])
+    }
+
+    @Test
+    fun outbWritesBinaryStream() = runTest {
+        val context = TestIoContext()
+        cliEvalWithIo(context, "OUTB(BLOB.of([65, 66, 67]))")
+        assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
+    }
+
+    @Test
+    fun outbWritesStreamAggregated() = runTest {
+        val context = TestIoContext()
+        cliEvalWithIo(context, "OUTB(65 .. 67)")
+        assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
     }
 
     @Test
@@ -603,22 +641,37 @@ class CliTest {
 
     @Test
     fun err() = runTest {
+        val context = TestIoContext()
         // ERR でエラー出力に書き込める
-        val result = cliEval("ERR(123)")
+        val result = cliEvalWithIo(context, "ERR(123)")
         assertEquals("NULL", result.toFluoriteString().value)
+        assertEquals("123\n", context.stderrBytes.toUtf8String())
 
         // 複数の引数を渡せる
-        cliEval("""ERR("abc", "def")""")
+        context.clear()
+        cliEvalWithIo(context, """ERR("abc", "def")""")
+        assertEquals("abc\ndef\n", context.stderrBytes.toUtf8String())
 
         // ストリームを渡すと各要素が出力される
-        cliEval("ERR(1 .. 3)")
+        context.clear()
+        cliEvalWithIo(context, "ERR(1 .. 3)")
+        assertEquals("1\n2\n3\n", context.stderrBytes.toUtf8String())
     }
 
     @Test
     fun errb() = runTest {
+        val context = TestIoContext()
         // ERRB がNULLを返すことを確認
-        val result = cliEval("ERRB(BLOB.of([65, 66, 67]))")
+        val result = cliEvalWithIo(context, "ERRB(BLOB.of([65, 66, 67]))")
         assertEquals("NULL", result.toFluoriteString().value)
+        assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
+    }
+
+    @Test
+    fun errbWritesStreamAggregated() = runTest {
+        val context = TestIoContext()
+        cliEvalWithIo(context, "ERRB(65 .. 67)")
+        assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
 }
@@ -632,6 +685,84 @@ private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): Fl
         }
         evaluator.defineMounts(mountsFactory("./-"))
         evaluator.get(src).cache()
+    }
+}
+
+private suspend fun CoroutineScope.cliEvalWithIo(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.get(src).cache()
+    }
+}
+
+private class TestIoContext(
+    private val stdinLines: List<String> = emptyList(),
+    private val stdinBytes: ByteArray = byteArrayOf()
+) : IoContext {
+    private var stdinLineIndex = 0
+    private var stdinBytesIndex = 0
+    val stdoutBytes = TestByteArrayOutputStream()
+    val stderrBytes = TestByteArrayOutputStream()
+
+    override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
+    
+    override suspend fun readLineFromStdin(): String? {
+        return if (stdinLineIndex < stdinLines.size) {
+            stdinLines[stdinLineIndex++]
+        } else {
+            null
+        }
+    }
+
+    override suspend fun readBytesFromStdin(): ByteArray? {
+        if (stdinBytesIndex >= stdinBytes.size) {
+            return null
+        }
+        val remaining = stdinBytes.size - stdinBytesIndex
+        val chunkSize = minOf(remaining, INB_MAX_BUFFER_SIZE)
+        val chunk = stdinBytes.copyOfRange(stdinBytesIndex, stdinBytesIndex + chunkSize)
+        stdinBytesIndex += chunkSize
+        return chunk
+    }
+
+    override suspend fun writeBytesToStdout(bytes: ByteArray) {
+        stdoutBytes.write(bytes)
+    }
+
+    override suspend fun writeBytesToStderr(bytes: ByteArray) {
+        stderrBytes.write(bytes)
+    }
+    
+    override suspend fun executeProcess(process: String, args: List<String>): String = throw UnsupportedOperationException()
+
+    fun clear() {
+        stdoutBytes.reset()
+        stderrBytes.reset()
+        stdinLineIndex = 0
+        stdinBytesIndex = 0
+    }
+}
+
+private class TestByteArrayOutputStream {
+    private val buffer = mutableListOf<Byte>()
+
+    fun write(bytes: ByteArray) {
+        buffer.addAll(bytes.toList())
+    }
+
+    fun toByteArray(): ByteArray = buffer.toByteArray()
+
+    fun reset() {
+        buffer.clear()
+    }
+
+    fun toUtf8String(): String {
+        return buffer.toByteArray().decodeToString()
     }
 }
 
