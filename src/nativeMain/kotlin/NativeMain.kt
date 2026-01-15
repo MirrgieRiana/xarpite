@@ -5,10 +5,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
-import mirrg.xarpite.cli.main
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
+import mirrg.xarpite.main
 
 fun main(args: Array<String>) {
     val options = try {

@@ -14,13 +14,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
-import mirrg.xarpite.cli.main
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
+import mirrg.xarpite.main
 import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
