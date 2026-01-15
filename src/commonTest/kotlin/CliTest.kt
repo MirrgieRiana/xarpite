@@ -19,6 +19,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -31,7 +32,6 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import mirrg.xarpite.getFileSystem
 
 val baseDir = "build/test".toPath()
 
@@ -710,7 +710,7 @@ private class TestIoContext(
     val stderrBytes = TestByteArrayOutputStream()
 
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
-    
+
     override suspend fun readLineFromStdin(): String? {
         return if (stdinLineIndex < stdinLines.size) {
             stdinLines[stdinLineIndex++]
@@ -737,7 +737,7 @@ private class TestIoContext(
     override suspend fun writeBytesToStderr(bytes: ByteArray) {
         stderrBytes.write(bytes)
     }
-    
+
     override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
 
     fun clear() {
