@@ -31,9 +31,6 @@ import kotlin.test.assertTrue
 
 val baseDir = "build/test".toPath()
 
-// Initialize platform-specific test setup
-private val platformInit = initTestPlatform()
-
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalUnsignedTypes::class)
 class CliTest {
 
