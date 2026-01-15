@@ -738,7 +738,7 @@ private class TestIoContext(
         stderrBytes.write(bytes)
     }
     
-    override suspend fun executeProcess(process: String, args: List<String>): String = throw UnsupportedOperationException()
+    override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
 
     fun clear() {
         stdoutBytes.reset()

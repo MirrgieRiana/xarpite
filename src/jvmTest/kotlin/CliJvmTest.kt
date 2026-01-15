@@ -41,7 +41,9 @@ class CliJvmTest {
 }
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
-    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+    return withEvaluator(object : UnsupportedIoContext() {
+        override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
+    }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
         mountsFactory = { location ->
