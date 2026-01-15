@@ -35,6 +35,7 @@ fun createMathMounts(): List<Map<String, FluoriteValue>> {
                     } else {
                         FluoriteInt(abs(number.value))
                     }
+
                     is FluoriteDouble -> FluoriteDouble(abs(number.value))
                     else -> throw IllegalStateException("Unexpected FluoriteNumber type: ${number::class}")
                 }

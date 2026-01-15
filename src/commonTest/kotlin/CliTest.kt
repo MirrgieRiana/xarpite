@@ -609,10 +609,10 @@ class CliTest {
         // ERR でエラー出力に書き込める
         val result = cliEval("ERR(123)")
         assertEquals("NULL", result.toFluoriteString().value)
-        
+
         // 複数の引数を渡せる
         cliEval("""ERR("abc", "def")""")
-        
+
         // ストリームを渡すと各要素が出力される
         cliEval("ERR(1 .. 3)")
     }
