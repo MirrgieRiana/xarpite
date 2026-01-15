@@ -130,8 +130,8 @@ $ xa -q '
   array += "banana"
   OUT << array.value
 '
-# ["apple"]
-# ["apple","banana"]
+# [apple]
+# [apple,banana]
 ```
 
 ## 演算代入演算子の一覧
@@ -158,8 +158,8 @@ $ xa -q '
   array += "banana"
   OUT << array.value
 '
-# ["apple"]
-# ["apple","banana"]
+# [apple]
+# [apple,banana]
 ```
 
 ---
@@ -177,9 +177,9 @@ $ xa -q '
 
   OUT << "Old: $oldArray"
 '
-# ["apple"]
-# New: ["apple","banana"]
-# Old: ["apple"]
+# [apple]
+# New: [apple,banana]
+# Old: [apple]
 ```
 
 # 変数
