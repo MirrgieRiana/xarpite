@@ -297,3 +297,98 @@ Half-width spaces and tab characters at the beginning/end of lines or before/aft
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
+
+## `BASE` Convert Integer to String in Arbitrary Radix
+
+`BASE[radix: NUMBER](number: NUMBER): STRING`
+
+Converts `number` to a string representation in base `radix`.
+
+Radix from 2 to 36 is supported.
+
+Output is represented in uppercase.
+
+```shell
+$ xa '256 >> BASE[16]'
+# 100
+
+$ xa '255 >> BASE[16]'
+# FF
+
+$ xa '256 >> BASE[2]'
+# 100000000
+
+$ xa '256 >> BASE[8]'
+# 400
+
+$ xa '10 >> BASE[16]'
+# A
+```
+
+---
+
+The `BASE` function supports partial application syntax.
+
+```shell
+$ xa '256 >> BASE[16]'
+# 100
+```
+
+Direct invocation is also possible.
+
+```shell
+$ xa 'BASE(16; 256)'
+# 100
+```
+
+## `BASED` Convert String in Arbitrary Radix to Integer
+
+`BASED[radix: NUMBER](string: STRING): NUMBER`
+
+Converts the string `string` represented in base `radix` to an integer.
+
+Radix from 2 to 36 is supported.
+
+Input accepts both uppercase and lowercase characters.
+
+```shell
+$ xa ' "100" >> BASED[16] '
+# 256
+
+$ xa ' "FF" >> BASED[16] '
+# 255
+
+$ xa ' "ff" >> BASED[16] '
+# 255
+
+$ xa ' "100000000" >> BASED[2] '
+# 256
+
+$ xa ' "400" >> BASED[8] '
+# 256
+```
+
+---
+
+This function is the inverse transformation of the `BASE` function.
+
+```shell
+$ xa '256 >> BASE[16] >> BASED[16]'
+# 256
+```
+
+---
+
+The `BASED` function also supports partial application syntax.
+
+```shell
+$ xa ' "100" >> BASED[16] '
+# 256
+```
+
+Direct invocation is also possible.
+
+```shell
+$ xa 'BASED(16; "100")'
+# 256
+```
