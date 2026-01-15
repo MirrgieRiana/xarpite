@@ -51,13 +51,11 @@ class Evaluator {
 
 }
 
-suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspend context(RuntimeContext) (Evaluator) -> T): T {
+suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspend (RuntimeContext, Evaluator) -> T): T {
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         return coroutineScope main@{
-            RuntimeContext(this, daemonScope, ioContext).run {
-                block(Evaluator())
-            }
+            block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
         }
     } finally {
         daemonScope.cancel()
