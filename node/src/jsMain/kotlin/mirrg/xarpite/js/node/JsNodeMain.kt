@@ -2,10 +2,7 @@ package mirrg.xarpite.js.node
 
 import envGetter
 import fileSystemGetter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.await
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
@@ -20,7 +17,7 @@ import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
-import mirrg.xarpite.main
+import mirrg.xarpite.eval
 import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
@@ -86,15 +83,8 @@ suspend fun main() {
         return
     }
     coroutineScope {
-        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-        try {
-            coroutineScope main@{
-                main(options, this@main, daemonScope) {
-                    createJsMounts()
-                }
-            }
-        } finally {
-            daemonScope.cancel()
+        eval(options) {
+            createJsMounts()
         }
     }
 }
