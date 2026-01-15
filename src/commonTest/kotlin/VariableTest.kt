@@ -74,4 +74,51 @@ class VariableTest {
         """.let { assertEquals("[1;2;3]", eval(it).array()) }
     }
 
+    @Test
+    fun lazyBasicTest() = runTest {
+        // LAZYの基本動作テスト
+        """
+            \sum := LAZY ( => 1 .. 3 >> SUM )
+            sum
+        """.let { assertEquals(6, eval(it).int) }
+    }
+
+    @Test
+    fun lazyWithDelegatedVariableTest() = runTest {
+        // LAZYと委譲変数の組み合わせテスト
+        """
+            time := 0
+            \now := LAZY ( => time )
+            
+            time = 100
+            [now, now]
+        """.let { assertEquals("[100;100]", eval(it).array()) }
+    }
+
+    @Test
+    fun lazyMultipleAccessTest() = runTest {
+        // LAZYで複数回アクセスしても1回しか評価されないことを確認
+        """
+            time := 0
+            \now := LAZY ( => time )
+            
+            time = 100
+            first := now
+            time = 110
+            second := now
+            [first, second]
+        """.let { assertEquals("[100;100]", eval(it).array()) }
+    }
+
+    @Test
+    fun lazyEvaluationCountTest() = runTest {
+        // LAZYが実際に1回しか評価されないことをカウンターで確認
+        """
+            counter := 0
+            \increment := LAZY ( => (counter = counter + 1) )
+            
+            [increment, increment, increment, counter]
+        """.let { assertEquals("[1;1;1;1]", eval(it).array()) }
+    }
+
 }
