@@ -123,12 +123,15 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
     mounts["LAZY"] = FluoriteFunction { arguments ->
         if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
         val initializer = arguments[0]
-        var cached: FluoriteValue? = null
+        var value: FluoriteValue? = null
         FluoriteFunction {
-            if (cached == null) {
-                cached = initializer.invoke(emptyArray())
+            if (value == null) {
+                val value2 = initializer.invoke(emptyArray()).cache()
+                value = value2
+                value2
+            } else {
+                value
             }
-            cached!!
         }
     }
 

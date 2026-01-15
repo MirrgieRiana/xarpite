@@ -121,4 +121,20 @@ class VariableTest {
         """.let { assertEquals("[1;1;1;1]", eval(it).array()) }
     }
 
+    @Test
+    fun lazyWithStreamTest() = runTest {
+        // LAZYがストリームを返した場合、解決してキャッシュすることを確認
+        """
+            counter := 0
+            lazy := LAZY ( => (
+                counter = counter + 1
+                1 .. 3
+            ) )
+            
+            first := lazy() >> SUM
+            second := lazy() >> SUM
+            [first, second, counter]
+        """.let { assertEquals("[6;6;1]", eval(it).array()) }
+    }
+
 }

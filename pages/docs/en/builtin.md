@@ -881,3 +881,44 @@ $ xa '
 ```
 
 Other characteristics are generally the same as `LET`.
+
+## `LAZY` Lazy Evaluation Function
+
+`<T> LAZY(initializer: () -> T): () -> T`
+
+Accepts an initializer function and returns a function that executes the initializer only on the first call and caches the result.
+
+On subsequent calls, it returns the cached value.
+
+If the initializer function returns a stream, the stream is resolved before being cached.
+
+```shell
+$ xa -q '
+  counter := 0
+  lazy := LAZY ( => (counter = counter + 1) )
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 1
+# 1
+# 1
+```
+
+---
+
+When combined with delegated variables, you can create a variable that retains the value at the time of first access.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := LAZY ( => time )
+
+  time = 100
+  OUT << now
+  time = 110
+  OUT << now
+'
+# 100
+# 100
+```

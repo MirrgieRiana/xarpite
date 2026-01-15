@@ -498,37 +498,3 @@ $ xa -q '
 # 100,100
 # 110,110
 ```
-
-## LAZY Function
-
-The `LAZY` function is used in combination with delegated variables to create lazily evaluated variables.
-
-`LAZY` accepts an initializer function, executes it only on the first evaluation, and caches the result.
-
-On subsequent evaluations, it returns the cached value.
-
-```shell
-$ xa -q '
-  \sum := LAZY ( => 1 .. 3 >> SUM )
-  OUT << sum
-'
-# 6
-```
-
----
-
-When combined with delegated variables, you can create a variable that retains the value at the time of first access.
-
-```shell
-$ xa -q '
-  time := 0
-  \now := LAZY ( => time )
-
-  time = 100
-  OUT << now
-  time = 110
-  OUT << now
-'
-# 100
-# 100
-```
