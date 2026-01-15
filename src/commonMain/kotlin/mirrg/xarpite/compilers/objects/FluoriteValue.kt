@@ -1,10 +1,9 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
-import mirrg.xarpite.StackTrace
 import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.operations.FluoriteException
-import kotlin.coroutines.coroutineContext
+import mirrg.xarpite.withStackTrace
 
 interface FluoriteValue {
     companion object {
@@ -43,19 +42,8 @@ fun interface Callable {
 }
 
 suspend fun Callable.callWithStackTrace(arguments: Array<FluoriteValue>): FluoriteValue {
-    val stackTrace = coroutineContext[StackTrace.Key]
-    return if (stackTrace == null) {
+    return withStackTrace(StackTraceElement.UNKNOWN) { // TODO
         this.call(arguments)
-    } else {
-        stackTrace.elements.add(StackTraceElement.UNKNOWN) // TODO
-        try {
-            this.call(arguments)
-        } catch (e: FluoriteException) {
-            if (e.stackTrace == null) e.stackTrace = stackTrace.elements.toList()
-            throw e
-        } finally {
-            stackTrace.elements.removeLast()
-        }
     }
 }
 
