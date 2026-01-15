@@ -206,7 +206,7 @@ class CoroutineTest {
             """).cache()
             
             // 結果の検証：例外がキャッチされている
-            assertEquals("Error in LAUNCH", (result as mirrg.xarpite.compilers.objects.FluoriteString).value)
+            assertEquals("Error in LAUNCH", result.string)
             
             // stderrへの出力を検証
             val stderrOutput = ioContext.stderrBytes.toUtf8String()
