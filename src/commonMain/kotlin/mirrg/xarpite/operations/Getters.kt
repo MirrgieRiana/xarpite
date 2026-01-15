@@ -754,7 +754,15 @@ class IfGetter(private val conditionGetter: Getter, private val okGetter: Getter
 class ElvisGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
-        return if (left != FluoriteNull) left else rightGetter.evaluate(env)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.flowProvider { value ->
+                    emit(if (value != FluoriteNull) value else rightGetter.evaluate(env))
+                }
+            }
+        } else {
+            if (left != FluoriteNull) left else rightGetter.evaluate(env)
+        }
     }
 
     override val code get() = "ElvisGetter[${leftGetter.code};${rightGetter.code}]"

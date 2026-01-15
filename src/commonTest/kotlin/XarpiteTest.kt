@@ -682,6 +682,11 @@ class XarpiteTest {
         assertEquals(2, eval("NULL ?: 2").int) // ?: の左辺がNULLの場合、右辺を得る
         assertEquals(false, eval("FALSE ?: 2").boolean) // FALSEは非NULLである
 
+        // ストリームに対するエルビス演算子
+        assertEquals("1,2,3", eval("(1, NULL, 3) ?: 2").stream()) // ストリームの各要素に適用される
+        assertEquals("1", eval("(NULL,) ?: 1").stream()) // 単体ストリームも各要素に適用される
+        assertEquals("a,b,c", eval("('a', NULL, 'c') ?: 'b'").stream()) // 文字列でも動作する
+
         // 三項演算子とエルビス演算子は混ぜて書ける
         assertEquals(1, eval("TRUE ? 1 ?: 2 : 3 ?: 4").int)
         assertEquals(2, eval("TRUE ? NULL ?: 2 : NULL ?: 4").int)

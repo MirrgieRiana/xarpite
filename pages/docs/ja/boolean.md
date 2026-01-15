@@ -220,3 +220,17 @@ $ xa '"Orange" ?: "Apple"'
 $ xa 'NULL ?: "Apple"'
 # Apple
 ```
+
+---
+
+左辺がストリームである場合、エルビス演算子は各要素に対して適用されます。
+
+```shell
+$ xa '(1, NULL, 3) ?: "default"'
+# 1
+# default
+# 3
+
+$ xa '(NULL,) ?: "default"'
+# default
+```
