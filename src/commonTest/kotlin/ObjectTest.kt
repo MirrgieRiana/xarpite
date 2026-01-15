@@ -89,6 +89,15 @@ class ObjectTest {
     }
 
     @Test
+    fun deleteKey() = runTest {
+        assertEquals("{a:1;c:3}", eval("o := {a: 1; b: 2; c: 3}; o -= \"b\"; o").obj) // オブジェクトのキーを削除できる
+        assertEquals("{a:1;b:2}", eval("o := {a: 1; b: 2}; o -= \"nonexistent\"; o").obj) // 存在しないキーの削除は何もしない
+        assertEquals("{b:2;c:3}", eval("o := {a: 1; b: 2; c: 3}; o -= \"a\"; o").obj) // 最初のキーも削除できる
+        assertEquals("{a:1;b:2}", eval("o := {a: 1; b: 2; c: 3}; o -= \"c\"; o").obj) // 最後のキーも削除できる
+        assertEquals("{}", eval("o := {a: 1}; o -= \"a\"; o").obj) // すべてのキーを削除できる
+    }
+
+    @Test
     fun setCall() = runTest {
         // オブジェクトの代入呼び出しでキーが作られる
         """

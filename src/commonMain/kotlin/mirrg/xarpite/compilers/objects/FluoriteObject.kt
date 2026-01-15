@@ -95,6 +95,12 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         FluoriteObject(fluoriteClass, map)
                     },
                     OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1].toFluoriteString().value in (it[0] as FluoriteObject).map).toFluoriteBoolean() },
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                        val obj = arguments[0] as FluoriteObject
+                        val key = arguments[1].toFluoriteString().value
+                        obj.map.remove(key)
+                        FluoriteNull
+                    },
                 )
             )
         }

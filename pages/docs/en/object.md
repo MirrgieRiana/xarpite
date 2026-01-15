@@ -190,3 +190,35 @@ $ xa '
 ```
 
 If the key does not yet exist in that object, it is added anew.
+
+## Deleting Keys from Objects
+
+`object -= key` removes a key from an object.
+
+```shell
+$ xa '
+  object := {
+    a: "one"
+    b: "two"
+    c: "three"
+  }
+
+  object -= "b"
+
+  object
+'
+# {a:one;c:three}
+```
+
+---
+
+If the key to delete does not exist, nothing happens.
+
+```shell
+$ xa '
+  object := {a: 1; b: 2}
+  object -= "nonexistent"
+  object
+'
+# {a:1;b:2}
+```

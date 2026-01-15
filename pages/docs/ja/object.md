@@ -190,3 +190,35 @@ $ xa '
 ```
 
 キーがそのオブジェクトにまだ存在しない場合は新たに追加されます。
+
+## オブジェクトのキーの削除
+
+`object -= key` でオブジェクトからキーを削除できます。
+
+```shell
+$ xa '
+  object := {
+    a: "one"
+    b: "two"
+    c: "three"
+  }
+
+  object -= "b"
+
+  object
+'
+# {a:one;c:three}
+```
+
+---
+
+削除するキーが存在しない場合は何も起こりません。
+
+```shell
+$ xa '
+  object := {a: 1; b: 2}
+  object -= "nonexistent"
+  object
+'
+# {a:1;b:2}
+```
