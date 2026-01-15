@@ -570,9 +570,11 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `GROUP` Group Stream by Key
 
-`<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
+`<T, K> GROUP([by = key_getter: T -> K; ]stream: T,): [K; [T,]],`
 
 Applies `key_getter` to each element of `stream`, groups values with the same key into entry arrays, and returns them as a stream.
+
+If `by` is omitted, elements themselves are used as keys.
 
 Entry arrays are in the order in which that key first appeared.
 
@@ -585,6 +587,17 @@ $ xa '
 '
 # [fruit;[{category:fruit;value:apple};{category:fruit;value:banana}]]
 # [animal;[{category:animal;value:cat}]]
+```
+
+---
+
+You can also omit `by` to use elements themselves as keys.
+
+```shell
+$ xa '1, 2, 3, 3, 2, 1 >> GROUP'
+# [1;[1;1]]
+# [2;[2;2]]
+# [3;[3;3]]
 ```
 
 ---

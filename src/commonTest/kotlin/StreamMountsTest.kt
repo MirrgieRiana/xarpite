@@ -153,7 +153,12 @@ class StreamMountsTest {
         assertEquals("[1;[14;15]]", eval("14, 15 >> GROUP[by: _ -> _.&.0]").stream()) // すべてが同じグループになってもよい
         assertEquals("[1;[14]],[2;[25]],[3;[36]]", eval("14, 25, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 3要素でもよい
         assertEquals("[1;[14;15]],[3;[36]]", eval("14, 15, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 部分的にグループ化されてもよい
+        
+        assertEquals("[1;[1;1]],[2;[2;2]],[3;[3;3]]", eval("1, 2, 3, 3, 2, 1 >> GROUP").stream()) // byを省略した場合、要素自身でグループ化される
+        assertEquals("[42;[42]]", eval("42 >> GROUP").stream()) // 非ストリームでもよい
+        assertEquals("", eval(", >> GROUP").stream()) // 空ストリームでもよい
     }
+
 
     @Test
     fun shuffle() = runTest {
