@@ -1,7 +1,10 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.StackTrace
+import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.operations.FluoriteException
+import kotlin.coroutines.coroutineContext
 
 interface FluoriteValue {
     companion object {
@@ -39,6 +42,23 @@ fun interface Callable {
     suspend fun call(arguments: Array<FluoriteValue>): FluoriteValue
 }
 
+suspend fun Callable.callWithStackTrace(arguments: Array<FluoriteValue>): FluoriteValue {
+    val stackTrace = coroutineContext[StackTrace.Key]
+    return if (stackTrace == null) {
+        this.call(arguments)
+    } else {
+        stackTrace.elements.add(StackTraceElement.UNKNOWN) // TODO
+        try {
+            this.call(arguments)
+        } catch (e: FluoriteException) {
+            if (e.stackTrace == null) e.stackTrace = stackTrace.elements.toList()
+            throw e
+        } finally {
+            stackTrace.elements.removeLast()
+        }
+    }
+}
+
 private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     var currentObject = this.parent
     while (true) {
@@ -67,7 +87,7 @@ suspend fun FluoriteValue.getMethod(name: String): Callable? {
 
 suspend fun FluoriteValue.callMethod(name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     val callable = this.getMethod(name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
-    return callable.call(arguments)
+    return callable.callWithStackTrace(arguments)
 }
 
 suspend fun FluoriteValue.callMethod(method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {

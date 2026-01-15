@@ -2,8 +2,10 @@ package mirrg.xarpite.mounts
 
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.plus
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -27,7 +29,10 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.copy
 import mirrg.xarpite.operations.FluoriteException
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.coroutineContext
 
 context(context: RuntimeContext)
 fun createStreamMounts(): List<Map<String, FluoriteValue>> {
@@ -578,6 +583,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             if (arguments.size == 1) {
                 val stream = arguments[0]
 
+                val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
                 val channel by lazy {
                     flow {
                         if (stream is FluoriteStream) {
@@ -587,7 +593,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                         } else {
                             emit(stream)
                         }
-                    }.produceIn(context.daemonScope)
+                    }.produceIn(context.daemonScope + stackTrace)
                 }
 
                 FluoriteStream {

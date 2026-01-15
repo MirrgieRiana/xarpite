@@ -11,6 +11,7 @@ import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
@@ -152,16 +153,23 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("./-"))
-        if (options.quiet) {
-            evaluator.run(options.src)
-        } else {
-            val result = evaluator.get(options.src)
-            if (result is FluoriteStream) {
-                result.collect {
-                    println(it.toFluoriteString())
-                }
+        try {
+            if (options.quiet) {
+                evaluator.run(options.src)
             } else {
-                println(result.toFluoriteString())
+                val result = evaluator.get(options.src)
+                if (result is FluoriteStream) {
+                    result.collect {
+                        println(it.toFluoriteString())
+                    }
+                } else {
+                    println(result.toFluoriteString())
+                }
+            }
+        } catch (e: FluoriteException) {
+            context.io.err("ERROR: ${e.message}".toFluoriteString())
+            e.stackTrace?.forEach { element ->
+                context.io.err("  at $element".toFluoriteString())
             }
         }
     }

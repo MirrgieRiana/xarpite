@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -52,10 +53,12 @@ class Evaluator {
 }
 
 suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspend (RuntimeContext, Evaluator) -> T): T {
-    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
+    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob() + StackTrace())
     try {
         return coroutineScope main@{
-            block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
+            withContext(StackTrace()) {
+                block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
+            }
         }
     } finally {
         daemonScope.cancel()

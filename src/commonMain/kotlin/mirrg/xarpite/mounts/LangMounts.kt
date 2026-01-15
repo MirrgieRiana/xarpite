@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -19,6 +20,9 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.copy
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.coroutineContext
 
 private var nextCoroutineId = 1
 
@@ -68,7 +72,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         val function = arguments[0]
         val promise = FluoritePromise()
         val coroutineId = nextCoroutineId
-        context.coroutineScope.launch {
+        context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
             try {
                 promise.deferred.complete(function.invoke(emptyArray()).cache())
             } catch (e: Throwable) {

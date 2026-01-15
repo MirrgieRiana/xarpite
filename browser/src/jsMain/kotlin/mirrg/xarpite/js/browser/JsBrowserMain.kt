@@ -11,6 +11,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import kotlin.js.Promise
 
@@ -27,11 +28,18 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun executeProcess(process: String, args: List<String>) = throw UnsupportedOperationException()
     }) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
-        if (quiet) {
-            evaluator.run(src)
-            undefined
-        } else {
-            evaluator.get(src).cache()
+        try {
+            if (quiet) {
+                evaluator.run(src)
+                undefined
+            } else {
+                evaluator.get(src).cache()
+            }
+        } catch (e: FluoriteException) {
+            context.io.err("ERROR: ${e.message}".toFluoriteString())
+            e.stackTrace?.forEach { element ->
+                context.io.err("  at $element".toFluoriteString())
+            }
         }
     }
 }

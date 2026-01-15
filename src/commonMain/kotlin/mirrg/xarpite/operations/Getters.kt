@@ -4,6 +4,7 @@ import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
@@ -20,6 +21,7 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callMethod
+import mirrg.xarpite.compilers.objects.callWithStackTrace
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
@@ -167,10 +169,10 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    callable.call(arguments + arguments2)
+                    callable.callWithStackTrace(arguments + arguments2)
                 }
             } else {
-                callable.call(arguments)
+                callable.callWithStackTrace(arguments)
             }
         }
 
@@ -320,7 +322,9 @@ class FromJsonGetter(private val getter: Getter) : Getter {
     override val code get() = "FromJsonGetter[${getter.code}]"
 }
 
-class FluoriteException(val value: FluoriteValue) : Exception(value.toString())
+class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) {
+    var stackTrace: List<StackTraceElement>? = null
+}
 
 class ThrowGetter(private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment) = throw FluoriteException(getter.evaluate(env))
