@@ -33,13 +33,13 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         "IN" to FluoriteStream {
             while (true) {
-                val line = readLineFromStdin() ?: break
+                val line = context.io.readLineFromStdin() ?: break
                 emit(line.toFluoriteString())
             }
         },
         "INB" to FluoriteStream {
             while (true) {
-                val bytes = readBytesFromStdin() ?: break
+                val bytes = context.io.readBytesFromStdin() ?: break
                 emit(bytes.asFluoriteBlob())
             }
         },
@@ -47,10 +47,10 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
-                        writeBytesToStderr((item.toFluoriteString().value + "\n").encodeToByteArray())
+                        context.io.writeBytesToStderr((item.toFluoriteString().value + "\n").encodeToByteArray())
                     }
                 } else {
-                    writeBytesToStderr((it.toFluoriteString().value + "\n").encodeToByteArray())
+                    context.io.writeBytesToStderr((it.toFluoriteString().value + "\n").encodeToByteArray())
                 }
             }
             FluoriteNull
@@ -58,14 +58,14 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
-                writeBytesToStdout(bytes)
+                context.io.writeBytesToStdout(bytes)
             }
             FluoriteNull
         },
         "ERRB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
-                writeBytesToStderr(bytes)
+                context.io.writeBytesToStderr(bytes)
             }
             FluoriteNull
         },
@@ -104,7 +104,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = executeProcess(process, processArgs)
+            val output = context.io.executeProcess(process, processArgs)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
