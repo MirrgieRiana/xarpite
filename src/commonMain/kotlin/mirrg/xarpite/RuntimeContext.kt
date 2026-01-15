@@ -11,6 +11,7 @@ class RuntimeContext(
 
 interface IoContext {
     suspend fun out(value: FluoriteValue)
+    suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
     suspend fun readBytesFromStdin(): ByteArray?
     suspend fun writeBytesToStdout(bytes: ByteArray)
@@ -20,6 +21,7 @@ interface IoContext {
 
 open class UnsupportedIoContext : IoContext {
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
+    override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
     override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()

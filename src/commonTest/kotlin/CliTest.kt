@@ -727,6 +727,8 @@ internal class TestIoContext(
 
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
 
+    override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
+
     override suspend fun readLineFromStdin(): String? {
         return if (stdinLineIndex < stdinLines.size) {
             stdinLines[stdinLineIndex++]

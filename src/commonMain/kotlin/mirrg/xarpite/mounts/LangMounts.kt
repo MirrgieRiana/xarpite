@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.toFluoriteString
 
 private var nextCoroutineId = 1
 
@@ -72,8 +73,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 promise.deferred.complete(function.invoke(emptyArray()).cache())
             } catch (e: Throwable) {
                 try {
-                    val errorMessage = "COROUTINE[$coroutineId]: ${e.message ?: e.toString()}\n"
-                    context.io.writeBytesToStderr(errorMessage.encodeToByteArray())
+                    context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
                 } catch (_: Throwable) {
                     // stderrへの出力に失敗しても、元の例外処理は継続する
                 }

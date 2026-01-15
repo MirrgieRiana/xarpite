@@ -139,6 +139,7 @@ fun showVersion() {
 suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     withEvaluator(object : IoContext {
         override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
+        override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString().value}\n".encodeToByteArray())
         override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
         override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
         override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)

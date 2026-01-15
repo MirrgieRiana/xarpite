@@ -1,8 +1,5 @@
 package mirrg.xarpite.cli
 
-import mirrg.xarpite.executeProcess
-import mirrg.xarpite.getEnv
-import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -16,13 +13,11 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.getEnv
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
-import mirrg.xarpite.readBytesFromStdin
-import mirrg.xarpite.readLineFromStdin
-import mirrg.xarpite.writeBytesToStderr
-import mirrg.xarpite.writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 
@@ -47,10 +42,10 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
-                        context.io.writeBytesToStderr((item.toFluoriteString().value + "\n").encodeToByteArray())
+                        context.io.err(item)
                     }
                 } else {
-                    context.io.writeBytesToStderr((it.toFluoriteString().value + "\n").encodeToByteArray())
+                    context.io.err(it)
                 }
             }
             FluoriteNull
