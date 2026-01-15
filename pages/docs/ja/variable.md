@@ -131,7 +131,7 @@ $ xa -q '
   OUT << array.value
 '
 # [apple]
-# [apple,banana]
+# [apple;banana]
 ```
 
 ## 演算代入演算子の一覧
@@ -159,7 +159,7 @@ $ xa -q '
   OUT << array.value
 '
 # [apple]
-# [apple,banana]
+# [apple;banana]
 ```
 
 ---
@@ -178,7 +178,7 @@ $ xa -q '
   OUT << "Old: $oldArray"
 '
 # [apple]
-# New: [apple,banana]
+# New: [apple;banana]
 # Old: [apple]
 ```
 
