@@ -171,15 +171,20 @@ $ xa -q '
   array := ["apple"]
   oldArray := array
 
-  OUT << array
-  array += "banana"
+  OUT << "Old: $oldArray"
   OUT << "New: $array"
 
+  OUT << "Update!"
+  array += "banana"
+
   OUT << "Old: $oldArray"
+  OUT << "New: $array"
 '
-# [apple]
-# New: [apple;banana]
 # Old: [apple]
+# New: [apple]
+# Update!
+# Old: [apple;banana]
+# New: [apple;banana]
 ```
 
 # 変数
