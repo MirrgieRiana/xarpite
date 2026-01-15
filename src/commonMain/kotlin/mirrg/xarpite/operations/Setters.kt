@@ -1,5 +1,6 @@
 package mirrg.xarpite.operations
 
+import mirrg.xarpite.DelegatedVariable
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
@@ -25,6 +26,16 @@ class VariableDefinitionSetter(private val frameIndex: Int, private val variable
     }
 
     override val code get() = "VariableDefinitionSetter[$frameIndex;$variableIndex]"
+}
+
+class DelegatedVariableDefinitionSetter(private val frameIndex: Int, private val variableIndex: Int) : Setter {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue) -> Unit {
+        return {
+            env.variableTable[frameIndex][variableIndex] = DelegatedVariable(it)
+        }
+    }
+
+    override val code get() = "DelegatedVariableDefinitionSetter[$frameIndex;$variableIndex]"
 }
 
 class ItemAccessSetter(private val receiverGetter: Getter, private val keyGetter: Getter) : Setter {

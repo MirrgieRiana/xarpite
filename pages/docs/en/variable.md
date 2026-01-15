@@ -434,3 +434,67 @@ $ xa '
 ```
 
 This specification is provided to prevent unintended use of mounts.
+
+# Delegated Variables
+
+When you declare a variable with a prefix `\` like `\variable`, it becomes a delegated variable.
+
+Delegated variables execute the assigned function instead of accessing the variable entity when getting or setting.
+
+---
+
+On get, the receiver function is called with 0 arguments.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := () -> time
+
+  time = 100
+  OUT << now
+  time = 110
+  OUT << now
+'
+# 100
+# 110
+```
+
+---
+
+On set, the receiver function is called exactly once with 1 argument.
+
+Since the assignment operator returns the right-hand value, the receiver function's return value is always ignored.
+
+If the receiver function returns a stream, the stream is resolved and the result is ignored.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> time = _
+
+  now = 100
+  OUT << time
+  now = 110
+  OUT << time
+'
+# 100
+# 110
+```
+
+## Delegated Variables Supporting Both Get and Set
+
+To create a delegated variable that supports both getting and setting, the delegated function determines the number of arguments.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> __.$# == 0 ? time : (time = _)
+
+  now = 100
+  OUT << [time, now] >> CSV
+  now = 110
+  OUT << [time, now] >> CSV
+'
+# 100,100
+# 110,110
+```

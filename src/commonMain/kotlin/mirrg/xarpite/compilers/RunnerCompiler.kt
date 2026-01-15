@@ -11,10 +11,12 @@ import mirrg.xarpite.InfixExclamationQuestionNode
 import mirrg.xarpite.Node
 import mirrg.xarpite.SemicolonsNode
 import mirrg.xarpite.UnaryAtNode
+import mirrg.xarpite.UnaryBackslashNode
 import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
 import mirrg.xarpite.mount
 import mirrg.xarpite.operations.AssignmentRunner
+import mirrg.xarpite.operations.DelegatedVariableDefinitionSetter
 import mirrg.xarpite.operations.GetterRunner
 import mirrg.xarpite.operations.LabelRunner
 import mirrg.xarpite.operations.MountRunner
@@ -37,6 +39,12 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
                 val name = node.left.string
                 val variableIndex = defineVariable(name)
                 listOf(AssignmentRunner(VariableDefinitionSetter(frameIndex, variableIndex), compileToGetter(node.right)))
+            }
+
+            node.left is UnaryBackslashNode && node.left.main is IdentifierNode -> {
+                val name = node.left.main.string
+                val variableIndex = defineVariable(name)
+                listOf(AssignmentRunner(DelegatedVariableDefinitionSetter(frameIndex, variableIndex), compileToGetter(node.right)))
             }
 
             else -> throw IllegalArgumentException("Illegal definition: ${node.left::class} := ${node.right::class}")
