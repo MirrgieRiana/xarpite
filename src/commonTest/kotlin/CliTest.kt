@@ -725,9 +725,9 @@ internal class TestIoContext(
     val stdoutBytes = TestByteArrayOutputStream()
     val stderrBytes = TestByteArrayOutputStream()
 
-    override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
+    override suspend fun out(value: FluoriteValue) = writeBytesToStdout("${value.toFluoriteString().value}\n".encodeToByteArray())
 
-    override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
+    override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString().value}\n".encodeToByteArray())
 
     override suspend fun readLineFromStdin(): String? {
         return if (stdinLineIndex < stdinLines.size) {
