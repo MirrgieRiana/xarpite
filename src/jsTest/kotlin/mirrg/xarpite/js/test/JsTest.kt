@@ -2,9 +2,8 @@ package mirrg.xarpite.js.test
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.IoContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
@@ -21,9 +20,7 @@ class JsTest {
 
     @Test
     fun property() = runTest {
-        withEvaluator(object : IoContext {
-            override suspend fun out(value: FluoriteValue) = Unit
-        }) { context, evaluator ->
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createDefaultBuiltinMounts() })
 
             evaluator.run("obj := JS('({a: 100})')")
@@ -40,9 +37,7 @@ class JsTest {
 
     @Test
     fun new() = runTest {
-        withEvaluator(object : IoContext {
-            override suspend fun out(value: FluoriteValue) = Unit
-        }) { context, evaluator ->
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createDefaultBuiltinMounts() })
 
             """
@@ -64,9 +59,7 @@ class JsTest {
 
     @Test
     fun methodCall() = runTest {
-        withEvaluator(object : IoContext {
-            override suspend fun out(value: FluoriteValue) = Unit
-        }) { context, evaluator ->
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createDefaultBuiltinMounts() })
 
             """

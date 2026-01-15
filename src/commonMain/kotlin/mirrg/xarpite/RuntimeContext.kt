@@ -12,3 +12,7 @@ class RuntimeContext(
 interface IoContext {
     suspend fun out(value: FluoriteValue)
 }
+
+open class UnsupportedIoContext : IoContext {
+    override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
+}

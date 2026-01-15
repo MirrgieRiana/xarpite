@@ -1,7 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.IoContext
-import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
@@ -57,9 +56,7 @@ class FunctionTest {
 
     @Test
     fun arrowCall() = runTest {
-        withEvaluator(object : IoContext {
-            override suspend fun out(value: FluoriteValue) = Unit
-        }) { context, evaluator ->
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createCommonMounts() })
 
             // _::_ でフォールバックメソッドを定義する

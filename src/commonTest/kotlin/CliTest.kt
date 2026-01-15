@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.IoContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -626,9 +626,7 @@ class CliTest {
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
-    return withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = Unit
-    }) { context, evaluator ->
+    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
         mountsFactory = { location ->

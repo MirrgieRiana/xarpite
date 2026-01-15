@@ -1,8 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.IoContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -1058,9 +1057,7 @@ class XarpiteTest {
 
     @Test
     fun fallbackMethod() = runTest {
-        withEvaluator(object : IoContext {
-            override suspend fun out(value: FluoriteValue) = Unit
-        }) { context, evaluator ->
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createCommonMounts() })
 
             // _::_ でフォールバックメソッドを定義する

@@ -1,8 +1,8 @@
 package mirrg.xarpite.js.test
 
 import kotlinx.coroutines.CoroutineScope
-import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
@@ -13,9 +13,7 @@ context(context: RuntimeContext)
 fun createDefaultBuiltinMounts() = createCommonMounts() + createJsMounts()
 
 suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }): FluoriteValue {
-    return withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = Unit
-    }) { context, evaluator ->
+    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
         evaluator.defineMounts(context.run { createDefaultBuiltinMounts() + createExtraMounts() })
         evaluator.get(src).cache()
     }

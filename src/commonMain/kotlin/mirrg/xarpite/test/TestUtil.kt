@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Frame
-import mirrg.xarpite.IoContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
@@ -29,9 +29,7 @@ fun parse(src: String): String {
 }
 
 suspend fun CoroutineScope.eval(src: String): FluoriteValue {
-    return withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = Unit
-    }) { context, evaluator ->
+    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }
