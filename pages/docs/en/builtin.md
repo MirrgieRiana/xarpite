@@ -916,7 +916,7 @@ $ xa -q '
 
   time = 100
   OUT << now
-  time = 110
+  time = 200
   OUT << now
 '
 # 100
