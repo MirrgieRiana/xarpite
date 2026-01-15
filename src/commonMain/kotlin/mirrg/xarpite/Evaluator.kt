@@ -62,11 +62,13 @@ suspend fun CoroutineScope.eval(options: Options, createExtraMounts: context(Run
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         coroutineScope main@{
-            val context = object : RuntimeContext {
-                override val coroutineScope get() = this@main
-                override val daemonScope get() = daemonScope
-                override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
-            }
+            val context = RuntimeContext(
+                this@main,
+                daemonScope,
+                object : IoContext {
+                    override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
+                },
+            )
             val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
             lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
             mountsFactory = { location ->

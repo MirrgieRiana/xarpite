@@ -7,6 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.promise
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -24,11 +25,13 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         coroutineScope main@{
-            val context = object : RuntimeContext {
-                override val coroutineScope get() = this@main
-                override val daemonScope get() = daemonScope
-                override suspend fun out(value: FluoriteValue) = out(value).await()
-            }
+            val context = RuntimeContext(
+                this@main,
+                daemonScope,
+                object : IoContext {
+                    override suspend fun out(value: FluoriteValue) = out(value).await()
+                },
+            )
             val evaluator = Evaluator()
             evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
             if (quiet) {

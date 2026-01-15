@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.compilers.compileToGetter
@@ -35,11 +36,13 @@ suspend fun CoroutineScope.eval(src: String): FluoriteValue {
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         return coroutineScope main@{
-            val context = object : RuntimeContext {
-                override val coroutineScope get() = this@main
-                override val daemonScope get() = daemonScope
-                override suspend fun out(value: FluoriteValue) = Unit
-            }
+            val context = RuntimeContext(
+                this@main,
+                daemonScope,
+                object : IoContext {
+                    override suspend fun out(value: FluoriteValue) = Unit
+                },
+            )
             val evaluator = Evaluator()
             evaluator.defineMounts(context.run { createCommonMounts() })
             evaluator.get(src).cache()

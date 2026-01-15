@@ -5,6 +5,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -1065,11 +1066,13 @@ class XarpiteTest {
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
             coroutineScope main@{
-                val context = object : RuntimeContext {
-                    override val coroutineScope get() = this@main
-                    override val daemonScope get() = daemonScope
-                    override suspend fun out(value: FluoriteValue) = Unit
-                }
+                val context = RuntimeContext(
+                    this@main,
+                    daemonScope,
+                    object : IoContext {
+                        override suspend fun out(value: FluoriteValue) = Unit
+                    },
+                )
                 val evaluator = Evaluator()
                 evaluator.defineMounts(context.run { createCommonMounts() })
 

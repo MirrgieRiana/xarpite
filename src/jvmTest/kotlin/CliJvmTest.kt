@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.createCliMounts
@@ -110,11 +111,13 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
         return coroutineScope main@{
-            val context = object : RuntimeContext {
-                override val coroutineScope get() = this@main
-                override val daemonScope get() = daemonScope
-                override suspend fun out(value: FluoriteValue) = Unit
-            }
+            val context = RuntimeContext(
+                this@main,
+                daemonScope,
+                object : IoContext {
+                    override suspend fun out(value: FluoriteValue) = Unit
+                },
+            )
             val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
             lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
             mountsFactory = { location ->

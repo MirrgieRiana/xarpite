@@ -73,10 +73,10 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
-                        context.out(item)
+                        context.io.out(item)
                     }
                 } else {
-                    context.out(it)
+                    context.io.out(it)
                 }
             }
             FluoriteNull
