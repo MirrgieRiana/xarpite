@@ -88,8 +88,8 @@ suspend fun main() {
     coroutineScope {
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            coroutineScope {
-                main(options, this, daemonScope) {
+            coroutineScope main@{
+                main(options, this@main, daemonScope) {
                     createJsMounts()
                 }
             }

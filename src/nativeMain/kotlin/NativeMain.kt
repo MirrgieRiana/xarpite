@@ -23,8 +23,8 @@ fun main(args: Array<String>) {
     runBlocking {
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            coroutineScope {
-                main(options, this, daemonScope)
+            coroutineScope main@{
+                main(options, this@main, daemonScope)
             }
         } finally {
             daemonScope.cancel()
