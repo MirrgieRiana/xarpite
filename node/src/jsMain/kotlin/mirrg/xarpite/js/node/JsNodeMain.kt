@@ -24,8 +24,8 @@ import mirrg.xarpite.main
 import okio.NodeJsFileSystem
 import readBytesFromStdinImpl
 import readLineFromStdinImpl
-import writeBytesToStdoutImpl
 import writeBytesToStderrImpl
+import writeBytesToStdoutImpl
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
