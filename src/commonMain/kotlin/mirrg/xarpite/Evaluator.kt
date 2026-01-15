@@ -4,16 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import mirrg.xarpite.cli.Options
-import mirrg.xarpite.cli.createCliMounts
-import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
-import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.collect
-import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.parser.parseAllOrThrow
 
 class Evaluator {
@@ -68,30 +61,5 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
         }
     } finally {
         daemonScope.cancel()
-    }
-}
-
-suspend fun CoroutineScope.eval(options: Options, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }) {
-    withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
-    }) { evaluator ->
-        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-        mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
-        }
-        evaluator.defineMounts(mountsFactory("./-"))
-        if (options.quiet) {
-            evaluator.run(options.src)
-        } else {
-            val result = evaluator.get(options.src)
-            if (result is FluoriteStream) {
-                result.collect {
-                    println(it.toFluoriteString())
-                }
-            } else {
-                println(result.toFluoriteString())
-            }
-        }
     }
 }
