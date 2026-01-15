@@ -18,6 +18,15 @@ project.version = System.getenv("APP_VERSION") ?: "0.0.0-SNAPSHOT"
 
 kotlin {
 
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            listOf(
+                "-Xmulti-dollar-interpolation",
+                "-Xcontext-parameters",
+            )
+        )
+    }
+
     jvmToolchain(21)
 
     jvm()
