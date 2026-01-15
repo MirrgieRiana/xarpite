@@ -3,31 +3,30 @@ package mirrg.xarpite.js.test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
-import kotlin.coroutines.coroutineContext
 
-fun CoroutineScope.createDefaultBuiltinMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
-    return listOf(
-        createCommonMounts(this, daemonScope) {},
-        createJsMounts(),
-    ).flatten()
-}
+context(context: RuntimeContext)
+fun createDefaultBuiltinMounts() = createCommonMounts() + createJsMounts()
 
-suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }): FluoriteValue {
-    val evaluator = Evaluator()
+suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }): FluoriteValue {
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
-        evaluator.defineMounts(
-            listOf(
-                createDefaultBuiltinMounts(daemonScope),
-                createExtraMounts(),
-            ).flatten()
-        )
-        return evaluator.get(src).cache()
+        return coroutineScope main@{
+            val context = object : RuntimeContext {
+                override val coroutineScope get() = this@main
+                override val daemonScope get() = daemonScope
+                override suspend fun out(value: FluoriteValue) = Unit
+            }
+            val evaluator = Evaluator()
+            evaluator.defineMounts(context.run { createDefaultBuiltinMounts() + createExtraMounts() })
+            evaluator.get(src).cache()
+        }
     } finally {
         daemonScope.cancel()
     }

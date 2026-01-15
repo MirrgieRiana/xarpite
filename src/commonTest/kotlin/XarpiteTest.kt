@@ -2,9 +2,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -1059,34 +1062,41 @@ class XarpiteTest {
 
     @Test
     fun fallbackMethod() = runTest {
-        val evaluator = Evaluator()
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
-
-            // _::_ でフォールバックメソッドを定義する
-            """
-                Obj := {
-                    `_::_`: this, method ->
-                        method == "apple"  ? (() -> "Fallback apple") :
-                        method == "banana" ? (x, y, z -> "Fallback", this, method, x, y, z, __ >> JOIN[" "]) :
-                        method == "cherry" ? (() -> !!"ERROR") :
-                        method == "durian" ? (() -> "Fallback durian") :
-                                             NULL
-                    cherry: this -> "Method cherry"
+            coroutineScope main@{
+                val context = object : RuntimeContext {
+                    override val coroutineScope get() = this@main
+                    override val daemonScope get() = daemonScope
+                    override suspend fun out(value: FluoriteValue) = Unit
                 }
-                @{
-                    `::durian`: (Obj): this -> !!"ERROR"
-                    `::elderberry`: (Obj): this -> "Mount elderberry"
-                }
-                obj := Obj{item: 123}
-            """.let { evaluator.run(it) }
+                val evaluator = Evaluator()
+                evaluator.defineMounts(context.run { createCommonMounts() })
 
-            assertEquals("Fallback apple", evaluator.get("obj::apple()").string) // 存在しないメソッドが呼び出された場合、フォールバックメソッドが呼ばれる
-            assertEquals("Fallback {item:123} banana 1 2 3 [1;2;3]", evaluator.get("obj::banana(1; 2; 3)").string) // 引数は委譲された関数の方にバラで渡される
-            assertEquals("Method cherry", evaluator.get("obj::cherry()").string) // メソッドが定義されている場合はフォールバックしない
-            assertEquals("Fallback durian", evaluator.get("obj::durian()").string) // フォールバックメソッドはマウントによる拡張関数に優先する
-            assertEquals("Mount elderberry", evaluator.get("obj::elderberry()").string) // フォールバックメソッドがNULLを返した場合、メソッドが定義されていない扱いになる
+                // _::_ でフォールバックメソッドを定義する
+                """
+                    Obj := {
+                        `_::_`: this, method ->
+                            method == "apple"  ? (() -> "Fallback apple") :
+                            method == "banana" ? (x, y, z -> "Fallback", this, method, x, y, z, __ >> JOIN[" "]) :
+                            method == "cherry" ? (() -> !!"ERROR") :
+                            method == "durian" ? (() -> "Fallback durian") :
+                                                 NULL
+                        cherry: this -> "Method cherry"
+                    }
+                    @{
+                        `::durian`: (Obj): this -> !!"ERROR"
+                        `::elderberry`: (Obj): this -> "Mount elderberry"
+                    }
+                    obj := Obj{item: 123}
+                """.let { evaluator.run(it) }
+
+                assertEquals("Fallback apple", evaluator.get("obj::apple()").string) // 存在しないメソッドが呼び出された場合、フォールバックメソッドが呼ばれる
+                assertEquals("Fallback {item:123} banana 1 2 3 [1;2;3]", evaluator.get("obj::banana(1; 2; 3)").string) // 引数は委譲された関数の方にバラで渡される
+                assertEquals("Method cherry", evaluator.get("obj::cherry()").string) // メソッドが定義されている場合はフォールバックしない
+                assertEquals("Fallback durian", evaluator.get("obj::durian()").string) // フォールバックメソッドはマウントによる拡張関数に優先する
+                assertEquals("Mount elderberry", evaluator.get("obj::elderberry()").string) // フォールバックメソッドがNULLを返した場合、メソッドが定義されていない扱いになる
+            }
         } finally {
             daemonScope.cancel()
         }

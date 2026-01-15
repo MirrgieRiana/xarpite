@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -627,19 +628,23 @@ class CliTest {
 }
 
 private suspend fun CoroutineScope.cliEval(src: String, vararg args: String): FluoriteValue {
-    val evaluator = Evaluator()
     val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
     try {
-        val defaultBuiltinMounts = listOf(
-            createCommonMounts(this, daemonScope) {},
-            createCliMounts(args.toList()),
-        ).flatten()
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
-        mountsFactory = { location ->
-            defaultBuiltinMounts + createModuleMounts(location, mountsFactory)
+        return coroutineScope main@{
+            val context = object : RuntimeContext {
+                override val coroutineScope get() = this@main
+                override val daemonScope get() = daemonScope
+                override suspend fun out(value: FluoriteValue) = Unit
+            }
+            val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+            lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+            mountsFactory = { location ->
+                mounts + context.run { createModuleMounts(location, mountsFactory) }
+            }
+            val evaluator = Evaluator()
+            evaluator.defineMounts(mountsFactory("./-"))
+            evaluator.get(src).cache()
         }
-        evaluator.defineMounts(mountsFactory("./-"))
-        return evaluator.get(src).cache()
     } finally {
         daemonScope.cancel()
     }

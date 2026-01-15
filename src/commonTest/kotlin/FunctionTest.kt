@@ -2,8 +2,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
@@ -58,34 +61,41 @@ class FunctionTest {
 
     @Test
     fun arrowCall() = runTest {
-        val evaluator = Evaluator()
         val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
         try {
-            evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
-
-            // _::_ でフォールバックメソッドを定義する
-            """
-                register := listener -> listener(23)
-    
-                Obj := {
-                    register: this, listener -> listener(this.x + 3)
+            coroutineScope main@{
+                val context = object : RuntimeContext {
+                    override val coroutineScope get() = this@main
+                    override val daemonScope get() = daemonScope
+                    override suspend fun out(value: FluoriteValue) = Unit
                 }
-                obj := Obj{x: 20}
-            """.let { evaluator.run(it) }
+                val evaluator = Evaluator()
+                evaluator.defineMounts(context.run { createCommonMounts() })
 
-            assertEquals(123, evaluator.get("register ( event => 100 + event )").int) // クロージャ付き関数呼び出し
-            assertEquals(123, evaluator.get("register [ event => 100 + event ]()").int) // クロージャ付き関数の部分適用
-            assertEquals(123, evaluator.get("obj::register ( event => 100 + event )").int) // クロージャ付きメソッド呼び出し
-            assertEquals(123, evaluator.get("obj::register [ event => 100 + event ]()").int) // クロージャ付きメソッドの部分適用
+                // _::_ でフォールバックメソッドを定義する
+                """
+                    register := listener -> listener(23)
+        
+                    Obj := {
+                        register: this, listener -> listener(this.x + 3)
+                    }
+                    obj := Obj{x: 20}
+                """.let { evaluator.run(it) }
 
-            assertEquals(123, evaluator.get("register ( event => 9; 9; 9; 100 + event )").int) // クロージャは ; を文の区切りとして解釈する
+                assertEquals(123, evaluator.get("register ( event => 100 + event )").int) // クロージャ付き関数呼び出し
+                assertEquals(123, evaluator.get("register [ event => 100 + event ]()").int) // クロージャ付き関数の部分適用
+                assertEquals(123, evaluator.get("obj::register ( event => 100 + event )").int) // クロージャ付きメソッド呼び出し
+                assertEquals(123, evaluator.get("obj::register [ event => 100 + event ]()").int) // クロージャ付きメソッドの部分適用
 
-            // クロージャがフレームを正しく生成することのテスト
-            // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
-            assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
+                assertEquals(123, evaluator.get("register ( event => 9; 9; 9; 100 + event )").int) // クロージャは ; を文の区切りとして解釈する
 
-            // クロージャ直下で変数を宣言するテスト
-            assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
+                // クロージャがフレームを正しく生成することのテスト
+                // 実行時に余計にフレームを追加している場合、 c のためのフレームが不足してエラーになる
+                assertEquals(123, evaluator.get("(f -> f()) ( => (a := 100; (b := 20; c := 3; a + b + c)) )").int)
+
+                // クロージャ直下で変数を宣言するテスト
+                assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
+            }
         } finally {
             daemonScope.cancel()
         }

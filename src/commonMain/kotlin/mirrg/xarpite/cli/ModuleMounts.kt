@@ -2,6 +2,7 @@ package mirrg.xarpite.cli
 
 import getFileSystem
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -13,6 +14,7 @@ import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
 
+context(context: RuntimeContext)
 fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "USE" to run {

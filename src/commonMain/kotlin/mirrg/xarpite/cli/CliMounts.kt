@@ -3,6 +3,7 @@ package mirrg.xarpite.cli
 import executeProcess
 import getEnv
 import getFileSystem
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
@@ -25,6 +26,7 @@ import writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 
+context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),

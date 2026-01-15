@@ -1,10 +1,12 @@
 package mirrg.xarpite.js.browser
 
 import kotlinx.browser.window
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.js.FluoriteJsObject
 
+context(context: RuntimeContext)
 fun createJsBrowserMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "WINDOW" to try {
