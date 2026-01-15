@@ -14,72 +14,111 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.colon
+import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
 context(context: RuntimeContext)
 fun createLangMounts(): List<Map<String, FluoriteValue>> {
-    return mapOf(
-        "NULL" to FluoriteNull,
-        "N" to FluoriteNull,
-        "TRUE" to FluoriteBoolean.TRUE,
-        "T" to FluoriteBoolean.TRUE,
-        "FALSE" to FluoriteBoolean.FALSE,
-        "F" to FluoriteBoolean.FALSE,
-        "EMPTY" to FluoriteStream.EMPTY,
-        "E" to FluoriteStream.EMPTY,
-        "LOOP" to FluoriteStream {
-            while (true) {
-                emit(FluoriteNull)
-            }
-        },
-        "SLEEP" to FluoriteFunction { arguments ->
-            when (arguments.size) {
-                0 -> yield()
+    val mounts = mutableMapOf<String, FluoriteValue>()
 
-                1 -> {
-                    val time = arguments[0] as FluoriteNumber
-                    val millis = time.toInt().toLong()
-                    if (millis == 0L) {
-                        yield()
-                    } else {
-                        delay(millis)
-                    }
-                }
+    mounts["NULL"] = FluoriteNull
+    mounts["N"] = FluoriteNull
+    mounts["TRUE"] = FluoriteBoolean.TRUE
+    mounts["T"] = FluoriteBoolean.TRUE
+    mounts["FALSE"] = FluoriteBoolean.FALSE
+    mounts["F"] = FluoriteBoolean.FALSE
+    mounts["EMPTY"] = FluoriteStream.EMPTY
+    mounts["E"] = FluoriteStream.EMPTY
+    mounts["LOOP"] = FluoriteStream {
+        while (true) {
+            emit(FluoriteNull)
+        }
+    }
+    mounts["SLEEP"] = FluoriteFunction { arguments ->
+        when (arguments.size) {
+            0 -> yield()
 
-                else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
-            }
-            FluoriteNull
-        },
-        "CALL" to FluoriteFunction { arguments ->
-            if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
-            val function = arguments[0]
-            val argumentsArray = arguments[1] as FluoriteArray
-            function.invoke(argumentsArray.values.toTypedArray())
-        },
-        "LAUNCH" to FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
-            val function = arguments[0]
-            val promise = FluoritePromise()
-            context.coroutineScope.launch {
-                try {
-                    promise.deferred.complete(function.invoke(emptyArray()).cache())
-                } catch (e: Throwable) {
-                    promise.deferred.completeExceptionally(e)
-                }
-            }
-            promise
-        },
-        "OUT" to FluoriteFunction { arguments ->
-            arguments.forEach {
-                if (it is FluoriteStream) {
-                    it.collect { item ->
-                        context.io.out(item)
-                    }
+            1 -> {
+                val time = arguments[0] as FluoriteNumber
+                val millis = time.toInt().toLong()
+                if (millis == 0L) {
+                    yield()
                 } else {
-                    context.io.out(it)
+                    delay(millis)
                 }
             }
-            FluoriteNull
-        },
-    ).let { listOf(it) }
+
+            else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
+        }
+        FluoriteNull
+    }
+    mounts["CALL"] = FluoriteFunction { arguments ->
+        if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
+        val function = arguments[0]
+        val argumentsArray = arguments[1] as FluoriteArray
+        function.invoke(argumentsArray.values.toTypedArray())
+    }
+    mounts["LAUNCH"] = FluoriteFunction { arguments ->
+        if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
+        val function = arguments[0]
+        val promise = FluoritePromise()
+        context.coroutineScope.launch {
+            try {
+                promise.deferred.complete(function.invoke(emptyArray()).cache())
+            } catch (e: Throwable) {
+                promise.deferred.completeExceptionally(e)
+            }
+        }
+        promise
+    }
+    mounts["OUT"] = FluoriteFunction { arguments ->
+        arguments.forEach {
+            if (it is FluoriteStream) {
+                it.collect { item ->
+                    context.io.out(item)
+                }
+            } else {
+                context.io.out(it)
+            }
+        }
+        FluoriteNull
+    }
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self))
+                } else {
+                    usage(signature)
+                }
+            }
+        }
+        mounts["LET"] = create("<I, O> LET(receiver: I; block: I -> O): O")
+        mounts["::LET"] = fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon create("<I, O> I::LET(block: I -> O): O"),
+        )
+    }
+    run {
+        fun create(signature: String): FluoriteValue {
+            return FluoriteFunction { arguments ->
+                if (arguments.size == 2) {
+                    val self = arguments[0]
+                    val block = arguments[1]
+                    block.invoke(arrayOf(self)).consume()
+                    self
+                } else {
+                    usage(signature)
+                }
+            }
+        }
+        mounts["ALSO"] = create("<T> ALSO(receiver: T; block: T -> VALUE): T")
+        mounts["::ALSO"] = fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
+        )
+    }
+
+    return listOf(mounts)
 }

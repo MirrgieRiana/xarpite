@@ -42,15 +42,6 @@ title: "組み込みオブジェクトのクラス定数"
 
 ---
 
-数学系の組み込み定数です。
-
-| 定数        | 意味    |
-|-----------|-------|
-| `MATH.PI` | 円周率   |
-| `MATH.E`  | ネイピア数 |
-
----
-
 文字列系の組み込み定数です。
 
 | 定数     | 意味                           |
@@ -61,133 +52,6 @@ title: "組み込みオブジェクトのクラス定数"
 | `APOS` | `'`                          |
 | `QUOT` | `"`                          |
 | `BOM`  | `"\uFEFF"` (Byte Order Mark) |
-
-# 数学系関数
-
-## `ABS` 絶対値の取得
-
-`ABS(value: NUMBER): NUMBER`
-
-第1引数の絶対値を返します。
-
-```shell
-$ xa 'ABS(-10)'
-# 10
-```
-
-## `FLOOR` 小数点以下切り捨て
-
-`FLOOR(number: NUMBER): INTEGER`
-
-第1引数の数値を、値が小さい方の整数に丸めます。
-
-```shell
-$ xa 'FLOOR(1.5)'
-# 1
-```
-
-## `DIV` 除算の整数部
-
-`DIV(x: NUMBER; y: NUMBER): NUMBER`
-
-`x` を `y` で割り、その結果の整数部分を返します。
-
-```shell
-$ xa 'DIV(10; 3)'
-# 3
-```
-
-## `SQRT` 平方根の取得
-
-`SQRT(number: NUMBER): NUMBER`
-
-第1引数の正の平方根を返します。
-
-```shell
-$ xa '"$%.3f(  SQRT(100.0)  )"'
-# 10.000
-```
-
-## `SIN` 正弦
-
-`SIN(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その正弦を返します。
-
-```shell
-$ xa '"$%.3f(  SIN(PI / 2)  )"'
-# 1.000
-```
-
-## `COS` 余弦
-
-`COS(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その余弦を返します。
-
-```shell
-$ xa '"$%.3f(  COS(0)  )"'
-# 1.000
-```
-
-## `TAN` 正接
-
-`TAN(number: NUMBER): NUMBER`
-
-第1引数をラジアンとして解釈し、その正接を返します。
-
-```shell
-$ xa '"$%.3f(  TAN(PI / 4)  )"'
-# 1.000
-```
-
-## `POW` べき乗
-
-`POW(base: NUMBER; exponent: NUMBER): NUMBER`
-
-第1引数を第2引数でべき乗した結果を返します。
-
-```shell
-$ xa 'POW(2; 3)'
-# 8.0
-```
-
-## `EXP` 指数関数
-
-`EXP(number: NUMBER): NUMBER`
-
-第1引数の指数関数（底 e）を返します。
-
-```shell
-$ xa '"$%.3f(  EXP(1)  )"'
-# 2.718
-
-$ xa '"$%.3f(  EXP(2)  )"'
-# 7.389
-```
-
-## `LOG` 自然対数
-
-`LOG(number: NUMBER): NUMBER`
-
-第1引数の自然対数（底 e）を返します。
-
-```shell
-$ xa '"$%.3f(  LOG(MATH.E)  )"'
-# 1.000
-```
-
-## `RAND` 乱数の取得
-
-`RAND(): DOUBLE`
-
-`RAND([from: NUMBER; ]until: NUMBER): INT`
-
-引数なしで呼び出された場合、0以上1未満の小数を返します。
-
-1引数で呼び出された場合、0以上 `until` 未満の整数を返します。
-
-2引数で呼び出された場合、`from` 以上 `until` 未満の整数を返します。
 
 # ストリーム系関数
 
@@ -339,6 +203,51 @@ $ xa 'VALUES({a: 1; b: 2; c: 3})'
 # 2
 # 3
 ```
+
+## `INVERT` 値からキーを引くオブジェクトを返す
+
+`INVERT(object: OBJECT<VALUE>): OBJECT<STRING>`
+
+`object` の各エントリーの値からキーを引くオブジェクトを生成して返します。
+
+```shell
+$ xa 'INVERT({a: "apple"; b: "banana"; c: "cherry"})'
+# {apple:a;banana:b;cherry:c}
+```
+
+---
+
+値はキーとして扱ううえで一度文字列化されます。
+
+```shell
+$ xa '
+  Fruit := {
+    new: value -> Fruit{value: value}
+    `&_`: this -> "Fruit[$(this.value)]"
+  }
+  INVERT({
+    a: Fruit.new("apple")
+    b: Fruit.new("banana")
+    c: Fruit.new("cherry")
+  })
+'
+# {Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}
+```
+
+---
+
+値が重複していた場合、その中のいずれかのエントリーのキーがマッピングされます。
+
+```shell
+$ xa '
+  object   := {a: "apple"; b: "banana"; c: "apple"}
+  inverted := INVERT(object)
+  inverted.apple >> object
+'
+# apple
+```
+
+どのキーがマッピングされるかは未定義です。
 
 ## `SUM` ストリームの要素の合計
 
@@ -686,25 +595,6 @@ $ xa '1, 2, 3 >> TO_STRING'
 # 123
 ```
 
-## `TO_NUMBER` 数値化
-
-`TO_NUMBER(value: VALUE): NUMBER`
-
-値を数値に変換します。
-
-`+value` 演算子と同じ動作をします。
-
-```shell
-$ xa 'TO_NUMBER("123")'
-# 123
-
-$ xa '1, 2, 3 >> TO_NUMBER'
-# 6
-
-$ xa 'TO_NUMBER(NULL)'
-# 0
-```
-
 ## `TO_BOOLEAN` 論理値化
 
 `TO_BOOLEAN(value: VALUE): BOOLEAN`
@@ -745,3 +635,90 @@ $ xa 'TO_ARRAY(1 .. 3)'
 $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 # {a:1;b:2;c:3}
 ```
+
+## `::LET` / `LET` 値をブロックに渡してブロックの戻り値を返す
+
+`<I, O> I::LET(block: I -> O): O`
+
+`<I, O> LET(receiver: I; block: I -> O): O`
+
+レシーバーの値を `block` に渡して実行し、 `block` の戻り値を返す拡張関数です。
+
+メソッドチェーンの途中で値を変換するのに便利です。
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::UC()'
+# APPLEBANANA
+```
+
+---
+
+`::LET`は連鎖して使用することもできます。
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::LET ( s => s::UC() )'
+# APPLEBANANA
+```
+
+### ストリームに対する使用
+
+ストリームはすべてのメソッドを各要素に対して適用する性質上、 `::LET` 拡張メソッドを利用することができません。
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::LET ( s => s.value >> SUM )
+'
+# LET!
+# LET!
+# LET!
+```
+
+---
+
+そのため、代わりにストリームも取れる `LET` 関数を使用します。
+
+2文字長い代わりに、 `stream::(LET) ( s => ... )` という形で概ね同じように動作します。
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::(LET) ( s => s.value >> SUM )
+'
+# 6
+```
+
+## `::ALSO` / `ALSO` 値をブロックに渡して元の値を返す
+
+`<T> T::ALSO(block: T -> VALUE): T`
+
+`<T> ALSO(receiver: T; block: T -> VALUE): T`
+
+レシーバーの値を `block` に渡して実行し、レシーバーの値を返す拡張関数です。
+
+1度の呼び出しにつき、 `block` の副作用も丁度1度だけ発生します。
+
+メソッドチェーンの途中で値を使用や改変するのに便利です。
+
+```shell
+$ xa '
+  variable := ""
+  "apple"::ALSO ( s => 
+    variable = variable & s
+  )
+  variable
+'
+# apple
+```
+
+その他の性質は概ね `LET` と同じです。

@@ -365,15 +365,37 @@ $ xa '"abcde"[1..3]'
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
 
-The `replace` method performs replacement within strings.
+`STRING::replaceAll(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+`STRING::replaceFirst(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
+
+The `replace`, `replaceAll`, and `replaceFirst` methods perform replacement within strings.
+
+## Replacement Targets
+
+The replacement targets for each method are as follows:
+
+| Method         | String Replacement Target | Regular Expression Replacement Target |
+|----------------|---------------------------|---------------------------------------|
+| `replace`      | All occurrences           | Follow global match flag              |
+| `replaceAll`   | All occurrences           | All matched parts                     |
+| `replaceFirst` | First occurrence          | First matched part                    |
 
 ## Replacement with Strings
 
-If a string is passed to `old`, all occurrences of that string are replaced.
+If a string is passed to `old`, occurrences that exactly match that string are replaced.
+
+The string version of the `replace` method behaves the same as the `replaceAll` method.
 
 ```shell
-$ xa '"-ab--ab-"::replace("ab"; "AB")'
-# -AB--AB-
+$ xa '"-ab--ab-"::replace("ab"; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceAll("ab"; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceFirst("ab"; "XX")'
+# -XX--ab-
 ```
 
 ## Replacement with Regular Expressions
@@ -383,11 +405,29 @@ If a regular expression is passed to `old`, all parts matching that regular expr
 If the regular expression object is not global, only the first matching part is replaced.
 
 ```shell
-$ xa '"-ab--ab-"::replace(/[a-z]{2}/; "xx")'
-# -xx--ab-
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/; "XX")'
+# -XX--ab-
 
-$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; "xx")'
-# -xx--xx-
+$ xa '"-ab--ab-"::replace(/[a-z]{2}/g; "XX")'
+# -XX--XX-
+```
+
+---
+
+The `replaceAll` and `replaceFirst` methods ignore the global match flag of regular expressions.
+
+```shell
+$ xa '"-ab--ab-"::replaceAll(/[a-z]{2}/; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceAll(/[a-z]{2}/g; "XX")'
+# -XX--XX-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/; "XX")'
+# -XX--ab-
+
+$ xa '"-ab--ab-"::replaceFirst(/[a-z]{2}/g; "XX")'
+# -XX--ab-
 ```
 
 ## Replacement with Functions

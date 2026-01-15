@@ -44,6 +44,7 @@ import mirrg.xarpite.InfixGreaterGreaterNode
 import mirrg.xarpite.InfixIdentifierNode
 import mirrg.xarpite.InfixLessEqualGreaterNode
 import mirrg.xarpite.InfixLessLessNode
+import mirrg.xarpite.InfixMinusEqualNode
 import mirrg.xarpite.InfixMinusGreaterNode
 import mirrg.xarpite.InfixMinusNode
 import mirrg.xarpite.InfixNode
@@ -53,6 +54,7 @@ import mirrg.xarpite.InfixPeriodNode
 import mirrg.xarpite.InfixPeriodPeriodNode
 import mirrg.xarpite.InfixPipeNode
 import mirrg.xarpite.InfixPipePipeNode
+import mirrg.xarpite.InfixPlusEqualNode
 import mirrg.xarpite.InfixPlusNode
 import mirrg.xarpite.InfixQuestionColonColonNode
 import mirrg.xarpite.InfixQuestionColonNode
@@ -67,6 +69,8 @@ import mirrg.xarpite.RawStringNode
 import mirrg.xarpite.RegexNode
 import mirrg.xarpite.ReturnNode
 import mirrg.xarpite.SemicolonsNode
+import mirrg.xarpite.SuffixMinusMinusNode
+import mirrg.xarpite.SuffixPlusPlusNode
 import mirrg.xarpite.TemplateStringNode
 import mirrg.xarpite.ThrowNode
 import mirrg.xarpite.UnaryAmpersandNode
@@ -77,8 +81,10 @@ import mirrg.xarpite.UnaryDollarAmpersandNode
 import mirrg.xarpite.UnaryDollarAsteriskNode
 import mirrg.xarpite.UnaryDollarSharpNode
 import mirrg.xarpite.UnaryExclamationNode
+import mirrg.xarpite.UnaryMinusMinusNode
 import mirrg.xarpite.UnaryMinusNode
 import mirrg.xarpite.UnaryPlusNode
+import mirrg.xarpite.UnaryPlusPlusNode
 import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -123,6 +129,7 @@ import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.LiteralStringGetter
 import mirrg.xarpite.operations.MatchGetter
 import mirrg.xarpite.operations.MethodAccessGetter
+import mirrg.xarpite.operations.MinusAssignmentGetter
 import mirrg.xarpite.operations.MinusGetter
 import mirrg.xarpite.operations.ModGetter
 import mirrg.xarpite.operations.MountGetter
@@ -135,13 +142,18 @@ import mirrg.xarpite.operations.ObjectCreationGetter
 import mirrg.xarpite.operations.ObjectInitializer
 import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
+import mirrg.xarpite.operations.PlusAssignmentGetter
 import mirrg.xarpite.operations.PlusGetter
 import mirrg.xarpite.operations.PowerGetter
+import mirrg.xarpite.operations.PrefixDecrementGetter
+import mirrg.xarpite.operations.PrefixIncrementGetter
 import mirrg.xarpite.operations.RangeGetter
 import mirrg.xarpite.operations.ReturnGetter
 import mirrg.xarpite.operations.SpaceshipGetter
 import mirrg.xarpite.operations.StreamConcatenationGetter
 import mirrg.xarpite.operations.StringConcatenationGetter
+import mirrg.xarpite.operations.SuffixDecrementGetter
+import mirrg.xarpite.operations.SuffixIncrementGetter
 import mirrg.xarpite.operations.ThrowGetter
 import mirrg.xarpite.operations.TimesGetter
 import mirrg.xarpite.operations.ToBooleanGetter
@@ -245,6 +257,30 @@ fun Frame.compileToGetter(node: Node): Getter {
             val variableIndex = newFrame.defineVariable("_")
             val getter = newFrame.compileToGetter(node.main)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+        }
+
+        is UnaryPlusPlusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            PrefixIncrementGetter(getter, setter)
+        }
+
+        is UnaryMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            PrefixDecrementGetter(getter, setter)
+        }
+
+        is SuffixPlusPlusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            SuffixIncrementGetter(getter, setter)
+        }
+
+        is SuffixMinusMinusNode -> {
+            val setter = compileToSetter(node.main)
+            val getter = compileToGetter(node.main)
+            SuffixDecrementGetter(getter, setter)
         }
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right))
@@ -471,6 +507,20 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
             val variableIndices = variables.map { newFrame.defineVariable(it) }
             val getter = newFrame.compileToGetter(node.right)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
+        }
+
+        is InfixPlusEqualNode -> {
+            val leftGetter = compileToGetter(node.left)
+            val leftSetter = compileToSetter(node.left)
+            val getter = compileToGetter(node.right)
+            PlusAssignmentGetter(leftGetter, leftSetter, getter)
+        }
+
+        is InfixMinusEqualNode -> {
+            val leftGetter = compileToGetter(node.left)
+            val leftSetter = compileToSetter(node.left)
+            val getter = compileToGetter(node.right)
+            MinusAssignmentGetter(leftGetter, leftSetter, getter)
         }
 
         is InfixPipeNode -> {

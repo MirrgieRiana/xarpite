@@ -42,6 +42,101 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `URL` Encode String to URL Format
+
+`URL(string: STRING): STRING`
+
+Encodes `string` in `application/x-www-form-urlencoded` format.
+
+```shell
+$ xa ' "Hello World" >> URL '
+# Hello+World
+
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> URL '
+# user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F
+
+$ xa ' "こんにちは" >> URL '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+---
+
+Each character is encoded as follows:
+
+| Character                         | Encoding Method                         |
+|-----------------------------------|-----------------------------------------|
+| `A-Z` `a-z` `0-9` `-` `_` `.` `~` | The character itself                    |
+| Space                             | `+`                                     |
+| Other characters                  | UTF-8 byte sequence in `%XX` hex format |
+
+## `URLD` Decode URL-Encoded String
+
+`URLD(string: STRING): STRING`
+
+Decodes `string` encoded in `application/x-www-form-urlencoded` format.
+
+This function is the inverse of the `URL` function.
+
+```shell
+$ xa ' "Hello+World" >> URLD '
+# Hello World
+
+$ xa ' "user_id%3DUser1%26password%3Dp-a_s.s~w%25o%26r%3Dd%3F" >> URLD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
+# こんにちは
+```
+
+## `PERCENT` Encode String with Percent Encoding
+
+`PERCENT(string: STRING): STRING`
+
+Encodes `string` with percent encoding.
+
+Unlike the `URL` function, all non-alphanumeric characters including spaces are encoded in `%XX` format.
+
+As a result, the encoded string contains no symbols other than `%`.
+
+```shell
+$ xa ' "Hello World" >> PERCENT '
+# Hello%20World
+
+$ xa ' "user_id=User1&password=p-a_s.s~w%o&r=d?" >> PERCENT '
+# user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F
+
+$ xa ' "こんにちは" >> PERCENT '
+# %E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF
+```
+
+---
+
+Each character is encoded as follows:
+
+| Character         | Encoding Method                         |
+|-------------------|-----------------------------------------|
+| `A-Z` `a-z` `0-9` | The character itself                    |
+| Other characters  | UTF-8 byte sequence in `%XX` hex format |
+
+## `PERCENTD` Decode Percent-Encoded String
+
+`PERCENTD(string: STRING): STRING`
+
+Decodes percent-encoded `string`.
+
+This function is the inverse of the `PERCENT` function.
+
+```shell
+$ xa ' "Hello%20World" >> PERCENTD '
+# Hello World
+
+$ xa ' "user%5Fid%3DUser1%26password%3Dp%2Da%5Fs%2Es%7Ew%25o%26r%3Dd%3F" >> PERCENTD '
+# user_id=User1&password=p-a_s.s~w%o&r=d?
+
+$ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
+# こんにちは
+```
+
 ## `JSON` Convert Value to JSON String
 
 `JSON(["indent": indent: STRING; ]value: VALUE): STRING`

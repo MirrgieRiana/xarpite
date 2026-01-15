@@ -96,6 +96,7 @@ val bundlePages = tasks.register<Sync>("bundlePages") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundlePages"))
     from("pages")
+    from("LICENSE")
     from(project(":playground").tasks.named("bundleRelease")) { into("playground") }
 }
 tasks.named("build").configure { dependsOn(bundlePages) }
@@ -113,6 +114,8 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
             }
         }
     }
+    from("LICENSE")
+    from("pages/docs/en") { into("docs") }
     from(releaseExecutable.linkTaskProvider) {
         into("bin/native")
         rename("xarpite.kexe", "xarpite")
