@@ -59,6 +59,38 @@ class CliTest {
     }
 
     @Test
+    fun readb() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_file.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            write(byteArrayOf(65, 66, 67))
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals(ubyteArrayOf(65u, 66u, 67u), blobs[0].value)
+    }
+
+    @Test
+    fun readbSplitsByBufferSize() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_file_large.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(2, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertEquals(1, blobs[1].value.size)
+        assertContentEquals(data.take(INB_MAX_BUFFER_SIZE).map { it.toUByte() }.toUByteArray(), blobs[0].value)
+        assertEquals(data.last().toUByte(), blobs[1].value[0])
+    }
+
+    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
