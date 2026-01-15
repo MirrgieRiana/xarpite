@@ -1,9 +1,9 @@
 package mirrg.xarpite.mounts
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import mirrg.xarpite.IterationAborted
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -29,7 +29,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.operations.FluoriteException
 
-fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
+context(context: RuntimeContext)
+fun createStreamMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "GENERATE" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
@@ -586,7 +587,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                         } else {
                             emit(stream)
                         }
-                    }.produceIn(daemonScope)
+                    }.produceIn(context.daemonScope)
                 }
 
                 FluoriteStream {

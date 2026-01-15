@@ -1,15 +1,13 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.Evaluator
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
+import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -58,10 +56,8 @@ class FunctionTest {
 
     @Test
     fun arrowCall() = runTest {
-        val evaluator = Evaluator()
-        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-        try {
-            evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+            evaluator.defineMounts(context.run { createCommonMounts() })
 
             // _::_ でフォールバックメソッドを定義する
             """
@@ -86,8 +82,6 @@ class FunctionTest {
 
             // クロージャ直下で変数を宣言するテスト
             assertEquals(123, evaluator.get("(f -> f()) ( => a := 123; 123 )").int)
-        } finally {
-            daemonScope.cancel()
         }
     }
 
@@ -96,6 +90,39 @@ class FunctionTest {
         assertEquals(6, eval("CALL(a, b -> a * b; [2; 3])").int) // 関数の呼び出し
         assertEquals(123, eval("CALL(() -> 123; [])").int) // 空の引数
         assertEquals(6, eval("CALL({m: a, b -> a.v * b}{v: 2}::m; [3])").int) // メソッド参照の呼び出し
+    }
+
+    @Test
+    fun extensionLet() = runTest {
+        // LET は値をブロックに渡して、ブロックの戻り値を返す
+        assertEquals(20, eval("10::LET(x -> x + x)").int)
+
+        // LET を使って値を変換する
+        assertEquals(246, eval("123::LET(x -> x + x)").int)
+
+        // 連鎖した使用例
+        assertEquals(200, eval("10::LET(x -> x + x)::LET(y -> y + y + y + y + y + y + y + y + y + y)").int)
+    }
+
+    @Test
+    fun extensionAlso() = runTest {
+        // ALSO は値をブロックに渡して、元の値を返す
+        assertEquals(10, eval("10::ALSO(x -> NULL)").int)
+
+        // ALSO を使って副作用を起こしつつ、値を返す
+        """
+            result := NULL
+            value := 123::ALSO(x -> result = x + x)
+            [result; value]
+        """.let { assertEquals("[246;123]", eval(it).array()) }
+
+        // 連鎖した使用例
+        """
+            result1 := NULL
+            result2 := NULL
+            value := 100::ALSO(x -> result1 = x)::ALSO(y -> result2 = y)
+            [result1; result2; value]
+        """.let { assertEquals("[100;100;100]", eval(it).array()) }
     }
 
     @Test

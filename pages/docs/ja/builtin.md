@@ -635,3 +635,90 @@ $ xa 'TO_ARRAY(1 .. 3)'
 $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 # {a:1;b:2;c:3}
 ```
+
+## `::LET` / `LET` 値をブロックに渡してブロックの戻り値を返す
+
+`<I, O> I::LET(block: I -> O): O`
+
+`<I, O> LET(receiver: I; block: I -> O): O`
+
+レシーバーの値を `block` に渡して実行し、 `block` の戻り値を返す拡張関数です。
+
+メソッドチェーンの途中で値を変換するのに便利です。
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::UC()'
+# APPLEBANANA
+```
+
+---
+
+`::LET`は連鎖して使用することもできます。
+
+```shell
+$ xa '"apple"::LET ( s => s & "banana" )::LET ( s => s::UC() )'
+# APPLEBANANA
+```
+
+### ストリームに対する使用
+
+ストリームはすべてのメソッドを各要素に対して適用する性質上、 `::LET` 拡張メソッドを利用することができません。
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::LET ( s => s.value >> SUM )
+'
+# LET!
+# LET!
+# LET!
+```
+
+---
+
+そのため、代わりにストリームも取れる `LET` 関数を使用します。
+
+2文字長い代わりに、 `stream::(LET) ( s => ... )` という形で概ね同じように動作します。
+
+```shell
+$ xa '
+  Object := {
+    new: value -> Object{value: value}
+    LET: this, block -> "LET!"
+  }
+  stream := Object.new(1), Object.new(2), Object.new(3)
+
+  stream::(LET) ( s => s.value >> SUM )
+'
+# 6
+```
+
+## `::ALSO` / `ALSO` 値をブロックに渡して元の値を返す
+
+`<T> T::ALSO(block: T -> VALUE): T`
+
+`<T> ALSO(receiver: T; block: T -> VALUE): T`
+
+レシーバーの値を `block` に渡して実行し、レシーバーの値を返す拡張関数です。
+
+1度の呼び出しにつき、 `block` の副作用も丁度1度だけ発生します。
+
+メソッドチェーンの途中で値を使用や改変するのに便利です。
+
+```shell
+$ xa '
+  variable := ""
+  "apple"::ALSO ( s => 
+    variable = variable & s
+  )
+  variable
+'
+# apple
+```
+
+その他の性質は概ね `LET` と同じです。

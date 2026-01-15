@@ -109,6 +109,18 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         list.asFluoriteArray()
                     },
                     OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1] in (it[0] as FluoriteArray).values).toFluoriteBoolean() }, // TODO EQUALSメソッドの使用
+                    OperatorMethod.PLUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                        val array = arguments[0] as FluoriteArray
+                        val value = arguments[1]
+                        if (value is FluoriteStream) {
+                            value.collect { item ->
+                                array.values.add(item)
+                            }
+                        } else {
+                            array.values.add(value)
+                        }
+                        FluoriteNull
+                    },
                     "push" to FluoriteFunction { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
@@ -126,7 +138,6 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeLast()
-                        FluoriteNull
                     },
                     "unshift" to FluoriteFunction { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
@@ -147,7 +158,6 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeFirst()
-                        FluoriteNull
                     },
                 )
             )

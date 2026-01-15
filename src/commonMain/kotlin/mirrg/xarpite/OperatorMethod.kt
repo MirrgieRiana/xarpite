@@ -16,4 +16,6 @@ enum class OperatorMethod(val methodName: String) {
     COMPARE("_<=>_"),
     CONTAINS("_@_"),
     MATCH("_=~_"),
+    PLUS_ASSIGN("_+=_"),
+    MINUS_ASSIGN("_-=_"),
 }

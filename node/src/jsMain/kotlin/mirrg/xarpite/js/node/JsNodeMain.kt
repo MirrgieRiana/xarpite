@@ -1,11 +1,8 @@
 package mirrg.xarpite.js.node
 
-import envGetter
-import fileSystemGetter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import mirrg.xarpite.envGetter
+import mirrg.xarpite.fileSystemGetter
 import kotlinx.coroutines.await
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
@@ -14,7 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
-import mirrg.xarpite.cli.main
+import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
@@ -22,9 +19,10 @@ import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import okio.NodeJsFileSystem
-import readBytesFromStdinImpl
-import readLineFromStdinImpl
-import writeBytesToStdoutImpl
+import mirrg.xarpite.readBytesFromStdinImpl
+import mirrg.xarpite.readLineFromStdinImpl
+import mirrg.xarpite.writeBytesToStderrImpl
+import mirrg.xarpite.writeBytesToStdoutImpl
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
@@ -56,6 +54,24 @@ suspend fun main() {
             }
         }
     }
+    writeBytesToStderrImpl = { bytes ->
+        val uint8Array = js("new Uint8Array(bytes.length)")
+        var i = 0
+        while (i < bytes.size) {
+            uint8Array[i] = bytes[i].toUByte().toInt()
+            i++
+        }
+        suspendCancellableCoroutine { cont ->
+            process.stderr.write(uint8Array) { error ->
+                if (!cont.isActive) return@write
+                if (error == null) {
+                    cont.resume(Unit)
+                } else {
+                    cont.resumeWithException(error.unsafeCast<Throwable>())
+                }
+            }
+        }
+    }
 
     val options = try {
         parseArguments(process.argv.drop(2))
@@ -67,15 +83,8 @@ suspend fun main() {
         return
     }
     coroutineScope {
-        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-        try {
-            coroutineScope {
-                main(options, this, daemonScope) {
-                    createJsMounts()
-                }
-            }
-        } finally {
-            daemonScope.cancel()
+        cliEval(options) {
+            createJsMounts()
         }
     }
 }

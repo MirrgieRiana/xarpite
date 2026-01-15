@@ -88,6 +88,105 @@ $ xa '
 # 10
 ```
 
+# 代入文
+
+## 演算代入演算子
+
+Xarpiteには `+=` 演算子などの演算と代入を同時に行う演算代入演算子が存在します。
+
+`a += b` は、多くの場合 `a = a + b` と等価です。
+
+```shell
+$ xa -q '
+  x := 100
+  OUT << x
+  x += 23
+  OUT << x
+'
+# 100
+# 123
+```
+
+## 演算代入のオーバーライド
+
+演算代入のためのオーバーライド可能なメソッドが存在します。
+
+`_+=_` メソッドは `a += b` が実行されるごとに丁度1回だけ呼び出されます。
+
+当該メソッドの戻り値は無視されます。
+
+ただし、戻り値がストリームであった場合は解決され、その結果は無視されます。
+
+`_+=_` 以外の演算代入メソッドも同様です。
+
+```shell
+$ xa -q '
+  Array := {
+    `_+=_`: this, item -> this.value::push(item)
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+## 演算代入演算子の一覧
+
+以下はXarpiteで利用可能な演算代入演算子の一覧です。
+
+| 演算子  | 意味     |
+|------|--------|
+| `+=` | 加算して代入 |
+| `-=` | 減算して代入 |
+
+## 演算代入のフォールバック
+
+演算代入のオーバーライドメソッドが存在しない場合、通常の演算と代入が行われます。
+
+```shell
+$ xa -q '
+  Array := {
+    `_+_`: this, item -> Array{value: this.value + [item]}
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+---
+
+このとき、変数自体の内容が更新されていることに注意してください。
+
+```shell
+$ xa -q '
+  array := ["apple"]
+  oldArray := array
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+
+  OUT << "Update!"
+  array += "banana"
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+'
+# Old: [apple]
+# New: [apple]
+# Update!
+# Old: [apple;banana]
+# New: [apple;banana]
+```
+
 # 変数
 
 変数は、識別子によって値に名前を付けて格納・参照するための仕組みです。

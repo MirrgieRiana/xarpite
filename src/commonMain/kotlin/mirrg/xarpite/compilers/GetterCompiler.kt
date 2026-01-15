@@ -44,6 +44,7 @@ import mirrg.xarpite.InfixGreaterGreaterNode
 import mirrg.xarpite.InfixIdentifierNode
 import mirrg.xarpite.InfixLessEqualGreaterNode
 import mirrg.xarpite.InfixLessLessNode
+import mirrg.xarpite.InfixMinusEqualNode
 import mirrg.xarpite.InfixMinusGreaterNode
 import mirrg.xarpite.InfixMinusNode
 import mirrg.xarpite.InfixNode
@@ -53,6 +54,7 @@ import mirrg.xarpite.InfixPeriodNode
 import mirrg.xarpite.InfixPeriodPeriodNode
 import mirrg.xarpite.InfixPipeNode
 import mirrg.xarpite.InfixPipePipeNode
+import mirrg.xarpite.InfixPlusEqualNode
 import mirrg.xarpite.InfixPlusNode
 import mirrg.xarpite.InfixQuestionColonColonNode
 import mirrg.xarpite.InfixQuestionColonNode
@@ -127,6 +129,7 @@ import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.LiteralStringGetter
 import mirrg.xarpite.operations.MatchGetter
 import mirrg.xarpite.operations.MethodAccessGetter
+import mirrg.xarpite.operations.MinusAssignmentGetter
 import mirrg.xarpite.operations.MinusGetter
 import mirrg.xarpite.operations.ModGetter
 import mirrg.xarpite.operations.MountGetter
@@ -139,6 +142,7 @@ import mirrg.xarpite.operations.ObjectCreationGetter
 import mirrg.xarpite.operations.ObjectInitializer
 import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
+import mirrg.xarpite.operations.PlusAssignmentGetter
 import mirrg.xarpite.operations.PlusGetter
 import mirrg.xarpite.operations.PowerGetter
 import mirrg.xarpite.operations.PrefixDecrementGetter
@@ -503,6 +507,20 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
             val variableIndices = variables.map { newFrame.defineVariable(it) }
             val getter = newFrame.compileToGetter(node.right)
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
+        }
+
+        is InfixPlusEqualNode -> {
+            val leftGetter = compileToGetter(node.left)
+            val leftSetter = compileToSetter(node.left)
+            val getter = compileToGetter(node.right)
+            PlusAssignmentGetter(leftGetter, leftSetter, getter)
+        }
+
+        is InfixMinusEqualNode -> {
+            val leftGetter = compileToGetter(node.left)
+            val leftSetter = compileToSetter(node.left)
+            val getter = compileToGetter(node.right)
+            MinusAssignmentGetter(leftGetter, leftSetter, getter)
         }
 
         is InfixPipeNode -> {
