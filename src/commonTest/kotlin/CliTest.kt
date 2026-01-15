@@ -28,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import mirrg.xarpite.getFileSystem
 
 val baseDir = "build/test".toPath()
 

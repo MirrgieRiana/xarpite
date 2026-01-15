@@ -1,8 +1,5 @@
 package mirrg.xarpite.cli
 
-import getEnv
-import getFileSystem
-import getProgramName
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
@@ -10,6 +7,9 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.getEnv
+import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath

@@ -1,6 +1,6 @@
 package mirrg.xarpite.operations
 
-import hasFreeze
+import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod

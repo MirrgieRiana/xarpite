@@ -1,3 +1,5 @@
+package mirrg.xarpite
+
 import mirrg.xarpite.WorkInProgressError
 import okio.FileSystem
 

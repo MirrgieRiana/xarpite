@@ -1,7 +1,7 @@
 package mirrg.xarpite.js.node
 
-import envGetter
-import fileSystemGetter
+import mirrg.xarpite.envGetter
+import mirrg.xarpite.fileSystemGetter
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
@@ -19,10 +19,10 @@ import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import okio.NodeJsFileSystem
-import readBytesFromStdinImpl
-import readLineFromStdinImpl
-import writeBytesToStderrImpl
-import writeBytesToStdoutImpl
+import mirrg.xarpite.readBytesFromStdinImpl
+import mirrg.xarpite.readLineFromStdinImpl
+import mirrg.xarpite.writeBytesToStderrImpl
+import mirrg.xarpite.writeBytesToStdoutImpl
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise

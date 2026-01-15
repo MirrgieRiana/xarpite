@@ -1,3 +1,5 @@
+package mirrg.xarpite
+
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray

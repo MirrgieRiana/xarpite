@@ -1,8 +1,8 @@
 package mirrg.xarpite.cli
 
-import executeProcess
-import getEnv
-import getFileSystem
+import mirrg.xarpite.executeProcess
+import mirrg.xarpite.getEnv
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -19,10 +19,10 @@ import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
-import readBytesFromStdin
-import readLineFromStdin
-import writeBytesToStderr
-import writeBytesToStdout
+import mirrg.xarpite.readBytesFromStdin
+import mirrg.xarpite.readLineFromStdin
+import mirrg.xarpite.writeBytesToStderr
+import mirrg.xarpite.writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 

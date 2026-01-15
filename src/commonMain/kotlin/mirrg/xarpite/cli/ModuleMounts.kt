@@ -1,6 +1,6 @@
 package mirrg.xarpite.cli
 
-import getFileSystem
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
