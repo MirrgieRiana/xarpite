@@ -136,7 +136,7 @@ fun showVersion() {
     println(version)
 }
 
-suspend fun CoroutineScope.eval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     withEvaluator(object : IoContext {
         override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
     }) { context, evaluator ->

@@ -11,7 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
-import mirrg.xarpite.cli.eval
+import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
@@ -83,7 +83,7 @@ suspend fun main() {
         return
     }
     coroutineScope {
-        eval(options) {
+        cliEval(options) {
             createJsMounts()
         }
     }
