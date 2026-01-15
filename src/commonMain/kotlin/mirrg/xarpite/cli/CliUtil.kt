@@ -3,6 +3,7 @@ package mirrg.xarpite.cli
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
@@ -13,6 +14,7 @@ import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
+import mirrg.xarpite.withStackTrace
 import okio.Path.Companion.toPath
 
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
@@ -154,16 +156,18 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         }
         evaluator.defineMounts(mountsFactory("./-"))
         try {
-            if (options.quiet) {
-                evaluator.run(options.src)
-            } else {
-                val result = evaluator.get(options.src)
-                if (result is FluoriteStream) {
-                    result.collect {
-                        println(it.toFluoriteString())
-                    }
+            withStackTrace(StackTraceElement("./-", 0)) {
+                if (options.quiet) {
+                    evaluator.run(options.src)
                 } else {
-                    println(result.toFluoriteString())
+                    val result = evaluator.get(options.src)
+                    if (result is FluoriteStream) {
+                        result.collect {
+                            println(it.toFluoriteString())
+                        }
+                    } else {
+                        println(result.toFluoriteString())
+                    }
                 }
             }
         } catch (e: FluoriteException) {

@@ -3,6 +3,7 @@ package mirrg.xarpite.js.browser
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -13,6 +14,7 @@ import mirrg.xarpite.js.scope
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
+import mirrg.xarpite.withStackTrace
 import kotlin.js.Promise
 
 @OptIn(ExperimentalJsExport::class)
@@ -29,11 +31,13 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
     }) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
         try {
-            if (quiet) {
-                evaluator.run(src)
-                undefined
-            } else {
-                evaluator.get(src).cache()
+            withStackTrace(StackTraceElement("./-", 0)) {
+                if (quiet) {
+                    evaluator.run(src)
+                    undefined
+                } else {
+                    evaluator.get(src).cache()
+                }
             }
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
