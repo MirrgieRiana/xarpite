@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
+import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 
