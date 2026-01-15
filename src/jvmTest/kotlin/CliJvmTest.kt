@@ -14,15 +14,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * JVM固有のテスト
- * 
- * 以前はIN/INB/OUT/OUTB/ERR/ERRBのテストがここにありましたが、
- * withEvaluatorでIoContextを自由にカスタマイズできるようになったため、
- * それらのテストはcommonTest/CliTest.ktに移動されました。
- * 
- * このファイルには、System.setErr()などJVM固有の機能を必要とするテストのみが残されています。
- */
 @OptIn(ExperimentalUnsignedTypes::class)
 class CliJvmTest {
 
