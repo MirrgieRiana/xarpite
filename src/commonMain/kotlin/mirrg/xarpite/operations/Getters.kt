@@ -20,7 +20,6 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callMethod
-import mirrg.xarpite.compilers.objects.callWithStackTrace
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
@@ -41,6 +40,7 @@ import mirrg.xarpite.getMounts
 import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import mirrg.xarpite.withStackTrace
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -169,10 +169,14 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    callable.callWithStackTrace(arguments + arguments2)
+                    withStackTrace(StackTraceElement.UNKNOWN) {
+                        callable.call(arguments + arguments2)
+                    }
                 }
             } else {
-                callable.callWithStackTrace(arguments)
+                withStackTrace(StackTraceElement.UNKNOWN) {
+                    callable.call(arguments)
+                }
             }
         }
 

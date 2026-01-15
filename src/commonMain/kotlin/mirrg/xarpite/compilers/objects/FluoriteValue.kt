@@ -41,12 +41,6 @@ fun interface Callable {
     suspend fun call(arguments: Array<FluoriteValue>): FluoriteValue
 }
 
-suspend fun Callable.callWithStackTrace(arguments: Array<FluoriteValue>): FluoriteValue {
-    return withStackTrace(StackTraceElement.UNKNOWN) { // TODO
-        this.call(arguments)
-    }
-}
-
 private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     var currentObject = this.parent
     while (true) {
@@ -75,7 +69,9 @@ suspend fun FluoriteValue.getMethod(name: String): Callable? {
 
 suspend fun FluoriteValue.callMethod(name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     val callable = this.getMethod(name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
-    return callable.callWithStackTrace(arguments)
+    return withStackTrace(StackTraceElement.UNKNOWN) {
+        callable.call(arguments)
+    }
 }
 
 suspend fun FluoriteValue.callMethod(method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
