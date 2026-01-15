@@ -363,12 +363,12 @@ The `unshift` `shift` `push` `pop` methods add/remove elements at the beginning/
 
 These methods perform destructive operations.
 
-| Method    | Target | Operation     |
-|-----------|--------|---------------|
-| `unshift` | Start  | Add element   |
-| `shift`   | Start  | Remove element|
-| `push`    | End    | Add element   |
-| `pop`     | End    | Remove element|
+| Method    | Target | Operation      | Return Value      |
+|-----------|--------|----------------|-------------------|
+| `unshift` | Start  | Add element    | `NULL`            |
+| `shift`   | Start  | Remove element | Removed element   |
+| `push`    | End    | Add element    | `NULL`            |
+| `pop`     | End    | Remove element | Removed element   |
 
 ```shell
 $ xa -q '
@@ -377,18 +377,20 @@ $ xa -q '
   array::unshift("minus one")
   OUT << array
 
-  array::shift()
+  OUT << array::shift()
   OUT << array
 
   array::push("five")
   OUT << array
 
-  array::pop()
+  OUT << array::pop()
   OUT << array
 '
 # [minus one;zero;one;two;three;four]
+# minus one
 # [zero;one;two;three;four]
 # [zero;one;two;three;four;five]
+# five
 # [zero;one;two;three;four]
 ```
 
@@ -408,4 +410,21 @@ $ xa -q '
 '
 # [minus two;minus one;zero;one;two;three;four]
 # [minus two;minus one;zero;one;two;three;four;five;six]
+```
+
+## `array += item`: Adding Elements to an Array
+
+You can add elements to an array using the addition assignment operator.
+
+No assignment operation is performed on the left-hand variable itself; the array itself is modified.
+
+It generally behaves similarly to the `push` method.
+
+```shell
+$ xa '
+  array := ["apple"]
+  array += "banana"
+  array
+'
+# [apple;banana]
 ```

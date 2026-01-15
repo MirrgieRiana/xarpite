@@ -22,6 +22,8 @@ The launched coroutine is executed when the thread that called `LAUNCH` next sus
 
 This function returns a `PROMISE` that stores the return value of `function` or the exception thrown within `function`.
 
+If an exception is thrown within `function`, the exception is also output to standard error output.
+
 ```shell
 $ xa '
   promise := LAUNCH ( =>

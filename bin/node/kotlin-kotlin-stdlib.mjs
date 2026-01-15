@@ -1104,12 +1104,6 @@ function drop_1(_this__u8e3s4, n) {
 function getOrNull_1(_this__u8e3s4, index) {
   return (0 <= index ? index <= (charSequenceLength(_this__u8e3s4) - 1 | 0) : false) ? charSequenceGet(_this__u8e3s4, index) : null;
 }
-function first_1(_this__u8e3s4) {
-  // Inline function 'kotlin.text.isEmpty' call
-  if (charSequenceLength(_this__u8e3s4) === 0)
-    throw NoSuchElementException_init_$Create$_0('Char sequence is empty.');
-  return charSequenceGet(_this__u8e3s4, 0);
-}
 function take_1(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
   if (!(n >= 0)) {
@@ -1117,6 +1111,12 @@ function take_1(_this__u8e3s4, n) {
     throw IllegalArgumentException_init_$Create$_0(toString_1(message));
   }
   return substring(_this__u8e3s4, 0, coerceAtMost(n, _this__u8e3s4.length));
+}
+function first_1(_this__u8e3s4) {
+  // Inline function 'kotlin.text.isEmpty' call
+  if (charSequenceLength(_this__u8e3s4) === 0)
+    throw NoSuchElementException_init_$Create$_0('Char sequence is empty.');
+  return charSequenceGet(_this__u8e3s4, 0);
 }
 function dropLast_1(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
@@ -13607,6 +13607,11 @@ function toUShortOrNull_0(_this__u8e3s4, radix) {
   var this_1 = _UInt___get_data__impl__f0vqqw(int);
   return _UShort___init__impl__jigrne(toShort(this_1));
 }
+function toString_7(_this__u8e3s4, radix) {
+  // Inline function 'kotlin.UByte.toInt' call
+  var tmp$ret$0 = _UByte___get_data__impl__jof9qr(_this__u8e3s4) & 255;
+  return toString_3(tmp$ret$0, radix);
+}
 //region block: post-declaration
 protoOf(InternalHashMap).w5 = containsAllEntries;
 protoOf(CombinedContext).uf = plus;
@@ -14002,6 +14007,7 @@ export {
   lastIndexOf as lastIndexOf2d52xhix5ymjr,
   last_2 as last2n4gf5az1lkn4,
   lines as lines3g90sq0zeq43v,
+  padStart as padStart36w1507hs626a,
   removeSuffix as removeSuffix3d61x5lsuvuho,
   repeat as repeat2w4c6j8zoq09o,
   replace as replace3le3ie7l9k8aq,
@@ -14027,6 +14033,7 @@ export {
   toLongOrNull as toLongOrNullutqivezb0wx1,
   toLong as toLong3pjhmef5dakl7,
   toString_3 as toString1h6jjoch8cjt8,
+  toString_7 as toStringicfo093rs8qc,
   toString_6 as toString1ced4mxyj2b43,
   toUByte as toUByteh6p4wmqswkrs,
   toUInt as toUInt21lx0mz8wkp7c,

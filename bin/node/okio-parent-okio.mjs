@@ -20,15 +20,15 @@ import {
   Long2qws0ah9gnpki as Long,
   compare2uud5j30pw5xc as compare,
   subtract16cg4lfi29fq9 as subtract,
-  charCodeAt1yspne1d8erbm as charCodeAt,
+  charArray2ujmm1qusno00 as charArray,
   _Char___init__impl__6a9atx2js6krycynjoo as _Char___init__impl__6a9atx,
+  concatToString3cxf0c1gqonpo as concatToString,
+  charCodeAt1yspne1d8erbm as charCodeAt,
   Char__compareTo_impl_ypi4mbdrkik40uwhqc as Char__compareTo_impl_ypi4mb,
   Char__toInt_impl_vasixd1agw9q2fuvclj as Char__toInt_impl_vasixd,
   toByte4i43936u611k as toByte,
   copyOfwy6h3t5vzqpl as copyOf,
-  charArray2ujmm1qusno00 as charArray,
   numberToChar93r9buh19yek as numberToChar,
-  concatToString3cxf0c1gqonpo as concatToString,
   fromInt1lka3ktyu79a4 as fromInt,
   longArrayOf1jqne2a8v34i5 as longArrayOf,
   charArrayOf27f4r3dozbrk1 as charArrayOf,
@@ -320,6 +320,25 @@ function arrayRangeEquals(a, aOffset, b, bOffset, byteCount) {
     }
      while (inductionVariable < byteCount);
   return true;
+}
+function toHexString(_this__u8e3s4) {
+  _init_properties_Util_kt__laey5a();
+  if (_this__u8e3s4 === 0)
+    return '0';
+  var result = charArray(8);
+  result[0] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 28 & 15];
+  result[1] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 24 & 15];
+  result[2] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 20 & 15];
+  result[3] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 16 & 15];
+  result[4] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 12 & 15];
+  result[5] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 8 & 15];
+  result[6] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 >> 4 & 15];
+  result[7] = get_HEX_DIGIT_CHARS()[_this__u8e3s4 & 15];
+  var i = 0;
+  $l$loop: while (i < result.length && result[i] === _Char___init__impl__6a9atx(48)) {
+    i = i + 1 | 0;
+  }
+  return concatToString(result, i, result.length);
 }
 var properties_initialized_Util_kt_13atj0;
 function _init_properties_Util_kt__laey5a() {
@@ -3021,7 +3040,42 @@ protoOf(Buffer).w1j = function (string, beginIndex, endIndex) {
   }
   return this;
 };
-protoOf(Buffer).y1j = function (source) {
+protoOf(Buffer).y1j = function (codePoint) {
+  // Inline function 'okio.internal.commonWriteUtf8CodePoint' call
+  if (codePoint < 128) {
+    this.x1j(codePoint);
+  } else if (codePoint < 2048) {
+    var tail = this.v1j(2);
+    tail.i1g_1[tail.k1g_1] = toByte(codePoint >> 6 | 192);
+    tail.i1g_1[tail.k1g_1 + 1 | 0] = toByte(codePoint & 63 | 128);
+    tail.k1g_1 = tail.k1g_1 + 2 | 0;
+    this.f1h_1 = add(this.f1h_1, new Long(2, 0));
+  } else if (55296 <= codePoint ? codePoint <= 57343 : false) {
+    // Inline function 'kotlin.code' call
+    var this_0 = _Char___init__impl__6a9atx(63);
+    var tmp$ret$0 = Char__toInt_impl_vasixd(this_0);
+    this.x1j(tmp$ret$0);
+  } else if (codePoint < 65536) {
+    var tail_0 = this.v1j(3);
+    tail_0.i1g_1[tail_0.k1g_1] = toByte(codePoint >> 12 | 224);
+    tail_0.i1g_1[tail_0.k1g_1 + 1 | 0] = toByte(codePoint >> 6 & 63 | 128);
+    tail_0.i1g_1[tail_0.k1g_1 + 2 | 0] = toByte(codePoint & 63 | 128);
+    tail_0.k1g_1 = tail_0.k1g_1 + 3 | 0;
+    this.f1h_1 = add(this.f1h_1, new Long(3, 0));
+  } else if (codePoint <= 1114111) {
+    var tail_1 = this.v1j(4);
+    tail_1.i1g_1[tail_1.k1g_1] = toByte(codePoint >> 18 | 240);
+    tail_1.i1g_1[tail_1.k1g_1 + 1 | 0] = toByte(codePoint >> 12 & 63 | 128);
+    tail_1.i1g_1[tail_1.k1g_1 + 2 | 0] = toByte(codePoint >> 6 & 63 | 128);
+    tail_1.i1g_1[tail_1.k1g_1 + 3 | 0] = toByte(codePoint & 63 | 128);
+    tail_1.k1g_1 = tail_1.k1g_1 + 4 | 0;
+    this.f1h_1 = add(this.f1h_1, new Long(4, 0));
+  } else {
+    throw IllegalArgumentException_init_$Create$('Unexpected code point: 0x' + toHexString(codePoint));
+  }
+  return this;
+};
+protoOf(Buffer).z1j = function (source) {
   // Inline function 'okio.internal.commonWrite' call
   return this.j1h(source, 0, source.length);
 };
@@ -3053,11 +3107,11 @@ protoOf(Buffer).j1h = function (source, offset, byteCount) {
   this.f1h_1 = add(this.f1h_1, fromInt(byteCount));
   return this;
 };
-protoOf(Buffer).z1j = function (source) {
+protoOf(Buffer).a1k = function (source) {
   // Inline function 'okio.internal.commonWriteAll' call
   var totalBytesRead = new Long(0, 0);
   $l$loop: while (true) {
-    var readCount = source.a1k(this, new Long(8192, 0));
+    var readCount = source.b1k(this, new Long(8192, 0));
     if (equalsLong(readCount, new Long(-1, -1)))
       break $l$loop;
     totalBytesRead = add(totalBytesRead, readCount);
@@ -3130,7 +3184,7 @@ protoOf(Buffer).z1h = function (source, byteCount) {
   }
   return tmp$ret$4;
 };
-protoOf(Buffer).a1k = function (sink, byteCount) {
+protoOf(Buffer).b1k = function (sink, byteCount) {
   var tmp$ret$2;
   $l$block: {
     // Inline function 'okio.internal.commonRead' call
@@ -3152,9 +3206,9 @@ protoOf(Buffer).a1k = function (sink, byteCount) {
   return tmp$ret$2;
 };
 protoOf(Buffer).r1j = function (b) {
-  return this.b1k(b, new Long(0, 0), new Long(-1, 2147483647));
+  return this.c1k(b, new Long(0, 0), new Long(-1, 2147483647));
 };
-protoOf(Buffer).b1k = function (b, fromIndex, toIndex) {
+protoOf(Buffer).c1k = function (b, fromIndex, toIndex) {
   var tmp$ret$2;
   $l$block_8: {
     // Inline function 'okio.internal.commonIndexOf' call
@@ -3298,9 +3352,9 @@ protoOf(Buffer).b1k = function (b, fromIndex, toIndex) {
   return tmp$ret$2;
 };
 protoOf(Buffer).y1h = function (targetBytes) {
-  return this.c1k(targetBytes, new Long(0, 0));
+  return this.d1k(targetBytes, new Long(0, 0));
 };
-protoOf(Buffer).c1k = function (targetBytes, fromIndex) {
+protoOf(Buffer).d1k = function (targetBytes, fromIndex) {
   var tmp$ret$2;
   $l$block_10: {
     // Inline function 'okio.internal.commonIndexOfElement' call
@@ -3512,9 +3566,9 @@ protoOf(Buffer).c1k = function (targetBytes, fromIndex) {
   return tmp$ret$2;
 };
 protoOf(Buffer).w1h = function (offset, bytes) {
-  return this.d1k(offset, bytes, 0, bytes.u());
+  return this.e1k(offset, bytes, 0, bytes.u());
 };
-protoOf(Buffer).d1k = function (offset, bytes, bytesOffset, byteCount) {
+protoOf(Buffer).e1k = function (offset, bytes, bytesOffset, byteCount) {
   var tmp$ret$0;
   $l$block_0: {
     // Inline function 'okio.internal.commonRangeEquals' call
@@ -3635,9 +3689,9 @@ protoOf(Buffer).hashCode = function () {
   return tmp$ret$0;
 };
 protoOf(Buffer).toString = function () {
-  return this.e1k().toString();
+  return this.f1k().toString();
 };
-protoOf(Buffer).e1k = function () {
+protoOf(Buffer).f1k = function () {
   // Inline function 'okio.internal.commonSnapshot' call
   // Inline function 'kotlin.check' call
   if (!(compare(this.f1h_1, new Long(2147483647, 0)) <= 0)) {
@@ -3742,12 +3796,12 @@ function Companion_2() {
   Companion_instance_2 = this;
   this.o1h_1 = get_PLATFORM_DIRECTORY_SEPARATOR();
 }
-protoOf(Companion_2).f1k = function (_this__u8e3s4, normalize) {
+protoOf(Companion_2).g1k = function (_this__u8e3s4, normalize) {
   return commonToPath(_this__u8e3s4, normalize);
 };
 protoOf(Companion_2).l1i = function (_this__u8e3s4, normalize, $super) {
   normalize = normalize === VOID ? false : normalize;
-  return $super === VOID ? this.f1k(_this__u8e3s4, normalize) : $super.f1k.call(this, _this__u8e3s4, normalize);
+  return $super === VOID ? this.g1k(_this__u8e3s4, normalize) : $super.g1k.call(this, _this__u8e3s4, normalize);
 };
 var Companion_instance_2;
 function Companion_getInstance_2() {
@@ -3792,7 +3846,7 @@ protoOf(Path).m1h = function () {
   }
   return tmp$ret$0;
 };
-protoOf(Path).g1k = function () {
+protoOf(Path).h1k = function () {
   // Inline function 'okio.internal.commonNameBytes' call
   var lastSlash = access$_get_indexOfLastSlash_$tPathKt_czkh05(this);
   var tmp;
@@ -3814,11 +3868,11 @@ protoOf(Path).g1k = function () {
   }
   return tmp;
 };
-protoOf(Path).h1k = function () {
-  // Inline function 'okio.internal.commonName' call
-  return this.g1k().s1i();
-};
 protoOf(Path).i1k = function () {
+  // Inline function 'okio.internal.commonName' call
+  return this.h1k().s1i();
+};
+protoOf(Path).j1k = function () {
   var tmp$ret$0;
   $l$block_7: {
     // Inline function 'okio.internal.commonParent' call
@@ -3879,29 +3933,29 @@ protoOf(Path).i1k = function () {
   }
   return tmp$ret$0;
 };
-protoOf(Path).j1k = function (child) {
+protoOf(Path).k1k = function (child) {
   // Inline function 'okio.internal.commonResolve' call
   // Inline function 'okio.internal.commonResolve' call
   var child_0 = (new Buffer()).q1h(child);
   return commonResolve(this, toPath(child_0, false), false);
 };
-protoOf(Path).k1k = function (child, normalize) {
+protoOf(Path).l1k = function (child, normalize) {
   return commonResolve(this, child, normalize);
 };
-protoOf(Path).l1k = function (child, normalize, $super) {
+protoOf(Path).m1k = function (child, normalize, $super) {
   normalize = normalize === VOID ? false : normalize;
-  return $super === VOID ? this.k1k(child, normalize) : $super.k1k.call(this, child, normalize);
+  return $super === VOID ? this.l1k(child, normalize) : $super.l1k.call(this, child, normalize);
 };
-protoOf(Path).m1k = function () {
+protoOf(Path).n1k = function () {
   // Inline function 'okio.internal.commonNormalized' call
-  return Companion_getInstance_2().f1k(this.toString(), true);
+  return Companion_getInstance_2().g1k(this.toString(), true);
 };
-protoOf(Path).n1k = function (other) {
+protoOf(Path).o1k = function (other) {
   // Inline function 'okio.internal.commonCompareTo' call
   return this.l1h_1.e1j(other.l1h_1);
 };
 protoOf(Path).d = function (other) {
-  return this.n1k(other instanceof Path ? other : THROW_CCE());
+  return this.o1k(other instanceof Path ? other : THROW_CCE());
 };
 protoOf(Path).equals = function (other) {
   // Inline function 'okio.internal.commonEquals' call
@@ -3922,11 +3976,11 @@ protoOf(Path).toString = function () {
   return this.l1h_1.s1i();
 };
 function RealBufferedSource(source) {
-  this.o1k_1 = source;
-  this.p1k_1 = false;
-  this.q1k_1 = new Buffer();
+  this.p1k_1 = source;
+  this.q1k_1 = false;
+  this.r1k_1 = new Buffer();
 }
-protoOf(RealBufferedSource).a1k = function (sink, byteCount) {
+protoOf(RealBufferedSource).b1k = function (sink, byteCount) {
   var tmp$ret$4;
   $l$block_0: {
     // Inline function 'okio.internal.commonRead' call
@@ -3936,35 +3990,35 @@ protoOf(RealBufferedSource).a1k = function (sink, byteCount) {
       throw IllegalArgumentException_init_$Create$(toString_0(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.p1k_1) {
+    if (!!this.q1k_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message_0));
     }
-    if (equalsLong(this.q1k_1.f1h_1, new Long(0, 0))) {
+    if (equalsLong(this.r1k_1.f1h_1, new Long(0, 0))) {
       if (equalsLong(byteCount, new Long(0, 0))) {
         tmp$ret$4 = new Long(0, 0);
         break $l$block_0;
       }
-      var read = this.o1k_1.a1k(this.q1k_1, new Long(8192, 0));
+      var read = this.p1k_1.b1k(this.r1k_1, new Long(8192, 0));
       if (equalsLong(read, new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
     }
     // Inline function 'kotlin.comparisons.minOf' call
-    var b = this.q1k_1.f1h_1;
+    var b = this.r1k_1.f1h_1;
     var toRead = compare(byteCount, b) <= 0 ? byteCount : b;
-    tmp$ret$4 = this.q1k_1.a1k(sink, toRead);
+    tmp$ret$4 = this.r1k_1.b1k(sink, toRead);
   }
   return tmp$ret$4;
 };
-protoOf(RealBufferedSource).r1k = function (byteCount) {
+protoOf(RealBufferedSource).s1k = function (byteCount) {
   // Inline function 'okio.internal.commonRequire' call
-  if (!this.s1k(byteCount))
+  if (!this.t1k(byteCount))
     throw EOFException_init_$Create$();
   return Unit_instance;
 };
-protoOf(RealBufferedSource).s1k = function (byteCount) {
+protoOf(RealBufferedSource).t1k = function (byteCount) {
   var tmp$ret$4;
   $l$block: {
     // Inline function 'okio.internal.commonRequest' call
@@ -3974,12 +4028,12 @@ protoOf(RealBufferedSource).s1k = function (byteCount) {
       throw IllegalArgumentException_init_$Create$(toString_0(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.p1k_1) {
+    if (!!this.q1k_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message_0));
     }
-    while (compare(this.q1k_1.f1h_1, byteCount) < 0) {
-      if (equalsLong(this.o1k_1.a1k(this.q1k_1, new Long(8192, 0)), new Long(-1, -1))) {
+    while (compare(this.r1k_1.f1h_1, byteCount) < 0) {
+      if (equalsLong(this.p1k_1.b1k(this.r1k_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = false;
         break $l$block;
       }
@@ -3990,13 +4044,13 @@ protoOf(RealBufferedSource).s1k = function (byteCount) {
 };
 protoOf(RealBufferedSource).p1j = function () {
   // Inline function 'okio.internal.commonReadUtf8' call
-  this.q1k_1.z1j(this.o1k_1);
-  return this.q1k_1.p1j();
+  this.r1k_1.a1k(this.p1k_1);
+  return this.r1k_1.p1j();
 };
 protoOf(RealBufferedSource).h1h = function (byteCount) {
   // Inline function 'okio.internal.commonReadUtf8' call
-  this.r1k(byteCount);
-  return this.q1k_1.h1h(byteCount);
+  this.s1k(byteCount);
+  return this.r1k_1.h1h(byteCount);
 };
 protoOf(RealBufferedSource).q1j = function () {
   // Inline function 'okio.internal.commonReadUtf8Line' call
@@ -4007,27 +4061,27 @@ protoOf(RealBufferedSource).q1j = function () {
   var tmp;
   if (equalsLong(newline, new Long(-1, -1))) {
     var tmp_0;
-    if (!equalsLong(this.q1k_1.f1h_1, new Long(0, 0))) {
-      tmp_0 = this.h1h(this.q1k_1.f1h_1);
+    if (!equalsLong(this.r1k_1.f1h_1, new Long(0, 0))) {
+      tmp_0 = this.h1h(this.r1k_1.f1h_1);
     } else {
       tmp_0 = null;
     }
     tmp = tmp_0;
   } else {
-    tmp = readUtf8Line(this.q1k_1, newline);
+    tmp = readUtf8Line(this.r1k_1, newline);
   }
   return tmp;
 };
 protoOf(RealBufferedSource).r1j = function (b) {
-  return this.b1k(b, new Long(0, 0), new Long(-1, 2147483647));
+  return this.c1k(b, new Long(0, 0), new Long(-1, 2147483647));
 };
-protoOf(RealBufferedSource).b1k = function (b, fromIndex, toIndex) {
+protoOf(RealBufferedSource).c1k = function (b, fromIndex, toIndex) {
   var tmp$ret$4;
   $l$block_0: {
     // Inline function 'okio.internal.commonIndexOf' call
     var fromIndex_0 = fromIndex;
     // Inline function 'kotlin.check' call
-    if (!!this.p1k_1) {
+    if (!!this.q1k_1) {
       var message = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message));
     }
@@ -4037,13 +4091,13 @@ protoOf(RealBufferedSource).b1k = function (b, fromIndex, toIndex) {
       throw IllegalArgumentException_init_$Create$(toString_0(message_0));
     }
     while (compare(fromIndex_0, toIndex) < 0) {
-      var result = this.q1k_1.b1k(b, fromIndex_0, toIndex);
+      var result = this.r1k_1.c1k(b, fromIndex_0, toIndex);
       if (!equalsLong(result, new Long(-1, -1))) {
         tmp$ret$4 = result;
         break $l$block_0;
       }
-      var lastBufferSize = this.q1k_1.f1h_1;
-      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.o1k_1.a1k(this.q1k_1, new Long(8192, 0)), new Long(-1, -1))) {
+      var lastBufferSize = this.r1k_1.f1h_1;
+      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.p1k_1.b1k(this.r1k_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
@@ -4059,20 +4113,20 @@ protoOf(RealBufferedSource).p1i = function () {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonClose' call
-    if (this.p1k_1) {
+    if (this.q1k_1) {
       tmp$ret$0 = Unit_instance;
       break $l$block;
     }
-    this.p1k_1 = true;
-    this.o1k_1.p1i();
-    this.q1k_1.d2();
+    this.q1k_1 = true;
+    this.p1k_1.p1i();
+    this.r1k_1.d2();
     tmp$ret$0 = Unit_instance;
   }
   return tmp$ret$0;
 };
 protoOf(RealBufferedSource).toString = function () {
   // Inline function 'okio.internal.commonToString' call
-  return 'buffer(' + toString_0(this.o1k_1) + ')';
+  return 'buffer(' + toString_0(this.p1k_1) + ')';
 };
 function SegmentPool() {
   this.v1g_1 = 0;

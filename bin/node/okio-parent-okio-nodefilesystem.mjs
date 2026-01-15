@@ -41,40 +41,40 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.w7i_1 = fd;
-  this.x7i_1 = new Long(0, 0);
-  this.y7i_1 = false;
+  this.k7s_1 = fd;
+  this.l7s_1 = new Long(0, 0);
+  this.m7s_1 = false;
 }
-protoOf(FileSource).a1k = function (sink, byteCount) {
+protoOf(FileSource).b1k = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.y7i_1) {
+  if (!!this.m7s_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.w7i_1;
+  var tmp0_fd = this.k7s_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.x7i_1);
+  var tmp2_position = toNumber(this.l7s_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.x7i_1;
-  tmp.x7i_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.l7s_1;
+  tmp.l7s_1 = add(this_0, fromInt(readByteCount));
   sink.j1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).p1i = function () {
-  if (this.y7i_1)
+  if (this.m7s_1)
     return Unit_instance;
-  this.y7i_1 = true;
-  closeSync(this.w7i_1);
+  this.m7s_1 = true;
+  closeSync(this.k7s_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -96,7 +96,7 @@ function list($this, dir, throwOnFailure) {
         }
         var dirent = tmp;
         // Inline function 'kotlin.collections.plusAssign' call
-        var element = dir.j1k(dirent.name);
+        var element = dir.k1k(dirent.name);
         result.j(element);
       }
       sort(result);
@@ -135,10 +135,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.z7i_1 = 61440;
-  this.a7j_1 = 32768;
-  this.b7j_1 = 16384;
-  this.c7j_1 = 40960;
+  this.n7s_1 = 61440;
+  this.o7s_1 = 32768;
+  this.p7s_1 = 16384;
+  this.q7s_1 = 40960;
 }
 protoOf(NodeJsFileSystem).k1h = function (path) {
   var pathString = path.toString();
@@ -158,7 +158,7 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.z7i_1) === this.c7j_1) {
+  if ((numberToInt(stat.mode) & this.n7s_1) === this.q7s_1) {
     try {
       symlinkTarget = Companion_getInstance().l1i(readlinkSync(pathString));
     } catch ($p) {
@@ -170,7 +170,7 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.z7i_1) === this.a7j_1, (numberToInt(stat.mode) & this.z7i_1) === this.b7j_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.n7s_1) === this.o7s_1, (numberToInt(stat.mode) & this.n7s_1) === this.p7s_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
 protoOf(NodeJsFileSystem).n1i = function (dir) {
   return ensureNotNull(list(this, dir, true));
