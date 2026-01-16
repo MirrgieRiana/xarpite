@@ -1,10 +1,15 @@
 package mirrg.xarpite.operations
 
 import mirrg.xarpite.Environment
+import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.getMethod
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
+import mirrg.xarpite.withStackTrace
 
 class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
