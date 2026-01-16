@@ -1087,6 +1087,48 @@ class XarpiteTest {
     }
 
     @Test
+    fun incrementDecrementOverrideTest() = runTest {
+        assertEquals(100, eval("""
+            Obj := { `++_`: this -> 100 }
+            a := Obj{}
+            ++a
+        """).int) // 前置インクリメントは ++_ を優先して呼び出す
+
+        assertEquals(7, eval("""
+            Obj := { `_++`: this -> 7 }
+            a := Obj{}
+            ++a
+        """).int) // ++_ が無ければ _++ にフォールバックする
+
+        assertEquals(2, eval("""
+            Box := { value: 0, `_+=_`: this, other -> this.value = this.value + other }
+            box := Box{value: 1}
+            ++box
+            box.value
+        """).int) // _++ が無ければ _+=_ にフォールバックする
+
+        assertEquals("[1;2]", eval("""
+            Box := { value: 0, `_+_`: this, other -> Box{value: this.value + other} }
+            box := Box{value: 1}
+            old := box++
+            [old.value; box.value]
+        """).array()) // _+=_ も無ければ _+_ にフォールバックし、後置は元の値を返す
+
+        assertEquals(9, eval("""
+            Obj := { `--_`: this -> 9 }
+            a := Obj{}
+            --a
+        """).int) // 前置デクリメントは --_ を優先する
+
+        assertEquals(0, eval("""
+            Box := { value: 0, `_-=_`: this, other -> this.value = this.value - other }
+            box := Box{value: 1}
+            --box
+            box.value
+        """).int) // デクリメントも _-= _ を経由して 1 減算する
+    }
+
+    @Test
     fun streamMethod() = runTest {
         // ストリームの通常メソッド呼び出しは各要素のメソッド呼び出しの結合になる
         assertEquals("caa,aca,aac", eval(" 'baa', 'aba', 'aab'  | _::replace('b'; 'c')").stream())
