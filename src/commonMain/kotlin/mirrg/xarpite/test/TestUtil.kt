@@ -3,6 +3,7 @@ package mirrg.xarpite.test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
@@ -22,7 +23,7 @@ import mirrg.xarpite.parser.parseAllOrThrow
 import mirrg.xarpite.withEvaluator
 
 fun parse(src: String): String {
-    val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
+    val parseResult = XarpiteGrammar("test").rootParser.parseAllOrThrow(src)
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code
@@ -34,6 +35,10 @@ suspend fun CoroutineScope.eval(src: String): FluoriteValue {
         evaluator.get(src).cache()
     }
 }
+
+suspend fun Evaluator.get(src: String) = this.get("test", src)
+
+suspend fun Evaluator.run(src: String) = this.run("test", src)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
 val FluoriteValue.double get() = (this as FluoriteDouble).value

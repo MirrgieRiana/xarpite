@@ -33,10 +33,10 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         try {
             withStackTrace(StackTraceElement("./-", 0)) {
                 if (quiet) {
-                    evaluator.run(src)
+                    evaluator.run("./-", src)
                     undefined
                 } else {
-                    evaluator.get(src).cache()
+                    evaluator.get("./-", src).cache()
                 }
             }
         } catch (e: FluoriteException) {

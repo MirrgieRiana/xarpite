@@ -21,7 +21,7 @@ import mirrg.xarpite.parser.parsers.zeroOrMore
 import mirrg.xarpite.parser.text
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-object XarpiteGrammar {
+class XarpiteGrammar(val location: String) {
 
     val lineComment: Parser<Tuple0> = -Regex("""(?:#|//)[^\r\n]*""")
 

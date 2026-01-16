@@ -8,6 +8,7 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
