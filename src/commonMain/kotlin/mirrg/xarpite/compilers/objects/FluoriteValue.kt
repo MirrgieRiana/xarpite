@@ -94,5 +94,7 @@ suspend fun FluoriteValue.contains(value: FluoriteValue) = this.callMethod(Opera
 suspend fun FluoriteValue.match(value: FluoriteValue) = this.callMethod(OperatorMethod.MATCH.methodName, arrayOf(value))
 suspend fun FluoriteValue.plus(value: FluoriteValue) = this.callMethod(OperatorMethod.PLUS.methodName, arrayOf(value))
 suspend fun FluoriteValue.minus(value: FluoriteValue) = this.callMethod(OperatorMethod.MINUS.methodName, arrayOf(value))
+suspend fun FluoriteValue.plusAssign(value: FluoriteValue) = this.callMethod(OperatorMethod.PLUS_ASSIGN.methodName, arrayOf(value))
+suspend fun FluoriteValue.minusAssign(value: FluoriteValue) = this.callMethod(OperatorMethod.MINUS_ASSIGN.methodName, arrayOf(value))
 suspend fun FluoriteValue.compareTo(value: FluoriteValue) = this.callMethod(OperatorMethod.COMPARE.methodName, arrayOf(value)) as FluoriteInt
 suspend fun FluoriteValue.fluoriteEquals(value: FluoriteValue) = this == value

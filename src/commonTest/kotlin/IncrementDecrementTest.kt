@@ -79,4 +79,140 @@ class IncrementDecrementTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
     }
+
+    @Test
+    fun customSuffixIncrementTest() = runTest {
+        // _++ メソッドをオーバーライドして独自の挙動を定義できる
+        assertEquals(20, eval("""
+            obj := {
+                value: 10,
+                _++: () -> {
+                    this.value := this.value + 10;
+                    this.value
+                }
+            };
+            obj++
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun customPrefixIncrementTest() = runTest {
+        // ++_ メソッドをオーバーライドして独自の挙動を定義できる
+        assertEquals(30, eval("""
+            obj := {
+                value: 10,
+                ++_: () -> {
+                    this.value := this.value + 20;
+                    this.value
+                }
+            };
+            ++obj
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun prefixIncrementFallbackToSuffixTest() = runTest {
+        // ++_ が無い場合は _++ にフォールバック
+        assertEquals(15, eval("""
+            obj := {
+                value: 10,
+                _++: () -> {
+                    this.value := this.value + 5;
+                    this.value
+                }
+            };
+            ++obj
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun customSuffixDecrementTest() = runTest {
+        // _-- メソッドをオーバーライドして独自の挙動を定義できる
+        assertEquals(10, eval("""
+            obj := {
+                value: 10,
+                _--: () -> {
+                    this.value := this.value - 5;
+                    this.value
+                }
+            };
+            obj--
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun customPrefixDecrementTest() = runTest {
+        // --_ メソッドをオーバーライドして独自の挙動を定義できる
+        assertEquals(-10, eval("""
+            obj := {
+                value: 10,
+                --_: () -> {
+                    this.value := this.value - 20;
+                    this.value
+                }
+            };
+            --obj
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun prefixDecrementFallbackToSuffixTest() = runTest {
+        // --_ が無い場合は _-- にフォールバック
+        assertEquals(2, eval("""
+            obj := {
+                value: 10,
+                _--: () -> {
+                    this.value := this.value - 8;
+                    this.value
+                }
+            };
+            --obj
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusAssignTest() = runTest {
+        // _++ も ++_ も無い場合は _+=_ にフォールバック
+        assertEquals(13, eval("""
+            obj := {
+                value: 10,
+                _+=_: (n) -> {
+                    this.value := this.value + n + 2;
+                    this.value
+                }
+            };
+            obj++
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun decrementFallbackToMinusAssignTest() = runTest {
+        // _-- も --_ も無い場合は _-=_ にフォールバック
+        assertEquals(7, eval("""
+            obj := {
+                value: 10,
+                _-=_: (n) -> {
+                    this.value := this.value - n - 2;
+                    this.value
+                }
+            };
+            obj--
+        """.trimIndent()).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusTest() = runTest {
+        // _++, ++_, _+=_ がすべて無い場合は _+_ にフォールバック
+        // デフォルトの数値の加算が使用される
+        assertEquals(11, eval("a := 10; a++").int)
+        assertEquals(11, eval("a := 10; a++; a").int)
+    }
+
+    @Test
+    fun decrementFallbackToMinusTest() = runTest {
+        // _--, --_, _-=_ がすべて無い場合は _-_ にフォールバック
+        // デフォルトの数値の減算が使用される
+        assertEquals(10, eval("a := 10; a--").int)
+        assertEquals(9, eval("a := 10; a--; a").int)
+    }
 }
