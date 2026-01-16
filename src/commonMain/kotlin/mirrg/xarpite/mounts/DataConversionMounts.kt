@@ -27,48 +27,22 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "BASE" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASE[radix: NUMBER](number: NUMBER): STRING")
-
-            when (arguments.size) {
-                2 -> {
-                    // BASE(radix; number)の形式で直接呼び出し
-                    val radix = when (val radixValue = arguments[0].toFluoriteNumber()) {
-                        is FluoriteInt -> radixValue.value
-                        is FluoriteDouble -> radixValue.value.roundToInt()
-                        else -> usage()
-                    }
-                    if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
-                    val number = when (val numberValue = arguments[1].toFluoriteNumber()) {
-                        is FluoriteInt -> numberValue.value
-                        is FluoriteDouble -> numberValue.value.roundToInt()
-                        else -> usage()
-                    }
-                    number.toString(radix).uppercase().toFluoriteString()
-                }
-
-                else -> usage()
-            }
+            if (arguments.size != 2) usage()
+            val radix = arguments[0].toFluoriteNumber().roundToInt()
+            if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
+            val number = arguments[1].toFluoriteNumber().roundToInt()
+            number.toString(radix).uppercase().toFluoriteString()
         },
         "BASED" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASED[radix: NUMBER](string: STRING): NUMBER")
-
-            when (arguments.size) {
-                2 -> {
-                    // BASED(radix; string)の形式で直接呼び出し
-                    val radix = when (val radixValue = arguments[0].toFluoriteNumber()) {
-                        is FluoriteInt -> radixValue.value
-                        is FluoriteDouble -> radixValue.value.roundToInt()
-                        else -> usage()
-                    }
-                    if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
-                    val string = arguments[1].toFluoriteString().value
-                    try {
-                        FluoriteInt(string.toInt(radix))
-                    } catch (e: NumberFormatException) {
-                        throw IllegalArgumentException("Invalid base-$radix number: $string", e)
-                    }
-                }
-
-                else -> usage()
+            if (arguments.size != 2) usage()
+            val radix = arguments[0].toFluoriteNumber().roundToInt()
+            if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
+            val string = arguments[1].toFluoriteString().value
+            try {
+                FluoriteInt(string.toInt(radix))
+            } catch (e: NumberFormatException) {
+                throw IllegalArgumentException("Invalid base-$radix number: $string", e)
             }
         },
         "UTF8" to FluoriteFunction { arguments ->
