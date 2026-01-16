@@ -79,4 +79,134 @@ class IncrementDecrementTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
     }
+
+    @Test
+    fun suffixIncrementOverrideTest() = runTest {
+        // _++ メソッドでオーバーライドできる
+        assertEquals(200, eval("""
+            Obj := {
+                `_++`: this -> (this.value = this.value * 2)
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun prefixIncrementOverrideTest() = runTest {
+        // ++_ メソッドでオーバーライドできる
+        assertEquals(300, eval("""
+            Obj := {
+                `++_`: this -> (this.value = this.value * 3)
+            }
+            obj := Obj{value: 100}
+            ++obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun prefixIncrementFallbackToSuffixTest() = runTest {
+        // 前置版 ++a は ++_ メソッドがなければ _++ にフォールバック
+        assertEquals(200, eval("""
+            Obj := {
+                `_++`: this -> (this.value = this.value * 2)
+            }
+            obj := Obj{value: 100}
+            ++obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusAssignTest() = runTest {
+        // インクリメントは _++ がなければ _+=_ にフォールバック（右辺はINTの1で固定）
+        assertEquals(101, eval("""
+            Obj := {
+                `_+=_`: this, value -> (this.value = this.value + value)
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusTest() = runTest {
+        // インクリメントは _+=_ もなければ _+_ にフォールバック
+        assertEquals(101, eval("""
+            Obj := {
+                `_+_`: this, value -> Obj{value: this.value + value}
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun suffixDecrementOverrideTest() = runTest {
+        // _-- メソッドでオーバーライドできる
+        assertEquals(50, eval("""
+            Obj := {
+                `_--`: this -> (this.value = this.value / 2)
+            }
+            obj := Obj{value: 100}
+            obj--
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun prefixDecrementOverrideTest() = runTest {
+        // --_ メソッドでオーバーライドできる
+        assertEquals(33, eval("""
+            Obj := {
+                `--_`: this -> (this.value = this.value / 3)
+            }
+            obj := Obj{value: 100}
+            --obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun prefixDecrementFallbackToSuffixTest() = runTest {
+        // 前置版 --a は --_ メソッドがなければ _-- にフォールバック
+        assertEquals(50, eval("""
+            Obj := {
+                `_--`: this -> (this.value = this.value / 2)
+            }
+            obj := Obj{value: 100}
+            --obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun decrementFallbackToMinusAssignTest() = runTest {
+        // デクリメントは _-- がなければ _-=_ にフォールバック（右辺はINTの1で固定）
+        assertEquals(99, eval("""
+            Obj := {
+                `_-=_`: this, value -> (this.value = this.value - value)
+            }
+            obj := Obj{value: 100}
+            obj--
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun decrementFallbackToMinusTest() = runTest {
+        // デクリメントは _-=_ もなければ _-_ にフォールバック
+        assertEquals(99, eval("""
+            Obj := {
+                `_-_`: this, value -> Obj{value: this.value - value}
+            }
+            obj := Obj{value: 100}
+            obj--
+            obj.value
+        """).int)
+    }
 }
