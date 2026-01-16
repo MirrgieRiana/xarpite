@@ -9,22 +9,34 @@ class StackTrace : CoroutineContext.Element {
 
     override val key get() = Key
 
-    val positions = mutableListOf<Position>()
+    val positions = mutableListOf<Position?>()
 }
 
 fun StackTrace.copy() = StackTrace().also { stackTrace ->
     stackTrace.positions += this.positions
 }
 
-class Position(val location: String?, val index: Int?) {
-    companion object {
-        val UNKNOWN = Position(null, null)
+class Position(val location: String, val index: Int)
+
+class MatrixPositionCalculator(private val src: String) {
+    private val lineStartIndices = run {
+        val list = mutableListOf(0)
+        src.forEachIndexed { index, char ->
+            if (char == '\n') list.add(index + 1)
+        }
+        list
     }
 
-    override fun toString() = (location ?: "UNKNOWN") + if (index != null) ":$index" else ""
+    fun toMatrixPosition(index: Int): Pair<Int, Int> {
+        require(index in 0..src.length) { "index ($index) is out of range for src of length ${src.length}" }
+
+        val lineIndex = lineStartIndices.binarySearch(index).let { if (it >= 0) it else -it - 2 }
+        val lineStart = lineStartIndices[lineIndex]
+        return Pair(lineIndex + 1, index - lineStart + 1)
+    }
 }
 
-suspend inline fun <T> withStackTrace(position: Position, block: () -> T): T {
+suspend inline fun <T> withStackTrace(position: Position?, block: () -> T): T {
     val stackTrace = coroutineContext[StackTrace.Key]
     return if (stackTrace == null) {
         block()

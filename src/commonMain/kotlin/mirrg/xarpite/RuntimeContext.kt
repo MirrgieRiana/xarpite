@@ -7,7 +7,17 @@ class RuntimeContext(
     val coroutineScope: CoroutineScope,
     val daemonScope: CoroutineScope,
     val io: IoContext,
-)
+) {
+    private val matrixPositionCalculatorCache = mutableMapOf<String, MatrixPositionCalculator>()
+    fun renderPosition(src: String, position: Position?): String {
+        if (position == null) return "UNKNOWN"
+        val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
+            MatrixPositionCalculator(src)
+        }
+        val (row, column) = matrixPositionCalculator.toMatrixPosition(position.index)
+        return "${position.location}:$row:$column"
+    }
+}
 
 interface IoContext {
     suspend fun out(value: FluoriteValue)

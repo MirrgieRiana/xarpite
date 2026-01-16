@@ -1,7 +1,6 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
-import mirrg.xarpite.Position
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withStackTrace
 
@@ -69,7 +68,7 @@ suspend fun FluoriteValue.getMethod(name: String): Callable? {
 
 suspend fun FluoriteValue.callMethod(name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     val callable = this.getMethod(name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
-    return withStackTrace(Position.UNKNOWN) {
+    return withStackTrace(null) {
         callable.call(arguments)
     }
 }

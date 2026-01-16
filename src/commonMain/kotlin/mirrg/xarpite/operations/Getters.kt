@@ -169,12 +169,12 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    withStackTrace(Position.UNKNOWN) {
+                    withStackTrace(null) {
                         callable.call(arguments + arguments2)
                     }
                 }
             } else {
-                withStackTrace(Position.UNKNOWN) {
+                withStackTrace(null) {
                     callable.call(arguments)
                 }
             }
@@ -327,7 +327,7 @@ class FromJsonGetter(private val getter: Getter) : Getter {
 }
 
 class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) {
-    var stackTrace: List<Position>? = null
+    var stackTrace: List<Position?>? = null
 }
 
 class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {

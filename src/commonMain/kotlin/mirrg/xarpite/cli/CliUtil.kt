@@ -173,7 +173,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
-                context.io.err("  at $position".toFluoriteString())
+                context.io.err("  at ${context.renderPosition(options.src, position)}".toFluoriteString())
             }
         }
     }
