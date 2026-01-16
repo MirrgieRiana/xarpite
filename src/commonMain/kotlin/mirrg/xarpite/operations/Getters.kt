@@ -141,6 +141,7 @@ class MethodAccessGetter(
     private val argumentGetters: List<Getter>,
     private val isBinding: Boolean,
     private val isNullSafe: Boolean,
+    private val position: Position,
 ) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val receiver = receiverGetter.evaluate(env)
@@ -169,12 +170,12 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    withStackTrace(null) {
+                    withStackTrace(position) {
                         callable.call(arguments + arguments2)
                     }
                 }
             } else {
-                withStackTrace(null) {
+                withStackTrace(position) {
                     callable.call(arguments)
                 }
             }

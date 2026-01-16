@@ -165,8 +165,8 @@ class XarpiteGrammar(val location: String) {
 
         -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
         -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },
-        -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
-        -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
+        -b * (-"::").result * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it.b, it.a.position) } },
+        -b * (-"?::").result * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it.b, it.a.position) } },
 
         -b * -'.' * unaryOperator.result map { { main -> it.value(main, Side.RIGHT, it.position) } },
     )

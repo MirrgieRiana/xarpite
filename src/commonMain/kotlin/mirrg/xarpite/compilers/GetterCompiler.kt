@@ -65,6 +65,7 @@ import mirrg.xarpite.IntegerNode
 import mirrg.xarpite.LiteralStringContent
 import mirrg.xarpite.Node
 import mirrg.xarpite.NodeStringContent
+import mirrg.xarpite.Position
 import mirrg.xarpite.RawStringNode
 import mirrg.xarpite.RegexNode
 import mirrg.xarpite.ReturnNode
@@ -291,11 +292,11 @@ fun Frame.compileToGetter(node: Node): Getter {
             ReturnGetter(label.first, label.second, compileToGetter(node.right))
         }
 
-        is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters)
-        is BracketsRightArrowedSquareNode -> compileFunctionalAccessToGetter(node, true, ::createArrowedArgumentGetters)
+        is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters, node.position)
+        is BracketsRightArrowedSquareNode -> compileFunctionalAccessToGetter(node, true, ::createArrowedArgumentGetters, node.position)
         is BracketsRightArrowedCurlyNode -> throw IllegalArgumentException("Unknown operator: $node ${node.receiver} ${node.arguments} ${node.body}")
-        is BracketsRightSimpleRoundNode -> compileFunctionalAccessToGetter(node, false, ::createSimpleArgumentGetters)
-        is BracketsRightSimpleSquareNode -> compileFunctionalAccessToGetter(node, true, ::createSimpleArgumentGetters)
+        is BracketsRightSimpleRoundNode -> compileFunctionalAccessToGetter(node, false, ::createSimpleArgumentGetters, node.position)
+        is BracketsRightSimpleSquareNode -> compileFunctionalAccessToGetter(node, true, ::createSimpleArgumentGetters, node.position)
         is BracketsRightSimpleCurlyNode -> compileObjectCreationToGetter(node.receiver, node.body)
 
         is InfixNode -> compileInfixOperatorToGetter(node)
@@ -382,14 +383,14 @@ fun Frame.createSimpleArgumentGetters(node: BracketsRightSimpleNode): List<Gette
     return argumentNodes.map { compileToGetter(it) }
 }
 
-fun Frame.compileToMethodAccessGetter(receiverNode: Node, methodNode: Node, argumentGetters: List<Getter>, isBinding: Boolean, isNullSafe: Boolean): Getter {
+fun Frame.compileToMethodAccessGetter(receiverNode: Node, methodNode: Node, argumentGetters: List<Getter>, isBinding: Boolean, isNullSafe: Boolean, position: Position): Getter {
     return when (methodNode) {
         is IdentifierNode -> {
             val receiverGetter = compileToGetter(receiverNode)
             val name = methodNode.string
             val variable = getVariable("::$name")
             val mountCounts = getMountCounts()
-            MethodAccessGetter(receiverGetter, variable, mountCounts, name, argumentGetters, isBinding, isNullSafe)
+            MethodAccessGetter(receiverGetter, variable, mountCounts, name, argumentGetters, isBinding, isNullSafe, position)
         }
 
         is BracketsLiteralSimpleRoundNode -> {
@@ -402,11 +403,11 @@ fun Frame.compileToMethodAccessGetter(receiverNode: Node, methodNode: Node, argu
     }
 }
 
-fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBinding: Boolean, argumentGettersFactory: (T) -> List<Getter>): Getter {
+fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBinding: Boolean, argumentGettersFactory: (T) -> List<Getter>, position: Position): Getter {
     return if (node.receiver is InfixColonColonNode) { // メソッド呼出し
-        compileToMethodAccessGetter(node.receiver.left, node.receiver.right, argumentGettersFactory(node), isBinding, false)
+        compileToMethodAccessGetter(node.receiver.left, node.receiver.right, argumentGettersFactory(node), isBinding, false, position)
     } else if (node.receiver is InfixQuestionColonColonNode) {
-        compileToMethodAccessGetter(node.receiver.left, node.receiver.right, argumentGettersFactory(node), isBinding, true)
+        compileToMethodAccessGetter(node.receiver.left, node.receiver.right, argumentGettersFactory(node), isBinding, true, position)
     } else { // 関数呼び出し
         val functionGetter = compileToGetter(node.receiver)
         val argumentGetters = argumentGettersFactory(node)
@@ -438,8 +439,8 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
             ItemAccessGetter(receiverGetter, nameGetter, true)
         }
 
-        is InfixColonColonNode -> compileToMethodAccessGetter(node.left, node.right, listOf(), true, false)
-        is InfixQuestionColonColonNode -> compileToMethodAccessGetter(node.left, node.right, listOf(), true, true)
+        is InfixColonColonNode -> compileToMethodAccessGetter(node.left, node.right, listOf(), true, false, node.position)
+        is InfixQuestionColonColonNode -> compileToMethodAccessGetter(node.left, node.right, listOf(), true, true, node.position)
 
         is InfixPlusNode -> PlusGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixAmpersandNode -> StringConcatenationGetter(listOf(ConversionStringGetter(compileToGetter(node.left)), ConversionStringGetter(compileToGetter(node.right))))
