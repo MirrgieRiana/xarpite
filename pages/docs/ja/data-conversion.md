@@ -42,9 +42,9 @@ $ xa 'BASED(2; "11111000")'
 
 ```shell
 $ xa 'BASE(36; 248)'
-# 6V
+# 6W
 
-$ xa 'BASED(36; "6V")'
+$ xa 'BASED(36; "6W")'
 # 248
 ```
 
