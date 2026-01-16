@@ -2,7 +2,7 @@ package mirrg.xarpite.operations
 
 import mirrg.xarpite.Environment
 import mirrg.xarpite.OperatorMethod
-import mirrg.xarpite.StackTraceElement
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.getMethod
@@ -16,7 +16,7 @@ class PlusAssignmentGetter(private val leftGetter: Getter, private val leftSette
         val right = getter.evaluate(env)
         val callable = left.getMethod(OperatorMethod.PLUS_ASSIGN.methodName)
         if (callable != null) {
-            withStackTrace(StackTraceElement.UNKNOWN) {
+            withStackTrace(Position.UNKNOWN) {
                 callable.call(arrayOf(right)).consume()
             }
         } else {
@@ -35,7 +35,7 @@ class MinusAssignmentGetter(private val leftGetter: Getter, private val leftSett
         val right = getter.evaluate(env)
         val callable = left.getMethod(OperatorMethod.MINUS_ASSIGN.methodName)
         if (callable != null) {
-            withStackTrace(StackTraceElement.UNKNOWN) {
+            withStackTrace(Position.UNKNOWN) {
                 callable.call(arrayOf(right)).consume()
             }
         } else {

@@ -3,7 +3,7 @@ package mirrg.xarpite.operations
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
-import mirrg.xarpite.StackTraceElement
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
@@ -169,12 +169,12 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    withStackTrace(StackTraceElement.UNKNOWN) {
+                    withStackTrace(Position.UNKNOWN) {
                         callable.call(arguments + arguments2)
                     }
                 }
             } else {
-                withStackTrace(StackTraceElement.UNKNOWN) {
+                withStackTrace(Position.UNKNOWN) {
                     callable.call(arguments)
                 }
             }
@@ -327,10 +327,10 @@ class FromJsonGetter(private val getter: Getter) : Getter {
 }
 
 class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) {
-    var stackTrace: List<StackTraceElement>? = null
+    var stackTrace: List<Position>? = null
 }
 
-class ThrowGetter(private val getter: Getter, private val position: StackTraceElement) : Getter {
+class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): Nothing {
         withStackTrace(position) {
             throw FluoriteException(getter.evaluate(env))

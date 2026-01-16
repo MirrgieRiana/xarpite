@@ -3,7 +3,7 @@ package mirrg.xarpite.js.browser
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
 import mirrg.xarpite.IoContext
-import mirrg.xarpite.StackTraceElement
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -31,7 +31,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
     }) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
         try {
-            withStackTrace(StackTraceElement("-", 0)) {
+            withStackTrace(Position("-", 0)) {
                 if (quiet) {
                     evaluator.run("-", src)
                     undefined
@@ -41,8 +41,8 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
             }
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
-            e.stackTrace?.reversed()?.forEach { element ->
-                context.io.err("  at $element".toFluoriteString())
+            e.stackTrace?.reversed()?.forEach { position ->
+                context.io.err("  at $position".toFluoriteString())
             }
         }
     }

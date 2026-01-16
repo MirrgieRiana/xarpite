@@ -2,8 +2,8 @@ package mirrg.xarpite.cli
 
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.Position
 import mirrg.xarpite.RuntimeContext
-import mirrg.xarpite.StackTraceElement
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
@@ -156,7 +156,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         }
         evaluator.defineMounts(mountsFactory("./-"))
         try {
-            withStackTrace(StackTraceElement("-", 0)) {
+            withStackTrace(Position("-", 0)) {
                 if (options.quiet) {
                     evaluator.run("-", options.src)
                 } else {
@@ -172,8 +172,8 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
             }
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
-            e.stackTrace?.reversed()?.forEach { element ->
-                context.io.err("  at $element".toFluoriteString())
+            e.stackTrace?.reversed()?.forEach { position ->
+                context.io.err("  at $position".toFluoriteString())
             }
         }
     }

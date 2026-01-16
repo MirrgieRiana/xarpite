@@ -137,7 +137,7 @@ class XarpiteGrammar(val location: String) {
     val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
-    val unaryOperator: Parser<(Node, Side, StackTraceElement) -> Node> = or(
+    val unaryOperator: Parser<(Node, Side, Position) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },
         -"--" map { ::UnaryMinusMinusNode },
         -'+' map { ::UnaryPlusNode },
@@ -293,5 +293,5 @@ class XarpiteGrammar(val location: String) {
     val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode }
 
     private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
-    private val ParseResult<*>.position get() = StackTraceElement(location, start)
+    private val ParseResult<*>.position get() = Position(location, start)
 }
