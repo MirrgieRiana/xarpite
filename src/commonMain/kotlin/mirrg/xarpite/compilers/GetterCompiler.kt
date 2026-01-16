@@ -283,7 +283,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             SuffixDecrementGetter(getter, setter)
         }
 
-        is ThrowNode -> ThrowGetter(compileToGetter(node.right))
+        is ThrowNode -> ThrowGetter(compileToGetter(node.right), node.position)
 
         is ReturnNode -> {
             require(node.left is IdentifierNode)

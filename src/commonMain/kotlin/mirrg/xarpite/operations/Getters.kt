@@ -330,8 +330,13 @@ class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) 
     var stackTrace: List<StackTraceElement>? = null
 }
 
-class ThrowGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = throw FluoriteException(getter.evaluate(env))
+class ThrowGetter(private val getter: Getter, private val position: StackTraceElement) : Getter {
+    override suspend fun evaluate(env: Environment): Nothing {
+        withStackTrace(position) {
+            throw FluoriteException(getter.evaluate(env))
+        }
+    }
+
     override val code get() = "ThrowGetter[${getter.code}]"
 }
 
