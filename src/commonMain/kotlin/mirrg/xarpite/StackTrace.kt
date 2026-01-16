@@ -34,6 +34,12 @@ class MatrixPositionCalculator(private val src: String) {
         val lineStart = lineStartIndices[lineIndex]
         return Pair(lineIndex + 1, index - lineStart + 1)
     }
+
+    fun getLine(row: Int): String {
+        val lineStart = lineStartIndices.getOrNull(row - 1) ?: return ""
+        val lineEnd = lineStartIndices.getOrNull(row) ?: src.length
+        return src.substring(lineStart, lineEnd).trimEnd('\n')
+    }
 }
 
 suspend inline fun <T> withStackTrace(position: Position?, block: () -> T): T {

@@ -1,6 +1,7 @@
 package mirrg.xarpite
 
 import kotlinx.coroutines.CoroutineScope
+import mirrg.kotlin.helium.atLeast
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -32,7 +33,13 @@ class RuntimeContext(
             MatrixPositionCalculator(src)
         }
         val (row, column) = matrixPositionCalculator.toMatrixPosition(position.index)
-        return "${position.location}:$row:$column"
+        val line = matrixPositionCalculator.getLine(row)
+        val startColumnIndex = (column - 1) - 10 atLeast 0
+        val endColumnIndex = (column - 1) + 11 atLeast line.length
+        val snippet = line.substring(startColumnIndex, endColumnIndex)
+        val startEllipsis = if (startColumnIndex > 0) "..." else ""
+        val endEllipsis = if (endColumnIndex < line.length) "..." else ""
+        return "${position.location}:$row:$column  $startEllipsis$snippet$endEllipsis"
     }
 
 }
