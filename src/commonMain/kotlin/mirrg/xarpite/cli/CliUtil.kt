@@ -156,11 +156,11 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         }
         evaluator.defineMounts(mountsFactory("./-"))
         try {
-            withStackTrace(StackTraceElement("./-", 0)) {
+            withStackTrace(StackTraceElement("-", 0)) {
                 if (options.quiet) {
-                    evaluator.run("./-", options.src)
+                    evaluator.run("-", options.src)
                 } else {
-                    val result = evaluator.get("./-", options.src)
+                    val result = evaluator.get("-", options.src)
                     if (result is FluoriteStream) {
                         result.collect {
                             println(it.toFluoriteString())
