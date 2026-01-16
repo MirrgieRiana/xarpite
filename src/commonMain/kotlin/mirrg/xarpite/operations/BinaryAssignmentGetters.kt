@@ -14,14 +14,14 @@ class PlusAssignmentGetter(private val leftGetter: Getter, private val leftSette
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = getter.evaluate(env)
-        val callable = left.getMethod(OperatorMethod.PLUS_ASSIGN.methodName)
+        val callable = left.getMethod(position, OperatorMethod.PLUS_ASSIGN.methodName)
         if (callable != null) {
             withStackTrace(position) {
                 callable.call(arrayOf(right)).consume()
             }
         } else {
             val leftFunction = leftSetter.evaluate(env)
-            leftFunction.invoke(left.plus(right))
+            leftFunction.invoke(left.plus(position, right))
         }
         return right
     }
@@ -33,14 +33,14 @@ class MinusAssignmentGetter(private val leftGetter: Getter, private val leftSett
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = getter.evaluate(env)
-        val callable = left.getMethod(OperatorMethod.MINUS_ASSIGN.methodName)
+        val callable = left.getMethod(position, OperatorMethod.MINUS_ASSIGN.methodName)
         if (callable != null) {
             withStackTrace(position) {
                 callable.call(arrayOf(right)).consume()
             }
         } else {
             val leftFunction = leftSetter.evaluate(env)
-            leftFunction.invoke(left.minus(right))
+            leftFunction.invoke(left.minus(position, right))
         }
         return right
     }

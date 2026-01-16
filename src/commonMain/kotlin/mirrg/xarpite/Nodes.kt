@@ -46,8 +46,8 @@ class UnaryDollarAsteriskNode(main: Node, side: Side, position: Position) : Unar
 class UnaryAtNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryAsteriskNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryBackslashNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
-class SuffixPlusPlusNode(val main: Node) : Node()
-class SuffixMinusMinusNode(val main: Node) : Node()
+class SuffixPlusPlusNode(val main: Node, val position: Position) : Node()
+class SuffixMinusMinusNode(val main: Node, val position: Position) : Node()
 sealed class InfixNode(val left: Node, val right: Node, val position: Position) : Node()
 class InfixPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixQuestionPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
@@ -81,10 +81,10 @@ class InfixColonEqualNode(left: Node, right: Node, position: Position) : InfixNo
 class InfixEqualGreaterNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixExclamationQuestionNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixExclamationColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
-class InfixIdentifierNode(val left: Node, val infix: IdentifierNode, val right: Node) : Node()
-class InfixExclamationIdentifierNode(val left: Node, val infix: IdentifierNode, val right: Node) : Node()
-class ComparisonsNode(val nodes: List<Node>, val operators: List<ComparisonOperatorType>) : Node()
-class ConditionNode(val condition: Node, val ok: Node, val ng: Node) : Node()
+class InfixIdentifierNode(val left: Node, val infix: IdentifierNode, val right: Node, val position: Position) : Node()
+class InfixExclamationIdentifierNode(val left: Node, val infix: IdentifierNode, val right: Node, val position: Position) : Node()
+class ComparisonsNode(val nodes: List<Node>, val operators: List<Pair<ComparisonOperatorType, Position>>) : Node()
+class ConditionNode(val condition: Node, val ok: Node, val ng: Node, val position: Position) : Node()
 class CommasNode(val nodes: List<Node>) : Node()
 class SemicolonsNode(val nodes: List<Node>) : Node()
 
@@ -107,8 +107,8 @@ enum class ComparisonOperatorType {
 
 sealed class StringContent
 class LiteralStringContent(val string: String) : StringContent()
-class NodeStringContent(val main: Node) : StringContent()
-class FormattedStringContent(val formatter: Formatter, val main: Node) : StringContent()
+class NodeStringContent(val main: Node, val position: Position) : StringContent()
+class FormattedStringContent(val formatter: Formatter, val main: Node, val position: Position) : StringContent()
 
 class Formatter(val string: String, val flags: Set<FormatterFlag>, val width: Int?, val precision: Int?, val conversion: FormatterConversion)
 

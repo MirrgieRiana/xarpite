@@ -92,8 +92,8 @@ class XarpiteGrammar(val location: String) {
     }
     val templateStringContent: Parser<StringContent> = or(
         templateStringCharacter.oneOrMore map { LiteralStringContent(it.join("")) },
-        -'$' * parser { factor } map { NodeStringContent(it) },
-        formatter * parser { brackets } map { FormattedStringContent(it.a, it.b) },
+        (-'$').result * parser { factor } map { NodeStringContent(it.b, it.a.position) },
+        formatter.result * parser { brackets } map { FormattedStringContent(it.a.value, it.b, it.a.position) },
     )
     val templateString: Parser<Node> = -'"' * templateStringContent.zeroOrMore * -'"' map { TemplateStringNode(it) }
 
@@ -106,7 +106,7 @@ class XarpiteGrammar(val location: String) {
         embeddedStringCharacter.oneOrMore map { LiteralStringContent(it.join("")) },
         // %> が開始と埋め込みの終端を兼ねているため、expressionには出来ない
         // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
-        -"<%=" * -b * parser { stream } * -b * -"%>" map { NodeStringContent(it) },
+        (-"<%=").result * -b * parser { stream } * -b * -"%>" map { NodeStringContent(it.b, it.a.position) },
     )
     val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' map { EmbeddedStringNode(it) } // %>string<%
 
@@ -160,8 +160,8 @@ class XarpiteGrammar(val location: String) {
         -s * (-'[').result * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode, it.a.position) } },
         -s * (-'{').result * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode, it.a.position) } },
 
-        -s * -"++" map { { main -> SuffixPlusPlusNode(main) } },
-        -s * -"--" map { { main -> SuffixMinusMinusNode(main) } },
+        -s * (-"++").result map { { main -> SuffixPlusPlusNode(main, it.position) } },
+        -s * (-"--").result map { { main -> SuffixMinusMinusNode(main, it.position) } },
 
         -b * (-'.').result * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it.b, it.a.position) } },
         -b * (-"?.").result * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it.b, it.a.position) } },
@@ -197,8 +197,8 @@ class XarpiteGrammar(val location: String) {
     )
     val range: Parser<Node> = leftAssociative(add, -s * rangeOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val infixIdentifierOperator: Parser<(Node, Node) -> Node> = or(
-        identifier + quotedIdentifier map { { left, right -> InfixIdentifierNode(left, it, right) } },
-        -'!' * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it, right) } },
+        (identifier + quotedIdentifier).result map { { left, right -> InfixIdentifierNode(left, it.value, right, it.position) } },
+        (-'!').result * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it.b, right, it.a.position) } },
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
     val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
@@ -216,9 +216,9 @@ class XarpiteGrammar(val location: String) {
         -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )
-    val comparison: Parser<Node> = spaceship * (-s * comparisonOperator * -b * spaceship).zeroOrMore map {
+    val comparison: Parser<Node> = spaceship * (-s * comparisonOperator.result * -b * spaceship).zeroOrMore map {
         if (it.b.isNotEmpty()) {
-            ComparisonsNode(listOf(it.a, *it.b.map { t -> t.b }.toTypedArray()), it.b.map { t -> t.a })
+            ComparisonsNode(listOf(it.a, *it.b.map { t -> t.b }.toTypedArray()), it.b.map { t -> Pair(t.a.value, t.a.position) })
         } else {
             it.a
         }
@@ -228,7 +228,7 @@ class XarpiteGrammar(val location: String) {
     val orOperator: Parser<(Node, Node, Position) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
     val or: Parser<Node> = leftAssociative(and, -s * orOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val condition: Parser<Node> = or(
-        or * -b * -'?' * -b * parser { condition } * -b * -':' * !':' * -b * parser { condition } map { it -> ConditionNode(it.a, it.b, it.c) },
+        or * -b * (-'?').result * -b * parser { condition } * -b * -':' * !':' * -b * parser { condition } map { it -> ConditionNode(it.a, it.c, it.d, it.b.position) },
         or * -b * (-"?:").result * -b * parser { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
         or * -b * (-"!?").result * -b * parser { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
         or,

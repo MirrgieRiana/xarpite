@@ -141,8 +141,8 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString().value)
-        override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString().value}\n".encodeToByteArray())
+        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
+        override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
         override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
         override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
         override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
@@ -164,10 +164,10 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
                     val result = evaluator.get("-", options.src)
                     if (result is FluoriteStream) {
                         result.collect {
-                            println(it.toFluoriteString())
+                            println(it.toFluoriteString(null))
                         }
                     } else {
-                        println(result.toFluoriteString())
+                        println(result.toFluoriteString(null))
                     }
                 }
             }

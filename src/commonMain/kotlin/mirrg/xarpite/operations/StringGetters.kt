@@ -6,6 +6,7 @@ import mirrg.xarpite.Environment
 import mirrg.xarpite.Formatter
 import mirrg.xarpite.FormatterConversion
 import mirrg.xarpite.FormatterFlag
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -17,22 +18,22 @@ class LiteralStringGetter(private val string: String) : StringGetter {
     override val code get() = "LiteralStringGetter[${string.escapeJsonString()}]"
 }
 
-class ConversionStringGetter(private val getter: Getter) : StringGetter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteString().value
+class ConversionStringGetter(private val getter: Getter, private val position: Position) : StringGetter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteString(position).value
     override val code get() = "ConversionStringGetter[${getter.code}]"
 }
 
-class FormattedStringGetter(private val formatter: Formatter, private val getter: Getter) : StringGetter {
-    override suspend fun evaluate(env: Environment) = formatter.format(getter.evaluate(env))
+class FormattedStringGetter(private val formatter: Formatter, private val getter: Getter, private val position: Position) : StringGetter {
+    override suspend fun evaluate(env: Environment) = formatter.format(position, getter.evaluate(env))
     override val code get() = "FormattedStringGetter[${formatter.string.escapeJsonString()};${getter.code}]"
 }
 
-private suspend fun Formatter.format(value: FluoriteValue): String {
+private suspend fun Formatter.format(position: Position, value: FluoriteValue): String {
     val (sign, string) = if (this.conversion == FormatterConversion.STRING) {
         if (FormatterFlag.SIGNED in this.flags) throw RuntimeException("Invalid format: ${this.string}")
         if (FormatterFlag.SPACE_FOR_SIGN in this.flags) throw RuntimeException("Invalid format: ${this.string}")
         if (this.precision != null) throw RuntimeException("Invalid format: ${this.string}")
-        Pair("", value.toFluoriteString().value)
+        Pair("", value.toFluoriteString(position).value)
     } else {
         if (FormatterFlag.SIGNED in this.flags && FormatterFlag.SPACE_FOR_SIGN in this.flags) throw RuntimeException("Invalid format: ${this.string}")
         if (this.conversion != FormatterConversion.FLOAT) {

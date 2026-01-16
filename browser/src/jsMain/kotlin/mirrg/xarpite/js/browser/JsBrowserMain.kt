@@ -80,7 +80,7 @@ fun stringify(value: dynamic): Promise<String> = scope.promise {
             }
             sb.toString()
         } else {
-            value.toFluoriteString().value
+            value.toFluoriteString(null).value
         }
     }
     f(value)

@@ -95,7 +95,7 @@ class CliTest {
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString(null).value)
         fileSystem.delete(file)
         fileSystem.delete(dir)
     }
@@ -112,7 +112,7 @@ class CliTest {
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
         fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
-        assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString(null).value)
         fileSystem.delete(apple)
         fileSystem.delete(banana)
         fileSystem.delete(dir)
@@ -128,7 +128,7 @@ class CliTest {
         fileSystem.createDirectory(dir)
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString().value)
+        assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString(null).value)
         fileSystem.delete(module)
         fileSystem.delete(dir)
     }
@@ -159,7 +159,7 @@ class CliTest {
             a.variables.fruit = "banana"
             b.variables.fruit
             """.trimIndent()
-        ).toFluoriteString().value
+        ).toFluoriteString(null).value
         assertEquals("banana", result)
         fileSystem.delete(file)
     }
@@ -430,7 +430,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
-            assertEquals("ERROR", result.toFluoriteString().value)
+            assertEquals("ERROR", result.toFluoriteString(null).value)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -441,7 +441,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
-            val output = result.toFluoriteString().value.trim()
+            val output = result.toFluoriteString(null).value.trim()
             assertEquals("hello world test", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -453,7 +453,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell(""))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -466,7 +466,7 @@ class CliTest {
         try {
             // 特殊文字を含む引数（シングルクォート、セミコロンなど）
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("hello;world test|pipe", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -496,7 +496,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             // printfは末尾に改行を追加しない
             assertEquals("test", output)
         } catch (e: WorkInProgressError) {
@@ -528,7 +528,7 @@ class CliTest {
         try {
             // 少し時間がかかるコマンド
             val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("done", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -541,7 +541,7 @@ class CliTest {
         try {
             // パイプを使用するコマンド
             val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
-            val output = result.toFluoriteString().value.trim()
+            val output = result.toFluoriteString(null).value.trim()
             assertEquals("b", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -554,7 +554,7 @@ class CliTest {
         try {
             // 環境変数PATHは常に設定されている
             val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("ok", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -586,7 +586,7 @@ class CliTest {
             // 長い引数
             val longString = "a".repeat(500)
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals(longString, output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -599,7 +599,7 @@ class CliTest {
         try {
             // Unicode文字を含む引数
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("こんにちは世界", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -612,7 +612,7 @@ class CliTest {
         try {
             // 複数のコマンドを&&で繋ぐ
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("abc", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -625,7 +625,7 @@ class CliTest {
         try {
             // リダイレクションを使用
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertEquals("ok", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -638,7 +638,7 @@ class CliTest {
         try {
             // バックスラッシュを含む引数
             val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
             assertTrue(output.contains("a"))
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
@@ -659,7 +659,7 @@ class CliTest {
                 val results = jobs.map { it.await() }
                 // すべての結果が正しいことを確認
                 results.forEachIndexed { index, result ->
-                    val output = result.toFluoriteString().value
+                    val output = result.toFluoriteString(null).value
                     assertEquals("test${index + 1}", output)
                 }
             }
@@ -673,7 +673,7 @@ class CliTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
         val result = cliEval(context, "ERR(123)")
-        assertEquals("NULL", result.toFluoriteString().value)
+        assertEquals("NULL", result.toFluoriteString(null).value)
         assertEquals("123\n", context.stderrBytes.toUtf8String())
 
         // 複数の引数を渡せる
@@ -692,7 +692,7 @@ class CliTest {
         val context = TestIoContext()
         // ERRB がNULLを返すことを確認
         val result = cliEval(context, "ERRB(BLOB.of([65, 66, 67]))")
-        assertEquals("NULL", result.toFluoriteString().value)
+        assertEquals("NULL", result.toFluoriteString(null).value)
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
@@ -726,9 +726,9 @@ internal class TestIoContext(
     val stdoutBytes = TestByteArrayOutputStream()
     val stderrBytes = TestByteArrayOutputStream()
 
-    override suspend fun out(value: FluoriteValue) = writeBytesToStdout("${value.toFluoriteString().value}\n".encodeToByteArray())
+    override suspend fun out(value: FluoriteValue) = writeBytesToStdout("${value.toFluoriteString(null).value}\n".encodeToByteArray())
 
-    override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString().value}\n".encodeToByteArray())
+    override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
 
     override suspend fun readLineFromStdin(): String? {
         return if (stdinLineIndex < stdinLines.size) {

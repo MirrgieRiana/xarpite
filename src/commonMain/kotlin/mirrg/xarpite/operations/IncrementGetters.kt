@@ -1,16 +1,17 @@
 package mirrg.xarpite.operations
 
 import mirrg.xarpite.Environment
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
 
-class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
-        val newValue = oldValue.plus(FluoriteInt.ONE)
+        val newValue = oldValue.plus(position, FluoriteInt.ONE)
         setterFunction(newValue)
         return newValue
     }
@@ -18,11 +19,11 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
     override val code get() = "PrefixIncrementGetter[${getter.code};${setter.code}]"
 }
 
-class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
-        val newValue = oldValue.plus(FluoriteInt.ONE)
+        val newValue = oldValue.plus(position, FluoriteInt.ONE)
         setterFunction(newValue)
         return oldValue
     }
@@ -30,11 +31,11 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
     override val code get() = "SuffixIncrementGetter[${getter.code};${setter.code}]"
 }
 
-class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
-        val newValue = oldValue.minus(FluoriteInt.ONE)
+        val newValue = oldValue.minus(position, FluoriteInt.ONE)
         setterFunction(newValue)
         return newValue
     }
@@ -42,11 +43,11 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
     override val code get() = "PrefixDecrementGetter[${getter.code};${setter.code}]"
 }
 
-class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter) : Getter {
+class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
-        val newValue = oldValue.minus(FluoriteInt.ONE)
+        val newValue = oldValue.minus(position, FluoriteInt.ONE)
         setterFunction(newValue)
         return oldValue
     }

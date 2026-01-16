@@ -65,7 +65,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
         val function = arguments[0]
         val argumentsArray = arguments[1] as FluoriteArray
-        function.invoke(argumentsArray.values.toTypedArray())
+        function.invoke(null, argumentsArray.values.toTypedArray())
     }
     mounts["LAUNCH"] = FluoriteFunction { arguments ->
         if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
@@ -74,7 +74,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         val coroutineId = nextCoroutineId
         context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
             try {
-                promise.deferred.complete(function.invoke(emptyArray()).cache())
+                promise.deferred.complete(function.invoke(null, emptyArray()).cache())
             } catch (e: Throwable) {
                 try {
                     context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
@@ -105,7 +105,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 if (arguments.size == 2) {
                     val self = arguments[0]
                     val block = arguments[1]
-                    block.invoke(arrayOf(self))
+                    block.invoke(null, arrayOf(self))
                 } else {
                     usage(signature)
                 }
@@ -122,7 +122,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 if (arguments.size == 2) {
                     val self = arguments[0]
                     val block = arguments[1]
-                    block.invoke(arrayOf(self)).consume()
+                    block.invoke(null, arrayOf(self)).consume()
                     self
                 } else {
                     usage(signature)
@@ -140,7 +140,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         var value: FluoriteValue? = null
         FluoriteFunction {
             if (value == null) {
-                val value2 = initializer.invoke(emptyArray()).cache()
+                val value2 = initializer.invoke(null, emptyArray()).cache()
                 value = value2
                 value2
             } else {

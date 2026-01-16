@@ -44,7 +44,7 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             node.left is UnaryBackslashNode && node.left.main is IdentifierNode -> {
                 val name = node.left.main.string
                 val variableIndex = defineVariable(name)
-                listOf(AssignmentRunner(DelegatedVariableDefinitionSetter(frameIndex, variableIndex), compileToGetter(node.right)))
+                listOf(AssignmentRunner(DelegatedVariableDefinitionSetter(frameIndex, variableIndex, node.position), compileToGetter(node.right)))
             }
 
             else -> throw IllegalArgumentException("Illegal definition: ${node.left::class} := ${node.right::class}")

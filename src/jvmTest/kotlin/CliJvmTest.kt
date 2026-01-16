@@ -27,7 +27,7 @@ class CliJvmTest {
 
             // stderrに出力するコマンドを実行
             val result = cliEvalJvm("""EXEC("bash", "-c", "echo 'Error message' >&2; echo 'Output'")""")
-            val output = result.toFluoriteString().value
+            val output = result.toFluoriteString(null).value
 
             // 標準出力は正しく取得される
             assertEquals("Output", output)
