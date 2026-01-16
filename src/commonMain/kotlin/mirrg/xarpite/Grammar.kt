@@ -260,25 +260,25 @@ class XarpiteGrammar(val location: String) {
         -"-=" map { ::InfixMinusEqualNode }, // -=
     )
 
-    val pipeOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -b * pipeOperator * -b + -s * argumentsOperator * -b
-    val executionOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -b * executionOperator * -b
-    val assignmentOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -s * assignmentOperator * -b
+    val pipeOperatorPart: Parser<ParseResult<(Node, Node, Position) -> InfixNode>> = -b * pipeOperator.result * -b + -s * argumentsOperator.result * -b
+    val executionOperatorPart: Parser<ParseResult<(Node, Node, Position) -> InfixNode>> = -b * executionOperator.result * -b
+    val assignmentOperatorPart: Parser<ParseResult<(Node, Node, Position) -> InfixNode>> = -s * assignmentOperator.result * -b
 
     val pipeRight: Parser<Node> = or(
-        commas * pipeOperatorPart.result * parser { pipeRight } map { it.b.value(it.a, it.c, it.b.position) },
-        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
+        commas * pipeOperatorPart * parser { pipeRight } map { it.b.value(it.a, it.c, it.b.position) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas,
     )
     val executionRight: Parser<Node> = or(
-        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas,
     )
     val streamRightPart: Parser<(Node) -> Node> = or(
-        pipeOperatorPart.result * pipeRight map { { left -> it.a.value(left, it.b, it.a.position) } },
-        executionOperatorPart.result * executionRight map { { left -> it.a.value(left, it.b, it.a.position) } },
+        pipeOperatorPart * pipeRight map { { left -> it.a.value(left, it.b, it.a.position) } },
+        executionOperatorPart * executionRight map { { left -> it.a.value(left, it.b, it.a.position) } },
     )
     val stream: Parser<Node> = or(
-        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
+        commas * assignmentOperatorPart * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas * streamRightPart.zeroOrMore map { it.b.fold(it.a) { left, part -> part(left) } },
     )
 
