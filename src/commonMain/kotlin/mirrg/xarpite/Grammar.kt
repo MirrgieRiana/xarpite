@@ -163,48 +163,48 @@ class XarpiteGrammar(val location: String) {
         -s * -"++" map { { main -> SuffixPlusPlusNode(main) } },
         -s * -"--" map { { main -> SuffixMinusMinusNode(main) } },
 
-        -b * -'.' * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it) } },
-        -b * -"?." * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it) } },
+        -b * (-'.').result * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it.b, it.a.position) } },
+        -b * (-"?.").result * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it.b, it.a.position) } },
         -b * (-"::").result * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it.b, it.a.position) } },
         -b * (-"?::").result * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it.b, it.a.position) } },
 
         -b * -'.' * unaryOperator.result map { { main -> it.value(main, Side.RIGHT, it.position) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
-    val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
+    val pow: Parser<Node> = right * (-s * (-'^').result * -b * parser { left }).optional map {
         val right = it.b
-        if (right != null) InfixCircumflexNode(it.a, right) else it.a
+        if (right != null) InfixCircumflexNode(it.a, right.b, right.a.position) else it.a
     }
     val left: Parser<Node> = (unaryOperator.result * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f.value(node, Side.LEFT, f.position) } }
 
-    val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val mulOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
         -'/' map { ::InfixSlashNode },
         -"!%%" map { ::InfixExclamationPercentPercentNode },
         -"%%" map { ::InfixPercentPercentNode },
         -'%' map { ::InfixPercentNode },
     )
-    val mul: Parser<Node> = leftAssociative(left, -s * mulOperator * -b) { left, operator, right -> operator(left, right) }
-    val addOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val mul: Parser<Node> = leftAssociative(left, -s * mulOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
+    val addOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -'+' map { ::InfixPlusNode },
         -'-' * !'>' map { ::InfixMinusNode },
         -'&' * !'&' map { ::InfixAmpersandNode },
     )
-    val add: Parser<Node> = leftAssociative(mul, -s * addOperator * -b) { left, operator, right -> operator(left, right) }
-    val rangeOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val add: Parser<Node> = leftAssociative(mul, -s * addOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
+    val rangeOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -".." map { ::InfixPeriodPeriodNode },
         -'~' map { ::InfixTildeNode },
     )
-    val range: Parser<Node> = leftAssociative(add, -s * rangeOperator * -b) { left, operator, right -> operator(left, right) }
+    val range: Parser<Node> = leftAssociative(add, -s * rangeOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val infixIdentifierOperator: Parser<(Node, Node) -> Node> = or(
         identifier + quotedIdentifier map { { left, right -> InfixIdentifierNode(left, it, right) } },
         -'!' * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it, right) } },
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
-    val matchOperator: Parser<(Node, Node) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
-    val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator * -b) { left, operator, right -> operator(left, right) }
-    val spaceshipOperator: Parser<(Node, Node) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
-    val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator * -b) { left, operator, right -> operator(left, right) }
+    val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
+    val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
+    val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
+    val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
         -"==" map { ComparisonOperatorType.EQUAL }, // ==
         -"!=" map { ComparisonOperatorType.EXCLAMATION_EQUAL }, // !=
@@ -223,14 +223,14 @@ class XarpiteGrammar(val location: String) {
             it.a
         }
     }
-    val andOperator: Parser<(Node, Node) -> InfixNode> = -"&&" map { ::InfixAmpersandAmpersandNode }
-    val and: Parser<Node> = leftAssociative(comparison, -s * andOperator * -b) { left, operator, right -> operator(left, right) }
-    val orOperator: Parser<(Node, Node) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
-    val or: Parser<Node> = leftAssociative(and, -s * orOperator * -b) { left, operator, right -> operator(left, right) }
+    val andOperator: Parser<(Node, Node, Position) -> InfixNode> = -"&&" map { ::InfixAmpersandAmpersandNode }
+    val and: Parser<Node> = leftAssociative(comparison, -s * andOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
+    val orOperator: Parser<(Node, Node, Position) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
+    val or: Parser<Node> = leftAssociative(and, -s * orOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val condition: Parser<Node> = or(
         or * -b * -'?' * -b * parser { condition } * -b * -':' * !':' * -b * parser { condition } map { it -> ConditionNode(it.a, it.b, it.c) },
-        or * -b * -"?:" * -b * parser { condition } map { InfixQuestionColonNode(it.a, it.b) },
-        or * -b * -"!?" * -b * parser { condition } map { InfixExclamationQuestionNode(it.a, it.b) },
+        or * -b * (-"?:").result * -b * parser { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
+        or * -b * (-"!?").result * -b * parser { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
         or,
     )
 
@@ -240,17 +240,17 @@ class XarpiteGrammar(val location: String) {
     )
     val commas: Parser<Node> = commasPart map { if (it.size == 1) it.single() else CommasNode(it) }
 
-    val pipeOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val pipeOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -'|' map { ::InfixPipeNode }, // |
     )
-    val argumentsOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val argumentsOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -"=>" map { ::InfixEqualGreaterNode }, // =>
     )
-    val executionOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val executionOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -">>" map { ::InfixGreaterGreaterNode }, // >>
         -"!:" map { ::InfixExclamationColonNode }, // !:
     )
-    val assignmentOperator: Parser<(Node, Node) -> InfixNode> = or(
+    val assignmentOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
         -'=' * !'>' map { ::InfixEqualNode }, // =
         -':' * !'=' * !':' map { ::InfixColonNode }, // :
         -":=" map { ::InfixColonEqualNode }, // :=
@@ -260,25 +260,25 @@ class XarpiteGrammar(val location: String) {
         -"-=" map { ::InfixMinusEqualNode }, // -=
     )
 
-    val pipeOperatorPart: Parser<(Node, Node) -> InfixNode> = -b * pipeOperator * -b + -s * argumentsOperator * -b
-    val executionOperatorPart: Parser<(Node, Node) -> InfixNode> = -b * executionOperator * -b
-    val assignmentOperatorPart: Parser<(Node, Node) -> InfixNode> = -s * assignmentOperator * -b
+    val pipeOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -b * pipeOperator * -b + -s * argumentsOperator * -b
+    val executionOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -b * executionOperator * -b
+    val assignmentOperatorPart: Parser<(Node, Node, Position) -> InfixNode> = -s * assignmentOperator * -b
 
     val pipeRight: Parser<Node> = or(
-        commas * pipeOperatorPart * parser { pipeRight } map { it.b(it.a, it.c) },
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        commas * pipeOperatorPart.result * parser { pipeRight } map { it.b.value(it.a, it.c, it.b.position) },
+        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas,
     )
     val executionRight: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas,
     )
     val streamRightPart: Parser<(Node) -> Node> = or(
-        pipeOperatorPart * pipeRight map { { left -> it.a(left, it.b) } },
-        executionOperatorPart * executionRight map { { left -> it.a(left, it.b) } },
+        pipeOperatorPart.result * pipeRight map { { left -> it.a.value(left, it.b, it.a.position) } },
+        executionOperatorPart.result * executionRight map { { left -> it.a.value(left, it.b, it.a.position) } },
     )
     val stream: Parser<Node> = or(
-        commas * assignmentOperatorPart * parser { stream } map { it.b(it.a, it.c) },
+        commas * assignmentOperatorPart.result * parser { stream } map { it.b.value(it.a, it.c, it.b.position) },
         commas * streamRightPart.zeroOrMore map { it.b.fold(it.a) { left, part -> part(left) } },
     )
 
