@@ -84,8 +84,8 @@ class XarpiteGrammar(val location: String) {
     )
     val formatter: Parser<Formatter> = -"$%" * formatterFlag.zeroOrMore * (+Regex("[0-9]+")).optional * (-'.' * +Regex("[0-9]+")).optional * formatterConversion mapEx { context, result ->
         val flags = result.value.a.toSet()
-        val width = result.value.b.a?.value?.toInt()
-        val precision = result.value.c.a?.value?.toInt()
+        val width = result.value.b?.value?.toInt()
+        val precision = result.value.c?.value?.toInt()
         val conversion = result.value.d
         Formatter(result.text(context), flags, width, precision, conversion)
     }
@@ -116,11 +116,11 @@ class XarpiteGrammar(val location: String) {
         +Regex("""\\(?:\n|\r\n?)""") map { "\n" }, // エスケープされた改行
     )
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
-    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b.a) }
+    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) }
 
-    val arrowRound: Parser<Node> = -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
-    val arrowSquare: Parser<Node> = -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
-    val arrowCurly: Parser<Node> = -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) }
+    val arrowRound: Parser<Node> = -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
+    val arrowSquare: Parser<Node> = -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
+    val arrowCurly: Parser<Node> = -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
     val round: Parser<Node> = -'(' * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralSimpleRoundNode(it.a ?: EmptyNode) }
     val square: Parser<Node> = -'[' * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralSimpleSquareNode(it.a ?: EmptyNode) }
     val curly: Parser<Node> = -'{' * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.a ?: EmptyNode) }
@@ -152,9 +152,9 @@ class XarpiteGrammar(val location: String) {
         -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
-        -s * -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a.a ?: EmptyNode, it.b.a ?: EmptyNode) } },
+        -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
+        -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
+        -s * -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
         -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
         -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
         -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
@@ -171,7 +171,7 @@ class XarpiteGrammar(val location: String) {
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
     val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
-        val right = it.b.a
+        val right = it.b
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
     val left: Parser<Node> = (unaryOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node, Side.LEFT) } }
