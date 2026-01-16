@@ -11,6 +11,7 @@ kotlin {
             listOf(
                 "-Xmulti-dollar-interpolation",
                 "-Xcontext-parameters",
+                "-Xwhen-guards",
             )
         )
     }
