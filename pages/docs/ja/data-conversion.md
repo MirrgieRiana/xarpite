@@ -48,6 +48,15 @@ $ xa 'BASED(36; "6V")'
 # 248
 ```
 
+---
+
+この関数はしばしば部分適用と実行パイプを組み合わせて書かれます。
+
+```shell
+$ xa '248 >> BASE[16] >> BASED[16]'
+# 248
+```
+
 ## `BASED` 任意の基数の文字列を整数に変換
 
 `BASED(radix: NUMBER; string: STRING): NUMBER`
@@ -370,9 +379,4 @@ $ xa ' ",1,,3," >> CSVD >> JSON '
 ```shell
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
-```
-
-```shell
-$ xa 'BASED(16; "100")'
-# 256
 ```
