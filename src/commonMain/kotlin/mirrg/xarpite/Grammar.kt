@@ -1,6 +1,7 @@
 package mirrg.xarpite
 
 import mirrg.kotlin.helium.join
+import mirrg.xarpite.parser.ParseResult
 import mirrg.xarpite.parser.Parser
 import mirrg.xarpite.parser.Tuple0
 import mirrg.xarpite.parser.parsers.leftAssociative
@@ -118,17 +119,17 @@ class XarpiteGrammar(val location: String) {
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
     val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) }
 
-    val arrowRound: Parser<Node> = -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
-    val arrowSquare: Parser<Node> = -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
-    val arrowCurly: Parser<Node> = -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.a ?: EmptyNode, it.b ?: EmptyNode) }
-    val round: Parser<Node> = -'(' * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralSimpleRoundNode(it.a ?: EmptyNode) }
-    val square: Parser<Node> = -'[' * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralSimpleSquareNode(it.a ?: EmptyNode) }
-    val curly: Parser<Node> = -'{' * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.a ?: EmptyNode) }
+    val arrowRound: Parser<Node> = (-'(').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val arrowSquare: Parser<Node> = (-'[').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val arrowCurly: Parser<Node> = (-'{').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val round: Parser<Node> = (-'(').result * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralSimpleRoundNode(it.b ?: EmptyNode, it.a.position) }
+    val square: Parser<Node> = (-'[').result * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralSimpleSquareNode(it.b ?: EmptyNode, it.a.position) }
+    val curly: Parser<Node> = (-'{').result * -b * (parser { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.b ?: EmptyNode, it.a.position) }
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
 
     val jump: Parser<Node> = or(
-        -"!!" * -s * parser { commas } map { ThrowNode(it) },
-        -"!!" map { ThrowNode(EmptyNode) },
+        (-"!!").result * -s * parser { commas } map { ThrowNode(it.b, it.a.position) },
+        (-"!!").result map { ThrowNode(EmptyNode, it.position) },
         identifier * -s * -"!!" * -s * parser { commas } map { ReturnNode(it.a, it.b) },
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
@@ -136,7 +137,7 @@ class XarpiteGrammar(val location: String) {
     val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
     val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
-    val unaryOperator: Parser<(Node, Side) -> Node> = or(
+    val unaryOperator: Parser<(Node, Side, StackTraceElement) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },
         -"--" map { ::UnaryMinusMinusNode },
         -'+' map { ::UnaryPlusNode },
@@ -152,12 +153,12 @@ class XarpiteGrammar(val location: String) {
         -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * -'(' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
-        -s * -'[' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
-        -s * -'{' * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.a ?: EmptyNode, it.b ?: EmptyNode) } },
-        -s * -'(' * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.a ?: EmptyNode) } },
-        -s * -'[' * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.a ?: EmptyNode) } },
-        -s * -'{' * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.a ?: EmptyNode) } },
+        -s * (-'(').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'[').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'{').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'(').result * -b * (parser { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.b ?: EmptyNode, it.a.position) } },
+        -s * (-'[').result * -b * (parser { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode, it.a.position) } },
+        -s * (-'{').result * -b * (parser { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode, it.a.position) } },
 
         -s * -"++" map { { main -> SuffixPlusPlusNode(main) } },
         -s * -"--" map { { main -> SuffixMinusMinusNode(main) } },
@@ -167,14 +168,14 @@ class XarpiteGrammar(val location: String) {
         -b * -"::" * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it) } },
         -b * -"?::" * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it) } },
 
-        -b * -'.' * unaryOperator map { { main -> it(main, Side.RIGHT) } },
+        -b * -'.' * unaryOperator.result map { { main -> it.value(main, Side.RIGHT, it.position) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
     val pow: Parser<Node> = right * (-s * -'^' * -b * parser { left }).optional map {
         val right = it.b
         if (right != null) InfixCircumflexNode(it.a, right) else it.a
     }
-    val left: Parser<Node> = (unaryOperator * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f(node, Side.LEFT) } }
+    val left: Parser<Node> = (unaryOperator.result * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f.value(node, Side.LEFT, f.position) } }
 
     val mulOperator: Parser<(Node, Node) -> InfixNode> = or(
         -'*' map { ::InfixAsteriskNode },
@@ -290,4 +291,7 @@ class XarpiteGrammar(val location: String) {
     val expression: Parser<Node> = semicolons
 
     val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode }
+
+    private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
+    private val ParseResult<*>.position get() = StackTraceElement(location, start)
 }
