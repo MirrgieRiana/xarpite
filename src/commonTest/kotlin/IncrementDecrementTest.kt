@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
@@ -78,5 +79,165 @@ class IncrementDecrementTest {
     fun nonNumericIncrementTest() = runTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
+    }
+
+    @Test
+    fun postfixIncrementOverrideTest() = runTest {
+        // _++ によるオーバーライド
+        assertEquals(
+            "[123;15]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    result := obj++
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun prefixIncrementOverrideTest() = runTest {
+        // ++_ が優先される
+        assertEquals(
+            "[200;3]",
+            eval(
+                """
+                    counter := 1
+                    obj := {`++_`: this -> (counter = counter + 2; 200), `_++`: this -> (counter = counter + 5; 500)}
+                    result := ++obj
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun prefixIncrementFallbackToPostfixTest() = runTest {
+        // ++_ が無い場合は _++ にフォールバック
+        assertEquals(
+            "[123;15]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    result := ++obj
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun incrementFallbackToPlusAssignTest() = runTest {
+        // _+=_ にフォールバックする
+        assertEquals(
+            11,
+            eval(
+                """
+                    counter := 1
+                    obj := {`_+=_`: this, other -> (counter = counter + other + 9), `_+_`: this, other -> (counter = counter + other)}
+                    obj++
+                    counter
+                """.trimIndent(),
+            ).int,
+        )
+    }
+
+    @Test
+    fun incrementFallbackToPlusTest() = runTest {
+        // _+_ にフォールバックする
+        assertEquals(
+            "[7;7]",
+            eval(
+                """
+                    counter := 1
+                    obj := {`_+_`: this, other -> (counter = counter + other + 5; counter)}
+                    obj++
+                    [obj; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun postfixDecrementOverrideTest() = runTest {
+        // _-- によるオーバーライド
+        assertEquals(
+            "[321;6]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    result := obj--
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun prefixDecrementOverrideTest() = runTest {
+        // --_ が優先される
+        assertEquals(
+            "[400;8]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`--_`: this -> (counter = counter - 2; 400), `_--`: this -> (counter = counter - 5; 500)}
+                    result := --obj
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun prefixDecrementFallbackToPostfixTest() = runTest {
+        // --_ が無い場合は _-- にフォールバック
+        assertEquals(
+            "[321;6]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    result := --obj
+                    [result; counter]
+                """.trimIndent(),
+            ).array(),
+        )
+    }
+
+    @Test
+    fun decrementFallbackToMinusAssignTest() = runTest {
+        // _-=_ にフォールバックする
+        assertEquals(
+            0,
+            eval(
+                """
+                    counter := 10
+                    obj := {`_-=_`: this, other -> (counter = counter - other - 9), `_-_`: this, other -> (counter = counter - other)}
+                    obj--
+                    counter
+                """.trimIndent(),
+            ).int,
+        )
+    }
+
+    @Test
+    fun decrementFallbackToMinusTest() = runTest {
+        // _-_ にフォールバックする
+        assertEquals(
+            "[3;3]",
+            eval(
+                """
+                    counter := 10
+                    obj := {`_-_`: this, other -> (counter = counter - other - 6; counter)}
+                    obj--
+                    [obj; counter]
+                """.trimIndent(),
+            ).array(),
+        )
     }
 }
