@@ -27,7 +27,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 val file = arguments[0].toFluoriteString().value
                 val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
-                    val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
+                    val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(modulePath.toString()))
                     evaluator.get(modulePath.toString(), src).cache()

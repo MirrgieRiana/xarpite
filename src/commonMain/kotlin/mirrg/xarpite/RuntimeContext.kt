@@ -2,21 +2,39 @@ package mirrg.xarpite
 
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import okio.Path.Companion.toPath
 
 class RuntimeContext(
     val coroutineScope: CoroutineScope,
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+
+    private val srcs = mutableMapOf<String, String>()
+
+    fun setSrc(location: String, src: String) {
+        srcs[location] = src
+    }
+
+    fun getModuleSrc(location: String): String {
+        return srcs.getOrPut(location) {
+            getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
+        }
+    }
+
+
     private val matrixPositionCalculatorCache = mutableMapOf<String, MatrixPositionCalculator>()
-    fun renderPosition(src: String, position: Position?): String {
+
+    fun renderPosition(position: Position?): String {
         if (position == null) return "UNKNOWN"
+        val src = srcs[position.location] ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
         }
         val (row, column) = matrixPositionCalculator.toMatrixPosition(position.index)
         return "${position.location}:$row:$column"
     }
+
 }
 
 interface IoContext {

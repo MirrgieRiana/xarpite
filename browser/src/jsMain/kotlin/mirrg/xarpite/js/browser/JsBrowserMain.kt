@@ -29,6 +29,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>) = throw UnsupportedOperationException()
     }) { context, evaluator ->
+        context.setSrc("-", src)
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
         try {
             withStackTrace(Position("-", 0)) {
@@ -42,7 +43,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
-                context.io.err("  at ${context.renderPosition(src, position)}".toFluoriteString())
+                context.io.err("  at ${context.renderPosition(position)}".toFluoriteString())
             }
         }
     }

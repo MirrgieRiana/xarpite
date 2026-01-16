@@ -149,6 +149,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
         override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
     }) { context, evaluator ->
+        context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
         lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
         mountsFactory = { location ->
@@ -173,7 +174,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
-                context.io.err("  at ${context.renderPosition(options.src, position)}".toFluoriteString())
+                context.io.err("  at ${context.renderPosition(position)}".toFluoriteString())
             }
         }
     }
