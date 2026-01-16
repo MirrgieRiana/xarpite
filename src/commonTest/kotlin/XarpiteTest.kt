@@ -1101,14 +1101,21 @@ class XarpiteTest {
         """).int) // ++_ が無ければ _++ にフォールバックする
 
         assertEquals(2, eval("""
-            Box := { value: 0, `_+=_`: this, other -> this.value = this.value + other }
+            Box := {
+                value: 0
+                `_+=_`: this, other -> this.value = this.value + other
+                `_+_`: this, other -> Box{value: -999} // _+=_ より後に呼ばれるべきでない
+            }
             box := Box{value: 1}
             ++box
             box.value
         """).int) // _++ が無ければ _+=_ にフォールバックする
 
         assertEquals("[1;2]", eval("""
-            Box := { value: 0, `_+_`: this, other -> Box{value: this.value + other} }
+            Box := {
+                value: 0
+                `_+_`: this, other -> Box{value: this.value + other}
+            }
             box := Box{value: 1}
             old := box++
             [old.value; box.value]
@@ -1121,7 +1128,10 @@ class XarpiteTest {
         """).int) // 前置デクリメントは --_ を優先する
 
         assertEquals(0, eval("""
-            Box := { value: 0, `_-=_`: this, other -> this.value = this.value - other }
+            Box := {
+                value: 0
+                `_-=_`: this, other -> this.value = this.value - other
+            }
             box := Box{value: 1}
             --box
             box.value
