@@ -1,54 +1,72 @@
 package mirrg.xarpite.cli
 
-import executeProcess
-import getEnv
-import getFileSystem
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
+import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.getEnv
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
-import readBytesFromStdin
-import readLineFromStdin
-import writeBytesToStdout
 
 val INB_MAX_BUFFER_SIZE = 8192
 
+context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         "IN" to FluoriteStream {
             while (true) {
-                val line = readLineFromStdin() ?: break
+                val line = context.io.readLineFromStdin() ?: break
                 emit(line.toFluoriteString())
             }
         },
         "INB" to FluoriteStream {
             while (true) {
-                val bytes = readBytesFromStdin() ?: break
+                val bytes = context.io.readBytesFromStdin() ?: break
                 emit(bytes.asFluoriteBlob())
             }
+        },
+        "ERR" to FluoriteFunction { arguments ->
+            arguments.forEach {
+                if (it is FluoriteStream) {
+                    it.collect { item ->
+                        context.io.err(item)
+                    }
+                } else {
+                    context.io.err(it)
+                }
+            }
+            FluoriteNull
         },
         "OUTB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
-                writeBytesToStdout(bytes)
+                context.io.writeBytesToStdout(bytes)
+            }
+            FluoriteNull
+        },
+        "ERRB" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
+            iterateBlobs(arguments[0]) { bytes ->
+                context.io.writeBytesToStderr(bytes)
             }
             FluoriteNull
         },
         "READ" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
-            val file = arguments[0].toFluoriteString().value
+            val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             FluoriteStream {
                 fileSystem.read(file.toPath()) { // TODO charset
@@ -61,7 +79,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "FILES" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
-            val dir = arguments[0].toFluoriteString().value
+            val dir = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
@@ -70,9 +88,9 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val commandArg = arguments[0]
             val commandList = if (commandArg is FluoriteStream) {
-                commandArg.toMutableList().map { it.toFluoriteString().value }
+                commandArg.toMutableList().map { it.toFluoriteString(null).value }
             } else {
-                listOf(commandArg.toFluoriteString().value)
+                listOf(commandArg.toFluoriteString(null).value)
             }
 
             if (commandList.isEmpty()) {
@@ -81,7 +99,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = executeProcess(process, processArgs)
+            val output = context.io.executeProcess(process, processArgs)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {

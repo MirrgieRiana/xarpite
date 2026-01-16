@@ -88,6 +88,105 @@ $ xa '
 # 10
 ```
 
+# Assignment Statements
+
+## Compound Assignment Operators
+
+Xarpite has compound assignment operators such as the `+=` operator that perform both operation and assignment simultaneously.
+
+`a += b` is equivalent to `a = a + b` in most cases.
+
+```shell
+$ xa -q '
+  x := 100
+  OUT << x
+  x += 23
+  OUT << x
+'
+# 100
+# 123
+```
+
+## Overriding Compound Assignment
+
+There is an overridable method for compound assignment.
+
+The `_+=_` method is called exactly once each time `a += b` is executed.
+
+The return value of this method is ignored.
+
+However, if the return value is a stream, it is resolved and the result is ignored.
+
+The same applies to other compound assignment methods besides `_+=_`.
+
+```shell
+$ xa -q '
+  Array := {
+    `_+=_`: this, item -> this.value::push(item)
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+## List of Compound Assignment Operators
+
+The following is a list of compound assignment operators available in Xarpite.
+
+| Operator | Meaning                  |
+|----------|--------------------------|
+| `+=`     | Add and assign           |
+| `-=`     | Subtract and assign      |
+
+## Compound Assignment Fallback
+
+If the override method for compound assignment does not exist, normal operation and assignment are performed.
+
+```shell
+$ xa -q '
+  Array := {
+    `_+_`: this, item -> Array{value: this.value + [item]}
+  }
+  array := Array{value: ["apple"]}
+
+  OUT << array.value
+  array += "banana"
+  OUT << array.value
+'
+# [apple]
+# [apple;banana]
+```
+
+---
+
+Note that at this time, the variable itself is being updated.
+
+```shell
+$ xa -q '
+  array := ["apple"]
+  oldArray := array
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+
+  OUT << "Update!"
+  array += "banana"
+
+  OUT << "Old: $oldArray"
+  OUT << "New: $array"
+'
+# Old: [apple]
+# New: [apple]
+# Update!
+# Old: [apple;banana]
+# New: [apple;banana]
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.
@@ -335,3 +434,67 @@ $ xa '
 ```
 
 This specification is provided to prevent unintended use of mounts.
+
+# Delegated Variables
+
+When you declare a variable with a prefix `\` like `\variable`, it becomes a delegated variable.
+
+Delegated variables execute the assigned function instead of accessing the variable entity when getting or setting.
+
+---
+
+On get, the receiver function is called with 0 arguments.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := () -> time
+
+  time = 100
+  OUT << now
+  time = 200
+  OUT << now
+'
+# 100
+# 200
+```
+
+---
+
+On set, the receiver function is called exactly once with 1 argument.
+
+Since the assignment operator returns the right-hand value, the receiver function's return value is always ignored.
+
+If the receiver function returns a stream, the stream is resolved and the result is ignored.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> time = _
+
+  now = 100
+  OUT << time
+  now = 110
+  OUT << time
+'
+# 100
+# 110
+```
+
+## Delegated Variables Supporting Both Get and Set
+
+To create a delegated variable that supports both getting and setting, the delegated function determines the number of arguments.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := _ -> __.$# == 0 ? time : (time = _)
+
+  now = 100
+  OUT << [time, now] >> CSV
+  now = 110
+  OUT << [time, now] >> CSV
+'
+# 100,100
+# 110,110
+```

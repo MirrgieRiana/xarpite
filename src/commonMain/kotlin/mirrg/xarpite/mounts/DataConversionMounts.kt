@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -17,12 +18,13 @@ import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import okio.Buffer
 
+context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "UTF8" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
-            val string = arguments[0].toFluoriteString().value
+            val string = arguments[0].toFluoriteString(null).value
             string.encodeToByteArray().asFluoriteBlob()
         },
         "UTF8D" to FluoriteFunction { arguments ->
@@ -34,7 +36,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         "URL" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")
             if (arguments.size != 1) usage()
-            val string = arguments[0].toFluoriteString().value
+            val string = arguments[0].toFluoriteString(null).value
             val sb = StringBuilder()
             string.encodeToByteArray().forEach { byte ->
                 val char = byte.toInt().toChar()
@@ -50,7 +52,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         "URLD" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URLD(string: STRING): STRING")
             if (arguments.size != 1) usage()
-            val string = arguments[0].toFluoriteString().value
+            val string = arguments[0].toFluoriteString(null).value
             val buffer = Buffer()
             var i = 0
             while (i < string.length) {
@@ -78,7 +80,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         "PERCENT" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
             if (arguments.size != 1) usage()
-            val string = arguments[0].toFluoriteString().value
+            val string = arguments[0].toFluoriteString(null).value
             val sb = StringBuilder()
             string.encodeToByteArray().forEach { byte ->
                 val char = byte.toInt().toChar()
@@ -92,7 +94,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         "PERCENTD" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
             if (arguments.size != 1) usage()
-            val string = arguments[0].toFluoriteString().value
+            val string = arguments[0].toFluoriteString(null).value
             val buffer = Buffer()
             var i = 0
             while (i < string.length) {
@@ -121,18 +123,18 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     if (indentParameter.values.size != 2) usage()
                     val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
                     if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString().value, arguments[1])
+                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
                 }
 
                 else -> usage()
             }
-            value.toSingleJsonFluoriteValue(indent = indent)
+            value.toSingleJsonFluoriteValue(null, indent = indent)
         },
         "JSOND" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
             if (arguments.size != 1) usage()
             val value = arguments[0]
-            value.toFluoriteValueAsSingleJson()
+            value.toFluoriteValueAsSingleJson(null)
         },
         "JSONS" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
@@ -143,18 +145,18 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     if (indentParameter.values.size != 2) usage()
                     val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
                     if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString().value, arguments[1])
+                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
                 }
 
                 else -> usage()
             }
-            value.toJsonsFluoriteValue(indent = indent)
+            value.toJsonsFluoriteValue(null, indent = indent)
         },
         "JSONSD" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
             if (arguments.size != 1) usage()
             val value = arguments[0]
-            value.toFluoriteValueAsJsons()
+            value.toFluoriteValueAsJsons(null)
         },
         "CSV" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
@@ -169,12 +171,12 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                 }
                 .toMutableMap()
             val separator = parameters.pop("separator", {
-                val string = it.toFluoriteString().value
+                val string = it.toFluoriteString(null).value
                 check(string.length == 1)
                 string
             }) { "," } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
             val quote = parameters.pop("quote", {
-                val string = it.toFluoriteString().value
+                val string = it.toFluoriteString(null).value
                 check(string.length == 1)
                 string
             }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
@@ -185,7 +187,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                 val sb = StringBuilder()
                 (value as FluoriteArray).values.forEachIndexed { index, value2 ->
                     if (index > 0) sb.append(separator)
-                    val string = value2.toFluoriteString().value
+                    val string = value2.toFluoriteString(null).value
                     if (string.isEmpty()) return@forEachIndexed
                     val needQuote = run {
                         val first = string.first()
@@ -234,12 +236,12 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                 }
                 .toMutableMap()
             val separator = parameters.pop("separator", {
-                val string = it.toFluoriteString().value
+                val string = it.toFluoriteString(null).value
                 check(string.length == 1)
                 string
             }) { "," } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
             val quote = parameters.pop("quote", {
-                val string = it.toFluoriteString().value
+                val string = it.toFluoriteString(null).value
                 check(string.length == 1)
                 string
             }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
@@ -278,7 +280,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     quoted.clear()
                 }
 
-                csv.toFluoriteString().value.forEach { ch2 ->
+                csv.toFluoriteString(null).value.forEach { ch2 ->
                     val ch = ch2.toString()
                     if (state == STATE_NOT_QUOTED) {
                         if (ch == quote) {

@@ -30,7 +30,7 @@ fun String.escapeJsonString() = this
 
 private val jsons = mutableMapOf<String, Json>()
 
-suspend fun FluoriteValue.toSingleJson(indent: String?): String {
+suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): String {
     suspend fun FluoriteValue.toJsonElement(): JsonElement = when (this) {
         is FluoriteObject -> JsonObject(this.map.mapValues { it.value.toJsonElement() })
         is FluoriteArray -> JsonArray(this.values.map { it.toJsonElement() })
@@ -40,7 +40,7 @@ suspend fun FluoriteValue.toSingleJson(indent: String?): String {
         is FluoriteBoolean -> JsonPrimitive(this.value)
         FluoriteNull -> JsonNull
         is FluoriteStream -> throw IllegalArgumentException("Cannot convert FluoriteStream to single JSON")
-        else -> this.callMethod("$&_").toJsonElement()
+        else -> this.callMethod(position, "$&_").toJsonElement()
     }
 
     val jsonElement = this.toJsonElement()
@@ -62,18 +62,18 @@ suspend fun FluoriteValue.toSingleJson(indent: String?): String {
     return json.encodeToString(jsonElement)
 }
 
-suspend fun FluoriteValue.toSingleJsonFluoriteValue(indent: String?) = this.toSingleJson(indent).toFluoriteString()
+suspend fun FluoriteValue.toSingleJsonFluoriteValue(position: Position?, indent: String?) = this.toSingleJson(position, indent).toFluoriteString()
 
-suspend fun FluoriteValue.toJsonsFluoriteValue(indent: String?): FluoriteValue {
+suspend fun FluoriteValue.toJsonsFluoriteValue(position: Position?, indent: String?): FluoriteValue {
     val effectiveIndent = indent ?: ""
     return if (this is FluoriteStream) {
         FluoriteStream {
             this@toJsonsFluoriteValue.collect {
-                emit(it.toSingleJsonFluoriteValue(effectiveIndent))
+                emit(it.toSingleJsonFluoriteValue(position, effectiveIndent))
             }
         }
     } else {
-        this.toSingleJsonFluoriteValue(effectiveIndent)
+        this.toSingleJsonFluoriteValue(position, effectiveIndent)
     }
 }
 
@@ -93,7 +93,7 @@ fun String.toFluoriteValueAsSingleJson(): FluoriteValue {
     return Json.decodeFromString<JsonElement>(this).toFluoriteValue()
 }
 
-suspend fun FluoriteValue.toFluoriteValueAsSingleJson() = this.toFluoriteString().value.toFluoriteValueAsSingleJson()
+suspend fun FluoriteValue.toFluoriteValueAsSingleJson(position: Position?) = this.toFluoriteString(position).value.toFluoriteValueAsSingleJson()
 
 class JsonSplitter(private val listener: suspend (String) -> Unit) {
     private val lines = mutableListOf<String>()
@@ -144,20 +144,20 @@ class JsonSplitter(private val listener: suspend (String) -> Unit) {
     }
 }
 
-suspend fun FluoriteValue.toFluoriteValueAsJsons(): FluoriteValue {
+suspend fun FluoriteValue.toFluoriteValueAsJsons(position: Position?): FluoriteValue {
     return if (this is FluoriteStream) {
         FluoriteStream {
             val jsonSplitter = JsonSplitter { json ->
                 emit(json.toFluoriteValueAsSingleJson())
             }
             this@toFluoriteValueAsJsons.collect {
-                val line = it.toFluoriteString().value
+                val line = it.toFluoriteString(position).value
                 jsonSplitter.add(line)
             }
             jsonSplitter.end()
         }
     } else {
-        val json = this.toFluoriteString().value
+        val json = this.toFluoriteString(position).value
         if (json.isBlank()) {
             FluoriteStream.EMPTY
         } else {

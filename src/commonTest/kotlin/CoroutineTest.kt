@@ -1,12 +1,16 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.cache
+import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
+import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -98,6 +102,18 @@ class CoroutineTest {
         assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isCompleted()").boolean) // 完了すると完了になる
         assertEquals(true, eval("promise := PROMISE.new(); promise::fail(); promise::isCompleted()").boolean) // エラーで完了すると完了になる
 
+        // LAUNCH 内で例外が発生した場合、その例外は await() 時にスローされ、stderrにも出力される
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            (
+                job::await()
+                !!"Should not reach here"
+            ) !? (e => e)
+        """.let { assertEquals("Error in LAUNCH", eval(it).string) }
+
     }
 
     @Test
@@ -166,6 +182,38 @@ class CoroutineTest {
                 1 .. 3 | yield << _
             ))]
         """.let { assertEquals("[1;2;3]", eval(it).array()) }
+    }
+
+    @Test
+    fun launchExceptionStderr() = runTest {
+        // LAUNCH内で例外が発生した場合、stderrに出力されることを検証
+        val ioContext = TestIoContext()
+
+        withEvaluator(ioContext) { context, evaluator ->
+            evaluator.defineMounts(context.run { createCommonMounts() })
+
+            // 例外を発生させるLAUNCH
+            val result = evaluator.get(
+                """
+                    job := LAUNCH ( =>
+                        !!"Error in LAUNCH"
+                    )
+                    SLEEP()
+                    (
+                        job::await()
+                        !!"Should not reach here"
+                    ) !? (e => e)
+                """
+            ).cache()
+
+            // 結果の検証：例外がキャッチされている
+            assertEquals("Error in LAUNCH", result.string)
+
+            // stderrへの出力を検証
+            val stderrOutput = ioContext.stderrBytes.toUtf8String()
+            assertTrue(stderrOutput.contains("COROUTINE["), "stderr should contain 'COROUTINE[', but was: $stderrOutput")
+            assertTrue(stderrOutput.contains("Error in LAUNCH"), "stderr should contain the error message, but was: $stderrOutput")
+        }
     }
 
 }

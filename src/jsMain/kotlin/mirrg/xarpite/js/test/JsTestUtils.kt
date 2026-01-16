@@ -1,35 +1,21 @@
 package mirrg.xarpite.js.test
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import mirrg.xarpite.Evaluator
+import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
-import kotlin.coroutines.coroutineContext
+import mirrg.xarpite.test.get
+import mirrg.xarpite.withEvaluator
 
-fun CoroutineScope.createDefaultBuiltinMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
-    return listOf(
-        createCommonMounts(this, daemonScope) {},
-        createJsMounts(),
-    ).flatten()
-}
+context(context: RuntimeContext)
+fun createDefaultBuiltinMounts() = createCommonMounts() + createJsMounts()
 
-suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: () -> List<Map<String, FluoriteValue>> = { emptyList() }): FluoriteValue {
-    val evaluator = Evaluator()
-    val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-    try {
-        evaluator.defineMounts(
-            listOf(
-                createDefaultBuiltinMounts(daemonScope),
-                createExtraMounts(),
-            ).flatten()
-        )
-        return evaluator.get(src).cache()
-    } finally {
-        daemonScope.cancel()
+suspend fun CoroutineScope.evalJs(src: String, createExtraMounts: context(RuntimeContext) () -> List<Map<String, FluoriteValue>> = { emptyList() }): FluoriteValue {
+    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+        evaluator.defineMounts(context.run { createDefaultBuiltinMounts() + createExtraMounts() })
+        evaluator.get(src).cache()
     }
 }

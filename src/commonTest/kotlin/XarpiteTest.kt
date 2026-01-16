@@ -1,9 +1,6 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.Evaluator
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
@@ -11,11 +8,14 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.parse
+import mirrg.xarpite.test.run
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
+import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -1059,10 +1059,8 @@ class XarpiteTest {
 
     @Test
     fun fallbackMethod() = runTest {
-        val evaluator = Evaluator()
-        val daemonScope = CoroutineScope(coroutineContext + SupervisorJob())
-        try {
-            evaluator.defineMounts(createCommonMounts(this, daemonScope) {})
+        withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+            evaluator.defineMounts(context.run { createCommonMounts() })
 
             // _::_ でフォールバックメソッドを定義する
             """
@@ -1087,8 +1085,6 @@ class XarpiteTest {
             assertEquals("Method cherry", evaluator.get("obj::cherry()").string) // メソッドが定義されている場合はフォールバックしない
             assertEquals("Fallback durian", evaluator.get("obj::durian()").string) // フォールバックメソッドはマウントによる拡張関数に優先する
             assertEquals("Mount elderberry", evaluator.get("obj::elderberry()").string) // フォールバックメソッドがNULLを返した場合、メソッドが定義されていない扱いになる
-        } finally {
-            daemonScope.cancel()
         }
     }
 

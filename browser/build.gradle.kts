@@ -6,6 +6,15 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            listOf(
+                "-Xmulti-dollar-interpolation",
+                "-Xcontext-parameters",
+                "-Xwhen-guards",
+            )
+        )
+    }
     js {
         browser {
             testTask {

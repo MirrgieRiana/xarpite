@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
@@ -12,25 +13,26 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 
+context(context: RuntimeContext)
 fun createConvertMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "TO_STRING" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
-                arguments[0].toFluoriteString()
+                arguments[0].toFluoriteString(null)
             } else {
                 usage("TO_STRING(value: VALUE): STRING")
             }
         },
         "TO_NUMBER" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
-                arguments[0].toFluoriteNumber()
+                arguments[0].toFluoriteNumber(null)
             } else {
                 usage("TO_NUMBER(value: VALUE): NUMBER")
             }
         },
         "TO_BOOLEAN" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
-                arguments[0].toFluoriteBoolean()
+                arguments[0].toFluoriteBoolean(null)
             } else {
                 usage("TO_BOOLEAN(value: VALUE): BOOLEAN")
             }

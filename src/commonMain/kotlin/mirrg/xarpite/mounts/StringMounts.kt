@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -9,6 +10,7 @@ import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.toFluoriteString
 
+context(context: RuntimeContext)
 fun createStringMounts(): List<Map<String, FluoriteValue>> {
     val mounts = mutableMapOf<String, FluoriteValue>()
 
@@ -26,11 +28,11 @@ fun createStringMounts(): List<Map<String, FluoriteValue>> {
             if (argument is FluoriteStream) {
                 FluoriteStream {
                     argument.collect { item ->
-                        emit(item.toFluoriteString().value.uppercase().toFluoriteString())
+                        emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
                     }
                 }
             } else {
-                argument.toFluoriteString().value.uppercase().toFluoriteString()
+                argument.toFluoriteString(null).value.uppercase().toFluoriteString()
             }
         } else {
             usage("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>")
@@ -48,11 +50,11 @@ fun createStringMounts(): List<Map<String, FluoriteValue>> {
             if (argument is FluoriteStream) {
                 FluoriteStream {
                     argument.collect { item ->
-                        emit(item.toFluoriteString().value.lowercase().toFluoriteString())
+                        emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
                     }
                 }
             } else {
-                argument.toFluoriteString().value.lowercase().toFluoriteString()
+                argument.toFluoriteString(null).value.lowercase().toFluoriteString()
             }
         } else {
             usage("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>")

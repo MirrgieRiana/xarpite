@@ -1,9 +1,11 @@
 package mirrg.xarpite.mounts
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.plus
 import mirrg.xarpite.IterationAborted
+import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -27,9 +29,13 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.copy
 import mirrg.xarpite.operations.FluoriteException
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.coroutineContext
 
-fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteValue>> {
+context(context: RuntimeContext)
+fun createStreamMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "GENERATE" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
@@ -47,7 +53,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     }
                     FluoriteNull
                 }
-                generator.invoke(arrayOf(yieldFunction)).consume()
+                generator.invoke(null, arrayOf(yieldFunction)).consume()
             }
         },
         "REVERSE" to FluoriteFunction { arguments ->
@@ -109,7 +115,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     FluoriteStream {
                         val set = mutableSetOf<FluoriteValue>()
                         stream.collect { item ->
-                            val key = keyGetter.invoke(arrayOf(item))
+                            val key = keyGetter.invoke(null, arrayOf(item))
                             if (set.add(key)) emit(item)
                         }
                     }
@@ -127,7 +133,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
             val stream: FluoriteValue
             when (arguments.size) {
                 2 -> {
-                    separator = arguments[0].toFluoriteString().value
+                    separator = arguments[0].toFluoriteString(null).value
                     stream = arguments[1]
                 }
 
@@ -148,11 +154,11 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     } else {
                         sb.append(separator)
                     }
-                    sb.append(value.toFluoriteString().value)
+                    sb.append(value.toFluoriteString(null).value)
                 }
                 sb.toString().toFluoriteString()
             } else {
-                stream.toFluoriteString()
+                stream.toFluoriteString(null)
             }
         },
         "SPLIT" to FluoriteFunction { arguments ->
@@ -160,7 +166,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
             val string: FluoriteValue
             when (arguments.size) {
                 2 -> {
-                    separator = arguments[0].toFluoriteString().value
+                    separator = arguments[0].toFluoriteString(null).value
                     string = arguments[1]
                 }
 
@@ -173,9 +179,9 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
             }
 
             if (separator.isEmpty()) {
-                string.toFluoriteString().value.map { "$it".toFluoriteString() }.toFluoriteStream()
+                string.toFluoriteString(null).value.map { "$it".toFluoriteString() }.toFluoriteStream()
             } else {
-                string.toFluoriteString().value.split(separator).map { it.toFluoriteString() }.toFluoriteStream()
+                string.toFluoriteString(null).value.split(separator).map { it.toFluoriteString() }.toFluoriteStream()
             }
         },
         "KEYS" to FluoriteFunction { arguments ->
@@ -208,7 +214,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 if (obj is FluoriteObject) {
                     val map = mutableMapOf<String, FluoriteValue>()
                     obj.map.forEach { (key, value) ->
-                        map[value.toFluoriteString().value] = key.toFluoriteString()
+                        map[value.toFluoriteString(null).value] = key.toFluoriteString()
                     }
                     FluoriteObject(FluoriteObject.fluoriteClass, map)
                 } else {
@@ -245,7 +251,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     var result: FluoriteValue? = null
                     stream.collect { item ->
                         val result2 = result
-                        if (result2 == null || item.compareTo(result2).value < 0) {
+                        if (result2 == null || item.compareTo(null, result2).value < 0) {
                             result = item
                         }
                     }
@@ -264,7 +270,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     var result: FluoriteValue? = null
                     stream.collect { item ->
                         val result2 = result
-                        if (result2 == null || item.compareTo(result2).value > 0) {
+                        if (result2 == null || item.compareTo(null, result2).value > 0) {
                             result = item
                         }
                     }
@@ -355,7 +361,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                     var result: FluoriteValue? = null
                     stream.collect { item ->
                         val result2 = result
-                        result = (if (result2 == null) item else function.invoke(arrayOf(result2, item)))
+                        result = (if (result2 == null) item else function.invoke(null, arrayOf(result2, item)))
                     }
                     result ?: FluoriteNull
                 } else {
@@ -369,7 +375,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
         "SORTR" to createSortFunction("SORTR", true),
         "CHUNK" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
-                val size = arguments[0].toFluoriteNumber().toInt()
+                val size = arguments[0].toFluoriteNumber(null).toInt()
                 require(size > 0)
                 val stream = arguments[1]
                 FluoriteStream {
@@ -393,7 +399,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
         },
         "TAKE" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
-                val count = arguments[0].toFluoriteNumber().roundToInt()
+                val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
@@ -425,7 +431,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
         },
         "TAKER" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
-                val count = arguments[0].toFluoriteNumber().roundToInt()
+                val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
@@ -454,7 +460,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
         },
         "DROP" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
-                val count = arguments[0].toFluoriteNumber().roundToInt()
+                val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
@@ -483,7 +489,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
         },
         "DROPR" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
-                val count = arguments[0].toFluoriteNumber().roundToInt()
+                val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
@@ -518,12 +524,12 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                         FluoriteStream {
                             if (stream is FluoriteStream) {
                                 stream.collect { item ->
-                                    if (predicate.invoke(arrayOf(item)).toBoolean()) {
+                                    if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
                                         emit(item)
                                     }
                                 }
                             } else {
-                                if (predicate.invoke(arrayOf(stream)).toBoolean()) {
+                                if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
                                     emit(stream)
                                 }
                             }
@@ -555,7 +561,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                 val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
                 suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter.invoke(arrayOf(value))
+                    val key = keyGetter.invoke(null, arrayOf(value))
                     val list = groups.getOrPut(key) { mutableListOf() }
                     list += value
                 }
@@ -577,6 +583,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
             if (arguments.size == 1) {
                 val stream = arguments[0]
 
+                val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
                 val channel by lazy {
                     flow {
                         if (stream is FluoriteStream) {
@@ -586,7 +593,7 @@ fun createStreamMounts(daemonScope: CoroutineScope): List<Map<String, FluoriteVa
                         } else {
                             emit(stream)
                         }
-                    }.produceIn(daemonScope)
+                    }.produceIn(context.daemonScope + stackTrace)
                 }
 
                 FluoriteStream {

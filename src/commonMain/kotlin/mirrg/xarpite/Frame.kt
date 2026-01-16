@@ -1,11 +1,10 @@
 package mirrg.xarpite
 
-import mirrg.xarpite.compilers.compileToGetter
-import mirrg.xarpite.compilers.compileToRunner
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.operations.BuiltinMountRunner
 import mirrg.xarpite.operations.Runner
-import mirrg.xarpite.parser.parseAllOrThrow
 
 
 class Frame(val parent: Frame? = null) {
@@ -39,6 +38,13 @@ class LocalVariable(var value: FluoriteValue) : Variable {
     override suspend fun get(env: Environment) = value
     override suspend fun set(env: Environment, value: FluoriteValue) {
         this.value = value
+    }
+}
+
+class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
+    override suspend fun get(env: Environment) = function.invoke(position, emptyArray())
+    override suspend fun set(env: Environment, value: FluoriteValue) {
+        function.invoke(position, arrayOf(value)).consume()
     }
 }
 
@@ -113,47 +119,4 @@ fun Frame.getLabel(name: String): Pair<Int, Int>? {
         if (labelIndex != null) return Pair(currentFrame.frameIndex, labelIndex)
         currentFrame = currentFrame.parent ?: return null
     }
-}
-
-
-class Evaluator {
-
-    private var currentFrame: Frame? = null
-    private var currentEnv: Environment? = null
-
-    suspend fun defineMounts(maps: List<Map<String, FluoriteValue>>) {
-        val frame = Frame(currentFrame)
-        currentFrame = frame
-        val runners = maps.map {
-            frame.defineBuiltinMount(it)
-        }
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
-        currentEnv = env
-        runners.forEach {
-            it.evaluate(env)
-        }
-    }
-
-    suspend fun get(src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
-        val frame = Frame(currentFrame)
-        currentFrame = frame
-        val getter = frame.compileToGetter(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
-        currentEnv = env
-        return getter.evaluate(env)
-    }
-
-    suspend fun run(src: String) {
-        val parseResult = XarpiteGrammar.rootParser.parseAllOrThrow(src)
-        val frame = Frame(currentFrame)
-        currentFrame = frame
-        val runners = frame.compileToRunner(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
-        currentEnv = env
-        runners.forEach {
-            it.evaluate(env)
-        }
-    }
-
 }
