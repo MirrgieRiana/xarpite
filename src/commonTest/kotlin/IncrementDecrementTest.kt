@@ -89,7 +89,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    Obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    obj := Obj{}
                     result := obj++
                     [result; counter]
                 """.trimIndent(),
@@ -105,7 +106,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 1
-                    obj := {`++_`: this -> (counter = counter + 2; 200), `_++`: this -> (counter = counter + 5; 500)}
+                    Obj := {`++_`: this -> (counter = counter + 2; 200), `_++`: this -> (counter = counter + 5; 500)}
+                    obj := Obj{}
                     result := ++obj
                     [result; counter]
                 """.trimIndent(),
@@ -121,7 +123,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    Obj := {`_++`: this -> (counter = counter + 5; 123)}
+                    obj := Obj{}
                     result := ++obj
                     [result; counter]
                 """.trimIndent(),
@@ -137,7 +140,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 1
-                    obj := {`_+=_`: this, other -> (counter = counter + other + 9), `_+_`: this, other -> (counter = counter + other)}
+                    Obj := {`_+=_`: this, other -> (counter = counter + other + 9), `_+_`: this, other -> (counter = counter + other)}
+                    obj := Obj{}
                     obj++
                     counter
                 """.trimIndent(),
@@ -153,7 +157,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 1
-                    obj := {`_+_`: this, other -> (counter = counter + other + 5; counter)}
+                    Obj := {`_+_`: this, other -> (counter = counter + other + 5; counter)}
+                    obj := Obj{}
                     obj++
                     [obj; counter]
                 """.trimIndent(),
@@ -169,7 +174,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    Obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    obj := Obj{}
                     result := obj--
                     [result; counter]
                 """.trimIndent(),
@@ -185,7 +191,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`--_`: this -> (counter = counter - 2; 400), `_--`: this -> (counter = counter - 5; 500)}
+                    Obj := {`--_`: this -> (counter = counter - 2; 400), `_--`: this -> (counter = counter - 5; 500)}
+                    obj := Obj{}
                     result := --obj
                     [result; counter]
                 """.trimIndent(),
@@ -201,7 +208,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    Obj := {`_--`: this -> (counter = counter - 4; 321)}
+                    obj := Obj{}
                     result := --obj
                     [result; counter]
                 """.trimIndent(),
@@ -217,7 +225,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_-=_`: this, other -> (counter = counter - other - 9), `_-_`: this, other -> (counter = counter - other)}
+                    Obj := {`_-=_`: this, other -> (counter = counter - other - 9), `_-_`: this, other -> (counter = counter - other)}
+                    obj := Obj{}
                     obj--
                     counter
                 """.trimIndent(),
@@ -233,7 +242,8 @@ class IncrementDecrementTest {
             eval(
                 """
                     counter := 10
-                    obj := {`_-_`: this, other -> (counter = counter - other - 6; counter)}
+                    Obj := {`_-_`: this, other -> (counter = counter - other - 6; counter)}
+                    obj := Obj{}
                     obj--
                     [obj; counter]
                 """.trimIndent(),
