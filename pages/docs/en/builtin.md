@@ -218,6 +218,8 @@ Returns a stream with the elements of `stream` randomly rearranged.
 
 Returns a stream with duplicate elements removed.
 
+`UNIQ` is an alias of `DISTINCT`.
+
 `DISTINCT` can be called in 2 ways.
 
 ### Duplicate Determination by Elements Themselves
