@@ -1,10 +1,12 @@
 package mirrg.xarpite.cli
 
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
@@ -84,9 +86,20 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("EXEC(command: STREAM<STRING>): STREAM<STRING>")
-
-            val commandArg = arguments[0]
+            fun execUsage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
+            val (commandArg, envOverrides) = when (arguments.size) {
+                1 -> Pair(arguments[0], emptyMap())
+                2 -> {
+                    val envEntry = arguments[1] as? FluoriteArray ?: execUsage()
+                    if (envEntry.values.size != 2) execUsage()
+                    val envKey = envEntry.values[0] as? FluoriteString ?: execUsage()
+                    if (envKey.value != "env") execUsage()
+                    val envObject = envEntry.values[1] as? FluoriteObject ?: execUsage()
+                    val overrides = envObject.map.mapValues { it.value.toFluoriteString(null).value }
+                    Pair(arguments[0], overrides)
+                }
+                else -> execUsage()
+            }
             val commandList = if (commandArg is FluoriteStream) {
                 commandArg.toMutableList().map { it.toFluoriteString(null).value }
             } else {
@@ -99,7 +112,9 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs)
+            val processEnv = getEnv().toMutableMap()
+            processEnv.putAll(envOverrides)
+            val output = context.io.executeProcess(process, processArgs, processEnv)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {

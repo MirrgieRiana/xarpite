@@ -37,7 +37,6 @@ import platform.posix.O_NONBLOCK
 import platform.posix.SIGKILL
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
-import platform.posix.__environ
 import platform.posix.close
 import platform.posix.errno
 import platform.posix.fcntl
@@ -102,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
@@ -198,13 +197,20 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 null  // 配列の終端をnullでマーク（POSIX要件）
             )
             
+            // 環境変数配列を構築
+            val cstrEnv = env.map { "${it.key}=${it.value}".cstr }
+            val envp = allocArrayOf(
+                *cstrEnv.map { it.ptr }.toTypedArray(),
+                null
+            )
+
             // posix_spawnpでプロセスを起動
             // posix_spawnpはPATH環境変数を検索してプログラムを見つける（execvpと同等）
             // fork()とは異なり、posix_spawnp()はスレッドセーフであるため、
             // マルチスレッド環境でも安全に使用できる
             // pid_tは環境依存の整数型のため、pid_tVarを使用する
             val pidVar = alloc<pid_tVar>()
-            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
+            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, envp)
             
             // posix_spawnp()のエラーチェック
             // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）

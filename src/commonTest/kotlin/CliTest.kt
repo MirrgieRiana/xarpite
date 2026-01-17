@@ -562,6 +562,18 @@ class CliTest {
     }
 
     @Test
+    fun execWithEnvironmentOverrides() = runTest {
+        val context = TestIoContext()
+        try {
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("BAR", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun execWithEmptyArgumentList() = runTest {
         val context = TestIoContext()
         try {
@@ -757,7 +769,7 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String>) = mirrg.xarpite.executeProcess(process, args, env)
 
     fun clear() {
         stdoutBytes.reset()
@@ -796,4 +808,10 @@ private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
 private fun getExecSrcWrappingHexForShell(script: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
 }
