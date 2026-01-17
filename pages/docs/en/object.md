@@ -197,17 +197,11 @@ If the key does not yet exist in that object, it is added anew.
 
 ```shell
 $ xa '
-  object := {
-    a: "one"
-    b: "two"
-    c: "three"
-  }
-
+  object := {a: "apple"; b: "banana"; c: "cherry"}
   object -= "b"
-
   object
 '
-# {a:one;c:three}
+# {a:apple;c:cherry}
 ```
 
 ---
@@ -216,9 +210,22 @@ If the key to delete does not exist, nothing happens.
 
 ```shell
 $ xa '
-  object := {a: 1; b: 2}
-  object -= "nonexistent"
+  object := {a: "apple"; b: "banana"}
+  object -= "c"
   object
 '
-# {a:1;b:2}
+# {a:apple;b:banana}
+```
+
+---
+
+If the right-hand side is a stream, key deletion is performed for each element.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "a", "c"
+  object
+'
+# {b:banana}
 ```

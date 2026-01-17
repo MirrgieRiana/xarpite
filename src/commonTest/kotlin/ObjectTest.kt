@@ -95,6 +95,8 @@ class ObjectTest {
         assertEquals("{b:2;c:3}", eval("o := {a: 1; b: 2; c: 3}; o -= \"a\"; o").obj) // 最初のキーも削除できる
         assertEquals("{a:1;b:2}", eval("o := {a: 1; b: 2; c: 3}; o -= \"c\"; o").obj) // 最後のキーも削除できる
         assertEquals("{}", eval("o := {a: 1}; o -= \"a\"; o").obj) // すべてのキーを削除できる
+        assertEquals("{b:2}", eval("o := {a: 1; b: 2; c: 3}; o -= \"a\", \"c\"; o").obj) // ストリームで複数のキーを削除できる
+        assertEquals("{}", eval("o := {a: 1; b: 2; c: 3}; o -= \"a\", \"b\", \"c\"; o").obj) // ストリームですべてのキーを削除できる
     }
 
     @Test

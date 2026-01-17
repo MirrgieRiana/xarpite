@@ -197,17 +197,11 @@ $ xa '
 
 ```shell
 $ xa '
-  object := {
-    a: "one"
-    b: "two"
-    c: "three"
-  }
-
+  object := {a: "apple"; b: "banana"; c: "cherry"}
   object -= "b"
-
   object
 '
-# {a:one;c:three}
+# {a:apple;c:cherry}
 ```
 
 ---
@@ -216,9 +210,22 @@ $ xa '
 
 ```shell
 $ xa '
-  object := {a: 1; b: 2}
-  object -= "nonexistent"
+  object := {a: "apple"; b: "banana"}
+  object -= "c"
   object
 '
-# {a:1;b:2}
+# {a:apple;b:banana}
+```
+
+---
+
+右辺がストリームの場合、その各要素に対してキー削除を行います。
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "a", "c"
+  object
+'
+# {b:banana}
 ```
