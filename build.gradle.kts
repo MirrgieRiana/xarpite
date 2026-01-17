@@ -169,7 +169,7 @@ val createXarpiteBinLinuxX64TarGz = tasks.register<Tar>("createXarpiteBinLinuxX6
 
 publishing {
     publications {
-        create<MavenPublication>("xarpiteBinAll") {
+        create<MavenPublication>("xarpiteBin") {
             artifactId = "xarpite-bin"
             artifact(createXarpiteBinAllTarGz) {
                 classifier = "all"
@@ -219,7 +219,7 @@ signing {
     val signingPassword = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKey, signingPassword)
 
-    sign(publishing.publications["xarpiteBinAll"])
+    sign(publishing.publications["xarpiteBin"])
 }
 
 nexusPublishing {
