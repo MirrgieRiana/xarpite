@@ -91,6 +91,66 @@ class CliTest {
     }
 
     @Test
+    fun readbEmptyFile() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_empty.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            // 空ファイル
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(0, blobs.size)
+    }
+
+    @Test
+    fun readbExactlyBufferSize() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_exact.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertContentEquals(data.map { it.toUByte() }.toUByteArray(), blobs[0].value)
+    }
+
+    @Test
+    fun readbWithNullBytes() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_null.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            write(byteArrayOf(0, 1, 0, 2, 0))
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals(ubyteArrayOf(0u, 1u, 0u, 2u, 0u), blobs[0].value)
+    }
+
+    @Test
+    fun readbMultipleBuffers() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_multi.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE * 2 + 100) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(3, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[1].value.size)
+        assertEquals(100, blobs[2].value.size)
+    }
+
+    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
