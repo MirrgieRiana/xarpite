@@ -46,11 +46,15 @@ echo
 
 if [ -f "$CLASSIFIER_FILE" ]
 then
-  classifier="$(cat "$CLASSIFIER_FILE")"
+  classifier="$(tr -d '\r\n' < "$CLASSIFIER_FILE")"
 else
   classifier="all"
 fi
 [ -z "$classifier" ] && error "Error: Failed to determine classifier."
+case "$classifier" in
+  all|linux-x86_64) ;;
+  *) error "Error: Unsupported classifier: $classifier" ;;
+esac
 
 file="xarpite-bin-$version-$classifier.tar.gz"
 dir=".tmp"
