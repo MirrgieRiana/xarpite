@@ -79,7 +79,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "READB" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
-            val file = arguments[0].toFluoriteString().value
+            val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             FluoriteStream {
                 fileSystem.read(file.toPath()) {
