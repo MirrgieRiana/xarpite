@@ -87,7 +87,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "EXEC" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>]): STREAM<STRING>")
-            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String> {
+            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
                 val envEntry = argument as? FluoriteArray ?: usage()
                 if (envEntry.values.size != 2) usage()
                 val envKey = envEntry.values[0] as? FluoriteString ?: usage()
@@ -96,14 +96,14 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 return envObject.map.mapValues { entry ->
                     val value = entry.value
                     if (value is FluoriteNull) {
-                        ""
+                        null
                     } else {
                         value.toFluoriteString(null).value
                     }
                 }
             }
             val (commandArg, env) = when (arguments.size) {
-                1 -> Pair(arguments[0], emptyMap())
+                1 -> Pair(arguments[0], emptyMap<String, String?>())
                 2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
                 else -> usage()
             }

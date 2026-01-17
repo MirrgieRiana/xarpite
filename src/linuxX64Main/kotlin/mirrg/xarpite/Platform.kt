@@ -71,12 +71,12 @@ private fun WIFSIGNALED(status: Int): Boolean {
 }
 private fun WTERMSIG(status: Int): Int = (status and 0x7f)
 
-private fun validateEnvironmentVariables(env: Map<String, String>) {
+private fun validateEnvironmentVariables(env: Map<String, String?>) {
     env.forEach { (key, value) ->
         if (key.isEmpty() || key.contains('=') || key.contains('\u0000') || key.contains('\n') || key.contains('\r')) {
             throw FluoriteException("EXEC env keys must not be empty or contain '=', null, or newline characters".toFluoriteString())
         }
-        if (value.contains('\u0000') || value.contains('\n') || value.contains('\r')) {
+        if (value != null && (value.contains('\u0000') || value.contains('\n') || value.contains('\r'))) {
             throw FluoriteException("EXEC env values must not contain null or newline characters".toFluoriteString())
         }
     }
@@ -112,7 +112,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String>): String = withContext(Dispatchers.IO) {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         validateEnvironmentVariables(env)
         // パイプを作成（標準出力用と標準エラー出力用）
@@ -212,7 +212,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
             // 環境変数配列を構築
             val mergedEnv = getEnv().toMutableMap()
             env.forEach { (key, value) ->
-                if (value.isEmpty()) {
+                if (value.isNullOrEmpty()) {
                     mergedEnv.remove(key)
                 } else {
                     mergedEnv[key] = value

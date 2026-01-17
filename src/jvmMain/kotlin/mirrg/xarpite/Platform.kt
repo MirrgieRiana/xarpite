@@ -34,25 +34,25 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatcher
     System.err.flush()
 }
 
-private fun validateEnvironmentVariables(env: Map<String, String>) {
+private fun validateEnvironmentVariables(env: Map<String, String?>) {
     env.forEach { (key, value) ->
         if (key.isEmpty() || key.contains('=') || key.contains('\u0000') || key.contains('\n') || key.contains('\r')) {
             throw FluoriteException("EXEC env keys must not be empty or contain '=', null, or newline characters".toFluoriteString())
         }
-        if (value.contains('\u0000') || value.contains('\n') || value.contains('\r')) {
+        if (value != null && (value.contains('\u0000') || value.contains('\n') || value.contains('\r'))) {
             throw FluoriteException("EXEC env values must not contain null or newline characters".toFluoriteString())
         }
     }
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String>): String = coroutineScope {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
     withContext(Dispatchers.IO) {
         validateEnvironmentVariables(env)
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
         val environment = processBuilder.environment()
         env.forEach { (key, value) ->
-            if (value.isEmpty()) {
+            if (value.isNullOrEmpty()) {
                 environment.remove(key)
             } else {
                 environment[key] = value
