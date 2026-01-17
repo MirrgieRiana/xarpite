@@ -18,6 +18,7 @@ check rsync
 check readlink
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
+CLASSIFIER_FILE="$(pwd)/classifier"
 
 
 # Determine the downloading version
@@ -43,7 +44,15 @@ echo
 
 # Download and extract
 
-file="xarpite-bin-$version-all.tar.gz"
+if [ -f "$CLASSIFIER_FILE" ]
+then
+  classifier="$(cat "$CLASSIFIER_FILE")"
+else
+  classifier="all"
+fi
+[ -z "$classifier" ] && error "Error: Failed to determine classifier."
+
+file="xarpite-bin-$version-$classifier.tar.gz"
 dir=".tmp"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 

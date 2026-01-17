@@ -106,7 +106,7 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
     from("release") {
-        rename("gitignore", ".gitignore")
+        exclude("gitignore")
         eachFile {
             if (relativePath.pathString == "xarpite") {
                 permissions {
@@ -126,9 +126,40 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     doLast {
         val versionFile = destinationDir.resolve("version")
         versionFile.writeText(project.version.toString() + "\n")
+        val classifierFile = destinationDir.resolve("classifier")
+        classifierFile.writeText("all\n")
+        destinationDir.resolve(".gitignore").delete()
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
+
+val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") {
+    group = "build"
+    into(project.layout.buildDirectory.dir("bundleXarpiteBinLinuxX64"))
+    from("release") {
+        exclude("gitignore")
+        eachFile {
+            if (relativePath.pathString == "xarpite") {
+                permissions {
+                    unix("rwxr-xr-x")
+                }
+            }
+        }
+    }
+    from("LICENSE")
+    from(releaseExecutable.linkTaskProvider) {
+        into("bin/native")
+        rename("xarpite.kexe", "xarpite")
+    }
+    doLast {
+        val versionFile = destinationDir.resolve("version")
+        versionFile.writeText(project.version.toString() + "\n")
+        val classifierFile = destinationDir.resolve("classifier")
+        classifierFile.writeText("linux-x86_64\n")
+        destinationDir.resolve(".gitignore").delete()
+    }
+}
+tasks.named("build").configure { dependsOn(bundleXarpiteBinLinuxX64) }
 
 val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     group = "build"
@@ -141,12 +172,27 @@ val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     useFileSystemPermissions()
 }
 
+val createXarpiteBinLinuxX64TarGz = tasks.register<Tar>("createXarpiteBinLinuxX64TarGz") {
+    group = "build"
+    archiveBaseName = "xarpite-bin"
+    archiveClassifier = "linux-x86_64"
+    archiveExtension = "tar.gz"
+    compression = Compression.GZIP
+    from(bundleXarpiteBinLinuxX64)
+    destinationDirectory = project.layout.buildDirectory.dir("xarpiteBinLinuxX64TarGz")
+    useFileSystemPermissions()
+}
+
 publishing {
     publications {
         create<MavenPublication>("xarpiteBinAll") {
             artifactId = "xarpite-bin"
             artifact(createXarpiteBinAllTarGz) {
                 classifier = "all"
+                extension = "tar.gz"
+            }
+            artifact(createXarpiteBinLinuxX64TarGz) {
+                classifier = "linux-x86_64"
                 extension = "tar.gz"
             }
             pom {
