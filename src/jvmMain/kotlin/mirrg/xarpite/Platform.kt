@@ -50,7 +50,14 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
         validateEnvironmentVariables(env)
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
-        processBuilder.environment().putAll(env)
+        val environment = processBuilder.environment()
+        env.forEach { (key, value) ->
+            if (value.isEmpty()) {
+                environment.remove(key)
+            } else {
+                environment[key] = value
+            }
+        }
         val processInstance = processBuilder.start()
 
         try {

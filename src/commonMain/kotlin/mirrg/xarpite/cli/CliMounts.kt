@@ -93,7 +93,14 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 val envKey = envEntry.values[0] as? FluoriteString ?: usage()
                 if (envKey.value != "env") usage()
                 val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
-                return envObject.map.mapValues { it.value.toFluoriteString(null).value }
+                return envObject.map.mapValues { entry ->
+                    val value = entry.value
+                    if (value is FluoriteNull) {
+                        ""
+                    } else {
+                        value.toFluoriteString(null).value
+                    }
+                }
             }
             val (commandArg, env) = when (arguments.size) {
                 1 -> Pair(arguments[0], emptyMap())

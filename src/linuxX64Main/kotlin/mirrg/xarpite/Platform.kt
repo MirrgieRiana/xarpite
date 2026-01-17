@@ -211,7 +211,13 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
             
             // 環境変数配列を構築
             val mergedEnv = getEnv().toMutableMap()
-            mergedEnv.putAll(env)
+            env.forEach { (key, value) ->
+                if (value.isEmpty()) {
+                    mergedEnv.remove(key)
+                } else {
+                    mergedEnv[key] = value
+                }
+            }
             val cstrEnv = mergedEnv.map { "${it.key}=${it.value}".cstr }
             val envp = allocArrayOf(
                 *cstrEnv.map { it.ptr }.toTypedArray(),

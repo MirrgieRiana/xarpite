@@ -587,6 +587,32 @@ class CliTest {
     }
 
     @Test
+    fun execWithEnvironmentRemoveByEmptyString() = runTest {
+        val context = TestIoContext()
+        try {
+            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentRemoveByNull() = runTest {
+        val context = TestIoContext()
+        try {
+            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun execWithInvalidEnvironmentVariableKeys() = runTest {
         val context = TestIoContext()
         try {
