@@ -16,9 +16,9 @@ fun createControlStructuresMounts(): List<Map<String, FluoriteValue>> {
             val condition = arguments[0]
             val block = arguments[1]
             while (true) {
-                val conditionResult = condition.invoke(emptyArray())
-                if (!conditionResult.toBoolean()) break
-                block.invoke(emptyArray()).consume()
+                val conditionResult = condition.invoke(null, emptyArray())
+                if (!conditionResult.toBoolean(null)) break
+                block.invoke(null, emptyArray()).consume()
             }
             FluoriteNull
         },

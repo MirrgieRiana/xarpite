@@ -7,6 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.test.get
 import mirrg.xarpite.withEvaluator
 
 context(context: RuntimeContext)

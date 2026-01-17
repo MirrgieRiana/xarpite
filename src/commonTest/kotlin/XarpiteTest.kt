@@ -8,9 +8,11 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.parse
+import mirrg.xarpite.test.run
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator

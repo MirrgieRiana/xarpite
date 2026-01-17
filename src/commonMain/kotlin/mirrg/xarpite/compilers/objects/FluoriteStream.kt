@@ -13,15 +13,15 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { arguments ->
                         var sum: FluoriteValue? = null
                         (arguments[0] as FluoriteStream).collect { item ->
-                            val number = item.toFluoriteNumber()
-                            sum = sum?.callMethod(OperatorMethod.PLUS.methodName, arrayOf(number)) ?: number
+                            val number = item.toFluoriteNumber(null)
+                            sum = sum?.callMethod(null, OperatorMethod.PLUS.methodName, arrayOf(number)) ?: number
                         }
                         sum ?: FluoriteInt.ZERO
                     },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { arguments ->
                         flow {
                             (arguments[0] as FluoriteStream).collect {
-                                if (it.toBoolean()) emit(FluoriteBoolean.TRUE)
+                                if (it.toBoolean(null)) emit(FluoriteBoolean.TRUE)
                             }
                             emit(FluoriteBoolean.FALSE)
                         }.first()
@@ -30,7 +30,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         val stream = arguments[0] as FluoriteStream
                         val sb = StringBuilder()
                         stream.collect { item ->
-                            sb.append(item.toFluoriteString().value)
+                            sb.append(item.toFluoriteString(null).value)
                         }
                         "$sb".toFluoriteString()
                     },
@@ -39,7 +39,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         val key = arguments[1]
                         FluoriteStream {
                             stream.collect { item ->
-                                val result = item.callMethod(OperatorMethod.PROPERTY.methodName, arrayOf(key))
+                                val result = item.callMethod(null, OperatorMethod.PROPERTY.methodName, arrayOf(key))
                                 if (result is FluoriteStream) {
                                     result.flowProvider(this)
                                 } else {
@@ -54,7 +54,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         FluoriteFunction { arguments2 ->
                             FluoriteStream {
                                 stream.collect { item ->
-                                    val result = item.callMethod(method.value, arguments2)
+                                    val result = item.callMethod(null, method.value, arguments2)
                                     if (result is FluoriteStream) {
                                         result.flowProvider(this)
                                     } else {
@@ -68,8 +68,8 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         val stream = arguments[0] as FluoriteStream
                         var sum: FluoriteValue? = null
                         stream.collect { item ->
-                            val length = item.getLength()
-                            sum = sum?.callMethod(OperatorMethod.PLUS.methodName, arrayOf(length)) ?: length
+                            val length = item.getLength(null)
+                            sum = sum?.callMethod(null, OperatorMethod.PLUS.methodName, arrayOf(length)) ?: length
                         }
                         sum ?: FluoriteInt.ZERO
                     },

@@ -41,10 +41,10 @@ class LocalVariable(var value: FluoriteValue) : Variable {
     }
 }
 
-class DelegatedVariable(val function: FluoriteValue) : Variable {
-    override suspend fun get(env: Environment) = function.invoke(emptyArray())
+class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
+    override suspend fun get(env: Environment) = function.invoke(position, emptyArray())
     override suspend fun set(env: Environment, value: FluoriteValue) {
-        function.invoke(arrayOf(value)).consume()
+        function.invoke(position, arrayOf(value)).consume()
     }
 }
 

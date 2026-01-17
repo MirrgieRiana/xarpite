@@ -9,12 +9,12 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
                         val array = arguments[0] as FluoriteArray
-                        val index = arguments[1].toFluoriteNumber().roundToInt()
+                        val index = arguments[1].toFluoriteNumber(null).roundToInt()
                         array.values.getOrNull(index) ?: FluoriteNull
                     },
                     OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
                         val array = arguments[0] as FluoriteArray
-                        val index = arguments[1].toFluoriteNumber().roundToInt()
+                        val index = arguments[1].toFluoriteNumber(null).roundToInt()
                         val value = arguments[2]
                         array.values[index] = value
                         FluoriteNull
@@ -26,7 +26,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
 
                             2 -> {
                                 suspend fun get(index: FluoriteValue): FluoriteValue {
-                                    val index2 = index.toFluoriteNumber().roundToInt()
+                                    val index2 = index.toFluoriteNumber(null).roundToInt()
                                     return array.values.getOrNull(if (index2 >= 0) index2 else index2 + array.values.size) ?: FluoriteNull
                                 }
 
@@ -49,7 +49,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         val array = arguments[0] as FluoriteArray
                         when (arguments.size) {
                             3 -> {
-                                val index = arguments[1].toFluoriteNumber().roundToInt()
+                                val index = arguments[1].toFluoriteNumber(null).roundToInt()
                                 val value = arguments[2]
                                 if (value is FluoriteStream) throw IllegalArgumentException("Stream assignment is not supported")
                                 array.values[index] = value
@@ -66,7 +66,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
 
                             2 -> {
                                 suspend fun get(index: FluoriteValue): FluoriteValue {
-                                    val index2 = index.toFluoriteNumber().roundToInt()
+                                    val index2 = index.toFluoriteNumber(null).roundToInt()
                                     return array.values.getOrNull(if (index2 >= 0) index2 else index2 + array.values.size) ?: FluoriteNull
                                 }
 
@@ -90,7 +90,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         sb.append('[')
                         (arguments[0] as FluoriteArray).values.forEachIndexed { i, value ->
                             if (i != 0) sb.append(';')
-                            sb.append(value.toFluoriteString().value)
+                            sb.append(value.toFluoriteString(null).value)
                         }
                         sb.append(']')
                         sb.toString().toFluoriteString()

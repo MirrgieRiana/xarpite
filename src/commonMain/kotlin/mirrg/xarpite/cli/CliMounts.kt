@@ -66,7 +66,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "READ" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
-            val file = arguments[0].toFluoriteString().value
+            val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             FluoriteStream {
                 fileSystem.read(file.toPath()) { // TODO charset
@@ -79,7 +79,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "FILES" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
-            val dir = arguments[0].toFluoriteString().value
+            val dir = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
@@ -88,9 +88,9 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val commandArg = arguments[0]
             val commandList = if (commandArg is FluoriteStream) {
-                commandArg.toMutableList().map { it.toFluoriteString().value }
+                commandArg.toMutableList().map { it.toFluoriteString(null).value }
             } else {
-                listOf(commandArg.toFluoriteString().value)
+                listOf(commandArg.toFluoriteString(null).value)
             }
 
             if (commandList.isEmpty()) {

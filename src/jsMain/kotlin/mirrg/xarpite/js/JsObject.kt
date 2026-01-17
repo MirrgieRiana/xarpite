@@ -38,7 +38,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         val key: dynamic = run {
                             when (val key = arguments[1]) {
                                 is FluoriteNumber -> key.roundToInt()
-                                else -> key.toFluoriteString().value
+                                else -> key.toFluoriteString(null).value
                             }
                         }
                         convertToFluoriteValue(jsObject.value[key])
@@ -49,7 +49,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         val key: dynamic = run {
                             when (val key = arguments[1]) {
                                 is FluoriteNumber -> key.roundToInt()
-                                else -> key.toFluoriteString().value
+                                else -> key.toFluoriteString(null).value
                             }
                         }
                         val value = arguments[2].toJsObject()
@@ -92,7 +92,7 @@ fun FluoriteFunction.toJsFunction(): dynamic {
         var finished = false
         var result: dynamic = undefined
         val job = CoroutineScope(Dispatchers.Main.immediate).launch {
-            val result2 = this@toJsFunction.invoke(arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            val result2 = this@toJsFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
             finished = true
             result = result2
         }
@@ -117,7 +117,7 @@ fun FluoriteFunction.toJsAsyncFunction(): dynamic {
     )
     return functionCreator { arguments: Array<dynamic> ->
         GlobalScope.promise {
-            this@toJsAsyncFunction.invoke(arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            this@toJsAsyncFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
         }
     }
 }
