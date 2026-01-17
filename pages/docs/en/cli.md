@@ -515,11 +515,11 @@ $ {
 # file
 ```
 
-### `READ`: Read from File
+### `READ`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
-Reads the contents of the text file specified by `file` as strings line by line.
+Reads the contents of the text file specified by `file` line by line as strings.
 
 Newline codes are removed.
 
@@ -532,6 +532,23 @@ $ {
 }
 # apple
 # banana
+```
+
+### `READB`: Read from Binary File
+
+`READB(file: STRING): STREAM<BLOB>`
+
+Reads all contents from the binary file specified by `file` as BLOBs.
+
+BLOBs are split into lengths of up to 8192 bytes.
+
+```shell
+$ {
+  echo -en '\x20\x21\x22' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
+}
+# BLOB.of([32;33;34])
 ```
 
 ### `USE`: Get Result of External Xarpite File

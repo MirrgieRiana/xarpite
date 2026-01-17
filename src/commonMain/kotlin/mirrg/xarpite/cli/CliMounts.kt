@@ -77,6 +77,22 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
         },
+        "READB" to FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
+            val file = arguments[0].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            FluoriteStream {
+                fileSystem.read(file.toPath()) {
+                    while (true) {
+                        val byteArray = ByteArray(INB_MAX_BUFFER_SIZE)
+                        val readSize = read(byteArray)
+                        if (readSize == -1) break
+                        val byteArray2 = if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
+                        emit(byteArray2.asFluoriteBlob())
+                    }
+                }
+            }
+        },
         "FILES" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
             val dir = arguments[0].toFluoriteString(null).value
