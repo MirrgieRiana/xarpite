@@ -103,7 +103,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
             val (commandArg, env) = when (arguments.size) {
-                1 -> Pair(arguments[0], emptyMap<String, String?>())
+                1 -> Pair(arguments[0], emptyMap())
                 2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
                 else -> usage()
             }
