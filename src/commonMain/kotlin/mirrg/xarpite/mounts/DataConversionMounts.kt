@@ -29,17 +29,17 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         "BASE" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
             if (arguments.size != 2) usage()
-            val radix = arguments[0].toFluoriteNumber().roundToInt()
+            val radix = arguments[0].toFluoriteNumber(null).roundToInt()
             if (radix !in 2..36) throw FluoriteException("Radix must be between 2 and 36, got $radix".toFluoriteString())
-            val number = arguments[1].toFluoriteNumber().roundToInt()
+            val number = arguments[1].toFluoriteNumber(null).roundToInt()
             number.toString(radix).uppercase().toFluoriteString()
         },
         "BASED" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASED(radix: NUMBER; string: STRING): NUMBER")
             if (arguments.size != 2) usage()
-            val radix = arguments[0].toFluoriteNumber().roundToInt()
+            val radix = arguments[0].toFluoriteNumber(null).roundToInt()
             if (radix !in 2..36) throw FluoriteException("Radix must be between 2 and 36, got $radix".toFluoriteString())
-            val string = arguments[1].toFluoriteString().value
+            val string = arguments[1].toFluoriteString(null).value
             FluoriteInt(string.toInt(radix))
         },
         "UTF8" to FluoriteFunction { arguments ->
