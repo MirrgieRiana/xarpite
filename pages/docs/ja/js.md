@@ -149,7 +149,7 @@ JS('(function(a, b) {
 
 ```
 AWAIT(JS("Promise")::new(ASYNC(callback -> (
-  SLEEP(100)
+  SLEEP(0.1)
   callback(123)
 ))))
 # 123

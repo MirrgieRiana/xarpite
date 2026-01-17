@@ -114,7 +114,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
   )
   LOOP | i, _ => (
     stop::isCompleted() && break!!
-    SLEEP << 100
+    SLEEP << 0.1
   ) !: break
   OUT << "Stopped!"
 '
