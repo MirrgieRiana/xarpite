@@ -87,17 +87,26 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "EXEC" to FluoriteFunction { arguments ->
             fun execUsage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
+            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String> {
+                val envEntry = argument as? FluoriteArray ?: execUsage()
+                if (envEntry.values.size != 2) execUsage()
+                val envKey = envEntry.values[0] as? FluoriteString ?: execUsage()
+                if (envKey.value != "env") execUsage()
+                val envObject = envEntry.values[1] as? FluoriteObject ?: execUsage()
+                val overrides = envObject.map.mapValues { it.value.toFluoriteString(null).value }
+                overrides.forEach { (key, value) ->
+                    if (key.isEmpty() || key.contains('=') || key.contains('\u0000') || key.contains('\n') || key.contains('\r')) {
+                        throw FluoriteException("EXEC env keys must not be empty or contain '=', null, or newline characters".toFluoriteString())
+                    }
+                    if (value.contains('\u0000') || value.contains('\n') || value.contains('\r')) {
+                        throw FluoriteException("EXEC env values must not contain null or newline characters".toFluoriteString())
+                    }
+                }
+                return overrides
+            }
             val (commandArg, envOverrides) = when (arguments.size) {
                 1 -> Pair(arguments[0], emptyMap())
-                2 -> {
-                    val envEntry = arguments[1] as? FluoriteArray ?: execUsage()
-                    if (envEntry.values.size != 2) execUsage()
-                    val envKey = envEntry.values[0] as? FluoriteString ?: execUsage()
-                    if (envKey.value != "env") execUsage()
-                    val envObject = envEntry.values[1] as? FluoriteObject ?: execUsage()
-                    val overrides = envObject.map.mapValues { it.value.toFluoriteString(null).value }
-                    Pair(arguments[0], overrides)
-                }
+                2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
                 else -> execUsage()
             }
             val commandList = if (commandArg is FluoriteStream) {

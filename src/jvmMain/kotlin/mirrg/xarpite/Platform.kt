@@ -38,10 +38,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
-        processBuilder.environment().apply {
-            clear()
-            putAll(env)
-        }
+        processBuilder.environment().putAll(env)
         val processInstance = processBuilder.start()
 
         try {
