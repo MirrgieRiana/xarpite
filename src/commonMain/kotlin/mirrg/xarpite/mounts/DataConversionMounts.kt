@@ -14,6 +14,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toByteArrayAsBlobLike
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.pop
 import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
@@ -26,24 +27,20 @@ context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
         "BASE" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE[radix: NUMBER](number: NUMBER): STRING")
+            fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber().roundToInt()
-            if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
+            if (radix !in 2..36) throw FluoriteException("Radix must be between 2 and 36, got $radix".toFluoriteString())
             val number = arguments[1].toFluoriteNumber().roundToInt()
             number.toString(radix).uppercase().toFluoriteString()
         },
         "BASED" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASED[radix: NUMBER](string: STRING): NUMBER")
+            fun usage(): Nothing = usage("BASED(radix: NUMBER; string: STRING): NUMBER")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber().roundToInt()
-            if (radix !in 2..36) throw IllegalArgumentException("Radix must be between 2 and 36, got $radix")
+            if (radix !in 2..36) throw FluoriteException("Radix must be between 2 and 36, got $radix".toFluoriteString())
             val string = arguments[1].toFluoriteString().value
-            try {
-                FluoriteInt(string.toInt(radix))
-            } catch (e: NumberFormatException) {
-                throw IllegalArgumentException("Invalid base-$radix number: $string", e)
-            }
+            FluoriteInt(string.toInt(radix))
         },
         "UTF8" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
