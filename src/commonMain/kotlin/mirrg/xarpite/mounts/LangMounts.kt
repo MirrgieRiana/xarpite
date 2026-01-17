@@ -49,8 +49,8 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
             0 -> yield()
 
             1 -> {
-                val seconds = arguments[0] as FluoriteNumber
-                val millis = (seconds.toDouble() * 1000.0).roundToLong()
+                val time = arguments[0] as FluoriteNumber
+                val millis = (time.toDouble() * 1000.0).roundToLong()
                 if (millis == 0L) {
                     yield()
                 } else {
