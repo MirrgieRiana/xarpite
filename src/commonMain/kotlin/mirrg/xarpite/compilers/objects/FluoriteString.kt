@@ -10,7 +10,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
                         val string = arguments[0] as FluoriteString
-                        val index = arguments[1].toFluoriteNumber().roundToInt()
+                        val index = arguments[1].toFluoriteNumber(null).roundToInt()
                         string.value.getOrNull(index)?.toString()?.toFluoriteString() ?: FluoriteNull
                     },
                     OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
@@ -29,7 +29,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
 
                             2 -> {
                                 suspend fun get(index: FluoriteValue): FluoriteValue {
-                                    val index2 = index.toFluoriteNumber().roundToInt()
+                                    val index2 = index.toFluoriteNumber(null).roundToInt()
                                     return string.getOrNull(if (index2 >= 0) index2 else index2 + string.length)?.toString()?.toFluoriteString() ?: FluoriteNull
                                 }
 
@@ -57,7 +57,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                                 val kotlinString = string.value
                                 val sb = StringBuilder()
                                 suspend fun append(index: FluoriteValue) {
-                                    val index2 = index.toFluoriteNumber().roundToInt()
+                                    val index2 = index.toFluoriteNumber(null).roundToInt()
                                     val index3 = if (index2 >= 0) index2 else index2 + kotlinString.length
                                     if (index3 >= 0 && index3 < kotlinString.length) {
                                         sb.append(kotlinString[index3])
@@ -93,11 +93,11 @@ data class FluoriteString(val value: String) : FluoriteValue {
                     OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
                         val left = arguments[0] as FluoriteString
                         val right = arguments[1]
-                        FluoriteString(left.value + right.toFluoriteString().value)
+                        FluoriteString(left.value + right.toFluoriteString(null).value)
                     },
                     OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
                         val left = arguments[0] as FluoriteString
-                        val right = arguments[1].toFluoriteString()
+                        val right = arguments[1].toFluoriteString(null)
                         left.value.compareTo(right.value).toFluoriteIntAsCompared()
                     },
                     OperatorMethod.CONTAINS.methodName to FluoriteFunction { arguments ->
@@ -105,7 +105,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                         val left = arguments[1]
                         when (left) {
                             is FluoriteRegex -> (left.regexCache.find(right.value) != null).toFluoriteBoolean()
-                            else -> (left.toFluoriteString().value in right.value).toFluoriteBoolean()
+                            else -> (left.toFluoriteString(null).value in right.value).toFluoriteBoolean()
                         }
                     },
                     *run {
@@ -123,11 +123,11 @@ data class FluoriteString(val value: String) : FluoriteValue {
                                 suspend fun yield(matchResult: FluoriteValue, fromIndex: Int, toIndex: Int) {
                                     sb.append(string.value, index, fromIndex)
                                     val newValue = if (new is FluoriteFunction) {
-                                        new.invoke(arrayOf(matchResult))
+                                        new.invoke(null, arrayOf(matchResult))
                                     } else {
                                         new
                                     }
-                                    sb.append(newValue.toFluoriteString().value)
+                                    sb.append(newValue.toFluoriteString(null).value)
                                     index = toIndex
                                 }
 
@@ -145,7 +145,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                                     }
 
                                     else -> {
-                                        val oldString = old.toFluoriteString().value
+                                        val oldString = old.toFluoriteString(null).value
                                         if (oldString.isNotEmpty()) {
                                             while (true) {
                                                 val foundIndex = string.value.indexOf(oldString, index)

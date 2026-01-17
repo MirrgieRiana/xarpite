@@ -31,7 +31,7 @@ fun createMathMounts(): List<Map<String, FluoriteValue>> {
         "PI" to FluoriteDouble(3.141592653589793), // TODO kotlinアップデート時に定数に置換し直す
         "ABS" to FluoriteFunction { arguments ->
             when (arguments.size) {
-                1 -> when (val number = arguments[0].toFluoriteNumber()) {
+                1 -> when (val number = arguments[0].toFluoriteNumber(null)) {
                     is FluoriteInt -> if (number.value == Int.MIN_VALUE) {
                         FluoriteDouble(abs(number.value.toDouble()))
                     } else {
@@ -133,13 +133,13 @@ fun createMathMounts(): List<Map<String, FluoriteValue>> {
                 }
 
                 1 -> {
-                    val until = arguments[0].toFluoriteNumber().toInt()
+                    val until = arguments[0].toFluoriteNumber(null).toInt()
                     FluoriteInt(Random.nextInt(until))
                 }
 
                 2 -> {
-                    val from = arguments[0].toFluoriteNumber().toInt()
-                    val until = arguments[1].toFluoriteNumber().toInt()
+                    val from = arguments[0].toFluoriteNumber(null).toInt()
+                    val until = arguments[1].toFluoriteNumber(null).toInt()
                     FluoriteInt(Random.nextInt(from, until))
                 }
 

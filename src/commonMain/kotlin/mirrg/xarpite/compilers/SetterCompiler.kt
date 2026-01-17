@@ -21,7 +21,7 @@ fun Frame.compileToSetter(node: Node): Setter {
             VariableSetter(frameIndex, variableIndex)
         }
 
-        is BracketsRightSimpleRoundNode -> FunctionInvocationSetter(compileToGetter(node.receiver), createSimpleArgumentGetters(node))
+        is BracketsRightSimpleRoundNode -> FunctionInvocationSetter(compileToGetter(node.receiver), createSimpleArgumentGetters(node), node.position)
 
         is InfixPeriodNode -> {
             val receiverGetter = compileToGetter(node.left)
@@ -29,7 +29,7 @@ fun Frame.compileToSetter(node: Node): Setter {
                 is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
                 else -> compileToGetter(node.right)
             }
-            ItemAccessSetter(receiverGetter, keyGetter)
+            ItemAccessSetter(receiverGetter, keyGetter, node.position)
         }
 
         else -> throw IllegalArgumentException("Illegal setter: ${node::class}")

@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -19,6 +20,9 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.copy
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.coroutineContext
 
 private var nextCoroutineId = 1
 
@@ -61,16 +65,16 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
         val function = arguments[0]
         val argumentsArray = arguments[1] as FluoriteArray
-        function.invoke(argumentsArray.values.toTypedArray())
+        function.invoke(null, argumentsArray.values.toTypedArray())
     }
     mounts["LAUNCH"] = FluoriteFunction { arguments ->
         if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
         val function = arguments[0]
         val promise = FluoritePromise()
         val coroutineId = nextCoroutineId
-        context.coroutineScope.launch {
+        context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
             try {
-                promise.deferred.complete(function.invoke(emptyArray()).cache())
+                promise.deferred.complete(function.invoke(null, emptyArray()).cache())
             } catch (e: Throwable) {
                 try {
                     context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
@@ -101,7 +105,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 if (arguments.size == 2) {
                     val self = arguments[0]
                     val block = arguments[1]
-                    block.invoke(arrayOf(self))
+                    block.invoke(null, arrayOf(self))
                 } else {
                     usage(signature)
                 }
@@ -118,7 +122,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 if (arguments.size == 2) {
                     val self = arguments[0]
                     val block = arguments[1]
-                    block.invoke(arrayOf(self)).consume()
+                    block.invoke(null, arrayOf(self)).consume()
                     self
                 } else {
                     usage(signature)
@@ -136,7 +140,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         var value: FluoriteValue? = null
         FluoriteFunction {
             if (value == null) {
-                val value2 = initializer.invoke(emptyArray()).cache()
+                val value2 = initializer.invoke(null, emptyArray()).cache()
                 value = value2
                 value2
             } else {

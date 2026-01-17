@@ -1,12 +1,12 @@
 package mirrg.xarpite.cli
 
-import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path
@@ -24,13 +24,13 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
-                val file = arguments[0].toFluoriteString().value
+                val file = arguments[0].toFluoriteString(null).value
                 val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
-                    val src = getFileSystem().getOrThrow().read(modulePath) { readUtf8() }
+                    val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(modulePath.toString()))
-                    evaluator.get(src).cache()
+                    evaluator.get(modulePath.toString(), src).cache()
                 }
             }
         },

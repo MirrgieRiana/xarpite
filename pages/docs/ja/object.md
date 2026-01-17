@@ -190,3 +190,42 @@ $ xa '
 ```
 
 キーがそのオブジェクトにまだ存在しない場合は新たに追加されます。
+
+# オブジェクトのキーの削除
+
+`object -= key` でオブジェクトからエントリーを削除できます。
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "b"
+  object
+'
+# {a:apple;c:cherry}
+```
+
+---
+
+削除するキーが存在しない場合は何も起こりません。
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "d"
+  object
+'
+# {a:apple;b:banana;c:cherry}
+```
+
+---
+
+右辺がストリームの場合、その各要素に対してキー削除を行います。
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "a", "c"
+  object
+'
+# {b:banana}
+```
