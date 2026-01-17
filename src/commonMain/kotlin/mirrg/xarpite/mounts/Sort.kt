@@ -18,7 +18,7 @@ fun createSortFunction(name: String, isDescending: Boolean): FluoriteFunction {
             val stream = arguments[0]
 
             return@FluoriteFunction if (stream is FluoriteStream) {
-                stream.toMutableList().mergeSort(isDescending) { a, b -> a.compareTo(b).value }.toFluoriteStream()
+                stream.toMutableList().mergeSort(isDescending) { a, b -> a.compareTo(null, b).value }.toFluoriteStream()
             } else {
                 stream
             }
@@ -35,7 +35,7 @@ fun createSortFunction(name: String, isDescending: Boolean): FluoriteFunction {
             val stream = arguments[1]
 
             return@FluoriteFunction if (stream is FluoriteStream) {
-                stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(arrayOf(a)).compareTo(keyGetter.invoke(arrayOf(b))).value }.toFluoriteStream()
+                stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(null, arrayOf(a)).compareTo(null, keyGetter.invoke(null, arrayOf(b))).value }.toFluoriteStream()
             } else {
                 stream
             }
@@ -46,7 +46,7 @@ fun createSortFunction(name: String, isDescending: Boolean): FluoriteFunction {
             val stream = arguments[1]
 
             return@FluoriteFunction if (stream is FluoriteStream) {
-                stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invoke(arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
+                stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invoke(null, arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
             } else {
                 stream
             }

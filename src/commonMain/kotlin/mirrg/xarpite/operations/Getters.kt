@@ -1,9 +1,9 @@
 package mirrg.xarpite.operations
 
-import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
@@ -37,8 +37,10 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
+import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import mirrg.xarpite.withStackTrace
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -139,6 +141,7 @@ class MethodAccessGetter(
     private val argumentGetters: List<Getter>,
     private val isBinding: Boolean,
     private val isNullSafe: Boolean,
+    private val position: Position,
 ) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val receiver = receiverGetter.evaluate(env)
@@ -156,10 +159,10 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    receiver.callMethod(function, arguments + arguments2)
+                    receiver.callMethod(position, function, arguments + arguments2)
                 }
             } else {
-                receiver.callMethod(function, arguments)
+                receiver.callMethod(position, function, arguments)
             }
         }
 
@@ -167,10 +170,14 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction { arguments2 ->
-                    callable.call(arguments + arguments2)
+                    withStackTrace(position) {
+                        callable.call(arguments + arguments2)
+                    }
                 }
             } else {
-                callable.call(arguments)
+                withStackTrace(position) {
+                    callable.call(arguments)
+                }
             }
         }
 
@@ -211,7 +218,7 @@ class MethodAccessGetter(
 
         // レシーバのメソッドのチェック
         run {
-            val callable = receiver.getMethod(name)
+            val callable = receiver.getMethod(position, name)
             if (callable != null) return processCallable(callable)
         }
 
@@ -233,6 +240,7 @@ class FunctionalMethodAccessGetter(
     private val argumentGetters: List<Getter>,
     private val isBinding: Boolean,
     private val isNullSafe: Boolean,
+    private val position: Position,
 ) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val receiver = receiverGetter.evaluate(env)
@@ -250,80 +258,87 @@ class FunctionalMethodAccessGetter(
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
         return if (isBinding) {
             FluoriteFunction { arguments2 ->
-                receiver.callMethod(function, arguments + arguments2)
+                receiver.callMethod(position, function, arguments + arguments2)
             }
         } else {
-            receiver.callMethod(function, arguments)
+            receiver.callMethod(position, function, arguments)
         }
     }
 
     override val code get() = "FunctionalMethodAccessGetter[${receiverGetter.code};${functionGetter.code};${argumentGetters.code};$isBinding,$isNullSafe]"
 }
 
-class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>) : Getter {
+class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.invoke(arguments)
+        return function.invoke(position, arguments)
     }
 
     override val code get() = "FunctionInvocationGetter[${functionGetter.code};${argumentGetters.code}]"
 }
 
-class FunctionBindGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>) : Getter {
+class FunctionBindGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.bind(arguments)
+        return function.bind(position, arguments)
     }
 
     override val code get() = "FunctionBindGetter[${functionGetter.code};${argumentGetters.code}]"
 }
 
-class ToNumberGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteNumber()
+class ToNumberGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteNumber(position)
     override val code get() = "ToNumberGetter[${getter.code}]"
 }
 
-class ToNegativeNumberGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteNumber().negate()
+class ToNegativeNumberGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteNumber(position).negate()
     override val code get() = "ToNegativeNumberGetter[${getter.code}]"
 }
 
-class ToStringGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteString()
+class ToStringGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteString(position)
     override val code get() = "ToStringGetter[${getter.code}]"
 }
 
-class ToBooleanGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteBoolean()
+class ToBooleanGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteBoolean(position)
     override val code get() = "ToBooleanGetter[${getter.code}]"
 }
 
-class ToNegativeBooleanGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteBoolean().not()
+class ToNegativeBooleanGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteBoolean(position).not()
     override val code get() = "ToNegativeBooleanGetter[${getter.code}]"
 }
 
-class GetLengthGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).getLength()
+class GetLengthGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).getLength(position)
     override val code get() = "GetLengthGetter[${getter.code}]"
 }
 
-class ToJsonGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toSingleJsonFluoriteValue(null)
+class ToJsonGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toSingleJsonFluoriteValue(position, null)
     override val code get() = "ToJsonGetter[${getter.code}]"
 }
 
-class FromJsonGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteValueAsSingleJson()
+class FromJsonGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toFluoriteValueAsSingleJson(position)
     override val code get() = "FromJsonGetter[${getter.code}]"
 }
 
-class FluoriteException(val value: FluoriteValue) : Exception(value.toString())
+class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) {
+    var stackTrace: List<Position?>? = null
+}
 
-class ThrowGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = throw FluoriteException(getter.evaluate(env))
+class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment): Nothing {
+        withStackTrace(position) {
+            throw FluoriteException(getter.evaluate(env))
+        }
+    }
+
     override val code get() = "ThrowGetter[${getter.code}]"
 }
 
@@ -356,32 +371,32 @@ class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, pri
     override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
 }
 
-class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter: Getter, private val isNullSafe: Boolean) : Getter {
+class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter: Getter, private val isNullSafe: Boolean, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) return FluoriteNull
         val key = keyGetter.evaluate(env)
-        return receiver.callMethod(OperatorMethod.PROPERTY.methodName, arrayOf(key))
+        return receiver.callMethod(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
     }
 
     override val code get() = "ItemAccessGetter[${receiverGetter.code};${keyGetter.code};$isNullSafe]"
 }
 
-class PlusGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class PlusGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return left.plus(right)
+        return left.plus(position, right)
     }
 
     override val code get() = "PlusGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class MinusGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class MinusGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return left.minus(right)
+        return left.minus(position, right)
     }
 
     override val code get() = "MinusGetter[${leftGetter.code};${rightGetter.code}]"
@@ -679,21 +694,21 @@ class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariab
     override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${getter.code}]"
 }
 
-class MatchGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class MatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return right.match(left)
+        return right.match(position, left)
     }
 
     override val code get() = "MatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class SpaceshipGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class SpaceshipGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return left.compareTo(right)
+        return left.compareTo(position, right)
     }
 
     override val code get() = "SpaceshipGetter[${leftGetter.code};${rightGetter.code}]"
@@ -720,26 +735,26 @@ class ComparisonChainGetter(private val termGetters: List<Getter>, private val c
     override val code get() = "ComparisonChainGetter[${termGetters.code};${comparators.code}]"
 }
 
-class AndGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class AndGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
-        return if (!left.toBoolean()) left else rightGetter.evaluate(env)
+        return if (!left.toBoolean(position)) left else rightGetter.evaluate(env)
     }
 
     override val code get() = "AndGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class OrGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
+class OrGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
-        return if (left.toBoolean()) left else rightGetter.evaluate(env)
+        return if (left.toBoolean(position)) left else rightGetter.evaluate(env)
     }
 
     override val code get() = "OrGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class IfGetter(private val conditionGetter: Getter, private val okGetter: Getter, private val ngGetter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = if (conditionGetter.evaluate(env).toBoolean()) okGetter.evaluate(env) else ngGetter.evaluate(env)
+class IfGetter(private val conditionGetter: Getter, private val okGetter: Getter, private val ngGetter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment) = if (conditionGetter.evaluate(env).toBoolean(position)) okGetter.evaluate(env) else ngGetter.evaluate(env)
     override val code get() = "IfGetter[${conditionGetter.code};${okGetter.code},${ngGetter.code}]"
 }
 

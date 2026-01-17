@@ -9,12 +9,12 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
                         val obj = arguments[0] as FluoriteObject
-                        val key = arguments[1].toFluoriteString().value
+                        val key = arguments[1].toFluoriteString(null).value
                         obj.map[key] ?: FluoriteNull
                     },
                     OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
                         val obj = arguments[0] as FluoriteObject
-                        val key = arguments[1].toFluoriteString().value
+                        val key = arguments[1].toFluoriteString(null).value
                         val value = arguments[2]
                         obj.map[key] = value
                         FluoriteNull
@@ -31,7 +31,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                             }
 
                             2 -> {
-                                suspend fun get(key: FluoriteValue) = obj.map[key.toFluoriteString().value] ?: FluoriteNull
+                                suspend fun get(key: FluoriteValue) = obj.map[key.toFluoriteString(null).value] ?: FluoriteNull
 
                                 val argument = arguments[1]
                                 if (argument is FluoriteStream) {
@@ -52,7 +52,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         val obj = arguments[0] as FluoriteObject
                         when (arguments.size) {
                             3 -> {
-                                val key = arguments[1].toFluoriteString().value
+                                val key = arguments[1].toFluoriteString(null).value
                                 val value = arguments[2]
                                 obj.map[key] = value
                                 FluoriteNull
@@ -66,7 +66,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         val obj = arguments[0] as FluoriteObject
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
                         FluoriteFunction { arguments2 ->
-                            obj.invoke(arguments1 + arguments2)
+                            obj.invoke(null, arguments1 + arguments2)
                         }
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->
@@ -76,7 +76,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                             if (i != 0) sb.append(';')
                             sb.append(key)
                             sb.append(':')
-                            sb.append(value.toFluoriteString().value)
+                            sb.append(value.toFluoriteString(null).value)
                         }
                         sb.append('}')
                         sb.toString().toFluoriteString()
@@ -94,7 +94,19 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         map += right.map
                         FluoriteObject(fluoriteClass, map)
                     },
-                    OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1].toFluoriteString().value in (it[0] as FluoriteObject).map).toFluoriteBoolean() },
+                    OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1].toFluoriteString(null).value in (it[0] as FluoriteObject).map).toFluoriteBoolean() },
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                        val obj = arguments[0] as FluoriteObject
+                        val key = arguments[1]
+                        if (key is FluoriteStream) {
+                            key.collect { item ->
+                                obj.map.remove(item.toFluoriteString(null).value)
+                            }
+                        } else {
+                            obj.map.remove(key.toFluoriteString(null).value)
+                        }
+                        FluoriteNull
+                    },
                 )
             )
         }

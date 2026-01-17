@@ -23,7 +23,7 @@ fun createJsMounts(): List<Map<String, FluoriteValue>> {
         },
         "JS" to FluoriteFunction { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
-            val js = arguments[0].toFluoriteString()
+            val js = arguments[0].toFluoriteString(null)
             convertToFluoriteValue(eval(js.value))
         },
     ).let { listOf(it) }

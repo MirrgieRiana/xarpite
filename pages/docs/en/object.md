@@ -190,3 +190,42 @@ $ xa '
 ```
 
 If the key does not yet exist in that object, it is added anew.
+
+# Deleting Keys from Objects
+
+`object -= key` removes an entry from an object.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "b"
+  object
+'
+# {a:apple;c:cherry}
+```
+
+---
+
+If the key to delete does not exist, nothing happens.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "d"
+  object
+'
+# {a:apple;b:banana;c:cherry}
+```
+
+---
+
+If the right-hand side is a stream, key deletion is performed for each element.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "a", "c"
+  object
+'
+# {b:banana}
+```

@@ -1,13 +1,12 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.IoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
@@ -189,25 +188,27 @@ class CoroutineTest {
     fun launchExceptionStderr() = runTest {
         // LAUNCH内で例外が発生した場合、stderrに出力されることを検証
         val ioContext = TestIoContext()
-        
+
         withEvaluator(ioContext) { context, evaluator ->
             evaluator.defineMounts(context.run { createCommonMounts() })
-            
+
             // 例外を発生させるLAUNCH
-            val result = evaluator.get("""
-                job := LAUNCH ( =>
-                    !!"Error in LAUNCH"
-                )
-                SLEEP()
-                (
-                    job::await()
-                    !!"Should not reach here"
-                ) !? (e => e)
-            """).cache()
-            
+            val result = evaluator.get(
+                """
+                    job := LAUNCH ( =>
+                        !!"Error in LAUNCH"
+                    )
+                    SLEEP()
+                    (
+                        job::await()
+                        !!"Should not reach here"
+                    ) !? (e => e)
+                """
+            ).cache()
+
             // 結果の検証：例外がキャッチされている
             assertEquals("Error in LAUNCH", result.string)
-            
+
             // stderrへの出力を検証
             val stderrOutput = ioContext.stderrBytes.toUtf8String()
             assertTrue(stderrOutput.contains("COROUTINE["), "stderr should contain 'COROUTINE[', but was: $stderrOutput")
