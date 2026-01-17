@@ -100,12 +100,10 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         val value = arguments[1]
                         if (value is FluoriteStream) {
                             value.collect { item ->
-                                val key = item.toFluoriteString().value
-                                obj.map.remove(key)
+                                obj.map.remove(item.toFluoriteString().value)
                             }
                         } else {
-                            val key = value.toFluoriteString().value
-                            obj.map.remove(key)
+                            obj.map.remove(value.toFluoriteString().value)
                         }
                         FluoriteNull
                     },

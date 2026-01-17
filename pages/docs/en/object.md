@@ -210,11 +210,11 @@ If the key to delete does not exist, nothing happens.
 
 ```shell
 $ xa '
-  object := {a: "apple"; b: "banana"}
-  object -= "c"
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "d"
   object
 '
-# {a:apple;b:banana}
+# {a:apple;b:banana;c:cherry}
 ```
 
 ---
