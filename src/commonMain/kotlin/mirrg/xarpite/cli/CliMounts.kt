@@ -122,9 +122,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val processEnv = getEnv().toMutableMap()
-            processEnv.putAll(envOverrides)
-            val output = context.io.executeProcess(process, processArgs, processEnv)
+            val output = context.io.executeProcess(process, processArgs, envOverrides)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
