@@ -213,7 +213,7 @@ $ XARPITE_ENGINE=jvm xa -q '
     OUT << "$lifeGame\n$("--" * +ARGS.0)"
     SLEEP(+ARGS.2)
   )
-' 40 40 200
+' 40 40 0.2
 ```
 
 # [HTML上でテーブルを表示](https://mirrgieriana.github.io/xarpite/playground/?s=eJxdkctOwzAURPf9ilFQJEAkacUK57FAIFGJxwap6yQ2iYWpI8dpEwH%2FjlM3NelufOdo7uh6s359eNuEVJbdF9tqQiqmHwUb9f2wppee7HTTae8qNIKpp%2FeXZ6TwswWQUL4Dp%2BmEoNWDYKlXSEWZCkopRN60jGBSMWrGq1oTrJZLP4bcMfUh5D4YCNpSGSr2xmATfYiyGriwC6DpjdM1vo82sOdU1wS3rI9Ps2nVbGirmf1Nj1YKTlGIvPx0gGa9DnLBq62pbW7A1OT92mLRv2aJzgvXMvFTrBCGuMMPeqSZvdLR1Mo9ztjhjLU8zUaox7Xx%2FSyJzGAWMEuPXLxzbL3o8FWR%2BatskfiLP%2BeugP4%3D&d=53.63)
@@ -253,7 +253,7 @@ by_id("output").innerHTML = %><canvas id="canvas" width="<%= width %>" height="<
 ctx := by_id("canvas")::getContext("2d")
 
 0 .. 10000000 | i => (
-  SLEEP(20)
+  SLEEP(0.02)
   ctx::resetTransform()
   ctx::clearRect(0; 0; 200; 200)
   ctx::translate(100; 100)
