@@ -525,11 +525,11 @@ $ {
 # file
 ```
 
-### `READ`: ファイルから読み込み
+### `READ`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
-`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み込みます。
+`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
 
 改行コードは除去されます。
 
@@ -544,21 +544,21 @@ $ {
 # banana
 ```
 
-### `READB`: ファイルからバイナリデータを読み込み
+### `READB`: バイナリファイルから読み込み
 
 `READB(file: STRING): STREAM<BLOB>`
 
-`file` で指定されたファイルの内容をBLOBとしてすべて読み取るストリームです。
+`file` で指定されたバイナリファイルの内容をBLOBとしてすべて読み取ります。
 
 BLOBは最大8192バイトの長さに分割されます。
 
 ```shell
 $ {
-  echo -en '\x41\x42\x43' > tmp.bin
+  echo -en '\x20\x21\x22' > tmp.bin
   xa 'READB("tmp.bin")'
   rm tmp.bin
 }
-# BLOB.of([65;66;67])
+# BLOB.of([32;33;34])
 ```
 
 ### `USE`: 外部Xarpiteファイルの結果を取得
