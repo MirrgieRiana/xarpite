@@ -214,9 +214,11 @@ $ xa 'REVERSE(1 .. 3)'
 
 Returns a stream with the elements of `stream` randomly rearranged.
 
-## `DISTINCT` Remove Duplicate Elements from Stream
+## `DISTINCT` / `UNIQ` Remove Duplicate Elements from Stream
 
 Returns a stream with duplicate elements removed.
+
+`UNIQ` is an alias of `DISTINCT` and has the same behavior.
 
 `DISTINCT` can be called in 2 ways.
 

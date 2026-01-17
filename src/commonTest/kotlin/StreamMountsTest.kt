@@ -89,6 +89,8 @@ class StreamMountsTest {
         assertEquals("", eval(", >> DISTINCT").stream()) // 空ストリームの場合、空ストリームになる
 
         assertEquals("13,21,24", eval("13, 21, 24, 33, 31, 34 >> DISTINCT[by: _ -> _ % 10]").stream()) // byでキーを指定して重複を除去できる
+        assertEquals("1,2,3,0", eval("1, 2, 3, 3, 3, 2, 1, 0 >> UNIQ").stream()) // UNIQ は DISTINCT のエイリアス
+        assertEquals("13,21,24", eval("13, 21, 24, 33, 31, 34 >> UNIQ[by: _ -> _ % 10]").stream()) // UNIQ でもby指定できる
     }
 
     @Test
