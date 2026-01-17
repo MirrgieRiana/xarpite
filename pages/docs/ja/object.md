@@ -197,11 +197,11 @@ $ xa '
 
 ```shell
 $ xa '
-  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object := {a: "apple"; b: "banana"}
   object -= "b"
   object
 '
-# {a:apple;c:cherry}
+# {a:apple}
 ```
 
 ---
@@ -210,11 +210,11 @@ $ xa '
 
 ```shell
 $ xa '
-  object := {a: "apple"; b: "banana"; c: "cherry"}
-  object -= "d"
+  object := {a: "apple"; b: "banana"}
+  object -= "c"
   object
 '
-# {a:apple;b:banana;c:cherry}
+# {a:apple;b:banana}
 ```
 
 ---
