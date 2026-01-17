@@ -648,7 +648,7 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
 
