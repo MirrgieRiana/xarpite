@@ -690,6 +690,24 @@ $ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
 # BAR
 ```
 
+空文字列もしくはNULLを指定すると、既存の環境変数を削除できます。
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
+```
+
 ---
 
 呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。
