@@ -36,50 +36,6 @@ import kotlin.coroutines.coroutineContext
 
 context(context: RuntimeContext)
 fun createStreamMounts(): List<Map<String, FluoriteValue>> {
-    val distinctFunction = FluoriteFunction { arguments ->
-        run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
-            if (arguments.size != 1) return@run
-            val stream = arguments[0]
-
-            return@FluoriteFunction if (stream is FluoriteStream) {
-                FluoriteStream {
-                    val set = mutableSetOf<FluoriteValue>()
-                    stream.collect { item ->
-                        if (set.add(item)) emit(item)
-                    }
-                }
-            } else {
-                stream
-            }
-        }
-        run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
-            if (arguments.size != 2) return@run
-            val entry = arguments[0]
-            if (entry !is FluoriteArray) return@run
-            if (entry.values.size != 2) return@run
-            val parameterName = entry.values[0]
-            if (parameterName !is FluoriteString) return@run
-            if (parameterName.value != "by") return@run
-            val keyGetter = entry.values[1]
-            val stream = arguments[1]
-
-            return@FluoriteFunction if (stream is FluoriteStream) {
-                FluoriteStream {
-                    val set = mutableSetOf<FluoriteValue>()
-                    stream.collect { item ->
-                        val key = keyGetter.invoke(null, arrayOf(item))
-                        if (set.add(key)) emit(item)
-                    }
-                }
-            } else {
-                stream
-            }
-        }
-        usage(
-            "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
-            "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
-        )
-    }
     return mapOf(
         "GENERATE" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
@@ -128,8 +84,58 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> SHUFFLE(stream: T,): T,")
             }
         },
-        "DISTINCT" to distinctFunction,
-        "UNIQ" to distinctFunction,
+        *run {
+            fun createDistinctFunction(): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 1) return@run
+                        val stream = arguments[0]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            FluoriteStream {
+                                val set = mutableSetOf<FluoriteValue>()
+                                stream.collect { item ->
+                                    if (set.add(item)) emit(item)
+                                }
+                            }
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val entry = arguments[0]
+                        if (entry !is FluoriteArray) return@run
+                        if (entry.values.size != 2) return@run
+                        val parameterName = entry.values[0]
+                        if (parameterName !is FluoriteString) return@run
+                        if (parameterName.value != "by") return@run
+                        val keyGetter = entry.values[1]
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            FluoriteStream {
+                                val set = mutableSetOf<FluoriteValue>()
+                                stream.collect { item ->
+                                    val key = keyGetter.invoke(null, arrayOf(item))
+                                    if (set.add(key)) emit(item)
+                                }
+                            }
+                        } else {
+                            stream
+                        }
+                    }
+                    usage(
+                        "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                    )
+                }
+            }
+            arrayOf(
+                "DISTINCT" to createDistinctFunction(),
+                "UNIQ" to createDistinctFunction(),
+            )
+        },
         "JOIN" to FluoriteFunction { arguments ->
             val separator: String
             val stream: FluoriteValue
