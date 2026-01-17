@@ -87,23 +87,13 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         },
         "EXEC" to FluoriteFunction { arguments ->
             fun execUsage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
-            fun validateEnvironmentVariable(key: String, value: String) {
-                if (key.isEmpty() || key.contains('=') || key.contains('\u0000') || key.contains('\n') || key.contains('\r')) {
-                    throw FluoriteException("EXEC env keys must not be empty or contain '=', null, or newline characters".toFluoriteString())
-                }
-                if (value.contains('\u0000') || value.contains('\n') || value.contains('\r')) {
-                    throw FluoriteException("EXEC env values must not contain null or newline characters".toFluoriteString())
-                }
-            }
             suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String> {
                 val envEntry = argument as? FluoriteArray ?: execUsage()
                 if (envEntry.values.size != 2) execUsage()
                 val envKey = envEntry.values[0] as? FluoriteString ?: execUsage()
                 if (envKey.value != "env") execUsage()
                 val envObject = envEntry.values[1] as? FluoriteObject ?: execUsage()
-                val overrides = envObject.map.mapValues { it.value.toFluoriteString(null).value }
-                overrides.forEach { (key, value) -> validateEnvironmentVariable(key, value) }
-                return overrides
+                return envObject.map.mapValues { it.value.toFluoriteString(null).value }
             }
             val (commandArg, envOverrides) = when (arguments.size) {
                 1 -> Pair(arguments[0], emptyMap())
