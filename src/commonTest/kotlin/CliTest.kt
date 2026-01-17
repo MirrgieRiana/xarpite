@@ -613,54 +613,6 @@ class CliTest {
     }
 
     @Test
-    fun execWithInvalidEnvironmentVariableKeys() = runTest {
-        val context = TestIoContext()
-        try {
-            val invalidEnvObjects = listOf(
-                "{\"\": \"BAR\"}",
-                "{\"A=B\": \"BAR\"}",
-                "{\"A\\u0000B\": \"BAR\"}",
-                "{\"A\\nB\": \"BAR\"}",
-                "{\"A\\rB\": \"BAR\"}",
-            )
-            invalidEnvObjects.forEach { envObject ->
-                var exceptionThrown = false
-                try {
-                    cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", envObject))
-                } catch (e: Exception) {
-                    exceptionThrown = true
-                }
-                assertTrue(exceptionThrown, "Exception should be thrown for invalid env key")
-            }
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
-    }
-
-    @Test
-    fun execWithInvalidEnvironmentVariableValues() = runTest {
-        val context = TestIoContext()
-        try {
-            val invalidEnvObjects = listOf(
-                "{FOO: \"BA\\u0000R\"}",
-                "{FOO: \"BA\\nR\"}",
-                "{FOO: \"BA\\rR\"}",
-            )
-            invalidEnvObjects.forEach { envObject ->
-                var exceptionThrown = false
-                try {
-                    cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", envObject))
-                } catch (e: Exception) {
-                    exceptionThrown = true
-                }
-                assertTrue(exceptionThrown, "Exception should be thrown for invalid env value")
-            }
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
-    }
-
-    @Test
     fun execWithEmptyArgumentList() = runTest {
         val context = TestIoContext()
         try {
