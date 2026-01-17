@@ -87,8 +87,8 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                         val byteArray = ByteArray(INB_MAX_BUFFER_SIZE)
                         val readSize = read(byteArray)
                         if (readSize == -1) break
-                        val bytes = if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
-                        emit(bytes.asFluoriteBlob())
+                        val byteArray2 = if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
+                        emit(byteArray2.asFluoriteBlob())
                     }
                 }
             }
