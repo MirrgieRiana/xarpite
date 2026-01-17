@@ -70,17 +70,6 @@ private fun WIFSIGNALED(status: Int): Boolean {
 
 private fun WTERMSIG(status: Int): Int = (status and 0x7f)
 
-private fun validateEnvironmentVariables(env: Map<String, String?>) {
-    env.forEach { (key, value) ->
-        if (key.isEmpty() || key.contains('=') || key.contains('\u0000') || key.contains('\n') || key.contains('\r')) {
-            throw FluoriteException("EXEC env keys must not be empty or contain '=', null, or newline characters".toFluoriteString())
-        }
-        if (value != null && (value.contains('\u0000') || value.contains('\n') || value.contains('\r'))) {
-            throw FluoriteException("EXEC env values must not contain null or newline characters".toFluoriteString())
-        }
-    }
-}
-
 // CPointer<ByteVar>からByteArrayを作成するヘルパー関数
 @OptIn(ExperimentalForeignApi::class)
 private fun CPointer<ByteVar>.copyToByteArray(size: Int): ByteArray {
@@ -113,7 +102,6 @@ private fun setNonBlocking(fd: Int, name: String) {
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
-        validateEnvironmentVariables(env)
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
