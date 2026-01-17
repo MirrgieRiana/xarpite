@@ -18,7 +18,6 @@ check rsync
 check readlink
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
-CLASSIFIER_FILE="$(pwd)/classifier"
 
 
 # Determine the downloading version
@@ -44,19 +43,12 @@ echo
 
 # Download and extract
 
-if [ -f "$CLASSIFIER_FILE" ]
-then
-  classifier="$(tr -d '\r\n' < "$CLASSIFIER_FILE")"
-else
-  classifier="all"
-fi
-[ -z "$classifier" ] && error "Error: Failed to determine classifier."
-case "$classifier" in
-  all|linux-x86_64) ;;
-  *) error "Error: Unsupported classifier: $classifier" ;;
-esac
+CLASSIFIER_FILE="$(pwd)/classifier"
+[ -f "$CLASSIFIER_FILE" ] || error "Error: classifier file not found: $CLASSIFIER_FILE"
+CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
+[ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
 
-file="xarpite-bin-$version-$classifier.tar.gz"
+file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
 dir=".tmp"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 

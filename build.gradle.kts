@@ -106,7 +106,6 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
     from("release") {
-        exclude("gitignore")
         eachFile {
             if (relativePath.pathString == "xarpite") {
                 permissions {
@@ -128,7 +127,8 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
         versionFile.writeText(project.version.toString() + "\n")
         val classifierFile = destinationDir.resolve("classifier")
         classifierFile.writeText("all\n")
-        destinationDir.resolve(".gitignore").delete()
+        val defaultEngineFile = destinationDir.resolve("default_engine")
+        defaultEngineFile.writeText("native\n")
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
@@ -137,7 +137,6 @@ val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") 
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinLinuxX64"))
     from("release") {
-        exclude("gitignore")
         eachFile {
             if (relativePath.pathString == "xarpite") {
                 permissions {
@@ -156,7 +155,8 @@ val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") 
         versionFile.writeText(project.version.toString() + "\n")
         val classifierFile = destinationDir.resolve("classifier")
         classifierFile.writeText("linux-x86_64\n")
-        destinationDir.resolve(".gitignore").delete()
+        val defaultEngineFile = destinationDir.resolve("default_engine")
+        defaultEngineFile.writeText("native\n")
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinLinuxX64) }
