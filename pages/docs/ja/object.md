@@ -191,17 +191,17 @@ $ xa '
 
 キーがそのオブジェクトにまだ存在しない場合は新たに追加されます。
 
-## オブジェクトのキーの削除
+# オブジェクトのキーの削除
 
-`object -= key` でオブジェクトからキーを削除できます。
+`object -= key` でオブジェクトからエントリーを削除できます。
 
 ```shell
 $ xa '
-  object := {a: "apple"; b: "banana"}
+  object := {a: "apple"; b: "banana"; c: "cherry"}
   object -= "b"
   object
 '
-# {a:apple}
+# {a:apple;c:cherry}
 ```
 
 ---
@@ -210,11 +210,11 @@ $ xa '
 
 ```shell
 $ xa '
-  object := {a: "apple"; b: "banana"}
-  object -= "c"
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "d"
   object
 '
-# {a:apple;b:banana}
+# {a:apple;b:banana;c:cherry}
 ```
 
 ---
