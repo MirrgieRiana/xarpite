@@ -50,15 +50,15 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
 
             1 -> {
                 val seconds = arguments[0] as FluoriteNumber
-                val durationMillisDouble = seconds.toDouble() * 1000.0
-                if (!durationMillisDouble.isFinite() || durationMillisDouble < 0 || durationMillisDouble > Long.MAX_VALUE.toDouble()) {
+                val durationMillisecondsDouble = seconds.toDouble() * 1000.0
+                if (!durationMillisecondsDouble.isFinite() || durationMillisecondsDouble < 0 || durationMillisecondsDouble > Long.MAX_VALUE.toDouble()) {
                     usage("SLEEP([seconds: NUMBER]): NULL")
                 }
-                val durationMillis = durationMillisDouble.roundToLong()
-                if (durationMillis == 0L) {
+                val durationMilliseconds = durationMillisecondsDouble.roundToLong()
+                if (durationMilliseconds == 0L) {
                     yield()
                 } else {
-                    delay(durationMillis)
+                    delay(durationMilliseconds)
                 }
             }
 
