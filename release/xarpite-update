@@ -43,7 +43,12 @@ echo
 
 # Download and extract
 
-file="xarpite-bin-$version-all.tar.gz"
+CLASSIFIER_FILE="$(pwd)/classifier"
+[ -f "$CLASSIFIER_FILE" ] || error "Error: classifier file not found: $CLASSIFIER_FILE"
+CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
+[ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
+
+file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
 dir=".tmp"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
