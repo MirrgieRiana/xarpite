@@ -217,9 +217,8 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                     mergedEnv[key] = value
                 }
             }
-            val cstrEnv = mergedEnv.map { "${it.key}=${it.value}".cstr }
             val envp = allocArrayOf(
-                *cstrEnv.map { it.ptr }.toTypedArray(),
+                *mergedEnv.map { "${it.key}=${it.value}".cstr.ptr }.toTypedArray(),
                 null
             )
 
