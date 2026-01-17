@@ -85,7 +85,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createDistinctFunction(): FluoriteFunction {
+            fun createDistinctFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 1) return@run
@@ -126,14 +126,14 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                         }
                     }
                     usage(
-                        "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
-                        "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
                     )
                 }
             }
             arrayOf(
-                "DISTINCT" to createDistinctFunction(),
-                "UNIQ" to createDistinctFunction(),
+                "DISTINCT" to createDistinctFunction("DISTINCT"),
+                "UNIQ" to createDistinctFunction("UNIQ"),
             )
         },
         "JOIN" to FluoriteFunction { arguments ->
