@@ -86,19 +86,19 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            fun execUsage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
+            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>]): STREAM<STRING>")
             suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String> {
-                val envEntry = argument as? FluoriteArray ?: execUsage()
-                if (envEntry.values.size != 2) execUsage()
-                val envKey = envEntry.values[0] as? FluoriteString ?: execUsage()
-                if (envKey.value != "env") execUsage()
-                val envObject = envEntry.values[1] as? FluoriteObject ?: execUsage()
+                val envEntry = argument as? FluoriteArray ?: usage()
+                if (envEntry.values.size != 2) usage()
+                val envKey = envEntry.values[0] as? FluoriteString ?: usage()
+                if (envKey.value != "env") usage()
+                val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
                 return envObject.map.mapValues { it.value.toFluoriteString(null).value }
             }
-            val (commandArg, envOverrides) = when (arguments.size) {
+            val (commandArg, env) = when (arguments.size) {
                 1 -> Pair(arguments[0], emptyMap())
                 2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
-                else -> execUsage()
+                else -> usage()
             }
             val commandList = if (commandArg is FluoriteStream) {
                 commandArg.toMutableList().map { it.toFluoriteString(null).value }
@@ -112,7 +112,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, envOverrides)
+            val output = context.io.executeProcess(process, processArgs, env)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
