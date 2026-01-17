@@ -544,6 +544,23 @@ $ {
 # banana
 ```
 
+### `READB`: ファイルからバイナリデータを読み込み
+
+`READB(file: STRING): STREAM<BLOB>`
+
+`file` で指定されたファイルの内容をBLOBとしてすべて読み取るストリームです。
+
+BLOBは最大8192バイトの長さに分割されます。
+
+```shell
+$ {
+  echo -en '\x41\x42\x43' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
+}
+# BLOB.of([65;66;67])
+```
+
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
 `USE(file: STRING): VALUE`

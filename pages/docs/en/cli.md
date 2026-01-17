@@ -534,6 +534,23 @@ $ {
 # banana
 ```
 
+### `READB`: Read Binary Data from File
+
+`READB(file: STRING): STREAM<BLOB>`
+
+A stream that reads all contents from the file specified by `file` as BLOBs.
+
+BLOBs are split into lengths of up to 8192 bytes.
+
+```shell
+$ {
+  echo -en '\x41\x42\x43' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
+}
+# BLOB.of([65;66;67])
+```
+
 ### `USE`: Get Result of External Xarpite File
 
 `USE(file: STRING): VALUE`
