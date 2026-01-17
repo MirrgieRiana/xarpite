@@ -105,15 +105,7 @@ tasks.named("build").configure { dependsOn(bundlePages) }
 val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
-    from("release") {
-        eachFile {
-            if (relativePath.pathString == "xarpite") {
-                permissions {
-                    unix("rwxr-xr-x")
-                }
-            }
-        }
-    }
+    from("release")
     from("LICENSE")
     from("pages/docs/en") { into("docs") }
     from(releaseExecutable.linkTaskProvider) {
@@ -136,15 +128,7 @@ tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
 val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinLinuxX64"))
-    from("release") {
-        eachFile {
-            if (relativePath.pathString == "xarpite") {
-                permissions {
-                    unix("rwxr-xr-x")
-                }
-            }
-        }
-    }
+    from("release")
     from("LICENSE")
     from(releaseExecutable.linkTaskProvider) {
         into("bin/native")
