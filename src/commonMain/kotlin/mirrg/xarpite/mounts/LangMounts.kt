@@ -23,6 +23,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.copy
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.math.roundToLong
 
 private var nextCoroutineId = 1
 
@@ -49,7 +50,11 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
 
             1 -> {
                 val seconds = arguments[0] as FluoriteNumber
-                val millis = (seconds.toDouble() * 1000).toLong()
+                val millisDouble = seconds.toDouble() * 1000.0
+                if (!millisDouble.isFinite() || millisDouble < 0 || millisDouble > Long.MAX_VALUE.toDouble()) {
+                    usage("SLEEP([seconds: NUMBER]): NULL")
+                }
+                val millis = millisDouble.roundToLong()
                 if (millis == 0L) {
                     yield()
                 } else {
