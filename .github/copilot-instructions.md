@@ -45,7 +45,7 @@ Whenever you edit any text in this repository, you must first look for structura
 
 To ensure steady progress, you must:
 
-- **Commit at least once every five minutes.**
+- **COMMIT and PUSH the git commits you contributed at least once every five minutes.**
 - Divide your work into short steps based on this frequency.
 - Each commit should represent a meaningful chunk of work.
 - These are not orders that interrupt the execution in the middle of your task.
