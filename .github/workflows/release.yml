@@ -62,9 +62,7 @@ jobs:
           ./gradlew \
             clean \
             build \
-            bundlePages \
-            bundleXarpiteBinAll \
-            publishXarpiteBinAllPublicationToSonatypeRepository \
+            publishXarpiteBinPublicationToSonatypeRepository \
             closeAndReleaseSonatypeStagingRepository \
             --stacktrace
 
