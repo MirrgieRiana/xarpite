@@ -35,6 +35,7 @@ suspend fun main() {
     }
     fileSystemGetter = { NodeJsFileSystem }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
+    readCharFromStdinImpl = { readCharFromStdinIterator.receiveCatching().getOrNull() }
     readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
     writeBytesToStdoutImpl = { bytes ->
         val uint8Array = js("new Uint8Array(bytes.length)")
@@ -126,6 +127,21 @@ val readLineFromStdinIterator: ReceiveChannel<String> by lazy {
                     index = lineEnd + 1
                     afterR = string[lineEnd] == '\r'
                 }
+            }
+        }
+    }.produceIn(scope)
+}
+
+val readCharFromStdinIterator: ReceiveChannel<String> by lazy {
+    flow {
+        process.stdin.setEncoding("utf8")
+        val stringIterator = js("(function(x) { return x[Symbol.asyncIterator](); })")(process.stdin)
+        while (true) {
+            val result = stringIterator.next().unsafeCast<Promise<dynamic>>().await()
+            if (result.done) break
+            val string = result.value.unsafeCast<String>()
+            for (char in string) {
+                emit(char.toString())
             }
         }
     }.produceIn(scope)
