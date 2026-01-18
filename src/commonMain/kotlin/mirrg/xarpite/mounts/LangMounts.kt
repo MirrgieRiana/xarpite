@@ -102,9 +102,8 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
                 FluoriteNull
             }
         }
-        val outFunction = create()
-        mounts["OUT"] = outFunction
-        mounts["O"] = outFunction
+        mounts["OUT"] = create()
+        mounts["O"] = create()
     }
     run {
         fun create(signature: String): FluoriteValue {
