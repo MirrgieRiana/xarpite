@@ -8,7 +8,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
-import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 
 context(context: RuntimeContext)
