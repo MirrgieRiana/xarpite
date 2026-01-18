@@ -137,4 +137,12 @@ class VariableTest {
         """.let { assertEquals("[6;6;1]", eval(it).array()) }
     }
 
+    @Test
+    fun underscorePrefixedIdentifier() = runTest {
+        // _で始まる識別子は数値リテラルではなく識別子として解釈される
+        assertEquals(456, eval("_123 := 456; _123").int)
+        assertEquals(789, eval("_abc := 789; _abc").int)
+        assertEquals(100, eval("_ := 100; _").int)
+    }
+
 }

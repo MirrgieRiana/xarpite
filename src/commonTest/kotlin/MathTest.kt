@@ -101,4 +101,31 @@ class MathTest {
         }
     }
 
+    @Test
+    fun numericSeparator() = runTest {
+        // 整数リテラル
+        assertEquals(1000000, eval("1_000_000").int)
+        assertEquals(123, eval("1_2_3").int)
+        assertEquals(1234, eval("1_234").int)
+
+        // 16進整数リテラル
+        assertEquals(0xFFFFFF, eval("H#FF_FF_FF").int)
+        assertEquals(0xFF, eval("H#F_F").int)
+        assertEquals(0xABCD, eval("H#AB_CD").int)
+
+        // 浮動小数点数リテラル
+        assertEquals(1234.56789, eval("1_234.567_89").double, 0.000001)
+        assertEquals(1000.5, eval("1_000.5").double, 0.000001)
+        assertEquals(3.14159, eval("3.1_4_1_5_9").double, 0.000001)
+
+        // 単項マイナス演算子との組み合わせ
+        assertEquals(-1000000, eval("-1_000_000").int)
+        assertEquals(-0xFFFFFF, eval("-H#FF_FF_FF").int)
+        assertEquals(-1234.56789, eval("-1_234.567_89").double, 0.000001)
+
+        // 演算での使用
+        assertEquals(2000000, eval("1_000_000 + 1_000_000").int)
+        assertEquals(1000, eval("1_000_000 / 1_000").int)
+    }
+
 }

@@ -60,6 +60,28 @@ $ xa '00123'
 # 123
 ```
 
+---
+
+You can write any number of `_` after digits.
+
+`_` are ignored and do not affect the numeric value.
+
+```shell
+$ xa '1_000_000'
+# 1000000
+```
+
+---
+
+`_` can only be written after digits.
+
+If you write `_` at the beginning of a numeric literal, it will be interpreted as an identifier.
+
+```shell
+$ xa '_123 := 456; _123'
+# 456
+```
+
 ### `H#123abc`: Hexadecimal Integer Literal
 
 You can write hexadecimal numbers following `H#`.
@@ -71,6 +93,15 @@ $ xa 'H#FF'
 # 255
 ```
 
+---
+
+You can also write `_` after digits in the hexadecimal part.
+
+```shell
+$ xa 'H#FF_FF_FF'
+# 16777215
+```
+
 ### `1.23`: Floating-Point Number Literal
 
 You can write real numbers in the form "integer part `.` decimal part".
@@ -80,6 +111,17 @@ Representation and operations with real numbers involve rounding errors.
 ```shell
 $ xa '1.5'
 # 1.5
+```
+
+---
+
+You can also write `_` after digits in floating-point number literals.
+
+It can be used in both the integer part and the decimal part.
+
+```shell
+$ xa '1_234.567_89'
+# 1234.56789
 ```
 
 ## Numeric Conversion
