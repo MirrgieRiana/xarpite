@@ -17,6 +17,11 @@ actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
 
 actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
+actual suspend fun readCharFromStdin(): String? = withContext(Dispatchers.IO) {
+    val char = System.`in`.read()
+    if (char == -1) null else char.toChar().toString()
+}
+
 actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     val byteArray = ByteArray(INB_MAX_BUFFER_SIZE)
     val readSize = System.`in`.read(byteArray)

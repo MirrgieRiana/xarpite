@@ -53,6 +53,22 @@ actual fun hasFreeze() = true
 actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
+actual suspend fun readCharFromStdin(): String? = withContext(Dispatchers.IO) {
+    memScoped {
+        val buffer = allocArray<ByteVar>(1)
+        set_posix_errno(0)
+        val readSize = fread(buffer, 1u, 1u, stdin)
+        if (ferror(stdin) != 0) {
+            val e = errno
+            val msg = strerror(e)?.toKString()
+            clearerr(stdin)
+            throw IllegalStateException("fread(stdin) failed: errno=$e${if (msg.isNullOrBlank()) "" else " $msg"}")
+        }
+        if (readSize == 0uL) null else buffer[0].toInt().toChar().toString()
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
 actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)

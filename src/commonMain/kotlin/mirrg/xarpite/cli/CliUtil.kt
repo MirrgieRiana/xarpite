@@ -144,6 +144,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
         override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
         override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
+        override suspend fun readCharFromStdin() = mirrg.xarpite.readCharFromStdin()
         override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
         override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
         override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
