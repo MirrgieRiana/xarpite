@@ -150,7 +150,7 @@ When the left-hand side is a stream, `value =~ regex` is applied to each element
 `STREAM =~ REGEX` behaves almost the same as `STREAM | _ =~ REGEX`.
 
 ```shell
-$ xa ' 1, 2, 3 =~ /\d/ | _.0 '
+$ xa ' 1, 2, 3 | _ =~ /\d/ | _.0 '
 # 1
 # 2
 # 3
