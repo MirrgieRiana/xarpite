@@ -28,11 +28,17 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
-        "IN" to FluoriteStream {
-            while (true) {
-                val line = context.io.readLineFromStdin() ?: break
-                emit(line.toFluoriteString())
+        *run {
+            val inStream = FluoriteStream {
+                while (true) {
+                    val line = context.io.readLineFromStdin() ?: break
+                    emit(line.toFluoriteString())
+                }
             }
+            arrayOf(
+                "IN" to inStream,
+                "I" to inStream,
+            )
         },
         "INB" to FluoriteStream {
             while (true) {
