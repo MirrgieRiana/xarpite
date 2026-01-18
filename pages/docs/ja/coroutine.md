@@ -114,7 +114,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
   )
   LOOP | i, _ => (
     stop::isCompleted() && break!!
-    SLEEP << 100
+    SLEEP << 0.1
   ) !: break
   OUT << "Stopped!"
 '
@@ -173,13 +173,13 @@ $ xa '
 
 ## `SLEEP`: 指定時間の間処理を停止
 
-`SLEEP([milliseconds: NUMBER]): NULL`
+`SLEEP([seconds: NUMBER]): NULL`
 
-`milliseconds` だけ処理を停止します。
+`seconds` だけ処理を停止します。
 
 この関数はスレッドをブロッキングせず、関数をサスペンドします。
 
-`milliseconds` が0もしくは省略された場合、関数を一度サスペンドし、即復帰します。
+`seconds` が0もしくは省略された場合、関数を一度サスペンドし、即復帰します。
 
 ---
 
@@ -187,7 +187,7 @@ $ xa '
 
 ```shell
 $ xa '
-  SLEEP(1000)
+  SLEEP(1)
   "Hello, world!"
 '
 # Hello, world!
