@@ -3,6 +3,7 @@ package mirrg.xarpite.compilers.objects
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.toFluoriteIntAsCompared
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 interface FluoriteNumber : FluoriteValue {
@@ -19,6 +20,14 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteInt },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteInt).value != 0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                        val number = arguments[0] as FluoriteInt
+                        if (number.value == Int.MIN_VALUE) {
+                            FluoriteDouble(abs(number.value.toDouble()))
+                        } else {
+                            FluoriteInt(abs(number.value))
+                        }
+                    },
                     OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
@@ -66,6 +75,10 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteDouble },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                        val number = arguments[0] as FluoriteDouble
+                        FluoriteDouble(abs(number.value))
+                    },
                     OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
