@@ -121,9 +121,12 @@ class XarpiteGrammar(val location: String) {
     )
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
     val emptyRegex: Parser<Node> = (-'/').result * -'/' * identifier.optional mapEx { _, result ->
-        throw UnmatchedInputParseException("Empty regex pattern is not allowed. Use /(?:)/ instead.", result.start)
+        throw UnmatchedInputParseException("Empty regex pattern is not allowed. To match an empty string, use /(?:)/.", result.start)
     }
-    val regex: Parser<Node> = emptyRegex + (-'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) })
+    val regex: Parser<Node> = or(
+        emptyRegex,
+        -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) },
+    )
 
     val arrowRound: Parser<Node> = (-'(').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
     val arrowSquare: Parser<Node> = (-'[').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
