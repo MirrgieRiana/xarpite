@@ -26,6 +26,8 @@ val INB_MAX_BUFFER_SIZE = 8192
 context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
+        "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
+        "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         *run {
             val inStream = FluoriteStream {
                 while (true) {
@@ -34,8 +36,6 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
-                "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
                 "IN" to inStream,
                 "I" to inStream,
             )
