@@ -145,7 +145,7 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` 文字列をストリームに分割
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: STRING; ][limit: limit: INT; ]string: STRING): STREAM<STRING>`
 
 第2引数の文字列を第1引数のセパレータで分割し、各部分をストリームとして返します。第1引数を省略した場合は `,` が使用されます。
 
@@ -178,6 +178,28 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
+```
+
+---
+
+`limit` パラメータを指定することで、分割の最大数を制限できます。
+
+`limit` パラメータは名前付き引数として、引数列のどの位置にも配置できます。
+
+`limit` が指定された場合、最大で `limit` 個の要素に分割され、 `limit` 個目の要素には残りの文字列全体が含まれます。
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+
+$ xa 'SPLIT(limit: 2; "|"; "a|b|c|d")'
+# a
+# b|c|d
+
+$ xa 'SPLIT(limit: 2; "a,b,c,d")'
+# a
+# b,c,d
 ```
 
 ## `KEYS` オブジェクトのキーのストリームを取得
