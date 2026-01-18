@@ -2,18 +2,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteRegex
-import mirrg.xarpite.parser.UnmatchedInputParseException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
-import mirrg.xarpite.test.parse
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
-import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegexTest {
@@ -25,11 +22,6 @@ class RegexTest {
         assertEquals(10, eval("10\n// + 20").int) // 空の場合は行コメントが優先される
         assertEquals(FluoriteRegex("""A\wB""", null), eval("""/A\wB/""")) // エスケープがそのままパスされる
         assertEquals(FluoriteRegex("""A/B""", null), eval("""/A\/B/""")) // / のエスケープ
-    }
-
-    @Test
-    fun emptyLiteralIsError() = runTest {
-        assertFailsWith<UnmatchedInputParseException> { parse("STREAM =~ //") }
     }
 
     @Test

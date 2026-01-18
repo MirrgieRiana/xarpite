@@ -50,9 +50,9 @@ You can generally describe regular expressions in their raw form.
 
 ### Prohibition of Empty Patterns
 
-Leaving the `pattern` empty results in a syntax error. Writing `//` is never treated as a regular expression literal; it becomes a line comment or a syntax error instead.
+The `pattern` cannot be empty, and `//` is treated as a line comment.
 
-If you need to match an empty string, write an equivalent alternative regular expression like `/(?:)/`.
+Instead, write an equivalent alternative regular expression like `/(?:)/`.
 
 ### Flags
 
