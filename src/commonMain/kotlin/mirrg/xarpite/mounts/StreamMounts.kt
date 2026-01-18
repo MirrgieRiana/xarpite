@@ -170,27 +170,57 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "SPLIT" to FluoriteFunction { arguments ->
+            // まず引数列を先頭からforEachして、limitパラメータと非名前付き引数を分離
+            var limit: Int? = null
+            val nonNamedArguments = mutableListOf<FluoriteValue>()
+            
+            arguments.forEach { arg ->
+                if (arg is FluoriteArray && arg.values.size == 2) {
+                    val parameterName = arg.values[0]
+                    if (parameterName is FluoriteString && parameterName.value == "limit") {
+                        if (limit != null) {
+                            throw FluoriteException("limit parameter specified multiple times".toFluoriteString())
+                        }
+                        limit = arg.values[1].toFluoriteNumber(null).roundToInt()
+                    } else {
+                        nonNamedArguments.add(arg)
+                    }
+                } else {
+                    nonNamedArguments.add(arg)
+                }
+            }
+            
+            // その後で名前付き引数が1個の場合と2個の場合で分岐してseparatorとstringを決定
             val separator: String
             val string: FluoriteValue
-            when (arguments.size) {
+            when (nonNamedArguments.size) {
                 2 -> {
-                    separator = arguments[0].toFluoriteString(null).value
-                    string = arguments[1]
+                    separator = nonNamedArguments[0].toFluoriteString(null).value
+                    string = nonNamedArguments[1]
                 }
 
                 1 -> {
                     separator = ","
-                    string = arguments[0]
+                    string = nonNamedArguments[0]
                 }
 
-                else -> usage("SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>")
+                else -> usage("SPLIT([separator: STRING; ][limit: limit: INT; ]string: STRING): STREAM<STRING>")
             }
 
-            if (separator.isEmpty()) {
-                string.toFluoriteString(null).value.map { "$it".toFluoriteString() }.toFluoriteStream()
+            val parts = if (separator.isEmpty()) {
+                string.toFluoriteString(null).value.map { "$it" }
             } else {
-                string.toFluoriteString(null).value.split(separator).map { it.toFluoriteString() }.toFluoriteStream()
+                string.toFluoriteString(null).value.split(separator)
             }
+            
+            // limitが指定されている場合、分割数を制限
+            val result = if (limit != null && limit > 0 && parts.size > limit) {
+                parts.take(limit - 1) + listOf(parts.drop(limit - 1).joinToString(separator))
+            } else {
+                parts
+            }
+            
+            result.map { it.toFluoriteString() }.toFluoriteStream()
         },
         "KEYS" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
