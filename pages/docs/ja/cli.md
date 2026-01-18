@@ -407,7 +407,7 @@ $ echo -n "abc" | xa 'INC'
 改行文字も1文字として読み取られます。
 
 ```shell
-$ { echo "a"; echo "b"; } | xa 'INC | "[\(_)]"'
+$ { echo "a"; echo "b"; } | xa 'INC | x => "[" & x & "]"'
 # [a]
 # [
 # ]

@@ -20,6 +20,7 @@ import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import okio.NodeJsFileSystem
 import mirrg.xarpite.readBytesFromStdinImpl
+import mirrg.xarpite.readCharFromStdinImpl
 import mirrg.xarpite.readLineFromStdinImpl
 import mirrg.xarpite.writeBytesToStderrImpl
 import mirrg.xarpite.writeBytesToStdoutImpl

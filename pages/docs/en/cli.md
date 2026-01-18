@@ -395,7 +395,7 @@ $ echo -n "abc" | xa 'INC'
 Newline characters are also read as single characters.
 
 ```shell
-$ { echo "a"; echo "b"; } | xa 'INC | "[\(_)]"'
+$ { echo "a"; echo "b"; } | xa 'INC | x => "[" & x & "]"'
 # [a]
 # [
 # ]
