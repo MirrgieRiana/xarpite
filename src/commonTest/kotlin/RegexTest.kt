@@ -48,6 +48,14 @@ class RegexTest {
     }
 
     @Test
+    fun match_stream() = runTest {
+        assertEquals(
+            eval(""" ("1", "2", "3" =~ /\d/) | _.0 """).stream(),
+            eval(""" ("1", "2", "3" | _ =~ /\d/) | _.0 """).stream(),
+        )
+    }
+
+    @Test
     fun new() = runTest {
         assertEquals(FluoriteRegex("ABC", null), eval(""" REGEX.new("ABC") """)) // ファクトリ関数
         assertEquals(FluoriteRegex("ABC", "gim"), eval(""" REGEX.new("ABC"; "gim") """)) // フラグ指定版
