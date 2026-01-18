@@ -121,7 +121,7 @@ class XarpiteGrammar(val location: String) {
     )
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
     val emptyRegex: Parser<Node> = (-'/').result * -'/' * identifier.optional mapEx { _, result ->
-        throw UnmatchedInputParseException("Empty regex pattern is not allowed. To match an empty string, use /(?:)/.", result.start)
+        throw UnmatchedInputParseException("Empty regex pattern is not allowed. To match an empty string, use /^$/.", result.start)
     }
     val regex: Parser<Node> = or(
         emptyRegex,
