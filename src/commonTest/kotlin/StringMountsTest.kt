@@ -41,4 +41,40 @@ class StringMountsTest {
         // BOMとUTF8を組み合わせてBOM付きUTF-8を生成できる
         assertEquals("BLOB.of([239;187;191;97;98;99])", eval("BOM + 'abc' >> UTF8 >> TO_STRING").string)
     }
+
+    @Test
+    fun lines() = runTest {
+        // 基本的な改行分割
+        assertEquals("a,b,c", eval("LINES(\"a\\nb\\nc\")").stream())
+        
+        // 末尾に改行がある場合、最後の改行は削除される
+        assertEquals("a,b,c", eval("LINES(\"a\\nb\\nc\\n\")").stream())
+        
+        // 空文字列の場合
+        assertEquals("", eval("LINES(\"\")").stream())
+        
+        // 改行のみの場合
+        assertEquals("", eval("LINES(\"\\n\")").stream())
+        
+        // 複数の改行のみの場合
+        assertEquals(",", eval("LINES(\"\\n\\n\")").stream())
+        
+        // Windows形式の改行（CRLF）
+        assertEquals("a,b,c", eval("LINES(\"a\\r\\nb\\r\\nc\")").stream())
+        
+        // 末尾がCRLFの場合
+        assertEquals("a,b,c", eval("LINES(\"a\\r\\nb\\r\\nc\\r\\n\")").stream())
+        
+        // 旧Mac形式の改行（CR）
+        assertEquals("a,b,c", eval("LINES(\"a\\rb\\rc\")").stream())
+        
+        // 末尾がCRの場合
+        assertEquals("a,b,c", eval("LINES(\"a\\rb\\rc\\r\")").stream())
+        
+        // 混在する改行形式
+        assertEquals("a,b,c,d", eval("LINES(\"a\\nb\\r\\nc\\rd\")").stream())
+        
+        // 空行を含む場合
+        assertEquals("a,,b", eval("LINES(\"a\\n\\nb\")").stream())
+    }
 }
