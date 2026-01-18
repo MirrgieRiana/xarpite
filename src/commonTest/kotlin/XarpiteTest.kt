@@ -869,7 +869,7 @@ class XarpiteTest {
         assertEquals("a,b,c,d", eval(""" SPLIT(limit: 2; "a,b,c,d") """).stream()) // limitパラメータは省略したseparatorとも併用できる
         assertEquals("a,b|c|d", eval(""" SPLIT[limit: 2; "|"]("a|b|c|d") """).stream()) // limitパラメータは部分適用とも併用できる
         assertEquals("a,b,c", eval(""" SPLIT("|"; limit: 10; "a|b|c") """).stream()) // limitが要素数以上の場合は通常通り分割される
-        assertEquals("a", eval(""" SPLIT("|"; limit: 1; "a|b|c") """).stream()) // limit: 1の場合は元の文字列がそのまま返される
+        assertEquals("a|b|c", eval(""" SPLIT("|"; limit: 1; "a|b|c") """).stream()) // limit: 1の場合は元の文字列がそのまま返される
         assertEquals("a,bc", eval(""" SPLIT(""; limit: 2; "abc") """).stream()) // 空セパレータでもlimitを使用できる
         
         // SPLIT limit parameter error cases
