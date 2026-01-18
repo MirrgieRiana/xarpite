@@ -373,57 +373,7 @@ $ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
 
 ---
 
-If `IN` is used even once, `INB` and `INC` cannot be used.
-
-### `INC`: Read Strings Character by Character from Console
-
-`INC: STREAM<STRING>`
-
-A stream that reads strings character by character from standard input.
-
-Each character is returned as a string of length 1.
-
-```shell
-$ echo -n "abc" | xa 'INC'
-# a
-# b
-# c
-```
-
----
-
-Newline characters are also read as single characters.
-
-```shell
-$ { echo "a"; echo "b"; } | xa 'INC | x => "[" & x & "]"'
-# [a]
-# [
-# ]
-# [b]
-# [
-# ]
-```
-
----
-
-Because streams are sequential, even very large iterations can be performed with low memory consumption.
-
----
-
-To read only one character from the console, use the `FIRST` function.
-
-```shell
-$ echo -n "abc" | xa -q '
-  OUT << "1: $(FIRST(INC))"
-  OUT << "2: $(FIRST(INC))"
-'
-# 1: a
-# 2: b
-```
-
----
-
-If `INC` is used even once, `IN` and `INB` cannot be used.
+If `IN` is used even once, `INB` cannot be used.
 
 ### `INB`: Read Byte Data from Console
 
@@ -440,7 +390,7 @@ $ echo -n "abc" | xa 'INB'
 
 ---
 
-If `INB` is used even once, `IN` and `INC` cannot be used.
+If `INB` is used even once, `IN` cannot be used.
 
 ### `OUT`: Output to Console
 
@@ -475,61 +425,6 @@ $ xa -q '
 ---
 
 The `OUT` function itself returns `NULL`.
-
-### `OUTC`: Output Strings Character by Character to Console
-
-`OUTC(value: VALUE): NULL`
-
-Outputs strings character by character to standard output.
-
-This function is often called by the left-execution pipe `<<`.
-
-```shell
-$ xa -q '
-  OUTC("a")
-  OUTC << "b"
-'
-# ab
-```
-
----
-
-When a stream is specified, each element is stringified and output character by character.
-
-```shell
-$ xa -q '
-  OUTC("a", "b", "c")
-'
-# abc
-```
-
----
-
-When a string with a length of 2 or more is specified, the entire string is output at once.
-
-```shell
-$ xa -q '
-  OUTC("abc")
-'
-# abc
-```
-
----
-
-Newlines are not automatically added.
-
-```shell
-$ xa -q '
-  OUTC << "a"
-  OUTC << "b"
-  OUTC << "c"
-'
-# abc
-```
-
----
-
-The `OUTC` function itself returns `NULL`.
 
 ### `OUTB`: Output Byte Data to Console
 

@@ -152,58 +152,6 @@ class CliTest {
     }
 
     @Test
-    fun inc() = runTest {
-        val context = TestIoContext(stdinChars = "abc")
-        assertEquals("a,b,c", cliEval(context, "INC").stream()) // INC で1文字ずつ読み取る
-    }
-
-    @Test
-    fun incEmpty() = runTest {
-        val context = TestIoContext(stdinChars = "")
-        assertEquals("", cliEval(context, "INC").stream()) // 空の入力
-    }
-
-    @Test
-    fun incWithNewline() = runTest {
-        val context = TestIoContext(stdinChars = "a\nb")
-        assertEquals("a,\n,b", cliEval(context, "INC").stream()) // 改行も1文字として読み取る
-    }
-
-    @Test
-    fun incFirst() = runTest {
-        val context = TestIoContext(stdinChars = "abc")
-        assertEquals("a", cliEval(context, "FIRST(INC)").toFluoriteString(null).value) // 最初の1文字だけ読み取る
-    }
-
-    @Test
-    fun outcSingleChar() = runTest {
-        val context = TestIoContext()
-        cliEval(context, """OUTC("a")""")
-        assertEquals("a", context.stdoutBytes.toUtf8String()) // 1文字出力
-    }
-
-    @Test
-    fun outcMultipleChars() = runTest {
-        val context = TestIoContext()
-        cliEval(context, """OUTC("abc")""")
-        assertEquals("abc", context.stdoutBytes.toUtf8String()) // 複数文字を一度に出力
-    }
-
-    @Test
-    fun outcStream() = runTest {
-        val context = TestIoContext()
-        cliEval(context, """OUTC("a", "b", "c")""")
-        assertEquals("abc", context.stdoutBytes.toUtf8String()) // ストリームの各要素を出力
-    }
-
-    @Test
-    fun outcNoNewline() = runTest {
-        val context = TestIoContext()
-        cliEval(context, """OUTC("a"); OUTC("b"); OUTC("c")""")
-        assertEquals("abc", context.stdoutBytes.toUtf8String()) // 改行は自動的に付与されない
-    }
-
-    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -914,12 +862,10 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
 
 internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
-    private val stdinBytes: ByteArray = byteArrayOf(),
-    private val stdinChars: String = ""
+    private val stdinBytes: ByteArray = byteArrayOf()
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
-    private var stdinCharIndex = 0
     val stdoutBytes = TestByteArrayOutputStream()
     val stderrBytes = TestByteArrayOutputStream()
 
@@ -930,14 +876,6 @@ internal class TestIoContext(
     override suspend fun readLineFromStdin(): String? {
         return if (stdinLineIndex < stdinLines.size) {
             stdinLines[stdinLineIndex++]
-        } else {
-            null
-        }
-    }
-
-    override suspend fun readCharFromStdin(): String? {
-        return if (stdinCharIndex < stdinChars.length) {
-            stdinChars[stdinCharIndex++].toString()
         } else {
             null
         }
@@ -969,7 +907,6 @@ internal class TestIoContext(
         stderrBytes.reset()
         stdinLineIndex = 0
         stdinBytesIndex = 0
-        stdinCharIndex = 0
     }
 }
 

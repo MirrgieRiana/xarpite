@@ -23,9 +23,6 @@ actual fun getFileSystem(): Result<FileSystem> {
 var readLineFromStdinImpl: (suspend () -> String?)? = null
 actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()
 
-var readCharFromStdinImpl: (suspend () -> String?)? = null
-actual suspend fun readCharFromStdin(): String? = readCharFromStdinImpl!!()
-
 var readBytesFromStdinImpl: (suspend () -> ByteArray?)? = null
 actual suspend fun readBytesFromStdin(): ByteArray? = readBytesFromStdinImpl!!()
 

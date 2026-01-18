@@ -34,12 +34,6 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 emit(line.toFluoriteString())
             }
         },
-        "INC" to FluoriteStream {
-            while (true) {
-                val char = context.io.readCharFromStdin() ?: break
-                emit(char.toFluoriteString())
-            }
-        },
         "INB" to FluoriteStream {
             while (true) {
                 val bytes = context.io.readBytesFromStdin() ?: break
@@ -54,20 +48,6 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                     }
                 } else {
                     context.io.err(it)
-                }
-            }
-            FluoriteNull
-        },
-        "OUTC" to FluoriteFunction { arguments ->
-            arguments.forEach {
-                if (it is FluoriteStream) {
-                    it.collect { item ->
-                        val str = item.toFluoriteString(null).value
-                        context.io.writeBytesToStdout(str.encodeToByteArray())
-                    }
-                } else {
-                    val str = it.toFluoriteString(null).value
-                    context.io.writeBytesToStdout(str.encodeToByteArray())
                 }
             }
             FluoriteNull
