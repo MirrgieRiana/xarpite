@@ -648,7 +648,7 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
 
@@ -678,6 +678,24 @@ Environment variables are inherited from the calling Xarpite process and then ad
 ```shell
 $ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
 # BAR
+```
+
+You can delete existing environment variables by specifying an empty string or `NULL`.
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
 ```
 
 ---

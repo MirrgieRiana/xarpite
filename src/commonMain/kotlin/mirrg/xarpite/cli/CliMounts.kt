@@ -86,7 +86,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>]): STREAM<STRING>")
+            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
             suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
                 val envEntry = argument as? FluoriteArray ?: usage()
                 if (envEntry.values.size != 2) usage()
