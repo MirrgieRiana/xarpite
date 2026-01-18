@@ -60,6 +60,28 @@ class CliTest {
     }
 
     @Test
+    fun iAndInAreSameInstance() = runTest {
+        val context = TestIoContext()
+        withEvaluator(context) { runtimeContext, evaluator ->
+            evaluator.defineMounts(runtimeContext.run { createCommonMounts() + createCliMounts(emptyList()) })
+            val inValue = evaluator.get("-", "IN")
+            val iValue = evaluator.get("-", "I")
+            assertTrue(inValue === iValue, "IN と I は同じインスタンスである必要があります")
+        }
+    }
+
+    @Test
+    fun oAndOutAreSameInstance() = runTest {
+        val context = TestIoContext()
+        withEvaluator(context) { runtimeContext, evaluator ->
+            evaluator.defineMounts(runtimeContext.run { createCommonMounts() + createCliMounts(emptyList()) })
+            val outValue = evaluator.get("-", "OUT")
+            val oValue = evaluator.get("-", "O")
+            assertTrue(outValue === oValue, "OUT と O は同じインスタンスである必要があります")
+        }
+    }
+
+    @Test
     fun read() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
