@@ -67,28 +67,5 @@ fun createStringMounts(): List<Map<String, FluoriteValue>> {
         )
     }
 
-    FluoriteFunction { arguments ->
-        if (arguments.size == 1) {
-            val string = arguments[0].toFluoriteString(null).value
-            // 改行で分割（CRLF、LF、CRの順でマッチ）
-            val lines = string.split(Regex("\\r\\n|\\n|\\r"))
-            // 最後の改行は削除される：末尾が改行で終わる場合、最後の空文字列を除去
-            val result = if (string.isNotEmpty() && (string.endsWith('\n') || string.endsWith('\r'))) {
-                if (lines.lastOrNull() == "") {
-                    lines.dropLast(1)
-                } else {
-                    lines
-                }
-            } else {
-                lines
-            }
-            result.map { it.toFluoriteString() }.toFluoriteStream()
-        } else {
-            usage("LINES(string: STRING): STREAM<STRING>")
-        }
-    }.also {
-        mounts["LINES"] = it
-    }
-
     return listOf(mounts)
 }
