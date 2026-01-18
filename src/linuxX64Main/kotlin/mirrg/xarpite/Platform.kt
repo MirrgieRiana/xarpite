@@ -10,10 +10,8 @@ import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.plus
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
-import kotlinx.cinterop.set
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import kotlinx.coroutines.Dispatchers
@@ -34,16 +32,15 @@ import platform.posix.EWOULDBLOCK
 import platform.posix.F_GETFL
 import platform.posix.F_SETFL
 import platform.posix.O_NONBLOCK
+import platform.posix.POLLIN
 import platform.posix.SIGKILL
 import platform.posix.STDERR_FILENO
 import platform.posix.STDOUT_FILENO
-import platform.posix.__environ
 import platform.posix.close
 import platform.posix.errno
 import platform.posix.fcntl
 import platform.posix.kill
 import platform.posix.perror
-import platform.posix.POLLIN
 import platform.posix.pid_t
 import platform.posix.pid_tVar
 import platform.posix.pipe
@@ -70,6 +67,7 @@ private fun WIFSIGNALED(status: Int): Boolean {
     val termsig = status and 0x7f
     return termsig != 0 && termsig != 0x7f
 }
+
 private fun WTERMSIG(status: Int): Int = (status and 0x7f)
 
 // CPointer<ByteVar>からByteArrayを作成するヘルパー関数
@@ -102,28 +100,28 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>): String = withContext(Dispatchers.IO) {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
         val stderrPipe = allocArray<IntVar>(2)
-        
+
         if (pipe(stdoutPipe) != 0) {
             throw FluoriteException("Failed to create stdout pipe".toFluoriteString())
         }
-        
+
         if (pipe(stderrPipe) != 0) {
             // stdoutパイプをクリーンアップ
             close(stdoutPipe[0])
             close(stdoutPipe[1])
             throw FluoriteException("Failed to create stderr pipe".toFluoriteString())
         }
-        
+
         // posix_spawn_file_actions_tのメモリを適切なアラインメントで確保
         // alloc<>を使用することで、型に応じた適切なサイズとアラインメントでメモリが確保される
         // ByteVar配列でのメモリ確保とキャストは、アラインメント要件を満たさない可能性がある
         val fileActionsPtr = alloc<posix_spawn_file_actions_t>().ptr
-        
+
         // posix_spawn_file_actionsを初期化
         if (posix_spawn_file_actions_init(fileActionsPtr) != 0) {
             close(stdoutPipe[0])
@@ -132,12 +130,12 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             close(stderrPipe[1])
             throw FluoriteException("Failed to initialize posix_spawn file actions".toFluoriteString())
         }
-        
+
         try {
             // 子プロセスでのファイルディスクリプタ操作を設定
             // これらの操作はposix_spawnp()が子プロセスを起動した直後、
             // 指定されたプログラムを実行する前に実行される
-            
+
             // 子プロセス側で標準出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stdoutPipe[1], STDOUT_FILENO) != 0) {
                 close(stdoutPipe[0])
@@ -146,7 +144,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stderrPipe[1])
                 throw FluoriteException("Failed to add dup2 for stdout".toFluoriteString())
             }
-            
+
             // 子プロセス側で標準エラー出力をパイプの書き込み側にリダイレクト
             if (posix_spawn_file_actions_adddup2(fileActionsPtr, stderrPipe[1], STDERR_FILENO) != 0) {
                 close(stdoutPipe[0])
@@ -155,7 +153,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stderrPipe[1])
                 throw FluoriteException("Failed to add dup2 for stderr".toFluoriteString())
             }
-            
+
             // 子プロセス側で不要になったパイプの読み取り側を閉じる
             // これにより、子プロセスが親プロセスのパイプFDを継承しないようにする
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[0]) != 0) {
@@ -172,7 +170,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stderr read end".toFluoriteString())
             }
-            
+
             // 子プロセス側でパイプの書き込み側も閉じる
             // dup2でSTDOUT_FILENO/STDERR_FILENOにコピーした後は元のFDは不要
             if (posix_spawn_file_actions_addclose(fileActionsPtr, stdoutPipe[1]) != 0) {
@@ -189,7 +187,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
             }
-            
+
             // 引数配列を構築
             // cstrオブジェクトをリストに保持してGCから保護する
             val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
@@ -197,15 +195,29 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 *cstrArgs.map { it.ptr }.toTypedArray(),
                 null  // 配列の終端をnullでマーク（POSIX要件）
             )
-            
+
+            // 環境変数配列を構築
+            val mergedEnv = getEnv().toMutableMap()
+            env.forEach { (key, value) ->
+                if (value.isNullOrEmpty()) {
+                    mergedEnv.remove(key)
+                } else {
+                    mergedEnv[key] = value
+                }
+            }
+            val envp = allocArrayOf(
+                *mergedEnv.map { "${it.key}=${it.value}".cstr.ptr }.toTypedArray(),
+                null
+            )
+
             // posix_spawnpでプロセスを起動
             // posix_spawnpはPATH環境変数を検索してプログラムを見つける（execvpと同等）
             // fork()とは異なり、posix_spawnp()はスレッドセーフであるため、
             // マルチスレッド環境でも安全に使用できる
             // pid_tは環境依存の整数型のため、pid_tVarを使用する
             val pidVar = alloc<pid_tVar>()
-            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, __environ)
-            
+            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, envp)
+
             // posix_spawnp()のエラーチェック
             // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）
             // glibcでは子側のexec失敗時は親に0を返し、終了コード127になる実装のため、
@@ -220,15 +232,15 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 val errorMessage = "Failed to spawn process: $process (error code: $spawnResult${if (msg.isNullOrBlank()) "" else ", $msg"})"
                 throw FluoriteException(errorMessage.toFluoriteString())
             }
-            
+
             // 親プロセス側でパイプの書き込み側を閉じる
             // これにより、子プロセスが終了したときにEOFを正しく検出できる
             // posix_spawnp()成功後にのみクローズする
             close(stdoutPipe[1])
             close(stderrPipe[1])
-            
+
             val pid = pidVar.value
-            
+
             // パイプを非ブロッキングモードに設定してデッドロックを防ぐ
             // 子プロセスが大量のデータを書き込む場合、パイプバッファが満杯になると
             // 子プロセスがブロックし、親プロセスも別のパイプの読み取りでブロックすると
@@ -249,24 +261,24 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                 waitpid(pid, statusPtr.ptr, 0)
                 throw e
             }
-            
+
             try {
                 // 標準出力を読み取る（ByteArray chunk化で効率化）
                 val outputChunks = mutableListOf<ByteArray>()
                 val stdoutBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
-                
+
                 // 標準エラー出力を読み取る（バッファリングでデッドロック回避）
                 val stderrChunks = mutableListOf<ByteArray>()
                 val stderrBuffer = allocArray<ByteVar>(EXEC_MAX_BUFFER_SIZE)
-                
+
                 // 両方のパイプから非ブロッキングで読み取る
                 // これによりデッドロックを防ぎ、stdoutとstderrを並行して処理できる
                 var stdoutClosed = false
                 var stderrClosed = false
-                
+
                 while (!stdoutClosed || !stderrClosed) {
                     var dataRead = false
-                    
+
                     // 標準出力を読み取り
                     if (!stdoutClosed) {
                         val bytesRead = read(stdoutPipe[0], stdoutBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
@@ -276,11 +288,13 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 // ByteArrayの塊として取り込む（1バイトずつList追加するよりも効率的）
                                 outputChunks.add(stdoutBuffer.copyToByteArray(bytesRead.toInt()))
                             }
+
                             bytesRead == 0L -> stdoutClosed = true  // EOF
                             bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
                             bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
                                 // データが利用可能になるまで待つ（非ブロッキング）
                             }
+
                             bytesRead == -1L -> {
                                 // その他のエラー
                                 val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
@@ -288,10 +302,11 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                     "Failed to read from child process stdout: $errorMessage (errno=$errno)".toFluoriteString()
                                 )
                             }
+
                             else -> error("Unexpected read result: $bytesRead")
                         }
                     }
-                    
+
                     // 標準エラー出力を読み取り、Xarpiteのstderrに転送
                     if (!stderrClosed) {
                         val bytesRead = read(stderrPipe[0], stderrBuffer, EXEC_MAX_BUFFER_SIZE.toULong())
@@ -303,20 +318,23 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                                 // write()がブロックし、デッドロックが成立する可能性がある
                                 stderrChunks.add(stderrBuffer.copyToByteArray(bytesRead.toInt()))
                             }
+
                             bytesRead == 0L -> stderrClosed = true  // EOF
                             bytesRead == -1L && errno == EINTR -> {}  // シグナルで中断された場合は再試行
                             bytesRead == -1L && (errno == EAGAIN || errno == EWOULDBLOCK) -> {
                                 // データが利用可能になるまで待つ（非ブロッキング）
                             }
+
                             bytesRead == -1L -> {
                                 // stderrの読み取りエラーは無視
                                 // 標準出力の取得が主目的であり、stderrはデバッグ情報のため
                                 stderrClosed = true
                             }
+
                             else -> stderrClosed = true
                         }
                     }
-                    
+
                     // 両方のパイプにデータがない場合、poll()で読み取り可能待ち
                     // usleepによるポーリングよりもCPUとレイテンシの両面で有利
                     if (!dataRead && (!stdoutClosed || !stderrClosed)) {
@@ -353,7 +371,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         }
                     }
                 }
-                
+
                 // 子プロセスの終了を待つ
                 val statusPtr = alloc<IntVar>()
                 var waitResult: pid_t
@@ -368,14 +386,14 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         usleep(WAITPID_RETRY_SLEEP_MICROS)
                     }
                 } while (waitResult.toLong() == -1L && errno == EINTR)
-                
+
                 if (waitResult.toLong() == -1L) {
                     val errMsg = strerror(errno)?.toKString() ?: "Unknown error"
                     throw FluoriteException("waitpid failed: $errMsg (errno=$errno)".toFluoriteString())
                 }
-                
+
                 val status = statusPtr.value
-                
+
                 // 終了コードをチェック
                 when {
                     WIFEXITED(status) -> {
@@ -388,15 +406,17 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                             throw FluoriteException("Process exited with code $exitCode".toFluoriteString())
                         }
                     }
+
                     WIFSIGNALED(status) -> {
                         val signalNumber = WTERMSIG(status)
                         throw FluoriteException("Process terminated by signal $signalNumber".toFluoriteString())
                     }
+
                     else -> {
                         throw FluoriteException("Process terminated abnormally (status=$status)".toFluoriteString())
                     }
                 }
-                
+
                 // 子プロセスが正常終了した後、バッファリングしたstderrを出力
                 // デッドロック回避のため、子プロセス終了後にまとめて出力する
                 // chunk単位で出力することでO(n^2)の全量連結とtempBufferコピーを回避
@@ -414,7 +434,7 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
                         }
                     }
                 }
-                
+
                 // ByteArrayのchunkを連結して文字列に変換
                 // 事前に総サイズを算出して1回だけByteArrayを確保し、copyIntoで詰めることでO(n^2)を回避
                 val outputSize = outputChunks.sumOf { it.size }

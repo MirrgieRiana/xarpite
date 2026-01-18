@@ -665,7 +665,7 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
 
@@ -684,6 +684,35 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 13
 # 23
 # 30
+```
+
+---
+
+The `env` argument lets you specify environment variables for the process.
+
+Environment variables are inherited from the calling Xarpite process and then added or overwritten.
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
+# BAR
+```
+
+You can delete existing environment variables by specifying an empty string or `NULL`.
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
 ```
 
 ---

@@ -675,7 +675,7 @@ $ {
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
 
@@ -694,6 +694,35 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 13
 # 23
 # 30
+```
+
+---
+
+`env` 引数を指定すると、プロセスの環境変数を指定できます。
+
+環境変数は呼び出したXarpiteプロセスの環境変数を継承した上で追加・上書きされます。
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
+# BAR
+```
+
+空文字列もしくはNULLを指定すると、既存の環境変数を削除できます。
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
 ```
 
 ---

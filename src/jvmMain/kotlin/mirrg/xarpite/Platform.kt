@@ -34,10 +34,18 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatcher
     System.err.flush()
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
+        val environment = processBuilder.environment()
+        env.forEach { (key, value) ->
+            if (value.isNullOrEmpty()) {
+                environment.remove(key)
+            } else {
+                environment[key] = value
+            }
+        }
         val processInstance = processBuilder.start()
 
         try {
