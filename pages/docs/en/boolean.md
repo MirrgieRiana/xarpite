@@ -220,3 +220,17 @@ $ xa '"Orange" ?: "Apple"'
 $ xa 'NULL ?: "Apple"'
 # Apple
 ```
+
+---
+
+When the left operand is a stream, the Elvis operator is applied to each element.
+
+```shell
+$ xa '(1, NULL, 3) ?: "default"'
+# 1
+# default
+# 3
+
+$ xa '(NULL,) ?: "default"'
+# default
+```
