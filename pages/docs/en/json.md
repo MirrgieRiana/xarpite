@@ -29,7 +29,10 @@ The detailed specification is the same as the `JSON` function.
 
 ```shell
 $ xa '$&{a: 1; b: 2}'
-# {"a":1,"b":2}
+# {
+#   "a": 1,
+#   "b": 2
+# }
 ```
 
 When an array or object is specified, internal elements are also recursively converted to JSON.
