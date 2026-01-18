@@ -14,6 +14,15 @@ Xarpite supports handling numeric values.
 
 There are two numeric types: 32-bit integers `INT` and 64-bit floating-point numbers `DOUBLE`.
 
+### Length of Numbers
+
+`$#number` returns the absolute value of a number.
+
+```shell
+$ xa '$#-10'
+# 10
+```
+
 ### Distinction from Strings Representing Numbers
 
 In Xarpite, numbers and strings representing numbers are strictly distinguished, affecting the behavior of operators and functions.
