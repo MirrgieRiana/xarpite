@@ -144,6 +144,18 @@ $ xa -q '
 # NULL
 ```
 
+## Match with a Stream Left-Hand Side
+
+When the left-hand side is a stream, `value =~ regex` is applied to each element and the results are returned as a stream.
+`STREAM =~ REGEX` behaves almost the same as `STREAM | _ =~ REGEX`.
+
+```shell
+$ xa ' 1, 2, 3 =~ /\d/ | _.0 '
+# 1
+# 2
+# 3
+```
+
 ## Global Match
 
 Matching with a regular expression with the `g` flag returns a stream of all match results.
