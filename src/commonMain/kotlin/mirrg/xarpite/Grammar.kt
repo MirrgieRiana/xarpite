@@ -124,8 +124,8 @@ class XarpiteGrammar(val location: String) {
         throw UnmatchedInputParseException("Empty regex pattern is not allowed (even with flags). Use /(?:)/ to match an empty string, or /^$/ if you need to match only the whole string.", result.start)
     }
     val regex: Parser<Node> = or(
-        emptyRegex,
         -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) },
+        emptyRegex,
     )
 
     val arrowRound: Parser<Node> = (-'(').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
