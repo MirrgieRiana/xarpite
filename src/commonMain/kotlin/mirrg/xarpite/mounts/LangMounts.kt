@@ -87,7 +87,7 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         nextCoroutineId++
         promise
     }
-    mounts["OUT"] = FluoriteFunction { arguments ->
+    val outFunction = FluoriteFunction { arguments ->
         arguments.forEach {
             if (it is FluoriteStream) {
                 it.collect { item ->
@@ -99,6 +99,8 @@ fun createLangMounts(): List<Map<String, FluoriteValue>> {
         }
         FluoriteNull
     }
+    mounts["OUT"] = outFunction
+    mounts["O"] = outFunction
     run {
         fun create(signature: String): FluoriteValue {
             return FluoriteFunction { arguments ->

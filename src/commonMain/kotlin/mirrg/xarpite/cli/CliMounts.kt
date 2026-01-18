@@ -25,15 +25,17 @@ val INB_MAX_BUFFER_SIZE = 8192
 
 context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
+    val inStream = FluoriteStream {
+        while (true) {
+            val line = context.io.readLineFromStdin() ?: break
+            emit(line.toFluoriteString())
+        }
+    }
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
-        "IN" to FluoriteStream {
-            while (true) {
-                val line = context.io.readLineFromStdin() ?: break
-                emit(line.toFluoriteString())
-            }
-        },
+        "IN" to inStream,
+        "I" to inStream,
         "INB" to FluoriteStream {
             while (true) {
                 val bytes = context.io.readBytesFromStdin() ?: break
