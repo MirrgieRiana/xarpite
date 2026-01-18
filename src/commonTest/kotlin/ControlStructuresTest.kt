@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
@@ -108,7 +109,27 @@ class ControlStructuresTest {
                     counter
                 )
             )
-            [promise::await()], [promise::await()], [promise::await()], counter
+            promise::await()
+            promise::await()
+            promise::await()
+            counter
+        """.let {
+            val result = eval(it)
+            // ストリームが1度だけ評価され、counterが3になる
+            assertEquals(3, result.int)
+        }
+
+        // TRY ブロックのストリームは、何度awaitしても最初に評価されたときと同じシーケンスを返す
+        """
+            counter := 0
+            promise := TRY ( =>
+                1 .. 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            [promise::await()], [promise::await()];
+            counter
         """.let {
             val result = eval(it)
             // ストリームが1度だけ評価され、counterが3になる
