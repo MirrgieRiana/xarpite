@@ -4,6 +4,7 @@ import mirrg.kotlin.helium.join
 import mirrg.xarpite.parser.ParseResult
 import mirrg.xarpite.parser.Parser
 import mirrg.xarpite.parser.Tuple0
+import mirrg.xarpite.parser.UnmatchedInputParseException
 import mirrg.xarpite.parser.parsers.leftAssociative
 import mirrg.xarpite.parser.parsers.map
 import mirrg.xarpite.parser.parsers.mapEx
@@ -35,6 +36,8 @@ class XarpiteGrammar(val location: String) {
     val br: Parser<Char> = +Regex("""\n|\r\n?""") map { '\n' }
     val s: Parser<Tuple0> = -(+Regex("""[ \t]+""") + lineComment + blockComment).zeroOrMore
     val b: Parser<Tuple0> = s * -(br * s).zeroOrMore
+    val sNoLineComment: Parser<Tuple0> = -(+Regex("""[ \t]+""") + blockComment).zeroOrMore
+    val bNoLineComment: Parser<Tuple0> = sNoLineComment * -(br * sNoLineComment).zeroOrMore
 
 
     // 通常文字　および　\r\n\t以外の制御文字、DEL、すべての2バイト文字、サロゲートペアの片方
@@ -116,8 +119,11 @@ class XarpiteGrammar(val location: String) {
         +Regex("""\\[^/\r\n]""") map { it.value }, // エスケープされた通常文字
         +Regex("""\\(?:\n|\r\n?)""") map { "\n" }, // エスケープされた改行
     )
-    val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
-    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) }
+    val regexContent: Parser<LiteralStringContent> = regexCharacter.zeroOrMore map { LiteralStringContent(it.join("")) }
+    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional mapEx { _, result ->
+        if (result.value.a.string.isEmpty()) throw UnmatchedInputParseException("Empty regex pattern is not allowed. Use /(?:)/ instead.", result.start)
+        RegexNode(result.value.a, result.value.b)
+    }
 
     val arrowRound: Parser<Node> = (-'(').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
     val arrowSquare: Parser<Node> = (-'[').result * -b * (parser { commas } * -b).optional * -"=>" * -b * (parser { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
@@ -202,7 +208,7 @@ class XarpiteGrammar(val location: String) {
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
     val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
-    val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
+    val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -bNoLineComment) { left, operator, right -> operator.value(left, right, operator.position) }
     val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
