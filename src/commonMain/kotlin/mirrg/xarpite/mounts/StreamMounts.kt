@@ -207,14 +207,21 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 else -> usage("SPLIT([separator: STRING; ][limit: limit: INT; ]string: STRING): STREAM<STRING>")
             }
 
+            val stringValue = string.toFluoriteString(null).value
+            
+            // limitが1の場合、元の文字列をそのまま返す
+            if (limit != null && limit == 1) {
+                return@FluoriteFunction listOf(stringValue.toFluoriteString()).toFluoriteStream()
+            }
+            
             val parts = if (separator.isEmpty()) {
-                string.toFluoriteString(null).value.map { "$it" }
+                stringValue.map { "$it" }
             } else {
-                string.toFluoriteString(null).value.split(separator)
+                stringValue.split(separator)
             }
             
             // limitが指定されている場合、分割数を制限
-            val result = if (limit != null && limit > 0 && parts.size > limit) {
+            val result = if (limit != null && limit > 1 && parts.size > limit) {
                 parts.take(limit - 1) + listOf(parts.drop(limit - 1).joinToString(separator))
             } else {
                 parts
