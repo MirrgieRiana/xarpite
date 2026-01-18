@@ -515,11 +515,11 @@ $ {
 # file
 ```
 
-### `READ`: Read from File
+### `READ`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
-Reads the contents of the text file specified by `file` as strings line by line.
+Reads the contents of the text file specified by `file` line by line as strings.
 
 Newline codes are removed.
 
@@ -532,6 +532,23 @@ $ {
 }
 # apple
 # banana
+```
+
+### `READB`: Read from Binary File
+
+`READB(file: STRING): STREAM<BLOB>`
+
+Reads all contents from the binary file specified by `file` as BLOBs.
+
+BLOBs are split into lengths of up to 8192 bytes.
+
+```shell
+$ {
+  echo -en '\x20\x21\x22' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
+}
+# BLOB.of([32;33;34])
 ```
 
 ### `USE`: Get Result of External Xarpite File
@@ -648,7 +665,7 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
 
@@ -667,6 +684,35 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 13
 # 23
 # 30
+```
+
+---
+
+The `env` argument lets you specify environment variables for the process.
+
+Environment variables are inherited from the calling Xarpite process and then added or overwritten.
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
+# BAR
+```
+
+You can delete existing environment variables by specifying an empty string or `NULL`.
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
 ```
 
 ---
