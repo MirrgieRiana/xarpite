@@ -432,6 +432,35 @@ $ xa '
 # abc1
 ```
 
+### Overriding Increment/Decrement
+
+Increment and decrement operators can be overridden with dedicated methods.
+
+| Operator | Method Name | Description |
+|----------|-------------|-------------|
+| `++formula` | `++_` | Prefix increment |
+| `formula++` | `_++` | Postfix increment |
+| `--formula` | `--_` | Prefix decrement |
+| `formula--` | `_--` | Postfix decrement |
+
+By defining these methods on an object, you can customize the behavior of increment/decrement operations.
+
+```shell
+$ xa '
+  obj := {
+    `_++`: this -> this.value * 2
+    value: 100
+  }
+  obj++
+  obj
+'
+# 200
+```
+
+---
+
+If no overridden method exists, the traditional addition/subtraction using the `_+_` and `_-_` methods is performed.
+
 ## Built-in Constants
 
 Numeric built-in constants.
