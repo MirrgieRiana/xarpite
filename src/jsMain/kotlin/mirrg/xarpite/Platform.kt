@@ -1,6 +1,5 @@
 package mirrg.xarpite
 
-import mirrg.xarpite.WorkInProgressError
 import okio.FileSystem
 
 actual fun getProgramName(): String? = null
