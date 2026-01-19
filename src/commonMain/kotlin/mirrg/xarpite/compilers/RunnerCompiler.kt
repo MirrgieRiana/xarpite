@@ -17,6 +17,7 @@ import mirrg.xarpite.defineVariable
 import mirrg.xarpite.mount
 import mirrg.xarpite.operations.AssignmentRunner
 import mirrg.xarpite.operations.DelegatedVariableDefinitionSetter
+import mirrg.xarpite.operations.Getter
 import mirrg.xarpite.operations.GetterRunner
 import mirrg.xarpite.operations.LabelRunner
 import mirrg.xarpite.operations.MountRunner
@@ -34,21 +35,7 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             listOf(AssignmentRunner(setter, getter))
         }
 
-        is InfixColonEqualNode -> when { // 宣言文
-            node.left is IdentifierNode -> {
-                val name = node.left.string
-                val variableIndex = defineVariable(name)
-                listOf(AssignmentRunner(VariableDefinitionSetter(frameIndex, variableIndex), compileToGetter(node.right)))
-            }
-
-            node.left is UnaryBackslashNode && node.left.main is IdentifierNode -> {
-                val name = node.left.main.string
-                val variableIndex = defineVariable(name)
-                listOf(AssignmentRunner(DelegatedVariableDefinitionSetter(frameIndex, variableIndex, node.position), compileToGetter(node.right)))
-            }
-
-            else -> throw IllegalArgumentException("Illegal definition: ${node.left::class} := ${node.right::class}")
-        }
+        is InfixColonEqualNode -> compileToVariablesInitializer(node.left)(compileToGetter(node.right)) // 宣言文
 
         is InfixExclamationQuestionNode -> {
             val (name, rightNode) = if (node.right is InfixEqualGreaterNode) {
@@ -78,5 +65,29 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
         is SemicolonsNode -> node.nodes.flatMap { compileToRunner(it) }
 
         else -> listOf(GetterRunner(compileToGetter(node))) // 式文
+    }
+}
+
+fun Frame.compileToVariablesInitializer(definition: Node): (Getter) -> List<Runner> {
+    return when (definition) {
+        is IdentifierNode -> {
+            val name = definition.string
+            val variableIndex = defineVariable(name)
+            ;
+            { getter ->
+                listOf(AssignmentRunner(VariableDefinitionSetter(frameIndex, variableIndex), getter))
+            }
+        }
+
+        is UnaryBackslashNode if definition.main is IdentifierNode -> {
+            val name = definition.main.string
+            val variableIndex = defineVariable(name)
+            ;
+            { getter ->
+                listOf(AssignmentRunner(DelegatedVariableDefinitionSetter(frameIndex, variableIndex, definition.position), getter))
+            }
+        }
+
+        else -> throw IllegalArgumentException("Illegal variable definition: ${definition::class}")
     }
 }
