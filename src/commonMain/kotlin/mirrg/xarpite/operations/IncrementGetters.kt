@@ -31,21 +31,20 @@ private suspend fun FluoriteValue.getIncrementDecrementMethod(position: Position
 
 class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         
         // まず ++_ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_INCREMENT.methodName)
-        val newValue = if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出す
+        return if (customMethod != null) {
+            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
             customMethod.call(arrayOf())
         } else {
-            // カスタムメソッドが存在しない場合は従来の plus(1) を使用
-            oldValue.plus(position, FluoriteInt.ONE)
+            // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
+            val setterFunction = setter.evaluate(env)
+            val newValue = oldValue.plus(position, FluoriteInt.ONE)
+            setterFunction(newValue)
+            newValue
         }
-        
-        setterFunction(newValue)
-        return newValue
     }
 
     override val code get() = "PrefixIncrementGetter[${getter.code};${setter.code}]"
@@ -53,21 +52,21 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         
         // まず _++ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_INCREMENT.methodName)
-        val newValue = if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出す
+        if (customMethod != null) {
+            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
             customMethod.call(arrayOf())
+            return oldValue
         } else {
-            // カスタムメソッドが存在しない場合は従来の plus(1) を使用
-            oldValue.plus(position, FluoriteInt.ONE)
+            // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
+            val setterFunction = setter.evaluate(env)
+            val newValue = oldValue.plus(position, FluoriteInt.ONE)
+            setterFunction(newValue)
+            return oldValue
         }
-        
-        setterFunction(newValue)
-        return oldValue
     }
 
     override val code get() = "SuffixIncrementGetter[${getter.code};${setter.code}]"
@@ -75,21 +74,20 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
 
 class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         
         // まず --_ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_DECREMENT.methodName)
-        val newValue = if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出す
+        return if (customMethod != null) {
+            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
             customMethod.call(arrayOf())
         } else {
-            // カスタムメソッドが存在しない場合は従来の minus(1) を使用
-            oldValue.minus(position, FluoriteInt.ONE)
+            // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
+            val setterFunction = setter.evaluate(env)
+            val newValue = oldValue.minus(position, FluoriteInt.ONE)
+            setterFunction(newValue)
+            newValue
         }
-        
-        setterFunction(newValue)
-        return newValue
     }
 
     override val code get() = "PrefixDecrementGetter[${getter.code};${setter.code}]"
@@ -97,21 +95,21 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
 
 class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val setterFunction = setter.evaluate(env)
         val oldValue = getter.evaluate(env)
         
         // まず _-- メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_DECREMENT.methodName)
-        val newValue = if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出す
+        if (customMethod != null) {
+            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
             customMethod.call(arrayOf())
+            return oldValue
         } else {
-            // カスタムメソッドが存在しない場合は従来の minus(1) を使用
-            oldValue.minus(position, FluoriteInt.ONE)
+            // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
+            val setterFunction = setter.evaluate(env)
+            val newValue = oldValue.minus(position, FluoriteInt.ONE)
+            setterFunction(newValue)
+            return oldValue
         }
-        
-        setterFunction(newValue)
-        return oldValue
     }
 
     override val code get() = "SuffixDecrementGetter[${getter.code};${setter.code}]"

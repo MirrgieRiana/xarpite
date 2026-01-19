@@ -82,10 +82,10 @@ class IncrementDecrementTest {
 
     @Test
     fun overridePrefixIncrementTest() = runTest {
-        // 前置 ++ をオーバーライドできる
+        // 前置 ++ をオーバーライドできる（ミューテーションを行う）
         assertEquals(200, eval("""
             obj := {
-                `++_`: this -> this.value * 2
+                `++_`: this -> (this.value = this.value * 2; this.value)
                 value: 100
             }
             ++obj
@@ -94,23 +94,23 @@ class IncrementDecrementTest {
 
     @Test
     fun overrideSuffixIncrementTest() = runTest {
-        // 後置 ++ をオーバーライドできる
+        // 後置 ++ をオーバーライドできる（ミューテーションを行う）
         assertEquals(200, eval("""
             obj := {
-                `_++`: this -> this.value * 2
+                `_++`: this -> (this.value = this.value * 2; this.value)
                 value: 100
             }
             obj++
-            obj
+            obj.value
         """).int)
     }
 
     @Test
     fun overridePrefixDecrementTest() = runTest {
-        // 前置 -- をオーバーライドできる
+        // 前置 -- をオーバーライドできる（ミューテーションを行う）
         assertEquals(50, eval("""
             obj := {
-                `--_`: this -> DIV(this.value; 2)
+                `--_`: this -> (this.value = DIV(this.value; 2); this.value)
                 value: 100
             }
             --obj
@@ -119,46 +119,46 @@ class IncrementDecrementTest {
 
     @Test
     fun overrideSuffixDecrementTest() = runTest {
-        // 後置 -- をオーバーライドできる
+        // 後置 -- をオーバーライドできる（ミューテーションを行う）
         assertEquals(50, eval("""
             obj := {
-                `_--`: this -> DIV(this.value; 2)
+                `_--`: this -> (this.value = DIV(this.value; 2); this.value)
                 value: 100
             }
             obj--
-            obj
+            obj.value
         """).int)
     }
 
     @Test
     fun overrideIncrementWithAssignmentTest() = runTest {
-        // オーバーライドされたインクリメントは代入も行う
+        // オーバーライドされたインクリメントはミューテーションを行う（代入は行わない）
         assertEquals(200, eval("""
             obj := {
-                `_++`: this -> this.value * 2
+                `_++`: this -> (this.value = this.value * 2; this.value)
                 value: 100
             }
             obj++
-            obj
+            obj.value
         """).int)
     }
 
     @Test
     fun overrideIncrementReturnValueTest() = runTest {
-        // 後置版は古い値を返す（オブジェクトが返される）
-        assertEquals(100, eval("""
+        // 後置版は古い値を返す（オブジェクト自体が返され、既にミューテーション済み）
+        assertEquals(200, eval("""
             obj := {
-                `_++`: this -> this.value * 2
+                `_++`: this -> (this.value = this.value * 2; this.value)
                 value: 100
             }
             old := obj++
             old.value
         """).int)
         
-        // 前置版は新しい値を返す
+        // 前置版はメソッドの戻り値を返す
         assertEquals(200, eval("""
             obj := {
-                `++_`: this -> this.value * 2
+                `++_`: this -> (this.value = this.value * 2; this.value)
                 value: 100
             }
             ++obj
