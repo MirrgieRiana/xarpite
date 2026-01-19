@@ -324,62 +324,45 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 
 `LINES(string: STRING): STREAM<STRING>`
 
-Splits a string by line breaks and returns each line as a stream.
+Splits `string` by line breaks and returns each line as a stream.
 
-All line break characters (LF, CR, CRLF) are recognized, and line break characters are removed from the resulting lines.
+Line break characters are removed from the resulting lines.
 
-The last line break is removed, and information about whether the string ends with a line break is lost.
-
-Information about what the line break character was (LF, CR, or CRLF) is also lost.
+If `string` ends with a line break, only one trailing line break is ignored.
 
 ```shell
-$ xa 'LINES("a\nb\nc")'
-# a
-# b
-# c
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
 ```
 
 ---
 
-Even if there is a line break at the end, the last line break is removed.
+An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
 
 ```shell
-$ xa 'LINES("a\nb\nc\n")'
-# a
-# b
-# c
-```
-
----
-
-An empty string returns an empty stream.
-
-```shell
-$ xa 'LINES("")'
-```
-
----
-
-A string with only line breaks also returns an empty stream (because the trailing line break is removed).
-
-```shell
-$ xa '[LINES("\n")]'
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
 # []
 
-$ xa '[LINES("\n\n")]'
-# [;]
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
 ```
 
 ---
 
-It correctly splits even when different types of line break characters are mixed.
+All line break characters (LF, CR, CRLF) are recognized.
 
 ```shell
-$ xa 'LINES("a\nb\r\nc\rd")'
-# a
-# b
-# c
-# d
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
 ```
 
 ## `KEYS` Get Stream of Object Keys

@@ -195,10 +195,14 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
         "LINES" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val string = arguments[0].toFluoriteString(null).value
+                // 空文字列の場合は空ストリームを返す
+                if (string.isEmpty()) {
+                    return@FluoriteFunction emptyList<FluoriteValue>().toFluoriteStream()
+                }
                 // 改行で分割（CRLF、LF、CRの順でマッチ）
                 val lines = string.split(Regex("\\r\\n|\\n|\\r"))
-                // 最後の改行は削除される：末尾が改行で終わる場合、最後の空文字列を除去
-                val result = if (string.isNotEmpty() && (string.endsWith('\n') || string.endsWith('\r'))) {
+                // 最後の改行は1個だけ無視される：末尾が改行で終わる場合、最後の空文字列を除去
+                val result = if (string.endsWith('\n') || string.endsWith('\r')) {
                     if (lines.lastOrNull() == "") {
                         lines.dropLast(1)
                     } else {
