@@ -52,10 +52,10 @@ private fun resolveModulePath(baseDir: Path, file: String): Path? {
         }
     }
     
-    // まず指定されたパスをそのまま試す
+    // First, try the specified path as-is
     if (getFileSystem().getOrThrow().exists(path)) return path
     
-    // 拡張子がない場合、.xa1を付けたパスを試す
+    // If no extension, try adding .xa1
     if (!file.endsWith(MODULE_EXTENSION)) {
         val pathWithExtension = (path.toString() + MODULE_EXTENSION).toPath().normalized()
         if (getFileSystem().getOrThrow().exists(pathWithExtension)) return pathWithExtension

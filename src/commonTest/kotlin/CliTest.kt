@@ -264,7 +264,7 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
-        // 相対パス・絶対パスのプレフィックスがない場合はエラー
+        // Error when neither relative nor absolute path prefix is present
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("use.prefix.tmp.xa1")""")
         }
@@ -279,7 +279,7 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.absolute.tmp.xa1")
         fileSystem.write(file) { writeUtf8("999") }
-        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        // Get absolute path using FileSystem.canonicalize
         val absolutePath = fileSystem.canonicalize(file).toString()
         assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
         fileSystem.delete(file)
@@ -293,9 +293,9 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.absolute.noext.tmp.xa1")
         fileSystem.write(file) { writeUtf8("888") }
-        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        // Get absolute path using FileSystem.canonicalize
         val absolutePath = fileSystem.canonicalize(file).toString()
-        // 拡張子なしの絶対パス
+        // Absolute path without extension
         val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
         assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
         fileSystem.delete(file)
@@ -319,7 +319,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        // Get absolute path using FileSystem.canonicalize
         val absolutePath = fileSystem.canonicalize(file).toString()
         val result = cliEval(
             context,
