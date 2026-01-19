@@ -40,11 +40,11 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 private fun resolveModulePath(baseDir: Path, file: String): Path? {
     val path = when {
         file.startsWith("./") -> {
-            // 相対パス
+            // Relative path
             baseDir.resolve(file.drop(2).toPath()).normalized()
         }
         file.startsWith("/") -> {
-            // 絶対パス
+            // Absolute path
             file.toPath().normalized()
         }
         else -> {
