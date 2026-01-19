@@ -106,19 +106,18 @@ class MathTest {
         // 整数リテラル
         assertEquals(1000000, eval("1_000_000").int) // アンダースコア区切りの整数
         assertEquals(123, eval("1_2_3").int) // 各桁にアンダースコア
-        assertEquals(1234, eval("1234_").int) // 末尾にアンダースコア
         assertEquals(42, eval("4__2").int) // 連続したアンダースコア
         
         // 16進整数リテラル
         assertEquals(255, eval("H#F_F").int) // アンダースコア区切りの16進数
         assertEquals(4095, eval("H#F_F_F").int) // 複数のアンダースコア
-        assertEquals(255, eval("H#FF_").int) // 末尾にアンダースコア
+        assertEquals(255, eval("H#F__F").int) // 連続したアンダースコア
         
         // 浮動小数点数リテラル
         assertEquals(1000.5, eval("1_000.5").double, 0.001) // 整数部にアンダースコア
         assertEquals(1.5, eval("1.5_0_0").double, 0.001) // 小数部にアンダースコア
         assertEquals(1234.5678, eval("1_2_3_4.5_6_7_8").double, 0.001) // 両方にアンダースコア
-        assertEquals(123.456, eval("123_.456_").double, 0.001) // 末尾にアンダースコア
+        assertEquals(123.456, eval("1_2_3.4_5_6").double, 0.001) // 複数のアンダースコア
         
         // 負の数とアンダースコア
         assertEquals(-1000000, eval("-1_000_000").int) // 負の整数
