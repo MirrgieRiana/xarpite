@@ -257,15 +257,80 @@ class CliTest {
     }
 
     @Test
-    fun useRequiresRelativePrefix() = runTest {
+    fun useRequiresPathPrefix() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
+        // 相対パス・絶対パスのプレフィックスがない場合はエラー
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("$file")""")
+            cliEval(context, """USE("use.prefix.tmp.xa1")""")
         }
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useSupportsAbsolutePath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.tmp.xa1")
+        fileSystem.write(file) { writeUtf8("999") }
+        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        val absolutePath = fileSystem.canonicalize(file).toString()
+        assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useSupportsAbsolutePathWithoutExtension() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.noext.tmp.xa1")
+        fileSystem.write(file) { writeUtf8("888") }
+        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        val absolutePath = fileSystem.canonicalize(file).toString()
+        // 拡張子なしの絶対パス
+        val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
+        assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useAbsolutePathCachesByPath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.cache.tmp.xa1")
+        fileSystem.write(file) {
+            writeUtf8(
+                """
+                {
+                  variables: {
+                    fruit: "apple"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        // FileSystemのcanonicalizeを使用して絶対パスを取得
+        val absolutePath = fileSystem.canonicalize(file).toString()
+        val result = cliEval(
+            context,
+            """
+            a := USE("$absolutePath")
+            b := USE("$absolutePath")
+            a.variables.fruit = "orange"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("orange", result)
         fileSystem.delete(file)
     }
 

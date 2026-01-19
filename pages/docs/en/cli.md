@@ -568,13 +568,19 @@ $ {
 
 ---
 
-`file` must start with `./` and is interpreted as a relative path from the file that called the `USE` function.
+`file` must start with `./` or `/`.
+
+If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
 
 For example, if you write `USE("./banana")` in `fruit/apple.xa1`, `fruit/banana.xa1` is loaded.
 
+If it starts with `/`, it is interpreted as an absolute path.
+
+For example, if you write `USE("/home/user/modules/banana")`, `/home/user/modules/banana.xa1` is loaded.
+
 In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
 
-If the code is specified directly on the command line, files are resolved from the current directory.
+If the code is specified directly on the command line, relative paths are resolved from the current directory.
 
 The directory separator character is `/` regardless of the OS on which it is executed.
 

@@ -38,12 +38,28 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 }
 
 private fun resolveModulePath(baseDir: Path, file: String): Path? {
-    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
-    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
-    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
-    if (!file.endsWith(MODULE_EXTENSION)) {
-        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
-        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
+    val path = when {
+        file.startsWith("./") -> {
+            // 相対パス
+            baseDir.resolve(file.drop(2).toPath()).normalized()
+        }
+        file.startsWith("/") -> {
+            // 絶対パス
+            file.toPath().normalized()
+        }
+        else -> {
+            throw FluoriteException("""Module file path must start with "./" or "/".""".toFluoriteString())
+        }
     }
+    
+    // まず指定されたパスをそのまま試す
+    if (getFileSystem().getOrThrow().exists(path)) return path
+    
+    // 拡張子がない場合、.xa1を付けたパスを試す
+    if (!file.endsWith(MODULE_EXTENSION)) {
+        val pathWithExtension = (path.toString() + MODULE_EXTENSION).toPath().normalized()
+        if (getFileSystem().getOrThrow().exists(pathWithExtension)) return pathWithExtension
+    }
+    
     return null
 }
