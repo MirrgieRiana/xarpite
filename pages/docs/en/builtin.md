@@ -285,13 +285,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` Split String into Stream
 
-`SPLIT([separator: STRING; ][limit: limit: INT; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-Splits the second argument string by the first argument separator and returns each part as a stream. If the first argument is omitted, `,` is used.
+Splits `string` by `separator` and returns each part as a stream. If `separator` is omitted, `,` is used.
 
 Note that it returns a stream rather than an array for compatibility with the pipe operator.
 
 `SPLIT` conceptually performs the inverse operation of `JOIN`.
+
+`separator` and `string` are stringified and evaluated.
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -307,7 +309,13 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-Separator and target string are stringified and evaluated.
+When `limit` is specified, the string is split into at most `limit` elements, and the `limit`-th element contains the entire remaining string.
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
@@ -318,28 +326,6 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
-```
-
----
-
-You can limit the maximum number of splits by specifying the `limit` parameter.
-
-The `limit` parameter can be placed at any position in the argument list as a named argument.
-
-When `limit` is specified, the string is split into at most `limit` elements, and the `limit`-th element contains the entire remaining string.
-
-```shell
-$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
-# a
-# b|c|d
-
-$ xa 'SPLIT(limit: 2; "|"; "a|b|c|d")'
-# a
-# b|c|d
-
-$ xa 'SPLIT(limit: 2; "a,b,c,d")'
-# a
-# b,c,d
 ```
 
 ## `KEYS` Get Stream of Object Keys
