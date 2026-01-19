@@ -445,7 +445,7 @@ The `_++` method is called with no arguments and returns a new value.
 The returned new value is assigned to `formula`, and the expression evaluates to the old value.
 
 ```shell
-$ xa '
+$ xa -q '
   Obj := {
     `_++`: this -> {value: this.value * 2}
   }
@@ -467,7 +467,7 @@ The `++_` method is called with no arguments and returns a new value.
 The returned new value is assigned to `formula`, and the expression also evaluates to that new value.
 
 ```shell
-$ xa '
+$ xa -q '
   Obj := {
     `++_`: this -> {value: this.value * 3}
   }

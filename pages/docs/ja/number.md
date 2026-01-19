@@ -445,7 +445,7 @@ $ xa '
 返された新しい値は `formula` に代入され、式の評価値としては古い値が返されます。
 
 ```shell
-$ xa '
+$ xa -q '
   Obj := {
     `_++`: this -> {value: this.value * 2}
   }
@@ -467,7 +467,7 @@ $ xa '
 返された新しい値は `formula` に代入され、式の評価値としてもその新しい値が返されます。
 
 ```shell
-$ xa '
+$ xa -q '
   Obj := {
     `++_`: this -> {value: this.value * 3}
   }
