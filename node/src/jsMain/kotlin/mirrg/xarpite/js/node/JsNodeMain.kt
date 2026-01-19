@@ -15,6 +15,7 @@ import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
+import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
@@ -34,6 +35,7 @@ suspend fun main() {
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }
     }
     fileSystemGetter = { NodeJsFileSystem }
+    isWindowsImpl = { process.platform === "win32" }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
     readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
     writeBytesToStdoutImpl = { bytes ->

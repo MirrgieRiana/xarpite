@@ -20,6 +20,9 @@ actual fun getFileSystem(): Result<FileSystem> {
     }
 }
 
+var isWindowsImpl: (() -> Boolean)? = null
+actual fun isWindows(): Boolean = isWindowsImpl!!()
+
 var readLineFromStdinImpl: (suspend () -> String?)? = null
 actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()
 
