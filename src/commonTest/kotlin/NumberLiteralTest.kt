@@ -70,7 +70,7 @@ class NumberLiteralTest {
     fun underscoreInExpressions() = runTest {
         // 演算式内でも使える
         assertEquals(2000000, eval("1_000_000 + 1_000_000").int)
-        assertEquals(1000000000000, eval("1_000_000 * 1_000_000").int)
+        assertEquals(500000, eval("1_000_000 - 5_00_000").int)
         assertEquals(6.283184, eval("3.14_15_92 * 2").double, 0.000001)
     }
 
