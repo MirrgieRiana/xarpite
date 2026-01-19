@@ -176,11 +176,54 @@
   }
 
   /**
+   * Creates and returns an anchor link button element
+   */
+  function createAnchorLinkButton() {
+    const button = document.createElement('a');
+    button.className = 'heading-anchor-link';
+    button.innerHTML = '#';
+    button.setAttribute('aria-label', 'Link to this section');
+    return button;
+  }
+
+  /**
+   * Adds an anchor link button to a heading element
+   */
+  function addAnchorLinkToHeading(heading) {
+    // Skip if heading has no id or already has an anchor link
+    if (!heading.id || heading.querySelector('.heading-anchor-link')) {
+      return;
+    }
+
+    const anchorButton = createAnchorLinkButton();
+    anchorButton.href = '#' + heading.id;
+    
+    // Update URL without scrolling when clicked
+    anchorButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      history.pushState(null, null, '#' + heading.id);
+      // Optional: smooth scroll to the heading
+      heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    heading.appendChild(anchorButton);
+  }
+
+  /**
+   * Adds anchor links to all headings in the document content
+   */
+  function addAnchorLinksToHeadings() {
+    const headings = document.querySelectorAll('.doc-content h1[id], .doc-content h2[id], .doc-content h3[id], .doc-content h4[id]');
+    headings.forEach(addAnchorLinkToHeading);
+  }
+
+  /**
    * Initializes all page functionality
    */
   function init() {
     highlightCurrentNav();
     addCopyButtonsToCodeBlocks();
+    addAnchorLinksToHeadings();
   }
 
   // Initialize when DOM is ready

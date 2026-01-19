@@ -309,6 +309,48 @@ body {
   font-weight: bold;
 }
 
+/* Heading Anchor Links */
+.doc-content h1,
+.doc-content h2,
+.doc-content h3,
+.doc-content h4 {
+  scroll-margin-top: 100px; /* Account for sticky header */
+}
+
+.doc-content .heading-anchor-link {
+  opacity: 0;
+  margin-left: 0.5rem;
+  color: var(--xarpite-red-primary);
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 0.8em;
+  transition: all var(--transition-fast);
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.doc-content .heading-anchor-link::before {
+  content: none;
+}
+
+.doc-content .heading-anchor-link::after {
+  content: none;
+}
+
+.doc-content h1:hover .heading-anchor-link,
+.doc-content h2:hover .heading-anchor-link,
+.doc-content h3:hover .heading-anchor-link,
+.doc-content h4:hover .heading-anchor-link,
+.doc-content .heading-anchor-link:focus {
+  opacity: 1;
+}
+
+.doc-content .heading-anchor-link:hover {
+  color: var(--xarpite-red-dark);
+  transform: scale(1.1);
+}
+
 .doc-content p {
   margin-bottom: 1rem;
   line-height: 1.8;
