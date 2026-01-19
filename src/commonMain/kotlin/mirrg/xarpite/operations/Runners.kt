@@ -42,6 +42,22 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val newFrame
     override val code get() = "TryCatchRunner[${leftRunners.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
 }
 
+class TryCatchWithoutVariableRunner(private val leftRunners: List<Runner>, private val rightRunners: List<Runner>) : Runner {
+    override suspend fun evaluate(env: Environment) {
+        try {
+            leftRunners.forEach {
+                it.evaluate(env)
+            }
+        } catch (e: FluoriteException) {
+            rightRunners.forEach {
+                it.evaluate(env)
+            }
+        }
+    }
+
+    override val code get() = "TryCatchWithoutVariableRunner[${leftRunners.code};${rightRunners.code}]"
+}
+
 class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         try {
