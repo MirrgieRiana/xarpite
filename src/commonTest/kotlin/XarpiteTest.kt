@@ -890,7 +890,7 @@ class XarpiteTest {
             result
         """.let { assertEquals("error_value", eval(it).string) }
 
-        // Runner で !? の右辺で例外オブジェクトなしでも動作する（引数なし）
+        // Runner で !? の右辺が例外発生時に実行される（引数なし）
         """
             count := 0
             (!!'error') !? (count = 1);
