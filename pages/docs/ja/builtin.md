@@ -529,12 +529,30 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` ストリームを条件で抽出
 
+`FILTER` は、2種類の呼び出し方があります。
+
+### 要素そのものでフィルタリング
+
 `FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 第2引数のストリームの各要素に `predicate` を適用し、その結果が真となった要素のみを含むストリームを返します。
 
 ```shell
 $ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
+# 2
+# 4
+```
+
+### キー取得関数によるフィルタリング
+
+`FILTER(by: predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+
+第1引数が `by` パラメータである場合、第2引数の各要素に対して `predicate` 関数を適用し、その結果が真となった要素のみを含むストリームを返します。
+
+第1引数が `by` パラメータでない場合と動作は同じですが、記述の一貫性を保つために使用できます。
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> FILTER [ by: x -> x % 2 == 0 ]'
 # 2
 # 4
 ```
