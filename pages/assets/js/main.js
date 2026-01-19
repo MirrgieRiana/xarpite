@@ -196,8 +196,6 @@
     }
 
     const anchorButton = createAnchorLinkButton();
-    // Encode the ID to prevent any potential issues with special characters
-    const encodedId = encodeURIComponent(heading.id);
     anchorButton.href = '#' + heading.id;
     
     // Update URL without scrolling when clicked
