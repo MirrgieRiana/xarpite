@@ -594,10 +594,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 val stream = arguments[1]
                 return@FluoriteFunction createGroupStream(stream, keyGetter)
             }
-            usage(
-                "<T> GROUP(stream: T,): [T; [T,]],",
-                "<T, K> GROUP([key_getter: by: T -> K; ]stream: T,): [K; [T,]],",
-            )
+            usage("<T, K> GROUP([key_getter: by: T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
         },
         "PIPE" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
