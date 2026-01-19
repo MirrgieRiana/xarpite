@@ -332,7 +332,7 @@ body {
   line-height: 1;
 }
 
-/* Reset pseudo-elements inherited from .doc-content a styles */
+/* Reset ::after underline animation inherited from .doc-content a::after */
 .doc-content .heading-anchor-link::before,
 .doc-content .heading-anchor-link::after {
   content: none;
