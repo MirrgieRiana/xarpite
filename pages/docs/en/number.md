@@ -60,6 +60,20 @@ $ xa '00123'
 # 123
 ```
 
+---
+
+You can follow digits with any number of `_` (underscores).
+
+The `_` characters are ignored.
+
+```shell
+$ xa '1_000_000'
+# 1000000
+
+$ xa '123_456_789'
+# 123456789
+```
+
 ### `H#123abc`: Hexadecimal Integer Literal
 
 You can write hexadecimal numbers following `H#`.
@@ -71,6 +85,15 @@ $ xa 'H#FF'
 # 255
 ```
 
+---
+
+You can also follow hexadecimal digits with `_`.
+
+```shell
+$ xa 'H#FF_FF_FF'
+# 16777215
+```
+
 ### `1.23`: Floating-Point Number Literal
 
 You can write real numbers in the form "integer part `.` decimal part".
@@ -80,6 +103,15 @@ Representation and operations with real numbers involve rounding errors.
 ```shell
 $ xa '1.5'
 # 1.5
+```
+
+---
+
+You can also follow digits in both the integer and decimal parts with `_`.
+
+```shell
+$ xa '3.14_15_92'
+# 3.141592
 ```
 
 ## Numeric Conversion
