@@ -31,6 +31,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.copy
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -170,64 +171,37 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "SPLIT" to FluoriteFunction { arguments ->
-            // まず引数列を先頭からforEachして、limitパラメータと非名前付き引数を分離
-            var limit: Int? = null
-            val nonNamedArguments = mutableListOf<FluoriteValue>()
-            
-            arguments.forEach { arg ->
-                if (arg is FluoriteArray && arg.values.size == 2) {
-                    val parameterName = arg.values[0]
-                    if (parameterName is FluoriteString && parameterName.value == "limit") {
-                        if (limit != null) {
-                            throw FluoriteException("limit parameter specified multiple times".toFluoriteString())
-                        }
-                        limit = arg.values[1].toFluoriteNumber(null).roundToInt()
-                    } else {
-                        nonNamedArguments.add(arg)
-                    }
+            fun usage(): Nothing = usage("SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>")
+            val arguments2 = arguments.toMutableList()
+
+            if (arguments2.isEmpty()) usage()
+            val string = arguments2.removeLast().toFluoriteString(null).value
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            val separator = (entries.remove("by") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value ?: ","
+            val limit = (entries.remove("limit") ?: arguments3.removeFirstOrNull())?.toFluoriteNumber(null)?.roundToInt()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            if (limit != null && limit <= 0) throw FluoriteException("Limit must be positive or NULL".toFluoriteString())
+            if (limit == 1) return@FluoriteFunction string.toFluoriteString()
+
+            val strings = if (separator.isEmpty()) {
+                if (limit == null || limit >= string.length) {
+                    string.map { "$it" }
                 } else {
-                    nonNamedArguments.add(arg)
+                    listOf(
+                        *string.substring(0, limit - 1).map { "$it" }.toTypedArray(),
+                        string.substring(limit - 1),
+                    )
                 }
-            }
-            
-            // その後で名前付き引数が1個の場合と2個の場合で分岐してseparatorとstringを決定
-            val separator: String
-            val string: FluoriteValue
-            when (nonNamedArguments.size) {
-                2 -> {
-                    separator = nonNamedArguments[0].toFluoriteString(null).value
-                    string = nonNamedArguments[1]
-                }
-
-                1 -> {
-                    separator = ","
-                    string = nonNamedArguments[0]
-                }
-
-                else -> usage("SPLIT([separator: STRING; ][limit: limit: INT; ]string: STRING): STREAM<STRING>")
-            }
-
-            val stringValue = string.toFluoriteString(null).value
-            
-            // limitが1の場合、元の文字列をそのまま返す
-            if (limit != null && limit == 1) {
-                return@FluoriteFunction listOf(stringValue.toFluoriteString()).toFluoriteStream()
-            }
-            
-            val parts = if (separator.isEmpty()) {
-                stringValue.map { "$it" }
             } else {
-                stringValue.split(separator)
+                string.split(separator, limit = limit ?: 0)
             }
-            
-            // limitが指定されている場合、分割数を制限
-            val result = if (limit != null && limit > 1 && parts.size > limit) {
-                parts.take(limit - 1) + listOf(parts.drop(limit - 1).joinToString(separator))
-            } else {
-                parts
-            }
-            
-            result.map { it.toFluoriteString() }.toFluoriteStream()
+
+            strings.map { it.toFluoriteString() }.toFluoriteStream()
         },
         "KEYS" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
