@@ -79,4 +79,89 @@ class IncrementDecrementTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
     }
+
+    @Test
+    fun overridePrefixIncrementTest() = runTest {
+        // 前置 ++ をオーバーライドできる
+        assertEquals(200, eval("""
+            obj := {
+                `++_`: this -> this.value * 2
+                value: 100
+            }
+            ++obj
+        """).int)
+    }
+
+    @Test
+    fun overrideSuffixIncrementTest() = runTest {
+        // 後置 ++ をオーバーライドできる
+        assertEquals(200, eval("""
+            obj := {
+                `_++`: this -> this.value * 2
+                value: 100
+            }
+            obj++
+            obj
+        """).int)
+    }
+
+    @Test
+    fun overridePrefixDecrementTest() = runTest {
+        // 前置 -- をオーバーライドできる
+        assertEquals(50, eval("""
+            obj := {
+                `--_`: this -> DIV(this.value; 2)
+                value: 100
+            }
+            --obj
+        """).int)
+    }
+
+    @Test
+    fun overrideSuffixDecrementTest() = runTest {
+        // 後置 -- をオーバーライドできる
+        assertEquals(50, eval("""
+            obj := {
+                `_--`: this -> DIV(this.value; 2)
+                value: 100
+            }
+            obj--
+            obj
+        """).int)
+    }
+
+    @Test
+    fun overrideIncrementWithAssignmentTest() = runTest {
+        // オーバーライドされたインクリメントは代入も行う
+        assertEquals(200, eval("""
+            obj := {
+                `_++`: this -> this.value * 2
+                value: 100
+            }
+            obj++
+            obj
+        """).int)
+    }
+
+    @Test
+    fun overrideIncrementReturnValueTest() = runTest {
+        // 後置版は古い値を返す（オブジェクトが返される）
+        assertEquals(100, eval("""
+            obj := {
+                `_++`: this -> this.value * 2
+                value: 100
+            }
+            old := obj++
+            old.value
+        """).int)
+        
+        // 前置版は新しい値を返す
+        assertEquals(200, eval("""
+            obj := {
+                `++_`: this -> this.value * 2
+                value: 100
+            }
+            ++obj
+        """).int)
+    }
 }
