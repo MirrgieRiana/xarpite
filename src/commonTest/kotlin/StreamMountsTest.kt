@@ -54,11 +54,13 @@ class StreamMountsTest {
     @Test
     fun filter() = runTest {
         assertEquals("2,4", eval("1 .. 5 >> FILTER [ x => x %% 2 ]").stream()) // FILTER で条件を満たす要素のみを抽出する
+        assertEquals("2,4", eval("1 .. 5 >> FILTER [ by: x -> x %% 2 ]").stream()) // by指定でも同じ結果が得られる
     }
 
     @Test
     fun grep() = runTest {
         assertEquals("2,4", eval("1 .. 5 >> GREP [ x => x %% 2 ]").stream()) // GREP は FILTER のエイリアス
+        assertEquals("2,4", eval("1 .. 5 >> GREP [ by: x -> x %% 2 ]").stream()) // GREPでもby指定できる
     }
 
 

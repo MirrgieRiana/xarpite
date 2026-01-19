@@ -526,10 +526,19 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createFilterFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size == 2) {
-                        val predicate = arguments[0]
+                    run { // FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val firstArg = arguments[0]
+                        // 第1引数が`by`パラメータかチェック
+                        if (firstArg is FluoriteArray && firstArg.values.size == 2) {
+                            val parameterName = firstArg.values[0]
+                            if (parameterName is FluoriteString && parameterName.value == "by") {
+                                return@run // byパラメータの場合は次のrunブロックで処理
+                            }
+                        }
+                        val predicate = firstArg
                         val stream = arguments[1]
-                        FluoriteStream {
+                        return@FluoriteFunction FluoriteStream {
                             if (stream is FluoriteStream) {
                                 stream.collect { item ->
                                     if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
@@ -542,9 +551,36 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                                 }
                             }
                         }
-                    } else {
-                        usage("$name(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     }
+                    run { // FILTER(by: predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val entry = arguments[0]
+                        if (entry !is FluoriteArray) return@run
+                        if (entry.values.size != 2) return@run
+                        val parameterName = entry.values[0]
+                        if (parameterName !is FluoriteString) return@run
+                        if (parameterName.value != "by") return@run
+                        val predicate = entry.values[1]
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction FluoriteStream {
+                            if (stream is FluoriteStream) {
+                                stream.collect { item ->
+                                    if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
+                                        emit(item)
+                                    }
+                                }
+                            } else {
+                                if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
+                                    emit(stream)
+                                }
+                            }
+                        }
+                    }
+                    usage(
+                        "$name(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>",
+                    )
                 }
             }
             arrayOf(
