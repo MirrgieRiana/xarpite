@@ -49,7 +49,7 @@ class XarpiteGrammar(val location: String) {
     )
     val quotedIdentifier: Parser<IdentifierNode> = -'`' * quotedIdentifierContent.zeroOrMore * -'`' map { IdentifierNode(it.join("")) }
 
-    val float: Parser<Node> = +Regex("""[0-9](?:_*[0-9])*\._*[0-9](?:_*[0-9])*""") map { FloatNode(it.value.replace("_", "")) }
+    val float: Parser<Node> = +Regex("""[0-9](?:_*[0-9])*\.[0-9](?:_*[0-9])*""") map { FloatNode(it.value.replace("_", "")) }
 
     val integer: Parser<Node> = +Regex("[0-9](?:_*[0-9])*") map { IntegerNode(it.value.replace("_", "")) }
 
