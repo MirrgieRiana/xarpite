@@ -49,11 +49,11 @@ class XarpiteGrammar(val location: String) {
     )
     val quotedIdentifier: Parser<IdentifierNode> = -'`' * quotedIdentifierContent.zeroOrMore * -'`' map { IdentifierNode(it.join("")) }
 
-    val float: Parser<Node> = +Regex("""[0-9](?:_*[0-9])*\.[0-9](?:_*[0-9])*""") map { FloatNode(it.value.replace("_", "")) }
+    val float: Parser<Node> = +Regex("""[0-9]+(?:_+[0-9]+)*\.[0-9]+(?:_+[0-9]+)*""") map { FloatNode(it.value.replace("_", "")) }
 
-    val integer: Parser<Node> = +Regex("[0-9](?:_*[0-9])*") map { IntegerNode(it.value.replace("_", "")) }
+    val integer: Parser<Node> = +Regex("[0-9]+(?:_+[0-9]+)*") map { IntegerNode(it.value.replace("_", "")) }
 
-    val hexadecimal: Parser<Node> = +Regex("H#[0-9a-fA-F](?:_*[0-9a-fA-F])*") map { HexadecimalNode(it.value.drop(2).replace("_", "")) }
+    val hexadecimal: Parser<Node> = +Regex("H#[0-9a-fA-F]+(?:_+[0-9a-fA-F]+)*") map { HexadecimalNode(it.value.drop(2).replace("_", "")) }
 
     val rawStringCharacter: Parser<String> = or(
         +Regex("""[^']+""") map { it.value.normalize() }, // ' 以外の文字
