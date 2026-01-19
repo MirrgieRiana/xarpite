@@ -553,15 +553,12 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             )
         },
         "GROUP" to FluoriteFunction { arguments ->
-            run { // GROUP(stream: STREAM<VALUE>): STREAM<[VALUE; ARRAY<VALUE>]>
-                if (arguments.size != 1) return@run
-                val stream = arguments[0]
-
-                return@FluoriteFunction FluoriteStream {
+            fun createGroupStream(stream: FluoriteValue, keyGetter: FluoriteValue?): FluoriteStream {
+                return FluoriteStream {
                     val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
                     suspend fun add(value: FluoriteValue) {
-                        val key = value
+                        val key = if (keyGetter != null) keyGetter.invoke(null, arrayOf(value)) else value
                         val list = groups.getOrPut(key) { mutableListOf() }
                         list += value
                     }
@@ -579,6 +576,12 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                     }
                 }
             }
+
+            run { // GROUP(stream: STREAM<VALUE>): STREAM<[VALUE; ARRAY<VALUE>]>
+                if (arguments.size != 1) return@run
+                val stream = arguments[0]
+                return@FluoriteFunction createGroupStream(stream, null)
+            }
             run { // GROUP(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<[VALUE; ARRAY<VALUE>]>
                 if (arguments.size != 2) return@run
                 val entry = arguments[0]
@@ -589,28 +592,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 if (parameterName.value != "by") return@run
                 val keyGetter = entry.values[1]
                 val stream = arguments[1]
-
-                return@FluoriteFunction FluoriteStream {
-                    val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
-
-                    suspend fun add(value: FluoriteValue) {
-                        val key = keyGetter.invoke(null, arrayOf(value))
-                        val list = groups.getOrPut(key) { mutableListOf() }
-                        list += value
-                    }
-
-                    if (stream is FluoriteStream) {
-                        stream.collect { item ->
-                            add(item)
-                        }
-                    } else {
-                        add(stream)
-                    }
-
-                    groups.forEach { (key, list) ->
-                        emit(key colon list.toFluoriteArray())
-                    }
-                }
+                return@FluoriteFunction createGroupStream(stream, keyGetter)
             }
             usage(
                 "<T> GROUP(stream: T,): [T; [T,]],",
