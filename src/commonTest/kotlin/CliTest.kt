@@ -280,7 +280,7 @@ class CliTest {
         val file = baseDir.resolve("use.absolute.tmp.xa1")
         fileSystem.write(file) { writeUtf8("999") }
         // Get absolute path using FileSystem.canonicalize
-        val absolutePath = fileSystem.canonicalize(file).toString()
+        val absolutePath = getAbsolutePath(file)
         assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
         fileSystem.delete(file)
     }
@@ -294,7 +294,7 @@ class CliTest {
         val file = baseDir.resolve("use.absolute.noext.tmp.xa1")
         fileSystem.write(file) { writeUtf8("888") }
         // Get absolute path using FileSystem.canonicalize
-        val absolutePath = fileSystem.canonicalize(file).toString()
+        val absolutePath = getAbsolutePath(file)
         // Absolute path without extension
         val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
         assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
@@ -320,7 +320,7 @@ class CliTest {
             )
         }
         // Get absolute path using FileSystem.canonicalize
-        val absolutePath = fileSystem.canonicalize(file).toString()
+        val absolutePath = getAbsolutePath(file)
         val result = cliEval(
             context,
             """
@@ -911,6 +911,11 @@ class CliTest {
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
+}
+
+private suspend fun getAbsolutePath(file: okio.Path): String {
+    val fileSystem = getFileSystem().getOrThrow()
+    return fileSystem.canonicalize(file).toString()
 }
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {

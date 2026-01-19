@@ -57,7 +57,7 @@ private fun resolveModulePath(baseDir: Path, file: String): Path? {
     
     // If no extension, try adding .xa1
     if (!file.endsWith(MODULE_EXTENSION)) {
-        val pathWithExtension = (path.toString() + MODULE_EXTENSION).toPath().normalized()
+        val pathWithExtension = "$path$MODULE_EXTENSION".toPath().normalized()
         if (getFileSystem().getOrThrow().exists(pathWithExtension)) return pathWithExtension
     }
     
