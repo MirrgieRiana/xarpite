@@ -79,4 +79,140 @@ class IncrementDecrementTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
     }
+
+    @Test
+    fun overrideSuffixIncrementTest() = runTest {
+        // _++ メソッドをオーバーライド
+        assertEquals(200, eval("""
+            Obj := {
+                `_++`: this -> {value: this.value * 2}
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overridePrefixIncrementTest() = runTest {
+        // ++_ メソッドをオーバーライド
+        assertEquals(300, eval("""
+            Obj := {
+                `++_`: this -> {value: this.value * 3}
+            }
+            obj := Obj{value: 100}
+            ++obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overrideSuffixDecrementTest() = runTest {
+        // _-- メソッドをオーバーライド
+        // DIV関数を使って整数除算
+        assertEquals(50, eval("""
+            Obj := {
+                `_--`: this -> {value: DIV(this.value; 2)}
+            }
+            obj := Obj{value: 100}
+            obj--
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overridePrefixDecrementTest() = runTest {
+        // --_ メソッドをオーバーライド
+        assertEquals(25, eval("""
+            Obj := {
+                `--_`: this -> {value: DIV(this.value; 4)}
+            }
+            obj := Obj{value: 100}
+            --obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun suffixIncrementReturnValueTest() = runTest {
+        // _++ の戻り値は後置版の戻り値として使われる（古い値を返す）
+        assertEquals(100, eval("""
+            Obj := {
+                `_++`: this -> {value: this.value * 2}
+            }
+            obj := Obj{value: 100}
+            result := obj++
+            result.value
+        """).int)
+    }
+
+    @Test
+    fun prefixIncrementReturnValueTest() = runTest {
+        // ++_ の戻り値は前置版の戻り値として使われる（新しい値を返す）
+        assertEquals(300, eval("""
+            Obj := {
+                `++_`: this -> {value: this.value * 3}
+            }
+            obj := Obj{value: 100}
+            result := ++obj
+            result.value
+        """).int)
+    }
+
+    @Test
+    fun prefixIncrementFallbackToSuffixTest() = runTest {
+        // ++_ が無ければ _++ にフォールバック
+        assertEquals(200, eval("""
+            Obj := {
+                `_++`: this -> {value: this.value * 2}
+            }
+            obj := Obj{value: 100}
+            ++obj
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusAssignTest() = runTest {
+        // _++ が無ければ _+=_ にフォールバック
+        assertEquals(110, eval("""
+            Obj := {
+                `_+=_`: this, value -> {value: this.value + value * 10}
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun incrementFallbackToPlusTest() = runTest {
+        // _+=_ も無ければ _+_ にフォールバック
+        assertEquals(123, eval("""
+            Obj := {
+                `_+_`: this, value -> {value: this.value + value * 23}
+            }
+            obj := Obj{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun decrementFallbackToMinusAssignTest() = runTest {
+        // _-- が無ければ _-=_ にフォールバック
+        assertEquals(90, eval("""
+            Obj := {
+                `_-=_`: this, value -> {value: this.value - value * 10}
+            }
+            obj := Obj{value: 100}
+            obj--
+            obj.value
+        """).int)
+    }
+
+    // NOTE: decrementFallbackToMinusTestは削除
+    // FluoriteObjectにはデフォルトで_-=_が定義されているため、
+    // 通常のオブジェクトでは_-_にフォールバックすることはありません。
+    // _-_へのフォールバックは、_-=_が定義されていない特殊な型でのみ発生します。
 }
