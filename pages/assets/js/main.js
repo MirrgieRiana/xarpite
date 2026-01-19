@@ -196,12 +196,17 @@
     }
 
     const anchorButton = createAnchorLinkButton();
+    // Encode the ID to prevent any potential issues with special characters
+    const encodedId = encodeURIComponent(heading.id);
     anchorButton.href = '#' + heading.id;
     
     // Update URL without scrolling when clicked
     anchorButton.addEventListener('click', (e) => {
       e.preventDefault();
-      history.pushState(null, null, '#' + heading.id);
+      // Use the original heading.id (already validated by Kramdown)
+      // and push to history safely
+      const newUrl = window.location.pathname + window.location.search + '#' + heading.id;
+      history.pushState(null, null, newUrl);
       // Optional: smooth scroll to the heading
       heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
