@@ -432,6 +432,77 @@ $ xa '
 # abc1
 ```
 
+### Overriding Increment/Decrement
+
+You can customize the behavior of increment/decrement operators.
+
+#### Postfix Increment `_++`
+
+Postfix increment `formula++` can be overridden with the `_++` method.
+
+The `_++` method is called with no arguments and returns a new value.
+
+The returned new value is assigned to `formula`, and the expression evaluates to the old value.
+
+```shell
+$ xa '
+  Obj := {
+    `_++`: this -> {value: this.value * 2}
+  }
+  obj := Obj{value: 100}
+  result := obj++
+  OUT << "result: " & result.value
+  OUT << "obj: " & obj.value
+'
+# result: 100
+# obj: 200
+```
+
+#### Prefix Increment `++_`
+
+Prefix increment `++formula` can be overridden with the `++_` method.
+
+The `++_` method is called with no arguments and returns a new value.
+
+The returned new value is assigned to `formula`, and the expression also evaluates to that new value.
+
+```shell
+$ xa '
+  Obj := {
+    `++_`: this -> {value: this.value * 3}
+  }
+  obj := Obj{value: 100}
+  result := ++obj
+  OUT << "result: " & result.value
+  OUT << "obj: " & obj.value
+'
+# result: 300
+# obj: 300
+```
+
+#### Fallback
+
+If the `++_` method is not defined, prefix increment `++formula` falls back to the `_++` method.
+
+If the `_++` method is also not defined, it falls back to the `_+=_` method. In this case, the right operand is fixed as integer `1`.
+
+If the `_+=_` method is also not defined, it falls back to the `_+_` method and assigns the result to `formula`.
+
+Decrement works similarly, falling back in the order of `--_`, `_--`, `_-=_`, and `_-_`.
+
+```shell
+$ xa '
+  # When _++ is not available, falls back to _+=_
+  Obj := {
+    `_+=_`: this, value -> {value: this.value + value * 10}
+  }
+  obj := Obj{value: 100}
+  obj++
+  obj.value
+'
+# 110
+```
+
 ## Built-in Constants
 
 Numeric built-in constants.
