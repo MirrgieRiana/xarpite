@@ -159,6 +159,8 @@ class StreamMountsTest {
         assertEquals("[1;[1;1]],[2;[2;2]],[3;[3]]", eval("1, 2, 1, 3, 2 >> GROUP").stream()) // byを省略した場合、要素自身がキーになる
         assertEquals("[1;[1]]", eval("1 >> GROUP").stream()) // 要素が1個でもよい
         assertEquals("", eval(", >> GROUP").stream()) // 要素が0個でもよい
+        
+        assertEquals("[apple;[apple;apple]],[cherry;[cherry]],[banana;[banana;banana]]", eval(""""apple", "cherry","banana", "banana", "apple" >> GROUP""").stream()) // 文字列のグループ化
     }
 
     @Test
