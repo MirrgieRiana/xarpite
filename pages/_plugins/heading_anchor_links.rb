@@ -3,7 +3,8 @@ require 'cgi'
 module Xarpite
   module HeadingAnchorLinks
     # h1〜h4の見出しにアンカーリンクを追加するパターン
-    HEADING_PATTERN = /<h([1-4])([^>]*id="([^"]+)"[^>]*)>(.*?)<\/h\1>/im.freeze
+    # より厳密な正規表現を使用
+    HEADING_PATTERN = /<(h[1-4])\s+([^>]*\bid=(["'])([^"']+)\3[^>]*)>(.*?)<\/\1>/im.freeze
 
     module_function
 
@@ -18,16 +19,22 @@ module Xarpite
 
     def add_anchor_links_to_html(html)
       html.gsub(HEADING_PATTERN) do
-        level = $1
+        tag = $1
         attrs = $2
-        id = $3
-        content = $4
+        id = $4
+        content = $5
+
+        # 既にアンカーリンクが存在する場合はスキップ
+        next Regexp.last_match(0) if content.include?('heading-anchor-link')
+
+        # ID属性の検証（英数字、ハイフン、アンダースコアのみ許可）
+        next Regexp.last_match(0) unless id =~ /\A[a-zA-Z0-9_-]+\z/
 
         # アンカーリンクボタンを作成
         anchor_link = %(<a href="##{CGI.escapeHTML(id)}" class="heading-anchor-link" aria-label="Link to this section">#</a>)
         
         # 見出しタグを再構築（アンカーリンクを末尾に追加）
-        %(<h#{level}#{attrs}>#{content}#{anchor_link}</h#{level}>)
+        %(<#{tag} #{attrs}>#{content}#{anchor_link}</#{tag}>)
       end
     end
 

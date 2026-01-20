@@ -38,6 +38,8 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
 
+  --header-height: 100px;
+
   /* Breakpoint values for reference (CSS custom properties cannot be used in @media queries) */
   /* --breakpoint-tablet: 968px; */
   /* --breakpoint-mobile: 768px; */
@@ -314,7 +316,7 @@ body {
 .doc-content h2,
 .doc-content h3,
 .doc-content h4 {
-  scroll-margin-top: 100px;
+  scroll-margin-top: var(--header-height);
 }
 
 .doc-content .heading-anchor-link {
