@@ -4,7 +4,7 @@ title: Length
 
 # Length
 
-Array-like objects and numbers have a defined concept of length.
+Array-like objects have a defined concept of length.
 
 <!-- toc -->
 
@@ -17,7 +17,6 @@ The definition of length varies by value type.
 | String | Number of UTF-16 code units            |
 | Array  | Number of elements                     |
 | Object | Number of entries, ignoring parent     |
-| Number | Absolute value                         |
 | BLOB   | Number of bytes                        |
 | Stream | Sum of lengths of each element         |
 
@@ -30,9 +29,6 @@ The length operator `$#array` gets the length of a value.
 ```shell
 $ xa '$#"123"'
 # 3
-
-$ xa '$#-10'
-# 10
 
 $ xa '$#[1, 2, 3]'
 # 3
