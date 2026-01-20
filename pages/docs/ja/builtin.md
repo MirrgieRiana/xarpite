@@ -529,7 +529,7 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` ストリームを条件で抽出
 
-`FILTER(predicate: (by: VALUE -> BOOLEAN) | VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 第2引数のストリームの各要素に `predicate` を適用し、その結果が真となった要素のみを含むストリームを返します。
 

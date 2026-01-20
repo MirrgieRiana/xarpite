@@ -669,7 +669,7 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` Filter Stream by Condition
 
-`FILTER(predicate: (by: VALUE -> BOOLEAN) | VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of the second argument stream and returns a stream containing only elements where the result is true.
 

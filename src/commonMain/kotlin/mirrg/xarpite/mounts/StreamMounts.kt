@@ -577,7 +577,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                             }
                         }
                     }
-                    usage("$name(predicate: (by: VALUE -> BOOLEAN) | VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
+                    usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                 }
             }
             arrayOf(
