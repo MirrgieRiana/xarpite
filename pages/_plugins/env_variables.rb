@@ -3,7 +3,9 @@ module Jekyll
     priority :highest
 
     def generate(site)
-      site.config['version'] = ENV['APP_VERSION'] || site.config['version'] || 'Latest'
+      if ENV['APP_VERSION']
+        site.config['version'] = ENV['APP_VERSION']
+      end
     end
   end
 end
