@@ -694,6 +694,54 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
+## `ANY` いずれかが真かを判定
+
+`ANY(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+
+渡されたすべての引数のうち、いずれか1つでも論理値化して `TRUE` となるものがあれば `TRUE` を返し、そうでなければ `FALSE` を返します。
+
+論理和演算子 `||` と同様の動作をしますが、任意の個数の引数を受け取ることができます。
+
+少なくとも2個以上の引数が必要です。
+
+```shell
+$ xa 'ANY(FALSE; FALSE; TRUE)'
+# TRUE
+
+$ xa 'ANY(FALSE; FALSE; FALSE)'
+# FALSE
+
+$ xa 'ANY(1; 0)'
+# TRUE
+
+$ xa 'ANY(0; "")'
+# FALSE
+```
+
+## `ALL` すべてが真かを判定
+
+`ALL(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+
+渡されたすべての引数が論理値化して `TRUE` となる場合に `TRUE` を返し、そうでなければ `FALSE` を返します。
+
+論理積演算子 `&&` と同様の動作をしますが、任意の個数の引数を受け取ることができます。
+
+少なくとも2個以上の引数が必要です。
+
+```shell
+$ xa 'ALL(TRUE; TRUE; TRUE)'
+# TRUE
+
+$ xa 'ALL(TRUE; TRUE; FALSE)'
+# FALSE
+
+$ xa 'ALL(1; "a"; [1])'
+# TRUE
+
+$ xa 'ALL(1; ""; [1])'
+# FALSE
+```
+
 ## `TO_ARRAY` ストリームを配列に変換
 
 `ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>`

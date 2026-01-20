@@ -29,4 +29,42 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" TO_BOOLEAN(1) """).boolean)
         assertEquals(true, eval(""" FALSE, TRUE, FALSE >> TO_BOOLEAN """).boolean)
     }
+
+    @Test
+    fun anyTest() = runTest {
+        // 基本的な動作
+        assertEquals(true, eval(""" ANY(TRUE; TRUE) """).boolean)
+        assertEquals(true, eval(""" ANY(TRUE; FALSE) """).boolean)
+        assertEquals(true, eval(""" ANY(FALSE; TRUE) """).boolean)
+        assertEquals(false, eval(""" ANY(FALSE; FALSE) """).boolean)
+
+        // 3個以上の引数
+        assertEquals(true, eval(""" ANY(FALSE; FALSE; TRUE) """).boolean)
+        assertEquals(false, eval(""" ANY(FALSE; FALSE; FALSE) """).boolean)
+        assertEquals(true, eval(""" ANY(TRUE; TRUE; TRUE) """).boolean)
+
+        // 論理値化を伴う動作
+        assertEquals(true, eval(""" ANY(1; 0) """).boolean)
+        assertEquals(false, eval(""" ANY(0; "") """).boolean)
+        assertEquals(true, eval(""" ANY(""; "a") """).boolean)
+    }
+
+    @Test
+    fun allTest() = runTest {
+        // 基本的な動作
+        assertEquals(true, eval(""" ALL(TRUE; TRUE) """).boolean)
+        assertEquals(false, eval(""" ALL(TRUE; FALSE) """).boolean)
+        assertEquals(false, eval(""" ALL(FALSE; TRUE) """).boolean)
+        assertEquals(false, eval(""" ALL(FALSE; FALSE) """).boolean)
+
+        // 3個以上の引数
+        assertEquals(true, eval(""" ALL(TRUE; TRUE; TRUE) """).boolean)
+        assertEquals(false, eval(""" ALL(TRUE; TRUE; FALSE) """).boolean)
+        assertEquals(false, eval(""" ALL(FALSE; FALSE; FALSE) """).boolean)
+
+        // 論理値化を伴う動作
+        assertEquals(true, eval(""" ALL(1; "a"; [1]) """).boolean)
+        assertEquals(false, eval(""" ALL(1; ""; [1]) """).boolean)
+        assertEquals(true, eval(""" ALL("a"; "b"; "c") """).boolean)
+    }
 }

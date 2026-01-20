@@ -37,6 +37,28 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
                 usage("TO_BOOLEAN(value: VALUE): BOOLEAN")
             }
         },
+        "ANY" to FluoriteFunction { arguments ->
+            if (arguments.size < 2) {
+                usage("ANY(value1: VALUE; value2: VALUE[; ...]): BOOLEAN")
+            }
+            for (arg in arguments) {
+                if (arg.toFluoriteBoolean(null).value) {
+                    return@FluoriteFunction arg.toFluoriteBoolean(null)
+                }
+            }
+            arguments.last().toFluoriteBoolean(null)
+        },
+        "ALL" to FluoriteFunction { arguments ->
+            if (arguments.size < 2) {
+                usage("ALL(value1: VALUE; value2: VALUE[; ...]): BOOLEAN")
+            }
+            for (arg in arguments) {
+                if (!arg.toFluoriteBoolean(null).value) {
+                    return@FluoriteFunction arg.toFluoriteBoolean(null)
+                }
+            }
+            arguments.last().toFluoriteBoolean(null)
+        },
         "TO_ARRAY" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]

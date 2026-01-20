@@ -853,6 +853,54 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
+## `ANY` Check if Any is True
+
+`ANY(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+
+Returns `TRUE` if any of the passed arguments evaluates to `TRUE` when booleanized, otherwise returns `FALSE`.
+
+Behaves similarly to the logical OR operator `||`, but accepts any number of arguments.
+
+Requires at least 2 arguments.
+
+```shell
+$ xa 'ANY(FALSE; FALSE; TRUE)'
+# TRUE
+
+$ xa 'ANY(FALSE; FALSE; FALSE)'
+# FALSE
+
+$ xa 'ANY(1; 0)'
+# TRUE
+
+$ xa 'ANY(0; "")'
+# FALSE
+```
+
+## `ALL` Check if All are True
+
+`ALL(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+
+Returns `TRUE` if all passed arguments evaluate to `TRUE` when booleanized, otherwise returns `FALSE`.
+
+Behaves similarly to the logical AND operator `&&`, but accepts any number of arguments.
+
+Requires at least 2 arguments.
+
+```shell
+$ xa 'ALL(TRUE; TRUE; TRUE)'
+# TRUE
+
+$ xa 'ALL(TRUE; TRUE; FALSE)'
+# FALSE
+
+$ xa 'ALL(1; "a"; [1])'
+# TRUE
+
+$ xa 'ALL(1; ""; [1])'
+# FALSE
+```
+
 ## `TO_ARRAY` Convert Stream to Array
 
 `ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>`
