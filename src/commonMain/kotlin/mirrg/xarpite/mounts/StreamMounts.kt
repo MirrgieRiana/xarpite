@@ -585,6 +585,9 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
 
             val keyGetter = entries.remove("by") ?: arguments3.removeFirstOrNull()
 
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
             FluoriteStream {
                 val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
