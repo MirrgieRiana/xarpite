@@ -82,6 +82,31 @@ $ xa '1.5'
 # 1.5
 ```
 
+### Numeric Literal Separators
+
+All numeric literals can include any number of `_` characters at any position except the beginning of the digit sequence.
+
+The `_` characters are simply ignored.
+
+This allows large numbers to be written more readably.
+
+```shell
+$ xa '1_000_000'
+# 1000000
+
+$ xa '1__2__3__'
+# 123
+
+$ xa 'H#FF_FF'
+# 65535
+
+$ xa '1_000.5'
+# 1000.5
+
+$ xa '1.5_0_0'
+# 1.5
+```
+
 ## Numeric Conversion
 
 There are operators and functions to convert values to numbers.

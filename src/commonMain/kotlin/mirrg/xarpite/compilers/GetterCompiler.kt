@@ -188,11 +188,11 @@ fun Frame.compileToGetter(node: Node): Getter {
             }
         }
 
-        is IntegerNode -> LiteralGetter(node.string.toFluoriteNumber())
+        is IntegerNode -> LiteralGetter(node.string.replace("_", "").toFluoriteNumber())
 
-        is HexadecimalNode -> LiteralGetter(node.string.toBigInteger(base = 16).toString().toFluoriteNumber())
+        is HexadecimalNode -> LiteralGetter(node.string.replace("_", "").toBigInteger(base = 16).toString().toFluoriteNumber())
 
-        is FloatNode -> LiteralGetter(node.string.toFluoriteNumber())
+        is FloatNode -> LiteralGetter(node.string.replace("_", "").toFluoriteNumber())
 
         is RawStringNode -> LiteralGetter(FluoriteString(node.node.string))
 
@@ -354,9 +354,9 @@ private fun Frame.compileObjectCreationToGetter(parentNode: Node?, bodyNode: Nod
 
 private fun Frame.compileUnaryMinusToGetter(main: Node, position: Position): Getter {
     return when (main) {
-        is IntegerNode -> LiteralGetter("-${main.string}".toFluoriteNumber())
-        is HexadecimalNode -> LiteralGetter("-${main.string}".toBigInteger(base = 16).toString().toFluoriteNumber())
-        is FloatNode -> LiteralGetter("-${main.string}".toFluoriteNumber())
+        is IntegerNode -> LiteralGetter("-${main.string.replace("_", "")}".toFluoriteNumber())
+        is HexadecimalNode -> LiteralGetter("-${main.string.replace("_", "")}".toBigInteger(base = 16).toString().toFluoriteNumber())
+        is FloatNode -> LiteralGetter("-${main.string.replace("_", "")}".toFluoriteNumber())
         else -> ToNegativeNumberGetter(compileToGetter(main), position)
     }
 }
