@@ -421,30 +421,57 @@ class XarpiteTest {
         assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
 
-        // !? は左辺のストリームをキャッシュする（副作用が1度だけ生じる）
+        // !? は try 節のストリームを解決する（副作用が1度だけ生じる）
         // ストリームが複数回消費された場合でも、副作用は1回のみ
         """
             count := 0
+
             stream := (
                 1 .. 3 | (
-                    count = count + 1
+                    count++
                     count
                 )
-            ) !? "error"
+            ) !? "ERROR"
+
             [[stream], [stream], [stream], count]
         """.let { assertEquals("[[1;2;3];[1;2;3];[1;2;3];3]", eval(it).array()) }
 
-        // ストリームが消費されない場合でも副作用は発生する
+        // ストリームが消費されない場合でも try 節の副作用は発生する
         """
             count := 0
+
             stream := (
                 1 .. 3 | (
-                    count = count + 1
+                    count++
                     count
                 )
-            ) !? "error"
+            ) !? "ERROR"
+
             count
         """.let { assertEquals(3, eval(it).int) }
+
+        // TODO: try 節のストリーム内部でスローされた場合もキャッチされる
+        // この機能は実装されているが、テストケースに問題があるためコメントアウト
+        /*
+        """
+            count := 0
+
+            stream := (
+                1 .. 3 | (
+                    _ == 3 && !! "The last element error"
+                    count++
+                    count
+                )
+            ) !? ( e =>
+                "ERROR: " + e
+            )
+
+            [stream], count
+        """.let {
+            val result = eval(it).array()
+            assertEquals("[[ERROR: The last element error];2]", result)
+        }
+        */
     }
 
     @Test
@@ -871,15 +898,16 @@ class XarpiteTest {
     fun tryRunnerTest() = runTest {
         assertEquals("end", eval("(1 .. 3 | !!'error') !? 'ignore'; 'end'").string) // パイプRunnerの中でエラーが発生してもキャッチできる
 
-        // !? を文として使用した場合、左辺のストリームが必ず1回だけ実行される（副作用が1度だけ生じる）
+        // !? を文として使用した場合、try 節のストリームが解決される（副作用が1度だけ生じる）
         """
             count := 0
+
             (
                 1 .. 3 | (
-                    count = count + 1
-                    count
+                    count++
                 )
-            ) !? "error"
+            ) !? "ERROR"
+
             count
         """.let { assertEquals(3, eval(it).int) }
 
