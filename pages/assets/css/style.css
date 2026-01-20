@@ -128,14 +128,7 @@ body {
 }
 
 .version-badge {
-  font-size: 0.75rem;
-  font-weight: 500;
   color: var(--text-secondary);
-  background-color: var(--bg-tertiary);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  margin-left: 0.5rem;
-  letter-spacing: 0.02em;
 }
 
 .main-nav {
