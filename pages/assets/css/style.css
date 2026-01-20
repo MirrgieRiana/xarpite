@@ -38,6 +38,8 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
 
+  --header-height: 100px;
+
   /* Breakpoint values for reference (CSS custom properties cannot be used in @media queries) */
   /* --breakpoint-tablet: 968px; */
   /* --breakpoint-mobile: 768px; */
@@ -264,11 +266,6 @@ body {
   transition: all var(--transition-fast);
 }
 
-.doc-content h2:hover {
-  padding-left: 1rem;
-  border-left-width: 6px;
-}
-
 .doc-content h3 {
   color: var(--text-primary);
   font-size: 1.375rem;
@@ -307,6 +304,45 @@ body {
   left: 0;
   color: var(--xarpite-red-primary);
   font-weight: bold;
+}
+
+/* Heading Anchor Links */
+.doc-content h1,
+.doc-content h2,
+.doc-content h3,
+.doc-content h4 {
+  scroll-margin-top: var(--header-height);
+}
+
+.doc-content .heading-anchor-link {
+  opacity: 0;
+  margin-left: 0.5rem;
+  color: var(--xarpite-red-primary);
+  text-decoration: none;
+  font-weight: 400;
+  transition: all var(--transition-fast);
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Reset ::after underline animation inherited from .doc-content a::after */
+.doc-content .heading-anchor-link::before,
+.doc-content .heading-anchor-link::after {
+  content: none;
+}
+
+.doc-content h1:hover .heading-anchor-link,
+.doc-content h2:hover .heading-anchor-link,
+.doc-content h3:hover .heading-anchor-link,
+.doc-content h4:hover .heading-anchor-link,
+.doc-content .heading-anchor-link:focus {
+  opacity: 1;
+}
+
+.doc-content .heading-anchor-link:hover {
+  color: var(--xarpite-red-dark);
+  transform: scale(1.1);
 }
 
 .doc-content p {

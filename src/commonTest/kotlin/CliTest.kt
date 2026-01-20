@@ -47,6 +47,19 @@ class CliTest {
     }
 
     @Test
+    fun iAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+    }
+
+    @Test
+    fun oAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """O("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
+    }
+
+    @Test
     fun read() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -257,15 +270,80 @@ class CliTest {
     }
 
     @Test
-    fun useRequiresRelativePrefix() = runTest {
+    fun useRequiresPathPrefix() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
+        // Error when neither relative nor absolute path prefix is present
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("$file")""")
+            cliEval(context, """USE("use.prefix.tmp.xa1")""")
         }
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useSupportsAbsolutePath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.tmp.xa1")
+        fileSystem.write(file) { writeUtf8("999") }
+        // Get absolute path using FileSystem.canonicalize
+        val absolutePath = getAbsolutePath(file)
+        assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useSupportsAbsolutePathWithoutExtension() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.noext.tmp.xa1")
+        fileSystem.write(file) { writeUtf8("888") }
+        // Get absolute path using FileSystem.canonicalize
+        val absolutePath = getAbsolutePath(file)
+        // Absolute path without extension
+        val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
+        assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun useAbsolutePathCachesByPath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("use.absolute.cache.tmp.xa1")
+        fileSystem.write(file) {
+            writeUtf8(
+                """
+                {
+                  variables: {
+                    fruit: "apple"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        // Get absolute path using FileSystem.canonicalize
+        val absolutePath = getAbsolutePath(file)
+        val result = cliEval(
+            context,
+            """
+            a := USE("$absolutePath")
+            b := USE("$absolutePath")
+            a.variables.fruit = "orange"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("orange", result)
         fileSystem.delete(file)
     }
 
@@ -846,6 +924,11 @@ class CliTest {
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
+}
+
+private suspend fun getAbsolutePath(file: okio.Path): String {
+    val fileSystem = getFileSystem().getOrThrow()
+    return fileSystem.canonicalize(file).toString()
 }
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
