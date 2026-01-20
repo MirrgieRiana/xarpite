@@ -328,6 +328,51 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 3.0
 ```
 
+## `LINES` Split String by Lines
+
+`LINES(string: STRING): STREAM<STRING>`
+
+Splits `string` by line breaks and returns each line as a stream.
+
+Line break characters are removed from the resulting lines.
+
+If `string` ends with a line break, only one trailing line break is ignored.
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+All line break characters (LF, CR, CRLF) are recognized.
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
+```
+
 ## `KEYS` Get Stream of Object Keys
 
 `KEYS(object: OBJECT): STREAM<STRING>`

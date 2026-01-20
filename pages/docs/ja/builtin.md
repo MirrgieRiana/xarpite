@@ -188,6 +188,51 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 3.0
 ```
 
+## `LINES` 文字列を行ごとに分割
+
+`LINES(string: STRING): STREAM<STRING>`
+
+`string` を改行で分割し、各行をストリームとして返します。
+
+結果の各行からは改行文字が除去されます。
+
+`string` の末尾に改行がある場合、その改行は1個だけ無視されます。
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+空文字列の場合は空ストリーム、1個の改行のみの場合は空文字列1個のストリームを返します。
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+改行文字（LF、CR、CRLF）はすべて認識されます。
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
+```
+
 ## `KEYS` オブジェクトのキーのストリームを取得
 
 `KEYS(object: OBJECT): STREAM<STRING>`

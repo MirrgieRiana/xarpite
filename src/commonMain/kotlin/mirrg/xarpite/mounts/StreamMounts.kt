@@ -203,6 +203,17 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
 
             strings.map { it.toFluoriteString() }.toFluoriteStream()
         },
+        "LINES" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val string = arguments[0].toFluoriteString(null).value
+                if (string.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+                val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
+                if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
+                lines.map { it.toFluoriteString() }.toFluoriteStream()
+            } else {
+                usage("LINES(string: STRING): STREAM<STRING>")
+            }
+        },
         "KEYS" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val obj = arguments[0]
