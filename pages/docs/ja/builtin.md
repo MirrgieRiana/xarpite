@@ -485,13 +485,20 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `GROUP` ストリームをキーでグループ化
 
-`<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
+`<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
 
-`stream` の各要素に対して `key_getter` を適用し、同一のキーとなる値をエントリー配列にまとめてストリームで返します。
+`stream` の各要素に対して `keyGetter` を適用し、同一のキーとなる値を配列でエントリーにまとめてストリームで返します。
 
-エントリー配列は、最初にそのキーが現れた順序になります。
+`keyGetter` を省略した場合は要素そのものをキーとしてグループ化します。
+
+エントリーの配列は、最初にそのキーが現れた順序になります。
 
 ```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> GROUP'
+# [apple;[apple;apple]]
+# [cherry;[cherry]]
+# [banana;[banana;banana]]
+
 $ xa '
   {category: "fruit" ; value: "apple" },
   {category: "fruit" ; value: "banana"},
