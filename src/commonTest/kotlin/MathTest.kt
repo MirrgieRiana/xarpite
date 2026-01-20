@@ -127,6 +127,14 @@ class MathTest {
         // 演算でも動作する
         assertEquals(2000000, eval("1_000_000 + 1_000_000").int)
         assertEquals(2000.0, eval("1_000.0 * 2.0").double, 0.001)
+        
+        // 末尾アンダースコアのテスト（正式仕様）
+        assertEquals(123, eval("123_").int) // 整数の末尾アンダースコア
+        assertEquals(123, eval("1__2__3__").int) // 連続アンダースコアと末尾アンダースコア
+        assertEquals(255, eval("H#FF_").int) // 16進数の末尾アンダースコア
+        assertEquals(255, eval("H#F_F_").int) // 16進数の連続と末尾アンダースコア
+        assertEquals(1.5, eval("1.5_").double, 0.001) // 浮動小数点数の末尾アンダースコア
+        assertEquals(1.5, eval("1.5_0_0_").double, 0.001) // 小数部の連続と末尾アンダースコア
     }
 
 }
