@@ -204,5 +204,43 @@ class DataConversionTest {
         assertEquals("a=b&c=d test", eval(""" "a=b&c=d test" >> PERCENT >> PERCENTD """).string)
     }
 
+    @Test
+    fun base() = runTest {
+        // BASE で数値を任意の基数の文字列に変換
+        assertEquals("100", eval(""" 256 >> BASE[16] """).string) // 16進数: 256 → "100"
+        assertEquals("FF", eval(""" 255 >> BASE[16] """).string) // 16進数: 255 → "FF"
+        assertEquals("10", eval(""" 16 >> BASE[16] """).string) // 16進数: 16 → "10"
+        assertEquals("0", eval(""" 0 >> BASE[16] """).string) // 16進数: 0 → "0"
+        assertEquals("100000000", eval(""" 256 >> BASE[2] """).string) // 2進数: 256 → "100000000"
+        assertEquals("11111111", eval(""" 255 >> BASE[2] """).string) // 2進数: 255 → "11111111"
+        assertEquals("400", eval(""" 256 >> BASE[8] """).string) // 8進数: 256 → "400"
+        assertEquals("80", eval(""" 256 >> BASE[32] """).string) // 32進数: 256 → "80"
+
+        // BASED で任意の基数の文字列を数値に変換
+        assertEquals(256, eval(""" "100" >> BASED[16] """).int) // 16進数: "100" → 256
+        assertEquals(255, eval(""" "FF" >> BASED[16] """).int) // 16進数: "FF" → 255
+        assertEquals(255, eval(""" "ff" >> BASED[16] """).int) // 16進数: "ff" → 255 (小文字も可)
+        assertEquals(16, eval(""" "10" >> BASED[16] """).int) // 16進数: "10" → 16
+        assertEquals(0, eval(""" "0" >> BASED[16] """).int) // 16進数: "0" → 0
+        assertEquals(256, eval(""" "100000000" >> BASED[2] """).int) // 2進数: "100000000" → 256
+        assertEquals(255, eval(""" "11111111" >> BASED[2] """).int) // 2進数: "11111111" → 255
+        assertEquals(256, eval(""" "400" >> BASED[8] """).int) // 8進数: "400" → 256
+        assertEquals(256, eval(""" "80" >> BASED[32] """).int) // 32進数: "80" → 256
+        assertEquals(520, eval(""" "g8" >> BASED[32] """).int) // 32進数: "g8" → 520 (小文字も可)
+
+        // BASEとBASEDは逆変換の関係
+        assertEquals(256, eval(""" 256 >> BASE[16] >> BASED[16] """).int)
+        assertEquals(12345, eval(""" 12345 >> BASE[10] >> BASED[10] """).int)
+        assertEquals(1023, eval(""" 1023 >> BASE[2] >> BASED[2] """).int)
+        assertEquals(1000, eval(""" 1000 >> BASE[36] >> BASED[36] """).int)
+
+        // さまざまな基数で変換できる
+        assertEquals("1010", eval(""" 10 >> BASE[2] """).string) // 2進数
+        assertEquals("22", eval(""" 10 >> BASE[4] """).string) // 4進数
+        assertEquals("12", eval(""" 10 >> BASE[8] """).string) // 8進数
+        assertEquals("A", eval(""" 10 >> BASE[16] """).string) // 16進数
+        assertEquals("A", eval(""" 10 >> BASE[36] """).string) // 36進数
+    }
+
 
 }

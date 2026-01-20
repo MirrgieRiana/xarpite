@@ -31,6 +31,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.copy
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -84,48 +85,56 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> SHUFFLE(stream: T,): T,")
             }
         },
-        "DISTINCT" to FluoriteFunction { arguments ->
-            run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
-                if (arguments.size != 1) return@run
-                val stream = arguments[0]
+        *run {
+            fun createDistinctFunction(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 1) return@run
+                        val stream = arguments[0]
 
-                return@FluoriteFunction if (stream is FluoriteStream) {
-                    FluoriteStream {
-                        val set = mutableSetOf<FluoriteValue>()
-                        stream.collect { item ->
-                            if (set.add(item)) emit(item)
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            FluoriteStream {
+                                val set = mutableSetOf<FluoriteValue>()
+                                stream.collect { item ->
+                                    if (set.add(item)) emit(item)
+                                }
+                            }
+                        } else {
+                            stream
                         }
                     }
-                } else {
-                    stream
-                }
-            }
-            run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
-                if (arguments.size != 2) return@run
-                val entry = arguments[0]
-                if (entry !is FluoriteArray) return@run
-                if (entry.values.size != 2) return@run
-                val parameterName = entry.values[0]
-                if (parameterName !is FluoriteString) return@run
-                if (parameterName.value != "by") return@run
-                val keyGetter = entry.values[1]
-                val stream = arguments[1]
+                    run { // DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val entry = arguments[0]
+                        if (entry !is FluoriteArray) return@run
+                        if (entry.values.size != 2) return@run
+                        val parameterName = entry.values[0]
+                        if (parameterName !is FluoriteString) return@run
+                        if (parameterName.value != "by") return@run
+                        val keyGetter = entry.values[1]
+                        val stream = arguments[1]
 
-                return@FluoriteFunction if (stream is FluoriteStream) {
-                    FluoriteStream {
-                        val set = mutableSetOf<FluoriteValue>()
-                        stream.collect { item ->
-                            val key = keyGetter.invoke(null, arrayOf(item))
-                            if (set.add(key)) emit(item)
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            FluoriteStream {
+                                val set = mutableSetOf<FluoriteValue>()
+                                stream.collect { item ->
+                                    val key = keyGetter.invoke(null, arrayOf(item))
+                                    if (set.add(key)) emit(item)
+                                }
+                            }
+                        } else {
+                            stream
                         }
                     }
-                } else {
-                    stream
+                    usage(
+                        "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                    )
                 }
             }
-            usage(
-                "DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>",
-                "DISTINCT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+            arrayOf(
+                "DISTINCT" to createDistinctFunction("DISTINCT"),
+                "UNIQ" to createDistinctFunction("UNIQ"),
             )
         },
         "JOIN" to FluoriteFunction { arguments ->
@@ -162,26 +171,47 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "SPLIT" to FluoriteFunction { arguments ->
-            val separator: String
-            val string: FluoriteValue
-            when (arguments.size) {
-                2 -> {
-                    separator = arguments[0].toFluoriteString(null).value
-                    string = arguments[1]
-                }
+            fun usage(): Nothing = usage("SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>")
+            val arguments2 = arguments.toMutableList()
 
-                1 -> {
-                    separator = ","
-                    string = arguments[0]
-                }
+            if (arguments2.isEmpty()) usage()
+            val string = arguments2.removeLast().toFluoriteString(null).value
 
-                else -> usage("SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>")
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            val separator = (entries.remove("by") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value ?: ","
+            val limit = (entries.remove("limit") ?: arguments3.removeFirstOrNull())?.toFluoriteNumber(null)?.roundToInt()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            if (limit != null && limit <= 0) throw FluoriteException("Limit must be positive or NULL".toFluoriteString())
+            if (limit == 1) return@FluoriteFunction string.toFluoriteString()
+
+            val strings = if (separator.isEmpty()) {
+                if (limit == null || limit >= string.length) {
+                    string.map { "$it" }
+                } else {
+                    listOf(
+                        *string.substring(0, limit - 1).map { "$it" }.toTypedArray(),
+                        string.substring(limit - 1),
+                    )
+                }
+            } else {
+                string.split(separator, limit = limit ?: 0)
             }
 
-            if (separator.isEmpty()) {
-                string.toFluoriteString(null).value.map { "$it".toFluoriteString() }.toFluoriteStream()
+            strings.map { it.toFluoriteString() }.toFluoriteStream()
+        },
+        "LINES" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val string = arguments[0].toFluoriteString(null).value
+                if (string.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+                val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
+                if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
+                lines.map { it.toFluoriteString() }.toFluoriteStream()
             } else {
-                string.toFluoriteString(null).value.split(separator).map { it.toFluoriteString() }.toFluoriteStream()
+                usage("LINES(string: STRING): STREAM<STRING>")
             }
         },
         "KEYS" to FluoriteFunction { arguments ->
@@ -518,24 +548,31 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createFilterFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size == 2) {
-                        val predicate = arguments[0]
-                        val stream = arguments[1]
-                        FluoriteStream {
-                            if (stream is FluoriteStream) {
-                                stream.collect { item ->
-                                    if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
-                                        emit(item)
-                                    }
-                                }
-                            } else {
-                                if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
-                                    emit(stream)
+                    fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
+                    val arguments2 = arguments.toMutableList()
+
+                    if (arguments2.isEmpty()) usage()
+                    val stream = arguments2.removeLast()
+
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                    val predicate = (entries.remove("by") ?: arguments3.removeFirstOrNull()) ?: usage()
+
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+
+                    FluoriteStream {
+                        if (stream is FluoriteStream) {
+                            stream.collect { item ->
+                                if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
+                                    emit(item)
                                 }
                             }
+                        } else {
+                            if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
+                                emit(stream)
+                            }
                         }
-                    } else {
-                        usage("$name(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     }
                 }
             }
@@ -545,23 +582,24 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             )
         },
         "GROUP" to FluoriteFunction { arguments ->
-            fun error(): Nothing = usage("<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],")
+            fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
+            val arguments2 = arguments.toMutableList()
 
-            if (arguments.size != 2) error()
-            val entry = arguments[0]
-            if (entry !is FluoriteArray) error()
-            if (entry.values.size != 2) error()
-            val parameterName = entry.values[0]
-            if (parameterName !is FluoriteString) error()
-            if (parameterName.value != "by") error()
-            val keyGetter = entry.values[1]
-            val stream = arguments[1]
+            if (arguments2.isEmpty()) usage()
+            val stream = arguments2.removeLast()
 
-            return@FluoriteFunction FluoriteStream {
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            val keyGetter = entries.remove("by") ?: arguments3.removeFirstOrNull()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            FluoriteStream {
                 val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
                 suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter.invoke(null, arrayOf(value))
+                    val key = keyGetter?.invoke(null, arrayOf(value)) ?: value
                     val list = groups.getOrPut(key) { mutableListOf() }
                     list += value
                 }

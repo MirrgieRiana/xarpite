@@ -31,6 +31,15 @@ class MathTest {
     }
 
     @Test
+    fun lengthOfNumber() = runTest {
+        assertEquals(10, eval("$#10").int) // 正の整数はそのまま
+        assertEquals(10, eval("$#-10").int) // 負の整数は絶対値になる
+        assertEquals(10.5, eval("$#10.5").double, 0.001) // 正の浮動小数点数
+        assertEquals(10.5, eval("$#-10.5").double, 0.001) // 負の浮動小数点数
+        assertEquals(2147483648.0, eval("$#-2147483648").double, 0.001) // INT_MINはDoubleにフォールバック
+    }
+
+    @Test
     fun div() = runTest {
         assertEquals(3, eval("DIV(10; 3)").int) // DIV関数は小数点以下を絶対値の小さい方に切り捨てる
 

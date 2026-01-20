@@ -74,9 +74,11 @@ $ xa 'REVERSE(1 .. 3)'
 
 `stream` の要素をランダムに並べ替えたストリームを返します。
 
-## `DISTINCT` ストリームの重複要素を除去
+## `DISTINCT` / `UNIQ` ストリームの重複要素を除去
 
 ストリームから重複する要素を取り除いたストリームを返します。
+
+`UNIQ` は `DISTINCT` の別名であり、同一の動作を持ちます。
 
 `DISTINCT` は、2種類の呼び出し方があります。
 
@@ -143,13 +145,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` 文字列をストリームに分割
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-第2引数の文字列を第1引数のセパレータで分割し、各部分をストリームとして返します。第1引数を省略した場合は `,` が使用されます。
+`string` を `separator` で分割し、各部分をストリームとして返します。 `separator` を省略した場合は `,` が使用されます。
 
 パイプ演算子との親和性のために配列ではなくストリームとして返されることに注意してください。
 
 `SPLIT` は概念的に `JOIN` と逆の操作を行います。
+
+`separator` や `string` は文字列化されて評価されます。
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -165,17 +169,68 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-セパレータや分割対象文字列は文字列化されて評価されます。
+`limit` が指定された場合、最大で `limit` 個の要素に分割され、 `limit` 個目の要素には残りの文字列全体が含まれます。
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
-部分適用とともに用いることで、パイプチェーンに組み込みやすくなります。
+部分適用とともに用いることでパイプチェーンに組み込みやすくなります。
 
 ```shell
 $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
+```
+
+## `LINES` 文字列を行ごとに分割
+
+`LINES(string: STRING): STREAM<STRING>`
+
+`string` を改行で分割し、各行をストリームとして返します。
+
+結果の各行からは改行文字が除去されます。
+
+`string` の末尾に改行がある場合、その改行は1個だけ無視されます。
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+空文字列の場合は空ストリーム、1個の改行のみの場合は空文字列1個のストリームを返します。
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+改行文字（LF、CR、CRLF）はすべて認識されます。
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
 ```
 
 ## `KEYS` オブジェクトのキーのストリームを取得
@@ -430,13 +485,20 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `GROUP` ストリームをキーでグループ化
 
-`<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
+`<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
 
-`stream` の各要素に対して `key_getter` を適用し、同一のキーとなる値をエントリー配列にまとめてストリームで返します。
+`stream` の各要素に対して `keyGetter` を適用し、同一のキーとなる値を配列でエントリーにまとめてストリームで返します。
 
-エントリー配列は、最初にそのキーが現れた順序になります。
+`keyGetter` を省略した場合は要素そのものをキーとしてグループ化します。
+
+エントリーの配列は、最初にそのキーが現れた順序になります。
 
 ```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> GROUP'
+# [apple;[apple;apple]]
+# [cherry;[cherry]]
+# [banana;[banana;banana]]
+
 $ xa '
   {category: "fruit" ; value: "apple" },
   {category: "fruit" ; value: "banana"},
@@ -527,14 +589,20 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` ストリームを条件で抽出
 
-`FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-第2引数のストリームの各要素に `predicate` を適用し、その結果が真となった要素のみを含むストリームを返します。
+`stream` の各要素に `predicate` を適用し、真となった要素のみを含むストリームを返します。
 
 ```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
-# 2
-# 4
+$ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
+# 1
+# 3
+# 5
+
+$ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
+# 1
+# 3
+# 5
 ```
 
 ## `GREP` ストリームを条件で抽出

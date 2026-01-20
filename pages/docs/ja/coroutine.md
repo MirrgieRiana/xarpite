@@ -185,12 +185,12 @@ $ xa '
 
 ---
 
-以下のサンプルコードでは、実行後1秒おいてから `Hello, world!` が出力されます。
+以下のサンプルコードでは、実行後1秒おいてから `Hello, World!` が出力されます。
 
 ```shell
 $ xa '
   SLEEP(1)
-  "Hello, world!"
+  "Hello, World!"
 '
-# Hello, world!
+# Hello, World!
 ```

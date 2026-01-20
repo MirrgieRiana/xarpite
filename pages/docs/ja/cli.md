@@ -339,11 +339,15 @@ $ FOO=bar xa 'ENV.FOO'
 
 存在しない変数にアクセスした場合は `NULL` が返ります。
 
-### `IN`: コンソールから文字列を1行ずつ読み取る
+### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
 
+`I: STREAM<STRING>`
+
 標準入力から文字列を1行ずつ読み取るストリームです。
+
+`I` は `IN` の別名です。
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -404,11 +408,15 @@ $ echo -n "abc" | xa 'INB'
 
 `INB` を一度でも使用した場合、 `IN` を使用することはできません。
 
-### `OUT`: 標準出力に出力
+### `OUT`, `O`: 標準出力に出力
 
 `OUT(value: VALUE): NULL`
 
+`O(value: VALUE): NULL`
+
 標準出力に出力します。
+
+`O` は `OUT` の別名です。
 
 この関数はしばしば左実行パイプ `<<` によって呼び出されます。
 
@@ -525,11 +533,11 @@ $ {
 # file
 ```
 
-### `READ`: ファイルから読み込み
+### `READ`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
-`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み込みます。
+`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
 
 改行コードは除去されます。
 
@@ -542,6 +550,23 @@ $ {
 }
 # apple
 # banana
+```
+
+### `READB`: バイナリファイルから読み込み
+
+`READB(file: STRING): STREAM<BLOB>`
+
+`file` で指定されたバイナリファイルの内容をBLOBとしてすべて読み取ります。
+
+BLOBは最大8192バイトの長さに分割されます。
+
+```shell
+$ {
+  echo -en '\x20\x21\x22' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
+}
+# BLOB.of([32;33;34])
 ```
 
 ### `USE`: 外部Xarpiteファイルの結果を取得
@@ -658,7 +683,7 @@ $ {
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
 
@@ -677,6 +702,35 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 13
 # 23
 # 30
+```
+
+---
+
+`env` 引数を指定すると、プロセスの環境変数を指定できます。
+
+環境変数は呼び出したXarpiteプロセスの環境変数を継承した上で追加・上書きされます。
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
+# BAR
+```
+
+空文字列もしくはNULLを指定すると、既存の環境変数を削除できます。
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
 ```
 
 ---

@@ -15,6 +15,11 @@ actual fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
 
+actual fun isWindows(): Boolean {
+    val os = System.getProperty("os.name")
+    return os != null && os.lowercase().startsWith("windows")
+}
+
 actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
@@ -34,10 +39,18 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatcher
     System.err.flush()
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
+        val environment = processBuilder.environment()
+        env.forEach { (key, value) ->
+            if (value.isNullOrEmpty()) {
+                environment.remove(key)
+            } else {
+                environment[key] = value
+            }
+        }
         val processInstance = processBuilder.start()
 
         try {

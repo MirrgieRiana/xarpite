@@ -47,6 +47,19 @@ class CliTest {
     }
 
     @Test
+    fun iAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+    }
+
+    @Test
+    fun oAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """O("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
+    }
+
+    @Test
     fun read() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -57,6 +70,98 @@ class CliTest {
             writeUtf8("456" + "\n")
         }
         assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
+    }
+
+    @Test
+    fun readb() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_file.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            write(byteArrayOf(65, 66, 67))
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals(ubyteArrayOf(65u, 66u, 67u), blobs[0].value)
+    }
+
+    @Test
+    fun readbSplitsByBufferSize() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_file_large.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(2, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertEquals(1, blobs[1].value.size)
+        assertContentEquals(data.take(INB_MAX_BUFFER_SIZE).map { it.toUByte() }.toUByteArray(), blobs[0].value)
+        assertEquals(data.last().toUByte(), blobs[1].value[0])
+    }
+
+    @Test
+    fun readbEmptyFile() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_empty.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            // 空ファイル
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(0, blobs.size)
+    }
+
+    @Test
+    fun readbExactlyBufferSize() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_exact.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertContentEquals(data.map { it.toUByte() }.toUByteArray(), blobs[0].value)
+    }
+
+    @Test
+    fun readbWithNullBytes() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_null.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            write(byteArrayOf(0, 1, 0, 2, 0))
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals(ubyteArrayOf(0u, 1u, 0u, 2u, 0u), blobs[0].value)
+    }
+
+    @Test
+    fun readbMultipleBuffers() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readb.test_multi.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        val data = ByteArray(INB_MAX_BUFFER_SIZE * 2 + 100) { (it % 256).toByte() }
+        getFileSystem().getOrThrow().write(file) {
+            write(data)
+        }
+        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        assertEquals(3, blobs.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
+        assertEquals(INB_MAX_BUFFER_SIZE, blobs[1].value.size)
+        assertEquals(100, blobs[2].value.size)
     }
 
     @Test
@@ -562,6 +667,57 @@ class CliTest {
     }
 
     @Test
+    fun execWithEnvironmentOverrides() = runTest {
+        val context = TestIoContext()
+        try {
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("BAR", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentOverridesExistingVariable() = runTest {
+        val context = TestIoContext()
+        try {
+            // 既存環境変数の上書き
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("OVERRIDE", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentRemoveByEmptyString() = runTest {
+        val context = TestIoContext()
+        try {
+            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithEnvironmentRemoveByNull() = runTest {
+        val context = TestIoContext()
+        try {
+            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("ok", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun execWithEmptyArgumentList() = runTest {
         val context = TestIoContext()
         try {
@@ -757,7 +913,7 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>) = mirrg.xarpite.executeProcess(process, args)
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
 
     fun clear() {
         stdoutBytes.reset()
@@ -796,4 +952,10 @@ private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
 private fun getExecSrcWrappingHexForShell(script: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
 }

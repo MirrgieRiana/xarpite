@@ -214,9 +214,11 @@ $ xa 'REVERSE(1 .. 3)'
 
 Returns a stream with the elements of `stream` randomly rearranged.
 
-## `DISTINCT` Remove Duplicate Elements from Stream
+## `DISTINCT` / `UNIQ` Remove Duplicate Elements from Stream
 
 Returns a stream with duplicate elements removed.
+
+`UNIQ` is an alias of `DISTINCT` and has the same behavior.
 
 `DISTINCT` can be called in 2 ways.
 
@@ -283,13 +285,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` Split String into Stream
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-Splits the second argument string by the first argument separator and returns each part as a stream. If the first argument is omitted, `,` is used.
+Splits `string` by `separator` and returns each part as a stream. If `separator` is omitted, `,` is used.
 
 Note that it returns a stream rather than an array for compatibility with the pipe operator.
 
 `SPLIT` conceptually performs the inverse operation of `JOIN`.
+
+`separator` and `string` are stringified and evaluated.
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -305,7 +309,13 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-Separator and target string are stringified and evaluated.
+When `limit` is specified, the string is split into at most `limit` elements, and the `limit`-th element contains the entire remaining string.
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
@@ -316,6 +326,51 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
+```
+
+## `LINES` Split String by Lines
+
+`LINES(string: STRING): STREAM<STRING>`
+
+Splits `string` by line breaks and returns each line as a stream.
+
+Line break characters are removed from the resulting lines.
+
+If `string` ends with a line break, only one trailing line break is ignored.
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+All line break characters (LF, CR, CRLF) are recognized.
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
 ```
 
 ## `KEYS` Get Stream of Object Keys
@@ -570,13 +625,20 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `GROUP` Group Stream by Key
 
-`<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
+`<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
 
-Applies `key_getter` to each element of `stream`, groups values with the same key into entry arrays, and returns them as a stream.
+Applies `keyGetter` to each element of `stream`, groups values with the same key into arrays as entries, and returns them as a stream.
+
+If `keyGetter` is omitted, groups using the elements themselves as keys.
 
 Entry arrays are in the order in which that key first appeared.
 
 ```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> GROUP'
+# [apple;[apple;apple]]
+# [cherry;[cherry]]
+# [banana;[banana;banana]]
+
 $ xa '
   {category: "fruit" ; value: "apple" },
   {category: "fruit" ; value: "banana"},
@@ -667,14 +729,20 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` Filter Stream by Condition
 
-`FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-Applies `predicate` to each element of the second argument stream and returns a stream containing only elements where the result is true.
+Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
 
 ```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
-# 2
-# 4
+$ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
+# 1
+# 3
+# 5
+
+$ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
+# 1
+# 3
+# 5
 ```
 
 ## `GREP` Filter Stream by Condition

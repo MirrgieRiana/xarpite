@@ -6,6 +6,89 @@ title: "データ変換系関数"
 
 # データ変換系関数
 
+## `BASE` 整数を任意の基数の文字列に変換
+
+`BASE(radix: NUMBER; number: NUMBER): STRING`
+
+`number` を `radix` 進数の文字列に変換します。
+
+```shell
+$ xa 'BASE(16; 248)'
+# F8
+```
+
+出力は大文字で表記されます。
+
+---
+
+逆変換の `BASED` 関数もあります。
+
+```shell
+$ xa 'BASED(16; "F8")'
+# 248
+```
+
+---
+
+基数は2から36までサポートされます。
+
+```shell
+$ xa 'BASE(2; 248)'
+# 11111000
+
+$ xa 'BASED(2; "11111000")'
+# 248
+```
+
+```shell
+$ xa 'BASE(36; 248)'
+# 6W
+
+$ xa 'BASED(36; "6W")'
+# 248
+```
+
+---
+
+この関数はしばしば部分適用と実行パイプを組み合わせて書かれます。
+
+```shell
+$ xa '248 >> BASE[16] >> BASED[16]'
+# 248
+```
+
+## `BASED` 任意の基数の文字列を整数に変換
+
+`BASED(radix: NUMBER; string: STRING): NUMBER`
+
+`radix` 進数で表記された文字列 `string` を整数に変換します。
+
+```shell
+$ xa 'BASED(16; "F8")'
+# 248
+```
+
+---
+
+この関数は `BASE` 関数の逆変換です。
+
+基本的なことは `BASE` 関数を参照してください。
+
+---
+
+入力は大文字・小文字の両方を受け付けます。
+
+```shell
+$ xa '"FF" >> BASED[16]'
+# 255
+
+$ xa '"ff" >> BASED[16]'
+# 255
+
+$ xa '"fF" >> BASED[16]'
+# 255
+```
+
 ## `UTF8` 文字列をUTF-8でエンコードされたBLOBに変換
 
 `UTF8(string: STRING): BLOB`
