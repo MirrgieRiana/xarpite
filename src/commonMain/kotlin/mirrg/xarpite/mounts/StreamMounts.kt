@@ -31,6 +31,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.copy
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -170,26 +171,47 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "SPLIT" to FluoriteFunction { arguments ->
-            val separator: String
-            val string: FluoriteValue
-            when (arguments.size) {
-                2 -> {
-                    separator = arguments[0].toFluoriteString(null).value
-                    string = arguments[1]
-                }
+            fun usage(): Nothing = usage("SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>")
+            val arguments2 = arguments.toMutableList()
 
-                1 -> {
-                    separator = ","
-                    string = arguments[0]
-                }
+            if (arguments2.isEmpty()) usage()
+            val string = arguments2.removeLast().toFluoriteString(null).value
 
-                else -> usage("SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>")
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            val separator = (entries.remove("by") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value ?: ","
+            val limit = (entries.remove("limit") ?: arguments3.removeFirstOrNull())?.toFluoriteNumber(null)?.roundToInt()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            if (limit != null && limit <= 0) throw FluoriteException("Limit must be positive or NULL".toFluoriteString())
+            if (limit == 1) return@FluoriteFunction string.toFluoriteString()
+
+            val strings = if (separator.isEmpty()) {
+                if (limit == null || limit >= string.length) {
+                    string.map { "$it" }
+                } else {
+                    listOf(
+                        *string.substring(0, limit - 1).map { "$it" }.toTypedArray(),
+                        string.substring(limit - 1),
+                    )
+                }
+            } else {
+                string.split(separator, limit = limit ?: 0)
             }
 
-            if (separator.isEmpty()) {
-                string.toFluoriteString(null).value.map { "$it".toFluoriteString() }.toFluoriteStream()
+            strings.map { it.toFluoriteString() }.toFluoriteStream()
+        },
+        "LINES" to FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val string = arguments[0].toFluoriteString(null).value
+                if (string.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+                val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
+                if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
+                lines.map { it.toFluoriteString() }.toFluoriteStream()
             } else {
-                string.toFluoriteString(null).value.split(separator).map { it.toFluoriteString() }.toFluoriteStream()
+                usage("LINES(string: STRING): STREAM<STRING>")
             }
         },
         "KEYS" to FluoriteFunction { arguments ->

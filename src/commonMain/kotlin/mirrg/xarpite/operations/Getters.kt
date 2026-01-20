@@ -698,7 +698,20 @@ class MatchGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return right.match(position, left)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.collect { item ->
+                    val result = right.match(position, item)
+                    if (result is FluoriteStream) {
+                        result.flowProvider(this)
+                    } else {
+                        emit(result)
+                    }
+                }
+            }
+        } else {
+            right.match(position, left)
+        }
     }
 
     override val code get() = "MatchGetter[${leftGetter.code};${rightGetter.code}]"

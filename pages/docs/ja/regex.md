@@ -144,6 +144,28 @@ $ xa -q '
 # NULL
 ```
 
+## ストリームに対するマッチ
+
+`string` がストリームの場合、各要素に対して `item =~ regex` を適用し、その結果をストリームとして返します。
+
+```shell
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+) / | _.1 '
+# apple
+# banana
+# cherry
+
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]+)/g | _.1 '
+# Red
+# apple
+# pie
+# Yellow
+# banana
+# cake
+# Pink
+# cherry
+# tart
+```
+
 ## グローバルマッチ
 
 `g` フラグを付与した正規表現によるマッチでは、すべてのマッチ結果からなるストリームが返されます。
