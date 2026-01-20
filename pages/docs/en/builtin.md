@@ -724,22 +724,18 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-Applies `predicate` to each element of the second argument stream and returns a stream containing only elements where the result is true.
+Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
 
 ```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
-# 2
-# 4
-```
+$ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
+# 1
+# 3
+# 5
 
----
-
-The first argument can also be a `by` parameter with the same behavior.
-
-```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ by: x -> x % 2 == 0 ]'
-# 2
-# 4
+$ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
+# 1
+# 3
+# 5
 ```
 
 ## `GREP` Filter Stream by Condition
