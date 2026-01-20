@@ -215,15 +215,30 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         "KEYS" to FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
             if (arguments.size == 1) {
                 val obj = arguments[0]
-                if (obj is FluoriteObject) {
-                    obj.map.keys.map { it.toFluoriteString() }.toFluoriteStream()
+                if (obj is FluoriteStream) {
+                    FluoriteStream {
+                        obj.collect { item ->
+                            if (item is FluoriteObject) {
+                                item.map.keys.forEach {
+                                    emit(it.toFluoriteString())
+                                }
+                            } else {
+                                usage()
+                            }
+                        }
+                    }
                 } else {
-                    usage("KEYS(object: OBJECT): STREAM<STRING>")
+                    if (obj is FluoriteObject) {
+                        obj.map.keys.map { it.toFluoriteString() }.toFluoriteStream()
+                    } else {
+                        usage()
+                    }
                 }
             } else {
-                usage("KEYS(object: OBJECT): STREAM<STRING>")
+                usage()
             }
         },
         "VALUES" to FluoriteFunction { arguments ->

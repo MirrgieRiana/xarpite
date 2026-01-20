@@ -375,15 +375,27 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT): STREAM<STRING>`
+`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
 
-Returns a stream of keys of the first argument object.
+Returns a stream of keys from `object`.
 
 ```shell
 $ xa 'KEYS({a: 1; b: 2; c: 3})'
 # a
 # b
 # c
+```
+
+---
+
+When `object` is a stream, returns a flattened stream that yields keys from each object element in sequence.
+
+```shell
+$ xa 'KEYS({a: 1; b: 2}, {c: 3; d: 4})'
+# a
+# b
+# c
+# d
 ```
 
 ## `VALUES` Get Stream of Object Values

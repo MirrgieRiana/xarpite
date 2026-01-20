@@ -235,15 +235,27 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 
 ## `KEYS` オブジェクトのキーのストリームを取得
 
-`KEYS(object: OBJECT): STREAM<STRING>`
+`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
 
-第1引数のオブジェクトのキーのストリームを返します。
+`object` のキーのストリームを返します。
 
 ```shell
 $ xa 'KEYS({a: 1; b: 2; c: 3})'
 # a
 # b
 # c
+```
+
+---
+
+`object` がストリームの場合、各要素のオブジェクトのキーを順番に返す平坦化されたストリームを返します。
+
+```shell
+$ xa 'KEYS({a: 1; b: 2}, {c: 3; d: 4})'
+# a
+# b
+# c
+# d
 ```
 
 ## `VALUES` オブジェクトの値のストリームを取得
