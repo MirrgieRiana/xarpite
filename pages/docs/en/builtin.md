@@ -669,11 +669,7 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` Filter Stream by Condition
 
-`FILTER` has 2 ways of calling.
-
-### Filtering by Elements Themselves
-
-`FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: (by: VALUE -> BOOLEAN) | VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of the second argument stream and returns a stream containing only elements where the result is true.
 
@@ -683,13 +679,9 @@ $ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
 # 4
 ```
 
-### Filtering by Key Getter Function
+---
 
-`FILTER(by: predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
-
-If the first argument is a `by` parameter, applies the `predicate` function to each element of the second argument and returns a stream containing only elements where the result is true.
-
-The behavior is the same as when the first argument is not a `by` parameter, but it can be used for consistency in notation.
+The first argument can also be a `by` parameter with the same behavior.
 
 ```shell
 $ xa '1, 2, 3, 4, 5 >> FILTER [ by: x -> x % 2 == 0 ]'
