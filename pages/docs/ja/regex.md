@@ -154,7 +154,7 @@ $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+)
 # banana
 # cherry
 
-$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([a-z]+)/g | _.1 '
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]+)/g | _.1 '
 # Red
 # apple
 # pie
