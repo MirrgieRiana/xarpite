@@ -4,12 +4,14 @@ import mirrg.xarpite.Environment
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.Callable
+import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.getMethod
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
+import mirrg.xarpite.withStackTrace
 
 private suspend fun FluoriteValue.getIncrementDecrementMethod(position: Position?, methodName: String): Callable? {
     // オブジェクト自身のマップを先に確認
@@ -19,7 +21,7 @@ private suspend fun FluoriteValue.getIncrementDecrementMethod(position: Position
             // メソッドが見つかった場合、それを呼び出すCallableを作成
             return Callable { arguments ->
                 when (methodValue) {
-                    is mirrg.xarpite.compilers.objects.FluoriteFunction -> methodValue.function(arrayOf(this, *arguments))
+                    is FluoriteFunction -> methodValue.function(arrayOf(this, *arguments))
                     else -> methodValue
                 }
             }
@@ -37,7 +39,9 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_INCREMENT.methodName)
         return if (customMethod != null) {
             // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            customMethod.call(arrayOf())
+            withStackTrace(position) {
+                customMethod.call(arrayOf())
+            }
         } else {
             // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
             val setterFunction = setter.evaluate(env)
@@ -58,7 +62,9 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_INCREMENT.methodName)
         if (customMethod != null) {
             // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            customMethod.call(arrayOf())
+            withStackTrace(position) {
+                customMethod.call(arrayOf())
+            }
             return oldValue
         } else {
             // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
@@ -80,7 +86,9 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_DECREMENT.methodName)
         return if (customMethod != null) {
             // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            customMethod.call(arrayOf())
+            withStackTrace(position) {
+                customMethod.call(arrayOf())
+            }
         } else {
             // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
             val setterFunction = setter.evaluate(env)
@@ -101,7 +109,9 @@ class SuffixDecrementGetter(private val getter: Getter, private val setter: Sett
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_DECREMENT.methodName)
         if (customMethod != null) {
             // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            customMethod.call(arrayOf())
+            withStackTrace(position) {
+                customMethod.call(arrayOf())
+            }
             return oldValue
         } else {
             // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入

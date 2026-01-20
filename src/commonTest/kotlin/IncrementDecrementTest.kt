@@ -131,21 +131,8 @@ class IncrementDecrementTest {
     }
 
     @Test
-    fun overrideIncrementWithAssignmentTest() = runTest {
-        // オーバーライドされたインクリメントはミューテーションを行う（代入は行わない）
-        assertEquals(200, eval("""
-            obj := {
-                `_++`: this -> (this.value = this.value * 2; this.value)
-                value: 100
-            }
-            obj++
-            obj.value
-        """).int)
-    }
-
-    @Test
     fun overrideIncrementReturnValueTest() = runTest {
-        // 後置版は古い値を返す（オブジェクト自体が返され、既にミューテーション済み）
+        // 後置版はオブジェクト自体を返す（既にミューテーション済みのため、元の値ではない）
         assertEquals(200, eval("""
             obj := {
                 `_++`: this -> (this.value = this.value * 2; this.value)
