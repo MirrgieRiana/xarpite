@@ -335,20 +335,10 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 A stream that reads strings line by line from standard input.
 
-`I` is an alias for the same stream as `IN`.
+`I` is an alias for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
-# 123
-# 456
-```
-
----
-
-Using `I` allows for more concise code.
-
-```shell
-$ { echo 123; echo 456; } | xa 'I'
 # 123
 # 456
 ```
@@ -422,19 +412,6 @@ This function is often called by the left-execution pipe `<<`.
 $ xa -q '
   OUT(123)
   OUT << 456
-'
-# 123
-# 456
-```
-
----
-
-Using `O` allows for more concise code.
-
-```shell
-$ xa -q '
-  O(123)
-  O << 456
 '
 # 123
 # 456
