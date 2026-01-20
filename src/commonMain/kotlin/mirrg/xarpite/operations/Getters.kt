@@ -757,7 +757,16 @@ class ElvisGetter(private val leftGetter: Getter, private val rightGetter: Gette
         return if (left is FluoriteStream) {
             FluoriteStream {
                 left.flowProvider { value ->
-                    emit(if (value != FluoriteNull) value else rightGetter.evaluate(env))
+                    if (value != FluoriteNull) {
+                        emit(value)
+                    } else {
+                        val defaultValue = rightGetter.evaluate(env)
+                        if (defaultValue is FluoriteStream) {
+                            defaultValue.flowProvider(this)
+                        } else {
+                            emit(defaultValue)
+                        }
+                    }
                 }
             }
         } else {

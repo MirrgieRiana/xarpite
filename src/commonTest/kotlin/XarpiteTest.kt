@@ -686,6 +686,7 @@ class XarpiteTest {
         assertEquals("1,2,3", eval("(1, NULL, 3) ?: 2").stream()) // ストリームの各要素に適用される
         assertEquals("1", eval("(NULL,) ?: 1").stream()) // 単体ストリームも各要素に適用される
         assertEquals("a,b,c", eval("('a', NULL, 'c') ?: 'b'").stream()) // 文字列でも動作する
+        assertEquals("1,A,B,3", eval("(1, NULL, 3) ?: ('A', 'B')").stream()) // defaultがストリームの場合は平坦化される
 
         // 三項演算子とエルビス演算子は混ぜて書ける
         assertEquals(1, eval("TRUE ? 1 ?: 2 : 3 ?: 4").int)
