@@ -187,6 +187,92 @@ $ xa -q '
 # New: [apple;banana]
 ```
 
+## Increment/Decrement
+
+Increment `formula++` and decrement `formula--` are operators that add or subtract 1 to/from an expression and assign the result.
+
+```shell
+$ xa '
+  a := 10
+  a++
+  a
+'
+# 11
+
+$ xa '
+  a := 10
+  a--
+  a
+'
+# 9
+```
+
+---
+
+Increment and decrement operations are equivalent to evaluating the expression, adding or subtracting 1, and assigning the result back to the original expression.
+
+### Postfix and Prefix Versions
+
+In addition to the postfix version, increment/decrement operators also have prefix versions `++formula` and `--formula`.
+
+The postfix version returns the value before addition/subtraction, while the prefix version returns the value after addition/subtraction.
+
+```shell
+$ xa '
+  a := 10
+  a++
+'
+# 10
+
+$ xa '
+  a := 10
+  ++a
+'
+# 11
+```
+
+From a readability perspective, the postfix version is more commonly used.
+
+### Postfix-of-Prefix Increment/Decrement
+
+The "prefix" increment/decrement operators have "postfix-of-prefix" versions `formula.++` and `formula.--`.
+
+Like other postfix versions of prefix operators, these are syntactic sugar for writing prefix operators in postfix notation.
+
+That is, their behavior is equivalent to the "prefix" version, returning the value after addition/subtraction.
+
+```shell
+$ xa '
+  a := 10
+  a.++
+'
+# 11
+```
+
+### Incrementing Non-Numeric Values
+
+The behavior of `formula++` is roughly equivalent to the following pseudocode:
+
+```
+old = get(formula)
+new = plus(old, 1)
+set(formula, new)
+return old
+```
+
+---
+
+Actually, as long as `formula` supports assignment and addition/subtraction with the integer `1` is defined, increment/decrement can work with non-numeric types as well.
+
+```shell
+$ xa '
+  s := "abc"
+  s++
+  s
+'
+# abc1
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.
