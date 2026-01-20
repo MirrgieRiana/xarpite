@@ -60,22 +60,6 @@ $ xa '00123'
 # 123
 ```
 
----
-
-Any number of `_` characters may follow a digit, and `_` is ignored.
-
-This allows large numbers to be written more readably.
-
-```shell
-$ xa '1_000_000'
-# 1000000
-
-$ xa '1_2_3'
-# 123
-```
-
-You cannot place `_` at the beginning. If `_` is placed at the beginning, it will be treated as an identifier.
-
 ### `H#123abc`: Hexadecimal Integer Literal
 
 You can write hexadecimal numbers following `H#`.
@@ -85,15 +69,6 @@ The `H#` part must be uppercase, but the hexadecimal part is case-insensitive.
 ```shell
 $ xa 'H#FF'
 # 255
-```
-
----
-
-Like integer literals, any number of `_` characters may follow a hexadecimal digit, and `_` is ignored.
-
-```shell
-$ xa 'H#F_F_F'
-# 4095
 ```
 
 ### `1.23`: Floating-Point Number Literal
@@ -107,13 +82,24 @@ $ xa '1.5'
 # 1.5
 ```
 
----
+### Numeric Literal Separators
 
-Like integer literals, any number of `_` characters may follow a digit, and `_` is ignored.
+All numeric literals can include any number of `_` characters at any position except the beginning of the digit sequence.
 
-You can use `_` in both the integer and decimal parts.
+The `_` characters are simply ignored.
+
+This allows large numbers to be written more readably.
 
 ```shell
+$ xa '1_000_000'
+# 1000000
+
+$ xa '1__2__3__'
+# 123
+
+$ xa 'H#FF_FF'
+# 65535
+
 $ xa '1_000.5'
 # 1000.5
 
