@@ -1,14 +1,13 @@
 package mirrg.xarpite.compilers
 
+import mirrg.xarpite.BracketsLiteralArrowedRoundNode
 import mirrg.xarpite.EmptyNode
 import mirrg.xarpite.Frame
 import mirrg.xarpite.IdentifierNode
 import mirrg.xarpite.InfixColonEqualNode
-import mirrg.xarpite.InfixEqualGreaterNode
 import mirrg.xarpite.InfixEqualNode
 import mirrg.xarpite.InfixExclamationColonNode
 import mirrg.xarpite.InfixExclamationQuestionNode
-import mirrg.xarpite.BracketsLiteralArrowedRoundNode
 import mirrg.xarpite.Node
 import mirrg.xarpite.SemicolonsNode
 import mirrg.xarpite.UnaryAtNode
@@ -24,6 +23,7 @@ import mirrg.xarpite.operations.LabelRunner
 import mirrg.xarpite.operations.MountRunner
 import mirrg.xarpite.operations.Runner
 import mirrg.xarpite.operations.TryCatchRunner
+import mirrg.xarpite.operations.TryCatchWithVariableRunner
 import mirrg.xarpite.operations.VariableDefinitionSetter
 
 fun Frame.compileToRunner(node: Node): List<Runner> {
@@ -43,11 +43,15 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
                 require(node.right.arguments is IdentifierNode)
                 Pair(node.right.arguments.string, node.right.body)
             } else {
-                Pair("_", node.right)
+                Pair(null, node.right)
             }
-            val newFrame = Frame(this)
-            val argumentVariableIndex = newFrame.defineVariable(name)
-            listOf(TryCatchRunner(compileToRunner(node.left), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
+            if (name != null) {
+                val newFrame = Frame(this)
+                val argumentVariableIndex = newFrame.defineVariable(name)
+                listOf(TryCatchWithVariableRunner(compileToRunner(node.left), newFrame.frameIndex, argumentVariableIndex, newFrame.compileToRunner(rightNode)))
+            } else {
+                listOf(TryCatchRunner(compileToRunner(node.left), compileToRunner(rightNode)))
+            }
         }
 
         is InfixExclamationColonNode -> {
