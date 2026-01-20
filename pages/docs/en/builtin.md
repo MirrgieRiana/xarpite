@@ -855,17 +855,15 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 
 ## `ANY` / `OR` Check if Any is True
 
-`ANY(value1: VALUE; ...): BOOLEAN`
+`ANY(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-`OR(value1: VALUE; ...): BOOLEAN`
+`OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 Returns `TRUE` if any of the passed arguments evaluates to `TRUE` when booleanized, otherwise returns `FALSE`.
 
-Behaves similarly to the logical OR operator `||`, but accepts any number of arguments.
+Behaves similarly to the logical OR operator `||`, but accepts 1 or 2 arguments.
 
 Unlike the `||` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
-
-Requires at least 2 arguments.
 
 ```shell
 $ xa 'ANY(FALSE; FALSE; TRUE)'
@@ -883,17 +881,15 @@ $ xa 'ANY(0; "")'
 
 ## `ALL` / `AND` Check if All are True
 
-`ALL(value1: VALUE; ...): BOOLEAN`
+`ALL(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-`AND(value1: VALUE; ...): BOOLEAN`
+`AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 Returns `TRUE` if all passed arguments evaluate to `TRUE` when booleanized, otherwise returns `FALSE`.
 
-Behaves similarly to the logical AND operator `&&`, but accepts any number of arguments.
+Behaves similarly to the logical AND operator `&&`, but accepts 1 or 2 arguments.
 
 Unlike the `&&` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
-
-Requires at least 2 arguments.
 
 ```shell
 $ xa 'ALL(TRUE; TRUE; TRUE)'

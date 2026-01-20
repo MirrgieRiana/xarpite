@@ -696,17 +696,15 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 
 ## `ANY` / `OR` いずれかが真かを判定
 
-`ANY(value1: VALUE; ...): BOOLEAN`
+`ANY(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-`OR(value1: VALUE; ...): BOOLEAN`
+`OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 渡されたすべての引数のうち、いずれか1つでも論理値化して `TRUE` となるものがあれば `TRUE` を返し、そうでなければ `FALSE` を返します。
 
-論理和演算子 `||` と同様の動作をしますが、任意の個数の引数を受け取ることができます。
+論理和演算子 `||` と同様の動作をしますが、1個または2個の引数を受け取ることができます。
 
 `||` 演算子とは異なり、すべての引数を評価します。右辺を短絡評価することはありません。
-
-少なくとも2個以上の引数が必要です。
 
 ```shell
 $ xa 'ANY(FALSE; FALSE; TRUE)'
@@ -724,17 +722,15 @@ $ xa 'ANY(0; "")'
 
 ## `ALL` / `AND` すべてが真かを判定
 
-`ALL(value1: VALUE; ...): BOOLEAN`
+`ALL(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-`AND(value1: VALUE; ...): BOOLEAN`
+`AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 渡されたすべての引数が論理値化して `TRUE` となる場合に `TRUE` を返し、そうでなければ `FALSE` を返します。
 
-論理積演算子 `&&` と同様の動作をしますが、任意の個数の引数を受け取ることができます。
+論理積演算子 `&&` と同様の動作をしますが、1個または2個の引数を受け取ることができます。
 
 `&&` 演算子とは異なり、すべての引数を評価します。右辺を短絡評価することはありません。
-
-少なくとも2個以上の引数が必要です。
 
 ```shell
 $ xa 'ALL(TRUE; TRUE; TRUE)'

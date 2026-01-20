@@ -38,10 +38,9 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" ANY(FALSE; TRUE) """).boolean)
         assertEquals(false, eval(""" ANY(FALSE; FALSE) """).boolean)
 
-        // 3個以上の引数
-        assertEquals(true, eval(""" ANY(FALSE; FALSE; TRUE) """).boolean)
-        assertEquals(false, eval(""" ANY(FALSE; FALSE; FALSE) """).boolean)
-        assertEquals(true, eval(""" ANY(TRUE; TRUE; TRUE) """).boolean)
+        // 1個の引数
+        assertEquals(true, eval(""" ANY(TRUE) """).boolean)
+        assertEquals(false, eval(""" ANY(FALSE) """).boolean)
 
         // 論理値化を伴う動作
         assertEquals(true, eval(""" ANY(1; 0) """).boolean)
@@ -51,6 +50,7 @@ class ToFunctionsTest {
         // OR エイリアス
         assertEquals(true, eval(""" OR(TRUE; FALSE) """).boolean)
         assertEquals(false, eval(""" OR(FALSE; FALSE) """).boolean)
+        assertEquals(true, eval(""" OR(TRUE) """).boolean)
     }
 
     @Test
@@ -61,18 +61,18 @@ class ToFunctionsTest {
         assertEquals(false, eval(""" ALL(FALSE; TRUE) """).boolean)
         assertEquals(false, eval(""" ALL(FALSE; FALSE) """).boolean)
 
-        // 3個以上の引数
-        assertEquals(true, eval(""" ALL(TRUE; TRUE; TRUE) """).boolean)
-        assertEquals(false, eval(""" ALL(TRUE; TRUE; FALSE) """).boolean)
-        assertEquals(false, eval(""" ALL(FALSE; FALSE; FALSE) """).boolean)
+        // 1個の引数
+        assertEquals(true, eval(""" ALL(TRUE) """).boolean)
+        assertEquals(false, eval(""" ALL(FALSE) """).boolean)
 
         // 論理値化を伴う動作
-        assertEquals(true, eval(""" ALL(1; "a"; [1]) """).boolean)
-        assertEquals(false, eval(""" ALL(1; ""; [1]) """).boolean)
-        assertEquals(true, eval(""" ALL("a"; "b"; "c") """).boolean)
+        assertEquals(true, eval(""" ALL(1; "a") """).boolean)
+        assertEquals(false, eval(""" ALL(1; "") """).boolean)
+        assertEquals(true, eval(""" ALL("a"; "b") """).boolean)
 
         // AND エイリアス
         assertEquals(true, eval(""" AND(TRUE; TRUE) """).boolean)
         assertEquals(false, eval(""" AND(TRUE; FALSE) """).boolean)
+        assertEquals(true, eval(""" AND(TRUE) """).boolean)
     }
 }

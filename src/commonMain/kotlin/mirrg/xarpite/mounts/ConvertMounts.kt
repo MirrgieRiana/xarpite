@@ -40,19 +40,15 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createAnyFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size < 2) {
-                        usage("$name(value1: VALUE; ...): BOOLEAN")
+                    if (arguments.size !in 1..2) {
+                        usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
                     var lastBoolValue = arguments.first().toFluoriteBoolean(null)
-                    if (lastBoolValue.value) {
-                        return@FluoriteFunction lastBoolValue
-                    }
+                    if (lastBoolValue.value) return@FluoriteFunction lastBoolValue
                     for (index in 1 until arguments.size) {
                         val boolValue = arguments[index].toFluoriteBoolean(null)
                         lastBoolValue = boolValue
-                        if (boolValue.value) {
-                            return@FluoriteFunction boolValue
-                        }
+                        if (boolValue.value) return@FluoriteFunction boolValue
                     }
                     lastBoolValue
                 }
@@ -65,19 +61,15 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createAllFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size < 2) {
-                        usage("$name(value1: VALUE; ...): BOOLEAN")
+                    if (arguments.size !in 1..2) {
+                        usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
                     var lastBoolValue = arguments.first().toFluoriteBoolean(null)
-                    if (!lastBoolValue.value) {
-                        return@FluoriteFunction lastBoolValue
-                    }
+                    if (!lastBoolValue.value) return@FluoriteFunction lastBoolValue
                     for (index in 1 until arguments.size) {
                         val boolValue = arguments[index].toFluoriteBoolean(null)
                         lastBoolValue = boolValue
-                        if (!boolValue.value) {
-                            return@FluoriteFunction boolValue
-                        }
+                        if (!boolValue.value) return@FluoriteFunction boolValue
                     }
                     lastBoolValue
                 }
