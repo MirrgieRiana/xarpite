@@ -47,6 +47,10 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" ANY(1; 0) """).boolean)
         assertEquals(false, eval(""" ANY(0; "") """).boolean)
         assertEquals(true, eval(""" ANY(""; "a") """).boolean)
+
+        // OR エイリアス
+        assertEquals(true, eval(""" OR(TRUE; FALSE) """).boolean)
+        assertEquals(false, eval(""" OR(FALSE; FALSE) """).boolean)
     }
 
     @Test
@@ -66,5 +70,9 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" ALL(1; "a"; [1]) """).boolean)
         assertEquals(false, eval(""" ALL(1; ""; [1]) """).boolean)
         assertEquals(true, eval(""" ALL("a"; "b"; "c") """).boolean)
+
+        // AND エイリアス
+        assertEquals(true, eval(""" AND(TRUE; TRUE) """).boolean)
+        assertEquals(false, eval(""" AND(TRUE; FALSE) """).boolean)
     }
 }

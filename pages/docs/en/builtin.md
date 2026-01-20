@@ -853,13 +853,17 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `ANY` Check if Any is True
+## `ANY` / `OR` Check if Any is True
 
-`ANY(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+`ANY(value1: VALUE; ...): BOOLEAN`
+
+`OR(value1: VALUE; ...): BOOLEAN`
 
 Returns `TRUE` if any of the passed arguments evaluates to `TRUE` when booleanized, otherwise returns `FALSE`.
 
 Behaves similarly to the logical OR operator `||`, but accepts any number of arguments.
+
+Unlike the `||` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
 
 Requires at least 2 arguments.
 
@@ -877,13 +881,17 @@ $ xa 'ANY(0; "")'
 # FALSE
 ```
 
-## `ALL` Check if All are True
+## `ALL` / `AND` Check if All are True
 
-`ALL(value1: VALUE; value2: VALUE[; ...]): BOOLEAN`
+`ALL(value1: VALUE; ...): BOOLEAN`
+
+`AND(value1: VALUE; ...): BOOLEAN`
 
 Returns `TRUE` if all passed arguments evaluate to `TRUE` when booleanized, otherwise returns `FALSE`.
 
 Behaves similarly to the logical AND operator `&&`, but accepts any number of arguments.
+
+Unlike the `&&` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
 
 Requires at least 2 arguments.
 
