@@ -327,11 +327,15 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
-### `IN`: Read Strings Line by Line from Console
+### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
+`I: STREAM<STRING>`
+
 A stream that reads strings line by line from standard input.
+
+`I` is an alias for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -392,11 +396,15 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`: Output to Console
+### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
+`O(value: VALUE): NULL`
+
 Outputs to standard output.
+
+`O` is an alias for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
