@@ -582,14 +582,20 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` ストリームを条件で抽出
 
-`FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-第2引数のストリームの各要素に `predicate` を適用し、その結果が真となった要素のみを含むストリームを返します。
+`stream` の各要素に `predicate` を適用し、真となった要素のみを含むストリームを返します。
 
 ```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
-# 2
-# 4
+$ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
+# 1
+# 3
+# 5
+
+$ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
+# 1
+# 3
+# 5
 ```
 
 ## `GREP` ストリームを条件で抽出

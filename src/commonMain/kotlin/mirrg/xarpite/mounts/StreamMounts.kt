@@ -548,24 +548,31 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createFilterFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size == 2) {
-                        val predicate = arguments[0]
-                        val stream = arguments[1]
-                        FluoriteStream {
-                            if (stream is FluoriteStream) {
-                                stream.collect { item ->
-                                    if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
-                                        emit(item)
-                                    }
-                                }
-                            } else {
-                                if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
-                                    emit(stream)
+                    fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
+                    val arguments2 = arguments.toMutableList()
+
+                    if (arguments2.isEmpty()) usage()
+                    val stream = arguments2.removeLast()
+
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                    val predicate = (entries.remove("by") ?: arguments3.removeFirstOrNull()) ?: usage()
+
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+
+                    FluoriteStream {
+                        if (stream is FluoriteStream) {
+                            stream.collect { item ->
+                                if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
+                                    emit(item)
                                 }
                             }
+                        } else {
+                            if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
+                                emit(stream)
+                            }
                         }
-                    } else {
-                        usage("$name(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     }
                 }
             }
