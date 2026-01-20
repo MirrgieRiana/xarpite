@@ -144,16 +144,15 @@ $ xa -q '
 # NULL
 ```
 
-## ストリームを左辺にしたマッチ
+## ストリームに対するマッチ
 
-左辺がストリームの場合、各要素に対して `value =~ regex` を適用し、その結果をストリームとして順に返します。
-`STREAM =~ REGEX` は `STREAM | _ =~ REGEX` とほぼ同じ結果になります。
+`string` がストリームの場合、各要素に対して `item =~ regex` を適用し、その結果をストリームとして返します。
 
 ```shell
-$ xa ' 1, 2, 3 | _ =~ /\d/ | _.0 '
-# 1
-# 2
-# 3
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+) / | _.1 '
+# apple
+# banana
+# cherry
 ```
 
 ## グローバルマッチ
