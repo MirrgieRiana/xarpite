@@ -38,12 +38,17 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 }
 
 private fun resolveModulePath(baseDir: Path, file: String): Path? {
-    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
-    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
-    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
-    if (!file.endsWith(MODULE_EXTENSION)) {
-        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
-        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
+    val modulePath = when {
+        file.startsWith("./") -> baseDir.resolve(file.drop(2).toPath()).normalized()
+        file.startsWith("/") -> file.toPath().normalized()
+        else -> throw FluoriteException("""Module file path must start with "./" or "/".""".toFluoriteString())
     }
+    if (getFileSystem().getOrThrow().exists(modulePath)) return modulePath
+
+    if (!file.endsWith(MODULE_EXTENSION)) {
+        val modulePathWithExtension = (modulePath.toString() + MODULE_EXTENSION).toPath().normalized()
+        if (getFileSystem().getOrThrow().exists(modulePathWithExtension)) return modulePathWithExtension
+    }
+
     return null
 }
