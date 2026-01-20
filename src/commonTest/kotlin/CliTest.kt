@@ -47,6 +47,19 @@ class CliTest {
     }
 
     @Test
+    fun iAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+    }
+
+    @Test
+    fun oAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """O("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
+    }
+
+    @Test
     fun read() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

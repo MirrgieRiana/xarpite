@@ -285,13 +285,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` Split String into Stream
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-Splits the second argument string by the first argument separator and returns each part as a stream. If the first argument is omitted, `,` is used.
+Splits `string` by `separator` and returns each part as a stream. If `separator` is omitted, `,` is used.
 
 Note that it returns a stream rather than an array for compatibility with the pipe operator.
 
 `SPLIT` conceptually performs the inverse operation of `JOIN`.
+
+`separator` and `string` are stringified and evaluated.
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -307,7 +309,13 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-Separator and target string are stringified and evaluated.
+When `limit` is specified, the string is split into at most `limit` elements, and the `limit`-th element contains the entire remaining string.
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
@@ -318,6 +326,51 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
+```
+
+## `LINES` Split String by Lines
+
+`LINES(string: STRING): STREAM<STRING>`
+
+Splits `string` by line breaks and returns each line as a stream.
+
+Line break characters are removed from the resulting lines.
+
+If `string` ends with a line break, only one trailing line break is ignored.
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+All line break characters (LF, CR, CRLF) are recognized.
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
 ```
 
 ## `KEYS` Get Stream of Object Keys

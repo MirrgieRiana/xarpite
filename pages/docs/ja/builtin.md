@@ -145,13 +145,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` 文字列をストリームに分割
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-第2引数の文字列を第1引数のセパレータで分割し、各部分をストリームとして返します。第1引数を省略した場合は `,` が使用されます。
+`string` を `separator` で分割し、各部分をストリームとして返します。 `separator` を省略した場合は `,` が使用されます。
 
 パイプ演算子との親和性のために配列ではなくストリームとして返されることに注意してください。
 
 `SPLIT` は概念的に `JOIN` と逆の操作を行います。
+
+`separator` や `string` は文字列化されて評価されます。
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -167,17 +169,68 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-セパレータや分割対象文字列は文字列化されて評価されます。
+`limit` が指定された場合、最大で `limit` 個の要素に分割され、 `limit` 個目の要素には残りの文字列全体が含まれます。
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
-部分適用とともに用いることで、パイプチェーンに組み込みやすくなります。
+部分適用とともに用いることでパイプチェーンに組み込みやすくなります。
 
 ```shell
 $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 1.0
 # 2.0
 # 3.0
+```
+
+## `LINES` 文字列を行ごとに分割
+
+`LINES(string: STRING): STREAM<STRING>`
+
+`string` を改行で分割し、各行をストリームとして返します。
+
+結果の各行からは改行文字が除去されます。
+
+`string` の末尾に改行がある場合、その改行は1個だけ無視されます。
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+空文字列の場合は空ストリーム、1個の改行のみの場合は空文字列1個のストリームを返します。
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+改行文字（LF、CR、CRLF）はすべて認識されます。
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
 ```
 
 ## `KEYS` オブジェクトのキーのストリームを取得
