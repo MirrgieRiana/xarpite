@@ -700,8 +700,8 @@ class MatchGetter(private val leftGetter: Getter, private val rightGetter: Gette
         val right = rightGetter.evaluate(env)
         return if (left is FluoriteStream) {
             FluoriteStream {
-                left.collect { value ->
-                    val result = right.match(position, value)
+                left.collect { item ->
+                    val result = right.match(position, item)
                     if (result is FluoriteStream) {
                         result.flowProvider(this)
                     } else {
