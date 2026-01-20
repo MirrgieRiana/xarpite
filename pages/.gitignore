@@ -6,4 +6,3 @@ Gemfile
 Gemfile.lock
 vendor/
 .bundle/
-_version_config.yml

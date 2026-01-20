@@ -4,19 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/build/bundlePages}"
 
-# バージョン情報を_config.ymlに追加
-if [ -n "${APP_VERSION:-}" ]; then
-  echo "version: \"${APP_VERSION}\"" > "$ROOT_DIR/pages/_version_config.yml"
-fi
-
 (
   cd "$ROOT_DIR/pages"
   export JEKYLL_ENV=production
-  if [ -f "_version_config.yml" ]; then
-    bundle exec jekyll build --config _config.yml,_version_config.yml
-  else
-    bundle exec jekyll build
-  fi
+  bundle exec jekyll build
 )
 
 if [ ! -d "$OUTPUT_DIR" ]; then
