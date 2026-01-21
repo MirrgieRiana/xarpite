@@ -125,6 +125,108 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `BASE64` Convert BLOB to Base64 String
+
+`BASE64(blobLike: BLOB_LIKE | STREAM<BLOB_LIKE>): STRING | STREAM<STRING>`
+
+Returns a string with `blobLike` encoded in Base64 format.
+
+```shell
+$ xa ' "Hello, World!" >> UTF8 >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+The output is wrapped at 76 characters.
+
+```shell
+$ xa ' "a" * 100 >> UTF8 >> BASE64 '
+# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
+# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
+```
+
+---
+
+This function can accept streams.
+
+```shell
+$ xa '
+  BLOB.of([72, 101, 108, 108, 111]),
+  BLOB.of([44, 32]),
+  BLOB.of([87, 111, 114, 108, 100, 33])
+  >> BASE64
+'
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+The boundaries of stream elements do not affect Base64 encoding.
+
+```shell
+$ xa '
+  BLOB.of([72]),
+  BLOB.of([101]),
+  BLOB.of([108])
+  >> BASE64
+'
+# SGVs
+```
+
+## `BASE64D` Convert Base64 String to BLOB
+
+`BASE64D(string: STRING | STREAM<STRING>): BLOB`
+
+Decodes the Base64-encoded string `string` and returns a BLOB.
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D >> UTF8D '
+# Hello, World!
+```
+
+---
+
+This function can accept streams.
+
+```shell
+$ xa '
+  "SGVs",
+  "bG8s",
+  "IFdv",
+  "cmxk",
+  "IQ=="
+  >> BASE64D >> UTF8D
+'
+# Hello, World!
+```
+
+---
+
+Newline and whitespace characters are ignored.
+
+```shell
+$ xa '
+  "SGVsbG8sIFdvcmxkIQ==
+  " >> BASE64D >> UTF8D
+'
+# Hello, World!
+```
+
+---
+
+This function works correctly even when the input Base64 string boundaries are not multiples of 4 characters.
+
+```shell
+$ xa '
+  "SGVs",
+  "b",
+  "G8sIFdvcmxkIQ=="
+  >> BASE64D >> UTF8D
+'
+# Hello, World!
+```
+
 ## `URL` Encode String to URL Format
 
 `URL(string: STRING): STRING`
