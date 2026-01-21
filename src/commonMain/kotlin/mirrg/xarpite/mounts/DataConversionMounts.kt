@@ -57,14 +57,15 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
         },
         "BASE64" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64(blobLike: BLOB_LIKE): STRING")
+            fun usage(): Nothing = usage("BASE64(blobLike: BLOB_LIKE | STREAM<BLOB_LIKE>): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
             @OptIn(ExperimentalEncodingApi::class)
-            Base64.Mime.encode(value.toByteArrayAsBlobLike()).toFluoriteString()
+            // Base64.Mimeは76文字ごとにCRLF (\r\n) を挿入するため、LF (\n) に置き換える
+            Base64.Mime.encode(value.toByteArrayAsBlobLike()).replace("\r\n", "\n").toFluoriteString()
         },
         "BASE64D" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64D(string: STRING): BLOB")
+            fun usage(): Nothing = usage("BASE64D(string: STRING | STREAM<STRING>): BLOB")
             if (arguments.size != 1) usage()
             val value = arguments[0]
             @OptIn(ExperimentalEncodingApi::class)

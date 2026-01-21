@@ -259,17 +259,17 @@ class DataConversionTest {
         assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> BASE64 >> BASE64D >> UTF8D """).string)
         assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> UTF8 >> BASE64 >> BASE64D >> UTF8D """).string)
 
-        // BASE64 は76文字ごとに改行される (CRLF)
+        // BASE64 は76文字ごとに改行される (LF)
         val longString = "a".repeat(100)
         val encoded = eval(""" "$longString" >> UTF8 >> BASE64 """).string
-        val lines = encoded.split("\r\n")
+        val lines = encoded.split("\n")
         // 最後の行以外は76文字
         for (i in 0 until lines.size - 1) {
             assertEquals(76, lines[i].length, "Line $i should be 76 characters")
         }
 
         // BASE64D は改行や空白を無視する
-        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\r\n" >> BASE64D >> UTF8D """).string)
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D >> UTF8D """).string)
         assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D >> UTF8D """).string)
 
         // BASE64 はストリームを受け付ける
