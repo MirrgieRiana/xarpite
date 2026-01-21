@@ -41,40 +41,40 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSource(fd) {
-  this.y82_1 = fd;
-  this.z82_1 = new Long(0, 0);
-  this.a83_1 = false;
+  this.t87_1 = fd;
+  this.u87_1 = new Long(0, 0);
+  this.v87_1 = false;
 }
-protoOf(FileSource).c1k = function (sink, byteCount) {
+protoOf(FileSource).i1k = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.a83_1) {
+  if (!!this.v87_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.y82_1;
+  var tmp0_fd = this.t87_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.z82_1);
+  var tmp2_position = toNumber(this.u87_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.z82_1;
-  tmp.z82_1 = add(this_0, fromInt(readByteCount));
-  sink.j1h(data, 0, readByteCount);
+  var this_0 = this.u87_1;
+  tmp.u87_1 = add(this_0, fromInt(readByteCount));
+  sink.p1h(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
-protoOf(FileSource).p1i = function () {
-  if (this.a83_1)
+protoOf(FileSource).v1i = function () {
+  if (this.v87_1)
     return Unit_instance;
-  this.a83_1 = true;
-  closeSync(this.y82_1);
+  this.v87_1 = true;
+  closeSync(this.t87_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -96,7 +96,7 @@ function list($this, dir, throwOnFailure) {
         }
         var dirent = tmp;
         // Inline function 'kotlin.collections.plusAssign' call
-        var element = dir.l1k(dirent.name);
+        var element = dir.r1k(dirent.name);
         result.j(element);
       }
       sort(result);
@@ -135,12 +135,12 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.b83_1 = 61440;
-  this.c83_1 = 32768;
-  this.d83_1 = 16384;
-  this.e83_1 = 40960;
+  this.w87_1 = 61440;
+  this.x87_1 = 32768;
+  this.y87_1 = 16384;
+  this.z87_1 = 40960;
 }
-protoOf(NodeJsFileSystem).k1h = function (path) {
+protoOf(NodeJsFileSystem).q1h = function (path) {
   var pathString = path.toString();
   var tmp;
   try {
@@ -158,9 +158,9 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.b83_1) === this.e83_1) {
+  if ((numberToInt(stat.mode) & this.w87_1) === this.z87_1) {
     try {
-      symlinkTarget = Companion_getInstance().l1i(readlinkSync(pathString));
+      symlinkTarget = Companion_getInstance().r1i(readlinkSync(pathString));
     } catch ($p) {
       if ($p instanceof Error) {
         var e_0 = $p;
@@ -170,12 +170,12 @@ protoOf(NodeJsFileSystem).k1h = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.b83_1) === this.c83_1, (numberToInt(stat.mode) & this.b83_1) === this.d83_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.w87_1) === this.x87_1, (numberToInt(stat.mode) & this.w87_1) === this.y87_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
-protoOf(NodeJsFileSystem).n1i = function (dir) {
+protoOf(NodeJsFileSystem).t1i = function (dir) {
   return ensureNotNull(list(this, dir, true));
 };
-protoOf(NodeJsFileSystem).o1i = function (file) {
+protoOf(NodeJsFileSystem).u1i = function (file) {
   var fd = openFd(this, file, 'r');
   return new FileSource(fd);
 };

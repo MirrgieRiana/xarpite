@@ -327,11 +327,15 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
-### `IN`: Read Strings Line by Line from Console
+### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
+`I: STREAM<STRING>`
+
 A stream that reads strings line by line from standard input.
+
+`I` is an alias for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -392,11 +396,15 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`: Output to Console
+### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
+`O(value: VALUE): NULL`
+
 Outputs to standard output.
+
+`O` is an alias for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
@@ -559,22 +567,26 @@ Returns the result of evaluating the specified Xarpite script.
 
 ```shell
 $ {
-  echo '877' > banana.xa1
-  xa 'USE("./banana")'
-  rm banana.xa1
+  echo ' "Hello, World!" ' > hello.xa1
+  xa 'USE("./hello")'
+  rm hello.xa1
 }
-# 877
+# Hello, World!
 ```
 
 ---
 
-`file` must start with `./` and is interpreted as a relative path from the file that called the `USE` function.
+`file` must start with `./` or `/`.
+
+If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
 
 For example, if you write `USE("./banana")` in `fruit/apple.xa1`, `fruit/banana.xa1` is loaded.
 
-In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
+If the code is specified directly on the command line, relative paths are resolved from the current directory.
 
-If the code is specified directly on the command line, files are resolved from the current directory.
+If it starts with `/`, it is interpreted as an absolute path.
+
+In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
 
 The directory separator character is `/` regardless of the OS on which it is executed.
 
