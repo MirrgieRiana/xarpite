@@ -244,24 +244,24 @@ class DataConversionTest {
 
     @Test
     fun base64() = runTest {
-        // BASE64 でBLOBをBase64文字列に変換
-        assertEquals("SGVsbG8sIFdvcmxkIQ==", eval(""" "Hello, World!" >> UTF8 >> BASE64 """).string)
-        assertEquals("YWJj", eval(""" "abc" >> UTF8 >> BASE64 """).string)
-        assertEquals("", eval(""" "" >> UTF8 >> BASE64 """).string) // 空文字列は空文字列
+        // BASE64 で文字列をBase64文字列に変換
+        assertEquals("SGVsbG8sIFdvcmxkIQ==", eval(""" "Hello, World!" >> BASE64 """).string)
+        assertEquals("YWJj", eval(""" "abc" >> BASE64 """).string)
+        assertEquals("", eval(""" "" >> BASE64 """).string) // 空文字列は空文字列
 
-        // BASE64D でBase64文字列をBLOBに変換
-        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D >> UTF8D """).string)
-        assertEquals("abc", eval(""" "YWJj" >> BASE64D >> UTF8D """).string)
-        assertEquals("", eval(""" "" >> BASE64D >> UTF8D """).string) // 空文字列は空BLOB
+        // BASE64D でBase64文字列を文字列に変換
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D """).string)
+        assertEquals("abc", eval(""" "YWJj" >> BASE64D """).string)
+        assertEquals("", eval(""" "" >> BASE64D """).string) // 空文字列は空文字列
 
         // BASE64とBASE64Dは逆変換の関係
-        assertEquals("Hello, World!", eval(""" "Hello, World!" >> UTF8 >> BASE64 >> BASE64D >> UTF8D """).string)
-        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> UTF8 >> BASE64 >> BASE64D >> UTF8D """).string)
-        assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> UTF8 >> BASE64 >> BASE64D >> UTF8D """).string)
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> BASE64 >> BASE64D """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> BASE64 >> BASE64D """).string)
+        assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> BASE64 >> BASE64D """).string)
 
         // BASE64 は76文字ごとに改行される (LF)
         val longString = "a".repeat(100)
-        val encoded = eval(""" "$longString" >> UTF8 >> BASE64 """).string
+        val encoded = eval(""" "$longString" >> BASE64 """).string
         val lines = encoded.split("\n")
         // 最後の行以外は76文字
         for (i in 0 until lines.size - 1) {
@@ -269,48 +269,8 @@ class DataConversionTest {
         }
 
         // BASE64D は改行や空白を無視する
-        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D >> UTF8D """).string)
-        assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D >> UTF8D """).string)
-
-        // BASE64 はストリームを受け付ける
-        assertEquals("SGVsbG8sIFdvcmxkIQ==", eval("""
-            BLOB.of([72, 101, 108, 108, 111]),
-            BLOB.of([44, 32]),
-            BLOB.of([87, 111, 114, 108, 100, 33])
-            >> BASE64
-        """).string)
-
-        // ストリームの各要素の境界はBase64エンコードに影響しない
-        assertEquals("SGVs", eval("""
-            BLOB.of([72]),
-            BLOB.of([101]),
-            BLOB.of([108])
-            >> BASE64
-        """).string)
-
-        // BASE64D はストリームを受け付ける
-        assertEquals("Hello, World!", eval("""
-            "SGVs",
-            "bG8s",
-            "IFdv",
-            "cmxk",
-            "IQ=="
-            >> BASE64D >> UTF8D
-        """).string)
-
-        // BASE64D は入力が4文字の倍数でなくても正しく動作する
-        assertEquals("Hello, World!", eval("""
-            "SGVs",
-            "b",
-            "G8sIFdvcmxkIQ=="
-            >> BASE64D >> UTF8D
-        """).string)
-
-        // BASE64D は配列も受け付ける
-        assertEquals("abc", eval(""" [97, 98, 99] >> BASE64 >> BASE64D >> UTF8D """).string)
-
-        // BASE64D は数値も受け付ける
-        assertEquals("a", eval(""" 97 >> BASE64 >> BASE64D >> UTF8D """).string)
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D """).string)
+        assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D """).string)
     }
 
 

@@ -125,14 +125,14 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
-## `BASE64` BLOBをBase64文字列に変換
+## `BASE64` 文字列をBase64文字列に変換
 
-`BASE64(blobLike: BLOB_LIKE | STREAM<BLOB_LIKE>): STRING | STREAM<STRING>`
+`BASE64(string: STRING): STRING`
 
-`blobLike` をBase64形式でエンコードした文字列を返します。
+`string` をBase64形式でエンコードした文字列を返します。
 
 ```shell
-$ xa ' "Hello, World!" >> UTF8 >> BASE64 '
+$ xa ' "Hello, World!" >> BASE64 '
 # SGVsbG8sIFdvcmxkIQ==
 ```
 
@@ -141,63 +141,19 @@ $ xa ' "Hello, World!" >> UTF8 >> BASE64 '
 出力は76文字ごとに改行されます。
 
 ```shell
-$ xa ' "a" * 100 >> UTF8 >> BASE64 '
+$ xa ' "a" * 100 >> BASE64 '
 # YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
 # YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ==
 ```
 
----
+## `BASE64D` Base64文字列を文字列に変換
 
-この関数はストリームを受け付けることができます。
+`BASE64D(string: STRING): STRING`
 
-```shell
-$ xa '
-  BLOB.of([72, 101, 108, 108, 111]),
-  BLOB.of([44, 32]),
-  BLOB.of([87, 111, 114, 108, 100, 33])
-  >> BASE64
-'
-# SGVsbG8sIFdvcmxkIQ==
-```
-
----
-
-ストリームの各要素の境界はBase64エンコードに影響しません。
+Base64形式でエンコードされた文字列 `string` をデコードして文字列を返します。
 
 ```shell
-$ xa '
-  BLOB.of([72]),
-  BLOB.of([101]),
-  BLOB.of([108])
-  >> BASE64
-'
-# SGVs
-```
-
-## `BASE64D` Base64文字列をBLOBに変換
-
-`BASE64D(string: STRING | STREAM<STRING>): BLOB`
-
-Base64形式でエンコードされた文字列 `string` をデコードしてBLOBを返します。
-
-```shell
-$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D >> UTF8D '
-# Hello, World!
-```
-
----
-
-この関数はストリームを受け付けることができます。
-
-```shell
-$ xa '
-  "SGVs",
-  "bG8s",
-  "IFdv",
-  "cmxk",
-  "IQ=="
-  >> BASE64D >> UTF8D
-'
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
 # Hello, World!
 ```
 
@@ -208,21 +164,7 @@ $ xa '
 ```shell
 $ xa '
   "SGVsbG8sIFdvcmxkIQ==
-  " >> BASE64D >> UTF8D
-'
-# Hello, World!
-```
-
----
-
-この関数は入力されたBase64文字列の境界が4文字の倍数でない場合でも正しく動作します。
-
-```shell
-$ xa '
-  "SGVs",
-  "b",
-  "G8sIFdvcmxkIQ=="
-  >> BASE64D >> UTF8D
+  " >> BASE64D
 '
 # Hello, World!
 ```

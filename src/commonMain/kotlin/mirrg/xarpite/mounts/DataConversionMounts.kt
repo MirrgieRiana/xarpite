@@ -57,121 +57,43 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
         },
         "BASE64" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64(blobLike: BLOB_LIKE | STREAM<BLOB_LIKE>): STRING")
+            fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
 
             @OptIn(ExperimentalEncodingApi::class)
-            if (value is FluoriteStream) {
-                // ストリーム入力の場合、3バイトの倍数ごとに変換
-                val resultBuilder = StringBuilder()
-                val buffer = mutableListOf<Byte>()
-                var lineLength = 0
-
-                value.collect { item ->
-                    // 各要素をバイト配列に変換してバッファに追加
-                    val bytes = item.toByteArrayAsBlobLike()
-                    buffer.addAll(bytes.toList())
-
-                    // 3バイトの倍数になる部分をエンコード
-                    while (buffer.size >= 3) {
-                        val chunk = buffer.take(3).toByteArray()
-                        buffer.subList(0, 3).clear()
-                        
-                        // 3バイトをエンコード（常に4文字になる）
-                        val encoded = Base64.Default.encode(chunk)
-                        
-                        // 76文字ごとに改行を挿入
-                        for (char in encoded) {
-                            if (lineLength >= 76) {
-                                resultBuilder.append('\n')
-                                lineLength = 0
-                            }
-                            resultBuilder.append(char)
-                            lineLength++
-                        }
-                    }
+            // 入力を文字列化してUTF-8バイト列に変換
+            val str = value.toFluoriteString(null).value
+            val bytes = str.encodeToByteArray()
+            val encoded = Base64.Default.encode(bytes)
+            
+            // 76文字ごとに改行を挿入
+            val result = StringBuilder()
+            var lineLength = 0
+            for (char in encoded) {
+                if (lineLength >= 76) {
+                    result.append('\n')
+                    lineLength = 0
                 }
-
-                // 残りのバイトを処理
-                if (buffer.isNotEmpty()) {
-                    val encoded = Base64.Default.encode(buffer.toByteArray())
-                    for (char in encoded) {
-                        if (lineLength >= 76) {
-                            resultBuilder.append('\n')
-                            lineLength = 0
-                        }
-                        resultBuilder.append(char)
-                        lineLength++
-                    }
-                }
-
-                resultBuilder.toString().toFluoriteString()
-            } else {
-                // 単一の値の場合
-                val bytes = value.toByteArrayAsBlobLike()
-                val encoded = Base64.Default.encode(bytes)
-                
-                // 76文字ごとに改行を挿入
-                val result = StringBuilder()
-                var lineLength = 0
-                for (char in encoded) {
-                    if (lineLength >= 76) {
-                        result.append('\n')
-                        lineLength = 0
-                    }
-                    result.append(char)
-                    lineLength++
-                }
-                
-                result.toString().toFluoriteString()
+                result.append(char)
+                lineLength++
             }
+            
+            result.toString().toFluoriteString()
         },
         "BASE64D" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64D(string: STRING | STREAM<STRING>): BLOB")
+            fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
 
             @OptIn(ExperimentalEncodingApi::class)
-            if (value is FluoriteStream) {
-                // ストリーム入力の場合、4文字の倍数ごとに変換
-                val resultBuffer = mutableListOf<Byte>()
-                val buffer = StringBuilder()
-
-                value.collect { item ->
-                    val str = item.toFluoriteString(null).value
-                    // 空白文字と改行を除去して追加
-                    for (char in str) {
-                        if (!char.isWhitespace()) {
-                            buffer.append(char)
-                        }
-                    }
-
-                    // 4文字の倍数になる部分をデコード
-                    while (buffer.length >= 4) {
-                        val chunk = buffer.substring(0, 4)
-                        buffer.deleteRange(0, 4)
-                        
-                        // 4文字をデコード
-                        val decoded = Base64.Default.decode(chunk)
-                        resultBuffer.addAll(decoded.toList())
-                    }
-                }
-
-                // 残りの文字を処理（パディングを含む）
-                if (buffer.isNotEmpty()) {
-                    val decoded = Base64.Default.decode(buffer.toString())
-                    resultBuffer.addAll(decoded.toList())
-                }
-
-                resultBuffer.toByteArray().asFluoriteBlob()
-            } else {
-                // 単一の値の場合
-                val str = value.toFluoriteString(null).value
-                // 空白文字と改行を除去
-                val cleaned = str.filterNot { it.isWhitespace() }
-                Base64.Default.decode(cleaned).asFluoriteBlob()
-            }
+            // 入力を文字列化
+            val str = value.toFluoriteString(null).value
+            // 空白文字と改行を除去
+            val cleaned = str.filterNot { it.isWhitespace() }
+            // デコードしてUTF-8文字列に変換
+            val decoded = Base64.Default.decode(cleaned)
+            decoded.decodeToString().toFluoriteString()
         },
         "URL" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")

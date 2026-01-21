@@ -125,14 +125,14 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
-## `BASE64` Convert BLOB to Base64 String
+## `BASE64` Convert String to Base64 String
 
-`BASE64(blobLike: BLOB_LIKE | STREAM<BLOB_LIKE>): STRING | STREAM<STRING>`
+`BASE64(string: STRING): STRING`
 
-Returns a string with `blobLike` encoded in Base64 format.
+Returns a string with `string` encoded in Base64 format.
 
 ```shell
-$ xa ' "Hello, World!" >> UTF8 >> BASE64 '
+$ xa ' "Hello, World!" >> BASE64 '
 # SGVsbG8sIFdvcmxkIQ==
 ```
 
@@ -141,63 +141,19 @@ $ xa ' "Hello, World!" >> UTF8 >> BASE64 '
 The output is wrapped at 76 characters.
 
 ```shell
-$ xa ' "a" * 100 >> UTF8 >> BASE64 '
+$ xa ' "a" * 100 >> BASE64 '
 # YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
 # YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ==
 ```
 
----
+## `BASE64D` Convert Base64 String to String
 
-This function can accept streams.
+`BASE64D(string: STRING): STRING`
 
-```shell
-$ xa '
-  BLOB.of([72, 101, 108, 108, 111]),
-  BLOB.of([44, 32]),
-  BLOB.of([87, 111, 114, 108, 100, 33])
-  >> BASE64
-'
-# SGVsbG8sIFdvcmxkIQ==
-```
-
----
-
-The boundaries of stream elements do not affect Base64 encoding.
+Decodes the Base64-encoded string `string` and returns a string.
 
 ```shell
-$ xa '
-  BLOB.of([72]),
-  BLOB.of([101]),
-  BLOB.of([108])
-  >> BASE64
-'
-# SGVs
-```
-
-## `BASE64D` Convert Base64 String to BLOB
-
-`BASE64D(string: STRING | STREAM<STRING>): BLOB`
-
-Decodes the Base64-encoded string `string` and returns a BLOB.
-
-```shell
-$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D >> UTF8D '
-# Hello, World!
-```
-
----
-
-This function can accept streams.
-
-```shell
-$ xa '
-  "SGVs",
-  "bG8s",
-  "IFdv",
-  "cmxk",
-  "IQ=="
-  >> BASE64D >> UTF8D
-'
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
 # Hello, World!
 ```
 
@@ -208,21 +164,7 @@ Newline and whitespace characters are ignored.
 ```shell
 $ xa '
   "SGVsbG8sIFdvcmxkIQ==
-  " >> BASE64D >> UTF8D
-'
-# Hello, World!
-```
-
----
-
-This function works correctly even when the input Base64 string boundaries are not multiples of 4 characters.
-
-```shell
-$ xa '
-  "SGVs",
-  "b",
-  "G8sIFdvcmxkIQ=="
-  >> BASE64D >> UTF8D
+  " >> BASE64D
 '
 # Hello, World!
 ```
