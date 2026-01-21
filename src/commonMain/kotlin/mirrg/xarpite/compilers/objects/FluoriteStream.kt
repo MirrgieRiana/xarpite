@@ -3,6 +3,7 @@ package mirrg.xarpite.compilers.objects
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import mirrg.xarpite.OperatorMethod
 
 class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -> Unit) : FluoriteValue {
@@ -139,3 +140,5 @@ suspend fun FluoriteValue.cache(): FluoriteValue {
         this
     }
 }
+
+fun FluoriteValue.toFlow() = if (this is FluoriteStream) flow(this.flowProvider) else flowOf(this)
