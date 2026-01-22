@@ -141,16 +141,17 @@ $ xa ' "Hello, World!" >> BASE64 '
 出力は76文字ごとに改行されます。
 
 ```shell
-$ xa ' "a" * 100 >> BASE64 '
-# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
-# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ==
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
 ```
 
 ## `BASE64D` Base64文字列を文字列に変換
 
 `BASE64D(string: STRING): STRING`
 
-Base64形式でエンコードされた文字列 `string` をデコードして文字列を返します。
+Base64形式でエンコードされた文字列 `string` をデコードした文字列を返します。
 
 ```shell
 $ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
@@ -162,10 +163,7 @@ $ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
 改行文字や空白文字は無視されます。
 
 ```shell
-$ xa '
-  "SGVsbG8sIFdvcmxkIQ==
-  " >> BASE64D
-'
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
