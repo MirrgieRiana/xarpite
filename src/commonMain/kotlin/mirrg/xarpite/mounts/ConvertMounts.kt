@@ -38,39 +38,47 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createOr(name: String): FluoriteFunction {
+            fun create(name: String, shortCircuitOnTrue: Boolean): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    for (arg in arguments) {
-                        val boolValue = arg.toFluoriteBoolean(null)
-                        if (boolValue.value) return@FluoriteFunction boolValue
+                    for (index in 0 until arguments.size) {
+                        val boolValue = arguments[index].toFluoriteBoolean(null)
+                        if (shortCircuitOnTrue) {
+                            if (boolValue.value) return@FluoriteFunction boolValue
+                        } else {
+                            if (!boolValue.value) return@FluoriteFunction boolValue
+                        }
                     }
-                    arguments.last().toFluoriteBoolean(null)
+                    arguments[arguments.size - 1].toFluoriteBoolean(null)
                 }
             }
             arrayOf(
-                "OR" to createOr("OR"),
-                "ANY" to createOr("ANY"),
+                "OR" to create("OR", shortCircuitOnTrue = true),
+                "ANY" to create("ANY", shortCircuitOnTrue = true),
             )
         },
         *run {
-            fun createAnd(name: String): FluoriteFunction {
+            fun create(name: String, shortCircuitOnTrue: Boolean): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    for (arg in arguments) {
-                        val boolValue = arg.toFluoriteBoolean(null)
-                        if (!boolValue.value) return@FluoriteFunction boolValue
+                    for (index in 0 until arguments.size) {
+                        val boolValue = arguments[index].toFluoriteBoolean(null)
+                        if (shortCircuitOnTrue) {
+                            if (boolValue.value) return@FluoriteFunction boolValue
+                        } else {
+                            if (!boolValue.value) return@FluoriteFunction boolValue
+                        }
                     }
-                    arguments.last().toFluoriteBoolean(null)
+                    arguments[arguments.size - 1].toFluoriteBoolean(null)
                 }
             }
             arrayOf(
-                "AND" to createAnd("AND"),
-                "ALL" to createAnd("ALL"),
+                "AND" to create("AND", shortCircuitOnTrue = false),
+                "ALL" to create("ALL", shortCircuitOnTrue = false),
             )
         },
         "TO_ARRAY" to FluoriteFunction { arguments ->

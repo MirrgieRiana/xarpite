@@ -859,11 +859,11 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 
 Returns `TRUE` if any of the passed arguments evaluates to `TRUE`, otherwise returns `FALSE`.
 
-Each argument is booleanized.
+If an argument is a `BOOLEAN`, its value is booleanized.
+If an argument is a `STREAM<BOOLEAN>`, each element of the stream is booleanized.
 
-Behaves similarly to the logical OR operator `||`.
-
-Unlike the `||` operator, all argument values themselves are evaluated, but if a value is a stream, all subsequent iterations are terminated as soon as a definitive value (TRUE or stream end) appears.
+Unlike the `||` operator, all argument values themselves are evaluated.
+If a value is a stream, the elements of the stream are evaluated in order, and evaluation stops as soon as an element that evaluates to `TRUE` is found.
 
 ```shell
 $ xa 'OR(FALSE; TRUE)'
@@ -877,9 +877,6 @@ $ xa 'OR(1; 0)'
 
 $ xa 'OR(0; "")'
 # FALSE
-
-$ xa 'OR(1, 2, 3 >> MAP[x -> x == 2])'
-# TRUE
 ```
 
 ## `ANY` Check if Any is True
@@ -892,11 +889,11 @@ An alias for `OR`.
 
 Returns `TRUE` if all passed arguments evaluate to `TRUE`, otherwise returns `FALSE`.
 
-Each argument is booleanized.
+If an argument is a `BOOLEAN`, its value is booleanized.
+If an argument is a `STREAM<BOOLEAN>`, each element of the stream is booleanized.
 
-Behaves similarly to the logical AND operator `&&`.
-
-Unlike the `&&` operator, all argument values themselves are evaluated, but if a value is a stream, all subsequent iterations are terminated as soon as a definitive value (FALSE or stream end) appears.
+Unlike the `&&` operator, all argument values themselves are evaluated.
+If a value is a stream, the elements of the stream are evaluated in order, and evaluation stops as soon as an element that evaluates to `FALSE` is found.
 
 ```shell
 $ xa 'AND(TRUE; TRUE)'
@@ -910,9 +907,6 @@ $ xa 'AND(1; "a")'
 
 $ xa 'AND(1; "")'
 # FALSE
-
-$ xa 'AND(1, 2, 3 >> MAP[x -> x >= 1])'
-# TRUE
 ```
 
 ## `ALL` Check if All are True
