@@ -38,45 +38,39 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createAnyFunction(name: String): FluoriteFunction {
+            fun createOr(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    var lastBoolValue = arguments.first().toFluoriteBoolean(null)
-                    if (lastBoolValue.value) return@FluoriteFunction lastBoolValue
-                    for (index in 1 until arguments.size) {
-                        val boolValue = arguments[index].toFluoriteBoolean(null)
-                        lastBoolValue = boolValue
+                    for (arg in arguments) {
+                        val boolValue = arg.toFluoriteBoolean(null)
                         if (boolValue.value) return@FluoriteFunction boolValue
                     }
-                    lastBoolValue
+                    arguments.last().toFluoriteBoolean(null)
                 }
             }
             arrayOf(
-                "ANY" to createAnyFunction("ANY"),
-                "OR" to createAnyFunction("OR"),
+                "OR" to createOr("OR"),
+                "ANY" to createOr("ANY"),
             )
         },
         *run {
-            fun createAllFunction(name: String): FluoriteFunction {
+            fun createAnd(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    var lastBoolValue = arguments.first().toFluoriteBoolean(null)
-                    if (!lastBoolValue.value) return@FluoriteFunction lastBoolValue
-                    for (index in 1 until arguments.size) {
-                        val boolValue = arguments[index].toFluoriteBoolean(null)
-                        lastBoolValue = boolValue
+                    for (arg in arguments) {
+                        val boolValue = arg.toFluoriteBoolean(null)
                         if (!boolValue.value) return@FluoriteFunction boolValue
                     }
-                    lastBoolValue
+                    arguments.last().toFluoriteBoolean(null)
                 }
             }
             arrayOf(
-                "ALL" to createAllFunction("ALL"),
-                "AND" to createAllFunction("AND"),
+                "AND" to createAnd("AND"),
+                "ALL" to createAnd("ALL"),
             )
         },
         "TO_ARRAY" to FluoriteFunction { arguments ->

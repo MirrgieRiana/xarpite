@@ -694,57 +694,71 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `ANY` / `OR` いずれかが真かを判定
-
-`ANY(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
+## `OR` いずれかが真かを判定
 
 `OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-渡されたすべての引数のうち、いずれか1つでも論理値化して `TRUE` となるものがあれば `TRUE` を返し、そうでなければ `FALSE` を返します。
+渡されたすべての引数のうち、いずれか1つでも `TRUE` となるものがあれば `TRUE` を返し、そうでなければ `FALSE` を返します。
 
-論理和演算子 `||` と同様の動作をしますが、1個または2個の引数を受け取ることができます。
+各引数は論理値化されます。
 
-`||` 演算子とは異なり、すべての引数を評価します。右辺を短絡評価することはありません。
+論理和演算子 `||` と同様の動作をします。
+
+`||` 演算子とは異なり、すべての引数の値そのものは評価されますが、値がストリームだった場合は、最初に確定する値（TRUEまたはストリーム終端）が出た時点で以降のすべてのイテレーションは打ち切られます。
 
 ```shell
-$ xa 'ANY(FALSE; FALSE; TRUE)'
+$ xa 'OR(FALSE; TRUE)'
 # TRUE
 
-$ xa 'ANY(FALSE; FALSE; FALSE)'
+$ xa 'OR(FALSE; FALSE)'
 # FALSE
 
-$ xa 'ANY(1; 0)'
+$ xa 'OR(1; 0)'
 # TRUE
 
-$ xa 'ANY(0; "")'
+$ xa 'OR(0; "")'
 # FALSE
+
+$ xa 'OR(1, 2, 3 >> MAP[x -> x == 2])'
+# TRUE
 ```
 
-## `ALL` / `AND` すべてが真かを判定
+## `ANY` いずれかが真かを判定
 
-`ALL(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
+`OR` の別名です。
+
+## `AND` すべてが真かを判定
 
 `AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-渡されたすべての引数が論理値化して `TRUE` となる場合に `TRUE` を返し、そうでなければ `FALSE` を返します。
+渡されたすべての引数が `TRUE` となる場合に `TRUE` を返し、そうでなければ `FALSE` を返します。
 
-論理積演算子 `&&` と同様の動作をしますが、1個または2個の引数を受け取ることができます。
+各引数は論理値化されます。
 
-`&&` 演算子とは異なり、すべての引数を評価します。右辺を短絡評価することはありません。
+論理積演算子 `&&` と同様の動作をします。
+
+`&&` 演算子とは異なり、すべての引数の値そのものは評価されますが、値がストリームだった場合は、最初に確定する値（FALSEまたはストリーム終端）が出た時点で以降のすべてのイテレーションは打ち切られます。
 
 ```shell
-$ xa 'ALL(TRUE; TRUE; TRUE)'
+$ xa 'AND(TRUE; TRUE)'
 # TRUE
 
-$ xa 'ALL(TRUE; TRUE; FALSE)'
+$ xa 'AND(TRUE; FALSE)'
 # FALSE
 
-$ xa 'ALL(1; "a"; [1])'
+$ xa 'AND(1; "a")'
 # TRUE
 
-$ xa 'ALL(1; ""; [1])'
+$ xa 'AND(1; "")'
 # FALSE
+
+$ xa 'AND(1, 2, 3 >> MAP[x -> x >= 1])'
+# TRUE
 ```
+
+## `ALL` すべてが真かを判定
+
+`AND` の別名です。
 
 ## `TO_ARRAY` ストリームを配列に変換
 

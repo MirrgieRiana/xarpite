@@ -31,48 +31,54 @@ class ToFunctionsTest {
     }
 
     @Test
-    fun anyTest() = runTest {
+    fun orTest() = runTest {
         // 基本的な動作
-        assertEquals(true, eval(""" ANY(TRUE; TRUE) """).boolean)
-        assertEquals(true, eval(""" ANY(TRUE; FALSE) """).boolean)
-        assertEquals(true, eval(""" ANY(FALSE; TRUE) """).boolean)
-        assertEquals(false, eval(""" ANY(FALSE; FALSE) """).boolean)
+        assertEquals(true, eval(""" OR(TRUE; TRUE) """).boolean)
+        assertEquals(true, eval(""" OR(TRUE; FALSE) """).boolean)
+        assertEquals(true, eval(""" OR(FALSE; TRUE) """).boolean)
+        assertEquals(false, eval(""" OR(FALSE; FALSE) """).boolean)
 
         // 1個の引数
-        assertEquals(true, eval(""" ANY(TRUE) """).boolean)
-        assertEquals(false, eval(""" ANY(FALSE) """).boolean)
+        assertEquals(true, eval(""" OR(TRUE) """).boolean)
+        assertEquals(false, eval(""" OR(FALSE) """).boolean)
 
         // 論理値化を伴う動作
-        assertEquals(true, eval(""" ANY(1; 0) """).boolean)
-        assertEquals(false, eval(""" ANY(0; "") """).boolean)
-        assertEquals(true, eval(""" ANY(""; "a") """).boolean)
+        assertEquals(true, eval(""" OR(1; 0) """).boolean)
+        assertEquals(false, eval(""" OR(0; "") """).boolean)
+        assertEquals(true, eval(""" OR(""; "a") """).boolean)
+    }
 
-        // OR エイリアス
-        assertEquals(true, eval(""" OR(TRUE; FALSE) """).boolean)
-        assertEquals(false, eval(""" OR(FALSE; FALSE) """).boolean)
-        assertEquals(true, eval(""" OR(TRUE) """).boolean)
+    @Test
+    fun anyTest() = runTest {
+        // ANY は OR の別名
+        assertEquals(true, eval(""" ANY(TRUE; FALSE) """).boolean)
+        assertEquals(false, eval(""" ANY(FALSE; FALSE) """).boolean)
+        assertEquals(true, eval(""" ANY(TRUE) """).boolean)
+    }
+
+    @Test
+    fun andTest() = runTest {
+        // 基本的な動作
+        assertEquals(true, eval(""" AND(TRUE; TRUE) """).boolean)
+        assertEquals(false, eval(""" AND(TRUE; FALSE) """).boolean)
+        assertEquals(false, eval(""" AND(FALSE; TRUE) """).boolean)
+        assertEquals(false, eval(""" AND(FALSE; FALSE) """).boolean)
+
+        // 1個の引数
+        assertEquals(true, eval(""" AND(TRUE) """).boolean)
+        assertEquals(false, eval(""" AND(FALSE) """).boolean)
+
+        // 論理値化を伴う動作
+        assertEquals(true, eval(""" AND(1; "a") """).boolean)
+        assertEquals(false, eval(""" AND(1; "") """).boolean)
+        assertEquals(true, eval(""" AND("a"; "b") """).boolean)
     }
 
     @Test
     fun allTest() = runTest {
-        // 基本的な動作
+        // ALL は AND の別名
         assertEquals(true, eval(""" ALL(TRUE; TRUE) """).boolean)
         assertEquals(false, eval(""" ALL(TRUE; FALSE) """).boolean)
-        assertEquals(false, eval(""" ALL(FALSE; TRUE) """).boolean)
-        assertEquals(false, eval(""" ALL(FALSE; FALSE) """).boolean)
-
-        // 1個の引数
         assertEquals(true, eval(""" ALL(TRUE) """).boolean)
-        assertEquals(false, eval(""" ALL(FALSE) """).boolean)
-
-        // 論理値化を伴う動作
-        assertEquals(true, eval(""" ALL(1; "a") """).boolean)
-        assertEquals(false, eval(""" ALL(1; "") """).boolean)
-        assertEquals(true, eval(""" ALL("a"; "b") """).boolean)
-
-        // AND エイリアス
-        assertEquals(true, eval(""" AND(TRUE; TRUE) """).boolean)
-        assertEquals(false, eval(""" AND(TRUE; FALSE) """).boolean)
-        assertEquals(true, eval(""" AND(TRUE) """).boolean)
     }
 }

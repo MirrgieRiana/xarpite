@@ -853,57 +853,71 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `ANY` / `OR` Check if Any is True
-
-`ANY(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
+## `OR` Check if Any is True
 
 `OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-Returns `TRUE` if any of the passed arguments evaluates to `TRUE` when booleanized, otherwise returns `FALSE`.
+Returns `TRUE` if any of the passed arguments evaluates to `TRUE`, otherwise returns `FALSE`.
 
-Behaves similarly to the logical OR operator `||`, but accepts 1 or 2 arguments.
+Each argument is booleanized.
 
-Unlike the `||` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
+Behaves similarly to the logical OR operator `||`.
+
+Unlike the `||` operator, all argument values themselves are evaluated, but if a value is a stream, all subsequent iterations are terminated as soon as a definitive value (TRUE or stream end) appears.
 
 ```shell
-$ xa 'ANY(FALSE; FALSE; TRUE)'
+$ xa 'OR(FALSE; TRUE)'
 # TRUE
 
-$ xa 'ANY(FALSE; FALSE; FALSE)'
+$ xa 'OR(FALSE; FALSE)'
 # FALSE
 
-$ xa 'ANY(1; 0)'
+$ xa 'OR(1; 0)'
 # TRUE
 
-$ xa 'ANY(0; "")'
+$ xa 'OR(0; "")'
 # FALSE
+
+$ xa 'OR(1, 2, 3 >> MAP[x -> x == 2])'
+# TRUE
 ```
 
-## `ALL` / `AND` Check if All are True
+## `ANY` Check if Any is True
 
-`ALL(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
+An alias for `OR`.
+
+## `AND` Check if All are True
 
 `AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
-Returns `TRUE` if all passed arguments evaluate to `TRUE` when booleanized, otherwise returns `FALSE`.
+Returns `TRUE` if all passed arguments evaluate to `TRUE`, otherwise returns `FALSE`.
 
-Behaves similarly to the logical AND operator `&&`, but accepts 1 or 2 arguments.
+Each argument is booleanized.
 
-Unlike the `&&` operator, this function evaluates all arguments. It does not short-circuit the right-hand side.
+Behaves similarly to the logical AND operator `&&`.
+
+Unlike the `&&` operator, all argument values themselves are evaluated, but if a value is a stream, all subsequent iterations are terminated as soon as a definitive value (FALSE or stream end) appears.
 
 ```shell
-$ xa 'ALL(TRUE; TRUE; TRUE)'
+$ xa 'AND(TRUE; TRUE)'
 # TRUE
 
-$ xa 'ALL(TRUE; TRUE; FALSE)'
+$ xa 'AND(TRUE; FALSE)'
 # FALSE
 
-$ xa 'ALL(1; "a"; [1])'
+$ xa 'AND(1; "a")'
 # TRUE
 
-$ xa 'ALL(1; ""; [1])'
+$ xa 'AND(1; "")'
 # FALSE
+
+$ xa 'AND(1, 2, 3 >> MAP[x -> x >= 1])'
+# TRUE
 ```
+
+## `ALL` Check if All are True
+
+An alias for `AND`.
 
 ## `TO_ARRAY` Convert Stream to Array
 
