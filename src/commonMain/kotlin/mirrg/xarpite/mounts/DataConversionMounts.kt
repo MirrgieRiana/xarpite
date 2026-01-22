@@ -60,17 +60,13 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
                     fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
-                    val bytes = string.encodeToByteArray()
-                    // Base64.Mimeは76文字ごとにCRLFで改行するため、LFに置換
-                    base64.encode(bytes).replace("\r\n", "\n").toFluoriteString()
+                    base64.encode(string.encodeToByteArray()).replace("\r\n", "\n").toFluoriteString()
                 },
                 "BASE64D" to FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
-                    // Base64.Mimeは空白文字を自動的に無視する
-                    val decoded = base64.decode(string)
-                    decoded.decodeToString().toFluoriteString()
+                    base64.decode(string).decodeToString().toFluoriteString()
                 },
             )
         },
