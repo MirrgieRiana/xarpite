@@ -125,6 +125,48 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `BASE64` Convert String to Base64 String
+
+`BASE64(string: STRING): STRING`
+
+Returns a string with `string` encoded in Base64 format.
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+The output is wrapped at 76 characters.
+
+```shell
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
+```
+
+## `BASE64D` Convert Base64 String to String
+
+`BASE64D(string: STRING): STRING`
+
+Decodes the Base64-encoded string `string` and returns a string.
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+```
+
+---
+
+Newline and whitespace characters are ignored.
+
+```shell
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
+# Hello, World!
+```
+
 ## `URL` Encode String to URL Format
 
 `URL(string: STRING): STRING`

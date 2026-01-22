@@ -125,6 +125,48 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `BASE64` 文字列をBase64文字列に変換
+
+`BASE64(string: STRING): STRING`
+
+`string` をBase64形式でエンコードした文字列を返します。
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+出力は76文字ごとに改行されます。
+
+```shell
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
+```
+
+## `BASE64D` Base64文字列を文字列に変換
+
+`BASE64D(string: STRING): STRING`
+
+Base64形式でエンコードされた文字列 `string` をデコードした文字列を返します。
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+```
+
+---
+
+改行文字や空白文字は無視されます。
+
+```shell
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
+# Hello, World!
+```
+
 ## `URL` 文字列をURLエンコード
 
 `URL(string: STRING): STRING`

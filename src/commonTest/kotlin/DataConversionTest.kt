@@ -242,5 +242,36 @@ class DataConversionTest {
         assertEquals("A", eval(""" 10 >> BASE[36] """).string) // 36進数
     }
 
+    @Test
+    fun base64() = runTest {
+        // BASE64 で文字列をBase64文字列に変換
+        assertEquals("SGVsbG8sIFdvcmxkIQ==", eval(""" "Hello, World!" >> BASE64 """).string)
+        assertEquals("YWJj", eval(""" "abc" >> BASE64 """).string)
+        assertEquals("", eval(""" "" >> BASE64 """).string) // 空文字列は空文字列
+
+        // BASE64D でBase64文字列を文字列に変換
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D """).string)
+        assertEquals("abc", eval(""" "YWJj" >> BASE64D """).string)
+        assertEquals("", eval(""" "" >> BASE64D """).string) // 空文字列は空文字列
+
+        // BASE64とBASE64Dは逆変換の関係
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> BASE64 >> BASE64D """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> BASE64 >> BASE64D """).string)
+        assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> BASE64 >> BASE64D """).string)
+
+        // BASE64 は76文字ごとに改行される (LF)
+        val longString = "a".repeat(100)
+        val encoded = eval(""" "$longString" >> BASE64 """).string
+        val lines = encoded.split("\n")
+        // 最後の行以外は76文字
+        for (i in 0 until lines.size - 1) {
+            assertEquals(76, lines[i].length, "Line $i should be 76 characters")
+        }
+
+        // BASE64D は改行や空白を無視する
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D """).string)
+        assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D """).string)
+    }
+
 
 }
