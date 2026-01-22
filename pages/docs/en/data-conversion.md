@@ -141,9 +141,10 @@ $ xa ' "Hello, World!" >> BASE64 '
 The output is wrapped at 76 characters.
 
 ```shell
-$ xa ' "a" * 100 >> BASE64 '
-# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh
-# YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ==
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
 ```
 
 ## `BASE64D` Convert Base64 String to String
@@ -162,10 +163,7 @@ $ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
 Newline and whitespace characters are ignored.
 
 ```shell
-$ xa '
-  "SGVsbG8sIFdvcmxkIQ==
-  " >> BASE64D
-'
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 

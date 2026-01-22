@@ -54,39 +54,26 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
         },
         *run {
-            val base64 by lazy { Base64.Default }
+            val base64 by lazy { Base64.Mime }
             arrayOf(
                 "BASE64" to FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
                     val bytes = string.encodeToByteArray()
-                    val encoded = base64.encode(bytes)
-
-                    // 76文字ごとに改行を挿入
-                    val result = StringBuilder()
-                    var lineLength = 0
-                    for (char in encoded) {
-                        if (lineLength >= 76) {
-                            result.append('\n')
-                            lineLength = 0
-                        }
-                        result.append(char)
-                        lineLength++
-                    }
-
-                    result.toString().toFluoriteString()
+                    // Base64.Mimeは76文字ごとにCRLFで改行するため、LFに置換
+                    base64.encode(bytes).replace("\r\n", "\n").toFluoriteString()
                 },
                 "BASE64D" to FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
-                    val cleaned = string.filterNot { it.isWhitespace() }
-                    val decoded = base64.decode(cleaned)
+                    // Base64.Mimeは空白文字を自動的に無視する
+                    val decoded = base64.decode(string)
                     decoded.decodeToString().toFluoriteString()
                 },
             )
-        }
+        },
         "URL" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")
             if (arguments.size != 1) usage()
