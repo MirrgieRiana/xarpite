@@ -2,7 +2,6 @@ package mirrg.xarpite.mounts
 
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
-import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -22,8 +21,6 @@ import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import okio.Buffer
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.math.roundToInt
 
 context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
@@ -56,45 +53,40 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             val value = arguments[0]
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
         },
-        "BASE64" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
+        *run {
+            val base64 by lazy { Base64.Default }
+            arrayOf(
+                "BASE64" to FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    val bytes = string.encodeToByteArray()
+                    val encoded = base64.encode(bytes)
 
-            @OptIn(ExperimentalEncodingApi::class)
-            // 入力を文字列化してUTF-8バイト列に変換
-            val str = value.toFluoriteString(null).value
-            val bytes = str.encodeToByteArray()
-            val encoded = Base64.Default.encode(bytes)
-            
-            // 76文字ごとに改行を挿入
-            val result = StringBuilder()
-            var lineLength = 0
-            for (char in encoded) {
-                if (lineLength >= 76) {
-                    result.append('\n')
-                    lineLength = 0
-                }
-                result.append(char)
-                lineLength++
-            }
-            
-            result.toString().toFluoriteString()
-        },
-        "BASE64D" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
+                    // 76文字ごとに改行を挿入
+                    val result = StringBuilder()
+                    var lineLength = 0
+                    for (char in encoded) {
+                        if (lineLength >= 76) {
+                            result.append('\n')
+                            lineLength = 0
+                        }
+                        result.append(char)
+                        lineLength++
+                    }
 
-            @OptIn(ExperimentalEncodingApi::class)
-            // 入力を文字列化
-            val str = value.toFluoriteString(null).value
-            // 空白文字と改行を除去
-            val cleaned = str.filterNot { it.isWhitespace() }
-            // デコードしてUTF-8文字列に変換
-            val decoded = Base64.Default.decode(cleaned)
-            decoded.decodeToString().toFluoriteString()
-        },
+                    result.toString().toFluoriteString()
+                },
+                "BASE64D" to FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    val cleaned = string.filterNot { it.isWhitespace() }
+                    val decoded = base64.decode(cleaned)
+                    decoded.decodeToString().toFluoriteString()
+                },
+            )
+        }
         "URL" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")
             if (arguments.size != 1) usage()
