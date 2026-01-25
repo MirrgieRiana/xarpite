@@ -220,15 +220,17 @@ $ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found!! _ !: found | _ * 10'
 # 150
 ```
 
-# Error Handling
+# Exception Mechanism
 
 ## Throw Operator
 
-In Xarpite, error throwing is done with the throw operator `!! error`.
+In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
-The thrown value is passed to the right side of the catch operator `try !? catch`.
+The thrown value (exception value) is passed to the right side of the catch operator `try !? catch`.
+
+The exception mechanism is a neutral feature that does not imply failure. It can be used not only for error handling but also for various purposes, such as concisely returning values from deep within a function.
 
 ```shell
 $ xa '
@@ -243,7 +245,7 @@ $ xa '
 
 ### Omitting Throw Value
 
-The throw operator can also be written simply as `!!` with the `error` clause omitted.
+The throw operator can also be written simply as `!!` with the `value` clause omitted.
 
 In this case, `NULL` is thrown.
 
@@ -326,7 +328,7 @@ $ xa '
 
 ---
 
-If an exception is thrown inside the `try` clause's stream, it is also caught, and the return value of the catch operator becomes the return value of the `catch` clause.
+If an exception value is thrown inside the `try` clause's stream, it is also caught, and the return value of the catch operator becomes the return value of the `catch` clause.
 
 ```shell
 $ xa '
@@ -373,9 +375,9 @@ $ xa '
 
 ### Binding Precedence of Throw and Catch Operators
 
-The throw operator `!! error` has the same binding rules as the return operator `label!! value`, and the `error` clause can contain comma operators and any expression with higher binding precedence.
+The throw operator `!! value` has the same binding rules as the return operator `label!! value`, and the `value` clause can contain comma operators and any expression with higher binding precedence.
 
-In the following example, the `error` clause directly contains the comma operator.
+In the following example, the `value` clause directly contains the comma operator.
 
 ```shell
 $ xa '
