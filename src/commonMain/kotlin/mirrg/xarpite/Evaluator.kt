@@ -1,5 +1,6 @@
 package mirrg.xarpite
 
+import io.github.mirrgieriana.xarpeg.parseAllOrThrow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -8,7 +9,6 @@ import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.parser.parseAllOrThrow
 
 class Evaluator {
 
