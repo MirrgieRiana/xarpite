@@ -41,7 +41,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         }
         value.toJsonsFluoriteValue(null, indent = indent)
     }
-    
+
     // Shared implementation for JSONSD and JSONLD
     val jsonsdJsonldImpl = FluoriteFunction { arguments ->
         fun usage(): Nothing = usage("JSONSD/JSONLD(jsons: STREAM<STRING>): STREAM<VALUE>")
@@ -49,7 +49,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         val value = arguments[0]
         value.toFluoriteValueAsJsons(null)
     }
-    
+
     return mapOf(
         "BASE" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
