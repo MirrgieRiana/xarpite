@@ -37,3 +37,7 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl
 actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
     throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
+
+var getCurrentLocationImpl: (suspend () -> String)? = null
+actual suspend fun getCurrentLocation(): String = getCurrentLocationImpl?.invoke() 
+    ?: kotlinx.browser.window.location.href

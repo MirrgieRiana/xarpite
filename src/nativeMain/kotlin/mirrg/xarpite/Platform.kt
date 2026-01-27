@@ -111,3 +111,19 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatcher
         fflush(stderr)
     }
 }
+
+actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
+
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun getCurrentLocation(): String = withContext(Dispatchers.IO) {
+    memScoped {
+        val bufferSize = 4096
+        val buffer = allocArray<ByteVar>(bufferSize)
+        val result = platform.posix.getcwd(buffer, bufferSize.toULong())
+        if (result != null) {
+            result.toKString()
+        } else {
+            ""
+        }
+    }
+}
