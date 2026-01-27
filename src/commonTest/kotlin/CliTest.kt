@@ -47,6 +47,12 @@ class CliTest {
     }
 
     @Test
+    fun pwd() = runTest {
+        val context = TestIoContext(currentLocation = "/test/location")
+        assertEquals("/test/location", cliEval(context, "PWD()").toFluoriteString(null).value) // PWD() で現在位置が得られる
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
@@ -945,7 +951,8 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
 
 internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
-    private val stdinBytes: ByteArray = byteArrayOf()
+    private val stdinBytes: ByteArray = byteArrayOf(),
+    private val currentLocation: String = "/test/location"
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -984,6 +991,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+
+    override suspend fun getCurrentLocation(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()
