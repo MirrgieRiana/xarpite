@@ -24,6 +24,32 @@ import kotlin.io.encoding.Base64
 
 context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
+    // Shared implementation for JSONS and JSONL
+    val jsonsJsonlImpl = FluoriteFunction { arguments ->
+        fun usage(): Nothing = usage("""JSONS/JSONL(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
+        val (indent, value) = when (arguments.size) {
+            1 -> Pair(null, arguments[0])
+            2 -> {
+                val indentParameter = arguments[0] as? FluoriteArray ?: usage()
+                if (indentParameter.values.size != 2) usage()
+                val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
+                if (indentKey.value != "indent") usage()
+                Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
+            }
+
+            else -> usage()
+        }
+        value.toJsonsFluoriteValue(null, indent = indent)
+    }
+    
+    // Shared implementation for JSONSD and JSONLD
+    val jsonsdJsonldImpl = FluoriteFunction { arguments ->
+        fun usage(): Nothing = usage("JSONSD/JSONLD(jsons: STREAM<STRING>): STREAM<VALUE>")
+        if (arguments.size != 1) usage()
+        val value = arguments[0]
+        value.toFluoriteValueAsJsons(null)
+    }
+    
     return mapOf(
         "BASE" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
@@ -173,50 +199,10 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             val value = arguments[0]
             value.toFluoriteValueAsSingleJson(null)
         },
-        "JSONS" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
-            val (indent, value) = when (arguments.size) {
-                1 -> Pair(null, arguments[0])
-                2 -> {
-                    val indentParameter = arguments[0] as? FluoriteArray ?: usage()
-                    if (indentParameter.values.size != 2) usage()
-                    val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
-                    if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
-                }
-
-                else -> usage()
-            }
-            value.toJsonsFluoriteValue(null, indent = indent)
-        },
-        "JSONL" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""JSONL(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
-            val (indent, value) = when (arguments.size) {
-                1 -> Pair(null, arguments[0])
-                2 -> {
-                    val indentParameter = arguments[0] as? FluoriteArray ?: usage()
-                    if (indentParameter.values.size != 2) usage()
-                    val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
-                    if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
-                }
-
-                else -> usage()
-            }
-            value.toJsonsFluoriteValue(null, indent = indent)
-        },
-        "JSONSD" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsJsons(null)
-        },
-        "JSONLD" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSONLD(jsons: STREAM<STRING>): STREAM<VALUE>")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsJsons(null)
-        },
+        "JSONS" to jsonsJsonlImpl,
+        "JSONL" to jsonsJsonlImpl,
+        "JSONSD" to jsonsdJsonldImpl,
+        "JSONLD" to jsonsdJsonldImpl,
         "CSV" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
             if (arguments.isEmpty()) usage()
