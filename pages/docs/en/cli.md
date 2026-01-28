@@ -559,6 +559,70 @@ $ {
 # BLOB.of([32;33;34])
 ```
 
+### `WRITE`: Write to Text File
+
+`WRITE(file: STRING; string: STRING): NULL`
+
+Writes `string` to the file specified by `file` with UTF-8 encoding.
+
+Newlines are not automatically added.
+
+```shell
+$ xa -q '
+  WRITE("tmp.txt"; "Hello, World!")
+  READ("tmp.txt")
+'
+# Hello, World!
+```
+
+---
+
+If the file already exists, it will be overwritten.
+
+### `WRITEL`: Write to Text File Line by Line
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+Writes each line from `lines` to the file specified by `file`.
+
+`\n` is appended to the end of each line. A trailing newline is also added.
+
+```shell
+$ xa -q '
+  WRITEL("tmp.txt"; ["apple", "banana", "cherry"])
+  READ("tmp.txt")
+'
+# apple
+# banana
+# cherry
+```
+
+---
+
+If the file already exists, it will be overwritten.
+
+No extra newline normalization is performed.
+
+### `WRITEB`: Write to Binary File
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+Writes `blobLike` to the file specified by `file` as a byte sequence.
+
+```shell
+$ xa -q '
+  WRITEB("tmp.bin"; BLOB.of([72, 101, 108, 108, 111]))
+  READB("tmp.bin")
+'
+# BLOB.of([72;101;108;108;111])
+```
+
+---
+
+If the file already exists, it will be overwritten.
+
+`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM&lt;BLOB&gt;, or ARRAY&lt;NUMBER&gt;.
+
 ### `USE`: Get Result of External Xarpite File
 
 `USE(file: STRING): VALUE`
