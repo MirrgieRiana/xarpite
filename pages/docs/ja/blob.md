@@ -12,7 +12,7 @@ BLOBが格納するバイト列は符号なし8bit整数として管理されま
 
 ## BLOBの合成
 
-`BLOB_LIKE := STREAM<NUMBER | ARRAY<BLOB_LIKE> | BLOB>`
+`BLOB_LIKE := NUMBER | BLOB | STREAM<BLOB_LIKE> | ARRAY<BLOB_LIKE>`
 
 BLOBの合成は、 `BLOB_LIKE` から単一のBLOBを生成する際の規則です。
 
@@ -21,7 +21,7 @@ BLOBの合成は、 `BLOB_LIKE` から単一のBLOBを生成する際の規則�
 - `BLOB_LIKE` が数値の場合、小数点以下の四捨五入と下位8ビット以外のビットの削除が行われた状態で新しいBLOBに追加されます。
 - `BLOB_LIKE` が配列の場合、各要素が再帰的に `BLOB_LIKE` として処理されます。これにより、配列内にBLOBや他の配列を含めることができます。
 - `BLOB_LIKE` がBLOBの場合、そのまま新しいBLOBインスタンスにコピーされます。
-- `BLOB_LIKE` がストリームの場合、各要素が上記の方法で新しいBLOBに追加されます。
+- `BLOB_LIKE` がストリームの場合、各要素が再帰的に `BLOB_LIKE` として処理されます。
 
 ---
 
