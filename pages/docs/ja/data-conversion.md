@@ -287,15 +287,11 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
+## `JSONS` 値のストリームをJSON文字列のストリームに変換
 
 `JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
-`JSONL([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
-
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
-
-`JSONL` は `JSONS` のシノニムです。
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -303,21 +299,25 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
+## `JSONL` 値のストリームをJSON文字列のストリームに変換
+
+`JSONS` のエイリアスです。
+
+## `JSONSD` JSON文字列のストリームを値のストリームに変換
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
-`JSONLD(jsons: STREAM<STRING>): STREAM<VALUE>`
-
 `jsons` の各要素を対応する値に変換するストリームを返します。
-
-`JSONLD` は `JSONSD` のシノニムです。
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
 # {a:1}
 # {b:2}
 ```
+
+## `JSONLD` JSON文字列のストリームを値のストリームに変換
+
+`JSONSD` のエイリアスです。
 
 ---
 
