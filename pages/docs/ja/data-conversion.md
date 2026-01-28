@@ -264,7 +264,7 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 ## `JSON` 値をJSON文字列に変換
 
-`JSON(["indent": indent: STRING; ]value: VALUE): STRING`
+`JSON([indent: indent: STRING; ]value: VALUE): STRING`
 
 `value` をJSON形式の文字列に変換します。
 
@@ -289,9 +289,9 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 
 ## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
 
-`JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
-`JSONL(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONL([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
 

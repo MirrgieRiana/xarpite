@@ -152,7 +152,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             buffer.readUtf8().toFluoriteString()
         },
         "JSON" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
+            fun usage(): Nothing = usage("JSON([indent: indent: STRING; ]value: VALUE): STRING")
             val (indent, value) = when (arguments.size) {
                 1 -> Pair(null, arguments[0])
                 2 -> {
@@ -176,7 +176,7 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
         *run {
             fun createJsonsFunction(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("""$name(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
+                    fun usage(): Nothing = usage("$name([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>")
                     val (indent, value) = when (arguments.size) {
                         1 -> Pair(null, arguments[0])
                         2 -> {
