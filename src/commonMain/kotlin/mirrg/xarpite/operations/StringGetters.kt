@@ -46,6 +46,13 @@ private suspend fun Formatter.format(position: Position, value: FluoriteValue): 
                     FormatterFlag.SPACE_FOR_SIGN in this.flags -> Pair(" ", int.toString())
                     else -> Pair("", "$int")
                 }
+            } else if (this.conversion == FormatterConversion.HEXADECIMAL_UPPERCASE) {
+                when {
+                    int < 0 -> Pair("-", (-int).toString(16).uppercase())
+                    FormatterFlag.SIGNED in this.flags -> Pair("+", int.toString(16).uppercase())
+                    FormatterFlag.SPACE_FOR_SIGN in this.flags -> Pair(" ", int.toString(16).uppercase())
+                    else -> Pair("", int.toString(16).uppercase())
+                }
             } else {
                 when {
                     int < 0 -> Pair("-", (-int).toString(16))

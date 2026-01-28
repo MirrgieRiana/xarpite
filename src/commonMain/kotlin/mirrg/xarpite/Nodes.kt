@@ -122,6 +122,7 @@ enum class FormatterFlag {
 enum class FormatterConversion {
     DECIMAL,
     HEXADECIMAL,
+    HEXADECIMAL_UPPERCASE,
     FLOAT,
     STRING,
 }
