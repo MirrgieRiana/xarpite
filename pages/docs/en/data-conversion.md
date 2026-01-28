@@ -287,11 +287,15 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` Convert Stream of Values to Stream of JSON Strings
+## `JSONS` / `JSONL` Convert Stream of Values to Stream of JSON Strings
 
 `JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
+`JSONL(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+
 Returns a stream that converts each element of `values` to a JSON-formatted string.
+
+`JSONL` is a synonym for `JSONS`.
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -299,11 +303,15 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONSD` Convert Stream of JSON Strings to Stream of Values
+## `JSONSD` / `JSONLD` Convert Stream of JSON Strings to Stream of Values
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
+`JSONLD(jsons: STREAM<STRING>): STREAM<VALUE>`
+
 Returns a stream that converts each element of `jsons` to the corresponding value.
+
+`JSONLD` is a synonym for `JSONSD`.
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
