@@ -38,9 +38,20 @@ class PrefixIncrementGetter(private val getter: Getter, private val setter: Sett
         // まず ++_ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_INCREMENT.methodName)
         return if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
+            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
+            val accessor = FluoriteFunction { args ->
+                if (args.isEmpty()) {
+                    // get: 0引数の場合は現在の値を取得
+                    getter.evaluate(env)
+                } else {
+                    // set: 1引数以上の場合は最初の引数で値を設定
+                    val setterFunction = setter.evaluate(env)
+                    setterFunction(args[0])
+                    args[0]
+                }
+            }
             withStackTrace(position) {
-                customMethod.call(arrayOf())
+                customMethod.call(arrayOf(accessor))
             }
         } else {
             // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
@@ -60,18 +71,28 @@ class SuffixIncrementGetter(private val getter: Getter, private val setter: Sett
         
         // まず _++ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_INCREMENT.methodName)
-        if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            withStackTrace(position) {
-                customMethod.call(arrayOf())
+        return if (customMethod != null) {
+            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
+            val accessor = FluoriteFunction { args ->
+                if (args.isEmpty()) {
+                    // get: 0引数の場合は現在の値を取得
+                    getter.evaluate(env)
+                } else {
+                    // set: 1引数以上の場合は最初の引数で値を設定
+                    val setterFunction = setter.evaluate(env)
+                    setterFunction(args[0])
+                    args[0]
+                }
             }
-            return oldValue
+            withStackTrace(position) {
+                customMethod.call(arrayOf(accessor))
+            }
         } else {
             // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
             val setterFunction = setter.evaluate(env)
             val newValue = oldValue.plus(position, FluoriteInt.ONE)
             setterFunction(newValue)
-            return oldValue
+            oldValue
         }
     }
 
@@ -85,9 +106,20 @@ class PrefixDecrementGetter(private val getter: Getter, private val setter: Sett
         // まず --_ メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_DECREMENT.methodName)
         return if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
+            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
+            val accessor = FluoriteFunction { args ->
+                if (args.isEmpty()) {
+                    // get: 0引数の場合は現在の値を取得
+                    getter.evaluate(env)
+                } else {
+                    // set: 1引数以上の場合は最初の引数で値を設定
+                    val setterFunction = setter.evaluate(env)
+                    setterFunction(args[0])
+                    args[0]
+                }
+            }
             withStackTrace(position) {
-                customMethod.call(arrayOf())
+                customMethod.call(arrayOf(accessor))
             }
         } else {
             // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
@@ -107,18 +139,28 @@ class SuffixDecrementGetter(private val getter: Getter, private val setter: Sett
         
         // まず _-- メソッドをチェック
         val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_DECREMENT.methodName)
-        if (customMethod != null) {
-            // カスタムメソッドが存在する場合はそれを呼び出すだけ（ミューテーションはメソッド内で行われる）
-            withStackTrace(position) {
-                customMethod.call(arrayOf())
+        return if (customMethod != null) {
+            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
+            val accessor = FluoriteFunction { args ->
+                if (args.isEmpty()) {
+                    // get: 0引数の場合は現在の値を取得
+                    getter.evaluate(env)
+                } else {
+                    // set: 1引数以上の場合は最初の引数で値を設定
+                    val setterFunction = setter.evaluate(env)
+                    setterFunction(args[0])
+                    args[0]
+                }
             }
-            return oldValue
+            withStackTrace(position) {
+                customMethod.call(arrayOf(accessor))
+            }
         } else {
             // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
             val setterFunction = setter.evaluate(env)
             val newValue = oldValue.minus(position, FluoriteInt.ONE)
             setterFunction(newValue)
-            return oldValue
+            oldValue
         }
     }
 
