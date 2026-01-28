@@ -117,6 +117,19 @@ Basket::new("apple")
 
 その実行環境から参照可能である場合、windowオブジェクトを返します。
 
+## `PWD` 現在のページのURLを取得
+
+`PWD: () => STRING`
+
+ブラウザ版では、現在表示しているページのURLを返します。
+
+これはCLI版の`PWD`と同じインターフェースですが、ブラウザ環境ではカレントディレクトリの概念がないため、代わりにページのlocationが返されます。
+
+```
+PWD()
+# https://example.com/page
+```
+
 ## `JS` JavaScriptコードの実行
 
 `JS(code: STRING): VALUE`
