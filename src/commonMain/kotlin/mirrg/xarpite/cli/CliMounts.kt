@@ -101,6 +101,44 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
         },
+        "WRITE" to FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITE(file: STRING; string: STRING): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val string = arguments[1].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                writeUtf8(string)
+            }
+            FluoriteNull
+        },
+        "WRITEL" to FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val lines = when (val arg = arguments[1]) {
+                is FluoriteStream -> arg
+                is FluoriteArray -> arg.values.toFluoriteStream()
+                else -> usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
+            }
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                lines.collect { line ->
+                    writeUtf8(line.toFluoriteString(null).value)
+                    writeUtf8("\n")
+                }
+            }
+            FluoriteNull
+        },
+        "WRITEB" to FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                iterateBlobs(arguments[1]) { bytes ->
+                    write(bytes)
+                }
+            }
+            FluoriteNull
+        },
         "FILES" to FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
             val dir = arguments[0].toFluoriteString(null).value
