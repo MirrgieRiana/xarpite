@@ -89,6 +89,6 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
     }
 }
 
-actual suspend fun getCurrentLocation(): String = withContext(Dispatchers.IO) {
-    System.getProperty("user.dir") ?: ""
+actual suspend fun getPwd(): String {
+    return System.getProperty("user.dir") ?: ""
 }

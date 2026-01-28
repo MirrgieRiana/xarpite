@@ -53,7 +53,7 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
-    suspend fun getCurrentLocation(): String
+    suspend fun getPwd(): String
 }
 
 open class UnsupportedIoContext : IoContext {
@@ -64,5 +64,5 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
-    override suspend fun getCurrentLocation(): String = throw UnsupportedOperationException()
+    override suspend fun getPwd(): String = throw UnsupportedOperationException()
 }
