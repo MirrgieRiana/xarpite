@@ -599,7 +599,7 @@ $ xa -q '
 
 ```shell
 $ xa -q '
-  WRITEL("tmp.txt"; ["apple", "banana", "cherry"])
+  WRITEL("tmp.txt"; ["apple", "banana", "cherry"]())
   READ("tmp.txt")
 '
 # apple

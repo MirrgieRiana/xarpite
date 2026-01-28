@@ -199,22 +199,22 @@ class CliTest {
         val file = baseDir.resolve("writel.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         
-        // 複数行の書き込み
-        cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"])""", file.toString())
+        // 複数行の書き込み（ストリームを使用）
+        cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", file.toString())
         val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("line1\nline2\nline3\n", content)
         
         // 単一行の書き込みでも末尾改行が付く
-        cliEval(context, """WRITEL(ARGS.0; ["single"])""", file.toString())
+        cliEval(context, """WRITEL(ARGS.0; ["single"]())""", file.toString())
         val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("single\n", content2)
         
-        // 空配列の場合は空ファイル
-        cliEval(context, """WRITEL(ARGS.0; [])""", file.toString())
+        // 空ストリームの場合は空ファイル
+        cliEval(context, """WRITEL(ARGS.0; []())""", file.toString())
         val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("", content3)
         
-        // ストリームからの書き込み
+        // 数値ストリームからの書き込み
         cliEval(context, """WRITEL(ARGS.0; 1 .. 3)""", file.toString())
         val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("1\n2\n3\n", content4)

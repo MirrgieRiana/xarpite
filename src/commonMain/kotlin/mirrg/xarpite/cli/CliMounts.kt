@@ -114,11 +114,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
         "WRITEL" to FluoriteFunction { arguments ->
             if (arguments.size != 2) usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
             val file = arguments[0].toFluoriteString(null).value
-            val lines = when (val arg = arguments[1]) {
-                is FluoriteStream -> arg
-                is FluoriteArray -> arg.values.toFluoriteStream()
-                else -> usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
-            }
+            val lines = arguments[1] as? FluoriteStream ?: usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.write(file.toPath()) {
                 lines.collect { line ->

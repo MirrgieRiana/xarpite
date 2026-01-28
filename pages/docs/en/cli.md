@@ -589,7 +589,7 @@ Writes each line from `lines` to the file specified by `file`.
 
 ```shell
 $ xa -q '
-  WRITEL("tmp.txt"; ["apple", "banana", "cherry"])
+  WRITEL("tmp.txt"; ["apple", "banana", "cherry"]())
   READ("tmp.txt")
 '
 # apple
