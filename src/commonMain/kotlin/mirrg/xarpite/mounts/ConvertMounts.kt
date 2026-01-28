@@ -38,24 +38,35 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun create(name: String, isOr: Boolean): FluoriteFunction {
+            fun createOr(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
                     for (index in 0 until arguments.size) {
                         val boolValue = arguments[index].toFluoriteBoolean(null)
-                        if (isOr && boolValue.value) return@FluoriteFunction boolValue
-                        if (!isOr && !boolValue.value) return@FluoriteFunction boolValue
+                        if (boolValue.value) return@FluoriteFunction boolValue
+                    }
+                    arguments[arguments.size - 1].toFluoriteBoolean(null)
+                }
+            }
+            fun createAnd(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size !in 1..2) {
+                        usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
+                    }
+                    for (index in 0 until arguments.size) {
+                        val boolValue = arguments[index].toFluoriteBoolean(null)
+                        if (!boolValue.value) return@FluoriteFunction boolValue
                     }
                     arguments[arguments.size - 1].toFluoriteBoolean(null)
                 }
             }
             arrayOf(
-                "OR" to create("OR", isOr = true),
-                "ANY" to create("ANY", isOr = true),
-                "AND" to create("AND", isOr = false),
-                "ALL" to create("ALL", isOr = false),
+                "OR" to createOr("OR"),
+                "ANY" to createOr("ANY"),
+                "AND" to createAnd("AND"),
+                "ALL" to createAnd("ALL"),
             )
         },
         "TO_ARRAY" to FluoriteFunction { arguments ->
