@@ -853,11 +853,13 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `OR` Check if Any is True
+## `OR` / `ANY` Check if Any is True
 
 `OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 Returns `TRUE` if any of the passed arguments evaluates to `TRUE`, otherwise returns `FALSE`.
+
+`ANY` is an alias of `OR` and has the same behavior.
 
 If an argument is a `BOOLEAN`, its value is booleanized.
 If an argument is a `STREAM<BOOLEAN>`, each element of the stream is booleanized.
@@ -879,15 +881,13 @@ $ xa 'OR(0; "")'
 # FALSE
 ```
 
-## `ANY` Check if Any is True
-
-An alias for `OR`.
-
-## `AND` Check if All are True
+## `AND` / `ALL` Check if All are True
 
 `AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 Returns `TRUE` if all passed arguments evaluate to `TRUE`, otherwise returns `FALSE`.
+
+`ALL` is an alias of `AND` and has the same behavior.
 
 If an argument is a `BOOLEAN`, its value is booleanized.
 If an argument is a `STREAM<BOOLEAN>`, each element of the stream is booleanized.
@@ -908,10 +908,6 @@ $ xa 'AND(1; "a")'
 $ xa 'AND(1; "")'
 # FALSE
 ```
-
-## `ALL` Check if All are True
-
-An alias for `AND`.
 
 ## `TO_ARRAY` Convert Stream to Array
 

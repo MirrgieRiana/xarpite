@@ -694,11 +694,13 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
 
-## `OR` いずれかが真かを判定
+## `OR` / `ANY` いずれかが真かを判定
 
 `OR(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 渡されたすべての引数のうち、いずれか1つでも `TRUE` となるものがあれば `TRUE` を返し、そうでなければ `FALSE` を返します。
+
+`ANY` は `OR` の別名であり、同一の動作を持ちます。
 
 引数が `BOOLEAN` の場合はその値が論理値化されます。
 引数が `STREAM<BOOLEAN>` の場合はその各要素が論理値化されます。
@@ -720,15 +722,13 @@ $ xa 'OR(0; "")'
 # FALSE
 ```
 
-## `ANY` いずれかが真かを判定
-
-`OR` のエイリアスです。
-
-## `AND` すべてが真かを判定
+## `AND` / `ALL` すべてが真かを判定
 
 `AND(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN`
 
 渡されたすべての引数が `TRUE` となる場合に `TRUE` を返し、そうでなければ `FALSE` を返します。
+
+`ALL` は `AND` の別名であり、同一の動作を持ちます。
 
 引数が `BOOLEAN` の場合はその値が論理値化されます。
 引数が `STREAM<BOOLEAN>` の場合はその各要素が論理値化されます。
@@ -749,10 +749,6 @@ $ xa 'AND(1; "a")'
 $ xa 'AND(1; "")'
 # FALSE
 ```
-
-## `ALL` すべてが真かを判定
-
-`AND` のエイリアスです。
 
 ## `TO_ARRAY` ストリームを配列に変換
 
