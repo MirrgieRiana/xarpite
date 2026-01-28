@@ -287,7 +287,9 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` 値のストリームをJSON文字列のストリームに変換
+## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
+
+`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
 
 `JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
@@ -299,11 +301,9 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONL` 値のストリームをJSON文字列のストリームに変換
+## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
 
-`JSONS` のエイリアスです。
-
-## `JSONSD` JSON文字列のストリームを値のストリームに変換
+`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
@@ -314,10 +314,6 @@ $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
 # {a:1}
 # {b:2}
 ```
-
-## `JSONLD` JSON文字列のストリームを値のストリームに変換
-
-`JSONSD` のエイリアスです。
 
 ---
 

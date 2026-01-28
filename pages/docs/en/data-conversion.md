@@ -287,7 +287,9 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` Convert Stream of Values to Stream of JSON Strings
+## `JSONS` / `JSONL` Convert Stream of Values to Stream of JSON Strings
+
+`JSONL` is an alias of `JSONS` and has the same behavior.
 
 `JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
@@ -299,11 +301,9 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONL` Convert Stream of Values to Stream of JSON Strings
+## `JSONSD` / `JSONLD` Convert Stream of JSON Strings to Stream of Values
 
-An alias for `JSONS`.
-
-## `JSONSD` Convert Stream of JSON Strings to Stream of Values
+`JSONLD` is an alias of `JSONSD` and has the same behavior.
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
@@ -314,10 +314,6 @@ $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
 # {a:1}
 # {b:2}
 ```
-
-## `JSONLD` Convert Stream of JSON Strings to Stream of Values
-
-An alias for `JSONSD`.
 
 ---
 

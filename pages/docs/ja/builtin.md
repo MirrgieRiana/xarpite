@@ -599,7 +599,9 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` ストリームを条件で抽出
+## `FILTER` / `GREP` ストリームを条件で抽出
+
+`GREP` は `FILTER` の別名であり、同一の動作を持ちます。
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -616,10 +618,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` ストリームを条件で抽出
-
-`FILTER` のエイリアスです。
 
 ## `REDUCE` ストリームの要素を累積する
 
