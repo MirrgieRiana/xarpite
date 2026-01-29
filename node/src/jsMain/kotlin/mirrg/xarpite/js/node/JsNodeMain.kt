@@ -15,6 +15,7 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.envGetter
 import mirrg.xarpite.fileSystemGetter
+import mirrg.xarpite.getPwdImpl
 import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
@@ -30,6 +31,7 @@ import kotlin.js.Promise
 import kotlin.math.min
 
 suspend fun main() {
+    getPwdImpl = { process.cwd() }
     envGetter = {
         val env = process.env
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }

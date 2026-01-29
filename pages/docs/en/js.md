@@ -121,7 +121,7 @@ Returns the window object if accessible from that execution environment.
 
 `PWD: STRING`
 
-Returns the URL of the currently displayed page.
+The URL of the currently displayed page.
 
 ```
 PWD
