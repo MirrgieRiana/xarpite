@@ -37,6 +37,15 @@ suspend fun main() {
         val env = process.env
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }
     }
+    mirrg.xarpite.getPwdImpl = {
+        val env = process.env
+        val pwd = env["PWD"]
+        if (pwd != null && pwd.unsafeCast<String>().isNotEmpty()) {
+            pwd.unsafeCast<String>()
+        } else {
+            process.cwd()
+        }
+    }
     fileSystemGetter = { NodeJsFileSystem }
     isWindowsImpl = { process.platform === "win32" }
     readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
