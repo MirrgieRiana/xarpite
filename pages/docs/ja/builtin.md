@@ -696,7 +696,7 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 
 ## `AND` / `ALL` すべてが真かを判定
 
-`<T> AND(boolean1: T | STREAM<T>[; boolean2: T | STREAM<T>]): T`
+`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
 
 渡されたすべての要素が真であるかどうかを判定します。
 
@@ -773,7 +773,7 @@ $ xa '
 
 ## `OR` / `ANY` いずれかが真かを判定
 
-`<T> OR(boolean1: T | STREAM<T>[; boolean2: T | STREAM<T>]): T`
+`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
 
 渡された要素がいずれか一つでも真であるかどうかを判定します。
 
