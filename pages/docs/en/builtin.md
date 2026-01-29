@@ -855,7 +855,7 @@ $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 
 ## `AND` / `ALL` Check if All are True
 
-`<T> AND(boolean1: T | STREAM<T>[; boolean2: T | STREAM<T>]): T`
+`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
 
 Determines whether all passed elements evaluate to true.
 
@@ -932,7 +932,7 @@ $ xa '
 
 ## `OR` / `ANY` Check if Any is True
 
-`<T> OR(boolean1: T | STREAM<T>[; boolean2: T | STREAM<T>]): T`
+`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
 
 Determines whether any of the passed elements evaluate to true.
 
