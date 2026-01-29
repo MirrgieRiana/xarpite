@@ -890,6 +890,66 @@ class CliTest {
     }
 
     @Test
+    fun execWithCwd() = runTest {
+        val context = TestIoContext()
+        try {
+            // /tmpディレクトリでpwdを実行して、カレントディレクトリが/tmpであることを確認
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithCwd("pwd", "/tmp"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("/tmp", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithCwdAndEnv() = runTest {
+        val context = TestIoContext()
+        try {
+            // cwdとenvの両方を指定
+            val script = "printf \"\$FOO:\$(pwd)\""
+            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnvAndCwd(script, "{FOO: \"BAR\"}", "/tmp"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("BAR:/tmp", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithCwdReversedOrder() = runTest {
+        val context = TestIoContext()
+        try {
+            // cwdとenvの順序を逆にしても動作することを確認
+            val script = "printf \"\$FOO:\$(pwd)\""
+            val hex = script.encodeToByteArray().toHexString()
+            val result = cliEval(context, """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; cwd: "/tmp"; env: {FOO: "BAR"})""")
+            val output = result.toFluoriteString(null).value
+            assertEquals("BAR:/tmp", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execWithInvalidCwd() = runTest {
+        val context = TestIoContext()
+        try {
+            // 存在しないディレクトリを指定した場合は例外がスローされる
+            var exceptionThrown = false
+            try {
+                cliEval(context, getExecSrcWrappingHexForShellWithCwd("pwd", "/nonexistent_directory_12345"))
+            } catch (e: Exception) {
+                // FluoriteExceptionまたはその他の例外が期待される
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for invalid cwd")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
@@ -1028,4 +1088,16 @@ private fun getExecSrcWrappingHexForShell(script: String): String {
 private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getExecSrcWrappingHexForShellWithCwd(script: String, cwd: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; cwd: "$cwd")"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getExecSrcWrappingHexForShellWithEnvAndCwd(script: String, envObject: String, cwd: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject; cwd: "$cwd")"""
 }
