@@ -29,6 +29,7 @@ class Environment(val parent: Environment?, variableCount: Int, mountCount: Int)
     }
 }
 
+
 fun interface Mount {
     suspend fun get(): FluoriteValue
 }
@@ -36,6 +37,10 @@ fun interface Mount {
 class ConstantMount(val value: FluoriteValue) : Mount {
     override suspend fun get() = value
 }
+
+infix fun String.define(mount: Mount) = Pair(this, mount)
+infix fun String.define(value: FluoriteValue) = this define ConstantMount(value)
+
 
 interface Variable {
     suspend fun get(): FluoriteValue

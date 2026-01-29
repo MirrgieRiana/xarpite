@@ -1,5 +1,6 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -15,6 +16,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
+import mirrg.xarpite.define
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
@@ -24,10 +26,10 @@ import okio.Path.Companion.toPath
 val INB_MAX_BUFFER_SIZE = 8192
 
 context(context: RuntimeContext)
-fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
+fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
-        "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
-        "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
+        "ARGS" define args.map { it.toFluoriteString() }.toFluoriteArray(),
+        "ENV" define FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
         *run {
             val inStream = FluoriteStream {
                 while (true) {
@@ -36,17 +38,17 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "IN" to inStream,
-                "I" to inStream,
+                "IN" define inStream,
+                "I" define inStream,
             )
         },
-        "INB" to FluoriteStream {
+        "INB" define FluoriteStream {
             while (true) {
                 val bytes = context.io.readBytesFromStdin() ?: break
                 emit(bytes.asFluoriteBlob())
             }
         },
-        "ERR" to FluoriteFunction { arguments ->
+        "ERR" define FluoriteFunction { arguments ->
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
@@ -58,21 +60,21 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             }
             FluoriteNull
         },
-        "OUTB" to FluoriteFunction { arguments ->
+        "OUTB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStdout(bytes)
             }
             FluoriteNull
         },
-        "ERRB" to FluoriteFunction { arguments ->
+        "ERRB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStderr(bytes)
             }
             FluoriteNull
         },
-        "READ" to FluoriteFunction { arguments ->
+        "READ" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
             val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
@@ -85,7 +87,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
         },
-        "READB" to FluoriteFunction { arguments ->
+        "READB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
             val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
@@ -101,13 +103,13 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                 }
             }
         },
-        "FILES" to FluoriteFunction { arguments ->
+        "FILES" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
             val dir = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
-        "EXEC" to FluoriteFunction { arguments ->
+        "EXEC" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
             suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
                 val envEntry = argument as? FluoriteArray ?: usage()

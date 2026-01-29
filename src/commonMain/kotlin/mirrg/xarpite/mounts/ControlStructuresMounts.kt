@@ -1,17 +1,18 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
+import mirrg.xarpite.define
 
 context(context: RuntimeContext)
-fun createControlStructuresMounts(): List<Map<String, FluoriteValue>> {
+fun createControlStructuresMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "WHILE" to FluoriteFunction { arguments ->
+        "WHILE" define FluoriteFunction { arguments ->
             if (arguments.size != 2) usage("WHILE(condition: () -> BOOLEAN; block: () -> VALUE): NULL")
             val condition = arguments[0]
             val block = arguments[1]

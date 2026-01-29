@@ -15,11 +15,11 @@ class Evaluator {
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
 
-    suspend fun defineMounts(maps: List<Map<String, FluoriteValue>>) {
+    suspend fun defineMounts(maps: List<Map<String, Mount>>) {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = maps.map {
-            frame.defineBuiltinMount(it.mapValues { entry -> ConstantMount(entry.value) })
+            frame.defineBuiltinMount(it)
         }
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env

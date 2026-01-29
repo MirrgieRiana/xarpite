@@ -2,6 +2,7 @@ package mirrg.xarpite.cli
 
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.Mount
 import mirrg.xarpite.Position
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -139,7 +140,7 @@ fun showVersion() {
     println(version)
 }
 
-suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
+suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(object : IoContext {
         override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
         override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
@@ -151,7 +152,7 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
     }) { context, evaluator ->
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
