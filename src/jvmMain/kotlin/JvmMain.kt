@@ -25,8 +25,14 @@ fun main(args: Array<String>) {
     runBlocking {
         val ioContext = object : IoContext {
             override fun getPwd(): String {
+                // 1. XARPITE_PWD環境変数を最優先で使用（シェルスクリプト経由で設定）
+                val xarpitePwd = System.getenv("XARPITE_PWD")
+                if (xarpitePwd != null && xarpitePwd.startsWith("/")) {
+                    return xarpitePwd
+                }
+                
+                // 2. PWD環境変数を検証してから使用
                 val envPwd = System.getenv("PWD")
-                // 環境変数PWDが存在し、絶対パスで、実際のカレントディレクトリと一致する場合のみ使用
                 if (envPwd != null && envPwd.startsWith("/")) {
                     val envPath = Path.of(envPwd)
                     val currentPath = Path.of("").toAbsolutePath()
@@ -36,11 +42,12 @@ fun main(args: Array<String>) {
                                 return envPwd
                             }
                         } catch (_: Exception) {
-                            // isSameFileが失敗した場合は物理パスを使用
+                            // isSameFileが失敗した場合は次へ
                         }
                     }
                 }
-                // それ以外の場合は物理パスを返す
+                
+                // 3. プラットフォーム固有の方法で取得（信頼性が高い）
                 return Path.of("").toAbsolutePath().normalize().toString()
             }
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)

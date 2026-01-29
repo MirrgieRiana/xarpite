@@ -90,8 +90,14 @@ suspend fun main() {
     coroutineScope {
         val ioContext = object : IoContext {
             override fun getPwd(): String {
+                // 1. XARPITE_PWD環境変数を最優先で使用（シェルスクリプト経由で設定）
+                val xarpitePwd = process.env["XARPITE_PWD"]?.unsafeCast<String>()
+                if (xarpitePwd != null && xarpitePwd.startsWith("/")) {
+                    return xarpitePwd
+                }
+                
+                // 2. PWD環境変数を検証してから使用
                 val envPwd = process.env["PWD"]?.unsafeCast<String>()
-                // 環境変数PWDが存在し、絶対パスで、実際のカレントディレクトリと一致する場合のみ使用
                 if (envPwd != null && envPwd.startsWith("/")) {
                     try {
                         val fs = js("require('fs')")
@@ -102,10 +108,11 @@ suspend fun main() {
                             return envPwd
                         }
                     } catch (_: Throwable) {
-                        // stat失敗時は物理パスを使用
+                        // stat失敗時は次へ
                     }
                 }
-                // それ以外の場合は物理パスを返す
+                
+                // 3. プラットフォーム固有の方法で取得
                 return process.cwd()
             }
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)

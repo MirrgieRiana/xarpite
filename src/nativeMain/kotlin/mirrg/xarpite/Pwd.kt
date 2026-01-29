@@ -69,27 +69,27 @@ private fun getCwdPhysical(): String {
 
 @OptIn(ExperimentalForeignApi::class)
 fun getPwdImpl(): String {
+    // 1. XARPITE_PWD環境変数を最優先で使用（シェルスクリプト経由で設定）
+    val xarpitePwd = platform.posix.getenv("XARPITE_PWD")?.toKString()
+    if (xarpitePwd != null && xarpitePwd.startsWith("/")) {
+        return xarpitePwd
+    }
+    
+    // 2. PWD環境変数を検証してから使用
     val envPwd = platform.posix.getenv("PWD")?.toKString()
-    
-    // 環境変数PWDが存在しない、または絶対パスでない場合は物理パスを返す
-    if (envPwd == null || !envPwd.startsWith("/")) {
-        return getCwdPhysical()
+    if (envPwd != null && envPwd.startsWith("/")) {
+        // 環境変数PWDのstatを取得
+        val envStat = statPath(envPwd)
+        if (envStat != null) {
+            // カレントディレクトリのstatと比較
+            val cwdStat = getCurrentDirStat()
+            // デバイス番号とinode番号が一致する場合のみ論理パス（環境変数PWD）を返す
+            if (envStat.dev == cwdStat.dev && envStat.ino == cwdStat.ino) {
+                return envPwd
+            }
+        }
     }
     
-    // 環境変数PWDのstatを取得
-    val envStat = statPath(envPwd)
-    if (envStat == null) {
-        // statできない場合は物理パスを返す
-        return getCwdPhysical()
-    }
-    
-    // カレントディレクトリのstatと比較
-    val cwdStat = getCurrentDirStat()
-    
-    // デバイス番号とinode番号が一致する場合のみ論理パス（環境変数PWD）を返す
-    return if (envStat.dev == cwdStat.dev && envStat.ino == cwdStat.ino) {
-        envPwd
-    } else {
-        getCwdPhysical()
-    }
+    // 3. プラットフォーム固有の方法で取得（物理パス）
+    return getCwdPhysical()
 }
