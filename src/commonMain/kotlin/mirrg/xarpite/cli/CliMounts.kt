@@ -1,5 +1,6 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
@@ -28,9 +29,9 @@ val INB_MAX_BUFFER_SIZE = 8192
 context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
-        "ARGS" define args.map { it.toFluoriteString() }.toFluoriteArray(),
-        "PWD" define context.io.getPwd().toFluoriteString(),
-        "ENV" define FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
+        "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
+        "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
+        "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
             val inStream = FluoriteStream {
                 while (true) {
