@@ -89,7 +89,25 @@ suspend fun main() {
     }
     coroutineScope {
         val ioContext = object : IoContext {
-            override fun getPwd() = process.env["PWD"]?.unsafeCast<String>() ?: process.cwd()
+            override fun getPwd(): String {
+                val envPwd = process.env["PWD"]?.unsafeCast<String>()
+                // 環境変数PWDが存在し、絶対パスで、実際のカレントディレクトリと一致する場合のみ使用
+                if (envPwd != null && envPwd.startsWith("/")) {
+                    try {
+                        val fs = js("require('fs')")
+                        val envStat = fs.lstatSync(envPwd)
+                        val cwdStat = fs.lstatSync(process.cwd())
+                        // デバイス番号とinode番号が一致する場合のみ論理パスを返す
+                        if (envStat.dev == cwdStat.dev && envStat.ino == cwdStat.ino) {
+                            return envPwd
+                        }
+                    } catch (_: Throwable) {
+                        // stat失敗時は物理パスを使用
+                    }
+                }
+                // それ以外の場合は物理パスを返す
+                return process.cwd()
+            }
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
