@@ -108,13 +108,15 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
-            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
-                val envEntry = argument as? FluoriteArray ?: usage()
-                if (envEntry.values.size != 2) usage()
-                val envKey = envEntry.values[0] as? FluoriteString ?: usage()
-                if (envKey.value != "env") usage()
-                val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
+            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>][; cwd: STRING]): STREAM<STRING>")
+            suspend fun parseNamedArguments(argument: FluoriteValue): Pair<String, Any> {
+                val entry = argument as? FluoriteArray ?: usage()
+                if (entry.values.size != 2) usage()
+                val key = entry.values[0] as? FluoriteString ?: usage()
+                val value = entry.values[1]
+                return Pair(key.value, value)
+            }
+            suspend fun parseEnvOverrides(envObject: FluoriteObject): Map<String, String?> {
                 return envObject.map.mapValues { entry ->
                     val value = entry.value
                     if (value is FluoriteNull) {
@@ -124,9 +126,38 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                     }
                 }
             }
-            val (commandArg, env) = when (arguments.size) {
-                1 -> Pair(arguments[0], emptyMap())
-                2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
+            val commandArg: FluoriteValue
+            var env: Map<String, String?> = emptyMap()
+            var cwd: String? = null
+            when (arguments.size) {
+                1 -> {
+                    commandArg = arguments[0]
+                }
+                2 -> {
+                    commandArg = arguments[0]
+                    val (key, value) = parseNamedArguments(arguments[1])
+                    when (key) {
+                        "env" -> env = parseEnvOverrides(value as? FluoriteObject ?: usage())
+                        "cwd" -> cwd = (value as? FluoriteString ?: usage()).value
+                        else -> usage()
+                    }
+                }
+                3 -> {
+                    commandArg = arguments[0]
+                    val (key1, value1) = parseNamedArguments(arguments[1])
+                    val (key2, value2) = parseNamedArguments(arguments[2])
+                    when {
+                        key1 == "env" && key2 == "cwd" -> {
+                            env = parseEnvOverrides(value1 as? FluoriteObject ?: usage())
+                            cwd = (value2 as? FluoriteString ?: usage()).value
+                        }
+                        key1 == "cwd" && key2 == "env" -> {
+                            cwd = (value1 as? FluoriteString ?: usage()).value
+                            env = parseEnvOverrides(value2 as? FluoriteObject ?: usage())
+                        }
+                        else -> usage()
+                    }
+                }
                 else -> usage()
             }
             val commandList = if (commandArg is FluoriteStream) {
@@ -141,7 +172,7 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, env)
+            val output = context.io.executeProcess(process, processArgs, env, cwd)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {

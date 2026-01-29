@@ -101,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
@@ -187,6 +187,39 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                 close(stderrPipe[0])
                 close(stderrPipe[1])
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
+            }
+
+            // 作業ディレクトリを設定（cwdが指定されている場合）
+            // 注: posix_spawn_file_actions_addchdirはKotlin/Nativeのplatform.linuxに含まれていない可能性があるため、
+            // chdirシステムコールを使用してプロセス全体のカレントディレクトリを一時的に変更する
+            // この方法はスレッドセーフではないが、withContext(Dispatchers.IO)によって
+            // IOディスパッチャ内で実行されるため、他のIO操作との競合は制限される
+            var originalCwd: String? = null
+            if (cwd != null) {
+                try {
+                    // 現在の作業ディレクトリを保存
+                    memScoped {
+                        val bufferSize = 4096
+                        val buffer = allocArray<ByteVar>(bufferSize)
+                        if (platform.posix.getcwd(buffer, bufferSize.toULong()) != null) {
+                            originalCwd = buffer.toKString()
+                        }
+                    }
+                    // 新しい作業ディレクトリに変更
+                    if (platform.posix.chdir(cwd) != 0) {
+                        close(stdoutPipe[0])
+                        close(stdoutPipe[1])
+                        close(stderrPipe[0])
+                        close(stderrPipe[1])
+                        throw FluoriteException("Failed to change directory to: $cwd".toFluoriteString())
+                    }
+                } catch (e: Throwable) {
+                    close(stdoutPipe[0])
+                    close(stdoutPipe[1])
+                    close(stderrPipe[0])
+                    close(stderrPipe[1])
+                    throw e
+                }
             }
 
             // 引数配列を構築
@@ -457,6 +490,14 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                     close(stderrPipe[0])
                 } catch (_: Throwable) {
                     // close失敗は無視してtryブロックの例外を優先
+                }
+                // 元の作業ディレクトリに戻す
+                if (originalCwd != null) {
+                    try {
+                        platform.posix.chdir(originalCwd)
+                    } catch (_: Throwable) {
+                        // 元のディレクトリに戻せなくてもエラーは無視
+                    }
                 }
             }
         } finally {
