@@ -9,10 +9,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import okio.FileSystem
 import java.io.BufferedReader
-import java.nio.file.Path
 
 actual fun getProgramName(): String? = null
-actual fun getPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
 actual fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)

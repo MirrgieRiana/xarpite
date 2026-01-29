@@ -18,7 +18,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.envGetter
 import mirrg.xarpite.fileSystemGetter
-import mirrg.xarpite.getPwdImpl
 import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
@@ -34,7 +33,6 @@ import kotlin.js.Promise
 import kotlin.math.min
 
 suspend fun main() {
-    getPwdImpl = { process.cwd() }
     envGetter = {
         val env = process.env
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }
@@ -91,7 +89,7 @@ suspend fun main() {
     }
     coroutineScope {
         val ioContext = object : IoContext {
-            override fun getPwd() = mirrg.xarpite.getPwd()
+            override fun getPwd() = process.cwd()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()

@@ -28,22 +28,6 @@ import kotlin.experimental.ExperimentalNativeApi
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
 
-private const val PATH_BUFFER_SIZE = 8192 // getcwd用のバッファサイズ（長いパス名に対応）
-
-@OptIn(ExperimentalForeignApi::class)
-actual fun getPwd(): String {
-    memScoped {
-        val buffer = allocArray<ByteVar>(PATH_BUFFER_SIZE)
-        val result = platform.posix.getcwd(buffer, PATH_BUFFER_SIZE.toULong())
-        if (result != null) {
-            return result.toKString()
-        } else {
-            val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
-            throw IllegalStateException("Failed to get current working directory: $errorMessage (errno=$errno)")
-        }
-    }
-}
-
 @OptIn(ExperimentalForeignApi::class)
 actual fun getEnv(): Map<String, String> {
     val result = mutableMapOf<String, String>()

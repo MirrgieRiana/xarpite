@@ -4,9 +4,6 @@ import okio.FileSystem
 
 actual fun getProgramName(): String? = null
 
-var getPwdImpl: (() -> String)? = null
-actual fun getPwd(): String = getPwdImpl!!()
-
 var envGetter: () -> Map<String, String> = { emptyMap() }
 actual fun getEnv(): Map<String, String> = envGetter()
 
