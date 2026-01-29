@@ -320,11 +320,7 @@ $ xa 'ARGS' 1 2 3
 
 `PWD: STRING`
 
-The path of the current working directory.
-
-This path is normalized (does not contain `.` or `..` directory components) and is an absolute path.
-
-Symbolic links are not resolved.
+Gets the path of the current working directory.
 
 ```shell
 $ xa 'PWD'
