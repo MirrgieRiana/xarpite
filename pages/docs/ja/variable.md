@@ -254,10 +254,10 @@ $ xa '
 `formula++` の挙動は概ね以下の疑似コードと同じです。
 
 ```
-old = get(formula)
-new = plus(old, 1)
-set(formula, new)
-return old
+old := formula
+new := old + 1
+formula = new
+old
 ```
 
 ---
@@ -272,6 +272,63 @@ $ xa '
 '
 # abc1
 ```
+
+### インクリメント・デクリメントのオーバーライド
+
+インクリメント・デクリメント演算子は専用のメソッドでオーバーライドできます。
+
+| 演算子         | メソッド名 | 説明        |
+|-------------|-------|-----------|
+| `++formula` | `++_` | 前置インクリメント |
+| `formula++` | `_++` | 後置インクリメント |
+| `--formula` | `--_` | 前置デクリメント  |
+| `formula--` | `_--` | 後置デクリメント  |
+
+これらのメソッドをオブジェクトに定義することで、インクリメント・デクリメントの動作を完全にカスタマイズできます。
+
+オーバーライドメソッドは2個の引数を取ります：
+
+1. `this`: オブジェクト自身
+2. `accessor`: 変数アクセサ関数
+   - 0引数呼び出し `accessor()` で変数の値を取得
+   - 1引数呼び出し `accessor(newValue)` で変数に値を設定
+
+メソッドの戻り値が演算子の戻り値として直接返されます。
+
+```shell
+$ xa '
+  obj := {
+    `_++`: this, accessor -> (
+      oldObj := accessor()
+      newVal := oldObj.value * 2
+      accessor({value: newVal})
+      oldObj.value
+    )
+    value: 100
+  }
+  obj++
+'
+# 100
+
+$ xa '
+  obj := {
+    `_++`: this, accessor -> (
+      oldObj := accessor()
+      newVal := oldObj.value * 2
+      accessor({value: newVal})
+      oldObj.value
+    )
+    value: 100
+  }
+  obj++
+  obj.value
+'
+# 200
+```
+
+---
+
+オーバーライドされたメソッドが存在しない場合、従来通り `_+_` メソッドと `_-_` メソッドを使用した加減算が行われ、その結果が変数に代入されます。
 
 # 変数
 

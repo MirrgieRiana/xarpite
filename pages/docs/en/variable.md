@@ -273,6 +273,63 @@ $ xa '
 # abc1
 ```
 
+### Overriding Increment/Decrement
+
+Increment and decrement operators can be overridden with dedicated methods.
+
+| Operator    | Method Name | Description       |
+|-------------|-------------|-------------------|
+| `++formula` | `++_`       | Prefix increment  |
+| `formula++` | `_++`       | Postfix increment |
+| `--formula` | `--_`       | Prefix decrement  |
+| `formula--` | `_--`       | Postfix decrement |
+
+By defining these methods on an object, you can completely customize the behavior of increment and decrement operations.
+
+Override methods take 2 arguments:
+
+1. `this`: The object itself
+2. `accessor`: A variable accessor function
+   - Call with 0 arguments `accessor()` to get the variable's value
+   - Call with 1 argument `accessor(newValue)` to set the variable's value
+
+The return value of the method is directly returned as the operator's result.
+
+```shell
+$ xa '
+  obj := {
+    `_++`: this, accessor -> (
+      oldObj := accessor()
+      newVal := oldObj.value * 2
+      accessor({value: newVal})
+      oldObj.value
+    )
+    value: 100
+  }
+  obj++
+'
+# 100
+
+$ xa '
+  obj := {
+    `_++`: this, accessor -> (
+      oldObj := accessor()
+      newVal := oldObj.value * 2
+      accessor({value: newVal})
+      oldObj.value
+    )
+    value: 100
+  }
+  obj++
+  obj.value
+'
+# 200
+```
+
+---
+
+If no override method exists, the traditional addition/subtraction using `_+_` and `_-_` methods is performed, and the result is assigned to the variable.
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.

@@ -79,4 +79,76 @@ class IncrementDecrementTest {
         // 数値以外の型でも動作する（加算が定義されていれば）
         assertEquals("abc1", eval("s := \"abc\"; s++; s").toString())
     }
+
+    @Test
+    fun overridePrefixIncrementTest() = runTest {
+        // 前置 ++ をオーバーライドできる（アクセサを使用）
+        assertEquals(200, eval("""
+            value := 100
+            obj := {
+                `++_`: this, accessor -> (newVal := accessor().value * 2; accessor({value: newVal}); newVal)
+                value: 100
+            }
+            ++obj
+        """).int)
+    }
+
+    @Test
+    fun overrideSuffixIncrementTest() = runTest {
+        // 後置 ++ をオーバーライドできる（アクセサを使用）
+        assertEquals(200, eval("""
+            obj := {
+                `_++`: this, accessor -> (oldObj := accessor(); newVal := oldObj.value * 2; accessor({value: newVal}); oldObj.value)
+                value: 100
+            }
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overridePrefixDecrementTest() = runTest {
+        // 前置 -- をオーバーライドできる（アクセサを使用）
+        assertEquals(50, eval("""
+            obj := {
+                `--_`: this, accessor -> (newVal := DIV(accessor().value; 2); accessor({value: newVal}); newVal)
+                value: 100
+            }
+            --obj
+        """).int)
+    }
+
+    @Test
+    fun overrideSuffixDecrementTest() = runTest {
+        // 後置 -- をオーバーライドできる（アクセサを使用）
+        assertEquals(50, eval("""
+            obj := {
+                `_--`: this, accessor -> (oldObj := accessor(); newVal := DIV(oldObj.value; 2); accessor({value: newVal}); oldObj.value)
+                value: 100
+            }
+            obj--
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overrideIncrementReturnValueTest() = runTest {
+        // 後置版はメソッドの戻り値を返す
+        assertEquals(100, eval("""
+            obj := {
+                `_++`: this, accessor -> (oldObj := accessor(); newVal := oldObj.value * 2; accessor({value: newVal}); oldObj.value)
+                value: 100
+            }
+            obj++
+        """).int)
+        
+        // 前置版はメソッドの戻り値を返す
+        assertEquals(200, eval("""
+            obj := {
+                `++_`: this, accessor -> (newVal := accessor().value * 2; accessor({value: newVal}); newVal)
+                value: 100
+            }
+            ++obj
+        """).int)
+    }
 }
