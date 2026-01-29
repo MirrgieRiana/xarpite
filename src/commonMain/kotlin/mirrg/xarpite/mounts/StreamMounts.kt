@@ -86,7 +86,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createDistinctFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 1) return@run
@@ -133,8 +133,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "DISTINCT" to createDistinctFunction("DISTINCT"),
-                "UNIQ" to createDistinctFunction("UNIQ"),
+                "DISTINCT" to create("DISTINCT"),
+                "UNIQ" to create("UNIQ"),
             )
         },
         "JOIN" to FluoriteFunction { arguments ->
@@ -561,7 +561,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createFilterFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     val arguments2 = arguments.toMutableList()
@@ -592,8 +592,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "FILTER" to createFilterFunction("FILTER"),
-                "GREP" to createFilterFunction("GREP"),
+                "FILTER" to create("FILTER"),
+                "GREP" to create("GREP"),
             )
         },
         "GROUP" to FluoriteFunction { arguments ->
