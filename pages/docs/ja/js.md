@@ -121,7 +121,7 @@ Basket::new("apple")
 
 `PWD: STRING`
 
-現在表示しているページのURLを返します。
+現在表示しているページのURLです。
 
 ```
 PWD
