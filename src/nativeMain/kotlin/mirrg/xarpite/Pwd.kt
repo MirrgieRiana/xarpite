@@ -13,6 +13,10 @@ import platform.posix.strerror
 
 @OptIn(ExperimentalForeignApi::class)
 fun getPwdImpl(): String {
+    // 環境変数PWDを優先使用（シンボリックリンクを解決しない論理パス）
+    platform.posix.getenv("PWD")?.toKString()?.let { return it }
+    
+    // 環境変数がない場合はgetcwd()を使用
     var bufferSize = 256
     val maxBufferSize = 1024 * 1024
 
