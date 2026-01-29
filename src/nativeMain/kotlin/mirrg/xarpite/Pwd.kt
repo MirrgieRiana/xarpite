@@ -5,36 +5,35 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import platform.posix.ERANGE
 import platform.posix.errno
 import platform.posix.strerror
 
 @OptIn(ExperimentalForeignApi::class)
 fun getPwdImpl(): String {
-    // 初期バッファサイズ: 多くの環境で十分な256バイトから開始
     var bufferSize = 256
-    val maxBufferSize = 1048576 // 最大1MBまで拡張（異常に長いパスを検出）
-    
-    while (bufferSize <= maxBufferSize) {
+    val maxBufferSize = 1024 * 1024
+
+    while (true) {
         memScoped {
             val buffer = allocArray<ByteVar>(bufferSize)
             val result = platform.posix.getcwd(buffer, bufferSize.toULong())
-            if (result != null) {
-                return result.toKString()
-            } else {
+            if (result == null) {
                 val e = errno
                 if (e == ERANGE) {
-                    // バッファが小さすぎる場合は2倍にして再試行
                     bufferSize *= 2
+                    if (bufferSize > maxBufferSize) {
+                        throw FluoriteException("Failed to get current working directory: path too long (exceeds $maxBufferSize bytes)".toFluoriteString())
+                    }
+                    continue
                 } else {
-                    // その他のエラーは即座に報告
                     val errorMessage = strerror(e)?.toKString() ?: "Unknown error"
-                    throw IllegalStateException("Failed to get current working directory: $errorMessage (errno=$e)")
+                    throw FluoriteException("Failed to get current working directory: $errorMessage (errno=$e)".toFluoriteString())
                 }
             }
+            return result.toKString()
         }
     }
-    
-    // バッファサイズの上限に達した場合
-    throw IllegalStateException("Failed to get current working directory: path too long (exceeds $maxBufferSize bytes)")
 }
