@@ -677,7 +677,7 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>][; cwd: STRING]): STREAM<STRING>`
 
 Executes an external command.
 
@@ -725,6 +725,22 @@ $ A=APPLE B=ANNA xa '
 # A=APPLE
 # B=
 # C=CHERRY
+```
+
+---
+
+The `cwd` argument lets you specify the working directory for the process.
+
+```shell
+$ xa 'EXEC("pwd"; cwd: "/tmp")'
+# /tmp
+```
+
+You can specify both `cwd` and `env` at the same time. The order is arbitrary.
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo test:$(pwd)<%; env: {FOO: "BAR"}; cwd: "/tmp")'
+# test:/tmp
 ```
 
 ---
