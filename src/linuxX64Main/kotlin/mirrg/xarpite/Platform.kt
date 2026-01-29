@@ -469,12 +469,12 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun getPwd(): String = withContext(Dispatchers.IO) {
+actual fun getPwd(): String {
     memScoped {
         val buffer = allocArray<ByteVar>(PATH_BUFFER_SIZE)
         val result = platform.posix.getcwd(buffer, PATH_BUFFER_SIZE.toULong())
         if (result != null) {
-            result.toKString()
+            return result.toKString()
         } else {
             val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
             throw IllegalStateException("Failed to get current working directory: $errorMessage (errno=$errno)")

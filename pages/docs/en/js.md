@@ -119,14 +119,12 @@ Returns the window object if accessible from that execution environment.
 
 ## `PWD` Get Current Page URL
 
-`PWD: () => STRING`
+`PWD: STRING`
 
 In the browser version, returns the URL of the currently displayed page.
 
-This has the same interface as the CLI version's `PWD`, but since there is no concept of a current directory in browser environments, the page location is returned instead.
-
 ```
-PWD()
+PWD
 # https://example.com/page
 ```
 

@@ -21,6 +21,7 @@ import kotlin.js.Promise
 @JsExport
 fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Promise<dynamic> = scope.promise {
     withEvaluator(object : IoContext {
+        override fun getPwd() = throw UnsupportedOperationException()
         override suspend fun out(value: FluoriteValue) = out(value).await()
         override suspend fun err(value: FluoriteValue) = out(value).await()
         override suspend fun readLineFromStdin() = throw UnsupportedOperationException()
@@ -28,7 +29,6 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
-        override suspend fun getPwd() = throw UnsupportedOperationException()
     }) { context, evaluator ->
         context.setSrc("-", src)
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })

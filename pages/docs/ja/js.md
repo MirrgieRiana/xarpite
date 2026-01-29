@@ -119,14 +119,12 @@ Basket::new("apple")
 
 ## `PWD` 現在のページのURLを取得
 
-`PWD: () => STRING`
+`PWD: STRING`
 
 ブラウザ版では、現在表示しているページのURLを返します。
 
-これはCLI版の`PWD`と同じインターフェースですが、ブラウザ環境ではカレントディレクトリの概念がないため、代わりにページのlocationが返されます。
-
 ```
-PWD()
+PWD
 # https://example.com/page
 ```
 

@@ -27,11 +27,8 @@ context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
     return mapOf(
         "ARGS" to args.map { it.toFluoriteString() }.toFluoriteArray(),
+        "PWD" to context.io.getPwd().toFluoriteString(),
         "ENV" to FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()),
-        "PWD" to FluoriteFunction { arguments ->
-            if (arguments.isNotEmpty()) usage("PWD(): STRING")
-            context.io.getPwd().toFluoriteString()
-        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {

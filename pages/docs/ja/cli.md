@@ -328,6 +328,17 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: カレントディレクトリを取得
+
+`PWD: STRING`
+
+現在のワーキングディレクトリのパスを取得します。
+
+```shell
+$ xa 'PWD'
+# /home/user/project
+```
+
 ### `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
@@ -341,12 +352,12 @@ $ FOO=bar xa 'ENV.FOO'
 
 ### `PWD`: カレントディレクトリを取得
 
-`PWD: () => STRING`
+`PWD: STRING`
 
 現在のワーキングディレクトリのパスを取得します。
 
 ```shell
-$ xa 'PWD()'
+$ xa 'PWD'
 # /home/user/project
 ```
 

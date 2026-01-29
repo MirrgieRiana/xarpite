@@ -141,6 +141,7 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
     withEvaluator(object : IoContext {
+        override fun getPwd() = mirrg.xarpite.getPwd()
         override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
         override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
         override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
@@ -148,7 +149,6 @@ suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeC
         override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
         override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
-        override suspend fun getPwd() = mirrg.xarpite.getPwd()
     }) { context, evaluator ->
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }

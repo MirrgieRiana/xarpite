@@ -38,8 +38,8 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
     throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
 
-var getPwdImpl: (suspend () -> String)? = null
-actual suspend fun getPwd(): String {
+var getPwdImpl: (() -> String)? = null
+actual fun getPwd(): String {
     val getPwdImpl = getPwdImpl
     return if (getPwdImpl != null) {
         getPwdImpl()

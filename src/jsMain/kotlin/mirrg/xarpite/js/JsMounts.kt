@@ -10,6 +10,7 @@ import kotlin.js.Promise
 context(context: RuntimeContext)
 fun createJsMounts(): List<Map<String, FluoriteValue>> {
     return mapOf(
+        "PWD" to context.io.getPwd().toFluoriteString(),
         "JS_OBJECT" to FluoriteJsObject.fluoriteClass,
         "ASYNC" to FluoriteFunction { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")

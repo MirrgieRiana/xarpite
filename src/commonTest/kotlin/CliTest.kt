@@ -49,7 +49,7 @@ class CliTest {
     @Test
     fun pwd() = runTest {
         val context = TestIoContext(currentLocation = "/test/location")
-        assertEquals("/test/location", cliEval(context, "PWD()").toFluoriteString(null).value) // PWD() で現在位置が得られる
+        assertEquals("/test/location", cliEval(context, "PWD").toFluoriteString(null).value) // PWD で現在位置が得られる
     }
 
     @Test
@@ -992,7 +992,7 @@ internal class TestIoContext(
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
 
-    override suspend fun getPwd(): String = currentLocation
+    override fun getPwd(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()

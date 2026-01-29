@@ -316,6 +316,17 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: Get Current Directory
+
+`PWD: STRING`
+
+Gets the path of the current working directory.
+
+```shell
+$ xa 'PWD'
+# /home/user/project
+```
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
@@ -329,12 +340,12 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 ### `PWD`: Get Current Directory
 
-`PWD: () => STRING`
+`PWD: STRING`
 
 Gets the path of the current working directory.
 
 ```shell
-$ xa 'PWD()'
+$ xa 'PWD'
 # /home/user/project
 ```
 
