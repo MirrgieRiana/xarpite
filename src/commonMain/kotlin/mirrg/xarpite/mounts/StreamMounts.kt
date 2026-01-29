@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.plus
@@ -7,6 +8,7 @@ import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -342,6 +344,54 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             } else {
                 usage("COUNT(stream: STREAM<VALUE>): INT")
             }
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { stream ->
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (!item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@FluoriteFunction result
+                        } else {
+                            if (!stream.toBoolean(null)) return@FluoriteFunction stream
+                        }
+                    }
+                    FluoriteBoolean.TRUE
+                }
+            }
+            arrayOf(
+                "AND" to create("AND"),
+                "ALL" to create("ALL"),
+            )
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { stream ->
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@FluoriteFunction result
+                        } else {
+                            if (stream.toBoolean(null)) return@FluoriteFunction stream
+                        }
+                    }
+                    FluoriteBoolean.FALSE
+                }
+            }
+            arrayOf(
+                "OR" to create("OR"),
+                "ANY" to create("ANY"),
+            )
         },
         "FIRST" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
