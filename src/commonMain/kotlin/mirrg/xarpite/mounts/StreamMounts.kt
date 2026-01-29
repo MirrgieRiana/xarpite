@@ -1,11 +1,14 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.plus
 import mirrg.xarpite.IterationAborted
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -86,7 +89,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createDistinctFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 1) return@run
@@ -133,8 +136,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "DISTINCT" to createDistinctFunction("DISTINCT"),
-                "UNIQ" to createDistinctFunction("UNIQ"),
+                "DISTINCT" to create("DISTINCT"),
+                "UNIQ" to create("UNIQ"),
             )
         },
         "JOIN" to FluoriteFunction { arguments ->
@@ -343,6 +346,54 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("COUNT(stream: STREAM<VALUE>): INT")
             }
         },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { stream ->
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (!item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@FluoriteFunction result
+                        } else {
+                            if (!stream.toBoolean(null)) return@FluoriteFunction stream
+                        }
+                    }
+                    FluoriteBoolean.TRUE
+                }
+            }
+            arrayOf(
+                "AND" to create("AND"),
+                "ALL" to create("ALL"),
+            )
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { stream ->
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@FluoriteFunction result
+                        } else {
+                            if (stream.toBoolean(null)) return@FluoriteFunction stream
+                        }
+                    }
+                    FluoriteBoolean.FALSE
+                }
+            }
+            arrayOf(
+                "OR" to create("OR"),
+                "ANY" to create("ANY"),
+            )
+        },
         "FIRST" to FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]
@@ -416,8 +467,59 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE")
             }
         },
-        "SORT" to createSortFunction("SORT", false),
-        "SORTR" to createSortFunction("SORTR", true),
+        *run {
+            fun create(name: String, isDescending: Boolean): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    run { // SORT(stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 1) return@run
+                        val stream = arguments[0]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> a.compareTo(null, b).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val entry = arguments[0]
+                        if (entry !is FluoriteArray) return@run
+                        if (entry.values.size != 2) return@run
+                        val parameterName = entry.values[0]
+                        if (parameterName !is FluoriteString) return@run
+                        if (parameterName.value != "by") return@run
+                        val keyGetter = entry.values[1]
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(null, arrayOf(a)).compareTo(null, keyGetter.invoke(null, arrayOf(b))).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // SORT(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val comparator = arguments[0]
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invoke(null, arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    usage(
+                        "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                    )
+                }
+            }
+            arrayOf(
+                "SORT" to create("SORT", false),
+                "SORTR" to create("SORTR", true),
+            )
+        },
         "CHUNK" to FluoriteFunction { arguments ->
             if (arguments.size == 2) {
                 val size = arguments[0].toFluoriteNumber(null).toInt()
@@ -521,7 +623,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createFilterFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     val arguments2 = arguments.toMutableList()
@@ -552,8 +654,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "FILTER" to createFilterFunction("FILTER"),
-                "GREP" to createFilterFunction("GREP"),
+                "FILTER" to create("FILTER"),
+                "GREP" to create("GREP"),
             )
         },
         "GROUP" to FluoriteFunction { arguments ->
