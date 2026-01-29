@@ -316,6 +316,16 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: Get Current Directory
+
+`PWD: STRING`
+
+The path of the current working directory.
+
+This path is normalized (it does not contain `.` or `..` segments) and is an absolute path.
+
+Symbolic links are not resolved.
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.

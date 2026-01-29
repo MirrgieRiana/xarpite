@@ -1,5 +1,6 @@
 package mirrg.xarpite.js.browser
 
+import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
 import mirrg.xarpite.IoContext
@@ -21,6 +22,7 @@ import kotlin.js.Promise
 @JsExport
 fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Promise<dynamic> = scope.promise {
     withEvaluator(object : IoContext {
+        override fun getPwd() = window.location.href
         override suspend fun out(value: FluoriteValue) = out(value).await()
         override suspend fun err(value: FluoriteValue) = out(value).await()
         override suspend fun readLineFromStdin() = throw UnsupportedOperationException()

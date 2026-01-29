@@ -117,6 +117,17 @@ Basket::new("apple")
 
 その実行環境から参照可能である場合、windowオブジェクトを返します。
 
+## `PWD` 現在のページのURLを取得
+
+`PWD: STRING`
+
+現在表示しているページのURLです。
+
+```
+PWD
+# https://example.com/page
+```
+
 ## `JS` JavaScriptコードの実行
 
 `JS(code: STRING): VALUE`
