@@ -31,138 +31,129 @@ private suspend fun FluoriteValue.getIncrementDecrementMethod(position: Position
     return this.getMethod(position, methodName)
 }
 
-class PrefixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
+/**
+ * インクリメント・デクリメント演算子の共通基底クラス
+ * 
+ * カスタムメソッドが存在する場合はアクセサを渡して呼び出し、
+ * 存在しない場合はフォールバック処理を実行する。
+ */
+abstract class IncrementDecrementGetter(
+    protected val getter: Getter,
+    protected val setter: Setter,
+    protected val position: Position
+) : Getter {
+    /**
+     * カスタムメソッド名を返す
+     */
+    protected abstract val methodName: String
+    
+    /**
+     * フォールバック時の演算を実行する（plus または minus）
+     */
+    protected abstract suspend fun fallbackOperation(oldValue: FluoriteValue): FluoriteValue
+    
+    /**
+     * 戻り値を決定する（prefix: newValue, suffix: oldValue）
+     */
+    protected abstract suspend fun getReturnValue(oldValue: FluoriteValue, newValue: FluoriteValue): FluoriteValue
+    
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val oldValue = getter.evaluate(env)
         
-        // まず ++_ メソッドをチェック
-        val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_INCREMENT.methodName)
+        // カスタムメソッドをチェック
+        val customMethod = oldValue.getIncrementDecrementMethod(position, methodName)
         return if (customMethod != null) {
             // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
-            val accessor = FluoriteFunction { args ->
-                if (args.isEmpty()) {
-                    // get: 0引数の場合は現在の値を取得
-                    getter.evaluate(env)
-                } else {
-                    // set: 1引数以上の場合は最初の引数で値を設定
-                    val setterFunction = setter.evaluate(env)
-                    setterFunction(args[0])
-                    args[0]
-                }
-            }
+            val accessor = createAccessor(env)
             withStackTrace(position) {
                 customMethod.call(arrayOf(accessor))
             }
         } else {
-            // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
+            // カスタムメソッドが存在しない場合はフォールバック処理を実行
             val setterFunction = setter.evaluate(env)
-            val newValue = oldValue.plus(position, FluoriteInt.ONE)
+            val newValue = fallbackOperation(oldValue)
             setterFunction(newValue)
-            newValue
+            getReturnValue(oldValue, newValue)
         }
     }
+    
+    /**
+     * アクセサ関数を作成する
+     * 0引数呼び出しでget、1引数呼び出しでsetを実行
+     */
+    private fun createAccessor(env: Environment) = FluoriteFunction { args ->
+        if (args.isEmpty()) {
+            // get: 0引数の場合は現在の値を取得
+            getter.evaluate(env)
+        } else {
+            // set: 1引数以上の場合は最初の引数で値を設定
+            val setterFunction = setter.evaluate(env)
+            setterFunction(args[0])
+            args[0]
+        }
+    }
+}
 
+class PrefixIncrementGetter(
+    getter: Getter,
+    setter: Setter,
+    position: Position
+) : IncrementDecrementGetter(getter, setter, position) {
+    override val methodName get() = OperatorMethod.PREFIX_INCREMENT.methodName
+    
+    override suspend fun fallbackOperation(oldValue: FluoriteValue): FluoriteValue =
+        oldValue.plus(position, FluoriteInt.ONE)
+    
+    override suspend fun getReturnValue(oldValue: FluoriteValue, newValue: FluoriteValue): FluoriteValue =
+        newValue
+    
     override val code get() = "PrefixIncrementGetter[${getter.code};${setter.code}]"
 }
 
-class SuffixIncrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
-    override suspend fun evaluate(env: Environment): FluoriteValue {
-        val oldValue = getter.evaluate(env)
-        
-        // まず _++ メソッドをチェック
-        val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_INCREMENT.methodName)
-        return if (customMethod != null) {
-            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
-            val accessor = FluoriteFunction { args ->
-                if (args.isEmpty()) {
-                    // get: 0引数の場合は現在の値を取得
-                    getter.evaluate(env)
-                } else {
-                    // set: 1引数以上の場合は最初の引数で値を設定
-                    val setterFunction = setter.evaluate(env)
-                    setterFunction(args[0])
-                    args[0]
-                }
-            }
-            withStackTrace(position) {
-                customMethod.call(arrayOf(accessor))
-            }
-        } else {
-            // カスタムメソッドが存在しない場合は従来の plus(1) を使用して代入
-            val setterFunction = setter.evaluate(env)
-            val newValue = oldValue.plus(position, FluoriteInt.ONE)
-            setterFunction(newValue)
-            oldValue
-        }
-    }
-
+class SuffixIncrementGetter(
+    getter: Getter,
+    setter: Setter,
+    position: Position
+) : IncrementDecrementGetter(getter, setter, position) {
+    override val methodName get() = OperatorMethod.SUFFIX_INCREMENT.methodName
+    
+    override suspend fun fallbackOperation(oldValue: FluoriteValue): FluoriteValue =
+        oldValue.plus(position, FluoriteInt.ONE)
+    
+    override suspend fun getReturnValue(oldValue: FluoriteValue, newValue: FluoriteValue): FluoriteValue =
+        oldValue
+    
     override val code get() = "SuffixIncrementGetter[${getter.code};${setter.code}]"
 }
 
-class PrefixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
-    override suspend fun evaluate(env: Environment): FluoriteValue {
-        val oldValue = getter.evaluate(env)
-        
-        // まず --_ メソッドをチェック
-        val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.PREFIX_DECREMENT.methodName)
-        return if (customMethod != null) {
-            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
-            val accessor = FluoriteFunction { args ->
-                if (args.isEmpty()) {
-                    // get: 0引数の場合は現在の値を取得
-                    getter.evaluate(env)
-                } else {
-                    // set: 1引数以上の場合は最初の引数で値を設定
-                    val setterFunction = setter.evaluate(env)
-                    setterFunction(args[0])
-                    args[0]
-                }
-            }
-            withStackTrace(position) {
-                customMethod.call(arrayOf(accessor))
-            }
-        } else {
-            // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
-            val setterFunction = setter.evaluate(env)
-            val newValue = oldValue.minus(position, FluoriteInt.ONE)
-            setterFunction(newValue)
-            newValue
-        }
-    }
-
+class PrefixDecrementGetter(
+    getter: Getter,
+    setter: Setter,
+    position: Position
+) : IncrementDecrementGetter(getter, setter, position) {
+    override val methodName get() = OperatorMethod.PREFIX_DECREMENT.methodName
+    
+    override suspend fun fallbackOperation(oldValue: FluoriteValue): FluoriteValue =
+        oldValue.minus(position, FluoriteInt.ONE)
+    
+    override suspend fun getReturnValue(oldValue: FluoriteValue, newValue: FluoriteValue): FluoriteValue =
+        newValue
+    
     override val code get() = "PrefixDecrementGetter[${getter.code};${setter.code}]"
 }
 
-class SuffixDecrementGetter(private val getter: Getter, private val setter: Setter, private val position: Position) : Getter {
-    override suspend fun evaluate(env: Environment): FluoriteValue {
-        val oldValue = getter.evaluate(env)
-        
-        // まず _-- メソッドをチェック
-        val customMethod = oldValue.getIncrementDecrementMethod(position, OperatorMethod.SUFFIX_DECREMENT.methodName)
-        return if (customMethod != null) {
-            // カスタムメソッドが存在する場合、アクセサ関数を作成して渡す
-            val accessor = FluoriteFunction { args ->
-                if (args.isEmpty()) {
-                    // get: 0引数の場合は現在の値を取得
-                    getter.evaluate(env)
-                } else {
-                    // set: 1引数以上の場合は最初の引数で値を設定
-                    val setterFunction = setter.evaluate(env)
-                    setterFunction(args[0])
-                    args[0]
-                }
-            }
-            withStackTrace(position) {
-                customMethod.call(arrayOf(accessor))
-            }
-        } else {
-            // カスタムメソッドが存在しない場合は従来の minus(1) を使用して代入
-            val setterFunction = setter.evaluate(env)
-            val newValue = oldValue.minus(position, FluoriteInt.ONE)
-            setterFunction(newValue)
-            oldValue
-        }
-    }
-
+class SuffixDecrementGetter(
+    getter: Getter,
+    setter: Setter,
+    position: Position
+) : IncrementDecrementGetter(getter, setter, position) {
+    override val methodName get() = OperatorMethod.SUFFIX_DECREMENT.methodName
+    
+    override suspend fun fallbackOperation(oldValue: FluoriteValue): FluoriteValue =
+        oldValue.minus(position, FluoriteInt.ONE)
+    
+    override suspend fun getReturnValue(oldValue: FluoriteValue, newValue: FluoriteValue): FluoriteValue =
+        oldValue
+    
     override val code get() = "SuffixDecrementGetter[${getter.code};${setter.code}]"
 }
