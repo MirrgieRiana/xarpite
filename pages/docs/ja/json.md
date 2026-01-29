@@ -12,8 +12,8 @@ JSON文字列と値との間で変換を行う関数がいくつか用意され�
 
 - `JSON`
 - `JSOND`
-- `JSONS`
-- `JSONSD`
+- `JSONS` / `JSONL`
+- `JSONSD` / `JSONLD`
 
 詳細は[data-conversion.md](data-conversion.md)を参照してください。
 

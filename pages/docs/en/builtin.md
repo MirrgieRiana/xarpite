@@ -850,7 +850,9 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+## `FILTER` / `GREP` Filter Stream by Condition
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
@@ -867,10 +869,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` Filter Stream by Condition
-
-An alias for `FILTER`.
 
 ## `REDUCE` Accumulate Stream Elements
 
