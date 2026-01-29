@@ -1,15 +1,20 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.concat
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
+import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 
@@ -43,11 +48,31 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    for (index in 0 until arguments.size) {
-                        val boolValue = arguments[index].toFluoriteBoolean(null)
-                        if (boolValue.value) return@FluoriteFunction boolValue
+                    // 引数をストリームとして処理
+                    val stream = if (arguments.size == 1) {
+                        arguments[0]
+                    } else {
+                        arguments.asIterable().map { if (it is FluoriteStream) it else listOf(it).toFluoriteStream() }.concat()
                     }
-                    arguments[arguments.size - 1].toFluoriteBoolean(null)
+                    
+                    // ストリームから要素を取得
+                    if (stream is FluoriteStream) {
+                        flow {
+                            stream.collect { element ->
+                                val boolValue = element.toFluoriteBoolean(null)
+                                if (boolValue.value) {
+                                    // 最初に真である要素を返す
+                                    emit(element)
+                                }
+                            }
+                            // すべて偽、または要素が一つも無い場合はFALSEを返す
+                            emit(FluoriteBoolean.FALSE)
+                        }.first()
+                    } else {
+                        // 単一値の場合
+                        val boolValue = stream.toFluoriteBoolean(null)
+                        if (boolValue.value) stream else FluoriteBoolean.FALSE
+                    }
                 }
             }
             fun createAnd(name: String): FluoriteFunction {
@@ -55,11 +80,31 @@ fun createConvertMounts(): List<Map<String, FluoriteValue>> {
                     if (arguments.size !in 1..2) {
                         usage("$name(boolean1: BOOLEAN | STREAM<BOOLEAN>[; boolean2: BOOLEAN | STREAM<BOOLEAN>]): BOOLEAN")
                     }
-                    for (index in 0 until arguments.size) {
-                        val boolValue = arguments[index].toFluoriteBoolean(null)
-                        if (!boolValue.value) return@FluoriteFunction boolValue
+                    // 引数をストリームとして処理
+                    val stream = if (arguments.size == 1) {
+                        arguments[0]
+                    } else {
+                        arguments.asIterable().map { if (it is FluoriteStream) it else listOf(it).toFluoriteStream() }.concat()
                     }
-                    arguments[arguments.size - 1].toFluoriteBoolean(null)
+                    
+                    // ストリームから要素を取得
+                    if (stream is FluoriteStream) {
+                        flow {
+                            stream.collect { element ->
+                                val boolValue = element.toFluoriteBoolean(null)
+                                if (!boolValue.value) {
+                                    // 最初に偽である要素を返す
+                                    emit(element)
+                                }
+                            }
+                            // すべて真、または要素が一つも無い場合はTRUEを返す
+                            emit(FluoriteBoolean.TRUE)
+                        }.first()
+                    } else {
+                        // 単一値の場合
+                        val boolValue = stream.toFluoriteBoolean(null)
+                        if (!boolValue.value) stream else FluoriteBoolean.TRUE
+                    }
                 }
             }
             arrayOf(
