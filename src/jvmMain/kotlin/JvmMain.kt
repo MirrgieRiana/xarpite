@@ -8,6 +8,7 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
+
 import java.nio.file.Path
 
 fun main(args: Array<String>) {
