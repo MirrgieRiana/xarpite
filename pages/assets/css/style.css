@@ -127,6 +127,10 @@ body {
   color: var(--text-primary);
 }
 
+.version-badge {
+  color: var(--text-secondary);
+}
+
 .main-nav {
   display: flex;
   gap: 1.5rem;

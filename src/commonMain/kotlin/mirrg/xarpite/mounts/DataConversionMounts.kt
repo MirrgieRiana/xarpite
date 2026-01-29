@@ -2,7 +2,6 @@ package mirrg.xarpite.mounts
 
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
-import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -21,7 +20,7 @@ import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import okio.Buffer
-import kotlin.math.roundToInt
+import kotlin.io.encoding.Base64
 
 context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
@@ -53,6 +52,23 @@ fun createDataConversionMounts(): List<Map<String, FluoriteValue>> {
             if (arguments.size != 1) usage()
             val value = arguments[0]
             value.toByteArrayAsBlobLike().decodeToString().toFluoriteString()
+        },
+        *run {
+            val base64 by lazy { Base64.Mime }
+            arrayOf(
+                "BASE64" to FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    base64.encode(string.encodeToByteArray()).replace("\r\n", "\n").toFluoriteString()
+                },
+                "BASE64D" to FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    base64.decode(string).decodeToString().toFluoriteString()
+                },
+            )
         },
         "URL" to FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")

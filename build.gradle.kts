@@ -59,6 +59,7 @@ kotlin {
                 implementation("com.squareup.okio:okio:3.10.2")
                 implementation("com.ionspin.kotlin:bignum:0.3.10")
                 implementation("mirrg.kotlin:mirrg.kotlin.helium-kotlin-2-2:4.4.0")
+                implementation("io.github.mirrgieriana:xarpeg:5.0.0")
             }
         }
         commonTest {

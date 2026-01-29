@@ -26,6 +26,7 @@ import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
+import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
@@ -549,20 +550,10 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     if (count <= 0) return@FluoriteStream
                     var remaining = count
                     try {
-                        flow.collect { item ->
+                        stream.toFlow().collect { item ->
                             emit(item)
                             remaining--
                             if (remaining <= 0) throw IterationAborted
@@ -581,18 +572,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     val deque = ArrayDeque<FluoriteValue>()
-                    flow.collect { item -> // count == 0 の場合でもイテレーション自体はする
+                    stream.toFlow().collect { item -> // count == 0 の場合でもイテレーション自体はする
                         deque += item
                         if (deque.size > count) deque.removeFirst()
                     }
@@ -610,18 +591,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     var remaining = count
-                    flow.collect { item ->
+                    stream.toFlow().collect { item ->
                         if (remaining > 0) {
                             remaining--
                         } else {
@@ -639,18 +610,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     val deque = ArrayDeque<FluoriteValue>()
-                    flow.collect { item ->
+                    stream.toFlow().collect { item ->
                         deque += item
                         if (deque.size > count) {
                             emit(deque.removeFirst())
@@ -738,17 +699,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 val stream = arguments[0]
 
                 val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
-                val channel by lazy {
-                    flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }.produceIn(context.daemonScope + stackTrace)
-                }
+                val channel by lazy { stream.toFlow().produceIn(context.daemonScope + stackTrace) }
 
                 FluoriteStream {
                     for (item in channel) {
