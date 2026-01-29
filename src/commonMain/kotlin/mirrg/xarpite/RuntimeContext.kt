@@ -56,6 +56,39 @@ interface IoContext {
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
 }
 
+/**
+ * 環境変数を取得する関数
+ * プラットフォーム固有の実装で上書きする必要があります
+ */
+expect fun getEnvironmentVariable(name: String): String?
+
+/**
+ * プラットフォーム固有のPWD取得関数
+ * プラットフォーム固有の実装で上書きする必要があります
+ */
+expect fun getPlatformSpecificPwd(): String
+
+/**
+ * PWDを取得する共通ロジック
+ * 環境変数の優先順位: XARPITE_PWD > PWD > プラットフォーム固有の方法
+ */
+fun getPwdFromEnvironment(): String {
+    // 1. XARPITE_PWD環境変数を最優先で使用（シェルスクリプト経由で設定）
+    val xarpitePwd = getEnvironmentVariable("XARPITE_PWD")
+    if (!xarpitePwd.isNullOrEmpty()) {
+        return xarpitePwd
+    }
+    
+    // 2. PWD環境変数を使用（検証なし）
+    val envPwd = getEnvironmentVariable("PWD")
+    if (!envPwd.isNullOrEmpty()) {
+        return envPwd
+    }
+    
+    // 3. プラットフォーム固有の方法で取得
+    return getPlatformSpecificPwd()
+}
+
 open class UnsupportedIoContext : IoContext {
     override fun getPwd(): String = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()

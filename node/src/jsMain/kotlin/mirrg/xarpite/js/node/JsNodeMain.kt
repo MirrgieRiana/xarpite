@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.envGetter
 import mirrg.xarpite.fileSystemGetter
+import mirrg.xarpite.getPwdFromEnvironment
 import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
@@ -89,32 +90,7 @@ suspend fun main() {
     }
     coroutineScope {
         val ioContext = object : IoContext {
-            override fun getPwd(): String {
-                // 1. XARPITE_PWD環境変数を最優先で使用（シェルスクリプト経由で設定）
-                val xarpitePwd = process.env["XARPITE_PWD"]?.unsafeCast<String>()
-                if (xarpitePwd != null && xarpitePwd.startsWith("/")) {
-                    return xarpitePwd
-                }
-                
-                // 2. PWD環境変数を検証してから使用
-                val envPwd = process.env["PWD"]?.unsafeCast<String>()
-                if (envPwd != null && envPwd.startsWith("/")) {
-                    try {
-                        val fs = js("require('fs')")
-                        val envStat = fs.lstatSync(envPwd)
-                        val cwdStat = fs.lstatSync(process.cwd())
-                        // デバイス番号とinode番号が一致する場合のみ論理パスを返す
-                        if (envStat.dev == cwdStat.dev && envStat.ino == cwdStat.ino) {
-                            return envPwd
-                        }
-                    } catch (_: Throwable) {
-                        // stat失敗時は次へ
-                    }
-                }
-                
-                // 3. プラットフォーム固有の方法で取得
-                return process.cwd()
-            }
+            override fun getPwd(): String = getPwdFromEnvironment()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
