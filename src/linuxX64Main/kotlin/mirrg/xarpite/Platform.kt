@@ -59,7 +59,6 @@ actual fun isWindows(): Boolean = false
 private const val EXEC_MAX_BUFFER_SIZE = 4096
 private const val WAITPID_MAX_RETRIES = 1000
 private const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
-private const val PATH_BUFFER_SIZE = 8192 // getcwd用のバッファサイズ（長いパス名に対応）
 
 // POSIXマクロの実装（nativeMainから継承）
 // 注: これらのビットマスクはLinux固有の実装です。
@@ -464,20 +463,6 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
             // file actionsをクリーンアップ
             // posix_spawn_file_actions_init()で確保されたリソースを解放
             posix_spawn_file_actions_destroy(fileActionsPtr)
-        }
-    }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-actual fun getPwd(): String {
-    memScoped {
-        val buffer = allocArray<ByteVar>(PATH_BUFFER_SIZE)
-        val result = platform.posix.getcwd(buffer, PATH_BUFFER_SIZE.toULong())
-        if (result != null) {
-            return result.toKString()
-        } else {
-            val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
-            throw IllegalStateException("Failed to get current working directory: $errorMessage (errno=$errno)")
         }
     }
 }

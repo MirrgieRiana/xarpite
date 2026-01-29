@@ -11,8 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
-import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.errno
@@ -21,14 +19,30 @@ import platform.posix.fflush
 import platform.posix.fread
 import platform.posix.fwrite
 import platform.posix.set_posix_errno
+import platform.posix.stderr
 import platform.posix.stdin
 import platform.posix.stdout
-import platform.posix.stderr
 import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
 @OptIn(ExperimentalNativeApi::class)
 actual fun getProgramName(): String? = Platform.programName
+
+private const val PATH_BUFFER_SIZE = 8192 // getcwd用のバッファサイズ（長いパス名に対応）
+
+@OptIn(ExperimentalForeignApi::class)
+actual fun getPwd(): String {
+    memScoped {
+        val buffer = allocArray<ByteVar>(PATH_BUFFER_SIZE)
+        val result = platform.posix.getcwd(buffer, PATH_BUFFER_SIZE.toULong())
+        if (result != null) {
+            return result.toKString()
+        } else {
+            val errorMessage = strerror(errno)?.toKString() ?: "Unknown error"
+            throw IllegalStateException("Failed to get current working directory: $errorMessage (errno=$errno)")
+        }
+    }
+}
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun getEnv(): Map<String, String> {

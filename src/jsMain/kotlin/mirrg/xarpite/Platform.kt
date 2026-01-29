@@ -4,6 +4,9 @@ import okio.FileSystem
 
 actual fun getProgramName(): String? = null
 
+var getPwdImpl: (() -> String)? = null
+actual fun getPwd(): String = getPwdImpl!!()
+
 var envGetter: () -> Map<String, String> = { emptyMap() }
 actual fun getEnv(): Map<String, String> = envGetter()
 
@@ -37,6 +40,3 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl
 actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
     throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
-
-var getPwdImpl: (() -> String)? = null
-actual fun getPwd(): String = getPwdImpl?.invoke() ?: kotlinx.browser.window.location.href
