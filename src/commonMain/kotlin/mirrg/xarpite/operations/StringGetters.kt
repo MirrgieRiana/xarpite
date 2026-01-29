@@ -47,11 +47,16 @@ private suspend fun Formatter.format(position: Position, value: FluoriteValue): 
                     else -> Pair("", "$int")
                 }
             } else {
-                when {
+                val hexString = when {
                     int < 0 -> Pair("-", (-int).toString(16))
                     FormatterFlag.SIGNED in this.flags -> Pair("+", int.toString(16))
                     FormatterFlag.SPACE_FOR_SIGN in this.flags -> Pair(" ", int.toString(16))
                     else -> Pair("", int.toString(16))
+                }
+                if (this.conversion == FormatterConversion.UPPERCASE_HEXADECIMAL) {
+                    Pair(hexString.first, hexString.second.uppercase())
+                } else {
+                    hexString
                 }
             }
         } else {
