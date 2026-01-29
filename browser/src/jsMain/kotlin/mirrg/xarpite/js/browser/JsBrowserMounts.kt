@@ -11,7 +11,7 @@ import mirrg.xarpite.js.FluoriteJsObject
 context(context: RuntimeContext)
 fun createJsBrowserMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "PWD" define LazyMount { window.location.href.toFluoriteString() },
+        "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "WINDOW" define LazyMount { FluoriteJsObject(window) },
     ).let { listOf(it) }
 }
