@@ -378,6 +378,117 @@ $ xa 'COUNT(,)'
 # 0
 ```
 
+## `AND` / `ALL` すべてが真かを判定
+
+`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+渡されたすべての要素が真であるかどうかを判定します。
+
+要素が一つも無かった場合、真を返します。
+
+`ALL` は `AND` の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa 'AND(TRUE; TRUE)'
+# TRUE
+
+$ xa 'AND(TRUE; FALSE)'
+# FALSE
+
+$ xa 'AND(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE AND FALSE'
+# FALSE
+
+$ xa 'AND(TRUE, FALSE; TRUE, FALSE)'
+# FALSE
+
+$ xa '1 .. 50 | _ != 39 >> AND'
+# FALSE
+```
+
+---
+
+より厳密には、この関数は最初に見つかった論理値化が偽である要素を返し、見つからなかった場合は `TRUE` を返します。
+
+最初に論理値化が偽である要素が見つかった時点で、以降のストリームのイテレーションと要素の論理値化はスキップされます。
+
+左辺の値によって右辺自体の評価をスキップする `&&` 演算子とは異なり、各引数そのものは関数の実行前にすべて評価されます。
+
+```shell
+$ xa '1, "a", TRUE, 0, "b" >> AND'
+# 0
+
+$ xa '1, "a", TRUE, 2, "b" >> AND'
+# TRUE
+```
+
+```shell
+$ xa '
+  list := []
+
+  5 .. -5 | (
+    list += _
+    _
+  ) >> AND
+
+  list
+'
+# [5;4;3;2;1;0]
+```
+
+```shell
+$ xa '
+  list := []
+
+  (
+    list += "left"
+    FALSE
+  ) AND (
+    list += "right"
+    TRUE
+  )
+
+  list
+'
+# [left;right]
+```
+
+## `OR` / `ANY` いずれかが真かを判定
+
+`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+渡された要素がいずれか一つでも真であるかどうかを判定します。
+
+要素が一つも無かった場合、偽を返します。
+
+`ANY` は `OR` の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa 'OR(TRUE; TRUE)'
+# TRUE
+
+$ xa 'OR(TRUE; FALSE)'
+# TRUE
+
+$ xa 'OR(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE OR FALSE'
+# TRUE
+
+$ xa 'OR(TRUE, FALSE; TRUE, FALSE)'
+# TRUE
+
+$ xa '1 .. 50 | _ != 39 >> OR'
+# TRUE
+```
+
+---
+
+それ以外の性質は、 `AND` 関数に準じます。
+
 ## `FIRST` ストリームの先頭要素を取得
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
@@ -693,117 +804,6 @@ $ xa 'TO_BOOLEAN("a")'
 $ xa 'FALSE, TRUE, FALSE >> TO_BOOLEAN'
 # TRUE
 ```
-
-## `AND` / `ALL` すべてが真かを判定
-
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
-
-渡されたすべての要素が真であるかどうかを判定します。
-
-要素が一つも無かった場合、真を返します。
-
-`ALL` は `AND` の別名であり、同一の動作を持ちます。
-
-```shell
-$ xa 'AND(TRUE; TRUE)'
-# TRUE
-
-$ xa 'AND(TRUE; FALSE)'
-# FALSE
-
-$ xa 'AND(FALSE; FALSE)'
-# FALSE
-
-$ xa 'TRUE AND FALSE'
-# FALSE
-
-$ xa 'AND(TRUE, FALSE; TRUE, FALSE)'
-# FALSE
-
-$ xa '1 .. 50 | _ != 39 >> AND'
-# FALSE
-```
-
----
-
-より厳密には、この関数は最初に見つかった論理値化が偽である要素を返し、見つからなかった場合は `TRUE` を返します。
-
-最初に論理値化が偽である要素が見つかった時点で、以降のストリームのイテレーションと要素の論理値化はスキップされます。
-
-左辺の値によって右辺自体の評価をスキップする `&&` 演算子とは異なり、各引数そのものは関数の実行前にすべて評価されます。
-
-```shell
-$ xa '1, "a", TRUE, 0, "b" >> AND'
-# 0
-
-$ xa '1, "a", TRUE, 2, "b" >> AND'
-# TRUE
-```
-
-```shell
-$ xa '
-  list := []
-
-  5 .. -5 | (
-    list += _
-    _
-  ) >> AND
-
-  list
-'
-# [5;4;3;2;1;0]
-```
-
-```shell
-$ xa '
-  list := []
-
-  (
-    list += "left"
-    FALSE
-  ) AND (
-    list += "right"
-    TRUE
-  )
-
-  list
-'
-# [left;right]
-```
-
-## `OR` / `ANY` いずれかが真かを判定
-
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
-
-渡された要素がいずれか一つでも真であるかどうかを判定します。
-
-要素が一つも無かった場合、偽を返します。
-
-`ANY` は `OR` の別名であり、同一の動作を持ちます。
-
-```shell
-$ xa 'OR(TRUE; TRUE)'
-# TRUE
-
-$ xa 'OR(TRUE; FALSE)'
-# TRUE
-
-$ xa 'OR(FALSE; FALSE)'
-# FALSE
-
-$ xa 'TRUE OR FALSE'
-# TRUE
-
-$ xa 'OR(TRUE, FALSE; TRUE, FALSE)'
-# TRUE
-
-$ xa '1 .. 50 | _ != 39 >> OR'
-# TRUE
-```
-
----
-
-それ以外の性質は、 `AND` 関数に準じます。
 
 ## `TO_ARRAY` ストリームを配列に変換
 
