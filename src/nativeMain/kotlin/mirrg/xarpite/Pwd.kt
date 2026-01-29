@@ -12,10 +12,7 @@ import platform.posix.errno
 import platform.posix.strerror
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun getEnvironmentVariable(name: String): String? = platform.posix.getenv(name)?.toKString()
-
-@OptIn(ExperimentalForeignApi::class)
-actual fun getPlatformSpecificPwd(): String {
+fun getPwdImpl(): String {
     var bufferSize = 256
     val maxBufferSize = 1024 * 1024
 
@@ -40,6 +37,3 @@ actual fun getPlatformSpecificPwd(): String {
         }
     }
 }
-
-@OptIn(ExperimentalForeignApi::class)
-fun getPwdImpl(): String = getPwdFromEnvironment()
