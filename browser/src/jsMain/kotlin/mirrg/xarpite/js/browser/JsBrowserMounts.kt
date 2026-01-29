@@ -4,6 +4,7 @@ import kotlinx.browser.window
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.js.FluoriteJsObject
 
