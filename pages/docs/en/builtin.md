@@ -518,6 +518,117 @@ $ xa 'COUNT(,)'
 # 0
 ```
 
+## `AND` / `ALL` Check if All are True
+
+`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+Determines whether all passed elements evaluate to true.
+
+If there are no elements, returns true.
+
+`ALL` is an alias of `AND` and has the same behavior.
+
+```shell
+$ xa 'AND(TRUE; TRUE)'
+# TRUE
+
+$ xa 'AND(TRUE; FALSE)'
+# FALSE
+
+$ xa 'AND(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE AND FALSE'
+# FALSE
+
+$ xa 'AND(TRUE, FALSE; TRUE, FALSE)'
+# FALSE
+
+$ xa '1 .. 50 | _ != 39 >> AND'
+# FALSE
+```
+
+---
+
+More precisely, this function returns the first element whose booleanization is false, or `TRUE` if none is found.
+
+As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
+
+Unlike the `&&` operator, which skips evaluation of the right-hand side itself based on the left-hand side value, each argument itself is evaluated before the function executes.
+
+```shell
+$ xa '1, "a", TRUE, 0, "b" >> AND'
+# 0
+
+$ xa '1, "a", TRUE, 2, "b" >> AND'
+# TRUE
+```
+
+```shell
+$ xa '
+  list := []
+
+  5 .. -5 | (
+    list += _
+    _
+  ) >> AND
+
+  list
+'
+# [5;4;3;2;1;0]
+```
+
+```shell
+$ xa '
+  list := []
+
+  (
+    list += "left"
+    FALSE
+  ) AND (
+    list += "right"
+    TRUE
+  )
+
+  list
+'
+# [left;right]
+```
+
+## `OR` / `ANY` Check if Any is True
+
+`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+Determines whether any of the passed elements evaluate to true.
+
+If there are no elements, returns false.
+
+`ANY` is an alias of `OR` and has the same behavior.
+
+```shell
+$ xa 'OR(TRUE; TRUE)'
+# TRUE
+
+$ xa 'OR(TRUE; FALSE)'
+# TRUE
+
+$ xa 'OR(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE OR FALSE'
+# TRUE
+
+$ xa 'OR(TRUE, FALSE; TRUE, FALSE)'
+# TRUE
+
+$ xa '1 .. 50 | _ != 39 >> OR'
+# TRUE
+```
+
+---
+
+Other properties follow those of the `AND` function.
+
 ## `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
