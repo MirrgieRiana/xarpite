@@ -61,7 +61,7 @@ class VariableGetter(private val frameIndex: Int, private val variableIndex: Int
 class MountGetter(private val mountCounts: IntArray, private val name: String) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         env.getMounts(name, mountCounts).forEach {
-            return it
+            return it.get()
         }
         throw IllegalArgumentException("No such mount entry: $name")
     }
@@ -224,7 +224,7 @@ class MethodAccessGetter(
 
         // マウントのチェック
         env.getMounts("::$name", mountCounts).forEach {
-            val result = processEntries(it)
+            val result = processEntries(it.get())
             if (result != null) return result
         }
 

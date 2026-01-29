@@ -19,7 +19,7 @@ class Evaluator {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = maps.map {
-            frame.defineBuiltinMount(it)
+            frame.defineBuiltinMount(it.mapValues { entry -> ConstantMount(entry.value) })
         }
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env

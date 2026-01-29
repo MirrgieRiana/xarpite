@@ -22,11 +22,19 @@ class Environment(val parent: Environment?, variableCount: Int, mountCount: Int)
     } else {
         arrayOf(arrayOfNulls(variableCount))
     }
-    val mountTable: Array<Array<Map<String, FluoriteValue>>> = if (parent != null) {
+    val mountTable: Array<Array<Map<String, Mount>>> = if (parent != null) {
         arrayOf(*parent.mountTable, Array(mountCount) { mapOf() })
     } else {
         arrayOf(Array(mountCount) { mapOf() })
     }
+}
+
+fun interface Mount {
+    suspend fun get(): FluoriteValue
+}
+
+class ConstantMount(val value: FluoriteValue) : Mount {
+    override suspend fun get() = value
 }
 
 interface Variable {
@@ -81,12 +89,12 @@ fun Frame.getMountCounts(): IntArray {
     return mountCounts.reversed().toIntArray()
 }
 
-fun Frame.defineBuiltinMount(map: Map<String, FluoriteValue>): Runner {
+fun Frame.defineBuiltinMount(map: Map<String, Mount>): Runner {
     val newMountIndex = mount()
     return BuiltinMountRunner(frameIndex, newMountIndex, map)
 }
 
-fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<FluoriteValue> {
+fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> {
     return sequence {
         var currentFrameIndex = mountCounts.size - 1
         while (currentFrameIndex >= 0) {
