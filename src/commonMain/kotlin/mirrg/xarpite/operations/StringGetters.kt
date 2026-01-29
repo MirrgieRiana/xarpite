@@ -53,7 +53,7 @@ private suspend fun Formatter.format(position: Position, value: FluoriteValue): 
                     FormatterFlag.SPACE_FOR_SIGN in this.flags -> Pair(" ", int.toString(16))
                     else -> Pair("", int.toString(16))
                 }
-                if (this.conversion == FormatterConversion.HEXADECIMAL_UPPERCASE) {
+                if (this.conversion == FormatterConversion.UPPERCASE_HEXADECIMAL) {
                     Pair(hexString.first, hexString.second.uppercase())
                 } else {
                     hexString

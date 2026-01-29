@@ -79,8 +79,8 @@ class XarpiteGrammar(val location: String) {
     )
     val formatterConversion: Parser<FormatterConversion> = or(
         -'d' map { FormatterConversion.DECIMAL },
-        -'X' map { FormatterConversion.HEXADECIMAL_UPPERCASE },
-        -'x' map { FormatterConversion.HEXADECIMAL },
+        -'x' map { FormatterConversion.LOWERCASE_HEXADECIMAL },
+        -'X' map { FormatterConversion.UPPERCASE_HEXADECIMAL },
         -'f' map { FormatterConversion.FLOAT },
         -'s' map { FormatterConversion.STRING },
     )
