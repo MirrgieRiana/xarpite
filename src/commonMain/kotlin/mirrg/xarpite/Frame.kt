@@ -38,20 +38,20 @@ class ConstantMount(val value: FluoriteValue) : Mount {
 }
 
 interface Variable {
-    suspend fun get(env: Environment): FluoriteValue
-    suspend fun set(env: Environment, value: FluoriteValue)
+    suspend fun get(): FluoriteValue
+    suspend fun set(value: FluoriteValue)
 }
 
 class LocalVariable(var value: FluoriteValue) : Variable {
-    override suspend fun get(env: Environment) = value
-    override suspend fun set(env: Environment, value: FluoriteValue) {
+    override suspend fun get() = value
+    override suspend fun set(value: FluoriteValue) {
         this.value = value
     }
 }
 
 class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
-    override suspend fun get(env: Environment) = function.invoke(position, emptyArray())
-    override suspend fun set(env: Environment, value: FluoriteValue) {
+    override suspend fun get() = function.invoke(position, emptyArray())
+    override suspend fun set(value: FluoriteValue) {
         function.invoke(position, arrayOf(value)).consume()
     }
 }
