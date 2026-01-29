@@ -322,18 +322,9 @@ $ xa 'ARGS' 1 2 3
 
 The path of the current working directory.
 
-This path is normalized (does not contain `.` or `..` directory components) and is an absolute path.
-
-Symbolic links are not resolved.
-
 This path is normalized (it does not contain `.` or `..` segments) and is an absolute path.
 
 Symbolic links are not resolved.
-
-```shell
-$ xa 'PWD'
-# /home/user/project
-```
 
 ### `ENV`: Get Environment Variables
 
