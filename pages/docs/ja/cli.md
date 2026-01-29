@@ -350,17 +350,6 @@ $ FOO=bar xa 'ENV.FOO'
 
 存在しない変数にアクセスした場合は `NULL` が返ります。
 
-### `PWD`: カレントディレクトリを取得
-
-`PWD: STRING`
-
-現在のワーキングディレクトリのパスを取得します。
-
-```shell
-$ xa 'PWD'
-# /home/user/project
-```
-
 ### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`

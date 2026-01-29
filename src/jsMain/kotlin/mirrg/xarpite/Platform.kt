@@ -39,11 +39,4 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
 }
 
 var getPwdImpl: (() -> String)? = null
-actual fun getPwd(): String {
-    val getPwdImpl = getPwdImpl
-    return if (getPwdImpl != null) {
-        getPwdImpl()
-    } else {
-        kotlinx.browser.window.location.href
-    }
-}
+actual fun getPwd(): String = getPwdImpl?.invoke() ?: kotlinx.browser.window.location.href

@@ -59,7 +59,7 @@ actual fun isWindows(): Boolean = false
 private const val EXEC_MAX_BUFFER_SIZE = 4096
 private const val WAITPID_MAX_RETRIES = 1000
 private const val WAITPID_RETRY_SLEEP_MICROS = 1000u // 1ミリ秒
-private const val PATH_BUFFER_SIZE = 4096 // getcwd用のバッファサイズ
+private const val PATH_BUFFER_SIZE = 8192 // getcwd用のバッファサイズ（長いパス名に対応）
 
 // POSIXマクロの実装（nativeMainから継承）
 // 注: これらのビットマスクはLinux固有の実装です。

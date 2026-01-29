@@ -338,17 +338,6 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
-### `PWD`: Get Current Directory
-
-`PWD: STRING`
-
-Gets the path of the current working directory.
-
-```shell
-$ xa 'PWD'
-# /home/user/project
-```
-
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`

@@ -89,6 +89,4 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
     }
 }
 
-actual fun getPwd(): String {
-    return System.getProperty("user.dir") ?: ""
-}
+actual fun getPwd(): String = System.getProperty("user.dir") ?: ""
