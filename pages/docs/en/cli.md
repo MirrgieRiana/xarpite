@@ -589,19 +589,18 @@ $ {
 
 Writes `string` to the file specified by `file` with UTF-8 encoding.
 
-Newlines are not automatically added.
-
-```shell
-$ xa -q '
-  WRITE("tmp.txt"; "Hello, World!")
-  READ("tmp.txt")
-'
-# Hello, World!
-```
-
----
+No newline insertion or normalization is performed.
 
 If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple]
+```
 
 ### `WRITEL`: Write to Text File Line by Line
 
@@ -609,43 +608,38 @@ If the file already exists, it will be overwritten.
 
 Writes each line from `lines` to the file specified by `file`.
 
-`\n` is appended to the end of each line. A trailing newline is also added.
-
-```shell
-$ xa -q '
-  WRITEL("tmp.txt"; ["apple", "banana", "cherry"]())
-  READ("tmp.txt")
-'
-# apple
-# banana
-# cherry
-```
-
----
+`\n` is appended to the end of each line, including the last line.
 
 If the file already exists, it will be overwritten.
 
-No extra newline normalization is performed.
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple
+# banana
+# cherry
+# ]
+```
 
 ### `WRITEB`: Write to Binary File
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
 
-Writes `blobLike` to the file specified by `file` as a byte sequence.
-
-```shell
-$ xa -q '
-  WRITEB("tmp.bin"; BLOB.of([72, 101, 108, 108, 111]))
-  READB("tmp.bin")
-'
-# BLOB.of([72;101;108;108;111])
-```
-
----
+Writes `blobLike` to the file specified by `file`.
 
 If the file already exists, it will be overwritten.
 
-`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM&lt;BLOB&gt;, or ARRAY&lt;NUMBER&gt;.
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 72, 101, 108, 108, 111)'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple]
+```
 
 ### `USE`: Get Result of External Xarpite File
 
