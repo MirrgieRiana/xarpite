@@ -15,6 +15,7 @@ import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -53,11 +54,11 @@ class CliTest {
         // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPwd()
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
         // Test accepts either the test location or environment variables if they are set
-        val xarpitePwd = System.getenv("XARPITE_PWD")
-        val envPwd = System.getenv("PWD")
-        val expectedPwd = xarpitePwd?.takeIf { it.isNotBlank() }
-            ?: envPwd?.takeIf { it.isNotBlank() }
-            ?: "/test/location"
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/test/location"
         assertEquals(expectedPwd, pwd) // PWD で現在位置が得られる
     }
 
@@ -75,9 +76,11 @@ class CliTest {
         val context = TestIoContext(currentLocation = "/platform/specific/path")
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
         // If environment variables are not set, should get the test location
-        val xarpitePwd = System.getenv("XARPITE_PWD")
-        val envPwd = System.getenv("PWD")
-        if (xarpitePwd.isNullOrBlank() && envPwd.isNullOrBlank()) {
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        if (xarpitePwd == null && envPwd == null) {
             assertEquals("/platform/specific/path", pwd)
         }
         // Otherwise, just verify it's non-empty
