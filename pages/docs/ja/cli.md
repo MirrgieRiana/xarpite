@@ -606,10 +606,10 @@ $ {
 ```shell
 $ {
   xa -q 'WRITE("tmp.txt"; "apple")'
-  printf '[%s]\n' "$(cat tmp.txt)"
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
-# [apple]
+# apple
 ```
 
 ### `WRITEL`: テキストファイルに行単位で書き込み
@@ -625,13 +625,10 @@ $ {
 ```shell
 $ {
   xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
-  printf '[%s]\n' "$(cat tmp.txt)"
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
-# [apple
-# banana
-# cherry
-# ]
+# apple,banana,cherry,
 ```
 
 ### `WRITEB`: バイナリファイルに書き込み
@@ -645,10 +642,10 @@ $ {
 ```shell
 $ {
   xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
-  printf '[%s]\n' "$(cat tmp.bin)"
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
-# [apple]
+# apple
 ```
 
 ### `USE`: 外部Xarpiteファイルの結果を取得

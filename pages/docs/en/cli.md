@@ -596,10 +596,10 @@ If the file already exists, it will be overwritten.
 ```shell
 $ {
   xa -q 'WRITE("tmp.txt"; "apple")'
-  printf '[%s]\n' "$(cat tmp.txt)"
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
-# [apple]
+# apple
 ```
 
 ### `WRITEL`: Write to Text File Line by Line
@@ -615,13 +615,10 @@ If the file already exists, it will be overwritten.
 ```shell
 $ {
   xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
-  printf '[%s]\n' "$(cat tmp.txt)"
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
-# [apple
-# banana
-# cherry
-# ]
+# apple,banana,cherry,
 ```
 
 ### `WRITEB`: Write to Binary File
@@ -637,10 +634,10 @@ If the file already exists, it will be overwritten.
 ```shell
 $ {
   xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
-  printf '[%s]\n' "$(cat tmp.bin)"
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
-# [apple]
+# apple
 ```
 
 ### `USE`: Get Result of External Xarpite File
