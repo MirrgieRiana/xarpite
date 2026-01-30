@@ -162,12 +162,13 @@ The format specifier grammar is as follows:
 | Half-width space | Display half-width space for sign. |
 | `0`          | Pad with `0` instead of spaces.       |
 
-| Conversion | Meaning             |
-|------------|---------------------|
-| d          | Decimal integer     |
-| x          | Hexadecimal integer |
-| f          | Decimal fraction    |
-| s          | String              |
+| Conversion | Meaning                            |
+|------------|-------------------------------------|
+| d          | Decimal integer                     |
+| x          | Hexadecimal integer (lowercase)     |
+| X          | Hexadecimal integer (uppercase)     |
+| f          | Decimal fraction                    |
+| s          | String                              |
 
 ## Character Content `abcABC123`
 
