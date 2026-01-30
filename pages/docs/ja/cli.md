@@ -575,19 +575,18 @@ $ {
 
 `file` で指定されたファイルに `string` をUTF-8エンコードして書き込みます。
 
-改行は自動的には付与されません。
-
-```shell
-$ xa -q '
-  WRITE("tmp.txt"; "Hello, World!")
-  READ("tmp.txt")
-'
-# Hello, World!
-```
-
----
+改行の付与や正規化は行われません。
 
 ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple]
+```
 
 ### `WRITEL`: テキストファイルに行単位で書き込み
 
@@ -595,43 +594,38 @@ $ xa -q '
 
 `file` で指定されたファイルに `lines` の各行を書き込みます。
 
-各行の末尾には `\n` が付与されます。末尾改行も付与されます。
-
-```shell
-$ xa -q '
-  WRITEL("tmp.txt"; ["apple", "banana", "cherry"]())
-  READ("tmp.txt")
-'
-# apple
-# banana
-# cherry
-```
-
----
+最後の行も含め、各行の末尾には `\n` が付与されます。
 
 ファイルが既に存在する場合は上書きされます。
 
-余計な改行正規化などは行われません。
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple
+# banana
+# cherry
+# ]
+```
 
 ### `WRITEB`: バイナリファイルに書き込み
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
 
-`file` で指定されたファイルに `blobLike` をバイト列に変換して書き込みます。
-
-```shell
-$ xa -q '
-  WRITEB("tmp.bin"; BLOB.of([72, 101, 108, 108, 111]))
-  READB("tmp.bin")
-'
-# BLOB.of([72;101;108;108;111])
-```
-
----
+`file` で指定されたファイルに `blobLike` を書き込みます。
 
 ファイルが既に存在する場合は上書きされます。
 
-`blobLike` にはBLOB、STREAM&lt;BLOB&gt;、ARRAY&lt;NUMBER&gt;など、バイト列に変換可能な値を指定できます。
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 72, 101, 108, 108, 111)'
+  printf '[%s]\n' "$(cat tmp.txt)"
+  rm tmp.txt
+}
+# [apple]
+```
 
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
