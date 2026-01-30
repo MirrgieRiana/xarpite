@@ -12,7 +12,7 @@ import mirrg.xarpite.compilers.objects.setInvoke
 class VariableSetter(private val frameIndex: Int, private val variableIndex: Int) : Setter {
     override suspend fun evaluate(env: Environment): suspend (FluoriteValue) -> Unit {
         return {
-            env.variableTable[frameIndex][variableIndex]!!.set(env, it)
+            env.variableTable[frameIndex][variableIndex]!!.set(it)
         }
     }
 

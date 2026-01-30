@@ -316,6 +316,30 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: Get Current Directory
+
+`PWD: STRING`
+
+The path of the current working directory.
+
+This path is normalized (it does not contain `.` or `..` segments) and is an absolute path.
+
+---
+
+This constant determines its value based on the following priority:
+
+1. Environment variable `XARPITE_PWD`
+   - This environment variable is automatically provided within the Linux launcher script.
+   - Symbolic links are not resolved.
+2. Environment variable `PWD`
+   - This environment variable is automatically provided by most Linux shells.
+   - Symbolic links are not resolved.
+3. Platform-specific retrieval method
+   - If neither environment variable is available, the current directory is retrieved using a platform-specific method.
+   - Symbolic links may be resolved.
+
+When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.

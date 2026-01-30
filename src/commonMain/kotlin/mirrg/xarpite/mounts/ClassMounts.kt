@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBlob
@@ -14,22 +15,23 @@ import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.define
 
 context(context: RuntimeContext)
-fun createClassMounts(): List<Map<String, FluoriteValue>> {
+fun createClassMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "VALUE" to FluoriteValue.fluoriteClass,
-        "NULL_CLASS" to FluoriteNull.fluoriteClass,
-        "INT" to FluoriteInt.fluoriteClass,
-        "DOUBLE" to FluoriteDouble.fluoriteClass,
-        "BOOLEAN" to FluoriteBoolean.fluoriteClass,
-        "STRING" to FluoriteString.fluoriteClass,
-        "REGEX" to FluoriteRegex.fluoriteClass,
-        "ARRAY" to FluoriteArray.fluoriteClass,
-        "OBJECT" to FluoriteObject.fluoriteClass,
-        "FUNCTION" to FluoriteFunction.fluoriteClass,
-        "BLOB" to FluoriteBlob.fluoriteClass,
-        "STREAM" to FluoriteStream.fluoriteClass,
-        "PROMISE" to FluoritePromise.fluoriteClass,
+        "VALUE" define FluoriteValue.fluoriteClass,
+        "NULL_CLASS" define FluoriteNull.fluoriteClass,
+        "INT" define FluoriteInt.fluoriteClass,
+        "DOUBLE" define FluoriteDouble.fluoriteClass,
+        "BOOLEAN" define FluoriteBoolean.fluoriteClass,
+        "STRING" define FluoriteString.fluoriteClass,
+        "REGEX" define FluoriteRegex.fluoriteClass,
+        "ARRAY" define FluoriteArray.fluoriteClass,
+        "OBJECT" define FluoriteObject.fluoriteClass,
+        "FUNCTION" define FluoriteFunction.fluoriteClass,
+        "BLOB" define FluoriteBlob.fluoriteClass,
+        "STREAM" define FluoriteStream.fluoriteClass,
+        "PROMISE" define FluoritePromise.fluoriteClass,
     ).let { listOf(it) }
 }
