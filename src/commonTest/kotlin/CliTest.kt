@@ -15,6 +15,7 @@ import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -45,6 +46,45 @@ class CliTest {
         assertEquals("[1]", cliEval(context, "ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
         assertEquals("[]", cliEval(context, "ARGS").array()) // 空の場合
         assertEquals("[1;2;3]", cliEval(context, "ARGS", "1", "2", "3").array()) // 複数の場合
+    }
+
+    @Test
+    fun pwd() = runTest {
+        val context = TestIoContext(currentLocation = "/test/location")
+        // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPwd()
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // Test accepts either the test location or environment variables if they are set
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/test/location"
+        assertEquals(expectedPwd, pwd) // PWD で現在位置が得られる
+    }
+
+    @Test
+    fun pwdReturnsAbsolutePath() = runTest {
+        val context = TestIoContext(currentLocation = "/absolute/path/test")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // PWD should return an absolute path (starts with /)
+        assertTrue(pwd.startsWith("/") || pwd.contains("://")) // Absolute path or URL
+    }
+
+    @Test
+    fun pwdFallbackToPlatformSpecific() = runTest {
+        // When no environment variables are set, PWD falls back to context.io.getPwd()
+        val context = TestIoContext(currentLocation = "/platform/specific/path")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables are not set, should get the test location
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        if (xarpitePwd == null && envPwd == null) {
+            assertEquals("/platform/specific/path", pwd)
+        }
+        // Otherwise, just verify it's non-empty
+        assertTrue(pwd.isNotEmpty())
     }
 
     @Test
@@ -946,7 +986,8 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
 
 internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
-    private val stdinBytes: ByteArray = byteArrayOf()
+    private val stdinBytes: ByteArray = byteArrayOf(),
+    private val currentLocation: String = "/test/location"
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -985,6 +1026,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+
+    override fun getPwd(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()
