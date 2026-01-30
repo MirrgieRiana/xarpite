@@ -31,7 +31,10 @@ context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
-        "PWD" define LazyMount { (getEnv()["XARPITE_PWD"]?.notBlankOrNull ?: getEnv()["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString() },
+        "PWD" define LazyMount {
+            val env = getEnv()
+            (env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString()
+        },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
             val inStream = FluoriteStream {
