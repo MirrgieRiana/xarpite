@@ -630,6 +630,8 @@ $ {
 
 Writes `blobLike` to the file specified by `file`.
 
+`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM<BLOB>, or ARRAY<NUMBER>.
+
 If the file already exists, it will be overwritten.
 
 ```shell

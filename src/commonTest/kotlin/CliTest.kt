@@ -274,7 +274,7 @@ class CliTest {
         assertContentEquals(byteArrayOf(65, 66, 67), content)
         
         // STREAM<BLOB>の書き込み
-        cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])])""", file.toString())
+        cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", file.toString())
         val content2 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(1, 2, 3, 4), content2)
         
