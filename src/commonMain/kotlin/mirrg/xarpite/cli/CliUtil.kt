@@ -2,10 +2,10 @@ package mirrg.xarpite.cli
 
 import kotlinx.coroutines.CoroutineScope
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.Mount
 import mirrg.xarpite.Position
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getEnv
@@ -139,19 +139,11 @@ fun showVersion() {
     println(version)
 }
 
-suspend fun CoroutineScope.cliEval(options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, FluoriteValue>> = { emptyList() }) {
-    withEvaluator(object : IoContext {
-        override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
-        override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
-        override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
-        override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
-        override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
-        override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
-        override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?) = mirrg.xarpite.executeProcess(process, args, env, cwd)
-    }) { context, evaluator ->
+suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
+    withEvaluator(ioContext) { context, evaluator ->
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }

@@ -3,6 +3,7 @@ package mirrg.xarpite.mounts
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
@@ -21,139 +22,146 @@ import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.copy
+import mirrg.xarpite.define
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
 private var nextCoroutineId = 1
 
 context(context: RuntimeContext)
-fun createLangMounts(): List<Map<String, FluoriteValue>> {
-    val mounts = mutableMapOf<String, FluoriteValue>()
+fun createLangMounts(): List<Map<String, Mount>> {
+    return mapOf(
 
-    mounts["NULL"] = FluoriteNull
-    mounts["N"] = FluoriteNull
-    mounts["TRUE"] = FluoriteBoolean.TRUE
-    mounts["T"] = FluoriteBoolean.TRUE
-    mounts["FALSE"] = FluoriteBoolean.FALSE
-    mounts["F"] = FluoriteBoolean.FALSE
-    mounts["EMPTY"] = FluoriteStream.EMPTY
-    mounts["E"] = FluoriteStream.EMPTY
-    mounts["LOOP"] = FluoriteStream {
-        while (true) {
-            emit(FluoriteNull)
-        }
-    }
-    mounts["SLEEP"] = FluoriteFunction { arguments ->
-        when (arguments.size) {
-            0 -> yield()
-
-            1 -> {
-                val time = arguments[0] as FluoriteNumber
-                val millis = time.toInt().toLong()
-                if (millis == 0L) {
-                    yield()
-                } else {
-                    delay(millis)
-                }
+        "NULL" define FluoriteNull,
+        "N" define FluoriteNull,
+        "TRUE" define FluoriteBoolean.TRUE,
+        "T" define FluoriteBoolean.TRUE,
+        "FALSE" define FluoriteBoolean.FALSE,
+        "F" define FluoriteBoolean.FALSE,
+        "EMPTY" define FluoriteStream.EMPTY,
+        "E" define FluoriteStream.EMPTY,
+        "LOOP" define FluoriteStream {
+            while (true) {
+                emit(FluoriteNull)
             }
+        },
+        "SLEEP" define FluoriteFunction { arguments ->
+            when (arguments.size) {
+                0 -> yield()
 
-            else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
-        }
-        FluoriteNull
-    }
-    mounts["CALL"] = FluoriteFunction { arguments ->
-        if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
-        val function = arguments[0]
-        val argumentsArray = arguments[1] as FluoriteArray
-        function.invoke(null, argumentsArray.values.toTypedArray())
-    }
-    mounts["LAUNCH"] = FluoriteFunction { arguments ->
-        if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
-        val function = arguments[0]
-        val promise = FluoritePromise()
-        val coroutineId = nextCoroutineId
-        context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
-            try {
-                promise.deferred.complete(function.invoke(null, emptyArray()).cache())
-            } catch (e: Throwable) {
-                try {
-                    context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
-                } catch (_: Throwable) {
-                    // stderrへの出力に失敗しても、元の例外処理は継続する
-                }
-                promise.deferred.completeExceptionally(e)
-            }
-        }
-        nextCoroutineId++
-        promise
-    }
-    run {
-        fun create(): FluoriteValue {
-            return FluoriteFunction { arguments ->
-                arguments.forEach {
-                    if (it is FluoriteStream) {
-                        it.collect { item ->
-                            context.io.out(item)
-                        }
+                1 -> {
+                    val time = arguments[0] as FluoriteNumber
+                    val millis = time.toInt().toLong()
+                    if (millis == 0L) {
+                        yield()
                     } else {
-                        context.io.out(it)
+                        delay(millis)
                     }
                 }
-                FluoriteNull
-            }
-        }
-        mounts["OUT"] = create()
-        mounts["O"] = create()
-    }
-    run {
-        fun create(signature: String): FluoriteValue {
-            return FluoriteFunction { arguments ->
-                if (arguments.size == 2) {
-                    val self = arguments[0]
-                    val block = arguments[1]
-                    block.invoke(null, arrayOf(self))
-                } else {
-                    usage(signature)
-                }
-            }
-        }
-        mounts["LET"] = create("<I, O> LET(receiver: I; block: I -> O): O")
-        mounts["::LET"] = fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon create("<I, O> I::LET(block: I -> O): O"),
-        )
-    }
-    run {
-        fun create(signature: String): FluoriteValue {
-            return FluoriteFunction { arguments ->
-                if (arguments.size == 2) {
-                    val self = arguments[0]
-                    val block = arguments[1]
-                    block.invoke(null, arrayOf(self)).consume()
-                    self
-                } else {
-                    usage(signature)
-                }
-            }
-        }
-        mounts["ALSO"] = create("<T> ALSO(receiver: T; block: T -> VALUE): T")
-        mounts["::ALSO"] = fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
-        )
-    }
-    mounts["LAZY"] = FluoriteFunction { arguments ->
-        if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
-        val initializer = arguments[0]
-        var value: FluoriteValue? = null
-        FluoriteFunction {
-            if (value == null) {
-                val value2 = initializer.invoke(null, emptyArray()).cache()
-                value = value2
-                value2
-            } else {
-                value
-            }
-        }
-    }
 
-    return listOf(mounts)
+                else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
+            }
+            FluoriteNull
+        },
+        "CALL" define FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
+            val function = arguments[0]
+            val argumentsArray = arguments[1] as FluoriteArray
+            function.invoke(null, argumentsArray.values.toTypedArray())
+        },
+        "LAUNCH" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
+            val function = arguments[0]
+            val promise = FluoritePromise()
+            val coroutineId = nextCoroutineId
+            context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
+                try {
+                    promise.deferred.complete(function.invoke(null, emptyArray()).cache())
+                } catch (e: Throwable) {
+                    try {
+                        context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
+                    } catch (_: Throwable) {
+                        // stderrへの出力に失敗しても、元の例外処理は継続する
+                    }
+                    promise.deferred.completeExceptionally(e)
+                }
+            }
+            nextCoroutineId++
+            promise
+        },
+        *run {
+            fun create(): FluoriteValue {
+                return FluoriteFunction { arguments ->
+                    arguments.forEach {
+                        if (it is FluoriteStream) {
+                            it.collect { item ->
+                                context.io.out(item)
+                            }
+                        } else {
+                            context.io.out(it)
+                        }
+                    }
+                    FluoriteNull
+                }
+            }
+            arrayOf(
+                "OUT" define create(),
+                "O" define create(),
+            )
+        },
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size == 2) {
+                        val self = arguments[0]
+                        val block = arguments[1]
+                        block.invoke(null, arrayOf(self))
+                    } else {
+                        usage(signature)
+                    }
+                }
+            }
+            arrayOf(
+                "LET" define create("<I, O> LET(receiver: I; block: I -> O): O"),
+                "::LET" define fluoriteArrayOf(
+                    FluoriteValue.fluoriteClass colon create("<I, O> I::LET(block: I -> O): O"),
+                ),
+            )
+        },
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size == 2) {
+                        val self = arguments[0]
+                        val block = arguments[1]
+                        block.invoke(null, arrayOf(self)).consume()
+                        self
+                    } else {
+                        usage(signature)
+                    }
+                }
+            }
+            arrayOf(
+                "ALSO" define create("<T> ALSO(receiver: T; block: T -> VALUE): T"),
+                "::ALSO" define fluoriteArrayOf(
+                    FluoriteValue.fluoriteClass colon create("<T> T::ALSO(block: T -> VALUE): T"),
+                ),
+            )
+        },
+        "LAZY" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
+            val initializer = arguments[0]
+            var value: FluoriteValue? = null
+            FluoriteFunction {
+                if (value == null) {
+                    val value2 = initializer.invoke(null, emptyArray()).cache()
+                    value = value2
+                    value2
+                } else {
+                    value
+                }
+            }
+        },
+
+        ).let { listOf(it) }
 }

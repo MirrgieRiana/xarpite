@@ -15,7 +15,7 @@ class Evaluator {
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
 
-    suspend fun defineMounts(maps: List<Map<String, FluoriteValue>>) {
+    suspend fun defineMounts(maps: List<Map<String, Mount>>) {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = maps.map {

@@ -1,5 +1,6 @@
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.Mount
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
@@ -46,7 +47,7 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?) = mirrg.xarpite.executeProcess(process, args, env, cwd)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
