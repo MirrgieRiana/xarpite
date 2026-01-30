@@ -736,13 +736,6 @@ $ xa 'EXEC("pwd"; cwd: "/tmp")'
 # /tmp
 ```
 
-You can specify both `cwd` and `env` at the same time. The order is arbitrary.
-
-```shell
-$ xa 'EXEC("bash", "-c", %>echo test:$(pwd)<%; env: {FOO: "BAR"}; cwd: "/tmp")'
-# test:/tmp
-```
-
 ---
 
 If the called process exits with a non-zero exit code, an exception is thrown.

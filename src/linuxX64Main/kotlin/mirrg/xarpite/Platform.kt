@@ -189,49 +189,34 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                 throw FluoriteException("Failed to add close for stderr write end".toFluoriteString())
             }
 
-            // 作業ディレクトリを設定（cwdが指定されている場合）
-            // 注: posix_spawn_file_actions_addchdirはKotlin/Nativeのplatform.linuxに含まれていない可能性があるため、
-            // chdirシステムコールを使用してプロセス全体のカレントディレクトリを一時的に変更する
-            // 警告: この方法はスレッドセーフではない。並列実行されるEXEC呼び出し間で
-            // カレントディレクトリが競合する可能性がある。withContext(Dispatchers.IO)によって
-            // IOディスパッチャ内で実行されるため、競合は制限されるが完全には防げない。
-            var originalCwd: String? = null
+            // cwdが指定されている場合の処理
+            // Native版ではposix_spawn_file_actions_addchdirが利用できないため、
+            // cwdが指定された場合はbashを使ってcdコマンドで作業ディレクトリを変更してから
+            // 元のコマンドを実行する方法を採用する
+            val actualProcess: String
+            val actualArgs: List<String>
+            val actualEnv: Map<String, String?>
+            
             if (cwd != null) {
-                try {
-                    // 現在の作業ディレクトリを保存
-                    memScoped {
-                        val bufferSize = 4096
-                        val buffer = allocArray<ByteVar>(bufferSize)
-                        val cwdResult = platform.posix.getcwd(buffer, bufferSize.toULong())
-                        if (cwdResult == null) {
-                            close(stdoutPipe[0])
-                            close(stdoutPipe[1])
-                            close(stderrPipe[0])
-                            close(stderrPipe[1])
-                            throw FluoriteException("Failed to get current working directory before changing to: $cwd".toFluoriteString())
-                        }
-                        originalCwd = buffer.toKString()
-                    }
-                    // 新しい作業ディレクトリに変更
-                    if (platform.posix.chdir(cwd) != 0) {
-                        close(stdoutPipe[0])
-                        close(stdoutPipe[1])
-                        close(stderrPipe[0])
-                        close(stderrPipe[1])
-                        throw FluoriteException("Failed to change directory to: $cwd".toFluoriteString())
-                    }
-                } catch (e: Throwable) {
-                    close(stdoutPipe[0])
-                    close(stdoutPipe[1])
-                    close(stderrPipe[0])
-                    close(stderrPipe[1])
-                    throw e
+                // bash経由でcdしてからコマンドを実行
+                // シェルのメタ文字をエスケープするため、printf %qを使用して安全に引数を構築
+                val commandParts = listOf(process) + args
+                val escapedCommand = commandParts.joinToString(" ") { arg ->
+                    // シングルクォートでエスケープ（シングルクォート自体は'\''で表現）
+                    "'" + arg.replace("'", "'\\''") + "'"
                 }
+                actualProcess = "bash"
+                actualArgs = listOf("-c", "cd -- ${cwd.replace("'", "'\\''")} && exec $escapedCommand")
+                actualEnv = env
+            } else {
+                actualProcess = process
+                actualArgs = args
+                actualEnv = env
             }
 
             // 引数配列を構築
             // cstrオブジェクトをリストに保持してGCから保護する
-            val cstrArgs = listOf(process.cstr) + args.map { it.cstr }
+            val cstrArgs = listOf(actualProcess.cstr) + actualArgs.map { it.cstr }
             val argv = allocArrayOf(
                 *cstrArgs.map { it.ptr }.toTypedArray(),
                 null  // 配列の終端をnullでマーク（POSIX要件）
@@ -239,7 +224,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
 
             // 環境変数配列を構築
             val mergedEnv = getEnv().toMutableMap()
-            env.forEach { (key, value) ->
+            actualEnv.forEach { (key, value) ->
                 if (value.isNullOrEmpty()) {
                     mergedEnv.remove(key)
                 } else {
@@ -257,7 +242,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
             // マルチスレッド環境でも安全に使用できる
             // pid_tは環境依存の整数型のため、pid_tVarを使用する
             val pidVar = alloc<pid_tVar>()
-            val spawnResult = posix_spawnp(pidVar.ptr, process, fileActionsPtr, null, argv, envp)
+            val spawnResult = posix_spawnp(pidVar.ptr, actualProcess, fileActionsPtr, null, argv, envp)
 
             // posix_spawnp()のエラーチェック
             // fork()とは異なり、posix_spawnp()はエラーの場合に0以外を返す（errnoではない）
@@ -270,7 +255,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                 close(stderrPipe[0])
                 close(stderrPipe[1])
                 val msg = strerror(spawnResult)?.toKString()
-                val errorMessage = "Failed to spawn process: $process (error code: $spawnResult${if (msg.isNullOrBlank()) "" else ", $msg"})"
+                val errorMessage = "Failed to spawn process: $actualProcess (error code: $spawnResult${if (msg.isNullOrBlank()) "" else ", $msg"})"
                 throw FluoriteException(errorMessage.toFluoriteString())
             }
 
@@ -497,14 +482,6 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                     close(stderrPipe[0])
                 } catch (_: Throwable) {
                     // close失敗は無視してtryブロックの例外を優先
-                }
-                // 元の作業ディレクトリに戻す
-                if (originalCwd != null) {
-                    try {
-                        platform.posix.chdir(originalCwd)
-                    } catch (_: Throwable) {
-                        // 元のディレクトリに戻せなくてもエラーは無視
-                    }
                 }
             }
         } finally {
