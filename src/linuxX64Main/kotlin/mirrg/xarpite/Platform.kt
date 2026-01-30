@@ -192,8 +192,9 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
             // 作業ディレクトリを設定（cwdが指定されている場合）
             // 注: posix_spawn_file_actions_addchdirはKotlin/Nativeのplatform.linuxに含まれていない可能性があるため、
             // chdirシステムコールを使用してプロセス全体のカレントディレクトリを一時的に変更する
-            // この方法はスレッドセーフではないが、withContext(Dispatchers.IO)によって
-            // IOディスパッチャ内で実行されるため、他のIO操作との競合は制限される
+            // 警告: この方法はスレッドセーフではない。並列実行されるEXEC呼び出し間で
+            // カレントディレクトリが競合する可能性がある。withContext(Dispatchers.IO)によって
+            // IOディスパッチャ内で実行されるため、競合は制限されるが完全には防げない。
             var originalCwd: String? = null
             if (cwd != null) {
                 try {
@@ -201,9 +202,15 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                     memScoped {
                         val bufferSize = 4096
                         val buffer = allocArray<ByteVar>(bufferSize)
-                        if (platform.posix.getcwd(buffer, bufferSize.toULong()) != null) {
-                            originalCwd = buffer.toKString()
+                        val cwdResult = platform.posix.getcwd(buffer, bufferSize.toULong())
+                        if (cwdResult == null) {
+                            close(stdoutPipe[0])
+                            close(stdoutPipe[1])
+                            close(stderrPipe[0])
+                            close(stderrPipe[1])
+                            throw FluoriteException("Failed to get current working directory before changing to: $cwd".toFluoriteString())
                         }
+                        originalCwd = buffer.toKString()
                     }
                     // 新しい作業ディレクトリに変更
                     if (platform.posix.chdir(cwd) != 0) {
