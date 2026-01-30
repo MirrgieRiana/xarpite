@@ -9,6 +9,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import okio.FileSystem
 import java.io.BufferedReader
+import java.io.File
 
 actual fun getProgramName(): String? = null
 actual fun getEnv(): Map<String, String> = System.getenv()
@@ -51,9 +52,7 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                 environment[key] = value
             }
         }
-        if (cwd != null) {
-            processBuilder.directory(java.io.File(cwd))
-        }
+        if (cwd != null) processBuilder.directory(File(cwd))
         val processInstance = processBuilder.start()
 
         try {

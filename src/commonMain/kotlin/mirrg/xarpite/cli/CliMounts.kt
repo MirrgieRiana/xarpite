@@ -1,12 +1,10 @@
 package mirrg.xarpite.cli
 
 import mirrg.xarpite.RuntimeContext
-import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
-import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
@@ -19,6 +17,7 @@ import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -108,16 +107,23 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         "EXEC" to FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>][; cwd: STRING]): STREAM<STRING>")
-            suspend fun parseNamedArguments(argument: FluoriteValue): Pair<String, Any> {
-                val entry = argument as? FluoriteArray ?: usage()
-                if (entry.values.size != 2) usage()
-                val key = entry.values[0] as? FluoriteString ?: usage()
-                val value = entry.values[1]
-                return Pair(key.value, value)
+            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>][; cwd: cwd: STRING]): STREAM<STRING>")
+            val arguments2 = arguments.toMutableList()
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            suspend fun parseCommand(commandStream: FluoriteValue): Pair<String, List<String>> {
+                val command = if (commandStream is FluoriteStream) {
+                    commandStream.toMutableList().map { it.toFluoriteString(null).value }
+                } else {
+                    listOf(commandStream.toFluoriteString(null).value)
+                }
+                if (command.isEmpty()) throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
+                return Pair(command[0], command.drop(1))
             }
-            suspend fun parseEnvOverrides(envObject: FluoriteObject): Map<String, String?> {
-                return envObject.map.mapValues { entry ->
+
+            suspend fun parseEnv(env: FluoriteObject): Map<String, String?> {
+                return env.map.mapValues { entry ->
                     val value = entry.value
                     if (value is FluoriteNull) {
                         null
@@ -126,53 +132,15 @@ fun createCliMounts(args: List<String>): List<Map<String, FluoriteValue>> {
                     }
                 }
             }
-            val commandArg: FluoriteValue
-            var env: Map<String, String?> = emptyMap()
-            var cwd: String? = null
-            when (arguments.size) {
-                1 -> {
-                    commandArg = arguments[0]
-                }
-                2 -> {
-                    commandArg = arguments[0]
-                    val (key, value) = parseNamedArguments(arguments[1])
-                    when (key) {
-                        "env" -> env = parseEnvOverrides(value as? FluoriteObject ?: usage())
-                        "cwd" -> cwd = (value as? FluoriteString ?: usage()).value
-                        else -> usage()
-                    }
-                }
-                3 -> {
-                    commandArg = arguments[0]
-                    val (key1, value1) = parseNamedArguments(arguments[1])
-                    val (key2, value2) = parseNamedArguments(arguments[2])
-                    when {
-                        key1 == "env" && key2 == "cwd" -> {
-                            env = parseEnvOverrides(value1 as? FluoriteObject ?: usage())
-                            cwd = (value2 as? FluoriteString ?: usage()).value
-                        }
-                        key1 == "cwd" && key2 == "env" -> {
-                            cwd = (value1 as? FluoriteString ?: usage()).value
-                            env = parseEnvOverrides(value2 as? FluoriteObject ?: usage())
-                        }
-                        else -> usage()
-                    }
-                }
-                else -> usage()
-            }
-            val commandList = if (commandArg is FluoriteStream) {
-                commandArg.toMutableList().map { it.toFluoriteString(null).value }
-            } else {
-                listOf(commandArg.toFluoriteString(null).value)
-            }
 
-            if (commandList.isEmpty()) {
-                throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
-            }
+            val (process, args) = parseCommand(arguments3.removeFirstOrNull() ?: usage())
+            val env = entries.remove("env")?.let { parseEnv(it as? FluoriteObject ?: usage()) } ?: emptyMap()
+            val cwd = entries.remove("cwd")?.toFluoriteString(null)?.value
 
-            val process = commandList[0]
-            val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, env, cwd)
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            val output = context.io.executeProcess(process, args, env, cwd)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
