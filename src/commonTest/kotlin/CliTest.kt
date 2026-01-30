@@ -62,6 +62,29 @@ class CliTest {
     }
 
     @Test
+    fun pwdReturnsAbsolutePath() = runTest {
+        val context = TestIoContext(currentLocation = "/absolute/path/test")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // PWD should return an absolute path (starts with /)
+        assertTrue(pwd.startsWith("/") || pwd.contains("://")) // Absolute path or URL
+    }
+
+    @Test
+    fun pwdFallbackToPlatformSpecific() = runTest {
+        // When no environment variables are set, PWD falls back to context.io.getPwd()
+        val context = TestIoContext(currentLocation = "/platform/specific/path")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables are not set, should get the test location
+        val xarpitePwd = System.getenv("XARPITE_PWD")
+        val envPwd = System.getenv("PWD")
+        if (xarpitePwd.isNullOrBlank() && envPwd.isNullOrBlank()) {
+            assertEquals("/platform/specific/path", pwd)
+        }
+        // Otherwise, just verify it's non-empty
+        assertTrue(pwd.isNotEmpty())
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
