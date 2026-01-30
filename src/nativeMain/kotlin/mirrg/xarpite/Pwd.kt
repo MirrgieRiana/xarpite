@@ -3,12 +3,14 @@ package mirrg.xarpite
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toKString
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import platform.posix.ERANGE
 import platform.posix.errno
+import platform.posix.getcwd
 import platform.posix.strerror
 
 @OptIn(ExperimentalForeignApi::class)
@@ -19,7 +21,7 @@ fun getPwdImpl(): String {
     while (true) {
         memScoped {
             val buffer = allocArray<ByteVar>(bufferSize)
-            val result = platform.posix.getcwd(buffer, bufferSize.toULong())
+            val result = getcwd(buffer, bufferSize.convert())
             if (result == null) {
                 val e = errno
                 if (e == ERANGE) {
