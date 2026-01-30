@@ -644,9 +644,9 @@ $ {
 
 ```shell
 $ {
-  xa -q 'WRITEB("tmp.bin"; 72, 101, 108, 108, 111)'
-  printf '[%s]\n' "$(cat tmp.txt)"
-  rm tmp.txt
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '[%s]\n' "$(cat tmp.bin)"
+  rm tmp.bin
 }
 # [apple]
 ```
