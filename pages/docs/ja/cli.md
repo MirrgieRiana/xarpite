@@ -687,7 +687,7 @@ $ {
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>][; cwd: STRING]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>][; cwd: cwd: STRING]): STREAM<STRING>`
 
 外部コマンドを実行します。
 
@@ -744,13 +744,6 @@ $ A=APPLE B=ANNA xa '
 ```shell
 $ xa 'EXEC("pwd"; cwd: "/tmp")'
 # /tmp
-```
-
-`cwd` と `env` は同時に指定できます。順序は任意です。
-
-```shell
-$ xa 'EXEC("bash", "-c", %>echo test:$(pwd)<%; env: {FOO: "BAR"}; cwd: "/tmp")'
-# test:/tmp
 ```
 
 ---
