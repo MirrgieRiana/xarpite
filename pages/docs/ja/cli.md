@@ -593,6 +593,61 @@ $ {
 # BLOB.of([32;33;34])
 ```
 
+### `WRITE`: テキストファイルに書き込み
+
+`WRITE(file: STRING; string: STRING): NULL`
+
+`file` で指定されたファイルに `string` をUTF-8エンコードして書き込みます。
+
+改行の付与や正規化は行われません。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple
+```
+
+### `WRITEL`: テキストファイルに行単位で書き込み
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+`file` で指定されたファイルに `lines` の各行を書き込みます。
+
+最後の行も含め、各行の末尾には `\n` が付与されます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+### `WRITEB`: バイナリファイルに書き込み
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+`file` で指定されたファイルに `blobLike` を書き込みます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
 `USE(file: STRING): VALUE`

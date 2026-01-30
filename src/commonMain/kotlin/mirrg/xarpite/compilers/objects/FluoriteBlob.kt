@@ -70,8 +70,7 @@ suspend fun FluoriteValue.toByteArrayAsBlobLike(): ByteArray {
 
                 is FluoriteArray -> {
                     item.values.forEach { value ->
-                        value as? FluoriteNumber ?: throw FluoriteException("Invalid element for BLOB: ${"$value".truncate(20)}".toFluoriteString())
-                        buffer.writeByte(value.roundToInt())
+                        processItem(value)
                     }
                 }
 

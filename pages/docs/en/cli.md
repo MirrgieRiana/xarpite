@@ -583,6 +583,63 @@ $ {
 # BLOB.of([32;33;34])
 ```
 
+### `WRITE`: Write to Text File
+
+`WRITE(file: STRING; string: STRING): NULL`
+
+Writes `string` to the file specified by `file` with UTF-8 encoding.
+
+No newline insertion or normalization is performed.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple
+```
+
+### `WRITEL`: Write to Text File Line by Line
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+Writes each line from `lines` to the file specified by `file`.
+
+`\n` is appended to the end of each line, including the last line.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+### `WRITEB`: Write to Binary File
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+Writes `blobLike` to the file specified by `file`.
+
+`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM<BLOB>, or ARRAY<NUMBER>.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
 ### `USE`: Get Result of External Xarpite File
 
 `USE(file: STRING): VALUE`

@@ -206,6 +206,96 @@ class CliTest {
     }
 
     @Test
+    fun write() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("write.test_file.tmp.txt")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // 基本的な文字列書き込み
+        cliEval(context, """WRITE(ARGS.0; "Hello World")""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("Hello World", content)
+        
+        // 改行が自動で付与されないことを確認
+        cliEval(context, """WRITE(ARGS.0; "test")""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("test", content2)
+        
+        // UTF-8エンコードの確認（日本語）
+        cliEval(context, """WRITE(ARGS.0; "こんにちは")""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("こんにちは", content3)
+        
+        // 空文字列の書き込み
+        cliEval(context, """WRITE(ARGS.0; "")""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("", content4)
+    }
+
+    @Test
+    fun writel() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("writel.test_file.tmp.txt")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // 複数行の書き込み（ストリームを使用）
+        cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("line1\nline2\nline3\n", content)
+        
+        // 単一行の書き込みでも末尾改行が付く
+        cliEval(context, """WRITEL(ARGS.0; ["single"]())""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("single\n", content2)
+        
+        // 空ストリームの場合は空ファイル
+        cliEval(context, """WRITEL(ARGS.0; []())""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("", content3)
+        
+        // 数値ストリームからの書き込み
+        cliEval(context, """WRITEL(ARGS.0; 1 .. 3)""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("1\n2\n3\n", content4)
+    }
+
+    @Test
+    fun writeb() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("writeb.test_file.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // BLOBの書き込み
+        cliEval(context, """WRITEB(ARGS.0; BLOB.of([65, 66, 67]))""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(65, 66, 67), content)
+        
+        // STREAM<BLOB>の書き込み
+        cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(1, 2, 3, 4), content2)
+        
+        // ARRAY<NUMBER>の書き込み
+        cliEval(context, """WRITEB(ARGS.0; [72, 101, 108, 108, 111])""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(72, 101, 108, 108, 111), content3)
+        assertEquals("Hello", content3.decodeToString())
+        
+        // 空のBLOBの書き込み
+        cliEval(context, """WRITEB(ARGS.0; BLOB.of([]))""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(), content4)
+        
+        // NULLバイトを含むデータ
+        cliEval(context, """WRITEB(ARGS.0; [0, 1, 0, 2, 0])""", file.toString())
+        val content5 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(0, 1, 0, 2, 0), content5)
+    }
+
+    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

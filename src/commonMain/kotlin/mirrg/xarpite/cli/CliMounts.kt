@@ -14,6 +14,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.iterateBlobs
+import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -108,6 +109,41 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
+        },
+        "WRITE" define FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITE(file: STRING; string: STRING): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val string = arguments[1].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                writeUtf8(string)
+            }
+            FluoriteNull
+        },
+        "WRITEL" define FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val lines = arguments[1].toFlow()
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                lines.collect { line ->
+                    writeUtf8(line.toFluoriteString(null).value)
+                    writeByte('\n'.code)
+                }
+            }
+            FluoriteNull
+        },
+        "WRITEB" define FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL")
+            val file = arguments[0].toFluoriteString(null).value
+            val blobLike = arguments[1]
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.write(file.toPath()) {
+                iterateBlobs(blobLike) { bytes ->
+                    write(bytes)
+                }
+            }
+            FluoriteNull
         },
         "FILES" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
