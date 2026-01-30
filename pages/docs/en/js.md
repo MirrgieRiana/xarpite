@@ -16,16 +16,16 @@ JavaScript objects are represented by the `JS_OBJECT` class.
 
 In some situations such as function calls, automatic conversion is performed between Xarpite and JavaScript.
 
-| Source<br>Xarpite | Target<br>JavaScript |
-|-------------------|----------------------|
-| `JS_OBJECT`       | As-is value          |
-| `INT`             | `Number`             |
-| `DOUBLE`          | `Number`             |
-| `STRING`          | `String`             |
-| `BOOLEAN`         | `Boolean`            |
-| `ARRAY`           | `Array`              |
-| `NULL`            | `null`               |
-| `FUNCTION`        | `Function`           |
+| Source<br>Xarpite | Target<br>JavaScript      |
+|-------------------|---------------------------|
+| `JS_OBJECT`       | As-is value               |
+| `INT`             | `Number`                  |
+| `DOUBLE`          | `Number`                  |
+| `STRING`          | `String`                  |
+| `BOOLEAN`         | `Boolean`                 |
+| `ARRAY`           | `Array`                   |
+| `NULL`            | `null`                    |
+| `FUNCTION`        | `Function`                |
 | Others            | Exception for unsupported |
 
 | Source<br>JavaScript | Target<br>Xarpite |
