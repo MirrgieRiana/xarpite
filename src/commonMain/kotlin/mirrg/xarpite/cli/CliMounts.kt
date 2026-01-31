@@ -29,7 +29,7 @@ import okio.Path.Companion.toPath
 val INB_MAX_BUFFER_SIZE = 8192
 
 context(context: RuntimeContext)
-fun createCliMounts(args: List<String>, scriptPath: String? = null): List<Map<String, Mount>> {
+fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
         "PWD" define LazyMount {

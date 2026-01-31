@@ -116,7 +116,6 @@ fun parseArguments(args: Iterable<String>): Options {
     }
 
     // -f オプションが指定された場合、ファイルからスクリプトを読み込む
-    val resolvedScriptFile = scriptFile
     if (scriptFile != null) {
         val fileSystem = getFileSystem().getOrThrow()
         script = fileSystem.read(scriptFile.toPath()) {
@@ -124,7 +123,7 @@ fun parseArguments(args: Iterable<String>): Options {
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, resolvedScriptFile)
+    return Options(script ?: throw ShowUsage, arguments, quiet, scriptFile)
 }
 
 fun showUsage() {
@@ -167,7 +166,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         
         context.setSrc("-", options.src)
         // Create static mounts (without LOCATION, which is location-specific)
-        val staticMounts = context.run { createCommonMounts() + createCliMounts(options.arguments, null) + createExtraMounts() }
+        val staticMounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             // Determine the script path for this location
