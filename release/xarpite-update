@@ -72,10 +72,14 @@ echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
 echo
-[ "${answer:0:1}" = "y" ] || [ "${answer:0:1}" = "Y" ] || {
-  rm -rf "$dir"
-  error "Cancelled."
-}
+case "$answer" in
+  [Yy]*)
+    ;;
+  *)
+    rm -rf "$dir"
+    error "Cancelled."
+    ;;
+esac
 echo "Syncing"
 rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 
