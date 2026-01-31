@@ -1301,11 +1301,11 @@ private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: Stri
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShell(script: String): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """BASH(%(xxd -r -p <<<'$hex' | bash)%)""".replace("%(", "%>").replace(")%", "<%")
+    return """BASH(%(xxd -r -p <<<'$hex')%)""".replace("%(", "%>").replace(")%", "<%")
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """BASH(%(xxd -r -p <<<'$hex' | bash)%; $args)""".replace("%(", "%>").replace(")%", "<%")
+    return """BASH(%(xxd -r -p <<<'$hex')%; $args)""".replace("%(", "%>").replace(")%", "<%")
 }
