@@ -340,6 +340,57 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+### `LOCATION`: Get Path of Currently Executing File
+
+`LOCATION: STRING | NULL`
+
+The absolute path of the currently executing Xarpite script file.
+
+This path is normalized (it does not contain `.` or `..` segments) and is an absolute path.
+
+---
+
+If the code is not loaded from a file (such as direct evaluation with the `-e` option), `NULL` is returned.
+
+```shell
+$ xa -e 'LOCATION'
+# NULL
+```
+
+---
+
+When a file is specified with the `-f` option, the absolute path of that file is stored in `LOCATION`.
+
+---
+
+In modules loaded by the `USE` function, `LOCATION` contains the absolute path of the module file itself.
+
+### `LOCATION_DIR`: Get Parent Directory of Currently Executing File
+
+`LOCATION_DIR: STRING | NULL`
+
+The absolute path of the directory containing the currently executing Xarpite script file.
+
+If the code is not loaded from a file, `NULL` is returned.
+
+```shell
+$ xa -e 'LOCATION_DIR'
+# NULL
+```
+
+### `LOCATION_FILE`: Get Name of Currently Executing File
+
+`LOCATION_FILE: STRING | NULL`
+
+The filename (without directory path) of the currently executing Xarpite script file.
+
+If the code is not loaded from a file, `NULL` is returned.
+
+```shell
+$ xa -e 'LOCATION_FILE'
+# NULL
+```
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
