@@ -1168,7 +1168,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             // 引数を渡す
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """("apple", "banana")"""))
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """["apple", "banana"]"""))
             val output = result.toFluoriteString(null).value
             assertEquals("apple banana", output)
         } catch (e: WorkInProgressError) {
@@ -1181,7 +1181,7 @@ class CliTest {
         val context = TestIoContext()
         try {
             // 引数を渡して複数行出力
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """("The fruit is:", "apple")"""))
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """["The fruit is:", "apple"]"""))
             val output = result.toFluoriteString(null).value
             assertEquals("The fruit is:\napple", output)
         } catch (e: WorkInProgressError) {
