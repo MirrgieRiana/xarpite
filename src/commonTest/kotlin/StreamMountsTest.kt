@@ -25,6 +25,15 @@ class StreamMountsTest {
     }
 
     @Test
+    fun indexed() = runTest {
+        assertEquals("[0;1],[1;2],[2;3]", eval("INDEXED(1, 2, 3)").stream()) // INDEXED でストリームの各要素にインデックスを付与する
+        assertEquals("[0;1]", eval("INDEXED(1)").stream()) // 1要素のストリームでも動作する
+        assertEquals("[0;10],[1;20],[2;30]", eval("INDEXED(10, 20, 30)").stream()) // インデックスは0から始まる
+        assertEquals("", eval("INDEXED(,)").stream()) // 空ストリームの場合、空ストリームになる
+        assertEquals("[0;5]", eval("INDEXED(5)").stream()) // 非ストリームの場合、インデックス0と要素のペアを返す
+    }
+
+    @Test
     fun takeDrop() = runTest {
         assertEquals("1,2", eval("TAKE(2; 1, 2, 3)").stream()) // TAKE で先頭を取得
         assertEquals("1,2", eval("TAKE(2; 1, 2)").stream()) // 要素が丁度の場合はそのまま返す

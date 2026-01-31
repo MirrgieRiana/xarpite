@@ -546,6 +546,24 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
             }
         },
+        "INDEXED" define FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                FluoriteStream {
+                    var index = 0
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            emit(FluoriteArray(mutableListOf(FluoriteInt(index), item)))
+                            index++
+                        }
+                    } else {
+                        emit(FluoriteArray(mutableListOf(FluoriteInt(0), stream)))
+                    }
+                }
+            } else {
+                usage("<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>")
+            }
+        },
         "TAKE" define FluoriteFunction { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
