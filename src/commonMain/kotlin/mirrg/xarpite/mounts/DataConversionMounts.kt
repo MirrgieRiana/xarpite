@@ -163,7 +163,17 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
 
             val (entries, arguments3) = arguments2.partitionIfEntry()
 
-            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value
+            suspend fun parseIndent(rawIndent: FluoriteValue?): String? {
+                val indentString = rawIndent?.toFluoriteString(null)?.value ?: return null
+                val indentNumber = indentString.toIntOrNull()
+                if (indentNumber != null) {
+                    if (indentNumber <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
+                    return " ".repeat(indentNumber)
+                }
+                return indentString
+            }
+
+            val indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
 
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
@@ -185,7 +195,17 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
 
             val (entries, arguments3) = arguments2.partitionIfEntry()
 
-            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value
+            suspend fun parseIndent(rawIndent: FluoriteValue?): String? {
+                val indentString = rawIndent?.toFluoriteString(null)?.value ?: return null
+                val indentNumber = indentString.toIntOrNull()
+                if (indentNumber != null) {
+                    if (indentNumber <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
+                    return " ".repeat(indentNumber)
+                }
+                return indentString
+            }
+
+            val indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
 
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
