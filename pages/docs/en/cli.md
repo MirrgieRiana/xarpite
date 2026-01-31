@@ -657,7 +657,11 @@ $ {
 
 ---
 
-`file` must start with `./` or `/`.
+`file` can be specified in one of the following formats.
+
+#### Specification by File Path
+
+If `file` starts with `./` or `/`, it is interpreted as a file path.
 
 If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
 
@@ -670,6 +674,24 @@ If it starts with `/`, it is interpreted as an absolute path.
 In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
 
 The directory separator character is `/` regardless of the OS on which it is executed.
+
+#### Specification by Maven Coordinate Format
+
+If `file` does not start with `./` or `/` and contains a colon `:`, it is interpreted as a Maven coordinate format and searches for module files from the `./.xarpite` directory.
+
+Maven coordinate format is specified as `"group:artifact:version"` or `"group:artifact"`.
+
+Dots `.` in the `group` part are converted to directory separator characters `/`.
+
+- For `"group:artifact:version"`, `./.xarpite/group/artifact/version.xa1` is loaded.
+- For `"group:artifact"`, `./.xarpite/group/artifact.xa1` is loaded.
+- If `group` is like `com.example`, it is converted to `com/example`.
+
+For example, if you write `USE("com.example:utils:1.0.0")`, `./.xarpite/com/example/utils/1.0.0.xa1` is loaded.
+
+The `./.xarpite` directory is resolved from the directory where the file that called the `USE` function is located.
+
+If the code is specified directly on the command line, the `./.xarpite` directory is resolved from the current directory.
 
 ```shell
 $ {
@@ -694,6 +716,31 @@ $ {
   rmdir modules
 }
 # Banana
+```
+
+---
+
+Example using Maven coordinate format:
+
+```shell
+$ {
+  mkdir -p .xarpite/com/example/utils
+  echo '
+    {
+      add: (a; b) -> a + b
+    }
+  ' > .xarpite/com/example/utils/1.0.0.xa1
+  xa '
+    @USE("com.example:utils:1.0.0")
+    add(10; 20)
+  '
+  rm .xarpite/com/example/utils/1.0.0.xa1
+  rmdir .xarpite/com/example/utils
+  rmdir .xarpite/com/example
+  rmdir .xarpite/com
+  rmdir .xarpite
+}
+# 30
 ```
 
 ---

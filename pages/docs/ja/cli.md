@@ -665,7 +665,11 @@ $ {
 
 ---
 
-`file` は `./` または `/` で始まる必要があります。
+`file` は以下のいずれかの形式で指定します。
+
+#### ファイルパスによる指定
+
+`file` が `./` または `/` で始まる場合、ファイルパスとして解釈されます。
 
 `./` で始まる場合、 `USE` 関数を呼び出したファイルからの相対パスとして解釈されます。
 
@@ -678,6 +682,24 @@ $ {
 `file` では拡張子の `.xa1` は省略可能です。 `USE("./banana")` と記述した場合、 `./banana` が存在すればそれ、そうでなければ `./banana.xa1` が読み込まれます。
 
 ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用します。
+
+#### Maven座標形式による指定
+
+`file` が `./` または `/` で始まらず、かつコロン `:` を含む場合、Maven座標形式として解釈され、 `./.xarpite` ディレクトリ内からモジュールファイルを検索します。
+
+Maven座標形式は `"group:artifact:version"` または `"group:artifact"` の形式で指定します。
+
+`group` 部分に含まれるドット `.` はディレクトリ区切り文字 `/` に変換されます。
+
+- `"group:artifact:version"` の場合、 `./.xarpite/group/artifact/version.xa1` が読み込まれます。
+- `"group:artifact"` の場合、 `./.xarpite/group/artifact.xa1` が読み込まれます。
+- `group` が `com.example` のような場合、 `com/example` に変換されます。
+
+例えば、 `USE("com.example:utils:1.0.0")` と記述した場合、 `./.xarpite/com/example/utils/1.0.0.xa1` が読み込まれます。
+
+`./.xarpite` ディレクトリは、 `USE` 関数を呼び出したファイルが存在するディレクトリを起点として解決されます。
+
+コードがコマンドライン上で直接指定された場合、 `./.xarpite` ディレクトリはカレントディレクトリ内から解決されます。
 
 ```shell
 $ {
@@ -702,6 +724,31 @@ $ {
   rmdir modules
 }
 # Banana
+```
+
+---
+
+Maven座標形式を使用した例：
+
+```shell
+$ {
+  mkdir -p .xarpite/com/example/utils
+  echo '
+    {
+      add: (a; b) -> a + b
+    }
+  ' > .xarpite/com/example/utils/1.0.0.xa1
+  xa '
+    @USE("com.example:utils:1.0.0")
+    add(10; 20)
+  '
+  rm .xarpite/com/example/utils/1.0.0.xa1
+  rmdir .xarpite/com/example/utils
+  rmdir .xarpite/com/example
+  rmdir .xarpite/com
+  rmdir .xarpite
+}
+# 30
 ```
 
 ---
