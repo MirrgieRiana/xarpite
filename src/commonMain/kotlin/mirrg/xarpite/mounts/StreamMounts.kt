@@ -417,6 +417,65 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("FIRST(stream: STREAM<VALUE>): VALUE")
             }
         },
+        "GET" define FluoriteFunction { arguments ->
+            if (arguments.size == 2) {
+                val indices = arguments[0]
+                val stream = arguments[1]
+
+                // Check if indices is a stream
+                if (indices is FluoriteStream) {
+                    // Return a stream of elements at the specified indices
+                    FluoriteStream {
+                        indices.collect { indexValue ->
+                            val index = indexValue.toFluoriteNumber(null).roundToInt()
+                            if (stream is FluoriteStream) {
+                                var currentIndex = 0
+                                var result: FluoriteValue? = null
+                                try {
+                                    stream.collect { item ->
+                                        if (currentIndex == index) {
+                                            result = item
+                                            throw IterationAborted
+                                        }
+                                        currentIndex++
+                                    }
+                                } catch (_: IterationAborted) {
+
+                                }
+                                emit(result ?: FluoriteNull)
+                            } else {
+                                // Non-stream: only index 0 is valid
+                                emit(if (index == 0) stream else FluoriteNull)
+                            }
+                        }
+                    }
+                } else {
+                    // Single index, return single value
+                    val index = indices.toFluoriteNumber(null).roundToInt()
+                    if (stream is FluoriteStream) {
+                        var currentIndex = 0
+                        var result: FluoriteValue? = null
+                        try {
+                            stream.collect { item ->
+                                if (currentIndex == index) {
+                                    result = item
+                                    throw IterationAborted
+                                }
+                                currentIndex++
+                            }
+                        } catch (_: IterationAborted) {
+
+                        }
+                        result ?: FluoriteNull
+                    } else {
+                        // Non-stream: only index 0 is valid
+                        if (index == 0) stream else FluoriteNull
+                    }
+                }
+            } else {
+                usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T>")
+            }
+        },
         "LAST" define FluoriteFunction { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]
