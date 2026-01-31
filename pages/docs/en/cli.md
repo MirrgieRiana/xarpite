@@ -838,64 +838,49 @@ The return value is not a stream that sequentially reads the process's standard 
 
 **Also, this function is currently only provided in the JVM version.**
 
-### `BASH`: Execute Bash shell scripts
+### `BASH`: Execute Bash scripts
 
-`BASH(script: STRING): STRING`
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
 
-Executes a Bash shell script and returns its standard output as a string.
+Executes `script` as a Bash script, decodes its standard output as UTF-8, and returns it as a string.
 
-`script` specifies the shell script to execute in Bash.
+Trailing newlines in the output are removed.
 
-The return value is the standard output of the execution result decoded as UTF-8.
-
-If a trailing newline `\n` exists, it is removed.
-
-This is the same behavior as Bash's `"$()"` command substitution.
+This behavior is similar to Bash's `"$(...)"`.
 
 ```shell
-$ xa 'BASH("echo Hello")'
-# Hello
-```
-
-```shell
-$ xa 'BASH("seq 1 3 | tr '\''\n'\'' '\'' '\''")' 
-# 1 2 3
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
 ```
 
 ---
 
-This function internally executes the command `bash -c <script>`.
-
-Specifying environment variables and other Bash options are not supported.
-
-If you need those features, use the `EXEC` function.
+If the `args` argument is specified, you can pass arguments to the Bash script.
 
 ```shell
-$ xa 'EXEC("bash", "-c", "echo Hello")'
-# Hello
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
 ```
 
 ---
 
-If the called process exits with a non-zero exit code, an exception is thrown.
+This function internally executes the `bash` command.
 
-```shell
-$ xa 'BASH("exit 1") !? "ERROR"'
-# ERROR
-```
+An error will occur in environments where the `bash` command is not available.
 
 ---
 
-The standard error output of the called process is redirected to Xarpite's standard error output.
-
-```shell
-$ xa -q 'BASH("echo '\''ERROR'\'' 1>&2")' 2>&1
-# ERROR
-```
-
----
-
-The called process is managed in a separate thread, and the main thread suspends without blocking.
+Other behavior generally follows the specifications of the `EXEC` function.
 
 ---
 

@@ -1083,10 +1083,10 @@ class CliTest {
     }
 
     @Test
-    fun bashRemovesMultipleTrailingNewlines() = runTest {
+    fun bashRemovesOnlyOneTrailingNewline() = runTest {
         val context = TestIoContext()
         try {
-            // 複数の末尾改行が除去されることを確認
+            // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
             val output = result.toFluoriteString(null).value
             assertEquals("test\n\n", output)
@@ -1158,6 +1158,32 @@ class CliTest {
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
             val output = result.toFluoriteString(null).value
             assertEquals("こんにちは世界", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArguments() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡す
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """("apple", "banana")"""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("apple banana", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArgumentsMultipleLines() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡して複数行出力
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """("The fruit is:", "apple")"""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("The fruit is:\napple", output)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1276,4 +1302,10 @@ private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: Stri
 private fun getBashSrcWrappingHexForShell(script: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """BASH(%(xxd -r -p <<<'$hex' | bash)%)""".replace("%(", "%>").replace(")%", "<%")
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """BASH(%(xxd -r -p <<<'$hex' | bash)%; $args)""".replace("%(", "%>").replace(")%", "<%")
 }
