@@ -1300,14 +1300,16 @@ private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: Stri
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShell(script: String): String {
-    val hex = script.encodeToByteArray().toHexString()
-    // BASH関数自体がbashを呼ぶので、内部でbash -cを使って16進デコード+実行
-    return """BASH(%(xxd -r -p <<<'$hex')%)""".replace("%(", "%>").replace(")%", "<%")
+    // BASH関数は直接スクリプトを受け取るが、テスト環境で$などの問題を避けるため、
+    // 単一引用符で囲む
+    val escaped = script.replace("'", "'\\''")
+    return """BASH('$escaped')"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
-    val hex = script.encodeToByteArray().toHexString()
-    // BASH関数自体がbashを呼ぶので、内部でbash -cを使って16進デコード+実行
-    return """BASH(%(xxd -r -p <<<'$hex')%; $args)""".replace("%(", "%>").replace(")%", "<%")
+    // BASH関数は直接スクリプトを受け取るが、テスト環境で$などの問題を避けるため、
+    // 単一引用符で囲む
+    val escaped = script.replace("'", "'\\''")
+    return """BASH('$escaped'; $args)"""
 }
