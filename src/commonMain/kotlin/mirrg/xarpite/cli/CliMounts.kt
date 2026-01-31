@@ -211,7 +211,9 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
 
-            val output = context.io.executeProcess("bash", listOf("-c", script, *args), emptyMap())
+            // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
+            // ダミーの$0として"bash"を挿入
+            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
 
             val result = when {
                 output.endsWith("\r\n") -> output.dropLast(2)
