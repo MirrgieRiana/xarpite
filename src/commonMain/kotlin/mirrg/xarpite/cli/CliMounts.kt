@@ -13,6 +13,7 @@ import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -24,6 +25,7 @@ import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -196,16 +198,26 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
         },
         "BASH" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("BASH(script: STRING): STRING")
-            val script = arguments[0].toFluoriteString(null).value
-            
-            val output = context.io.executeProcess("bash", listOf("-c", script), emptyMap())
-            
-            // 末尾の改行を除去（$(...)と同じ動作）
-            val result = if (output.endsWith("\n")) {
-                output.dropLast(1)
-            } else {
-                output
+            fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")
+            val arguments2 = arguments.toMutableList()
+
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            suspend fun FluoriteValue.parseArgs() = this.consumeToMutableList().map { it.toFluoriteString(null).value }.toTypedArray()
+            val args = arguments3.removeFirstOrNull()?.parseArgs() ?: emptyArray()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            val output = context.io.executeProcess("bash", listOf("-c", script, *args), emptyMap())
+
+            val result = when {
+                output.endsWith("\r\n") -> output.dropLast(2)
+                output.endsWith("\r") -> output.dropLast(1)
+                output.endsWith("\n") -> output.dropLast(1)
+                else -> output
             }
             result.toFluoriteString()
         },
