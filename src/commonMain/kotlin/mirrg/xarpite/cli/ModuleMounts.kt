@@ -43,7 +43,24 @@ private fun resolveModulePath(baseDir: Path, file: String): Path? {
     val modulePath = when {
         file.startsWith("./") -> baseDir.resolve(file.drop(2).toPath()).normalized()
         file.startsWith("/") -> file.toPath().normalized()
-        else -> throw FluoriteException("""Module file path must start with "./" or "/".""".toFluoriteString())
+        file.contains(":") -> {
+            // Maven coordinate format: "group:artifact:version" or "group:artifact"
+            val parts = file.split(":")
+            if (parts.size < 2 || parts.size > 3) {
+                throw FluoriteException("""Invalid Maven coordinate format: $file. Expected "group:artifact" or "group:artifact:version".""".toFluoriteString())
+            }
+            val group = parts[0].replace(".", "/")
+            val artifact = parts[1]
+            val version = parts.getOrNull(2)
+            
+            val relativePath = if (version != null) {
+                "$group/$artifact/$version"
+            } else {
+                "$group/$artifact"
+            }
+            baseDir.resolve(".xarpite").resolve(relativePath.toPath()).normalized()
+        }
+        else -> throw FluoriteException("""Module file path must start with "./", "/", or be in Maven coordinate format (containing ":").""".toFluoriteString())
     }
     if (getFileSystem().getOrThrow().exists(modulePath)) return modulePath
 
