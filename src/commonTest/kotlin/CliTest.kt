@@ -1300,16 +1300,12 @@ private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: Stri
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShell(script: String): String {
-    // BASH関数は直接スクリプトを受け取るが、テスト環境で$などの問題を避けるため、
-    // 単一引用符で囲む
-    val escaped = script.replace("'", "'\\''")
-    return """BASH('$escaped')"""
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%)"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
-    // BASH関数は直接スクリプトを受け取るが、テスト環境で$などの問題を避けるため、
-    // 単一引用符で囲む
-    val escaped = script.replace("'", "'\\''")
-    return """BASH('$escaped'; $args)"""
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%; $args)"""
 }
