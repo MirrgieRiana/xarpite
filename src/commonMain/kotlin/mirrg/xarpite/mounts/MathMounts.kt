@@ -52,10 +52,10 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 1 -> when (val number = arguments[0]) {
                     is FluoriteDouble -> FluoriteInt(floor(number.value).toInt())
                     is FluoriteInt -> number
-                    else -> usage("FLOOR(number: NUMBER): INTEGER")
+                    else -> usage("FLOOR(number: NUMBER): INT")
                 }
 
-                else -> usage("FLOOR(number: NUMBER): INTEGER")
+                else -> usage("FLOOR(number: NUMBER): INT")
             }
         },
         "DIV" define FluoriteFunction { arguments ->
