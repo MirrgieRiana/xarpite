@@ -741,11 +741,11 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` / `GREP` Filter Stream by Condition
 
-`GREP` is an alias of `FILTER` and has the same behavior.
-
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
