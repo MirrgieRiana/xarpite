@@ -156,7 +156,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             buffer.readUtf8().toFluoriteString()
         },
         *run {
-            suspend fun parseIndent(indent: FluoriteValue): String? {
+            suspend fun parseIndent(indent: FluoriteValue): String {
                 return if (indent is FluoriteNumber) {
                     val number = indent.roundToInt()
                     if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
