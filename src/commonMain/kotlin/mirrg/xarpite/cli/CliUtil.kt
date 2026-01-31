@@ -15,9 +15,23 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
+import okio.Path
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
+/**
+ * Resolves a file path to an absolute path using the current working directory.
+ * Similar to the PWD mechanism.
+ */
+fun resolveAbsolutePath(filePath: String, pwd: String): String {
+    val path = filePath.toPath()
+    return if (path.isAbsolute) {
+        path.normalized().toString()
+    } else {
+        pwd.toPath().resolve(path).normalized().toString()
+    }
+}
+
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFilePath: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -102,6 +116,7 @@ fun parseArguments(args: Iterable<String>): Options {
     }
 
     // -f オプションが指定された場合、ファイルからスクリプトを読み込む
+    val resolvedScriptFile = scriptFile
     if (scriptFile != null) {
         val fileSystem = getFileSystem().getOrThrow()
         script = fileSystem.read(scriptFile.toPath()) {
@@ -109,7 +124,7 @@ fun parseArguments(args: Iterable<String>): Options {
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet)
+    return Options(script ?: throw ShowUsage, arguments, quiet, resolvedScriptFile)
 }
 
 fun showUsage() {
@@ -141,8 +156,17 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        // Resolve absolute path for the script file if provided
+        val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
+            val env = getEnv()
+            val pwd = env["XARPITE_PWD"]?.takeIf { it.isNotBlank() } 
+                ?: env["PWD"]?.takeIf { it.isNotBlank() } 
+                ?: ioContext.getPwd()
+            resolveAbsolutePath(scriptFile, pwd)
+        }
+        
         context.setSrc("-", options.src)
-        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments, absoluteScriptPath) + createExtraMounts() }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }

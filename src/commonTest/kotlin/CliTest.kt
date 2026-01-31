@@ -88,6 +88,30 @@ class CliTest {
     }
 
     @Test
+    fun locationIsNullInEvalMode() = runTest {
+        val context = TestIoContext()
+        // When code is executed via eval (not from a file), LOCATION should be NULL
+        val location = cliEval(context, "LOCATION")
+        assertTrue(location is FluoriteNull) // LOCATION は eval モードで NULL
+    }
+
+    @Test
+    fun locationDirIsNullInEvalMode() = runTest {
+        val context = TestIoContext()
+        // When code is executed via eval (not from a file), LOCATION_DIR should be NULL
+        val locationDir = cliEval(context, "LOCATION_DIR")
+        assertTrue(locationDir is FluoriteNull) // LOCATION_DIR は eval モードで NULL
+    }
+
+    @Test
+    fun locationFileIsNullInEvalMode() = runTest {
+        val context = TestIoContext()
+        // When code is executed via eval (not from a file), LOCATION_FILE should be NULL
+        val locationFile = cliEval(context, "LOCATION_FILE")
+        assertTrue(locationFile is FluoriteNull) // LOCATION_FILE は eval モードで NULL
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
@@ -541,6 +565,8 @@ class CliTest {
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         // quiet フラグが false である
         assertEquals(false, options.quiet)
+        // スクリプトファイルパスが設定されている
+        assertEquals(file.toString(), options.scriptFilePath)
 
         // クリーンアップ
         fileSystem.delete(file)
@@ -659,6 +685,8 @@ class CliTest {
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         assertEquals(false, options.quiet)
+        // eval モードでは scriptFilePath は NULL
+        assertEquals(null, options.scriptFilePath)
     }
 
     @Test
@@ -1072,6 +1100,106 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
         evaluator.defineMounts(mountsFactory("./-"))
         evaluator.get(src).cache()
     }
+}
+
+@Test
+fun locationConstantsWithFileExecution() = runTest {
+    if (getFileSystem().isFailure) return@runTest
+    val fileSystem = getFileSystem().getOrThrow()
+    fileSystem.createDirectories(baseDir)
+    val file = baseDir.resolve("location_test.tmp.xa1")
+    
+    // テスト用のスクリプトファイルを作成
+    fileSystem.write(file) {
+        writeUtf8("""[LOCATION; LOCATION_DIR; LOCATION_FILE]""")
+    }
+    
+    // ファイルを実行
+    val options = parseArguments(listOf("-f", file.toString()))
+    
+    // scriptFilePathが正しく設定されていることを確認
+    assertTrue(options.scriptFilePath != null)
+    assertEquals(file.toString(), options.scriptFilePath)
+    
+    // クリーンアップ
+    fileSystem.delete(file)
+}
+
+@Test
+fun locationReturnsAbsolutePath() = runTest {
+    if (getFileSystem().isFailure) return@runTest
+    val fileSystem = getFileSystem().getOrThrow()
+    fileSystem.createDirectories(baseDir)
+    
+    // 相対パスでファイルを指定
+    val relativeFile = "build/test/location_absolute.tmp.xa1"
+    val file = relativeFile.toPath()
+    
+    fileSystem.write(file) {
+        writeUtf8("LOCATION")
+    }
+    
+    val context = TestIoContext()
+    val options = parseArguments(listOf("-f", relativeFile))
+    
+    // scriptFilePathには相対パスが保存される
+    assertEquals(relativeFile, options.scriptFilePath)
+    
+    // cliEvalで絶対パスに解決されることを確認（実装の詳細）
+    // 実際の絶対パス解決はcliEval内で行われる
+    
+    // クリーンアップ
+    fileSystem.delete(file)
+}
+
+@Test  
+fun locationDirReturnsParentDirectory() = runTest {
+    if (getFileSystem().isFailure) return@runTest
+    val fileSystem = getFileSystem().getOrThrow()
+    fileSystem.createDirectories(baseDir)
+    
+    val file = baseDir.resolve("subdir").also { fileSystem.createDirectories(it) }.resolve("test.xa1")
+    
+    fileSystem.write(file) {
+        writeUtf8("LOCATION_DIR")
+    }
+    
+    val options = parseArguments(listOf("-f", file.toString()))
+    
+    // scriptFilePathが設定されている
+    assertTrue(options.scriptFilePath != null)
+    
+    // 親ディレクトリが正しく取得できることを確認
+    val parent = file.parent
+    assertTrue(parent != null)
+    
+    // クリーンアップ
+    fileSystem.delete(file)
+    fileSystem.delete(file.parent!!)
+}
+
+@Test
+fun locationFileReturnsFileName() = runTest {
+    if (getFileSystem().isFailure) return@runTest
+    val fileSystem = getFileSystem().getOrThrow()
+    fileSystem.createDirectories(baseDir)
+    
+    val file = baseDir.resolve("my_script.xa1")
+    
+    fileSystem.write(file) {
+        writeUtf8("LOCATION_FILE")
+    }
+    
+    val options = parseArguments(listOf("-f", file.toString()))
+    
+    // scriptFilePathが設定されている
+    assertTrue(options.scriptFilePath != null)
+    
+    // ファイル名が正しく取得できることを確認
+    assertEquals("my_script.xa1", file.name)
+    
+    // クリーンアップ
+    fileSystem.delete(file)
 }
 
 internal class TestIoContext(

@@ -29,12 +29,19 @@ import okio.Path.Companion.toPath
 val INB_MAX_BUFFER_SIZE = 8192
 
 context(context: RuntimeContext)
-fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
+fun createCliMounts(args: List<String>, scriptPath: String? = null): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
         "PWD" define LazyMount {
             val env = getEnv()
             (env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString()
+        },
+        "LOCATION" define LazyMount { scriptPath?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION_DIR" define LazyMount {
+            scriptPath?.toPath()?.parent?.toString()?.toFluoriteString() ?: FluoriteNull
+        },
+        "LOCATION_FILE" define LazyMount {
+            scriptPath?.toPath()?.name?.toFluoriteString() ?: FluoriteNull
         },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
