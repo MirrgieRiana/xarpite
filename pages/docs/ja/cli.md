@@ -557,6 +557,69 @@ $ {
 # file
 ```
 
+### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+`dir` で指定されたディレクトリの配下にあるすべてのファイルとディレクトリのパスをストリームとして返します。
+
+返されるパスは `dir` からの相対パスです。
+
+空のディレクトリも結果に含まれます。
+
+返されるパスは辞書順にソートされます。
+
+```shell
+$ {
+  mkdir -p tmp/a/b
+  touch tmp/a/file1.txt
+  touch tmp/a/b/file2.txt
+  mkdir tmp/c
+  xa 'TREE("tmp")'
+  rm tmp/a/b/file2.txt
+  rm tmp/a/file1.txt
+  rmdir tmp/a/b
+  rmdir tmp/a
+  rmdir tmp/c
+  rmdir tmp
+}
+# a
+# a/b
+# a/b/file2.txt
+# a/file1.txt
+# c
+```
+
+### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+`dir` で指定されたディレクトリの配下にあるすべてのファイルのパスをストリームとして返します。
+
+ディレクトリは結果に含まれません。
+
+返されるパスは `dir` からの相対パスです。
+
+返されるパスは辞書順にソートされます。
+
+```shell
+$ {
+  mkdir -p tmp/a/b
+  touch tmp/a/file1.txt
+  touch tmp/a/b/file2.txt
+  mkdir tmp/c
+  xa 'FILE_TREE("tmp")'
+  rm tmp/a/b/file2.txt
+  rm tmp/a/file1.txt
+  rmdir tmp/a/b
+  rmdir tmp/a
+  rmdir tmp/c
+  rmdir tmp
+}
+# a/b/file2.txt
+# a/file1.txt
+```
+
 ### `READ`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`

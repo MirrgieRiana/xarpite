@@ -322,6 +322,62 @@ class CliTest {
     }
 
     @Test
+    fun tree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("a/b"))
+        fileSystem.write(dir.resolve("a/file1.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("a/b/file2.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("c"))
+
+        // TREE 関数でファイルとディレクトリの一覧を取得
+        val result = cliEval(context, "TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリも含めて、アルファベット順にソートされて返される
+        assertEquals("a,a/b,a/b/file2.txt,a/file1.txt,c", result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("a/b/file2.txt"))
+        fileSystem.delete(dir.resolve("a/file1.txt"))
+        fileSystem.delete(dir.resolve("a/b"))
+        fileSystem.delete(dir.resolve("a"))
+        fileSystem.delete(dir.resolve("c"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun fileTree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("file_tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("a/b"))
+        fileSystem.write(dir.resolve("a/file1.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("a/b/file2.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("c"))
+
+        // FILE_TREE 関数でファイルのみの一覧を取得
+        val result = cliEval(context, "FILE_TREE(ARGS.0)", dir.toString()).stream()
+
+        // ファイルのみ、アルファベット順にソートされて返される
+        assertEquals("a/b/file2.txt,a/file1.txt", result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("a/b/file2.txt"))
+        fileSystem.delete(dir.resolve("a/file1.txt"))
+        fileSystem.delete(dir.resolve("a/b"))
+        fileSystem.delete(dir.resolve("a"))
+        fileSystem.delete(dir.resolve("c"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useEvaluatesFile() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

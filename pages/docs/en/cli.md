@@ -547,6 +547,69 @@ $ {
 # file
 ```
 
+### `TREE`: Get All Files and Directories Under Directory
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream of all file and directory paths under the directory specified by `dir`.
+
+Returned paths are relative to `dir`.
+
+Empty directories are included in the result.
+
+Returned paths are sorted in lexicographic order.
+
+```shell
+$ {
+  mkdir -p tmp/a/b
+  touch tmp/a/file1.txt
+  touch tmp/a/b/file2.txt
+  mkdir tmp/c
+  xa 'TREE("tmp")'
+  rm tmp/a/b/file2.txt
+  rm tmp/a/file1.txt
+  rmdir tmp/a/b
+  rmdir tmp/a
+  rmdir tmp/c
+  rmdir tmp
+}
+# a
+# a/b
+# a/b/file2.txt
+# a/file1.txt
+# c
+```
+
+### `FILE_TREE`: Get All Files Under Directory
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream of all file paths under the directory specified by `dir`.
+
+Directories are not included in the result.
+
+Returned paths are relative to `dir`.
+
+Returned paths are sorted in lexicographic order.
+
+```shell
+$ {
+  mkdir -p tmp/a/b
+  touch tmp/a/file1.txt
+  touch tmp/a/b/file2.txt
+  mkdir tmp/c
+  xa 'FILE_TREE("tmp")'
+  rm tmp/a/b/file2.txt
+  rm tmp/a/file1.txt
+  rmdir tmp/a/b
+  rmdir tmp/a
+  rmdir tmp/c
+  rmdir tmp
+}
+# a/b/file2.txt
+# a/file1.txt
+```
+
 ### `READ`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`

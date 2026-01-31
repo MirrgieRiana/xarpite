@@ -151,6 +151,55 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             val fileSystem = getFileSystem().getOrThrow()
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
+        *run {
+            fun create(containsDirectories: Boolean): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("${if (containsDirectories) "TREE" else "FILE_TREE"}(dir: STRING): STREAM<STRING>")
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    val basePath = dir.toPath()
+                    
+                    fun collectPaths(relativePath: String): List<String> {
+                        val fullPath = basePath.resolve(relativePath)
+                        val result = mutableListOf<String>()
+                        
+                        try {
+                            val metadata = fileSystem.metadata(fullPath)
+                            
+                            if (metadata.isDirectory) {
+                                if (containsDirectories && relativePath.isNotEmpty()) {
+                                    result.add(relativePath)
+                                }
+                                
+                                val children = fileSystem.list(fullPath)
+                                    .map { it.name }
+                                    .sorted()
+                                
+                                for (child in children) {
+                                    val childRelativePath = if (relativePath.isEmpty()) child else "$relativePath/$child"
+                                    result.addAll(collectPaths(childRelativePath))
+                                }
+                            } else {
+                                // ファイル
+                                if (relativePath.isNotEmpty()) {
+                                    result.add(relativePath)
+                                }
+                            }
+                        } catch (_: Exception) {
+                            // ファイルにアクセスできない場合はスキップ
+                        }
+                        
+                        return result
+                    }
+                    
+                    collectPaths("").map { it.toFluoriteString() }.toFluoriteStream()
+                }
+            }
+            arrayOf(
+                "TREE" define create(true),
+                "FILE_TREE" define create(false),
+            )
+        },
         "EXEC" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
             suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
