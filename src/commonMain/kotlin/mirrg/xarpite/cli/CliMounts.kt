@@ -152,29 +152,28 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
         },
         *run {
-            fun create(containsDirectories: Boolean): FluoriteFunction {
+            fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size != 1) usage("${if (containsDirectories) "TREE" else "FILE_TREE"}(dir: STRING): STREAM<STRING>")
-                    val dir = arguments[0].toFluoriteString(null).value
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dir = arguments[0].toFluoriteString(null).value.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
-                    val basePath = dir.toPath()
-                    
+
                     fun collectPaths(relativePath: String): List<String> {
-                        val fullPath = basePath.resolve(relativePath)
+                        val fullPath = dir.resolve(relativePath)
                         val result = mutableListOf<String>()
-                        
+
                         try {
                             val metadata = fileSystem.metadata(fullPath)
-                            
+
                             if (metadata.isDirectory) {
-                                if (containsDirectories && relativePath.isNotEmpty()) {
+                                if (includeDirectories && relativePath.isNotEmpty()) {
                                     result.add(relativePath)
                                 }
-                                
+
                                 val children = fileSystem.list(fullPath)
                                     .map { it.name }
                                     .sorted()
-                                
+
                                 for (child in children) {
                                     val childRelativePath = if (relativePath.isEmpty()) child else "$relativePath/$child"
                                     result.addAll(collectPaths(childRelativePath))
@@ -188,16 +187,16 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                         } catch (_: Exception) {
                             // ファイルにアクセスできない場合はスキップ
                         }
-                        
+
                         return result
                     }
-                    
+
                     collectPaths("").map { it.toFluoriteString() }.toFluoriteStream()
                 }
             }
             arrayOf(
-                "TREE" define create(true),
-                "FILE_TREE" define create(false),
+                "TREE" define create("TREE", true),
+                "FILE_TREE" define create("FILE_TREE", false),
             )
         },
         "EXEC" define FluoriteFunction { arguments ->
