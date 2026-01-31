@@ -483,17 +483,16 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val xarpiteDir = baseDir.resolve(".xarpite/com/example/utils")
+        val xarpiteDir = ".xarpite/com/example/utils".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
-        fileSystem.delete(xarpiteDir.parent!!)
-        fileSystem.delete(xarpiteDir.parent!!.parent!!)
-        fileSystem.delete(baseDir.resolve(".xarpite"))
+        fileSystem.delete(".xarpite/com/example".toPath())
+        fileSystem.delete(".xarpite/com".toPath())
+        fileSystem.delete(".xarpite".toPath())
     }
 
     @Test
@@ -501,16 +500,15 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val xarpiteDir = baseDir.resolve(".xarpite/com/example")
+        val xarpiteDir = ".xarpite/com/example".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils.xa1")
         fileSystem.write(moduleFile) { writeUtf8("888") }
         assertEquals("888", cliEval(context, """USE("com.example:utils")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
-        fileSystem.delete(xarpiteDir.parent!!)
-        fileSystem.delete(baseDir.resolve(".xarpite"))
+        fileSystem.delete(".xarpite/com".toPath())
+        fileSystem.delete(".xarpite".toPath())
     }
 
     @Test
@@ -518,18 +516,17 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val xarpiteDir = baseDir.resolve(".xarpite/org/jetbrains/kotlin/lib")
+        val xarpiteDir = ".xarpite/org/jetbrains/kotlin/lib".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
-        fileSystem.delete(xarpiteDir.parent!!)
-        fileSystem.delete(xarpiteDir.parent!!.parent!!)
-        fileSystem.delete(xarpiteDir.parent!!.parent!!.parent!!)
-        fileSystem.delete(baseDir.resolve(".xarpite"))
+        fileSystem.delete(".xarpite/org/jetbrains/kotlin".toPath())
+        fileSystem.delete(".xarpite/org/jetbrains".toPath())
+        fileSystem.delete(".xarpite/org".toPath())
+        fileSystem.delete(".xarpite".toPath())
     }
 
     @Test
@@ -537,8 +534,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val xarpiteDir = baseDir.resolve(".xarpite/com/test")
+        val xarpiteDir = ".xarpite/com/test".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("module.xa1")
         fileSystem.write(moduleFile) {
@@ -564,8 +560,8 @@ class CliTest {
         assertEquals("changed", result)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
-        fileSystem.delete(xarpiteDir.parent!!)
-        fileSystem.delete(baseDir.resolve(".xarpite"))
+        fileSystem.delete(".xarpite/com".toPath())
+        fileSystem.delete(".xarpite".toPath())
     }
 
     @Test
