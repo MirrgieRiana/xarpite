@@ -37,7 +37,7 @@ module Xarpite
 
         parent = stack.last
         # 現在の見出しを親の子リストに追加してツリー構造のルートを伸ばす
-        node = { level: level, text: text, id: id, children: [] }
+        node = { level: level, text: text, html: inner_html, id: id, children: [] }
         parent[:children] << node
         stack << node
       end
@@ -85,7 +85,7 @@ module Xarpite
     # 目次項目ごとに<li><a>を組み立て、必要なら子リストも追加する
     def render_item(item)
       children_html = build_html(item[:children])
-      %(<li><a href="##{CGI.escapeHTML(item[:id])}">#{CGI.escapeHTML(item[:text])}</a>#{children_html}</li>)
+      %(<li><a href="##{CGI.escapeHTML(item[:id])}">#{item[:html]}</a>#{children_html}</li>)
     end
   end
 end
