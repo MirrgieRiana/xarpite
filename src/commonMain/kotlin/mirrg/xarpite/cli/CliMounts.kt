@@ -195,5 +195,19 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
         },
+        "BASH" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("BASH(script: STRING): STRING")
+            val script = arguments[0].toFluoriteString(null).value
+            
+            val output = context.io.executeProcess("bash", listOf("-c", script), emptyMap())
+            
+            // 末尾の改行を除去（$(...)と同じ動作）
+            val result = if (output.endsWith("\n")) {
+                output.dropLast(1)
+            } else {
+                output
+            }
+            result.toFluoriteString()
+        },
     ).let { listOf(it) }
 }

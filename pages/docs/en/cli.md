@@ -837,3 +837,66 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM version.**
+
+### `BASH`: Execute Bash shell scripts
+
+`BASH(script: STRING): STRING`
+
+Executes a Bash shell script and returns its standard output as a string.
+
+`script` specifies the shell script to execute in Bash.
+
+The return value is the standard output of the execution result decoded as UTF-8.
+
+If a trailing newline `\n` exists, it is removed.
+
+This is the same behavior as Bash's `"$()"` command substitution.
+
+```shell
+$ xa 'BASH("echo Hello")'
+# Hello
+```
+
+```shell
+$ xa 'BASH("seq 1 3 | tr '\''\n'\'' '\'' '\''")' 
+# 1 2 3
+```
+
+---
+
+This function internally executes the command `bash -c <script>`.
+
+Specifying environment variables and other Bash options are not supported.
+
+If you need those features, use the `EXEC` function.
+
+```shell
+$ xa 'EXEC("bash", "-c", "echo Hello")'
+# Hello
+```
+
+---
+
+If the called process exits with a non-zero exit code, an exception is thrown.
+
+```shell
+$ xa 'BASH("exit 1") !? "ERROR"'
+# ERROR
+```
+
+---
+
+The standard error output of the called process is redirected to Xarpite's standard error output.
+
+```shell
+$ xa -q 'BASH("echo '\''ERROR'\'' 1>&2")' 2>&1
+# ERROR
+```
+
+---
+
+The called process is managed in a separate thread, and the main thread suspends without blocking.
+
+---
+
+**This function is currently only provided in the JVM and Native versions.**
