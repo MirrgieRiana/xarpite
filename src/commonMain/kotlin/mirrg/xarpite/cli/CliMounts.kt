@@ -158,40 +158,39 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val dir = arguments[0].toFluoriteString(null).value.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
 
-                    fun collectPaths(relativePath: String): List<String> {
-                        val fullPath = dir.resolve(relativePath)
-                        val result = mutableListOf<String>()
+                    FluoriteStream {
+                        suspend fun walkDirectory(relativePath: String) {
+                            val fullPath = dir.resolve(relativePath)
 
-                        try {
-                            val metadata = fileSystem.metadata(fullPath)
+                            try {
+                                val metadata = fileSystem.metadata(fullPath)
 
-                            if (metadata.isDirectory) {
-                                if (includeDirectories && relativePath.isNotEmpty()) {
-                                    result.add(relativePath)
+                                if (metadata.isDirectory) {
+                                    if (includeDirectories && relativePath.isNotEmpty()) {
+                                        emit(relativePath.toFluoriteString())
+                                    }
+
+                                    val children = fileSystem.list(fullPath)
+                                        .map { it.name }
+                                        .sorted()
+
+                                    for (child in children) {
+                                        val childRelativePath = if (relativePath.isEmpty()) child else "$relativePath/$child"
+                                        walkDirectory(childRelativePath)
+                                    }
+                                } else {
+                                    // ファイル
+                                    if (relativePath.isNotEmpty()) {
+                                        emit(relativePath.toFluoriteString())
+                                    }
                                 }
-
-                                val children = fileSystem.list(fullPath)
-                                    .map { it.name }
-                                    .sorted()
-
-                                for (child in children) {
-                                    val childRelativePath = if (relativePath.isEmpty()) child else "$relativePath/$child"
-                                    result.addAll(collectPaths(childRelativePath))
-                                }
-                            } else {
-                                // ファイル
-                                if (relativePath.isNotEmpty()) {
-                                    result.add(relativePath)
-                                }
+                            } catch (_: Exception) {
+                                // ファイルにアクセスできない場合はスキップ
                             }
-                        } catch (_: Exception) {
-                            // ファイルにアクセスできない場合はスキップ
                         }
 
-                        return result
+                        walkDirectory("")
                     }
-
-                    collectPaths("").map { it.toFluoriteString() }.toFluoriteStream()
                 }
             }
             arrayOf(
