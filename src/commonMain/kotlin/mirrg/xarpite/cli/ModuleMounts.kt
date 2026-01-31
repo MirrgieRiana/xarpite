@@ -49,14 +49,17 @@ private fun resolveModulePath(baseDir: Path, file: String): Path? {
             if (parts.size < 2 || parts.size > 3) {
                 throw FluoriteException("""Invalid Maven coordinate format: $file. Expected "group:artifact" or "group:artifact:version".""".toFluoriteString())
             }
+            if (parts.any { it.isEmpty() }) {
+                throw FluoriteException("""Invalid Maven coordinate format: $file. All parts must be non-empty.""".toFluoriteString())
+            }
             val group = parts[0].replace(".", "/")
             val artifact = parts[1]
             val version = parts.getOrNull(2)
             
             val relativePath = if (version != null) {
-                "$group/$artifact/$version"
+                "$group/$artifact/$version$MODULE_EXTENSION"
             } else {
-                "$group/$artifact"
+                "$group/$artifact$MODULE_EXTENSION"
             }
             baseDir.resolve(".xarpite").resolve(relativePath.toPath()).normalized()
         }

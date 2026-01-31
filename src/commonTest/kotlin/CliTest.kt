@@ -572,6 +572,19 @@ class CliTest {
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("invalid_module_name")""")
         }
+        // Reject Maven coordinates with empty parts
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE(":artifact:version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group::version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:artifact:")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:")""")
+        }
     }
 
     @Test
