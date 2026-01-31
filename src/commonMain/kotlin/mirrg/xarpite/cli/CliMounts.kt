@@ -36,13 +36,6 @@ fun createCliMounts(args: List<String>, scriptPath: String? = null): List<Map<St
             val env = getEnv()
             (env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString()
         },
-        "LOCATION" define LazyMount { scriptPath?.toFluoriteString() ?: FluoriteNull },
-        "LOCATION_DIR" define LazyMount {
-            scriptPath?.toPath()?.parent?.toString()?.toFluoriteString() ?: FluoriteNull
-        },
-        "LOCATION_FILE" define LazyMount {
-            scriptPath?.toPath()?.name?.toFluoriteString() ?: FluoriteNull
-        },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
             val inStream = FluoriteStream {
@@ -201,6 +194,19 @@ fun createCliMounts(args: List<String>, scriptPath: String? = null): List<Map<St
                 lines
             }
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+        },
+    ).let { listOf(it) }
+}
+
+context(context: RuntimeContext)
+fun createLocationMounts(scriptPath: String?): List<Map<String, Mount>> {
+    return mapOf(
+        "LOCATION" define LazyMount { scriptPath?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION_DIR" define LazyMount {
+            scriptPath?.toPath()?.parent?.toString()?.toFluoriteString() ?: FluoriteNull
+        },
+        "LOCATION_FILE" define LazyMount {
+            scriptPath?.toPath()?.name?.toFluoriteString() ?: FluoriteNull
         },
     ).let { listOf(it) }
 }

@@ -166,10 +166,17 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         
         context.setSrc("-", options.src)
-        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments, absoluteScriptPath) + createExtraMounts() }
+        // Create static mounts (without LOCATION, which is location-specific)
+        val staticMounts = context.run { createCommonMounts() + createCliMounts(options.arguments, null) + createExtraMounts() }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
+            // Determine the script path for this location
+            // If location is "./-", use the main script's path
+            // Otherwise, use the location itself (for USE'd modules)
+            val scriptPath = if (location == "./-") absoluteScriptPath else location
+            // Create location-specific mounts
+            val locationMounts = context.run { createLocationMounts(scriptPath) }
+            staticMounts + locationMounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("./-"))
         try {

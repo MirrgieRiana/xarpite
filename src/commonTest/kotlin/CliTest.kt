@@ -12,6 +12,7 @@ import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.cli.createLocationMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
@@ -1192,10 +1193,13 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
-        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        val staticMounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
+            // For tests, LOCATION is always NULL since we're in eval mode
+            val scriptPath: String? = null
+            val locationMounts = context.run { createLocationMounts(scriptPath) }
+            staticMounts + locationMounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("./-"))
         evaluator.get(src).cache()

@@ -3,6 +3,7 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.Mount
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.cli.createCliMounts
+import mirrg.xarpite.cli.createLocationMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -84,10 +85,12 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
     return withEvaluator(object : UnsupportedIoContext() {
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
-        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        val staticMounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
+            val scriptPath: String? = null
+            val locationMounts = context.run { createLocationMounts(scriptPath) }
+            staticMounts + locationMounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("./-"))
         evaluator.get(src).cache()
@@ -99,10 +102,13 @@ private suspend fun CoroutineScope.cliEvalJvmWithLocation(src: String, scriptPat
         override fun getPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
-        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList(), scriptPath) }
+        val staticMounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
+            // Determine the script path for this location
+            val currentScriptPath = if (location == "./-") scriptPath else location
+            val locationMounts = context.run { createLocationMounts(currentScriptPath) }
+            staticMounts + locationMounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("./-"))
         evaluator.get(src).cache()
