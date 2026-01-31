@@ -269,6 +269,18 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 Converts `value` to a JSON-formatted string.
 
 ```shell
+$ xa '{a: 1; b: 2} >> JSON'
+# {
+#   "a": 1,
+#   "b": 2
+# }
+```
+
+---
+
+If you pass a string to `indent`, that string is used for indentation.
+
+```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 # {
 #   "a": 1,
@@ -276,17 +288,9 @@ $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 # }
 ```
 
-`indent` can also be specified as a positional argument.
+---
 
-```shell
-$ xa '"  ", {a: 1; b: 2} >> JSON'
-# {
-#   "a": 1,
-#   "b": 2
-# }
-```
-
-You can also pass a number for `indent` (it will be stringified).
+If you pass a number to `indent`, that many spaces are used.
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: 2]'
@@ -319,29 +323,9 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-`indent` can also be specified as a positional argument.
+---
 
-```shell
-$ xa '"  ", {a: 1}, {b: 2} >> JSONS'
-# {
-#   "a": 1
-# }
-# {
-#   "b": 2
-# }
-```
-
-You can also pass a number for `indent` (it will be stringified).
-
-```shell
-$ xa '{a: 1}, {b: 2} >> JSONS[indent: 2]'
-# {
-#   "a": 1
-# }
-# {
-#   "b": 2
-# }
-```
+The `indent` specification is the same as for `JSON`.
 
 ## `JSONSD` Convert Stream of JSON Strings to Stream of Values
 
