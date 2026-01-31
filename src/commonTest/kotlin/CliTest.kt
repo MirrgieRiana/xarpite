@@ -17,6 +17,7 @@ import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -1274,5 +1275,5 @@ private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: Stri
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
 private fun getBashSrcWrappingHexForShell(script: String): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """BASH(%(xxd -r -p <<<'$hex' | bash)%)"""
+    return """BASH(%(xxd -r -p <<<'$hex' | bash)%)""".replace("%(", "%>").replace(")%", "<%")
 }
