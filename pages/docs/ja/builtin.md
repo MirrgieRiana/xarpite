@@ -601,11 +601,11 @@ $ xa '1, 2, 3 >> DROPR[2]'
 
 ## `FILTER` / `GREP` ストリームを条件で抽出
 
-`GREP` は `FILTER` の別名であり、同一の動作を持ちます。
-
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 `stream` の各要素に `predicate` を適用し、真となった要素のみを含むストリームを返します。
+
+`GREP` は `FILTER` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'

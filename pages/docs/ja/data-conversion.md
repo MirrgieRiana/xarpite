@@ -289,11 +289,11 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 
 ## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
 
-`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
-
 `JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
+
+`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -303,11 +303,11 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 
 ## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
 
-`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
-
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
 `jsons` の各要素を対応する値に変換するストリームを返します。
+
+`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
