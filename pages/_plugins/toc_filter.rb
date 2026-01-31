@@ -85,6 +85,8 @@ module Xarpite
     # 目次項目ごとに<li><a>を組み立て、必要なら子リストも追加する
     def render_item(item)
       children_html = build_html(item[:children])
+      # item[:html] は Kramdown によって Markdown から生成された信頼できる HTML であり、
+      # <code> タグなどの書式を保持するためにエスケープせずに使用する
       %(<li><a href="##{CGI.escapeHTML(item[:id])}">#{item[:html]}</a>#{children_html}</li>)
     end
   end
