@@ -16,16 +16,16 @@ JavaScript objects are represented by the `JS_OBJECT` class.
 
 In some situations such as function calls, automatic conversion is performed between Xarpite and JavaScript.
 
-| Source<br>Xarpite | Target<br>JavaScript |
-|-------------------|----------------------|
-| `JS_OBJECT`       | As-is value          |
-| `INT`             | `Number`             |
-| `DOUBLE`          | `Number`             |
-| `STRING`          | `String`             |
-| `BOOLEAN`         | `Boolean`            |
-| `ARRAY`           | `Array`              |
-| `NULL`            | `null`               |
-| `FUNCTION`        | `Function`           |
+| Source<br>Xarpite | Target<br>JavaScript      |
+|-------------------|---------------------------|
+| `JS_OBJECT`       | As-is value               |
+| `INT`             | `Number`                  |
+| `DOUBLE`          | `Number`                  |
+| `STRING`          | `String`                  |
+| `BOOLEAN`         | `Boolean`                 |
+| `ARRAY`           | `Array`                   |
+| `NULL`            | `null`                    |
+| `FUNCTION`        | `Function`                |
 | Others            | Exception for unsupported |
 
 | Source<br>JavaScript | Target<br>Xarpite |
@@ -116,6 +116,23 @@ Outputs the value to the output field determined for each web application.
 `WINDOW: JS_OBJECT | NULL`
 
 Returns the window object if accessible from that execution environment.
+
+## `PWD` Get Current Page URL
+
+`PWD: STRING`
+
+The URL of the currently displayed page.
+
+```
+PWD
+# https://example.com/page
+```
+
+---
+
+This constant returns the URL of the current page rather than the parent directory (unlike the CLI version), based on the interpretation that it provides the "reference origin" path rather than the "parent hierarchy."
+
+This difference is due to the different handling of paths in file systems and URLs.
 
 ## `JS` Execute JavaScript Code
 

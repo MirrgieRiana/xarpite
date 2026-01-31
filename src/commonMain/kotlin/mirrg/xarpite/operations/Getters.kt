@@ -54,14 +54,14 @@ class LiteralGetter(private val value: FluoriteValue) : Getter {
 }
 
 class VariableGetter(private val frameIndex: Int, private val variableIndex: Int) : Getter {
-    override suspend fun evaluate(env: Environment) = env.variableTable[frameIndex][variableIndex]!!.get(env)
+    override suspend fun evaluate(env: Environment) = env.variableTable[frameIndex][variableIndex]!!.get()
     override val code get() = "VariableGetter[$frameIndex;$variableIndex]"
 }
 
 class MountGetter(private val mountCounts: IntArray, private val name: String) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         env.getMounts(name, mountCounts).forEach {
-            return it
+            return it.get()
         }
         throw IllegalArgumentException("No such mount entry: $name")
     }
@@ -211,7 +211,7 @@ class MethodAccessGetter(
 
         // ローカル変数のチェック
         if (variable != null) {
-            val value = env.variableTable[variable.first][variable.second]!!.get(env)
+            val value = env.variableTable[variable.first][variable.second]!!.get()
             val result = processEntries(value)
             if (result != null) return result
         }
@@ -224,7 +224,7 @@ class MethodAccessGetter(
 
         // マウントのチェック
         env.getMounts("::$name", mountCounts).forEach {
-            val result = processEntries(it)
+            val result = processEntries(it.get())
             if (result != null) return result
         }
 

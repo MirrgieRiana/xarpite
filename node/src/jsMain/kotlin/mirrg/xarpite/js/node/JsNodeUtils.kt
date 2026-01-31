@@ -9,6 +9,7 @@ external class Process {
     val stdout: dynamic
     val stderr: dynamic
     val platform: String
+    fun cwd(): String
 }
 
 val process by lazy { js("process").unsafeCast<Process>() }
