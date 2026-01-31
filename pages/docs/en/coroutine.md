@@ -20,9 +20,9 @@ Launches `function` asynchronously as a coroutine.
 
 The launched coroutine is executed when the thread that called `LAUNCH` next suspends.
 
-This function returns a `PROMISE` that stores the return value of `function` or the exception value thrown within `function`.
+This function returns a `PROMISE` that stores the return value of `function` or the error thrown within `function`.
 
-If an exception value is thrown within `function`, the exception value is also output to standard error output.
+If an error is thrown within `function`, the error is also output to standard error output.
 
 ```shell
 $ xa '
@@ -147,7 +147,7 @@ Waits until the contents of the `PROMISE` are complete and returns the contents.
 
 ---
 
-If the `PROMISE` is completed as failed, `await` throws that exception value.
+If the `PROMISE` is completed as failed, `await` throws that error.
 
 ```shell
 $ xa '

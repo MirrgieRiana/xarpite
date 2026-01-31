@@ -729,7 +729,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-If the called process exits with a non-zero exit code, an exception value is thrown.
+If the called process exits with a non-zero exit code, an error is thrown.
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
