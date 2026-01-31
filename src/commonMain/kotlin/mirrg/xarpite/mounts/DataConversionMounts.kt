@@ -173,12 +173,25 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 return indentString
             }
 
-            val indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
+            var indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
 
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
 
-            value.toSingleJsonFluoriteValue(null, indent = indent)
+            val (indent2, value2) = if (arguments2.isEmpty() && value is FluoriteStream) {
+                val list = mutableListOf<FluoriteValue>()
+                value.collect { list += it }
+                if (list.isEmpty()) usage()
+                val indentCandidate = if (indent == null && list.size >= 2) parseIndent(list.first()) else null
+                val rest = if (indentCandidate != null) list.drop(1) else list
+                if (rest.size != 1) usage()
+                indentCandidate to rest.single()
+            } else {
+                null to value
+            }
+            val indent3 = indent2 ?: indent
+
+            value2.toSingleJsonFluoriteValue(null, indent = indent3)
         },
         "JSOND" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
@@ -205,12 +218,28 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 return indentString
             }
 
-            val indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
+            var indent = parseIndent(entries.remove("indent") ?: arguments3.removeFirstOrNull())
 
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
 
-            values.toJsonsFluoriteValue(null, indent = indent)
+            val (indent2, values2) = if (arguments2.isEmpty() && values is FluoriteStream) {
+                val list = mutableListOf<FluoriteValue>()
+                values.collect { list += it }
+                if (list.isEmpty()) usage()
+                val indentCandidate = if (indent == null && list.size >= 2) parseIndent(list.first()) else null
+                val rest = if (indentCandidate != null) list.drop(1) else list
+                if (rest.isEmpty()) usage()
+                val stream = if (rest.size == 1) rest.single() else FluoriteStream {
+                    rest.forEach { emit(it) }
+                }
+                indentCandidate to stream
+            } else {
+                null to values
+            }
+            val indent3 = indent2 ?: indent
+
+            values2.toJsonsFluoriteValue(null, indent = indent3)
         },
         "JSONSD" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
