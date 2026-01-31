@@ -669,13 +669,13 @@ $ xa 'LAST(,)'
 
 ## `GET` Get Elements by Index
 
-`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T>`
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
 
-Returns elements at the indices specified by the first argument from the stream in the second argument.
+Returns elements at the indices specified by `indices` from `stream`.
 
 Indices start from 0. If an index does not exist, returns `NULL` for that index.
 
-If the first argument is a non-stream, the return value is also a non-stream. If the first argument is a stream, the return value is a stream.
+If `indices` is a non-stream, the return value is also a non-stream. If `indices` is a stream, the return value is a stream.
 
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
@@ -692,13 +692,7 @@ $ xa 'GET(1 .. 3; 10, 20, 30, 40, 50)'
 # 20
 # 30
 # 40
-```
 
----
-
-By partially applying the first argument, you can extract a range of indices from a stream.
-
-```shell
 $ xa '10, 20, 30, 40, 50 >> GET[1 .. 3]'
 # 20
 # 30

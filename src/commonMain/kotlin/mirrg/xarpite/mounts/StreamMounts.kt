@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -418,62 +419,69 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "GET" define FluoriteFunction { arguments ->
-            if (arguments.size == 2) {
-                val indices = arguments[0]
-                val stream = arguments[1]
+            if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
+            val indices = arguments[0]
+            val stream = arguments[1]
 
-                // Check if indices is a stream
-                if (indices is FluoriteStream) {
-                    // Return a stream of elements at the specified indices
-                    FluoriteStream {
-                        indices.collect { indexValue ->
-                            val index = indexValue.toFluoriteNumber(null).roundToInt()
-                            if (stream is FluoriteStream) {
-                                var currentIndex = 0
-                                var result: FluoriteValue? = null
-                                try {
-                                    stream.collect { item ->
-                                        if (currentIndex == index) {
-                                            result = item
-                                            throw IterationAborted
-                                        }
-                                        currentIndex++
-                                    }
-                                } catch (_: IterationAborted) {
-
-                                }
-                                emit(result ?: FluoriteNull)
-                            } else {
-                                // Non-stream: only index 0 is valid
-                                emit(if (index == 0) stream else FluoriteNull)
-                            }
-                        }
-                    }
-                } else {
-                    // Single index, return single value
-                    val index = indices.toFluoriteNumber(null).roundToInt()
+            if (indices is FluoriteStream) {
+                // Return a stream of elements at the specified indices
+                FluoriteStream {
                     if (stream is FluoriteStream) {
-                        var currentIndex = 0
-                        var result: FluoriteValue? = null
-                        try {
-                            stream.collect { item ->
-                                if (currentIndex == index) {
-                                    result = item
-                                    throw IterationAborted
+                        coroutineScope {
+                            val cache = mutableListOf<FluoriteValue>()
+                            val channel = stream.toFlow().produceIn(this)
+                            
+                            indices.collect { indexValue ->
+                                val index = indexValue.toFluoriteNumber(null).roundToInt()
+                                
+                                // Fetch elements until we have the requested index
+                                while (cache.size <= index) {
+                                    val result = channel.receiveCatching()
+                                    if (result.isSuccess) {
+                                        cache.add(result.getOrThrow())
+                                    } else {
+                                        // Stream ended, emit NULL
+                                        emit(FluoriteNull)
+                                        return@collect
+                                    }
                                 }
-                                currentIndex++
+                                
+                                // Emit the cached element
+                                emit(cache[index])
                             }
-                        } catch (_: IterationAborted) {
-
+                            
+                            channel.cancel()
                         }
-                        result ?: FluoriteNull
                     } else {
                         // Non-stream: only index 0 is valid
-                        if (index == 0) stream else FluoriteNull
+                        indices.collect { indexValue ->
+                            val index = indexValue.toFluoriteNumber(null).roundToInt()
+                            emit(if (index == 0) stream else FluoriteNull)
+                        }
                     }
                 }
             } else {
-                usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T>")
+                // Single index, return single value
+                val index = indices.toFluoriteNumber(null).roundToInt()
+                if (stream is FluoriteStream) {
+                    var currentIndex = 0
+                    var result: FluoriteValue? = null
+                    try {
+                        stream.toFlow().collect { item ->
+                            if (currentIndex == index) {
+                                result = item
+                                throw IterationAborted
+                            }
+                            currentIndex++
+                        }
+                    } catch (_: IterationAborted) {
+                        
+                    }
+                    result ?: FluoriteNull
+                } else {
+                    // Non-stream: only index 0 is valid
+                    if (index == 0) stream else FluoriteNull
+                }
             }
         },
         "LAST" define FluoriteFunction { arguments ->
