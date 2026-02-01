@@ -1,5 +1,6 @@
 package mirrg.xarpite.cli
 
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -9,6 +10,7 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path
@@ -39,51 +41,40 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
-private fun resolveModulePath(baseDir: Path, file: String): Path? {
-    // Helper function to check if file exists
-    fun checkFileExists(path: Path): Path? {
-        return if (getFileSystem().getOrThrow().exists(path)) path else null
+val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
+
+private fun resolveModulePath(baseDir: Path, reference: String): Path? {
+    fun Path.canLoad() = getFileSystem().getOrThrow().exists(this)
+
+    // 相対パス
+    if (reference.startsWith("./") || reference.startsWith(".\\")) {
+        val path = baseDir.resolve(reference.toPath()).normalized()
+        path.let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
+        return null
     }
-    
-    return when {
-        // Relative path: starts with ./ or .\
-        file.startsWith("./") || file.startsWith(".\\") -> {
-            val pathStr = if (file.startsWith(".\\")) file.drop(2).replace("\\", "/") else file.drop(2)
-            val modulePath = baseDir.resolve(pathStr.toPath()).normalized()
-            checkFileExists(modulePath) ?: run {
-                if (!file.endsWith(MODULE_EXTENSION)) {
-                    checkFileExists((modulePath.toString() + MODULE_EXTENSION).toPath().normalized())
-                } else {
-                    null
-                }
-            }
-        }
-        // Absolute path: starts with / or Windows drive (e.g., C:\)
-        file.startsWith("/") || (file.length >= 3 && file[1] == ':' && (file[2] == '\\' || file[2] == '/')) -> {
-            val pathStr = file.replace("\\", "/")
-            val modulePath = pathStr.toPath().normalized()
-            checkFileExists(modulePath) ?: run {
-                if (!file.endsWith(MODULE_EXTENSION)) {
-                    checkFileExists((modulePath.toString() + MODULE_EXTENSION).toPath().normalized())
-                } else {
-                    null
-                }
-            }
-        }
-        // Maven coordinate format: "group:artifact:version" (3 non-blank parts)
-        file.contains(":") -> {
-            val parts = file.split(":")
-            if (parts.size != 3 || parts.any { it.isBlank() }) {
-                throw FluoriteException("""Invalid Maven coordinate format: $file. Expected "group:artifact:version" with non-blank parts.""".toFluoriteString())
-            }
-            val group = parts[0].replace(".", "/")
-            val artifact = parts[1]
-            val version = parts[2]
-            
-            val relativePath = "$group/$artifact/$artifact-$version$MODULE_EXTENSION"
-            val modulePath = baseDir.resolve(".xarpite").resolve(relativePath.toPath()).normalized()
-            checkFileExists(modulePath)
-        }
-        else -> throw FluoriteException("""Module file path must start with "./", ".\", "/", Windows drive letter, or be in Maven coordinate format (containing ":").""".toFluoriteString())
+
+    // 絶対パス
+    if (reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
+        val path = reference.toPath().normalized()
+        path.let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
+        return null
     }
+
+    // Maven座標
+    run {
+        val segments = reference.split(":")
+        if (segments.size != 3) return@run
+        val group = segments[0].notBlankOrNull ?: return@run
+        val artifact = segments[1].notBlankOrNull ?: return@run
+        val version = segments[2].notBlankOrNull ?: return@run
+
+        val file = "${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION"
+        val path = baseDir.resolve(".xarpite").resolve(file).normalized()
+        path.let { if (it.canLoad()) return it }
+        return null
+    }
+
+    throw FluoriteException("Invalid module reference: $reference".toFluoriteString())
 }
