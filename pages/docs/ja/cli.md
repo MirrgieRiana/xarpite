@@ -369,10 +369,7 @@ $ FOO=bar xa 'ENV.FOO'
 
 Maven座標形式でモジュールを `USE` する際に検索されるディレクトリパスの配列です。
 
-この配列には、デフォルトで以下のパスが含まれています。
-
-1. `~/.xarpite/maven` （ユーザーのホームディレクトリ）
-2. `./.xarpite/maven` （カレントディレクトリ）
+デフォルトでは `./.xarpite/maven` が含まれています。
 
 ---
 
@@ -826,7 +823,7 @@ Maven座標形式は `group:artifact:version` の形式で指定します。
 
 例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/apple-1.0.0.xa1` を解決して検索します。
 
-`INC` にはデフォルトで `~/.xarpite/maven` と `./.xarpite/maven` が含まれています。
+`INC` にはデフォルトで `./.xarpite/maven` が含まれています。
 
 ```shell
 $ {

@@ -598,17 +598,19 @@ class CliTest {
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
         // デフォルトで ./.xarpite/maven が含まれている
-        val result = cliEval(context, """INC | $_.toFluoriteString(null).value ~ "./.xarpite/maven" >> ANY""").boolean
-        assertTrue(result)
+        val incArray = cliEval(context, "INC").array()
+        assertTrue("./.xarpite/maven" in incArray)
     }
 
     @Test
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
         // INC に値を追加できる
-        cliEval(context, """INC << "/custom/path"""")
-        val result = cliEval(context, """INC | $_.toFluoriteString(null).value ~ "/custom/path" >> ANY""").boolean
-        assertTrue(result)
+        val result = cliEval(context, """
+            INC << "/custom/path"
+            INC
+        """.trimIndent()).array()
+        assertTrue("/custom/path" in result)
     }
 
     @Test

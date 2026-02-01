@@ -141,11 +141,6 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-        // デフォルトのINCパスを追加
-        val homeDir = getEnv()["HOME"] ?: getEnv()["USERPROFILE"]
-        if (homeDir != null) {
-            context.inc.values += "$homeDir/.xarpite/maven".toFluoriteString()
-        }
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }

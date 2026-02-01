@@ -357,10 +357,7 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 An array of directory paths that are searched when using `USE` with Maven coordinate format.
 
-This array includes the following paths by default:
-
-1. `~/.xarpite/maven` (user's home directory)
-2. `./.xarpite/maven` (current directory)
+By default, `./.xarpite/maven` is included.
 
 ---
 
@@ -818,7 +815,7 @@ The `.xa1` extension is automatically appended.
 
 For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
 
-By default, `INC` includes `~/.xarpite/maven` and `./.xarpite/maven`.
+By default, `INC` includes `./.xarpite/maven`.
 
 ```shell
 $ {
