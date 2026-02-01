@@ -162,11 +162,13 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptName, location ->
-            mounts + context.run { createModuleMounts(scriptName, location, mountsFactory) }
+        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptFileName, scriptDirName ->
+            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-", absoluteScriptPath ?: "./-"))
+        val scriptFileName = absoluteScriptPath
+        val scriptDirName = absoluteScriptPath?.toPath()?.parent?.toString() ?: "."
+        evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
         try {
             withStackTrace(Position("-", 0)) {
                 if (options.quiet) {

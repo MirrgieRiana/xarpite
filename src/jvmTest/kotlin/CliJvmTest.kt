@@ -10,6 +10,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.get
 import mirrg.xarpite.withEvaluator
+import okio.Path.Companion.toPath
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.file.Path
@@ -82,14 +83,15 @@ class CliJvmTest {
 
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
     return withEvaluator(object : UnsupportedIoContext() {
+        override fun getPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptName, location ->
-            mounts + context.run { createModuleMounts(scriptName, location, mountsFactory) }
+        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptFileName, scriptDirName ->
+            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-", "./-"))
+        evaluator.defineMounts(mountsFactory(null, "."))
         evaluator.get(src).cache()
     }
 }
@@ -100,11 +102,13 @@ private suspend fun CoroutineScope.cliEvalJvmWithLocation(src: String, scriptPat
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptName, location ->
-            mounts + context.run { createModuleMounts(scriptName, location, mountsFactory) }
+        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptFileName, scriptDirName ->
+            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-", scriptPath ?: "./-"))
+        val scriptFileName = scriptPath
+        val scriptDirName = scriptPath?.toPath()?.parent?.toString() ?: "."
+        evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
         evaluator.get(src).cache()
     }
 }

@@ -1085,7 +1085,6 @@ class CliTest {
     }
 
     @Test
- <<<<<<< copilot/update-location-constant-names
     fun locationConstantsWithFileExecution() = runTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
@@ -1183,7 +1182,9 @@ class CliTest {
         
         // クリーンアップ
         fileSystem.delete(file)
- =======
+    }
+
+    @Test
     fun bashBasic() = runTest {
         val context = TestIoContext()
         try {
@@ -1314,7 +1315,6 @@ class CliTest {
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
- >>>>>>> main
     }
 
 }
@@ -1327,11 +1327,11 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptName, location ->
-            mounts + context.run { createModuleMounts(scriptName, location, mountsFactory) }
+        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptFileName, scriptDirName ->
+            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-", "./-"))
+        evaluator.defineMounts(mountsFactory(null, "."))
         evaluator.get(src).cache()
     }
 }
