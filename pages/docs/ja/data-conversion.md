@@ -125,6 +125,48 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
+## `BASE64` 文字列をBase64文字列に変換
+
+`BASE64(string: STRING): STRING`
+
+`string` をBase64形式でエンコードした文字列を返します。
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+出力は76文字ごとに改行されます。
+
+```shell
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
+```
+
+## `BASE64D` Base64文字列を文字列に変換
+
+`BASE64D(string: STRING): STRING`
+
+Base64形式でエンコードされた文字列 `string` をデコードした文字列を返します。
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+```
+
+---
+
+改行文字や空白文字は無視されます。
+
+```shell
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
+# Hello, World!
+```
+
 ## `URL` 文字列をURLエンコード
 
 `URL(string: STRING): STRING`
@@ -222,7 +264,7 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 ## `JSON` 値をJSON文字列に変換
 
-`JSON(["indent": indent: STRING; ]value: VALUE): STRING`
+`JSON([indent: indent: STRING; ]value: VALUE): STRING`
 
 `value` をJSON形式の文字列に変換します。
 
@@ -245,11 +287,13 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` 値のストリームをJSON文字列のストリームに変換
+## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
 
-`JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
+
+`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -257,11 +301,13 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONSD` JSON文字列のストリームを値のストリームに変換
+## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
 `jsons` の各要素を対応する値に変換するストリームを返します。
+
+`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '

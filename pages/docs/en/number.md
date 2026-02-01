@@ -440,7 +440,7 @@ $ xa 'ABS(-10)'
 
 ### `FLOOR`: Round Down
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 Rounds the first argument down to the nearest integer toward negative infinity.
 

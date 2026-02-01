@@ -1,9 +1,10 @@
 package mirrg.xarpite.operations
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.Environment
 import mirrg.xarpite.LocalVariable
+import mirrg.xarpite.Mount
 import mirrg.xarpite.compilers.objects.FluoriteObject
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 
 class GetterRunner(private val getter: Getter) : Runner {
@@ -81,13 +82,13 @@ class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, priv
 
 class MountRunner(private val frameIndex: Int, private val mountIndex: Int, private val getter: Getter) : Runner {
     override suspend fun evaluate(env: Environment) {
-        env.mountTable[frameIndex][mountIndex] = (getter.evaluate(env) as FluoriteObject).map.toMap()
+        env.mountTable[frameIndex][mountIndex] = (getter.evaluate(env) as FluoriteObject).map.mapValues { ConstantMount(it.value) }.toMap()
     }
 
     override val code get() = "MountRunner[$frameIndex;$mountIndex;${getter.code}]"
 }
 
-class BuiltinMountRunner(private val frameIndex: Int, private val mountIndex: Int, private val entries: Map<String, FluoriteValue>) : Runner {
+class BuiltinMountRunner(private val frameIndex: Int, private val mountIndex: Int, private val entries: Map<String, Mount>) : Runner {
     override suspend fun evaluate(env: Environment) {
         env.mountTable[frameIndex][mountIndex] = entries
     }

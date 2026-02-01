@@ -57,4 +57,29 @@ actual=$(XARPITE_ENGINE=node xa '123')
 [ "$actual" = "$expected" ] || fail "$expected" "$actual"
 
 
+# PWD tests
+# Test that PWD returns a non-empty absolute path
+actual=$(xa 'PWD')
+[ -n "$actual" ] || fail "non-empty PWD" "$actual"
+[[ "$actual" = /* ]] || fail "absolute path starting with /" "$actual"
+
+# Test that PWD matches the current directory (when XARPITE_PWD is set by wrapper)
+current_dir=$(pwd)
+actual=$(xa 'PWD')
+[ "$actual" = "$current_dir" ] || fail "$current_dir" "$actual"
+
+# Test PWD with different engines
+# Native engine
+actual=$(XARPITE_ENGINE=native xa 'PWD')
+[ "$actual" = "$current_dir" ] || fail "$current_dir (native)" "$actual"
+
+# JVM engine  
+actual=$(XARPITE_ENGINE=jvm xa 'PWD')
+[ "$actual" = "$current_dir" ] || fail "$current_dir (jvm)" "$actual"
+
+# Node.js engine
+actual=$(XARPITE_ENGINE=node xa 'PWD')
+[ "$actual" = "$current_dir" ] || fail "$current_dir (node)" "$actual"
+
+
 echo "ALL TESTS PASSED"
