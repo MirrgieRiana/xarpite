@@ -50,7 +50,7 @@ class RuntimeContext(
 }
 
 interface IoContext {
-    fun getPwd(): String
+    fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -61,7 +61,7 @@ interface IoContext {
 }
 
 open class UnsupportedIoContext : IoContext {
-    override fun getPwd(): String = throw UnsupportedOperationException()
+    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()

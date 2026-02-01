@@ -29,7 +29,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             val baseDir by lazy {
                 val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
                 val env = getEnv()
-                val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()
+                val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPlatformPwd()
                 pwd.toPath().resolve(parentPath).normalized()
             }
             FluoriteFunction { arguments ->

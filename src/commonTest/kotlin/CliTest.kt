@@ -1417,7 +1417,7 @@ internal class TestIoContext(
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
 
-    override fun getPwd(): String = currentLocation
+    override fun getPlatformPwd(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()
