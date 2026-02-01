@@ -383,39 +383,6 @@ $ xa '$#-10'
 # 10
 ```
 
-### Overriding Increment/Decrement
-
-Increment and decrement operators can be overridden with dedicated methods.
-
-| Operator | Method Name | Description |
-|----------|-------------|-------------|
-| `++formula` | `++_` | Prefix increment |
-| `formula++` | `_++` | Postfix increment |
-| `--formula` | `--_` | Prefix decrement |
-| `formula--` | `_--` | Postfix decrement |
-
-By defining these methods on an object, you can customize the behavior of increment/decrement operations.
-
-Overridden methods are expected to mutate (modify the value of) the object itself.
-
-```shell
-$ xa '
-  obj := {
-    `_++`: this -> (this.value = this.value * 2; this.value)
-    value: 100
-  }
-  obj++
-  obj.value
-'
-# 200
-```
-
----
-
-When an overridden method exists, no assignment to the variable is performed. The method must mutate the object within itself.
-
-If no overridden method exists, the traditional addition/subtraction using the `_+_` and `_-_` methods is performed, and the result is assigned to the variable.
-
 ## Built-in Constants
 
 Numeric built-in constants.

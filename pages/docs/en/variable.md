@@ -288,13 +288,13 @@ By overriding these methods, you can customize the behavior of increment and dec
 
 ---
 
-Override methods take two arguments in addition to the object itself: an `accessor` function that performs get and set operations on the expression.
+Override methods take an `accessor` function as an argument in addition to the object itself. This function performs get and set operations on the expression.
 
 Calling `accessor` with 0 arguments performs a value get operation on the expression.
 
 Calling `accessor` with 1 argument performs a value set operation on the expression.
 
-Increment and decrement behavior can be defined either as an object mutation operation, or as an immutable operation with assignment.
+Increment and decrement behavior can be defined either as an object mutation operation or as an immutable operation with assignment.
 
 ```shell
 $ xa -q '
@@ -359,8 +359,10 @@ $ xa -q '
     `++_`: this, accessor -> "prefix"
   }
 
-  OUT << obj++
-  OUT << ++obj
+  object := Object{}
+
+  OUT << object++
+  OUT << ++object
 '
 # suffix
 # prefix
