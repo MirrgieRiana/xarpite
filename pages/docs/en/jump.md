@@ -222,15 +222,25 @@ $ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found!! _ !: found | _ * 10'
 
 # Exception Mechanism
 
+The exception mechanism is a system for returning values through paths other than expression return values.
+
+The exception mechanism consists of throwing and catching values.
+
+Throwing can be done with values of any type, and the thrown value (= exception value) propagates across expression and function call hierarchies until it is caught.
+
+If an exception value is not caught, the dispatcher at the top of the call hierarchy handles the exception.
+
+The exception mechanism is often used to throw values defined as errors to represent processing "failures," but it is not necessarily limited to this use.
+
+You may use the exception mechanism simply as a control structure to return values from deep inside function or expression call hierarchies to the outside.
+
 ## Throw Operator
 
 In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
-The thrown value (exception value) is passed to the right side of the catch operator `try !? catch`.
-
-The exception mechanism is a neutral feature that does not imply failure. It can be used not only for error handling but also for various purposes, such as concisely returning values from deep within a function.
+The thrown value is passed to the right side of the catch operator `try !? catch`.
 
 ```shell
 $ xa '

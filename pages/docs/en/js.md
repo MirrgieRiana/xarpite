@@ -26,7 +26,7 @@ In some situations such as function calls, automatic conversion is performed bet
 | `ARRAY`           | `Array`              |
 | `NULL`            | `null`               |
 | `FUNCTION`        | `Function`           |
-| Others            | Error thrown for unsupported |
+| Others            | Error for unsupported |
 
 | Source<br>JavaScript | Target<br>Xarpite |
 |----------------------|-------------------|
