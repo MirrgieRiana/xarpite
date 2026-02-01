@@ -168,6 +168,8 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
     override val parent get() = fluoriteClass
 }
 
+fun FluoriteArray() = FluoriteArray(mutableListOf())
+
 fun MutableList<FluoriteValue>.asFluoriteArray() = FluoriteArray(this)
 
 fun fluoriteArrayOf(vararg values: FluoriteValue) = FluoriteArray(values.toMutableList())

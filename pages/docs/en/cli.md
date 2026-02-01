@@ -351,6 +351,36 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
+### `INC`: Array of Module Search Paths
+
+`INC: ARRAY<STRING>`
+
+An array of directory paths that are searched when using `USE` with Maven coordinate format.
+
+When a relative path is specified, it is resolved based on `PWD`.
+
+By default, `./.xarpite/maven` is included.
+
+---
+
+You can add custom module search paths by adding values to `INC`.
+
+```shell
+$ {
+  mkdir -p maven-fruit/com/example/fruit/apple
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+
+  xa '
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
+  '
+
+  rm -r maven-fruit
+}
+# Apple
+```
+
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
@@ -771,21 +801,19 @@ $ {
 
 #### Specification by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in the `./.xarpite` directory.
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
 
 Maven coordinate format is specified as `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `./.xarpite/com/example/fruit/apple/apple-1.0.0.xa1` is loaded.
-
-Specification by Maven coordinates is always resolved from the current directory, regardless of the location of the file that called the `USE` function.
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
 
 ```shell
 $ {
-  mkdir -p .xarpite/com/example/fruit/apple
+  mkdir -p .xarpite/maven/com/example/fruit/apple
 
-  echo ' "Apple" ' > .xarpite/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/apple-1.0.0.xa1
 
   xa 'USE("com.example.fruit:apple:1.0.0")'
 
