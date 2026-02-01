@@ -50,16 +50,8 @@ val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 private fun resolveModulePath(baseDir: Path, reference: String): Path? {
     fun Path.canLoad() = getFileSystem().getOrThrow().exists(this)
 
-    // 相対パス
-    if (reference.startsWith("./") || reference.startsWith(".\\")) {
-        val path = baseDir.resolve(reference.toPath()).normalized()
-        path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
-        return null
-    }
-
-    // 絶対パス
-    if (reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
+    // ファイルパス
+    if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
         val path = baseDir.resolve(reference.toPath()).normalized()
         path.let { if (it.canLoad()) return it }
         path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
