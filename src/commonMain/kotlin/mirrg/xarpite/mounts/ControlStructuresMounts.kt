@@ -26,7 +26,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "TRY" to FluoriteFunction { arguments ->
+        "TRY" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> TRY(block: () -> T): PROMISE<T>")
             val block = arguments[0]
             val promise = FluoritePromise()
