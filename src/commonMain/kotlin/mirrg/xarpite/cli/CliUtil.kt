@@ -11,7 +11,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
-import mirrg.xarpite.getResolvedPwd
+import mirrg.xarpite.getPwd
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
@@ -157,7 +157,7 @@ fun showVersion() {
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
         val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
-            resolveAbsolutePath(scriptFile, ioContext.getResolvedPwd())
+            resolveAbsolutePath(scriptFile, ioContext.getPwd())
         }
         
         context.setSrc("-", options.src)

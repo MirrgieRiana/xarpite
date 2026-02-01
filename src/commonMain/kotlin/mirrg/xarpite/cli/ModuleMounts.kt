@@ -22,17 +22,11 @@ context(context: RuntimeContext)
 fun createModuleMounts(scriptFileName: String?, scriptDirName: String, mountsFactory: (String?, String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
         "LOCATION" define LazyMount { scriptFileName?.toFluoriteString() ?: FluoriteNull },
-        "LOCATION_DIR" define LazyMount {
-            if (scriptFileName != null) scriptDirName.toFluoriteString() else FluoriteNull
-        },
+        "LOCATION_DIR" define LazyMount { scriptDirName.toFluoriteString() },
         "LOCATION_FILE" define LazyMount { scriptFileName?.toPath()?.name?.toFluoriteString() ?: FluoriteNull },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
-            val baseDir = if (scriptFileName != null) {
-                scriptFileName.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-            } else {
-                scriptDirName.toPath().normalized()
-            }
+            val baseDir = scriptDirName.toPath()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
                 val file = arguments[0].toFluoriteString(null).value

@@ -367,15 +367,15 @@ In modules loaded by the `USE` function, `LOCATION` contains the absolute path o
 
 ### `LOCATION_DIR`: Get Parent Directory of Currently Executing File
 
-`LOCATION_DIR: STRING | NULL`
+`LOCATION_DIR: STRING`
 
 The absolute path of the directory containing the currently executing Xarpite script file.
 
-If the code is not loaded from a file, `NULL` is returned.
+Even if the code is not loaded from a file, the script directory (equivalent to PWD) is returned.
 
 ```shell
 $ xa -e 'LOCATION_DIR'
-# NULL
+# .
 ```
 
 ### `LOCATION_FILE`: Get Name of Currently Executing File

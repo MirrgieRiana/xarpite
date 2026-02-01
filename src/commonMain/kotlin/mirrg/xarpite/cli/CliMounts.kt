@@ -23,7 +23,7 @@ import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.define
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
-import mirrg.xarpite.getResolvedPwd
+import mirrg.xarpite.getPwd
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
@@ -35,7 +35,7 @@ context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
-        "PWD" define LazyMount { context.io.getResolvedPwd().toFluoriteString() },
+        "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
             val inStream = FluoriteStream {

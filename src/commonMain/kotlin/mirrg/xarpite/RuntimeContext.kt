@@ -46,7 +46,7 @@ class RuntimeContext(
 }
 
 interface IoContext {
-    fun getPwd(): String
+    fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -59,15 +59,13 @@ interface IoContext {
 /**
  * 環境変数を加味してPWDを取得する
  */
-fun IoContext.getResolvedPwd(): String {
+fun IoContext.getPwd(): String {
     val env = getEnv()
-    return env["XARPITE_PWD"]?.takeIf { it.isNotBlank() }
-        ?: env["PWD"]?.takeIf { it.isNotBlank() }
-        ?: getPwd()
+    return env["XARPITE_PWD"]?.takeIf { it.isNotBlank() } ?: env["PWD"]?.takeIf { it.isNotBlank() } ?: getPlatformPwd()
 }
 
 open class UnsupportedIoContext : IoContext {
-    override fun getPwd(): String = throw UnsupportedOperationException()
+    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()

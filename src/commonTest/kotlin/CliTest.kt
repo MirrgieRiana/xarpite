@@ -97,11 +97,12 @@ class CliTest {
     }
 
     @Test
-    fun locationDirIsNullInEvalMode() = runTest {
+    fun locationDirReturnsScriptDirEvenInEvalMode() = runTest {
         val context = TestIoContext()
-        // When code is executed via eval (not from a file), LOCATION_DIR should be NULL
+        // When code is executed via eval (not from a file), LOCATION_DIR should return script directory (equivalent to PWD)
         val locationDir = cliEval(context, "LOCATION_DIR")
-        assertTrue(locationDir is FluoriteNull) // LOCATION_DIR は eval モードで NULL
+        assertTrue(locationDir is FluoriteString)
+        // evalモードではscriptDirNameが"."になるため、正規化された絶対パスが返される
     }
 
     @Test
@@ -1379,7 +1380,7 @@ internal class TestIoContext(
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
 
-    override fun getPwd(): String = currentLocation
+    override fun getPlatformPwd(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()
