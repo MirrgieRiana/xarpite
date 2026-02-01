@@ -45,7 +45,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
-val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
+private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
 private fun resolveModulePath(baseDir: Path, reference: String): Path? {
     fun Path.canLoad() = getFileSystem().getOrThrow().exists(this)
