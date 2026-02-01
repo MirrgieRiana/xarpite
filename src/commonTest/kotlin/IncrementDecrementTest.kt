@@ -81,74 +81,150 @@ class IncrementDecrementTest {
     }
 
     @Test
-    fun overridePrefixIncrementTest() = runTest {
-        // 前置 ++ をオーバーライドできる（アクセサを使用）
-        assertEquals(200, eval("""
-            value := 100
-            obj := {
-                `++_`: this, accessor -> (newVal := accessor().value * 2; accessor({value: newVal}); newVal)
-                value: 100
+    fun mutableCounterIncrementTest() = runTest {
+        // MutableCounter: オブジェクト自体を改変するインクリメント
+        assertEquals(1, eval("""
+            MutableCounter := {
+                new := value -> MutableCounter{value: value}
+                `_++`: this, accessor -> (
+                    this.value++
+                )
             }
-            ++obj
+            old := MutableCounter.new(0)
+            new := old
+            new++
+            old.value
+        """).int)
+        
+        // 同じオブジェクトを参照しているため、oldもnewも同じ値
+        assertEquals(1, eval("""
+            MutableCounter := {
+                new := value -> MutableCounter{value: value}
+                `_++`: this, accessor -> (
+                    this.value++
+                )
+            }
+            old := MutableCounter.new(0)
+            new := old
+            new++
+            new.value
         """).int)
     }
 
     @Test
-    fun overrideSuffixIncrementTest() = runTest {
-        // 後置 ++ をオーバーライドできる（アクセサを使用）
-        assertEquals(200, eval("""
-            obj := {
-                `_++`: this, accessor -> (oldObj := accessor(); newVal := oldObj.value * 2; accessor({value: newVal}); oldObj.value)
-                value: 100
+    fun immutableCounterIncrementTest() = runTest {
+        // ImmutableCounter: オブジェクトは不変で、新しいオブジェクトを代入
+        assertEquals(0, eval("""
+            ImmutableCounter := {
+                new := value -> ImmutableCounter{value: value}
+                `_++`: this, accessor -> (
+                    accessor(new(this.value + 1))
+                )
             }
+            old := ImmutableCounter.new(0)
+            new := old
+            new++
+            old.value
+        """).int)
+        
+        // 新しいオブジェクトが代入されるため、oldとnewは異なる値
+        assertEquals(1, eval("""
+            ImmutableCounter := {
+                new := value -> ImmutableCounter{value: value}
+                `_++`: this, accessor -> (
+                    accessor(new(this.value + 1))
+                )
+            }
+            old := ImmutableCounter.new(0)
+            new := old
+            new++
+            new.value
+        """).int)
+    }
+
+    @Test
+    fun prefixPostfixIndependenceTest() = runTest {
+        // 前置版と後置版は独立しており、片方がもう片方にフォールバックしない
+        assertEquals("suffix", eval("""
+            Object := {
+                `_++`: this, accessor -> "suffix"
+                `++_`: this, accessor -> "prefix"
+            }
+            obj := Object{value: 0}
             obj++
-            obj.value
-        """).int)
-    }
-
-    @Test
-    fun overridePrefixDecrementTest() = runTest {
-        // 前置 -- をオーバーライドできる（アクセサを使用）
-        assertEquals(50, eval("""
-            obj := {
-                `--_`: this, accessor -> (newVal := DIV(accessor().value; 2); accessor({value: newVal}); newVal)
-                value: 100
+        """).toString())
+        
+        assertEquals("prefix", eval("""
+            Object := {
+                `_++`: this, accessor -> "suffix"
+                `++_`: this, accessor -> "prefix"
             }
-            --obj
-        """).int)
+            obj := Object{value: 0}
+            ++obj
+        """).toString())
     }
 
     @Test
-    fun overrideSuffixDecrementTest() = runTest {
-        // 後置 -- をオーバーライドできる（アクセサを使用）
-        assertEquals(50, eval("""
-            obj := {
-                `_--`: this, accessor -> (oldObj := accessor(); newVal := DIV(oldObj.value; 2); accessor({value: newVal}); oldObj.value)
-                value: 100
-            }
-            obj--
-            obj.value
-        """).int)
-    }
-
-    @Test
-    fun overrideIncrementReturnValueTest() = runTest {
-        // 後置版はメソッドの戻り値を返す
+    fun overrideIncrementWithAccessorTest() = runTest {
+        // アクセサを使用して値を取得・設定できる
         assertEquals(100, eval("""
-            obj := {
-                `_++`: this, accessor -> (oldObj := accessor(); newVal := oldObj.value * 2; accessor({value: newVal}); oldObj.value)
-                value: 100
+            Object := {
+                `_++`: this, accessor -> (
+                    oldObj := accessor()
+                    newVal := oldObj.value * 2
+                    accessor({value: newVal})
+                    oldObj.value
+                )
             }
+            obj := Object{value: 100}
             obj++
         """).int)
         
-        // 前置版はメソッドの戻り値を返す
+        // 変数が更新されている
         assertEquals(200, eval("""
-            obj := {
-                `++_`: this, accessor -> (newVal := accessor().value * 2; accessor({value: newVal}); newVal)
-                value: 100
+            Object := {
+                `_++`: this, accessor -> (
+                    oldObj := accessor()
+                    newVal := oldObj.value * 2
+                    accessor({value: newVal})
+                    oldObj.value
+                )
             }
-            ++obj
+            obj := Object{value: 100}
+            obj++
+            obj.value
+        """).int)
+    }
+
+    @Test
+    fun overrideDecrementWithAccessorTest() = runTest {
+        // デクリメントでもアクセサを使用できる
+        assertEquals(100, eval("""
+            Object := {
+                `_--`: this, accessor -> (
+                    oldObj := accessor()
+                    newVal := DIV(oldObj.value; 2)
+                    accessor({value: newVal})
+                    oldObj.value
+                )
+            }
+            obj := Object{value: 100}
+            obj--
+        """).int)
+        
+        // 変数が更新されている
+        assertEquals(50, eval("""
+            Object := {
+                `_--`: this, accessor -> (
+                    oldObj := accessor()
+                    newVal := DIV(oldObj.value; 2)
+                    accessor({value: newVal})
+                    oldObj.value
+                )
+            }
+            obj := Object{value: 100}
+            obj--
+            obj.value
         """).int)
     }
 }

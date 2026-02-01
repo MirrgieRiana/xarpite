@@ -279,56 +279,92 @@ Increment and decrement operators can be overridden with dedicated methods.
 
 | Operator    | Method Name | Description       |
 |-------------|-------------|-------------------|
-| `++formula` | `++_`       | Prefix increment  |
 | `formula++` | `_++`       | Postfix increment |
-| `--formula` | `--_`       | Prefix decrement  |
+| `++formula` | `++_`       | Prefix increment  |
 | `formula--` | `_--`       | Postfix decrement |
+| `--formula` | `--_`       | Prefix decrement  |
 
-By defining these methods on an object, you can completely customize the behavior of increment and decrement operations.
+By overriding these methods, you can customize the behavior of increment and decrement operations.
 
-Override methods take 2 arguments:
+---
 
-1. `this`: The object itself
-2. `accessor`: A variable accessor function
-   - Call with 0 arguments `accessor()` to get the variable's value
-   - Call with 1 argument `accessor(newValue)` to set the variable's value
+Override methods take two arguments in addition to the object itself: an `accessor` function that performs get and set operations on the expression.
 
-The return value of the method is directly returned as the operator's result.
+Calling `accessor` with 0 arguments performs a value get operation on the expression.
+
+Calling `accessor` with 1 argument performs a value set operation on the expression.
+
+Increment and decrement behavior can be defined either as an object mutation operation, or as an immutable operation with assignment.
 
 ```shell
-$ xa '
-  obj := {
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
     `_++`: this, accessor -> (
-      oldObj := accessor()
-      newVal := oldObj.value * 2
-      accessor({value: newVal})
-      oldObj.value
+      this.value++
     )
-    value: 100
+    `&_`: this -> this.value.&
   }
-  obj++
-'
-# 100
 
-$ xa '
-  obj := {
-    `_++`: this, accessor -> (
-      oldObj := accessor()
-      newVal := oldObj.value * 2
-      accessor({value: newVal})
-      oldObj.value
-    )
-    value: 100
-  }
-  obj++
-  obj.value
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
 '
-# 200
+# Old: 0
+# New: 0
+# Old: 1
+# New: 1
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_++`: this, accessor -> (
+      accessor(new(this.value + 1))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 1
 ```
 
 ---
 
-If no override method exists, the traditional addition/subtraction using `_+_` and `_-_` methods is performed, and the result is assigned to the variable.
+The operator's return value is the return value of the override method.
+
+Due to this property, prefix and postfix versions are defined as independent operations, and one does not fall back to the other.
+
+```shell
+$ xa -q '
+  Object := {
+    `_++`: this, accessor -> "suffix"
+    `++_`: this, accessor -> "prefix"
+  }
+
+  OUT << obj++
+  OUT << ++obj
+'
+# suffix
+# prefix
+```
 
 # Variables
 
