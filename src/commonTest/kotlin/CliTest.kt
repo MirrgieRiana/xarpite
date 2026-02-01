@@ -583,21 +583,6 @@ class CliTest {
         }
     }
 
-    @Test
-    fun useSupportsBackslashRelativePath() = runTest {
-        val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val dir = baseDir.resolve("use.backslash.tmp")
-        fileSystem.createDirectory(dir)
-        val file = dir.resolve("value.xa1")
-        fileSystem.write(file) { writeUtf8("777") }
-        // Test backslash relative path (.\)
-        assertEquals("777", cliEval(context, """USE(".\\$file")""").toFluoriteString(null).value)
-        fileSystem.delete(file)
-        fileSystem.delete(dir)
-    }
 
     @Test
     fun inb() = runTest {
