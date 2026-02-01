@@ -606,6 +606,19 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
+## `INDEXED` インデックス付きのストリームに変換
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>`
+
+`stream` の各要素に対して0から始まるインデックスを付与した2要素配列のストリームを返します。
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
+```
+
 ## `GROUP` ストリームをキーでグループ化
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
