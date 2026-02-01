@@ -3,6 +3,7 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -42,6 +43,9 @@ class RuntimeContext(
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
         return "${position.location}:$row:$column  $startEllipsis$snippet$endEllipsis"
     }
+
+
+    val inc = FluoriteArray()
 
 }
 

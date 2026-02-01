@@ -1,9 +1,11 @@
 package mirrg.xarpite.cli
 
+import mirrg.kotlin.helium.join
 import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -33,7 +35,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(baseDir, reference) ?: throw FluoriteException("Module not found: $reference".toFluoriteString())
+                val modulePath = resolveModulePath(context.inc, baseDir, reference)
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
@@ -47,15 +49,32 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private fun resolveModulePath(baseDir: Path, reference: String): Path? {
-    fun Path.canLoad() = getFileSystem().getOrThrow().exists(this)
+private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, reference: String): Path {
+    val paths = mutableListOf<Path>()
+
+    fun Path.tryToLoad(): Boolean {
+        paths += this
+        return getFileSystem().getOrThrow().exists(this)
+    }
+
+    fun fail(message: String): Nothing {
+        val lines = mutableListOf<String>()
+        lines += message
+        if (paths.isNotEmpty()) {
+            lines += "Tried paths:"
+            paths.forEach {
+                lines += "- $it"
+            }
+        }
+        throw FluoriteException(lines.join("\n").toFluoriteString())
+    }
 
     // ファイルパス
     if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
         val path = baseDir.resolve(reference.toPath()).normalized()
-        path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
-        return null
+        path.let { if (it.tryToLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it }
+        fail("Module file not found: $reference")
     }
 
     // Maven座標
@@ -66,10 +85,13 @@ private fun resolveModulePath(baseDir: Path, reference: String): Path? {
         val artifact = segments[1].notBlankOrNull ?: return@run
         val version = segments[2].notBlankOrNull ?: return@run
 
-        val path = ".xarpite/${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION".toPath().normalized()
-        path.let { if (it.canLoad()) return it }
-        return null
+        val suffix = "${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION"
+        inc.values.forEach { value ->
+            val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
+            path.let { if (it.tryToLoad()) return it }
+        }
+        fail("Maven artifact not found: $reference")
     }
 
-    throw FluoriteException("Invalid module reference: $reference".toFluoriteString())
+    fail("Invalid module reference format: $reference")
 }
