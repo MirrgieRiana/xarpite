@@ -357,35 +357,29 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 An array of directory paths that are searched when using `USE` with Maven coordinate format.
 
+When a relative path is specified, it is resolved based on `PWD`.
+
 By default, `./.xarpite/maven` is included.
 
 ---
 
-You can add custom module search paths by using `INC::push`.
+You can add custom module search paths by adding values to `INC`.
 
 ```shell
 $ {
-  # Place a module in a custom path
-  mkdir -p custom-lib/com/example/mylib
-  echo '"Custom Library"' > custom-lib/com/example/mylib/mylib-1.0.0.xa1
-  
-  # Add custom path to INC
+  mkdir -p maven-fruit/com/example/fruit/apple
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+
   xa '
-    INC::push("custom-lib")
-    USE("com.example:mylib:1.0.0")
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
   '
-  
-  # Cleanup
-  rm -r custom-lib
+
+  rm -r maven-fruit
 }
-# Custom Library
+# Apple
 ```
-
----
-
-When `USE` is called with a relative or absolute path, `INC` is not referenced.
-
-`INC` is only used with Maven coordinate format specifications.
 
 ### `IN`, `I`: Read Strings Line by Line from Console
 
@@ -815,8 +809,6 @@ The `.xa1` extension is automatically appended.
 
 For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
 
-By default, `INC` includes `./.xarpite/maven`.
-
 ```shell
 $ {
   mkdir -p .xarpite/maven/com/example/fruit/apple
@@ -828,26 +820,6 @@ $ {
   rm -r .xarpite
 }
 # Apple
-```
-
----
-
-To use custom module search paths, add them to the `INC` array using `INC::push`.
-
-```shell
-$ {
-  mkdir -p custom-lib/com/example/fruit/orange
-  
-  echo ' "Orange" ' > custom-lib/com/example/fruit/orange/orange-2.0.0.xa1
-  
-  xa '
-    INC::push("custom-lib")
-    USE("com.example.fruit:orange:2.0.0")
-  '
-  
-  rm -r custom-lib
-}
-# Orange
 ```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
