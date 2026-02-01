@@ -223,7 +223,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     }
                     arrayOf(
                         "JSONSD" define create("JSONSD"),
-                        "JSONSL" define create("JSONLD"),
+                        "JSONLD" define create("JSONLD"),
                     )
                 },
             )
