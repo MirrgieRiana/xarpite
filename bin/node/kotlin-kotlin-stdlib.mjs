@@ -37,11 +37,6 @@ if (typeof Array.prototype.fill === 'undefined') {
     Object.defineProperty(TypedArray.prototype, 'fill', {value: Array.prototype.fill});
   }
 });
-if (typeof Math.log10 === 'undefined') {
-  Math.log10 = function (x) {
-    return Math.log(x) * Math.LOG10E;
-  };
-}
 if (typeof Math.clz32 === 'undefined') {
   Math.clz32 = function (log, LN2) {
     return function (x) {
@@ -52,6 +47,11 @@ if (typeof Math.clz32 === 'undefined') {
       return 31 - (log(asUint) / LN2 | 0) | 0; // the "| 0" acts like math.floor
     };
   }(Math.log, Math.LN2);
+}
+if (typeof Math.log10 === 'undefined') {
+  Math.log10 = function (x) {
+    return Math.log(x) * Math.LOG10E;
+  };
 }
 if (typeof String.prototype.endsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'endsWith', {value: function (searchString, position) {
@@ -1146,6 +1146,14 @@ function drop_1(_this__u8e3s4, n) {
 function getOrNull_1(_this__u8e3s4, index) {
   return (0 <= index ? index <= (charSequenceLength(_this__u8e3s4) - 1 | 0) : false) ? charSequenceGet(_this__u8e3s4, index) : null;
 }
+function dropLast_1(_this__u8e3s4, n) {
+  // Inline function 'kotlin.require' call
+  if (!(n >= 0)) {
+    var message = 'Requested character count ' + n + ' is less than zero.';
+    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
+  }
+  return take_2(_this__u8e3s4, coerceAtLeast(_this__u8e3s4.length - n | 0, 0));
+}
 function take_2(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
   if (!(n >= 0)) {
@@ -1159,14 +1167,6 @@ function first_1(_this__u8e3s4) {
   if (charSequenceLength(_this__u8e3s4) === 0)
     throw NoSuchElementException_init_$Create$_0('Char sequence is empty.');
   return charSequenceGet(_this__u8e3s4, 0);
-}
-function dropLast_1(_this__u8e3s4, n) {
-  // Inline function 'kotlin.require' call
-  if (!(n >= 0)) {
-    var message = 'Requested character count ' + n + ' is less than zero.';
-    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
-  }
-  return take_2(_this__u8e3s4, coerceAtLeast(_this__u8e3s4.length - n | 0, 0));
 }
 function takeLast_0(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call

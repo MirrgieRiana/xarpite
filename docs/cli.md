@@ -810,7 +810,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-If the called process exits with a non-zero exit code, an exception is thrown.
+If the called process exits with a non-zero exit code, an error is thrown.
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
@@ -837,3 +837,51 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM version.**
+
+### `BASH`: Execute Bash scripts
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+Executes `script` as a Bash script, decodes its standard output as UTF-8, and returns it as a string.
+
+Trailing newlines in the output are removed.
+
+This behavior is similar to Bash's `"$(...)"`.
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+If the `args` argument is specified, you can pass arguments to the Bash script.
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+This function internally executes the `bash` command.
+
+An error will occur in environments where the `bash` command is not available.
+
+---
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+---
+
+**This function is currently only provided in the JVM and Native versions.**

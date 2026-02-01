@@ -42,7 +42,7 @@ However, the label operator has low binding precedence, allowing `formula` to in
 
 The return operator `label!! value` provides decent readability when `label` is a string like `return`, as in `return!! "Result"`.
 
-The `!!` operator's appearance corresponds to the throw operator `!! error`, and their behaviors are also similar.
+The `!!` operator's appearance corresponds to the throw operator `!! value`, and their behaviors are also similar.
 
 ## Escaping from Loops
 
@@ -220,11 +220,23 @@ $ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found!! _ !: found | _ * 10'
 # 150
 ```
 
-# Error Handling
+# Exception Mechanism
+
+The exception mechanism is a system for returning values through paths other than expression return values.
+
+The exception mechanism consists of throwing and catching values.
+
+Throwing can be done with values of any type, and the thrown value (= exception value) propagates across expression and function call hierarchies until it is caught.
+
+If an exception value is not caught, the dispatcher at the top of the call hierarchy handles the exception.
+
+The exception mechanism is often used to throw values defined as errors to represent processing "failures," but it is not necessarily limited to this use.
+
+You may use the exception mechanism simply as a control structure to return values from deep inside function or expression call hierarchies to the outside.
 
 ## Throw Operator
 
-In Xarpite, error throwing is done with the throw operator `!! error`.
+In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
@@ -243,7 +255,7 @@ $ xa '
 
 ### Omitting Throw Value
 
-The throw operator can also be written simply as `!!` with the `error` clause omitted.
+The throw operator can also be written simply as `!!` with the `value` clause omitted.
 
 In this case, `NULL` is thrown.
 
@@ -326,7 +338,7 @@ $ xa '
 
 ---
 
-If an exception is thrown inside the `try` clause's stream, it is also caught, and the return value of the catch operator becomes the return value of the `catch` clause.
+If an exception value is thrown inside the `try` clause's stream, it is also caught, and the return value of the catch operator becomes the return value of the `catch` clause.
 
 ```shell
 $ xa '
@@ -373,9 +385,9 @@ $ xa '
 
 ### Binding Precedence of Throw and Catch Operators
 
-The throw operator `!! error` has the same binding rules as the return operator `label!! value`, and the `error` clause can contain comma operators and any expression with higher binding precedence.
+The throw operator `!! value` has the same binding rules as the return operator `label!! value`, and the `value` clause can contain comma operators and any expression with higher binding precedence.
 
-In the following example, the `error` clause directly contains the comma operator.
+In the following example, the `value` clause directly contains the comma operator.
 
 ```shell
 $ xa '
