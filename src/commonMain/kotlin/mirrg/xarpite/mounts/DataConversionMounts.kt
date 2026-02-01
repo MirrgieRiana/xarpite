@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -154,49 +155,62 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             buffer.readUtf8().toFluoriteString()
         },
-        "JSON" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
-            val arguments2 = arguments.toMutableList()
+        *run {
+            suspend fun parseIndent(indent: FluoriteValue): String {
+                return if (indent is FluoriteNumber) {
+                    val number = indent.roundToInt()
+                    if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
+                    " ".repeat(number)
+                } else {
+                    indent.toFluoriteString(null).value
+                }
+            }
+            arrayOf(
+                "JSON" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
+                    val arguments2 = arguments.toMutableList()
 
-            if (arguments2.isEmpty()) usage()
-            val value = arguments2.removeLast()
+                    if (arguments2.isEmpty()) usage()
+                    val value = arguments2.removeLast()
 
-            val (entries, arguments3) = arguments2.partitionIfEntry()
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
 
-            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value
+                    val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
 
-            if (entries.isNotEmpty()) usage()
-            if (arguments3.isNotEmpty()) usage()
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
 
-            value.toSingleJsonFluoriteValue(null, indent = indent)
-        },
-        "JSOND" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsSingleJson(null)
-        },
-        "JSONS" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
-            val arguments2 = arguments.toMutableList()
+                    value.toSingleJsonFluoriteValue(null, indent = indent)
+                },
+                "JSOND" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
+                    if (arguments.size != 1) usage()
+                    val value = arguments[0]
+                    value.toFluoriteValueAsSingleJson(null)
+                },
+                "JSONS" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                    val arguments2 = arguments.toMutableList()
 
-            if (arguments2.isEmpty()) usage()
-            val values = arguments2.removeLast()
+                    if (arguments2.isEmpty()) usage()
+                    val values = arguments2.removeLast()
 
-            val (entries, arguments3) = arguments2.partitionIfEntry()
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
 
-            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.toFluoriteString(null)?.value
+                    val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
 
-            if (entries.isNotEmpty()) usage()
-            if (arguments3.isNotEmpty()) usage()
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
 
-            values.toJsonsFluoriteValue(null, indent = indent)
-        },
-        "JSONSD" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsJsons(null)
+                    values.toJsonsFluoriteValue(null, indent = indent)
+                },
+                "JSONSD" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
+                    if (arguments.size != 1) usage()
+                    val value = arguments[0]
+                    value.toFluoriteValueAsJsons(null)
+                },
+            )
         },
         "CSV" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
