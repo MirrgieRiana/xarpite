@@ -1,9 +1,11 @@
 package mirrg.xarpite.cli
 
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -17,13 +19,14 @@ import okio.Path.Companion.toPath
 private const val MODULE_EXTENSION = ".xa1"
 
 context(context: RuntimeContext)
-fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
+fun createModuleMounts(scriptFileName: String?, scriptDirName: String, mountsFactory: (String?, String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
+        "LOCATION" define LazyMount { scriptFileName?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION_DIR" define LazyMount { scriptDirName.toFluoriteString() },
+        "LOCATION_FILE" define LazyMount { scriptFileName?.toPath()?.name?.toFluoriteString() ?: FluoriteNull },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
-            val baseDir by lazy {
-                location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-            }
+            val baseDir = scriptDirName.toPath()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(file: STRING): VALUE")
                 val file = arguments[0].toFluoriteString(null).value
@@ -31,7 +34,9 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(modulePath.toString()))
+                    val moduleFileName = modulePath.toString()
+                    val moduleDirName = modulePath.parent?.toString() ?: throw FluoriteException("Cannot determine module directory.".toFluoriteString())
+                    evaluator.defineMounts(mountsFactory(moduleFileName, moduleDirName))
                     evaluator.get(modulePath.toString(), src).cache()
                 }
             }

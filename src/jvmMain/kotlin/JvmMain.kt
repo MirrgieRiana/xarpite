@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     }
     runBlocking {
         val ioContext = object : IoContext {
-            override fun getPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
+            override fun getPlatformPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()

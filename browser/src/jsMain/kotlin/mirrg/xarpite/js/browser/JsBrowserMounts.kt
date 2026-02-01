@@ -6,6 +6,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
+import mirrg.xarpite.getPwd
 import mirrg.xarpite.js.FluoriteJsObject
 
 context(context: RuntimeContext)

@@ -11,13 +11,24 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
+import mirrg.xarpite.getPwd
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
+import okio.Path
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
+fun resolveAbsolutePath(file: String, pwd: String): String {
+    val path = file.toPath()
+    return if (path.isAbsolute) {
+        path.normalized().toString()
+    } else {
+        pwd.toPath().resolve(path).normalized().toString()
+    }
+}
+
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFilePath: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -109,7 +120,7 @@ fun parseArguments(args: Iterable<String>): Options {
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet)
+    return Options(script ?: throw ShowUsage, arguments, quiet, scriptFile)
 }
 
 fun showUsage() {
@@ -141,13 +152,19 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
+            resolveAbsolutePath(scriptFile, ioContext.getPwd())
+        }
+        
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
-        mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptFileName, scriptDirName ->
+            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-"))
+        val scriptFileName = absoluteScriptPath
+        val scriptDirName = absoluteScriptPath?.toPath()?.parent?.toString() ?: "."
+        evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
         try {
             withStackTrace(Position("-", 0)) {
                 if (options.quiet) {

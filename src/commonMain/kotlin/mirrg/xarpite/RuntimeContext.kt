@@ -3,6 +3,7 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -46,7 +47,7 @@ class RuntimeContext(
 }
 
 interface IoContext {
-    fun getPwd(): String
+    fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -56,8 +57,10 @@ interface IoContext {
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
 }
 
+fun IoContext.getPwd(): String = getEnv().run { this["XARPITE_PWD"]?.notBlankOrNull ?: this["PWD"]?.notBlankOrNull ?: getPlatformPwd() }
+
 open class UnsupportedIoContext : IoContext {
-    override fun getPwd(): String = throw UnsupportedOperationException()
+    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
