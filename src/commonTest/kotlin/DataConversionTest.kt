@@ -24,13 +24,12 @@ class DataConversionTest {
         assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
         assertEquals(
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
-            eval(""" "  ", {a: 1} >> JSON """).string
+            eval(""" {a: 1} >> JSON["  "] """).string
         ) // indentは位置引数でも指定できる
         assertEquals(
-            eval(""" {a: 1} >> JSON[indent: "2"] """).string,
+            eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON[indent: 2] """).string
-        ) // indentは数値でも指定でき、文字列化される
-        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONS[indent: 1]").stream()) // ストリームを指定するとJsonのストリームになる
+        ) // indentは数値でも指定でき、その数だけ空白が使用される
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
@@ -78,18 +77,12 @@ class DataConversionTest {
         assertEquals(
             """
                 [
-                  
                   "a",
-                  
                   "b"
-                  
                 ],
                 [
-                  
                   "c",
-                  
                   "d"
-                  
                 ]
             """.trimIndent().replace("\n", ""),
             eval(""" "a,b","c,d" >> CSVD >> JSONS[indent: "  "] """).stream().replace("\n", "")
