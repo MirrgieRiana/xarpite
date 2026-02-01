@@ -3965,22 +3965,32 @@ protoOf(Path).c1m = function (child) {
   return commonResolve(this, toPath(child_0, false), false);
 };
 protoOf(Path).d1m = function (child, normalize) {
-  return commonResolve(this, child, normalize);
+  // Inline function 'okio.internal.commonResolve' call
+  // Inline function 'okio.internal.commonResolve' call
+  var child_0 = (new Buffer()).f1j(child);
+  return commonResolve(this, toPath(child_0, false), normalize);
 };
 protoOf(Path).e1m = function (child, normalize, $super) {
   normalize = normalize === VOID ? false : normalize;
   return $super === VOID ? this.d1m(child, normalize) : $super.d1m.call(this, child, normalize);
 };
-protoOf(Path).f1m = function () {
+protoOf(Path).f1m = function (child, normalize) {
+  return commonResolve(this, child, normalize);
+};
+protoOf(Path).g1m = function (child, normalize, $super) {
+  normalize = normalize === VOID ? false : normalize;
+  return $super === VOID ? this.f1m(child, normalize) : $super.f1m.call(this, child, normalize);
+};
+protoOf(Path).h1m = function () {
   // Inline function 'okio.internal.commonNormalized' call
   return Companion_getInstance_2().y1l(this.toString(), true);
 };
-protoOf(Path).g1m = function (other) {
+protoOf(Path).i1m = function (other) {
   // Inline function 'okio.internal.commonCompareTo' call
   return this.a1j_1.u1k(other.a1j_1);
 };
 protoOf(Path).d = function (other) {
-  return this.g1m(other instanceof Path ? other : THROW_CCE());
+  return this.i1m(other instanceof Path ? other : THROW_CCE());
 };
 protoOf(Path).equals = function (other) {
   // Inline function 'okio.internal.commonEquals' call
@@ -4001,61 +4011,61 @@ protoOf(Path).toString = function () {
   return this.a1j_1.i1k();
 };
 function RealBufferedSink(sink) {
-  this.h1m_1 = sink;
-  this.i1m_1 = false;
-  this.j1m_1 = new Buffer();
+  this.j1m_1 = sink;
+  this.k1m_1 = false;
+  this.l1m_1 = new Buffer();
 }
 protoOf(RealBufferedSink).o1j = function (source, byteCount) {
   // Inline function 'okio.internal.commonWrite' call
   // Inline function 'kotlin.check' call
-  if (!!this.i1m_1) {
+  if (!!this.k1m_1) {
     var message = 'closed';
     throw IllegalStateException_init_$Create$(toString_0(message));
   }
-  this.j1m_1.o1j(source, byteCount);
-  this.k1m();
+  this.l1m_1.o1j(source, byteCount);
+  this.m1m();
   return Unit_instance;
 };
 protoOf(RealBufferedSink).f1j = function (string) {
   // Inline function 'okio.internal.commonWriteUtf8' call
   // Inline function 'kotlin.check' call
-  if (!!this.i1m_1) {
+  if (!!this.k1m_1) {
     var message = 'closed';
     throw IllegalStateException_init_$Create$(toString_0(message));
   }
-  this.j1m_1.f1j(string);
-  return this.k1m();
+  this.l1m_1.f1j(string);
+  return this.m1m();
 };
 protoOf(RealBufferedSink).r1l = function (source) {
   // Inline function 'okio.internal.commonWrite' call
   // Inline function 'kotlin.check' call
-  if (!!this.i1m_1) {
+  if (!!this.k1m_1) {
     var message = 'closed';
     throw IllegalStateException_init_$Create$(toString_0(message));
   }
-  this.j1m_1.r1l(source);
-  return this.k1m();
+  this.l1m_1.r1l(source);
+  return this.m1m();
 };
 protoOf(RealBufferedSink).p1l = function (b) {
   // Inline function 'okio.internal.commonWriteByte' call
   // Inline function 'kotlin.check' call
-  if (!!this.i1m_1) {
+  if (!!this.k1m_1) {
     var message = 'closed';
     throw IllegalStateException_init_$Create$(toString_0(message));
   }
-  this.j1m_1.p1l(b);
-  return this.k1m();
+  this.l1m_1.p1l(b);
+  return this.m1m();
 };
-protoOf(RealBufferedSink).k1m = function () {
+protoOf(RealBufferedSink).m1m = function () {
   // Inline function 'okio.internal.commonEmitCompleteSegments' call
   // Inline function 'kotlin.check' call
-  if (!!this.i1m_1) {
+  if (!!this.k1m_1) {
     var message = 'closed';
     throw IllegalStateException_init_$Create$(toString_0(message));
   }
-  var byteCount = this.j1m_1.d1l();
+  var byteCount = this.l1m_1.d1l();
   if (compare(byteCount, new Long(0, 0)) > 0) {
-    this.h1m_1.o1j(this.j1m_1, byteCount);
+    this.j1m_1.o1j(this.l1m_1, byteCount);
   }
   return this;
 };
@@ -4063,14 +4073,14 @@ protoOf(RealBufferedSink).f1k = function () {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonClose' call
-    if (this.i1m_1) {
+    if (this.k1m_1) {
       tmp$ret$0 = Unit_instance;
       break $l$block;
     }
     var thrown = null;
     try {
-      if (compare(this.j1m_1.u1i_1, new Long(0, 0)) > 0) {
-        this.h1m_1.o1j(this.j1m_1, this.j1m_1.u1i_1);
+      if (compare(this.l1m_1.u1i_1, new Long(0, 0)) > 0) {
+        this.j1m_1.o1j(this.l1m_1, this.l1m_1.u1i_1);
       }
     } catch ($p) {
       if ($p instanceof Error) {
@@ -4081,7 +4091,7 @@ protoOf(RealBufferedSink).f1k = function () {
       }
     }
     try {
-      this.h1m_1.f1k();
+      this.j1m_1.f1k();
     } catch ($p) {
       if ($p instanceof Error) {
         var e_0 = $p;
@@ -4091,7 +4101,7 @@ protoOf(RealBufferedSink).f1k = function () {
         throw $p;
       }
     }
-    this.i1m_1 = true;
+    this.k1m_1 = true;
     if (!(thrown == null))
       throw thrown;
     tmp$ret$0 = Unit_instance;
@@ -4100,12 +4110,12 @@ protoOf(RealBufferedSink).f1k = function () {
 };
 protoOf(RealBufferedSink).toString = function () {
   // Inline function 'okio.internal.commonToString' call
-  return 'buffer(' + toString_0(this.h1m_1) + ')';
+  return 'buffer(' + toString_0(this.j1m_1) + ')';
 };
 function RealBufferedSource(source) {
-  this.l1m_1 = source;
-  this.m1m_1 = false;
-  this.n1m_1 = new Buffer();
+  this.n1m_1 = source;
+  this.o1m_1 = false;
+  this.p1m_1 = new Buffer();
 }
 protoOf(RealBufferedSource).t1l = function (sink, byteCount) {
   var tmp$ret$4;
@@ -4117,35 +4127,35 @@ protoOf(RealBufferedSource).t1l = function (sink, byteCount) {
       throw IllegalArgumentException_init_$Create$(toString_0(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.m1m_1) {
+    if (!!this.o1m_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message_0));
     }
-    if (equalsLong(this.n1m_1.u1i_1, new Long(0, 0))) {
+    if (equalsLong(this.p1m_1.u1i_1, new Long(0, 0))) {
       if (equalsLong(byteCount, new Long(0, 0))) {
         tmp$ret$4 = new Long(0, 0);
         break $l$block_0;
       }
-      var read = this.l1m_1.t1l(this.n1m_1, new Long(8192, 0));
+      var read = this.n1m_1.t1l(this.p1m_1, new Long(8192, 0));
       if (equalsLong(read, new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
     }
     // Inline function 'kotlin.comparisons.minOf' call
-    var b = this.n1m_1.u1i_1;
+    var b = this.p1m_1.u1i_1;
     var toRead = compare(byteCount, b) <= 0 ? byteCount : b;
-    tmp$ret$4 = this.n1m_1.t1l(sink, toRead);
+    tmp$ret$4 = this.p1m_1.t1l(sink, toRead);
   }
   return tmp$ret$4;
 };
-protoOf(RealBufferedSource).o1m = function (byteCount) {
+protoOf(RealBufferedSource).q1m = function (byteCount) {
   // Inline function 'okio.internal.commonRequire' call
-  if (!this.p1m(byteCount))
+  if (!this.r1m(byteCount))
     throw EOFException_init_$Create$();
   return Unit_instance;
 };
-protoOf(RealBufferedSource).p1m = function (byteCount) {
+protoOf(RealBufferedSource).r1m = function (byteCount) {
   var tmp$ret$4;
   $l$block: {
     // Inline function 'okio.internal.commonRequest' call
@@ -4155,12 +4165,12 @@ protoOf(RealBufferedSource).p1m = function (byteCount) {
       throw IllegalArgumentException_init_$Create$(toString_0(message));
     }
     // Inline function 'kotlin.check' call
-    if (!!this.m1m_1) {
+    if (!!this.o1m_1) {
       var message_0 = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message_0));
     }
-    while (compare(this.n1m_1.u1i_1, byteCount) < 0) {
-      if (equalsLong(this.l1m_1.t1l(this.n1m_1, new Long(8192, 0)), new Long(-1, -1))) {
+    while (compare(this.p1m_1.u1i_1, byteCount) < 0) {
+      if (equalsLong(this.n1m_1.t1l(this.p1m_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = false;
         break $l$block;
       }
@@ -4177,36 +4187,36 @@ protoOf(RealBufferedSource).m1l = function (sink, offset, byteCount) {
   $l$block_0: {
     // Inline function 'okio.internal.commonRead' call
     checkOffsetAndCount(fromInt(sink.length), fromInt(offset), fromInt(byteCount));
-    if (equalsLong(this.n1m_1.u1i_1, new Long(0, 0))) {
+    if (equalsLong(this.p1m_1.u1i_1, new Long(0, 0))) {
       if (byteCount === 0) {
         tmp$ret$0 = 0;
         break $l$block_0;
       }
-      var read = this.l1m_1.t1l(this.n1m_1, new Long(8192, 0));
+      var read = this.n1m_1.t1l(this.p1m_1, new Long(8192, 0));
       if (equalsLong(read, new Long(-1, -1))) {
         tmp$ret$0 = -1;
         break $l$block_0;
       }
     }
     // Inline function 'okio.minOf' call
-    var b = this.n1m_1.u1i_1;
+    var b = this.p1m_1.u1i_1;
     // Inline function 'kotlin.comparisons.minOf' call
     var a = fromInt(byteCount);
     var tmp$ret$2 = compare(a, b) <= 0 ? a : b;
     var toRead = convertToInt(tmp$ret$2);
-    tmp$ret$0 = this.n1m_1.m1l(sink, offset, toRead);
+    tmp$ret$0 = this.p1m_1.m1l(sink, offset, toRead);
   }
   return tmp$ret$0;
 };
 protoOf(RealBufferedSource).g1l = function () {
   // Inline function 'okio.internal.commonReadUtf8' call
-  this.n1m_1.s1l(this.l1m_1);
-  return this.n1m_1.g1l();
+  this.p1m_1.s1l(this.n1m_1);
+  return this.p1m_1.g1l();
 };
 protoOf(RealBufferedSource).w1i = function (byteCount) {
   // Inline function 'okio.internal.commonReadUtf8' call
-  this.o1m(byteCount);
-  return this.n1m_1.w1i(byteCount);
+  this.q1m(byteCount);
+  return this.p1m_1.w1i(byteCount);
 };
 protoOf(RealBufferedSource).h1l = function () {
   // Inline function 'okio.internal.commonReadUtf8Line' call
@@ -4217,14 +4227,14 @@ protoOf(RealBufferedSource).h1l = function () {
   var tmp;
   if (equalsLong(newline, new Long(-1, -1))) {
     var tmp_0;
-    if (!equalsLong(this.n1m_1.u1i_1, new Long(0, 0))) {
-      tmp_0 = this.w1i(this.n1m_1.u1i_1);
+    if (!equalsLong(this.p1m_1.u1i_1, new Long(0, 0))) {
+      tmp_0 = this.w1i(this.p1m_1.u1i_1);
     } else {
       tmp_0 = null;
     }
     tmp = tmp_0;
   } else {
-    tmp = readUtf8Line(this.n1m_1, newline);
+    tmp = readUtf8Line(this.p1m_1, newline);
   }
   return tmp;
 };
@@ -4237,7 +4247,7 @@ protoOf(RealBufferedSource).u1l = function (b, fromIndex, toIndex) {
     // Inline function 'okio.internal.commonIndexOf' call
     var fromIndex_0 = fromIndex;
     // Inline function 'kotlin.check' call
-    if (!!this.m1m_1) {
+    if (!!this.o1m_1) {
       var message = 'closed';
       throw IllegalStateException_init_$Create$(toString_0(message));
     }
@@ -4247,13 +4257,13 @@ protoOf(RealBufferedSource).u1l = function (b, fromIndex, toIndex) {
       throw IllegalArgumentException_init_$Create$(toString_0(message_0));
     }
     while (compare(fromIndex_0, toIndex) < 0) {
-      var result = this.n1m_1.u1l(b, fromIndex_0, toIndex);
+      var result = this.p1m_1.u1l(b, fromIndex_0, toIndex);
       if (!equalsLong(result, new Long(-1, -1))) {
         tmp$ret$4 = result;
         break $l$block_0;
       }
-      var lastBufferSize = this.n1m_1.u1i_1;
-      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.l1m_1.t1l(this.n1m_1, new Long(8192, 0)), new Long(-1, -1))) {
+      var lastBufferSize = this.p1m_1.u1i_1;
+      if (compare(lastBufferSize, toIndex) >= 0 || equalsLong(this.n1m_1.t1l(this.p1m_1, new Long(8192, 0)), new Long(-1, -1))) {
         tmp$ret$4 = new Long(-1, -1);
         break $l$block_0;
       }
@@ -4269,20 +4279,20 @@ protoOf(RealBufferedSource).f1k = function () {
   var tmp$ret$0;
   $l$block: {
     // Inline function 'okio.internal.commonClose' call
-    if (this.m1m_1) {
+    if (this.o1m_1) {
       tmp$ret$0 = Unit_instance;
       break $l$block;
     }
-    this.m1m_1 = true;
-    this.l1m_1.f1k();
-    this.n1m_1.e2();
+    this.o1m_1 = true;
+    this.n1m_1.f1k();
+    this.p1m_1.e2();
     tmp$ret$0 = Unit_instance;
   }
   return tmp$ret$0;
 };
 protoOf(RealBufferedSource).toString = function () {
   // Inline function 'okio.internal.commonToString' call
-  return 'buffer(' + toString_0(this.l1m_1) + ')';
+  return 'buffer(' + toString_0(this.n1m_1) + ')';
 };
 function SegmentPool() {
   this.k1i_1 = 0;

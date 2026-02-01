@@ -44,8 +44,8 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSink(fd) {
-  this.r8e_1 = fd;
-  this.s8e_1 = false;
+  this.q8f_1 = fd;
+  this.r8f_1 = false;
 }
 protoOf(FileSink).o1j = function (source, byteCount) {
   // Inline function 'kotlin.require' call
@@ -59,26 +59,26 @@ protoOf(FileSink).o1j = function (source, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.s8e_1) {
+  if (!!this.r8f_1) {
     var message_1 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_1));
   }
   var data = source.e1l(byteCount);
-  var writtenByteCount = writeSync(this.r8e_1, data);
+  var writtenByteCount = writeSync(this.q8f_1, data);
   if (!equalsLong(numberToLong(writtenByteCount), byteCount)) {
     throw IOException_init_$Create$('expected ' + byteCount.toString() + ' but was ' + writtenByteCount);
   }
 };
 protoOf(FileSink).f1k = function () {
-  if (this.s8e_1)
+  if (this.r8f_1)
     return Unit_instance;
-  this.s8e_1 = true;
-  closeSync(this.r8e_1);
+  this.r8f_1 = true;
+  closeSync(this.q8f_1);
 };
 function FileSource(fd) {
-  this.t8e_1 = fd;
-  this.u8e_1 = new Long(0, 0);
-  this.v8e_1 = false;
+  this.s8f_1 = fd;
+  this.t8f_1 = new Long(0, 0);
+  this.u8f_1 = false;
 }
 protoOf(FileSource).t1l = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
@@ -87,29 +87,29 @@ protoOf(FileSource).t1l = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.v8e_1) {
+  if (!!this.u8f_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.t8e_1;
+  var tmp0_fd = this.s8f_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.u8e_1);
+  var tmp2_position = toNumber(this.t8f_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.u8e_1;
-  tmp.u8e_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.t8f_1;
+  tmp.t8f_1 = add(this_0, fromInt(readByteCount));
   sink.y1i(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).f1k = function () {
-  if (this.v8e_1)
+  if (this.u8f_1)
     return Unit_instance;
-  this.v8e_1 = true;
-  closeSync(this.t8e_1);
+  this.u8f_1 = true;
+  closeSync(this.s8f_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -170,10 +170,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.w8e_1 = 61440;
-  this.x8e_1 = 32768;
-  this.y8e_1 = 16384;
-  this.z8e_1 = 40960;
+  this.v8f_1 = 61440;
+  this.w8f_1 = 32768;
+  this.x8f_1 = 16384;
+  this.y8f_1 = 40960;
 }
 protoOf(NodeJsFileSystem).z1i = function (path) {
   var pathString = path.toString();
@@ -193,7 +193,7 @@ protoOf(NodeJsFileSystem).z1i = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.w8e_1) === this.z8e_1) {
+  if ((numberToInt(stat.mode) & this.v8f_1) === this.y8f_1) {
     try {
       symlinkTarget = Companion_getInstance().a1k(readlinkSync(pathString));
     } catch ($p) {
@@ -205,7 +205,7 @@ protoOf(NodeJsFileSystem).z1i = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.w8e_1) === this.x8e_1, (numberToInt(stat.mode) & this.w8e_1) === this.y8e_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.v8f_1) === this.w8f_1, (numberToInt(stat.mode) & this.v8f_1) === this.x8f_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
 protoOf(NodeJsFileSystem).c1k = function (dir) {
   return ensureNotNull(list(this, dir, true));

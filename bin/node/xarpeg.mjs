@@ -84,93 +84,93 @@ initMetadataForClass(combine$$inlined$Parser$1, VOID, VOID, VOID, [Parser]);
 //endregion
 function ParseContext$matrixPositionCalculator$delegate$lambda(this$0) {
   return function () {
-    return new MatrixPositionCalculator(this$0.y2c_1);
+    return new MatrixPositionCalculator(this$0.a2d_1);
   };
 }
 function ParseContext(src, useMemoization) {
-  this.y2c_1 = src;
-  this.z2c_1 = useMemoization;
+  this.a2d_1 = src;
+  this.b2d_1 = useMemoization;
   var tmp = this;
   // Inline function 'kotlin.collections.mutableMapOf' call
-  tmp.a2d_1 = LinkedHashMap_init_$Create$();
-  this.b2d_1 = false;
-  this.c2d_1 = 0;
+  tmp.c2d_1 = LinkedHashMap_init_$Create$();
+  this.d2d_1 = false;
+  this.e2d_1 = 0;
   var tmp_0 = this;
   // Inline function 'kotlin.collections.mutableSetOf' call
-  tmp_0.d2d_1 = LinkedHashSet_init_$Create$();
+  tmp_0.f2d_1 = LinkedHashSet_init_$Create$();
   var tmp_1 = this;
-  tmp_1.e2d_1 = lazy(ParseContext$matrixPositionCalculator$delegate$lambda(this));
+  tmp_1.g2d_1 = lazy(ParseContext$matrixPositionCalculator$delegate$lambda(this));
 }
-protoOf(ParseContext).f2d = function (parser, start) {
+protoOf(ParseContext).h2d = function (parser, start) {
   var tmp;
-  if (this.z2c_1) {
+  if (this.b2d_1) {
     var key = new Pair(parser, start);
     var tmp_0;
     // Inline function 'kotlin.collections.contains' call
     // Inline function 'kotlin.collections.containsKey' call
-    var this_0 = this.a2d_1;
+    var this_0 = this.c2d_1;
     if ((isInterface(this_0, KtMap) ? this_0 : THROW_CCE()).i2(key)) {
-      var tmp_1 = this.a2d_1.k2(key);
+      var tmp_1 = this.c2d_1.k2(key);
       tmp_0 = (tmp_1 == null ? true : tmp_1 instanceof ParseResult) ? tmp_1 : THROW_CCE();
     } else {
       var tmp_2;
-      if (!this.b2d_1 && !(parser.a1m() == null)) {
-        this.b2d_1 = true;
+      if (!this.d2d_1 && !(parser.a1m() == null)) {
+        this.d2d_1 = true;
         var tmp_3;
         try {
-          tmp_3 = parser.g2d(this, start);
+          tmp_3 = parser.i2d(this, start);
         }finally {
-          this.b2d_1 = false;
+          this.d2d_1 = false;
         }
         var result = tmp_3;
         tmp_2 = result;
       } else {
-        tmp_2 = parser.g2d(this, start);
+        tmp_2 = parser.i2d(this, start);
       }
       var result_0 = tmp_2;
       // Inline function 'kotlin.collections.set' call
-      this.a2d_1.b2(key, result_0);
+      this.c2d_1.b2(key, result_0);
       tmp_0 = result_0;
     }
     tmp = tmp_0;
   } else {
     var tmp_4;
-    if (!this.b2d_1 && !(parser.a1m() == null)) {
-      this.b2d_1 = true;
+    if (!this.d2d_1 && !(parser.a1m() == null)) {
+      this.d2d_1 = true;
       var tmp_5;
       try {
-        tmp_5 = parser.g2d(this, start);
+        tmp_5 = parser.i2d(this, start);
       }finally {
-        this.b2d_1 = false;
+        this.d2d_1 = false;
       }
       var result_1 = tmp_5;
       tmp_4 = result_1;
     } else {
-      tmp_4 = parser.g2d(this, start);
+      tmp_4 = parser.i2d(this, start);
     }
     tmp = tmp_4;
   }
   var result_2 = tmp;
-  if (result_2 == null && !this.b2d_1 && start >= this.c2d_1) {
-    if (start > this.c2d_1) {
-      this.c2d_1 = start;
-      this.d2d_1.e2();
+  if (result_2 == null && !this.d2d_1 && start >= this.e2d_1) {
+    if (start > this.e2d_1) {
+      this.e2d_1 = start;
+      this.f2d_1.e2();
     }
     if (!(parser.a1m() == null)) {
       // Inline function 'kotlin.collections.plusAssign' call
-      this.d2d_1.g(parser);
+      this.f2d_1.g(parser);
     }
   }
   return result_2;
 };
 function MatrixPositionCalculator(src) {
-  this.h2d_1 = src;
+  this.j2d_1 = src;
   var tmp = this;
   // Inline function 'kotlin.run' call
   var list = mutableListOf([0]);
   // Inline function 'kotlin.text.forEachIndexed' call
   var index = 0;
-  var indexedObject = this.h2d_1;
+  var indexedObject = this.j2d_1;
   var inductionVariable = 0;
   while (inductionVariable < charSequenceLength(indexedObject)) {
     var item = charSequenceGet(indexedObject, inductionVariable);
@@ -181,22 +181,22 @@ function MatrixPositionCalculator(src) {
       list.g(_unary__edvuaz + 1 | 0);
     }
   }
-  tmp.i2d_1 = list;
+  tmp.k2d_1 = list;
 }
 function Parser() {
 }
 function ParseResult(value, start, end) {
-  this.j2d_1 = value;
-  this.k2d_1 = start;
-  this.l2d_1 = end;
+  this.l2d_1 = value;
+  this.m2d_1 = start;
+  this.n2d_1 = end;
 }
 protoOf(ParseResult).toString = function () {
-  return 'ParseResult(value=' + toString(this.j2d_1) + ', start=' + this.k2d_1 + ', end=' + this.l2d_1 + ')';
+  return 'ParseResult(value=' + toString(this.l2d_1) + ', start=' + this.m2d_1 + ', end=' + this.n2d_1 + ')';
 };
 protoOf(ParseResult).hashCode = function () {
-  var result = hashCode(this.j2d_1);
-  result = imul(result, 31) + this.k2d_1 | 0;
-  result = imul(result, 31) + this.l2d_1 | 0;
+  var result = hashCode(this.l2d_1);
+  result = imul(result, 31) + this.m2d_1 | 0;
+  result = imul(result, 31) + this.n2d_1 | 0;
   return result;
 };
 protoOf(ParseResult).equals = function (other) {
@@ -204,11 +204,11 @@ protoOf(ParseResult).equals = function (other) {
     return true;
   if (!(other instanceof ParseResult))
     return false;
-  if (!equals(this.j2d_1, other.j2d_1))
+  if (!equals(this.l2d_1, other.l2d_1))
     return false;
-  if (!(this.k2d_1 === other.k2d_1))
+  if (!(this.m2d_1 === other.m2d_1))
     return false;
-  if (!(this.l2d_1 === other.l2d_1))
+  if (!(this.n2d_1 === other.n2d_1))
     return false;
   return true;
 };
@@ -221,12 +221,12 @@ function parseAllOrThrow(_this__u8e3s4, src, useMemoization) {
   return (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
 }
 function text(_this__u8e3s4, context) {
-  return normalize(substring(context.y2c_1, _this__u8e3s4.k2d_1, _this__u8e3s4.l2d_1));
+  return normalize(substring(context.a2d_1, _this__u8e3s4.m2d_1, _this__u8e3s4.n2d_1));
 }
 function parseAll(_this__u8e3s4, src, useMemoization) {
   useMemoization = useMemoization === VOID ? true : useMemoization;
   var context = new ParseContext(src, useMemoization);
-  var tmp0_elvis_lhs = context.f2d(_this__u8e3s4, 0);
+  var tmp0_elvis_lhs = context.h2d(_this__u8e3s4, 0);
   var tmp;
   if (tmp0_elvis_lhs == null) {
     // Inline function 'kotlin.Companion.failure' call
@@ -236,14 +236,14 @@ function parseAll(_this__u8e3s4, src, useMemoization) {
     tmp = tmp0_elvis_lhs;
   }
   var result = tmp;
-  if (!(result.l2d_1 === src.length)) {
-    var string = escapeDoubleQuote(truncate(drop(src, result.l2d_1), 10, '...'));
+  if (!(result.n2d_1 === src.length)) {
+    var string = escapeDoubleQuote(truncate(drop(src, result.n2d_1), 10, '...'));
     // Inline function 'kotlin.Companion.failure' call
-    var exception_0 = new ExtraCharactersParseException('Extra characters found after position ' + result.l2d_1 + ': "' + string + '"', context, result.l2d_1);
+    var exception_0 = new ExtraCharactersParseException('Extra characters found after position ' + result.n2d_1 + ': "' + string + '"', context, result.n2d_1);
     return _Result___init__impl__xyqfz8(createFailure(exception_0));
   }
   // Inline function 'kotlin.Companion.success' call
-  var value = result.j2d_1;
+  var value = result.l2d_1;
   return _Result___init__impl__xyqfz8(value);
 }
 function UnmatchedInputParseException(message, context, position) {
@@ -257,8 +257,8 @@ function ExtraCharactersParseException(message, context, position) {
 function ParseException(message, context, position) {
   Exception_init_$Init$(message, this);
   captureStack(this, ParseException);
-  this.m2d_1 = context;
-  this.n2d_1 = position;
+  this.o2d_1 = context;
+  this.p2d_1 = position;
 }
 function escapeDoubleQuote(_this__u8e3s4) {
   var sb = StringBuilder_init_$Create$();
@@ -314,7 +314,7 @@ function toParser(_this__u8e3s4) {
   if (get_isNative()) {
     tmp = new CharParser(_this__u8e3s4);
   } else {
-    var tmp0 = Companion_getInstance().o2d_1;
+    var tmp0 = Companion_getInstance().q2d_1;
     // Inline function 'kotlin.collections.getOrPut' call
     var key = new Char(_this__u8e3s4);
     var value = tmp0.k2(key);
@@ -334,7 +334,7 @@ function Companion() {
   Companion_instance_0 = this;
   var tmp = this;
   // Inline function 'kotlin.collections.mutableMapOf' call
-  tmp.o2d_1 = LinkedHashMap_init_$Create$();
+  tmp.q2d_1 = LinkedHashMap_init_$Create$();
 }
 var Companion_instance_0;
 function Companion_getInstance() {
@@ -344,7 +344,7 @@ function Companion_getInstance() {
 }
 function CharParser$name$delegate$lambda(this$0) {
   return function () {
-    return '"' + escapeDoubleQuote(toString_0(this$0.p2d_1)) + '"';
+    return '"' + escapeDoubleQuote(toString_0(this$0.r2d_1)) + '"';
   };
 }
 function CharParser$_get_name_$ref_8aiz4u() {
@@ -354,29 +354,29 @@ function CharParser$_get_name_$ref_8aiz4u() {
 }
 function CharParser(char) {
   Companion_getInstance();
-  this.p2d_1 = char;
+  this.r2d_1 = char;
   var tmp = this;
-  tmp.q2d_1 = lazy(CharParser$name$delegate$lambda(this));
+  tmp.s2d_1 = lazy(CharParser$name$delegate$lambda(this));
 }
-protoOf(CharParser).g2d = function (context, start) {
-  if (start >= context.y2c_1.length)
+protoOf(CharParser).i2d = function (context, start) {
+  if (start >= context.a2d_1.length)
     return null;
-  if (!(charCodeAt(context.y2c_1, start) === this.p2d_1))
+  if (!(charCodeAt(context.a2d_1, start) === this.r2d_1))
     return null;
-  return new ParseResult(new Char(this.p2d_1), start, start + 1 | 0);
+  return new ParseResult(new Char(this.r2d_1), start, start + 1 | 0);
 };
 protoOf(CharParser).a1m = function () {
-  var tmp0 = this.q2d_1;
+  var tmp0 = this.s2d_1;
   var tmp = KProperty1;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('name', 1, tmp, CharParser$_get_name_$ref_8aiz4u(), null);
   return tmp0.m2();
 };
 function FixedParser(value) {
-  this.r2d_1 = value;
+  this.t2d_1 = value;
 }
-protoOf(FixedParser).g2d = function (context, start) {
-  return new ParseResult(this.r2d_1, start, start);
+protoOf(FixedParser).i2d = function (context, start) {
+  return new ParseResult(this.t2d_1, start, start);
 };
 function fixed(value) {
   return new FixedParser(value);
@@ -391,16 +391,16 @@ function _get_ignore_$lambda_eyryvm(it) {
   return Tuple0_instance;
 }
 function ListParser(parser, min, max) {
-  this.s2d_1 = parser;
-  this.t2d_1 = min;
-  this.u2d_1 = max;
+  this.u2d_1 = parser;
+  this.v2d_1 = min;
+  this.w2d_1 = max;
 }
-protoOf(ListParser).g2d = function (context, start) {
+protoOf(ListParser).i2d = function (context, start) {
   // Inline function 'kotlin.collections.mutableListOf' call
   var results = ArrayList_init_$Create$();
   var nextIndex = start;
   $l$loop_0: while (true) {
-    var tmp0_elvis_lhs = context.f2d(this.s2d_1, nextIndex);
+    var tmp0_elvis_lhs = context.h2d(this.u2d_1, nextIndex);
     var tmp;
     if (tmp0_elvis_lhs == null) {
       break $l$loop_0;
@@ -409,13 +409,13 @@ protoOf(ListParser).g2d = function (context, start) {
     }
     var result = tmp;
     // Inline function 'kotlin.collections.plusAssign' call
-    var element = result.j2d_1;
+    var element = result.l2d_1;
     results.g(element);
-    nextIndex = result.l2d_1;
-    if (results.u() >= this.u2d_1)
+    nextIndex = result.n2d_1;
+    if (results.u() >= this.w2d_1)
       break $l$loop_0;
   }
-  if (results.u() < this.t2d_1)
+  if (results.u() < this.v2d_1)
     return null;
   return new ParseResult(results, start, nextIndex);
 };
@@ -439,13 +439,13 @@ function mapEx(_this__u8e3s4, function_0) {
   return new mapEx$$inlined$Parser$1(_this__u8e3s4, function_0);
 }
 function map$$inlined$Parser$1($this_map, $function) {
-  this.v2d_1 = $this_map;
-  this.w2d_1 = $function;
+  this.x2d_1 = $this_map;
+  this.y2d_1 = $function;
 }
-protoOf(map$$inlined$Parser$1).g2d = function (context, start) {
+protoOf(map$$inlined$Parser$1).i2d = function (context, start) {
   var tmp$ret$0;
   $l$block: {
-    var tmp0_elvis_lhs = context.f2d(this.v2d_1, start);
+    var tmp0_elvis_lhs = context.h2d(this.x2d_1, start);
     var tmp;
     if (tmp0_elvis_lhs == null) {
       tmp$ret$0 = null;
@@ -454,18 +454,18 @@ protoOf(map$$inlined$Parser$1).g2d = function (context, start) {
       tmp = tmp0_elvis_lhs;
     }
     var result = tmp;
-    tmp$ret$0 = new ParseResult(this.w2d_1(result.j2d_1), result.k2d_1, result.l2d_1);
+    tmp$ret$0 = new ParseResult(this.y2d_1(result.l2d_1), result.m2d_1, result.n2d_1);
   }
   return tmp$ret$0;
 };
 function mapEx$$inlined$Parser$1($this_mapEx, $function) {
-  this.x2d_1 = $this_mapEx;
-  this.y2d_1 = $function;
+  this.z2d_1 = $this_mapEx;
+  this.a2e_1 = $function;
 }
-protoOf(mapEx$$inlined$Parser$1).g2d = function (context, start) {
+protoOf(mapEx$$inlined$Parser$1).i2d = function (context, start) {
   var tmp$ret$0;
   $l$block: {
-    var tmp0_elvis_lhs = context.f2d(this.x2d_1, start);
+    var tmp0_elvis_lhs = context.h2d(this.z2d_1, start);
     var tmp;
     if (tmp0_elvis_lhs == null) {
       tmp$ret$0 = null;
@@ -474,7 +474,7 @@ protoOf(mapEx$$inlined$Parser$1).g2d = function (context, start) {
       tmp = tmp0_elvis_lhs;
     }
     var result = tmp;
-    tmp$ret$0 = new ParseResult(this.y2d_1(context, result), result.k2d_1, result.l2d_1);
+    tmp$ret$0 = new ParseResult(this.a2e_1(context, result), result.m2d_1, result.n2d_1);
   }
   return tmp$ret$0;
 };
@@ -485,22 +485,22 @@ function get_negativeLookAhead(_this__u8e3s4) {
   return new NegativeLookAheadParser(_this__u8e3s4);
 }
 function NegativeLookAheadParser(parser) {
-  this.z2d_1 = parser;
+  this.b2e_1 = parser;
 }
-protoOf(NegativeLookAheadParser).g2d = function (context, start) {
-  var result = context.f2d(this.z2d_1, start);
+protoOf(NegativeLookAheadParser).i2d = function (context, start) {
+  var result = context.h2d(this.b2e_1, start);
   if (!(result == null))
     return null;
   return new ParseResult(Tuple0_instance, start, start);
 };
 function OptionalParser(parser) {
-  this.a2e_1 = parser;
+  this.c2e_1 = parser;
 }
-protoOf(OptionalParser).g2d = function (context, start) {
-  var result = context.f2d(this.a2e_1, start);
+protoOf(OptionalParser).i2d = function (context, start) {
+  var result = context.h2d(this.c2e_1, start);
   var tmp;
   if (!(result == null)) {
-    tmp = new ParseResult(new Tuple1(result.j2d_1), result.k2d_1, result.l2d_1);
+    tmp = new ParseResult(new Tuple1(result.l2d_1), result.m2d_1, result.n2d_1);
   } else {
     tmp = new ParseResult(new Tuple1(null), start, start);
   }
@@ -510,14 +510,14 @@ function get_optional(_this__u8e3s4) {
   return new OptionalParser(_this__u8e3s4);
 }
 function OrParser(parsers) {
-  this.b2e_1 = parsers;
+  this.d2e_1 = parsers;
 }
-protoOf(OrParser).g2d = function (context, start) {
+protoOf(OrParser).i2d = function (context, start) {
   // Inline function 'kotlin.collections.forEach' call
-  var _iterator__ex2g4s = this.b2e_1.r();
+  var _iterator__ex2g4s = this.d2e_1.r();
   while (_iterator__ex2g4s.s()) {
     var element = _iterator__ex2g4s.t();
-    var result = context.f2d(element, start);
+    var result = context.h2d(element, start);
     if (!(result == null))
       return result;
   }
@@ -527,7 +527,7 @@ function or(parsers) {
   return new OrParser(toList(parsers));
 }
 function plus_0(_this__u8e3s4, other) {
-  return new OrParser(plus(_this__u8e3s4.b2e_1, other));
+  return new OrParser(plus(_this__u8e3s4.d2e_1, other));
 }
 function plus_1(_this__u8e3s4, other) {
   return new OrParser(listOf([_this__u8e3s4, other]));
@@ -540,14 +540,14 @@ function leftAssociative(term, operator, combinator) {
   return new leftAssociative$$inlined$Parser$1(term, operator, combinator);
 }
 function leftAssociative$$inlined$Parser$1($term, $operator, $combinator) {
-  this.c2e_1 = $term;
-  this.d2e_1 = $operator;
-  this.e2e_1 = $combinator;
+  this.e2e_1 = $term;
+  this.f2e_1 = $operator;
+  this.g2e_1 = $combinator;
 }
-protoOf(leftAssociative$$inlined$Parser$1).g2d = function (context, start) {
+protoOf(leftAssociative$$inlined$Parser$1).i2d = function (context, start) {
   var tmp$ret$0;
   $l$block: {
-    var tmp0_elvis_lhs = context.f2d(this.c2e_1, start);
+    var tmp0_elvis_lhs = context.h2d(this.e2e_1, start);
     var tmp;
     if (tmp0_elvis_lhs == null) {
       tmp$ret$0 = null;
@@ -557,7 +557,7 @@ protoOf(leftAssociative$$inlined$Parser$1).g2d = function (context, start) {
     }
     var result = tmp;
     $l$loop_0: while (true) {
-      var tmp1_elvis_lhs = context.f2d(this.d2e_1, result.l2d_1);
+      var tmp1_elvis_lhs = context.h2d(this.f2e_1, result.n2d_1);
       var tmp_0;
       if (tmp1_elvis_lhs == null) {
         break $l$loop_0;
@@ -565,7 +565,7 @@ protoOf(leftAssociative$$inlined$Parser$1).g2d = function (context, start) {
         tmp_0 = tmp1_elvis_lhs;
       }
       var operatorResult = tmp_0;
-      var tmp2_elvis_lhs = context.f2d(this.c2e_1, operatorResult.l2d_1);
+      var tmp2_elvis_lhs = context.h2d(this.e2e_1, operatorResult.n2d_1);
       var tmp_1;
       if (tmp2_elvis_lhs == null) {
         break $l$loop_0;
@@ -573,14 +573,14 @@ protoOf(leftAssociative$$inlined$Parser$1).g2d = function (context, start) {
         tmp_1 = tmp2_elvis_lhs;
       }
       var rightResult = tmp_1;
-      result = new ParseResult(this.e2e_1(result.j2d_1, operatorResult.j2d_1, rightResult.j2d_1), result.k2d_1, rightResult.l2d_1);
+      result = new ParseResult(this.g2e_1(result.l2d_1, operatorResult.l2d_1, rightResult.l2d_1), result.m2d_1, rightResult.n2d_1);
     }
     tmp$ret$0 = result;
   }
   return tmp$ret$0;
 };
 function _get_parser__ooioy4($this) {
-  var tmp0 = $this.g2e_1;
+  var tmp0 = $this.i2e_1;
   var tmp = KProperty1;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('parser', 1, tmp, ReferenceParser$_get_parser_$ref_4t7dh1(), null);
@@ -588,7 +588,7 @@ function _get_parser__ooioy4($this) {
 }
 function ReferenceParser$parser$delegate$lambda(this$0) {
   return function () {
-    return this$0.f2e_1();
+    return this$0.h2e_1();
   };
 }
 function ReferenceParser$_get_parser_$ref_4t7dh1() {
@@ -597,12 +597,12 @@ function ReferenceParser$_get_parser_$ref_4t7dh1() {
   };
 }
 function ReferenceParser(parserGetter) {
-  this.f2e_1 = parserGetter;
+  this.h2e_1 = parserGetter;
   var tmp = this;
-  tmp.g2e_1 = lazy(ReferenceParser$parser$delegate$lambda(this));
+  tmp.i2e_1 = lazy(ReferenceParser$parser$delegate$lambda(this));
 }
-protoOf(ReferenceParser).g2d = function (context, start) {
-  return context.f2d(_get_parser__ooioy4(this), start);
+protoOf(ReferenceParser).i2d = function (context, start) {
+  return context.h2d(_get_parser__ooioy4(this), start);
 };
 function ref(getter) {
   return new ReferenceParser(getter);
@@ -618,7 +618,7 @@ function toParser_0(_this__u8e3s4) {
 }
 function RegexParser$name$delegate$lambda(this$0) {
   return function () {
-    return this$0.h2e_1.toString();
+    return this$0.j2e_1.toString();
   };
 }
 function RegexParser$_get_name_$ref_swnt83() {
@@ -627,12 +627,12 @@ function RegexParser$_get_name_$ref_swnt83() {
   };
 }
 function RegexParser(regex) {
-  this.h2e_1 = regex;
+  this.j2e_1 = regex;
   var tmp = this;
-  tmp.i2e_1 = lazy(RegexParser$name$delegate$lambda(this));
+  tmp.k2e_1 = lazy(RegexParser$name$delegate$lambda(this));
 }
-protoOf(RegexParser).g2d = function (context, start) {
-  var tmp0_elvis_lhs = this.h2e_1.gc(context.y2c_1, start);
+protoOf(RegexParser).i2d = function (context, start) {
+  var tmp0_elvis_lhs = this.j2e_1.gc(context.a2d_1, start);
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return null;
@@ -643,7 +643,7 @@ protoOf(RegexParser).g2d = function (context, start) {
   return new ParseResult(matchResult, start, matchResult.ic().e1_1 + 1 | 0);
 };
 protoOf(RegexParser).a1m = function () {
-  var tmp0 = this.i2e_1;
+  var tmp0 = this.k2e_1;
   var tmp = KProperty1;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('name', 1, tmp, RegexParser$_get_name_$ref_swnt83(), null);
@@ -661,7 +661,7 @@ function toParser_1(_this__u8e3s4) {
     tmp = new StringParser(_this__u8e3s4);
   } else {
     // Inline function 'kotlin.collections.getOrPut' call
-    var this_0 = Companion_getInstance_0().j2e_1;
+    var this_0 = Companion_getInstance_0().l2e_1;
     var value = this_0.k2(_this__u8e3s4);
     var tmp_0;
     if (value == null) {
@@ -679,7 +679,7 @@ function Companion_0() {
   Companion_instance_1 = this;
   var tmp = this;
   // Inline function 'kotlin.collections.mutableMapOf' call
-  tmp.j2e_1 = LinkedHashMap_init_$Create$();
+  tmp.l2e_1 = LinkedHashMap_init_$Create$();
 }
 var Companion_instance_1;
 function Companion_getInstance_0() {
@@ -689,7 +689,7 @@ function Companion_getInstance_0() {
 }
 function StringParser$name$delegate$lambda(this$0) {
   return function () {
-    return '"' + escapeDoubleQuote(this$0.k2e_1) + '"';
+    return '"' + escapeDoubleQuote(this$0.m2e_1) + '"';
   };
 }
 function StringParser$_get_name_$ref_fqg8l9() {
@@ -699,24 +699,24 @@ function StringParser$_get_name_$ref_fqg8l9() {
 }
 function StringParser(string) {
   Companion_getInstance_0();
-  this.k2e_1 = string;
+  this.m2e_1 = string;
   var tmp = this;
-  tmp.l2e_1 = lazy(StringParser$name$delegate$lambda(this));
+  tmp.n2e_1 = lazy(StringParser$name$delegate$lambda(this));
 }
-protoOf(StringParser).g2d = function (context, start) {
-  var nextIndex = start + this.k2e_1.length | 0;
-  if (nextIndex > context.y2c_1.length)
+protoOf(StringParser).i2d = function (context, start) {
+  var nextIndex = start + this.m2e_1.length | 0;
+  if (nextIndex > context.a2d_1.length)
     return null;
   var index = 0;
-  while (index < this.k2e_1.length) {
-    if (!(charCodeAt(context.y2c_1, start + index | 0) === charCodeAt(this.k2e_1, index)))
+  while (index < this.m2e_1.length) {
+    if (!(charCodeAt(context.a2d_1, start + index | 0) === charCodeAt(this.m2e_1, index)))
       return null;
     index = index + 1 | 0;
   }
-  return new ParseResult(this.k2e_1, start, nextIndex);
+  return new ParseResult(this.m2e_1, start, nextIndex);
 };
 protoOf(StringParser).a1m = function () {
-  var tmp0 = this.l2e_1;
+  var tmp0 = this.n2e_1;
   var tmp = KProperty1;
   // Inline function 'kotlin.getValue' call
   getPropertyCallableRef('name', 1, tmp, StringParser$_get_name_$ref_fqg8l9(), null);
@@ -729,19 +729,19 @@ function Tuple0_getInstance() {
   return Tuple0_instance;
 }
 function Tuple4(a, b, c, d) {
-  this.m2e_1 = a;
-  this.n2e_1 = b;
-  this.o2e_1 = c;
-  this.p2e_1 = d;
+  this.o2e_1 = a;
+  this.p2e_1 = b;
+  this.q2e_1 = c;
+  this.r2e_1 = d;
 }
 protoOf(Tuple4).toString = function () {
-  return 'Tuple4(a=' + toString_1(this.m2e_1) + ', b=' + toString_1(this.n2e_1) + ', c=' + toString_1(this.o2e_1) + ', d=' + toString_1(this.p2e_1) + ')';
+  return 'Tuple4(a=' + toString_1(this.o2e_1) + ', b=' + toString_1(this.p2e_1) + ', c=' + toString_1(this.q2e_1) + ', d=' + toString_1(this.r2e_1) + ')';
 };
 protoOf(Tuple4).hashCode = function () {
-  var result = this.m2e_1 == null ? 0 : hashCode(this.m2e_1);
-  result = imul(result, 31) + (this.n2e_1 == null ? 0 : hashCode(this.n2e_1)) | 0;
-  result = imul(result, 31) + (this.o2e_1 == null ? 0 : hashCode(this.o2e_1)) | 0;
+  var result = this.o2e_1 == null ? 0 : hashCode(this.o2e_1);
   result = imul(result, 31) + (this.p2e_1 == null ? 0 : hashCode(this.p2e_1)) | 0;
+  result = imul(result, 31) + (this.q2e_1 == null ? 0 : hashCode(this.q2e_1)) | 0;
+  result = imul(result, 31) + (this.r2e_1 == null ? 0 : hashCode(this.r2e_1)) | 0;
   return result;
 };
 protoOf(Tuple4).equals = function (other) {
@@ -749,28 +749,28 @@ protoOf(Tuple4).equals = function (other) {
     return true;
   if (!(other instanceof Tuple4))
     return false;
-  if (!equals(this.m2e_1, other.m2e_1))
-    return false;
-  if (!equals(this.n2e_1, other.n2e_1))
-    return false;
   if (!equals(this.o2e_1, other.o2e_1))
     return false;
   if (!equals(this.p2e_1, other.p2e_1))
     return false;
+  if (!equals(this.q2e_1, other.q2e_1))
+    return false;
+  if (!equals(this.r2e_1, other.r2e_1))
+    return false;
   return true;
 };
 function Tuple3(a, b, c) {
-  this.q2e_1 = a;
-  this.r2e_1 = b;
-  this.s2e_1 = c;
+  this.s2e_1 = a;
+  this.t2e_1 = b;
+  this.u2e_1 = c;
 }
 protoOf(Tuple3).toString = function () {
-  return 'Tuple3(a=' + toString_1(this.q2e_1) + ', b=' + toString_1(this.r2e_1) + ', c=' + toString_1(this.s2e_1) + ')';
+  return 'Tuple3(a=' + toString_1(this.s2e_1) + ', b=' + toString_1(this.t2e_1) + ', c=' + toString_1(this.u2e_1) + ')';
 };
 protoOf(Tuple3).hashCode = function () {
-  var result = this.q2e_1 == null ? 0 : hashCode(this.q2e_1);
-  result = imul(result, 31) + (this.r2e_1 == null ? 0 : hashCode(this.r2e_1)) | 0;
-  result = imul(result, 31) + (this.s2e_1 == null ? 0 : hashCode(this.s2e_1)) | 0;
+  var result = this.s2e_1 == null ? 0 : hashCode(this.s2e_1);
+  result = imul(result, 31) + (this.t2e_1 == null ? 0 : hashCode(this.t2e_1)) | 0;
+  result = imul(result, 31) + (this.u2e_1 == null ? 0 : hashCode(this.u2e_1)) | 0;
   return result;
 };
 protoOf(Tuple3).equals = function (other) {
@@ -778,30 +778,7 @@ protoOf(Tuple3).equals = function (other) {
     return true;
   if (!(other instanceof Tuple3))
     return false;
-  if (!equals(this.q2e_1, other.q2e_1))
-    return false;
-  if (!equals(this.r2e_1, other.r2e_1))
-    return false;
   if (!equals(this.s2e_1, other.s2e_1))
-    return false;
-  return true;
-};
-function Tuple2(a, b) {
-  this.t2e_1 = a;
-  this.u2e_1 = b;
-}
-protoOf(Tuple2).toString = function () {
-  return 'Tuple2(a=' + toString_1(this.t2e_1) + ', b=' + toString_1(this.u2e_1) + ')';
-};
-protoOf(Tuple2).hashCode = function () {
-  var result = this.t2e_1 == null ? 0 : hashCode(this.t2e_1);
-  result = imul(result, 31) + (this.u2e_1 == null ? 0 : hashCode(this.u2e_1)) | 0;
-  return result;
-};
-protoOf(Tuple2).equals = function (other) {
-  if (this === other)
-    return true;
-  if (!(other instanceof Tuple2))
     return false;
   if (!equals(this.t2e_1, other.t2e_1))
     return false;
@@ -809,21 +786,44 @@ protoOf(Tuple2).equals = function (other) {
     return false;
   return true;
 };
-function Tuple1(a) {
+function Tuple2(a, b) {
   this.v2e_1 = a;
+  this.w2e_1 = b;
+}
+protoOf(Tuple2).toString = function () {
+  return 'Tuple2(a=' + toString_1(this.v2e_1) + ', b=' + toString_1(this.w2e_1) + ')';
+};
+protoOf(Tuple2).hashCode = function () {
+  var result = this.v2e_1 == null ? 0 : hashCode(this.v2e_1);
+  result = imul(result, 31) + (this.w2e_1 == null ? 0 : hashCode(this.w2e_1)) | 0;
+  return result;
+};
+protoOf(Tuple2).equals = function (other) {
+  if (this === other)
+    return true;
+  if (!(other instanceof Tuple2))
+    return false;
+  if (!equals(this.v2e_1, other.v2e_1))
+    return false;
+  if (!equals(this.w2e_1, other.w2e_1))
+    return false;
+  return true;
+};
+function Tuple1(a) {
+  this.x2e_1 = a;
 }
 protoOf(Tuple1).toString = function () {
-  return 'Tuple1(a=' + toString_1(this.v2e_1) + ')';
+  return 'Tuple1(a=' + toString_1(this.x2e_1) + ')';
 };
 protoOf(Tuple1).hashCode = function () {
-  return this.v2e_1 == null ? 0 : hashCode(this.v2e_1);
+  return this.x2e_1 == null ? 0 : hashCode(this.x2e_1);
 };
 protoOf(Tuple1).equals = function (other) {
   if (this === other)
     return true;
   if (!(other instanceof Tuple1))
     return false;
-  if (!equals(this.v2e_1, other.v2e_1))
+  if (!equals(this.x2e_1, other.x2e_1))
     return false;
   return true;
 };
@@ -874,13 +874,13 @@ function times$lambda_1(_unused_var__etf5q3, b) {
   return b;
 }
 function times$lambda_2(a, b) {
-  return new Tuple4(a.q2e_1, a.r2e_1, a.s2e_1, b);
+  return new Tuple4(a.s2e_1, a.t2e_1, a.u2e_1, b);
 }
 function times$lambda_3(a, b) {
-  return new Tuple3(a.t2e_1, a.u2e_1, b.v2e_1);
+  return new Tuple3(a.v2e_1, a.w2e_1, b.x2e_1);
 }
 function times$lambda_4(a, b) {
-  return new Tuple2(a, b.v2e_1);
+  return new Tuple2(a, b.x2e_1);
 }
 function times$lambda_5(a, b) {
   return new Tuple2(a, b);
@@ -892,20 +892,20 @@ function times$lambda_7(a, _unused_var__etf5q3) {
   return a;
 }
 function times$lambda_8(a, b) {
-  return new Tuple3(a.t2e_1, a.u2e_1, b);
+  return new Tuple3(a.v2e_1, a.w2e_1, b);
 }
 function times$lambda_9(_unused_var__etf5q3, b) {
   return b;
 }
 function combine$$inlined$Parser$1($left, $right, $function) {
-  this.w2e_1 = $left;
-  this.x2e_1 = $right;
-  this.y2e_1 = $function;
+  this.y2e_1 = $left;
+  this.z2e_1 = $right;
+  this.a2f_1 = $function;
 }
-protoOf(combine$$inlined$Parser$1).g2d = function (context, start) {
+protoOf(combine$$inlined$Parser$1).i2d = function (context, start) {
   var tmp$ret$0;
   $l$block_0: {
-    var tmp0_elvis_lhs = context.f2d(this.w2e_1, start);
+    var tmp0_elvis_lhs = context.h2d(this.y2e_1, start);
     var tmp;
     if (tmp0_elvis_lhs == null) {
       tmp$ret$0 = null;
@@ -914,7 +914,7 @@ protoOf(combine$$inlined$Parser$1).g2d = function (context, start) {
       tmp = tmp0_elvis_lhs;
     }
     var resultL = tmp;
-    var tmp1_elvis_lhs = context.f2d(this.x2e_1, resultL.l2d_1);
+    var tmp1_elvis_lhs = context.h2d(this.z2e_1, resultL.n2d_1);
     var tmp_0;
     if (tmp1_elvis_lhs == null) {
       tmp$ret$0 = null;
@@ -923,7 +923,7 @@ protoOf(combine$$inlined$Parser$1).g2d = function (context, start) {
       tmp_0 = tmp1_elvis_lhs;
     }
     var resultR = tmp_0;
-    tmp$ret$0 = new ParseResult(this.y2e_1(resultL.j2d_1, resultR.j2d_1), resultL.k2d_1, resultR.l2d_1);
+    tmp$ret$0 = new ParseResult(this.a2f_1(resultL.l2d_1, resultR.l2d_1), resultL.m2d_1, resultR.n2d_1);
   }
   return tmp$ret$0;
 };

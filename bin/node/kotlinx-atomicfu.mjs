@@ -30,13 +30,13 @@ function atomicfu$AtomicRefArray$ref(size) {
     tmp_1[tmp_0] = atomic$ref$1(null);
     tmp_0 = tmp_0 + 1 | 0;
   }
-  tmp.q1m_1 = tmp_1;
+  tmp.s1m_1 = tmp_1;
 }
-protoOf(atomicfu$AtomicRefArray$ref).r1m = function () {
-  return this.q1m_1.length;
+protoOf(atomicfu$AtomicRefArray$ref).t1m = function () {
+  return this.s1m_1.length;
 };
 protoOf(atomicfu$AtomicRefArray$ref).atomicfu$get = function (index) {
-  return this.q1m_1[index];
+  return this.s1m_1[index];
 };
 function atomicfu$AtomicRefArray$ofNulls(size) {
   return new atomicfu$AtomicRefArray$ref(size);
@@ -64,10 +64,10 @@ protoOf(atomicfu$TraceBase).atomicfu$Trace$append$4 = function (event1, event2, 
 function AtomicRef(value) {
   this.kotlinx$atomicfu$value = value;
 }
-protoOf(AtomicRef).s1m = function (_set____db54di) {
+protoOf(AtomicRef).u1m = function (_set____db54di) {
   this.kotlinx$atomicfu$value = _set____db54di;
 };
-protoOf(AtomicRef).t1m = function () {
+protoOf(AtomicRef).v1m = function () {
   return this.kotlinx$atomicfu$value;
 };
 protoOf(AtomicRef).atomicfu$compareAndSet = function (expect, update) {
@@ -90,10 +90,10 @@ function atomic$ref$1(initial) {
 function AtomicBoolean(value) {
   this.kotlinx$atomicfu$value = value;
 }
-protoOf(AtomicBoolean).u1m = function (_set____db54di) {
+protoOf(AtomicBoolean).w1m = function (_set____db54di) {
   this.kotlinx$atomicfu$value = _set____db54di;
 };
-protoOf(AtomicBoolean).t1m = function () {
+protoOf(AtomicBoolean).v1m = function () {
   return this.kotlinx$atomicfu$value;
 };
 protoOf(AtomicBoolean).atomicfu$compareAndSet = function (expect, update) {
@@ -116,10 +116,10 @@ function atomic$boolean$1(initial) {
 function AtomicLong(value) {
   this.kotlinx$atomicfu$value = value;
 }
-protoOf(AtomicLong).v1m = function (_set____db54di) {
+protoOf(AtomicLong).x1m = function (_set____db54di) {
   this.kotlinx$atomicfu$value = _set____db54di;
 };
-protoOf(AtomicLong).t1m = function () {
+protoOf(AtomicLong).v1m = function () {
   return this.kotlinx$atomicfu$value;
 };
 protoOf(AtomicLong).atomicfu$compareAndSet = function (expect, update) {
@@ -169,10 +169,10 @@ function atomic$long$1(initial) {
 function AtomicInt(value) {
   this.kotlinx$atomicfu$value = value;
 }
-protoOf(AtomicInt).w1m = function (_set____db54di) {
+protoOf(AtomicInt).y1m = function (_set____db54di) {
   this.kotlinx$atomicfu$value = _set____db54di;
 };
-protoOf(AtomicInt).t1m = function () {
+protoOf(AtomicInt).v1m = function () {
   return this.kotlinx$atomicfu$value;
 };
 protoOf(AtomicInt).atomicfu$compareAndSet = function (expect, update) {
@@ -236,7 +236,7 @@ function atomic$int$(initial, trace) {
   return new AtomicInt(initial);
 }
 //region block: post-declaration
-defineProp(protoOf(atomicfu$AtomicRefArray$ref), 'atomicfu$size', protoOf(atomicfu$AtomicRefArray$ref).r1m);
+defineProp(protoOf(atomicfu$AtomicRefArray$ref), 'atomicfu$size', protoOf(atomicfu$AtomicRefArray$ref).t1m);
 //endregion
 //region block: exports
 export {
