@@ -120,6 +120,7 @@ import mirrg.xarpite.operations.GetterObjectInitializer
 import mirrg.xarpite.operations.GreaterComparator
 import mirrg.xarpite.operations.GreaterEqualComparator
 import mirrg.xarpite.operations.IfGetter
+import mirrg.xarpite.operations.IncrementGetter
 import mirrg.xarpite.operations.InstanceOfComparator
 import mirrg.xarpite.operations.ItemAccessGetter
 import mirrg.xarpite.operations.LabelGetter
@@ -146,15 +147,11 @@ import mirrg.xarpite.operations.PipeGetter
 import mirrg.xarpite.operations.PlusAssignmentGetter
 import mirrg.xarpite.operations.PlusGetter
 import mirrg.xarpite.operations.PowerGetter
-import mirrg.xarpite.operations.PrefixDecrementGetter
-import mirrg.xarpite.operations.PrefixIncrementGetter
 import mirrg.xarpite.operations.RangeGetter
 import mirrg.xarpite.operations.ReturnGetter
 import mirrg.xarpite.operations.SpaceshipGetter
 import mirrg.xarpite.operations.StreamConcatenationGetter
 import mirrg.xarpite.operations.StringConcatenationGetter
-import mirrg.xarpite.operations.SuffixDecrementGetter
-import mirrg.xarpite.operations.SuffixIncrementGetter
 import mirrg.xarpite.operations.ThrowGetter
 import mirrg.xarpite.operations.TimesGetter
 import mirrg.xarpite.operations.ToBooleanGetter
@@ -260,29 +257,10 @@ fun Frame.compileToGetter(node: Node): Getter {
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
         }
 
-        is UnaryPlusPlusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            PrefixIncrementGetter(getter, setter, node.position)
-        }
-
-        is UnaryMinusMinusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            PrefixDecrementGetter(getter, setter, node.position)
-        }
-
-        is SuffixPlusPlusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            SuffixIncrementGetter(getter, setter, node.position)
-        }
-
-        is SuffixMinusMinusNode -> {
-            val setter = compileToSetter(node.main)
-            val getter = compileToGetter(node.main)
-            SuffixDecrementGetter(getter, setter, node.position)
-        }
+        is SuffixPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isSuffix = true, node.position)
+        is SuffixMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isSuffix = true, node.position)
+        is UnaryPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isSuffix = false, node.position)
+        is UnaryMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isSuffix = false, node.position)
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right), node.position)
 
@@ -361,7 +339,13 @@ private fun Frame.compileUnaryMinusToGetter(main: Node, position: Position): Get
     }
 }
 
-fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): List<Getter> {
+private fun Frame.compileIncrementToGetter(node: Node, isIncrement: Boolean, isSuffix: Boolean, position: Position): Getter {
+    val setter = compileToSetter(node)
+    val getter = compileToGetter(node)
+    return IncrementGetter(getter, setter, isIncrement, isSuffix, position)
+}
+
+private fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): List<Getter> {
     val functionNewFrame = Frame(this)
     val argumentsVariableIndex = functionNewFrame.defineVariable("__")
     val variables = parseArguments(node.arguments)

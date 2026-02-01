@@ -21,7 +21,7 @@ class PlusAssignmentGetter(private val leftGetter: Getter, private val leftSette
             }
         } else {
             val leftFunction = leftSetter.evaluate(env)
-            leftFunction.invoke(left.plus(position, right))
+            leftFunction(left.plus(position, right))
         }
         return right
     }
@@ -40,7 +40,7 @@ class MinusAssignmentGetter(private val leftGetter: Getter, private val leftSett
             }
         } else {
             val leftFunction = leftSetter.evaluate(env)
-            leftFunction.invoke(left.minus(position, right))
+            leftFunction(left.minus(position, right))
         }
         return right
     }
