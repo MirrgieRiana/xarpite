@@ -359,6 +359,8 @@ $ xa -q '
     `++_`: this, accessor -> "prefix"
   }
 
+  obj := Object{}
+
   OUT << obj++
   OUT << ++obj
 '
