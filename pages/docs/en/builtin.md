@@ -77,7 +77,7 @@ $ xa 'ABS(-10)'
 
 ## `FLOOR` Round Down to Integer
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 Rounds the first argument down to the nearest smaller integer.
 
@@ -850,11 +850,13 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+## `FILTER` / `GREP` Filter Stream by Condition
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
@@ -867,10 +869,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` Filter Stream by Condition
-
-An alias for `FILTER`.
 
 ## `REDUCE` Accumulate Stream Elements
 

@@ -153,8 +153,9 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             buffer.readUtf8().toFluoriteString()
         },
+
         "JSON" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""JSON(["indent": indent: STRING; ]value: VALUE): STRING""")
+            fun usage(): Nothing = usage("JSON([indent: indent: STRING; ]value: VALUE): STRING")
             val (indent, value) = when (arguments.size) {
                 1 -> Pair(null, arguments[0])
                 2 -> {
@@ -175,27 +176,43 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             val value = arguments[0]
             value.toFluoriteValueAsSingleJson(null)
         },
-        "JSONS" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>""")
-            val (indent, value) = when (arguments.size) {
-                1 -> Pair(null, arguments[0])
-                2 -> {
-                    val indentParameter = arguments[0] as? FluoriteArray ?: usage()
-                    if (indentParameter.values.size != 2) usage()
-                    val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
-                    if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
-                }
+        *run {
+            fun createJsonsFunction(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("$name([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>")
+                    val (indent, value) = when (arguments.size) {
+                        1 -> Pair(null, arguments[0])
+                        2 -> {
+                            val indentParameter = arguments[0] as? FluoriteArray ?: usage()
+                            if (indentParameter.values.size != 2) usage()
+                            val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
+                            if (indentKey.value != "indent") usage()
+                            Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
+                        }
 
-                else -> usage()
+                        else -> usage()
+                    }
+                    value.toJsonsFluoriteValue(null, indent = indent)
+                }
             }
-            value.toJsonsFluoriteValue(null, indent = indent)
+            arrayOf(
+                "JSONS" define createJsonsFunction("JSONS"),
+                "JSONL" define createJsonsFunction("JSONL"),
+            )
         },
-        "JSONSD" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsJsons(null)
+        *run {
+            fun createJsonsdFunction(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
+                    if (arguments.size != 1) usage()
+                    val value = arguments[0]
+                    value.toFluoriteValueAsJsons(null)
+                }
+            }
+            arrayOf(
+                "JSONSD" define createJsonsdFunction("JSONSD"),
+                "JSONLD" define createJsonsdFunction("JSONLD"),
+            )
         },
         "CSV" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")

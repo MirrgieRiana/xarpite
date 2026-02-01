@@ -13,6 +13,7 @@ import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -25,6 +26,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getResolvedPwd
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -194,6 +196,32 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 lines
             }
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+        },
+        "BASH" define FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")
+            val arguments2 = arguments.toMutableList()
+
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            suspend fun FluoriteValue.parseArgs() = this.consumeToMutableList().map { it.toFluoriteString(null).value }.toTypedArray()
+            val args = arguments3.removeFirstOrNull()?.parseArgs() ?: emptyArray()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
+            // ダミーの$0として"bash"を挿入
+            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
+
+            val result = when {
+                output.endsWith("\r\n") -> output.dropLast(2)
+                output.endsWith("\r") -> output.dropLast(1)
+                output.endsWith("\n") -> output.dropLast(1)
+                else -> output
+            }
+            result.toFluoriteString()
         },
     ).let { listOf(it) }
 }
