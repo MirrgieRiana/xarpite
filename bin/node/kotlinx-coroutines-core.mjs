@@ -123,10 +123,10 @@ function cancel$default(cause, $super) {
   cause = cause === VOID ? null : cause;
   var tmp;
   if ($super === VOID) {
-    this.j1o(cause);
+    this.k1o(cause);
     tmp = Unit_instance;
   } else {
-    tmp = $super.j1o.call(this, cause);
+    tmp = $super.k1o.call(this, cause);
   }
   return tmp;
 }
@@ -204,17 +204,17 @@ initMetadataForCoroutine($sendCOROUTINE$, CoroutineImpl);
 initMetadataForCoroutine($receiveCatchingCOROUTINE$, CoroutineImpl);
 function close$default(cause, $super) {
   cause = cause === VOID ? null : cause;
-  return $super === VOID ? this.f23(cause) : $super.f23.call(this, cause);
+  return $super === VOID ? this.g23(cause) : $super.g23.call(this, cause);
 }
 initMetadataForInterface(SendChannel, 'SendChannel', VOID, VOID, VOID, [1]);
 function cancel$default_0(cause, $super) {
   cause = cause === VOID ? null : cause;
   var tmp;
   if ($super === VOID) {
-    this.j1o(cause);
+    this.k1o(cause);
     tmp = Unit_instance;
   } else {
-    tmp = $super.j1o.call(this, cause);
+    tmp = $super.k1o.call(this, cause);
   }
   return tmp;
 }
@@ -291,58 +291,58 @@ initMetadataForClass(CommonThreadLocal, 'CommonThreadLocal', CommonThreadLocal);
 function AbstractCoroutine(parentContext, initParentJob, active) {
   JobSupport.call(this, active);
   if (initParentJob) {
-    this.y1m(parentContext.x8(Key_instance_2));
+    this.z1m(parentContext.x8(Key_instance_2));
   }
-  this.b1n_1 = parentContext.ag(this);
+  this.c1n_1 = parentContext.bg(this);
 }
 protoOf(AbstractCoroutine).q8 = function () {
-  return this.b1n_1;
-};
-protoOf(AbstractCoroutine).c1n = function () {
-  return this.b1n_1;
+  return this.c1n_1;
 };
 protoOf(AbstractCoroutine).d1n = function () {
-  return protoOf(JobSupport).d1n.call(this);
+  return this.c1n_1;
 };
-protoOf(AbstractCoroutine).e1n = function (value) {
+protoOf(AbstractCoroutine).e1n = function () {
+  return protoOf(JobSupport).e1n.call(this);
 };
-protoOf(AbstractCoroutine).f1n = function (cause, handled) {
+protoOf(AbstractCoroutine).f1n = function (value) {
 };
-protoOf(AbstractCoroutine).g1n = function () {
+protoOf(AbstractCoroutine).g1n = function (cause, handled) {
+};
+protoOf(AbstractCoroutine).h1n = function () {
   return get_classSimpleName(this) + ' was cancelled';
 };
-protoOf(AbstractCoroutine).h1n = function (state) {
+protoOf(AbstractCoroutine).i1n = function (state) {
   if (state instanceof CompletedExceptionally) {
-    this.f1n(state.i1n_1, state.k1n());
+    this.g1n(state.j1n_1, state.l1n());
   } else {
-    this.e1n((state == null ? true : !(state == null)) ? state : THROW_CCE());
+    this.f1n((state == null ? true : !(state == null)) ? state : THROW_CCE());
   }
 };
 protoOf(AbstractCoroutine).v8 = function (result) {
-  var state = this.l1n(toState_0(result));
+  var state = this.m1n(toState_0(result));
   if (state === get_COMPLETING_WAITING_CHILDREN())
     return Unit_instance;
-  this.m1n(state);
+  this.n1n(state);
 };
-protoOf(AbstractCoroutine).m1n = function (state) {
-  return this.n1n(state);
+protoOf(AbstractCoroutine).n1n = function (state) {
+  return this.o1n(state);
 };
-protoOf(AbstractCoroutine).o1n = function (exception) {
-  handleCoroutineException(this.b1n_1, exception);
+protoOf(AbstractCoroutine).p1n = function (exception) {
+  handleCoroutineException(this.c1n_1, exception);
 };
-protoOf(AbstractCoroutine).p1n = function () {
-  var tmp0_elvis_lhs = get_coroutineName(this.b1n_1);
+protoOf(AbstractCoroutine).q1n = function () {
+  var tmp0_elvis_lhs = get_coroutineName(this.c1n_1);
   var tmp;
   if (tmp0_elvis_lhs == null) {
-    return protoOf(JobSupport).p1n.call(this);
+    return protoOf(JobSupport).q1n.call(this);
   } else {
     tmp = tmp0_elvis_lhs;
   }
   var coroutineName = tmp;
-  return '"' + coroutineName + '":' + protoOf(JobSupport).p1n.call(this);
+  return '"' + coroutineName + '":' + protoOf(JobSupport).q1n.call(this);
 };
-protoOf(AbstractCoroutine).q1n = function (start, receiver, block) {
-  start.t1n(block, receiver, this);
+protoOf(AbstractCoroutine).r1n = function (start, receiver, block) {
+  start.u1n(block, receiver, this);
 };
 function withContext(context, block, $completion) {
   var tmp$ret$0;
@@ -358,13 +358,13 @@ function withContext(context, block, $completion) {
     if (equals(newContext.x8(Key_instance), oldContext.x8(Key_instance))) {
       var coroutine_0 = new UndispatchedCoroutine(newContext, $completion);
       // Inline function 'kotlinx.coroutines.withCoroutineContext' call
-      coroutine_0.b1n_1;
+      coroutine_0.c1n_1;
       tmp$ret$0 = startUndispatchedOrReturn(coroutine_0, coroutine_0, block);
       break $l$block_0;
     }
     var coroutine_1 = new DispatchedCoroutine(newContext, $completion);
     startCoroutineCancellable(block, coroutine_1, coroutine_1);
-    tmp$ret$0 = coroutine_1.g1p();
+    tmp$ret$0 = coroutine_1.h1p();
   }
   return tmp$ret$0;
 }
@@ -372,25 +372,25 @@ function launch(_this__u8e3s4, context, start, block) {
   context = context === VOID ? EmptyCoroutineContext_getInstance() : context;
   start = start === VOID ? CoroutineStart_DEFAULT_getInstance() : start;
   var newContext = newCoroutineContext_0(_this__u8e3s4, context);
-  var coroutine = start.h1p() ? new LazyStandaloneCoroutine(newContext, block) : new StandaloneCoroutine(newContext, true);
-  coroutine.q1n(start, coroutine, block);
+  var coroutine = start.i1p() ? new LazyStandaloneCoroutine(newContext, block) : new StandaloneCoroutine(newContext, true);
+  coroutine.r1n(start, coroutine, block);
   return coroutine;
 }
 function async(_this__u8e3s4, context, start, block) {
   context = context === VOID ? EmptyCoroutineContext_getInstance() : context;
   start = start === VOID ? CoroutineStart_DEFAULT_getInstance() : start;
   var newContext = newCoroutineContext_0(_this__u8e3s4, context);
-  var coroutine = start.h1p() ? new LazyDeferredCoroutine(newContext, block) : new DeferredCoroutine(newContext, true);
-  coroutine.q1n(start, coroutine, block);
+  var coroutine = start.i1p() ? new LazyDeferredCoroutine(newContext, block) : new DeferredCoroutine(newContext, true);
+  coroutine.r1n(start, coroutine, block);
   return coroutine;
 }
 function trySuspend($this) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.f1p_1;
+  var this_0 = $this.g1p_1;
   while (true) {
     switch (this_0.kotlinx$atomicfu$value) {
       case 0:
-        if ($this.f1p_1.atomicfu$compareAndSet(0, 1))
+        if ($this.g1p_1.atomicfu$compareAndSet(0, 1))
           return true;
         break;
       case 2:
@@ -405,11 +405,11 @@ function trySuspend($this) {
 }
 function tryResume($this) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.f1p_1;
+  var this_0 = $this.g1p_1;
   while (true) {
     switch (this_0.kotlinx$atomicfu$value) {
       case 0:
-        if ($this.f1p_1.atomicfu$compareAndSet(0, 2))
+        if ($this.g1p_1.atomicfu$compareAndSet(0, 2))
           return true;
         break;
       case 1:
@@ -424,41 +424,41 @@ function tryResume($this) {
 }
 function DispatchedCoroutine(context, uCont) {
   ScopeCoroutine.call(this, context, uCont);
-  this.f1p_1 = atomic$int$1(0);
+  this.g1p_1 = atomic$int$1(0);
 }
-protoOf(DispatchedCoroutine).n1n = function (state) {
-  this.m1n(state);
+protoOf(DispatchedCoroutine).o1n = function (state) {
+  this.n1n(state);
 };
-protoOf(DispatchedCoroutine).m1n = function (state) {
+protoOf(DispatchedCoroutine).n1n = function (state) {
   if (tryResume(this))
     return Unit_instance;
-  resumeCancellableWith(intercepted(this.l1p_1), recoverResult(state, this.l1p_1));
+  resumeCancellableWith(intercepted(this.m1p_1), recoverResult(state, this.m1p_1));
 };
-protoOf(DispatchedCoroutine).g1p = function () {
+protoOf(DispatchedCoroutine).h1p = function () {
   if (trySuspend(this))
     return get_COROUTINE_SUSPENDED();
-  var state = unboxState(this.w1n());
+  var state = unboxState(this.x1n());
   if (state instanceof CompletedExceptionally)
-    throw state.i1n_1;
+    throw state.j1n_1;
   return (state == null ? true : !(state == null)) ? state : THROW_CCE();
 };
 function StandaloneCoroutine(parentContext, active) {
   AbstractCoroutine.call(this, parentContext, true, active);
 }
-protoOf(StandaloneCoroutine).w1o = function (exception) {
-  handleCoroutineException(this.b1n_1, exception);
+protoOf(StandaloneCoroutine).x1o = function (exception) {
+  handleCoroutineException(this.c1n_1, exception);
   return true;
 };
 function LazyStandaloneCoroutine(parentContext, block) {
   StandaloneCoroutine.call(this, parentContext, false);
-  this.t1p_1 = createCoroutineUnintercepted(block, this, this);
+  this.u1p_1 = createCoroutineUnintercepted(block, this, this);
 }
-protoOf(LazyStandaloneCoroutine).a1o = function () {
-  startCoroutineCancellable_0(this.t1p_1, this);
+protoOf(LazyStandaloneCoroutine).b1o = function () {
+  startCoroutineCancellable_0(this.u1p_1, this);
 };
 function $awaitCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.c1q_1 = _this__u8e3s4;
+  this.d1q_1 = _this__u8e3s4;
 }
 protoOf($awaitCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -469,7 +469,7 @@ protoOf($awaitCOROUTINE$).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this.c1q_1.a1p(this);
+          suspendResult = this.d1q_1.b1p(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -494,11 +494,11 @@ protoOf($awaitCOROUTINE$).s8 = function () {
 function DeferredCoroutine(parentContext, active) {
   AbstractCoroutine.call(this, parentContext, true, active);
 }
-protoOf(DeferredCoroutine).g1q = function () {
-  var tmp = this.z1o();
+protoOf(DeferredCoroutine).h1q = function () {
+  var tmp = this.a1p();
   return (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
 };
-protoOf(DeferredCoroutine).h1q = function ($completion) {
+protoOf(DeferredCoroutine).i1q = function ($completion) {
   var tmp = new $awaitCOROUTINE$(this, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
@@ -506,10 +506,10 @@ protoOf(DeferredCoroutine).h1q = function ($completion) {
 };
 function LazyDeferredCoroutine(parentContext, block) {
   DeferredCoroutine.call(this, parentContext, false);
-  this.l1q_1 = createCoroutineUnintercepted(block, this, this);
+  this.m1q_1 = createCoroutineUnintercepted(block, this, this);
 }
-protoOf(LazyDeferredCoroutine).a1o = function () {
-  startCoroutineCancellable_0(this.l1q_1, this);
+protoOf(LazyDeferredCoroutine).b1o = function () {
+  startCoroutineCancellable_0(this.m1q_1, this);
 };
 function CancellableContinuation() {
 }
@@ -519,7 +519,7 @@ function disposeOnCancellation(_this__u8e3s4, handle) {
 function invokeOnCancellation(_this__u8e3s4, handler) {
   var tmp;
   if (_this__u8e3s4 instanceof CancellableContinuationImpl) {
-    _this__u8e3s4.v1q(handler);
+    _this__u8e3s4.w1q(handler);
     tmp = Unit_instance;
   } else {
     throw UnsupportedOperationException_init_$Create$('third-party implementation of CancellableContinuation is not supported');
@@ -527,26 +527,26 @@ function invokeOnCancellation(_this__u8e3s4, handler) {
   return tmp;
 }
 function DisposeOnCancel(handle) {
-  this.w1q_1 = handle;
+  this.x1q_1 = handle;
 }
-protoOf(DisposeOnCancel).x1q = function (cause) {
-  return this.w1q_1.y1q();
+protoOf(DisposeOnCancel).y1q = function (cause) {
+  return this.x1q_1.z1q();
 };
 protoOf(DisposeOnCancel).toString = function () {
-  return 'DisposeOnCancel[' + toString(this.w1q_1) + ']';
+  return 'DisposeOnCancel[' + toString(this.x1q_1) + ']';
 };
 function getOrCreateCancellableContinuation(delegate) {
   if (!(delegate instanceof DispatchedContinuation)) {
     return new CancellableContinuationImpl(delegate, 1);
   }
-  var tmp0_safe_receiver = delegate.f1r();
+  var tmp0_safe_receiver = delegate.g1r();
   var tmp;
   if (tmp0_safe_receiver == null) {
     tmp = null;
   } else {
     // Inline function 'kotlin.takeIf' call
     var tmp_0;
-    if (tmp0_safe_receiver.g1r()) {
+    if (tmp0_safe_receiver.h1r()) {
       tmp_0 = tmp0_safe_receiver;
     } else {
       tmp_0 = null;
@@ -568,10 +568,10 @@ function get_RESUME_TOKEN() {
 }
 var RESUME_TOKEN;
 function _get_parentHandle__f8dcex($this) {
-  return $this.u1q_1.kotlinx$atomicfu$value;
+  return $this.v1q_1.kotlinx$atomicfu$value;
 }
 function _get_stateDebugRepresentation__bf18u4($this) {
-  var tmp0_subject = $this.w1n();
+  var tmp0_subject = $this.x1n();
   var tmp;
   if (!(tmp0_subject == null) ? isInterface(tmp0_subject, NotCompleted) : false) {
     tmp = 'Active';
@@ -586,9 +586,9 @@ function _get_stateDebugRepresentation__bf18u4($this) {
 }
 function isReusable($this) {
   var tmp;
-  if (get_isReusableMode($this.i1r_1)) {
-    var tmp_0 = $this.q1q_1;
-    tmp = (tmp_0 instanceof DispatchedContinuation ? tmp_0 : THROW_CCE()).h1r();
+  if (get_isReusableMode($this.j1r_1)) {
+    var tmp_0 = $this.r1q_1;
+    tmp = (tmp_0 instanceof DispatchedContinuation ? tmp_0 : THROW_CCE()).i1r();
   } else {
     tmp = false;
   }
@@ -597,13 +597,13 @@ function isReusable($this) {
 function cancelLater($this, cause) {
   if (!isReusable($this))
     return false;
-  var tmp = $this.q1q_1;
+  var tmp = $this.r1q_1;
   var dispatched = tmp instanceof DispatchedContinuation ? tmp : THROW_CCE();
-  return dispatched.j1r(cause);
+  return dispatched.k1r(cause);
 }
 function callSegmentOnCancellation($this, segment, cause) {
   // Inline function 'kotlinx.coroutines.index' call
-  var index = $this.s1q_1.kotlinx$atomicfu$value & 536870911;
+  var index = $this.t1q_1.kotlinx$atomicfu$value & 536870911;
   // Inline function 'kotlin.check' call
   if (!!(index === 536870911)) {
     var message = 'The index for Segment.onCancellation(..) is broken';
@@ -611,7 +611,7 @@ function callSegmentOnCancellation($this, segment, cause) {
   }
   // Inline function 'kotlinx.coroutines.CancellableContinuationImpl.callCancelHandlerSafely' call
   try {
-    segment.o1r(index, cause, $this.q8());
+    segment.p1r(index, cause, $this.q8());
   } catch ($p) {
     if ($p instanceof Error) {
       var ex = $p;
@@ -623,7 +623,7 @@ function callSegmentOnCancellation($this, segment, cause) {
 }
 function trySuspend_0($this) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.s1q_1;
+  var this_0 = $this.t1q_1;
   while (true) {
     var cur = this_0.kotlinx$atomicfu$value;
     // Inline function 'kotlinx.coroutines.decision' call
@@ -634,7 +634,7 @@ function trySuspend_0($this) {
         // Inline function 'kotlinx.coroutines.decisionAndIndex' call
 
         var tmp$ret$2 = (1 << 29) + (cur & 536870911) | 0;
-        if ($this.s1q_1.atomicfu$compareAndSet(cur, tmp$ret$2))
+        if ($this.t1q_1.atomicfu$compareAndSet(cur, tmp$ret$2))
           return true;
         break;
       case 2:
@@ -649,7 +649,7 @@ function trySuspend_0($this) {
 }
 function tryResume_0($this) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.s1q_1;
+  var this_0 = $this.t1q_1;
   while (true) {
     var cur = this_0.kotlinx$atomicfu$value;
     // Inline function 'kotlinx.coroutines.decision' call
@@ -660,7 +660,7 @@ function tryResume_0($this) {
         // Inline function 'kotlinx.coroutines.decisionAndIndex' call
 
         var tmp$ret$2 = (2 << 29) + (cur & 536870911) | 0;
-        if ($this.s1q_1.atomicfu$compareAndSet(cur, tmp$ret$2))
+        if ($this.t1q_1.atomicfu$compareAndSet(cur, tmp$ret$2))
           return true;
         break;
       case 1:
@@ -683,17 +683,17 @@ function installParentHandle($this) {
   }
   var parent = tmp;
   var handle = invokeOnCompletion(parent, VOID, new ChildContinuation($this));
-  $this.u1q_1.atomicfu$compareAndSet(null, handle);
+  $this.v1q_1.atomicfu$compareAndSet(null, handle);
   return handle;
 }
 function invokeOnCancellationImpl($this, handler) {
   // Inline function 'kotlinx.coroutines.assert' call
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.t1q_1;
+  var this_0 = $this.u1q_1;
   while (true) {
     var state = this_0.kotlinx$atomicfu$value;
     if (state instanceof Active) {
-      if ($this.t1q_1.atomicfu$compareAndSet(state, handler))
+      if ($this.u1q_1.atomicfu$compareAndSet(state, handler))
         return Unit_instance;
     } else {
       var tmp;
@@ -706,14 +706,14 @@ function invokeOnCancellationImpl($this, handler) {
         multipleHandlersError($this, handler, state);
       } else {
         if (state instanceof CompletedExceptionally) {
-          if (!state.x1r()) {
+          if (!state.y1r()) {
             multipleHandlersError($this, handler, state);
           }
           if (state instanceof CancelledContinuation) {
             var tmp1_safe_receiver = state instanceof CompletedExceptionally ? state : null;
-            var cause = tmp1_safe_receiver == null ? null : tmp1_safe_receiver.i1n_1;
+            var cause = tmp1_safe_receiver == null ? null : tmp1_safe_receiver.j1n_1;
             if (isInterface(handler, CancelHandler)) {
-              $this.u1r(handler, cause);
+              $this.v1r(handler, cause);
             } else {
               var segment = handler instanceof Segment ? handler : THROW_CCE();
               callSegmentOnCancellation($this, segment, cause);
@@ -722,19 +722,19 @@ function invokeOnCancellationImpl($this, handler) {
           return Unit_instance;
         } else {
           if (state instanceof CompletedContinuation) {
-            if (!(state.q1r_1 == null)) {
+            if (!(state.r1r_1 == null)) {
               multipleHandlersError($this, handler, state);
             }
             if (handler instanceof Segment)
               return Unit_instance;
             if (!isInterface(handler, CancelHandler))
               THROW_CCE();
-            if (state.v1r()) {
-              $this.u1r(handler, state.t1r_1);
+            if (state.w1r()) {
+              $this.v1r(handler, state.u1r_1);
               return Unit_instance;
             }
-            var update = state.w1r(VOID, handler);
-            if ($this.t1q_1.atomicfu$compareAndSet(state, update))
+            var update = state.x1r(VOID, handler);
+            if ($this.u1q_1.atomicfu$compareAndSet(state, update))
               return Unit_instance;
           } else {
             if (handler instanceof Segment)
@@ -742,7 +742,7 @@ function invokeOnCancellationImpl($this, handler) {
             if (!isInterface(handler, CancelHandler))
               THROW_CCE();
             var update_0 = new CompletedContinuation(state, handler);
-            if ($this.t1q_1.atomicfu$compareAndSet(state, update_0))
+            if ($this.u1q_1.atomicfu$compareAndSet(state, update_0))
               return Unit_instance;
           }
         }
@@ -793,13 +793,13 @@ function resumedState($this, state, proposedUpdate, resumeMode, onCancellation, 
 }
 function tryResumeImpl($this, proposedUpdate, idempotent, onCancellation) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = $this.t1q_1;
+  var this_0 = $this.u1q_1;
   while (true) {
     var tmp0 = this_0.kotlinx$atomicfu$value;
     $l$block: {
       if (!(tmp0 == null) ? isInterface(tmp0, NotCompleted) : false) {
-        var update = resumedState($this, tmp0, proposedUpdate, $this.i1r_1, onCancellation, idempotent);
-        if (!$this.t1q_1.atomicfu$compareAndSet(tmp0, update)) {
+        var update = resumedState($this, tmp0, proposedUpdate, $this.j1r_1, onCancellation, idempotent);
+        if (!$this.u1q_1.atomicfu$compareAndSet(tmp0, update)) {
           break $l$block;
         }
         detachChildIfNonReusable($this);
@@ -807,7 +807,7 @@ function tryResumeImpl($this, proposedUpdate, idempotent, onCancellation) {
       } else {
         if (tmp0 instanceof CompletedContinuation) {
           var tmp;
-          if (!(idempotent == null) && tmp0.s1r_1 === idempotent) {
+          if (!(idempotent == null) && tmp0.t1r_1 === idempotent) {
             // Inline function 'kotlinx.coroutines.assert' call
             tmp = get_RESUME_TOKEN();
           } else {
@@ -828,39 +828,39 @@ function alreadyResumedError($this, proposedUpdate) {
 }
 function detachChildIfNonReusable($this) {
   if (!isReusable($this)) {
-    $this.y1r();
+    $this.z1r();
   }
 }
 function CancellableContinuationImpl(delegate, resumeMode) {
   DispatchedTask.call(this, resumeMode);
-  this.q1q_1 = delegate;
+  this.r1q_1 = delegate;
   // Inline function 'kotlinx.coroutines.assert' call
-  this.r1q_1 = this.q1q_1.q8();
+  this.s1q_1 = this.r1q_1.q8();
   var tmp = this;
   // Inline function 'kotlinx.coroutines.decisionAndIndex' call
   var tmp$ret$1 = (0 << 29) + 536870911 | 0;
-  tmp.s1q_1 = atomic$int$1(tmp$ret$1);
-  this.t1q_1 = atomic$ref$1(Active_instance);
-  this.u1q_1 = atomic$ref$1(null);
+  tmp.t1q_1 = atomic$int$1(tmp$ret$1);
+  this.u1q_1 = atomic$ref$1(Active_instance);
+  this.v1q_1 = atomic$ref$1(null);
 }
-protoOf(CancellableContinuationImpl).z1r = function () {
-  return this.q1q_1;
-};
-protoOf(CancellableContinuationImpl).q8 = function () {
+protoOf(CancellableContinuationImpl).a1s = function () {
   return this.r1q_1;
 };
-protoOf(CancellableContinuationImpl).w1n = function () {
-  return this.t1q_1.kotlinx$atomicfu$value;
-};
-protoOf(CancellableContinuationImpl).d1n = function () {
-  var tmp = this.w1n();
-  return !(tmp == null) ? isInterface(tmp, NotCompleted) : false;
+protoOf(CancellableContinuationImpl).q8 = function () {
+  return this.s1q_1;
 };
 protoOf(CancellableContinuationImpl).x1n = function () {
-  var tmp = this.w1n();
+  return this.u1q_1.kotlinx$atomicfu$value;
+};
+protoOf(CancellableContinuationImpl).e1n = function () {
+  var tmp = this.x1n();
+  return !(tmp == null) ? isInterface(tmp, NotCompleted) : false;
+};
+protoOf(CancellableContinuationImpl).y1n = function () {
+  var tmp = this.x1n();
   return !(!(tmp == null) ? isInterface(tmp, NotCompleted) : false);
 };
-protoOf(CancellableContinuationImpl).a1s = function () {
+protoOf(CancellableContinuationImpl).b1s = function () {
   var tmp0_elvis_lhs = installParentHandle(this);
   var tmp;
   if (tmp0_elvis_lhs == null) {
@@ -869,37 +869,37 @@ protoOf(CancellableContinuationImpl).a1s = function () {
     tmp = tmp0_elvis_lhs;
   }
   var handle = tmp;
-  if (this.x1n()) {
-    handle.y1q();
-    this.u1q_1.kotlinx$atomicfu$value = NonDisposableHandle_instance;
+  if (this.y1n()) {
+    handle.z1q();
+    this.v1q_1.kotlinx$atomicfu$value = NonDisposableHandle_instance;
   }
 };
-protoOf(CancellableContinuationImpl).g1r = function () {
+protoOf(CancellableContinuationImpl).h1r = function () {
   // Inline function 'kotlinx.coroutines.assert' call
   // Inline function 'kotlinx.coroutines.assert' call
-  var state = this.t1q_1.kotlinx$atomicfu$value;
+  var state = this.u1q_1.kotlinx$atomicfu$value;
   // Inline function 'kotlinx.coroutines.assert' call
   var tmp;
   if (state instanceof CompletedContinuation) {
-    tmp = !(state.s1r_1 == null);
+    tmp = !(state.t1r_1 == null);
   } else {
     tmp = false;
   }
   if (tmp) {
-    this.y1r();
+    this.z1r();
     return false;
   }
-  var tmp_0 = this.s1q_1;
+  var tmp_0 = this.t1q_1;
   // Inline function 'kotlinx.coroutines.decisionAndIndex' call
   tmp_0.kotlinx$atomicfu$value = (0 << 29) + 536870911 | 0;
-  this.t1q_1.kotlinx$atomicfu$value = Active_instance;
+  this.u1q_1.kotlinx$atomicfu$value = Active_instance;
   return true;
 };
-protoOf(CancellableContinuationImpl).b1s = function () {
-  return this.w1n();
+protoOf(CancellableContinuationImpl).c1s = function () {
+  return this.x1n();
 };
-protoOf(CancellableContinuationImpl).c1s = function (takenState, cause) {
-  var this_0 = this.t1q_1;
+protoOf(CancellableContinuationImpl).d1s = function (takenState, cause) {
+  var this_0 = this.u1q_1;
   while (true) {
     var state = this_0.kotlinx$atomicfu$value;
     if (!(state == null) ? isInterface(state, NotCompleted) : false) {
@@ -912,17 +912,17 @@ protoOf(CancellableContinuationImpl).c1s = function (takenState, cause) {
       else {
         if (state instanceof CompletedContinuation) {
           // Inline function 'kotlin.check' call
-          if (!!state.v1r()) {
+          if (!!state.w1r()) {
             var message_0 = 'Must be called at most once';
             throw IllegalStateException_init_$Create$(toString(message_0));
           }
-          var update = state.w1r(VOID, VOID, VOID, VOID, cause);
-          if (this.t1q_1.atomicfu$compareAndSet(state, update)) {
-            state.d1s(this, cause);
+          var update = state.x1r(VOID, VOID, VOID, VOID, cause);
+          if (this.u1q_1.atomicfu$compareAndSet(state, update)) {
+            state.e1s(this, cause);
             return Unit_instance;
           }
         } else {
-          if (this.t1q_1.atomicfu$compareAndSet(state, new CompletedContinuation(state, VOID, VOID, VOID, cause))) {
+          if (this.u1q_1.atomicfu$compareAndSet(state, new CompletedContinuation(state, VOID, VOID, VOID, cause))) {
             return Unit_instance;
           }
         }
@@ -931,9 +931,9 @@ protoOf(CancellableContinuationImpl).c1s = function (takenState, cause) {
   }
   return Unit_instance;
 };
-protoOf(CancellableContinuationImpl).e1s = function (cause) {
+protoOf(CancellableContinuationImpl).f1s = function (cause) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.t1q_1;
+  var this_0 = this.u1q_1;
   while (true) {
     var tmp0 = this_0.kotlinx$atomicfu$value;
     $l$block: {
@@ -946,32 +946,32 @@ protoOf(CancellableContinuationImpl).e1s = function (cause) {
         tmp = tmp0 instanceof Segment;
       }
       var update = new CancelledContinuation(this, cause, tmp);
-      if (!this.t1q_1.atomicfu$compareAndSet(tmp0, update)) {
+      if (!this.u1q_1.atomicfu$compareAndSet(tmp0, update)) {
         break $l$block;
       }
       if (isInterface(tmp0, CancelHandler)) {
-        this.u1r(tmp0, cause);
+        this.v1r(tmp0, cause);
       } else {
         if (tmp0 instanceof Segment) {
           callSegmentOnCancellation(this, tmp0, cause);
         }
       }
       detachChildIfNonReusable(this);
-      dispatchResume(this, this.i1r_1);
+      dispatchResume(this, this.j1r_1);
       return true;
     }
   }
 };
-protoOf(CancellableContinuationImpl).f1s = function (cause) {
+protoOf(CancellableContinuationImpl).g1s = function (cause) {
   if (cancelLater(this, cause))
     return Unit_instance;
-  this.e1s(cause);
+  this.f1s(cause);
   detachChildIfNonReusable(this);
 };
-protoOf(CancellableContinuationImpl).u1r = function (handler, cause) {
+protoOf(CancellableContinuationImpl).v1r = function (handler, cause) {
   // Inline function 'kotlinx.coroutines.CancellableContinuationImpl.callCancelHandlerSafely' call
   try {
-    handler.x1q(cause);
+    handler.y1q(cause);
   } catch ($p) {
     if ($p instanceof Error) {
       var ex = $p;
@@ -982,7 +982,7 @@ protoOf(CancellableContinuationImpl).u1r = function (handler, cause) {
   }
   return Unit_instance;
 };
-protoOf(CancellableContinuationImpl).g1s = function (onCancellation, cause, value) {
+protoOf(CancellableContinuationImpl).h1s = function (onCancellation, cause, value) {
   try {
     onCancellation(cause, value, this.q8());
   } catch ($p) {
@@ -994,40 +994,40 @@ protoOf(CancellableContinuationImpl).g1s = function (onCancellation, cause, valu
     }
   }
 };
-protoOf(CancellableContinuationImpl).h1s = function (parent) {
-  return parent.b1o();
+protoOf(CancellableContinuationImpl).i1s = function (parent) {
+  return parent.c1o();
 };
-protoOf(CancellableContinuationImpl).g1p = function () {
+protoOf(CancellableContinuationImpl).h1p = function () {
   var isReusable_0 = isReusable(this);
   if (trySuspend_0(this)) {
     if (_get_parentHandle__f8dcex(this) == null) {
       installParentHandle(this);
     }
     if (isReusable_0) {
-      this.i1s();
+      this.j1s();
     }
     return get_COROUTINE_SUSPENDED();
   }
   if (isReusable_0) {
-    this.i1s();
+    this.j1s();
   }
-  var state = this.w1n();
+  var state = this.x1n();
   if (state instanceof CompletedExceptionally)
-    throw recoverStackTrace(state.i1n_1, this);
-  if (get_isCancellableMode(this.i1r_1)) {
+    throw recoverStackTrace(state.j1n_1, this);
+  if (get_isCancellableMode(this.j1r_1)) {
     var job = this.q8().x8(Key_instance_2);
-    if (!(job == null) && !job.d1n()) {
-      var cause = job.b1o();
-      this.c1s(state, cause);
+    if (!(job == null) && !job.e1n()) {
+      var cause = job.c1o();
+      this.d1s(state, cause);
       throw recoverStackTrace(cause, this);
     }
   }
-  return this.j1s(state);
+  return this.k1s(state);
 };
-protoOf(CancellableContinuationImpl).i1s = function () {
-  var tmp = this.q1q_1;
+protoOf(CancellableContinuationImpl).j1s = function () {
+  var tmp = this.r1q_1;
   var tmp0_safe_receiver = tmp instanceof DispatchedContinuation ? tmp : null;
-  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.k1s(this);
+  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.l1s(this);
   var tmp_0;
   if (tmp1_elvis_lhs == null) {
     return Unit_instance;
@@ -1035,17 +1035,17 @@ protoOf(CancellableContinuationImpl).i1s = function () {
     tmp_0 = tmp1_elvis_lhs;
   }
   var cancellationCause = tmp_0;
-  this.y1r();
-  this.e1s(cancellationCause);
+  this.z1r();
+  this.f1s(cancellationCause);
 };
 protoOf(CancellableContinuationImpl).v8 = function (result) {
-  return this.l1s(toState(result, this), this.i1r_1);
+  return this.m1s(toState(result, this), this.j1r_1);
 };
-protoOf(CancellableContinuationImpl).m1s = function (value, onCancellation) {
-  return this.n1s(value, this.i1r_1, onCancellation);
+protoOf(CancellableContinuationImpl).n1s = function (value, onCancellation) {
+  return this.o1s(value, this.j1r_1, onCancellation);
 };
-protoOf(CancellableContinuationImpl).o1s = function (segment, index) {
-  var tmp0 = this.s1q_1;
+protoOf(CancellableContinuationImpl).p1s = function (segment, index) {
+  var tmp0 = this.t1q_1;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.update' call
     while (true) {
@@ -1066,18 +1066,18 @@ protoOf(CancellableContinuationImpl).o1s = function (segment, index) {
   }
   invokeOnCancellationImpl(this, segment);
 };
-protoOf(CancellableContinuationImpl).v1q = function (handler) {
+protoOf(CancellableContinuationImpl).w1q = function (handler) {
   return invokeOnCancellationImpl(this, handler);
 };
-protoOf(CancellableContinuationImpl).n1s = function (proposedUpdate, resumeMode, onCancellation) {
+protoOf(CancellableContinuationImpl).o1s = function (proposedUpdate, resumeMode, onCancellation) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.t1q_1;
+  var this_0 = this.u1q_1;
   while (true) {
     var tmp0 = this_0.kotlinx$atomicfu$value;
     $l$block: {
       if (!(tmp0 == null) ? isInterface(tmp0, NotCompleted) : false) {
         var update = resumedState(this, tmp0, proposedUpdate, resumeMode, onCancellation, null);
-        if (!this.t1q_1.atomicfu$compareAndSet(tmp0, update)) {
+        if (!this.u1q_1.atomicfu$compareAndSet(tmp0, update)) {
           break $l$block;
         }
         detachChildIfNonReusable(this);
@@ -1085,12 +1085,12 @@ protoOf(CancellableContinuationImpl).n1s = function (proposedUpdate, resumeMode,
         return Unit_instance;
       } else {
         if (tmp0 instanceof CancelledContinuation) {
-          if (tmp0.s1s()) {
+          if (tmp0.t1s()) {
             if (onCancellation == null)
               null;
             else {
               // Inline function 'kotlin.let' call
-              this.g1s(onCancellation, tmp0.i1n_1, proposedUpdate);
+              this.h1s(onCancellation, tmp0.j1n_1, proposedUpdate);
             }
             return Unit_instance;
           }
@@ -1100,18 +1100,18 @@ protoOf(CancellableContinuationImpl).n1s = function (proposedUpdate, resumeMode,
     }
   }
 };
-protoOf(CancellableContinuationImpl).l1s = function (proposedUpdate, resumeMode, onCancellation, $super) {
+protoOf(CancellableContinuationImpl).m1s = function (proposedUpdate, resumeMode, onCancellation, $super) {
   onCancellation = onCancellation === VOID ? null : onCancellation;
   var tmp;
   if ($super === VOID) {
-    this.n1s(proposedUpdate, resumeMode, onCancellation);
+    this.o1s(proposedUpdate, resumeMode, onCancellation);
     tmp = Unit_instance;
   } else {
-    tmp = $super.n1s.call(this, proposedUpdate, resumeMode, onCancellation);
+    tmp = $super.o1s.call(this, proposedUpdate, resumeMode, onCancellation);
   }
   return tmp;
 };
-protoOf(CancellableContinuationImpl).y1r = function () {
+protoOf(CancellableContinuationImpl).z1r = function () {
   var tmp0_elvis_lhs = _get_parentHandle__f8dcex(this);
   var tmp;
   if (tmp0_elvis_lhs == null) {
@@ -1120,52 +1120,52 @@ protoOf(CancellableContinuationImpl).y1r = function () {
     tmp = tmp0_elvis_lhs;
   }
   var handle = tmp;
-  handle.y1q();
-  this.u1q_1.kotlinx$atomicfu$value = NonDisposableHandle_instance;
+  handle.z1q();
+  this.v1q_1.kotlinx$atomicfu$value = NonDisposableHandle_instance;
 };
-protoOf(CancellableContinuationImpl).m1q = function (value, idempotent, onCancellation) {
+protoOf(CancellableContinuationImpl).n1q = function (value, idempotent, onCancellation) {
   return tryResumeImpl(this, value, idempotent, onCancellation);
 };
-protoOf(CancellableContinuationImpl).n1q = function (token) {
+protoOf(CancellableContinuationImpl).o1q = function (token) {
   // Inline function 'kotlinx.coroutines.assert' call
-  dispatchResume(this, this.i1r_1);
+  dispatchResume(this, this.j1r_1);
 };
-protoOf(CancellableContinuationImpl).o1q = function (_this__u8e3s4, value) {
-  var tmp = this.q1q_1;
+protoOf(CancellableContinuationImpl).p1q = function (_this__u8e3s4, value) {
+  var tmp = this.r1q_1;
   var dc = tmp instanceof DispatchedContinuation ? tmp : null;
   var tmp_0;
-  if ((dc == null ? null : dc.a1r_1) === _this__u8e3s4) {
+  if ((dc == null ? null : dc.b1r_1) === _this__u8e3s4) {
     tmp_0 = 4;
   } else {
-    tmp_0 = this.i1r_1;
+    tmp_0 = this.j1r_1;
   }
-  this.l1s(value, tmp_0);
+  this.m1s(value, tmp_0);
 };
-protoOf(CancellableContinuationImpl).j1s = function (state) {
+protoOf(CancellableContinuationImpl).k1s = function (state) {
   var tmp;
   if (state instanceof CompletedContinuation) {
-    var tmp_0 = state.p1r_1;
+    var tmp_0 = state.q1r_1;
     tmp = (tmp_0 == null ? true : !(tmp_0 == null)) ? tmp_0 : THROW_CCE();
   } else {
     tmp = (state == null ? true : !(state == null)) ? state : THROW_CCE();
   }
   return tmp;
 };
-protoOf(CancellableContinuationImpl).t1s = function (state) {
-  var tmp0_safe_receiver = protoOf(DispatchedTask).t1s.call(this, state);
+protoOf(CancellableContinuationImpl).u1s = function (state) {
+  var tmp0_safe_receiver = protoOf(DispatchedTask).u1s.call(this, state);
   var tmp;
   if (tmp0_safe_receiver == null) {
     tmp = null;
   } else {
     // Inline function 'kotlin.let' call
-    tmp = recoverStackTrace(tmp0_safe_receiver, this.q1q_1);
+    tmp = recoverStackTrace(tmp0_safe_receiver, this.r1q_1);
   }
   return tmp;
 };
 protoOf(CancellableContinuationImpl).toString = function () {
-  return this.u1s() + '(' + toDebugString(this.q1q_1) + '){' + _get_stateDebugRepresentation__bf18u4(this) + '}@' + get_hexAddress(this);
+  return this.v1s() + '(' + toDebugString(this.r1q_1) + '){' + _get_stateDebugRepresentation__bf18u4(this) + '}@' + get_hexAddress(this);
 };
-protoOf(CancellableContinuationImpl).u1s = function () {
+protoOf(CancellableContinuationImpl).v1s = function () {
   return 'CancellableContinuation';
 };
 function NotCompleted() {
@@ -1186,51 +1186,51 @@ function CompletedContinuation(result, cancelHandler, onCancellation, idempotent
   onCancellation = onCancellation === VOID ? null : onCancellation;
   idempotentResume = idempotentResume === VOID ? null : idempotentResume;
   cancelCause = cancelCause === VOID ? null : cancelCause;
-  this.p1r_1 = result;
-  this.q1r_1 = cancelHandler;
-  this.r1r_1 = onCancellation;
-  this.s1r_1 = idempotentResume;
-  this.t1r_1 = cancelCause;
+  this.q1r_1 = result;
+  this.r1r_1 = cancelHandler;
+  this.s1r_1 = onCancellation;
+  this.t1r_1 = idempotentResume;
+  this.u1r_1 = cancelCause;
 }
-protoOf(CompletedContinuation).v1r = function () {
-  return !(this.t1r_1 == null);
+protoOf(CompletedContinuation).w1r = function () {
+  return !(this.u1r_1 == null);
 };
-protoOf(CompletedContinuation).d1s = function (cont, cause) {
-  var tmp0_safe_receiver = this.q1r_1;
+protoOf(CompletedContinuation).e1s = function (cont, cause) {
+  var tmp0_safe_receiver = this.r1r_1;
   if (tmp0_safe_receiver == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    cont.u1r(tmp0_safe_receiver, cause);
+    cont.v1r(tmp0_safe_receiver, cause);
   }
-  var tmp1_safe_receiver = this.r1r_1;
+  var tmp1_safe_receiver = this.s1r_1;
   if (tmp1_safe_receiver == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    cont.g1s(tmp1_safe_receiver, cause, this.p1r_1);
+    cont.h1s(tmp1_safe_receiver, cause, this.q1r_1);
   }
 };
-protoOf(CompletedContinuation).x1s = function (result, cancelHandler, onCancellation, idempotentResume, cancelCause) {
+protoOf(CompletedContinuation).y1s = function (result, cancelHandler, onCancellation, idempotentResume, cancelCause) {
   return new CompletedContinuation(result, cancelHandler, onCancellation, idempotentResume, cancelCause);
 };
-protoOf(CompletedContinuation).w1r = function (result, cancelHandler, onCancellation, idempotentResume, cancelCause, $super) {
-  result = result === VOID ? this.p1r_1 : result;
-  cancelHandler = cancelHandler === VOID ? this.q1r_1 : cancelHandler;
-  onCancellation = onCancellation === VOID ? this.r1r_1 : onCancellation;
-  idempotentResume = idempotentResume === VOID ? this.s1r_1 : idempotentResume;
-  cancelCause = cancelCause === VOID ? this.t1r_1 : cancelCause;
-  return $super === VOID ? this.x1s(result, cancelHandler, onCancellation, idempotentResume, cancelCause) : $super.x1s.call(this, result, cancelHandler, onCancellation, idempotentResume, cancelCause);
+protoOf(CompletedContinuation).x1r = function (result, cancelHandler, onCancellation, idempotentResume, cancelCause, $super) {
+  result = result === VOID ? this.q1r_1 : result;
+  cancelHandler = cancelHandler === VOID ? this.r1r_1 : cancelHandler;
+  onCancellation = onCancellation === VOID ? this.s1r_1 : onCancellation;
+  idempotentResume = idempotentResume === VOID ? this.t1r_1 : idempotentResume;
+  cancelCause = cancelCause === VOID ? this.u1r_1 : cancelCause;
+  return $super === VOID ? this.y1s(result, cancelHandler, onCancellation, idempotentResume, cancelCause) : $super.y1s.call(this, result, cancelHandler, onCancellation, idempotentResume, cancelCause);
 };
 protoOf(CompletedContinuation).toString = function () {
-  return 'CompletedContinuation(result=' + toString_0(this.p1r_1) + ', cancelHandler=' + toString_0(this.q1r_1) + ', onCancellation=' + toString_0(this.r1r_1) + ', idempotentResume=' + toString_0(this.s1r_1) + ', cancelCause=' + toString_0(this.t1r_1) + ')';
+  return 'CompletedContinuation(result=' + toString_0(this.q1r_1) + ', cancelHandler=' + toString_0(this.r1r_1) + ', onCancellation=' + toString_0(this.s1r_1) + ', idempotentResume=' + toString_0(this.t1r_1) + ', cancelCause=' + toString_0(this.u1r_1) + ')';
 };
 protoOf(CompletedContinuation).hashCode = function () {
-  var result = this.p1r_1 == null ? 0 : hashCode(this.p1r_1);
-  result = imul(result, 31) + (this.q1r_1 == null ? 0 : hashCode(this.q1r_1)) | 0;
+  var result = this.q1r_1 == null ? 0 : hashCode(this.q1r_1);
   result = imul(result, 31) + (this.r1r_1 == null ? 0 : hashCode(this.r1r_1)) | 0;
   result = imul(result, 31) + (this.s1r_1 == null ? 0 : hashCode(this.s1r_1)) | 0;
   result = imul(result, 31) + (this.t1r_1 == null ? 0 : hashCode(this.t1r_1)) | 0;
+  result = imul(result, 31) + (this.u1r_1 == null ? 0 : hashCode(this.u1r_1)) | 0;
   return result;
 };
 protoOf(CompletedContinuation).equals = function (other) {
@@ -1239,8 +1239,6 @@ protoOf(CompletedContinuation).equals = function (other) {
   if (!(other instanceof CompletedContinuation))
     return false;
   var tmp0_other_with_cast = other instanceof CompletedContinuation ? other : THROW_CCE();
-  if (!equals(this.p1r_1, tmp0_other_with_cast.p1r_1))
-    return false;
   if (!equals(this.q1r_1, tmp0_other_with_cast.q1r_1))
     return false;
   if (!equals(this.r1r_1, tmp0_other_with_cast.r1r_1))
@@ -1249,17 +1247,19 @@ protoOf(CompletedContinuation).equals = function (other) {
     return false;
   if (!equals(this.t1r_1, tmp0_other_with_cast.t1r_1))
     return false;
+  if (!equals(this.u1r_1, tmp0_other_with_cast.u1r_1))
+    return false;
   return true;
 };
 function ChildContinuation(child) {
   JobNode.call(this);
-  this.c1t_1 = child;
+  this.d1t_1 = child;
 }
-protoOf(ChildContinuation).d1t = function () {
+protoOf(ChildContinuation).e1t = function () {
   return true;
 };
-protoOf(ChildContinuation).x1q = function (cause) {
-  this.c1t_1.f1s(this.c1t_1.h1s(this.i1t()));
+protoOf(ChildContinuation).y1q = function (cause) {
+  this.d1t_1.g1s(this.d1t_1.i1s(this.j1t()));
 };
 var properties_initialized_CancellableContinuationImpl_kt_xtzb03;
 function _init_properties_CancellableContinuationImpl_kt__6rrtdd() {
@@ -1274,7 +1274,7 @@ function CompletableDeferred(parent) {
 }
 function $awaitCOROUTINE$_0(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.y1t_1 = _this__u8e3s4;
+  this.z1t_1 = _this__u8e3s4;
 }
 protoOf($awaitCOROUTINE$_0).s8 = function () {
   var suspendResult = this.m8_1;
@@ -1285,7 +1285,7 @@ protoOf($awaitCOROUTINE$_0).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this.y1t_1.a1p(this);
+          suspendResult = this.z1t_1.b1p(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1309,47 +1309,47 @@ protoOf($awaitCOROUTINE$_0).s8 = function () {
 };
 function CompletableDeferredImpl(parent) {
   JobSupport.call(this, true);
-  this.y1m(parent);
+  this.z1m(parent);
 }
-protoOf(CompletableDeferredImpl).i1o = function () {
+protoOf(CompletableDeferredImpl).j1o = function () {
   return true;
 };
-protoOf(CompletableDeferredImpl).g1q = function () {
-  var tmp = this.z1o();
+protoOf(CompletableDeferredImpl).h1q = function () {
+  var tmp = this.a1p();
   return (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
 };
-protoOf(CompletableDeferredImpl).h1q = function ($completion) {
+protoOf(CompletableDeferredImpl).i1q = function ($completion) {
   var tmp = new $awaitCOROUTINE$_0(this, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(CompletableDeferredImpl).b1u = function (value) {
-  return this.r1o(value);
+protoOf(CompletableDeferredImpl).c1u = function (value) {
+  return this.s1o(value);
 };
-protoOf(CompletableDeferredImpl).c1u = function (exception) {
-  return this.r1o(new CompletedExceptionally(exception));
+protoOf(CompletableDeferredImpl).d1u = function (exception) {
+  return this.s1o(new CompletedExceptionally(exception));
 };
 function CompletedExceptionally(cause, handled) {
   handled = handled === VOID ? false : handled;
-  this.i1n_1 = cause;
-  this.j1n_1 = atomic$boolean$1(handled);
+  this.j1n_1 = cause;
+  this.k1n_1 = atomic$boolean$1(handled);
 }
-protoOf(CompletedExceptionally).k1n = function () {
-  return this.j1n_1.kotlinx$atomicfu$value;
+protoOf(CompletedExceptionally).l1n = function () {
+  return this.k1n_1.kotlinx$atomicfu$value;
 };
-protoOf(CompletedExceptionally).x1r = function () {
-  return this.j1n_1.atomicfu$compareAndSet(false, true);
+protoOf(CompletedExceptionally).y1r = function () {
+  return this.k1n_1.atomicfu$compareAndSet(false, true);
 };
 protoOf(CompletedExceptionally).toString = function () {
-  return get_classSimpleName(this) + '[' + this.i1n_1.toString() + ']';
+  return get_classSimpleName(this) + '[' + this.j1n_1.toString() + ']';
 };
 function CancelledContinuation(continuation, cause, handled) {
   CompletedExceptionally.call(this, cause == null ? CancellationException_init_$Create$('Continuation ' + toString(continuation) + ' was cancelled normally') : cause, handled);
-  this.r1s_1 = atomic$boolean$1(false);
+  this.s1s_1 = atomic$boolean$1(false);
 }
-protoOf(CancelledContinuation).s1s = function () {
-  return this.r1s_1.atomicfu$compareAndSet(false, true);
+protoOf(CancelledContinuation).t1s = function () {
+  return this.s1s_1.atomicfu$compareAndSet(false, true);
 };
 function toState(_this__u8e3s4, caller) {
   // Inline function 'kotlin.getOrElse' call
@@ -1379,7 +1379,7 @@ function recoverResult(state, uCont) {
   var tmp;
   if (state instanceof CompletedExceptionally) {
     // Inline function 'kotlin.Companion.failure' call
-    var exception = recoverStackTrace(state.i1n_1, uCont);
+    var exception = recoverStackTrace(state.j1n_1, uCont);
     tmp = _Result___init__impl__xyqfz8(createFailure(exception));
   } else {
     // Inline function 'kotlin.Companion.success' call
@@ -1406,10 +1406,10 @@ function CoroutineDispatcher() {
   Key_getInstance();
   AbstractCoroutineContextElement.call(this, Key_instance);
 }
-protoOf(CoroutineDispatcher).e1u = function (context) {
+protoOf(CoroutineDispatcher).f1u = function (context) {
   return true;
 };
-protoOf(CoroutineDispatcher).g1u = function (context, block) {
+protoOf(CoroutineDispatcher).h1u = function (context, block) {
   return safeDispatch(this, context, block);
 };
 protoOf(CoroutineDispatcher).y8 = function (continuation) {
@@ -1417,7 +1417,7 @@ protoOf(CoroutineDispatcher).y8 = function (continuation) {
 };
 protoOf(CoroutineDispatcher).z8 = function (continuation) {
   var dispatched = continuation instanceof DispatchedContinuation ? continuation : THROW_CCE();
-  dispatched.h1u();
+  dispatched.i1u();
 };
 protoOf(CoroutineDispatcher).toString = function () {
   return get_classSimpleName(this) + '@' + get_hexAddress(this);
@@ -1425,7 +1425,7 @@ protoOf(CoroutineDispatcher).toString = function () {
 function handleCoroutineException(context, exception) {
   var tmp;
   if (exception instanceof DispatchException) {
-    tmp = exception.i1u_1;
+    tmp = exception.j1u_1;
   } else {
     tmp = exception;
   }
@@ -1436,7 +1436,7 @@ function handleCoroutineException(context, exception) {
       null;
     else {
       // Inline function 'kotlin.let' call
-      tmp0_safe_receiver.j1u(context, reportException);
+      tmp0_safe_receiver.k1u(context, reportException);
       return Unit_instance;
     }
   } catch ($p) {
@@ -1467,18 +1467,18 @@ function handlerException(originalException, thrownException) {
 function CoroutineScope() {
 }
 function MainScope() {
-  return new ContextScope(SupervisorJob().ag(Dispatchers_getInstance().o1u()));
+  return new ContextScope(SupervisorJob().bg(Dispatchers_getInstance().p1u()));
 }
 function coroutineScope(block, $completion) {
   var coroutine = new ScopeCoroutine($completion.q8(), $completion);
   return startUndispatchedOrReturn(coroutine, coroutine, block);
 }
 function CoroutineScope_0(context) {
-  return new ContextScope(!(context.x8(Key_instance_2) == null) ? context : context.ag(Job_0()));
+  return new ContextScope(!(context.x8(Key_instance_2) == null) ? context : context.bg(Job_0()));
 }
 function cancel(_this__u8e3s4, cause) {
   cause = cause === VOID ? null : cause;
-  var tmp0_elvis_lhs = _this__u8e3s4.c1n().x8(Key_instance_2);
+  var tmp0_elvis_lhs = _this__u8e3s4.d1n().x8(Key_instance_2);
   var tmp;
   if (tmp0_elvis_lhs == null) {
     var message = 'Scope cannot be cancelled because it does not have a job: ' + toString(_this__u8e3s4);
@@ -1487,11 +1487,11 @@ function cancel(_this__u8e3s4, cause) {
     tmp = tmp0_elvis_lhs;
   }
   var job = tmp;
-  job.j1o(cause);
+  job.k1o(cause);
 }
 function GlobalScope() {
 }
-protoOf(GlobalScope).c1n = function () {
+protoOf(GlobalScope).d1n = function () {
   return EmptyCoroutineContext_getInstance();
 };
 var GlobalScope_instance;
@@ -1499,7 +1499,7 @@ function GlobalScope_getInstance() {
   return GlobalScope_instance;
 }
 function plus_1(_this__u8e3s4, context) {
-  return new ContextScope(_this__u8e3s4.c1n().ag(context));
+  return new ContextScope(_this__u8e3s4.d1n().bg(context));
 }
 var CoroutineStart_DEFAULT_instance;
 var CoroutineStart_LAZY_instance;
@@ -1518,7 +1518,7 @@ function CoroutineStart_initEntries() {
 function CoroutineStart(name, ordinal) {
   Enum.call(this, name, ordinal);
 }
-protoOf(CoroutineStart).t1n = function (block, receiver, completion) {
+protoOf(CoroutineStart).u1n = function (block, receiver, completion) {
   var tmp;
   switch (this.q2_1) {
     case 0:
@@ -1542,7 +1542,7 @@ protoOf(CoroutineStart).t1n = function (block, receiver, completion) {
   }
   return tmp;
 };
-protoOf(CoroutineStart).h1p = function () {
+protoOf(CoroutineStart).i1p = function () {
   return this === CoroutineStart_LAZY_getInstance();
 };
 function CoroutineStart_DEFAULT_getInstance() {
@@ -1568,23 +1568,23 @@ function delay(timeMillis, $completion) {
   if (compare(timeMillis, new Long(0, 0)) <= 0)
     return Unit_instance;
   var cancellable = new CancellableContinuationImpl(intercepted($completion), 1);
-  cancellable.a1s();
+  cancellable.b1s();
   if (compare(timeMillis, new Long(-1, 2147483647)) < 0) {
-    get_delay(cancellable.q8()).p1u(timeMillis, cancellable);
+    get_delay(cancellable.q8()).q1u(timeMillis, cancellable);
   }
-  return cancellable.g1p();
+  return cancellable.h1p();
 }
 function delta($this, unconfined) {
   return unconfined ? new Long(0, 1) : new Long(1, 0);
 }
 function EventLoop() {
   CoroutineDispatcher.call(this);
-  this.r1u_1 = new Long(0, 0);
-  this.s1u_1 = false;
-  this.t1u_1 = null;
+  this.s1u_1 = new Long(0, 0);
+  this.t1u_1 = false;
+  this.u1u_1 = null;
 }
-protoOf(EventLoop).u1u = function () {
-  var tmp0_elvis_lhs = this.t1u_1;
+protoOf(EventLoop).v1u = function () {
+  var tmp0_elvis_lhs = this.u1u_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return false;
@@ -1592,7 +1592,7 @@ protoOf(EventLoop).u1u = function () {
     tmp = tmp0_elvis_lhs;
   }
   var queue = tmp;
-  var tmp1_elvis_lhs = queue.ae();
+  var tmp1_elvis_lhs = queue.be();
   var tmp_0;
   if (tmp1_elvis_lhs == null) {
     return false;
@@ -1600,58 +1600,58 @@ protoOf(EventLoop).u1u = function () {
     tmp_0 = tmp1_elvis_lhs;
   }
   var task = tmp_0;
-  task.v1s();
+  task.w1s();
   return true;
 };
-protoOf(EventLoop).v1u = function (task) {
-  var tmp0_elvis_lhs = this.t1u_1;
+protoOf(EventLoop).w1u = function (task) {
+  var tmp0_elvis_lhs = this.u1u_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     // Inline function 'kotlin.also' call
     var this_0 = ArrayDeque_init_$Create$();
-    this.t1u_1 = this_0;
+    this.u1u_1 = this_0;
     tmp = this_0;
   } else {
     tmp = tmp0_elvis_lhs;
   }
   var queue = tmp;
-  queue.yd(task);
-};
-protoOf(EventLoop).w1u = function () {
-  return compare(this.r1u_1, delta(this, true)) >= 0;
+  queue.zd(task);
 };
 protoOf(EventLoop).x1u = function () {
-  var tmp0_safe_receiver = this.t1u_1;
+  return compare(this.s1u_1, delta(this, true)) >= 0;
+};
+protoOf(EventLoop).y1u = function () {
+  var tmp0_safe_receiver = this.u1u_1;
   var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.o();
   return tmp1_elvis_lhs == null ? true : tmp1_elvis_lhs;
 };
-protoOf(EventLoop).y1u = function (unconfined) {
-  this.r1u_1 = add(this.r1u_1, delta(this, unconfined));
-  if (!unconfined)
-    this.s1u_1 = true;
-};
 protoOf(EventLoop).z1u = function (unconfined) {
-  this.r1u_1 = subtract(this.r1u_1, delta(this, unconfined));
-  if (compare(this.r1u_1, new Long(0, 0)) > 0)
+  this.s1u_1 = add(this.s1u_1, delta(this, unconfined));
+  if (!unconfined)
+    this.t1u_1 = true;
+};
+protoOf(EventLoop).a1v = function (unconfined) {
+  this.s1u_1 = subtract(this.s1u_1, delta(this, unconfined));
+  if (compare(this.s1u_1, new Long(0, 0)) > 0)
     return Unit_instance;
   // Inline function 'kotlinx.coroutines.assert' call
-  if (this.s1u_1) {
-    this.a1v();
+  if (this.t1u_1) {
+    this.b1v();
   }
 };
-protoOf(EventLoop).a1v = function () {
+protoOf(EventLoop).b1v = function () {
 };
 function ThreadLocalEventLoop() {
   ThreadLocalEventLoop_instance = this;
-  this.b1v_1 = commonThreadLocal(new Symbol('ThreadLocalEventLoop'));
+  this.c1v_1 = commonThreadLocal(new Symbol('ThreadLocalEventLoop'));
 }
-protoOf(ThreadLocalEventLoop).c1v = function () {
-  var tmp0_elvis_lhs = this.b1v_1.e1v();
+protoOf(ThreadLocalEventLoop).d1v = function () {
+  var tmp0_elvis_lhs = this.c1v_1.f1v();
   var tmp;
   if (tmp0_elvis_lhs == null) {
     // Inline function 'kotlin.also' call
     var this_0 = createEventLoop();
-    ThreadLocalEventLoop_getInstance().b1v_1.f1v(this_0);
+    ThreadLocalEventLoop_getInstance().c1v_1.g1v(this_0);
     tmp = this_0;
   } else {
     tmp = tmp0_elvis_lhs;
@@ -1684,12 +1684,12 @@ function ParentJob() {
 }
 function NonDisposableHandle() {
 }
-protoOf(NonDisposableHandle).a1m = function () {
+protoOf(NonDisposableHandle).b1m = function () {
   return null;
 };
-protoOf(NonDisposableHandle).y1q = function () {
+protoOf(NonDisposableHandle).z1q = function () {
 };
-protoOf(NonDisposableHandle).n1o = function (cause) {
+protoOf(NonDisposableHandle).o1o = function (cause) {
   return false;
 };
 protoOf(NonDisposableHandle).toString = function () {
@@ -1711,16 +1711,16 @@ function invokeOnCompletion(_this__u8e3s4, invokeImmediately, handler) {
   invokeImmediately = invokeImmediately === VOID ? true : invokeImmediately;
   var tmp;
   if (_this__u8e3s4 instanceof JobSupport) {
-    tmp = _this__u8e3s4.g1o(invokeImmediately, handler);
+    tmp = _this__u8e3s4.h1o(invokeImmediately, handler);
   } else {
-    var tmp_0 = handler.d1t();
-    tmp = _this__u8e3s4.f1o(tmp_0, invokeImmediately, JobNode$invoke$ref(handler));
+    var tmp_0 = handler.e1t();
+    tmp = _this__u8e3s4.g1o(tmp_0, invokeImmediately, JobNode$invoke$ref(handler));
   }
   return tmp;
 }
 function ensureActive_0(_this__u8e3s4) {
-  if (!_this__u8e3s4.d1n())
-    throw _this__u8e3s4.b1o();
+  if (!_this__u8e3s4.e1n())
+    throw _this__u8e3s4.c1o();
 }
 function Job_0(parent) {
   parent = parent === VOID ? null : parent;
@@ -1728,7 +1728,7 @@ function Job_0(parent) {
 }
 function JobNode$invoke$ref(p0) {
   var l = function (_this__u8e3s4) {
-    p0.x1q(_this__u8e3s4);
+    p0.y1q(_this__u8e3s4);
     return Unit_instance;
   };
   l.callableName = 'invoke';
@@ -1770,29 +1770,29 @@ function get_EMPTY_ACTIVE() {
 }
 var EMPTY_ACTIVE;
 function Empty(isActive) {
-  this.g1v_1 = isActive;
+  this.h1v_1 = isActive;
 }
-protoOf(Empty).d1n = function () {
-  return this.g1v_1;
+protoOf(Empty).e1n = function () {
+  return this.h1v_1;
 };
-protoOf(Empty).j1t = function () {
+protoOf(Empty).k1t = function () {
   return null;
 };
 protoOf(Empty).toString = function () {
-  return 'Empty{' + (this.g1v_1 ? 'Active' : 'New') + '}';
+  return 'Empty{' + (this.h1v_1 ? 'Active' : 'New') + '}';
 };
 function Incomplete() {
 }
 function NodeList() {
   LockFreeLinkedListHead.call(this);
 }
-protoOf(NodeList).d1n = function () {
+protoOf(NodeList).e1n = function () {
   return true;
 };
-protoOf(NodeList).j1t = function () {
+protoOf(NodeList).k1t = function () {
   return this;
 };
-protoOf(NodeList).k1v = function (state) {
+protoOf(NodeList).l1v = function (state) {
   // Inline function 'kotlin.text.buildString' call
   // Inline function 'kotlin.apply' call
   var this_0 = StringBuilder_init_$Create$();
@@ -1801,7 +1801,7 @@ protoOf(NodeList).k1v = function (state) {
   this_0.r7('}[');
   var first = true;
   // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListHead.forEach' call
-  var cur = this.k1t_1;
+  var cur = this.l1t_1;
   while (!equals(cur, this)) {
     var node = cur;
     if (node instanceof JobNode) {
@@ -1811,42 +1811,42 @@ protoOf(NodeList).k1v = function (state) {
         this_0.r7(', ');
       this_0.q7(node);
     }
-    cur = cur.k1t_1;
+    cur = cur.l1t_1;
   }
   this_0.r7(']');
   return this_0.toString();
 };
 protoOf(NodeList).toString = function () {
-  return get_DEBUG() ? this.k1v('Active') : protoOf(LockFreeLinkedListHead).toString.call(this);
+  return get_DEBUG() ? this.l1v('Active') : protoOf(LockFreeLinkedListHead).toString.call(this);
 };
 function JobNode() {
   LockFreeLinkedListNode.call(this);
 }
-protoOf(JobNode).i1t = function () {
-  var tmp = this.h1t_1;
+protoOf(JobNode).j1t = function () {
+  var tmp = this.i1t_1;
   if (!(tmp == null))
     return tmp;
   else {
     throwUninitializedPropertyAccessException('job');
   }
 };
-protoOf(JobNode).d1n = function () {
+protoOf(JobNode).e1n = function () {
   return true;
 };
-protoOf(JobNode).j1t = function () {
+protoOf(JobNode).k1t = function () {
   return null;
 };
-protoOf(JobNode).y1q = function () {
-  return this.i1t().h1o(this);
+protoOf(JobNode).z1q = function () {
+  return this.j1t().i1o(this);
 };
 protoOf(JobNode).toString = function () {
-  return get_classSimpleName(this) + '@' + get_hexAddress(this) + '[job@' + get_hexAddress(this.i1t()) + ']';
+  return get_classSimpleName(this) + '@' + get_hexAddress(this) + '[job@' + get_hexAddress(this.j1t()) + ']';
 };
 function _set_exceptionsHolder__tqm22h($this, value) {
-  $this.p1v_1.kotlinx$atomicfu$value = value;
+  $this.q1v_1.kotlinx$atomicfu$value = value;
 }
 function _get_exceptionsHolder__nhszp($this) {
-  return $this.p1v_1.kotlinx$atomicfu$value;
+  return $this.q1v_1.kotlinx$atomicfu$value;
 }
 function allocateList($this) {
   return ArrayList_init_$Create$(4);
@@ -1856,12 +1856,12 @@ function finalizeFinishingState($this, state, proposedUpdate) {
   // Inline function 'kotlinx.coroutines.assert' call
   // Inline function 'kotlinx.coroutines.assert' call
   var tmp0_safe_receiver = proposedUpdate instanceof CompletedExceptionally ? proposedUpdate : null;
-  var proposedException = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.i1n_1;
+  var proposedException = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.j1n_1;
   var wasCancelling;
   // Inline function 'kotlinx.coroutines.internal.synchronized' call
   // Inline function 'kotlinx.coroutines.internal.synchronizedImpl' call
-  wasCancelling = state.q1v();
-  var exceptions = state.r1v(proposedException);
+  wasCancelling = state.r1v();
+  var exceptions = state.s1v(proposedException);
   var finalCause = getFinalRootCause($this, state, exceptions);
   if (!(finalCause == null)) {
     addSuppressedExceptions($this, finalCause, exceptions);
@@ -1869,25 +1869,25 @@ function finalizeFinishingState($this, state, proposedUpdate) {
   var finalException = finalCause;
   var finalState = finalException == null ? proposedUpdate : finalException === proposedException ? proposedUpdate : new CompletedExceptionally(finalException);
   if (!(finalException == null)) {
-    var handled = cancelParent($this, finalException) || $this.w1o(finalException);
+    var handled = cancelParent($this, finalException) || $this.x1o(finalException);
     if (handled) {
-      (finalState instanceof CompletedExceptionally ? finalState : THROW_CCE()).x1r();
+      (finalState instanceof CompletedExceptionally ? finalState : THROW_CCE()).y1r();
     }
   }
   if (!wasCancelling) {
-    $this.t1o(finalException);
+    $this.u1o(finalException);
   }
-  $this.h1n(finalState);
-  var casSuccess = $this.w1m_1.atomicfu$compareAndSet(state, boxIncomplete(finalState));
+  $this.i1n(finalState);
+  var casSuccess = $this.x1m_1.atomicfu$compareAndSet(state, boxIncomplete(finalState));
   // Inline function 'kotlinx.coroutines.assert' call
   completeStateFinalization($this, state, finalState);
   return finalState;
 }
 function getFinalRootCause($this, state, exceptions) {
   if (exceptions.o()) {
-    if (state.q1v()) {
+    if (state.r1v()) {
       // Inline function 'kotlinx.coroutines.JobSupport.defaultCancellationException' call
-      return new JobCancellationException(null == null ? $this.g1n() : null, null, $this);
+      return new JobCancellationException(null == null ? $this.h1n() : null, null, $this);
     }
     return null;
   }
@@ -1951,7 +1951,7 @@ function addSuppressedExceptions($this, rootCause, exceptions) {
       tmp_0 = false;
     }
     if (tmp_0) {
-      tmp = seenExceptions.j(unwrapped);
+      tmp = seenExceptions.g(unwrapped);
     } else {
       tmp = false;
     }
@@ -1963,37 +1963,37 @@ function addSuppressedExceptions($this, rootCause, exceptions) {
 function tryFinalizeSimpleState($this, state, update) {
   // Inline function 'kotlinx.coroutines.assert' call
   // Inline function 'kotlinx.coroutines.assert' call
-  if (!$this.w1m_1.atomicfu$compareAndSet(state, boxIncomplete(update)))
+  if (!$this.x1m_1.atomicfu$compareAndSet(state, boxIncomplete(update)))
     return false;
-  $this.t1o(null);
-  $this.h1n(update);
+  $this.u1o(null);
+  $this.i1n(update);
   completeStateFinalization($this, state, update);
   return true;
 }
 function completeStateFinalization($this, state, update) {
-  var tmp0_safe_receiver = $this.v1n();
+  var tmp0_safe_receiver = $this.w1n();
   if (tmp0_safe_receiver == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    tmp0_safe_receiver.y1q();
-    $this.u1n(NonDisposableHandle_instance);
+    tmp0_safe_receiver.z1q();
+    $this.v1n(NonDisposableHandle_instance);
   }
   var tmp1_safe_receiver = update instanceof CompletedExceptionally ? update : null;
-  var cause = tmp1_safe_receiver == null ? null : tmp1_safe_receiver.i1n_1;
+  var cause = tmp1_safe_receiver == null ? null : tmp1_safe_receiver.j1n_1;
   if (state instanceof JobNode) {
     try {
-      state.x1q(cause);
+      state.y1q(cause);
     } catch ($p) {
       if ($p instanceof Error) {
         var ex = $p;
-        $this.o1n(new CompletionHandlerException('Exception in completion handler ' + state.toString() + ' for ' + $this.toString(), ex));
+        $this.p1n(new CompletionHandlerException('Exception in completion handler ' + state.toString() + ' for ' + $this.toString(), ex));
       } else {
         throw $p;
       }
     }
   } else {
-    var tmp2_safe_receiver = state.j1t();
+    var tmp2_safe_receiver = state.k1t();
     if (tmp2_safe_receiver == null)
       null;
     else {
@@ -2002,23 +2002,23 @@ function completeStateFinalization($this, state, update) {
   }
 }
 function notifyCancelling($this, list, cause) {
-  $this.t1o(cause);
-  list.l1v(4);
+  $this.u1o(cause);
+  list.m1v(4);
   // Inline function 'kotlinx.coroutines.JobSupport.notifyHandlers' call
   var exception = null;
   // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListHead.forEach' call
-  var cur = list.k1t_1;
+  var cur = list.l1t_1;
   while (!equals(cur, list)) {
     var node = cur;
     var tmp;
     if (node instanceof JobNode) {
-      tmp = node.d1t();
+      tmp = node.e1t();
     } else {
       tmp = false;
     }
     if (tmp) {
       try {
-        node.x1q(cause);
+        node.y1q(cause);
       } catch ($p) {
         if ($p instanceof Error) {
           var ex = $p;
@@ -2040,33 +2040,33 @@ function notifyCancelling($this, list, cause) {
         }
       }
     }
-    cur = cur.k1t_1;
+    cur = cur.l1t_1;
   }
   var tmp0_safe_receiver_0 = exception;
   if (tmp0_safe_receiver_0 == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    $this.o1n(tmp0_safe_receiver_0);
+    $this.p1n(tmp0_safe_receiver_0);
   }
   cancelParent($this, cause);
 }
 function cancelParent($this, cause) {
-  if ($this.u1o())
+  if ($this.v1o())
     return true;
   var isCancellation = cause instanceof CancellationException;
-  var parent = $this.v1n();
+  var parent = $this.w1n();
   if (parent === null || parent === NonDisposableHandle_instance) {
     return isCancellation;
   }
-  return parent.n1o(cause) || isCancellation;
+  return parent.o1o(cause) || isCancellation;
 }
 function notifyCompletion($this, _this__u8e3s4, cause) {
-  _this__u8e3s4.l1v(1);
+  _this__u8e3s4.m1v(1);
   // Inline function 'kotlinx.coroutines.JobSupport.notifyHandlers' call
   var exception = null;
   // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListHead.forEach' call
-  var cur = _this__u8e3s4.k1t_1;
+  var cur = _this__u8e3s4.l1t_1;
   while (!equals(cur, _this__u8e3s4)) {
     var node = cur;
     var tmp;
@@ -2077,7 +2077,7 @@ function notifyCompletion($this, _this__u8e3s4, cause) {
     }
     if (tmp) {
       try {
-        node.x1q(cause);
+        node.y1q(cause);
       } catch ($p) {
         if ($p instanceof Error) {
           var ex = $p;
@@ -2099,29 +2099,29 @@ function notifyCompletion($this, _this__u8e3s4, cause) {
         }
       }
     }
-    cur = cur.k1t_1;
+    cur = cur.l1t_1;
   }
   var tmp0_safe_receiver_0 = exception;
   if (tmp0_safe_receiver_0 == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    $this.o1n(tmp0_safe_receiver_0);
+    $this.p1n(tmp0_safe_receiver_0);
   }
 }
 function startInternal($this, state) {
   if (state instanceof Empty) {
-    if (state.g1v_1)
+    if (state.h1v_1)
       return 0;
-    if (!$this.w1m_1.atomicfu$compareAndSet(state, get_EMPTY_ACTIVE()))
+    if (!$this.x1m_1.atomicfu$compareAndSet(state, get_EMPTY_ACTIVE()))
       return -1;
-    $this.a1o();
+    $this.b1o();
     return 1;
   } else {
     if (state instanceof InactiveNodeList) {
-      if (!$this.w1m_1.atomicfu$compareAndSet(state, state.s1v_1))
+      if (!$this.x1m_1.atomicfu$compareAndSet(state, state.t1v_1))
         return -1;
-      $this.a1o();
+      $this.b1o();
       return 1;
     } else {
       return 0;
@@ -2130,26 +2130,26 @@ function startInternal($this, state) {
 }
 function promoteEmptyToNodeList($this, state) {
   var list = new NodeList();
-  var update = state.g1v_1 ? list : new InactiveNodeList(list);
-  $this.w1m_1.atomicfu$compareAndSet(state, update);
+  var update = state.h1v_1 ? list : new InactiveNodeList(list);
+  $this.x1m_1.atomicfu$compareAndSet(state, update);
 }
 function promoteSingleToNodeList($this, state) {
-  state.p1t(new NodeList());
+  state.q1t(new NodeList());
   // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListNode.nextNode' call
-  var list = state.k1t_1;
-  $this.w1m_1.atomicfu$compareAndSet(state, list);
+  var list = state.l1t_1;
+  $this.x1m_1.atomicfu$compareAndSet(state, list);
 }
 function cancelMakeCompleting($this, cause) {
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var state = $this.w1n();
+    var state = $this.x1n();
     var tmp;
     if (!(!(state == null) ? isInterface(state, Incomplete) : false)) {
       tmp = true;
     } else {
       var tmp_0;
       if (state instanceof Finishing) {
-        tmp_0 = state.t1v();
+        tmp_0 = state.u1v();
       } else {
         tmp_0 = false;
       }
@@ -2170,13 +2170,13 @@ function createCauseException($this, cause) {
     var tmp_0;
     if (cause == null) {
       // Inline function 'kotlinx.coroutines.JobSupport.defaultCancellationException' call
-      tmp_0 = new JobCancellationException(null == null ? $this.g1n() : null, null, $this);
+      tmp_0 = new JobCancellationException(null == null ? $this.h1n() : null, null, $this);
     } else {
       tmp_0 = cause;
     }
     tmp = tmp_0;
   } else {
-    tmp = ((!(cause == null) ? isInterface(cause, ParentJob) : false) ? cause : THROW_CCE()).q1o();
+    tmp = ((!(cause == null) ? isInterface(cause, ParentJob) : false) ? cause : THROW_CCE()).r1o();
   }
   return tmp;
 }
@@ -2184,14 +2184,14 @@ function makeCancelling($this, cause) {
   var causeExceptionCache = null;
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var tmp0 = $this.w1n();
+    var tmp0 = $this.x1n();
     $l$block: {
       if (tmp0 instanceof Finishing) {
         // Inline function 'kotlinx.coroutines.internal.synchronized' call
         // Inline function 'kotlinx.coroutines.internal.synchronizedImpl' call
-        if (tmp0.u1v())
+        if (tmp0.v1v())
           return get_TOO_LATE_TO_CANCEL();
-        var wasCancelling = tmp0.q1v();
+        var wasCancelling = tmp0.r1v();
         if (!(cause == null) || !wasCancelling) {
           var tmp0_elvis_lhs = causeExceptionCache;
           var tmp;
@@ -2204,10 +2204,10 @@ function makeCancelling($this, cause) {
             tmp = tmp0_elvis_lhs;
           }
           var causeException = tmp;
-          tmp0.v1v(causeException);
+          tmp0.w1v(causeException);
         }
         // Inline function 'kotlin.takeIf' call
-        var this_1 = tmp0.w1v();
+        var this_1 = tmp0.x1v();
         var tmp_0;
         if (!wasCancelling) {
           tmp_0 = this_1;
@@ -2219,7 +2219,7 @@ function makeCancelling($this, cause) {
           null;
         else {
           // Inline function 'kotlin.let' call
-          notifyCancelling($this, tmp0.m1v_1, notifyRootCause);
+          notifyCancelling($this, tmp0.n1v_1, notifyRootCause);
         }
         return get_COMPLETING_ALREADY();
       } else {
@@ -2235,7 +2235,7 @@ function makeCancelling($this, cause) {
             tmp_1 = tmp2_elvis_lhs;
           }
           var causeException_0 = tmp_1;
-          if (tmp0.d1n()) {
+          if (tmp0.e1n()) {
             if (tryMakeCancelling($this, tmp0, causeException_0))
               return get_COMPLETING_ALREADY();
           } else {
@@ -2257,7 +2257,7 @@ function makeCancelling($this, cause) {
   }
 }
 function getOrPromoteCancellingList($this, state) {
-  var tmp0_elvis_lhs = state.j1t();
+  var tmp0_elvis_lhs = state.k1t();
   var tmp;
   if (tmp0_elvis_lhs == null) {
     var tmp_0;
@@ -2290,7 +2290,7 @@ function tryMakeCancelling($this, state, rootCause) {
   }
   var list = tmp;
   var cancelling = new Finishing(list, false, rootCause);
-  if (!$this.w1m_1.atomicfu$compareAndSet(state, cancelling))
+  if (!$this.x1m_1.atomicfu$compareAndSet(state, cancelling))
     return false;
   notifyCancelling($this, list, rootCause);
   return true;
@@ -2338,24 +2338,24 @@ function tryMakeCompletingSlowPath($this, state, proposedUpdate) {
   var notifyRootCause;
   // Inline function 'kotlinx.coroutines.internal.synchronized' call
   // Inline function 'kotlinx.coroutines.internal.synchronizedImpl' call
-  if (finishing.t1v())
+  if (finishing.u1v())
     return get_COMPLETING_ALREADY();
-  finishing.x1v(true);
+  finishing.y1v(true);
   if (!(finishing === state)) {
-    if (!$this.w1m_1.atomicfu$compareAndSet(state, finishing))
+    if (!$this.x1m_1.atomicfu$compareAndSet(state, finishing))
       return get_COMPLETING_RETRY();
   }
   // Inline function 'kotlinx.coroutines.assert' call
-  var wasCancelling = finishing.q1v();
+  var wasCancelling = finishing.r1v();
   var tmp0_safe_receiver = proposedUpdate instanceof CompletedExceptionally ? proposedUpdate : null;
   if (tmp0_safe_receiver == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    finishing.v1v(tmp0_safe_receiver.i1n_1);
+    finishing.w1v(tmp0_safe_receiver.j1n_1);
   }
   // Inline function 'kotlin.takeIf' call
-  var this_0 = finishing.w1v();
+  var this_0 = finishing.x1v();
   var tmp_0;
   if (!wasCancelling) {
     tmp_0 = this_0;
@@ -2372,7 +2372,7 @@ function tryMakeCompletingSlowPath($this, state, proposedUpdate) {
   var child = nextChild($this, list);
   if (!(child == null) && tryWaitForChild($this, finishing, child, proposedUpdate))
     return get_COMPLETING_WAITING_CHILDREN();
-  list.l1v(2);
+  list.m1v(2);
   var anotherChild = nextChild($this, list);
   if (!(anotherChild == null) && tryWaitForChild($this, finishing, anotherChild, proposedUpdate))
     return get_COMPLETING_WAITING_CHILDREN();
@@ -2380,7 +2380,7 @@ function tryMakeCompletingSlowPath($this, state, proposedUpdate) {
 }
 function _get_exceptionOrNull__b3j7js($this, _this__u8e3s4) {
   var tmp0_safe_receiver = _this__u8e3s4 instanceof CompletedExceptionally ? _this__u8e3s4 : null;
-  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.i1n_1;
+  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.j1n_1;
 }
 function tryWaitForChild($this, state, child, proposedUpdate) {
   var $this_0 = $this;
@@ -2389,7 +2389,7 @@ function tryWaitForChild($this, state, child, proposedUpdate) {
   var proposedUpdate_0 = proposedUpdate;
   $l$1: do {
     $l$0: do {
-      var handle = invokeOnCompletion(child_0.c1w_1, false, new ChildCompletion($this_0, state_0, child_0, proposedUpdate_0));
+      var handle = invokeOnCompletion(child_0.d1w_1, false, new ChildCompletion($this_0, state_0, child_0, proposedUpdate_0));
       if (!(handle === NonDisposableHandle_instance))
         return true;
       var tmp0_elvis_lhs = nextChild($this_0, child_0);
@@ -2418,29 +2418,29 @@ function continueCompleting($this, state, lastChild, proposedUpdate) {
   var waitChild = nextChild($this, lastChild);
   if (!(waitChild == null) && tryWaitForChild($this, state, waitChild, proposedUpdate))
     return Unit_instance;
-  state.m1v_1.l1v(2);
+  state.n1v_1.m1v(2);
   var waitChildAgain = nextChild($this, lastChild);
   if (!(waitChildAgain == null) && tryWaitForChild($this, state, waitChildAgain, proposedUpdate)) {
     return Unit_instance;
   }
   var finalState = finalizeFinishingState($this, state, proposedUpdate);
-  $this.n1n(finalState);
+  $this.o1n(finalState);
 }
 function nextChild($this, _this__u8e3s4) {
   var cur = _this__u8e3s4;
   $l$loop: while (true) {
     // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListNode.isRemoved' call
-    if (!cur.m1t_1) {
+    if (!cur.n1t_1) {
       break $l$loop;
     }
     // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListNode.prevNode' call
-    cur = cur.l1t_1;
+    cur = cur.m1t_1;
   }
   $l$loop_0: while (true) {
     // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListNode.nextNode' call
-    cur = cur.k1t_1;
+    cur = cur.l1t_1;
     // Inline function 'kotlinx.coroutines.internal.LockFreeLinkedListNode.isRemoved' call
-    if (cur.m1t_1)
+    if (cur.n1t_1)
       continue $l$loop_0;
     if (cur instanceof ChildHandleNode)
       return cur;
@@ -2451,10 +2451,10 @@ function nextChild($this, _this__u8e3s4) {
 function stateString($this, state) {
   var tmp;
   if (state instanceof Finishing) {
-    tmp = state.q1v() ? 'Cancelling' : state.t1v() ? 'Completing' : 'Active';
+    tmp = state.r1v() ? 'Cancelling' : state.u1v() ? 'Completing' : 'Active';
   } else {
     if (!(state == null) ? isInterface(state, Incomplete) : false) {
-      tmp = state.d1n() ? 'Active' : 'New';
+      tmp = state.e1n() ? 'Active' : 'New';
     } else {
       if (state instanceof CompletedExceptionally) {
         tmp = 'Cancelled';
@@ -2467,36 +2467,36 @@ function stateString($this, state) {
 }
 function Finishing(list, isCompleting, rootCause) {
   SynchronizedObject.call(this);
-  this.m1v_1 = list;
-  this.n1v_1 = atomic$boolean$1(isCompleting);
-  this.o1v_1 = atomic$ref$1(rootCause);
-  this.p1v_1 = atomic$ref$1(null);
+  this.n1v_1 = list;
+  this.o1v_1 = atomic$boolean$1(isCompleting);
+  this.p1v_1 = atomic$ref$1(rootCause);
+  this.q1v_1 = atomic$ref$1(null);
 }
-protoOf(Finishing).j1t = function () {
-  return this.m1v_1;
+protoOf(Finishing).k1t = function () {
+  return this.n1v_1;
 };
-protoOf(Finishing).x1v = function (value) {
-  this.n1v_1.kotlinx$atomicfu$value = value;
-};
-protoOf(Finishing).t1v = function () {
-  return this.n1v_1.kotlinx$atomicfu$value;
-};
-protoOf(Finishing).d1w = function (value) {
+protoOf(Finishing).y1v = function (value) {
   this.o1v_1.kotlinx$atomicfu$value = value;
 };
-protoOf(Finishing).w1v = function () {
+protoOf(Finishing).u1v = function () {
   return this.o1v_1.kotlinx$atomicfu$value;
 };
-protoOf(Finishing).u1v = function () {
+protoOf(Finishing).e1w = function (value) {
+  this.p1v_1.kotlinx$atomicfu$value = value;
+};
+protoOf(Finishing).x1v = function () {
+  return this.p1v_1.kotlinx$atomicfu$value;
+};
+protoOf(Finishing).v1v = function () {
   return _get_exceptionsHolder__nhszp(this) === get_SEALED();
 };
-protoOf(Finishing).q1v = function () {
-  return !(this.w1v() == null);
+protoOf(Finishing).r1v = function () {
+  return !(this.x1v() == null);
 };
-protoOf(Finishing).d1n = function () {
-  return this.w1v() == null;
+protoOf(Finishing).e1n = function () {
+  return this.x1v() == null;
 };
-protoOf(Finishing).r1v = function (proposedException) {
+protoOf(Finishing).s1v = function (proposedException) {
   var eh = _get_exceptionsHolder__nhszp(this);
   var tmp;
   if (eh == null) {
@@ -2505,7 +2505,7 @@ protoOf(Finishing).r1v = function (proposedException) {
     if (eh instanceof Error) {
       // Inline function 'kotlin.also' call
       var this_0 = allocateList(this);
-      this_0.j(eh);
+      this_0.g(eh);
       tmp = this_0;
     } else {
       if (eh instanceof ArrayList) {
@@ -2517,7 +2517,7 @@ protoOf(Finishing).r1v = function (proposedException) {
     }
   }
   var list = tmp;
-  var rootCause = this.w1v();
+  var rootCause = this.x1v();
   if (rootCause == null)
     null;
   else {
@@ -2525,15 +2525,15 @@ protoOf(Finishing).r1v = function (proposedException) {
     list.n2(0, rootCause);
   }
   if (!(proposedException == null) && !equals(proposedException, rootCause)) {
-    list.j(proposedException);
+    list.g(proposedException);
   }
   _set_exceptionsHolder__tqm22h(this, get_SEALED());
   return list;
 };
-protoOf(Finishing).v1v = function (exception) {
-  var rootCause = this.w1v();
+protoOf(Finishing).w1v = function (exception) {
+  var rootCause = this.x1v();
   if (rootCause == null) {
-    this.d1w(exception);
+    this.e1w(exception);
     return Unit_instance;
   }
   if (exception === rootCause)
@@ -2547,12 +2547,12 @@ protoOf(Finishing).v1v = function (exception) {
         return Unit_instance;
       // Inline function 'kotlin.apply' call
       var this_0 = allocateList(this);
-      this_0.j(eh);
-      this_0.j(exception);
+      this_0.g(eh);
+      this_0.g(exception);
       _set_exceptionsHolder__tqm22h(this, this_0);
     } else {
       if (eh instanceof ArrayList) {
-        (eh instanceof ArrayList ? eh : THROW_CCE()).j(exception);
+        (eh instanceof ArrayList ? eh : THROW_CCE()).g(exception);
       } else {
         // Inline function 'kotlin.error' call
         var message = 'State is ' + toString_0(eh);
@@ -2562,29 +2562,29 @@ protoOf(Finishing).v1v = function (exception) {
   }
 };
 protoOf(Finishing).toString = function () {
-  return 'Finishing[cancelling=' + this.q1v() + ', completing=' + this.t1v() + ', rootCause=' + toString_0(this.w1v()) + ', exceptions=' + toString_0(_get_exceptionsHolder__nhszp(this)) + ', list=' + this.m1v_1.toString() + ']';
+  return 'Finishing[cancelling=' + this.r1v() + ', completing=' + this.u1v() + ', rootCause=' + toString_0(this.x1v()) + ', exceptions=' + toString_0(_get_exceptionsHolder__nhszp(this)) + ', list=' + this.n1v_1.toString() + ']';
 };
 function ChildCompletion(parent, state, child, proposedUpdate) {
   JobNode.call(this);
-  this.i1w_1 = parent;
-  this.j1w_1 = state;
-  this.k1w_1 = child;
-  this.l1w_1 = proposedUpdate;
+  this.j1w_1 = parent;
+  this.k1w_1 = state;
+  this.l1w_1 = child;
+  this.m1w_1 = proposedUpdate;
 }
-protoOf(ChildCompletion).d1t = function () {
+protoOf(ChildCompletion).e1t = function () {
   return false;
 };
-protoOf(ChildCompletion).x1q = function (cause) {
-  continueCompleting(this.i1w_1, this.j1w_1, this.k1w_1, this.l1w_1);
+protoOf(ChildCompletion).y1q = function (cause) {
+  continueCompleting(this.j1w_1, this.k1w_1, this.l1w_1, this.m1w_1);
 };
 function AwaitContinuation(delegate, job) {
   CancellableContinuationImpl.call(this, delegate, 1);
-  this.s1w_1 = job;
+  this.t1w_1 = job;
 }
-protoOf(AwaitContinuation).h1s = function (parent) {
-  var state = this.s1w_1.w1n();
+protoOf(AwaitContinuation).i1s = function (parent) {
+  var state = this.t1w_1.x1n();
   if (state instanceof Finishing) {
-    var tmp0_safe_receiver = state.w1v();
+    var tmp0_safe_receiver = state.x1v();
     if (tmp0_safe_receiver == null)
       null;
     else {
@@ -2593,75 +2593,75 @@ protoOf(AwaitContinuation).h1s = function (parent) {
     }
   }
   if (state instanceof CompletedExceptionally)
-    return state.i1n_1;
-  return parent.b1o();
+    return state.j1n_1;
+  return parent.c1o();
 };
-protoOf(AwaitContinuation).u1s = function () {
+protoOf(AwaitContinuation).v1s = function () {
   return 'AwaitContinuation';
 };
 function awaitSuspend($this, $completion) {
   var cont = new AwaitContinuation(intercepted($completion), $this);
-  cont.a1s();
+  cont.b1s();
   disposeOnCancellation(cont, invokeOnCompletion($this, VOID, new ResumeAwaitOnCompletion(cont)));
-  return cont.g1p();
+  return cont.h1p();
 }
 function JobSupport(active) {
-  this.w1m_1 = atomic$ref$1(active ? get_EMPTY_ACTIVE() : get_EMPTY_NEW());
-  this.x1m_1 = atomic$ref$1(null);
+  this.x1m_1 = atomic$ref$1(active ? get_EMPTY_ACTIVE() : get_EMPTY_NEW());
+  this.y1m_1 = atomic$ref$1(null);
 }
 protoOf(JobSupport).l2 = function () {
   return Key_instance_2;
 };
-protoOf(JobSupport).u1n = function (value) {
-  this.x1m_1.kotlinx$atomicfu$value = value;
-};
-protoOf(JobSupport).v1n = function () {
-  return this.x1m_1.kotlinx$atomicfu$value;
-};
-protoOf(JobSupport).a1m = function () {
-  var tmp0_safe_receiver = this.v1n();
-  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.a1m();
-};
-protoOf(JobSupport).y1m = function (parent) {
-  // Inline function 'kotlinx.coroutines.assert' call
-  if (parent == null) {
-    this.u1n(NonDisposableHandle_instance);
-    return Unit_instance;
-  }
-  parent.z1n();
-  var handle = parent.s1o(this);
-  this.u1n(handle);
-  if (this.x1n()) {
-    handle.y1q();
-    this.u1n(NonDisposableHandle_instance);
-  }
+protoOf(JobSupport).v1n = function (value) {
+  this.y1m_1.kotlinx$atomicfu$value = value;
 };
 protoOf(JobSupport).w1n = function () {
-  return this.w1m_1.kotlinx$atomicfu$value;
+  return this.y1m_1.kotlinx$atomicfu$value;
 };
-protoOf(JobSupport).d1n = function () {
-  var state = this.w1n();
+protoOf(JobSupport).b1m = function () {
+  var tmp0_safe_receiver = this.w1n();
+  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.b1m();
+};
+protoOf(JobSupport).z1m = function (parent) {
+  // Inline function 'kotlinx.coroutines.assert' call
+  if (parent == null) {
+    this.v1n(NonDisposableHandle_instance);
+    return Unit_instance;
+  }
+  parent.a1o();
+  var handle = parent.t1o(this);
+  this.v1n(handle);
+  if (this.y1n()) {
+    handle.z1q();
+    this.v1n(NonDisposableHandle_instance);
+  }
+};
+protoOf(JobSupport).x1n = function () {
+  return this.x1m_1.kotlinx$atomicfu$value;
+};
+protoOf(JobSupport).e1n = function () {
+  var state = this.x1n();
   var tmp;
   if (!(state == null) ? isInterface(state, Incomplete) : false) {
-    tmp = state.d1n();
+    tmp = state.e1n();
   } else {
     tmp = false;
   }
   return tmp;
 };
-protoOf(JobSupport).x1n = function () {
-  var tmp = this.w1n();
+protoOf(JobSupport).y1n = function () {
+  var tmp = this.x1n();
   return !(!(tmp == null) ? isInterface(tmp, Incomplete) : false);
 };
-protoOf(JobSupport).y1n = function () {
-  var state = this.w1n();
+protoOf(JobSupport).z1n = function () {
+  var state = this.x1n();
   var tmp;
   if (state instanceof CompletedExceptionally) {
     tmp = true;
   } else {
     var tmp_0;
     if (state instanceof Finishing) {
-      tmp_0 = state.q1v();
+      tmp_0 = state.r1v();
     } else {
       tmp_0 = false;
     }
@@ -2669,10 +2669,10 @@ protoOf(JobSupport).y1n = function () {
   }
   return tmp;
 };
-protoOf(JobSupport).z1n = function () {
+protoOf(JobSupport).a1o = function () {
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var state = this.w1n();
+    var state = this.x1n();
     var tmp0_subject = startInternal(this, state);
     if (tmp0_subject === 0)
       return false;
@@ -2680,14 +2680,14 @@ protoOf(JobSupport).z1n = function () {
       return true;
   }
 };
-protoOf(JobSupport).a1o = function () {
-};
 protoOf(JobSupport).b1o = function () {
-  var state = this.w1n();
+};
+protoOf(JobSupport).c1o = function () {
+  var state = this.x1n();
   var tmp;
   if (state instanceof Finishing) {
-    var tmp0_safe_receiver = state.w1v();
-    var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : this.c1o(tmp0_safe_receiver, get_classSimpleName(this) + ' is cancelling');
+    var tmp0_safe_receiver = state.x1v();
+    var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : this.d1o(tmp0_safe_receiver, get_classSimpleName(this) + ' is cancelling');
     var tmp_0;
     if (tmp1_elvis_lhs == null) {
       var message = 'Job is still new or active: ' + this.toString();
@@ -2702,7 +2702,7 @@ protoOf(JobSupport).b1o = function () {
       throw IllegalStateException_init_$Create$(toString(message_0));
     } else {
       if (state instanceof CompletedExceptionally) {
-        tmp = this.d1o(state.i1n_1);
+        tmp = this.e1o(state.j1n_1);
       } else {
         tmp = new JobCancellationException(get_classSimpleName(this) + ' has completed normally', null, this);
       }
@@ -2710,44 +2710,44 @@ protoOf(JobSupport).b1o = function () {
   }
   return tmp;
 };
-protoOf(JobSupport).c1o = function (_this__u8e3s4, message) {
+protoOf(JobSupport).d1o = function (_this__u8e3s4, message) {
   var tmp0_elvis_lhs = _this__u8e3s4 instanceof CancellationException ? _this__u8e3s4 : null;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     // Inline function 'kotlinx.coroutines.JobSupport.defaultCancellationException' call
-    tmp = new JobCancellationException(message == null ? this.g1n() : message, _this__u8e3s4, this);
+    tmp = new JobCancellationException(message == null ? this.h1n() : message, _this__u8e3s4, this);
   } else {
     tmp = tmp0_elvis_lhs;
   }
   return tmp;
 };
-protoOf(JobSupport).d1o = function (_this__u8e3s4, message, $super) {
+protoOf(JobSupport).e1o = function (_this__u8e3s4, message, $super) {
   message = message === VOID ? null : message;
-  return $super === VOID ? this.c1o(_this__u8e3s4, message) : $super.c1o.call(this, _this__u8e3s4, message);
+  return $super === VOID ? this.d1o(_this__u8e3s4, message) : $super.d1o.call(this, _this__u8e3s4, message);
 };
-protoOf(JobSupport).e1o = function (handler) {
-  return this.g1o(true, new InvokeOnCompletion(handler));
+protoOf(JobSupport).f1o = function (handler) {
+  return this.h1o(true, new InvokeOnCompletion(handler));
 };
-protoOf(JobSupport).f1o = function (onCancelling, invokeImmediately, handler) {
+protoOf(JobSupport).g1o = function (onCancelling, invokeImmediately, handler) {
   var tmp;
   if (onCancelling) {
     tmp = new InvokeOnCancelling(handler);
   } else {
     tmp = new InvokeOnCompletion(handler);
   }
-  return this.g1o(invokeImmediately, tmp);
+  return this.h1o(invokeImmediately, tmp);
 };
-protoOf(JobSupport).g1o = function (invokeImmediately, node) {
-  node.h1t_1 = this;
+protoOf(JobSupport).h1o = function (invokeImmediately, node) {
+  node.i1t_1 = this;
   var tmp$ret$0;
   $l$block_1: {
     // Inline function 'kotlinx.coroutines.JobSupport.tryPutNodeIntoList' call
     // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
     while (true) {
-      var state = this.w1n();
+      var state = this.x1n();
       if (state instanceof Empty) {
-        if (state.g1v_1) {
-          if (this.w1m_1.atomicfu$compareAndSet(state, node)) {
+        if (state.h1v_1) {
+          if (this.x1m_1.atomicfu$compareAndSet(state, node)) {
             tmp$ret$0 = true;
             break $l$block_1;
           }
@@ -2756,26 +2756,26 @@ protoOf(JobSupport).g1o = function (invokeImmediately, node) {
         }
       } else {
         if (!(state == null) ? isInterface(state, Incomplete) : false) {
-          var list = state.j1t();
+          var list = state.k1t();
           if (list == null) {
             promoteSingleToNodeList(this, state instanceof JobNode ? state : THROW_CCE());
           } else {
             var tmp;
-            if (node.d1t()) {
+            if (node.e1t()) {
               var tmp0_safe_receiver = state instanceof Finishing ? state : null;
-              var rootCause = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.w1v();
+              var rootCause = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.x1v();
               var tmp_0;
               if (rootCause == null) {
-                tmp_0 = list.n1t(node, 5);
+                tmp_0 = list.o1t(node, 5);
               } else {
                 if (invokeImmediately) {
-                  node.x1q(rootCause);
+                  node.y1q(rootCause);
                 }
                 return NonDisposableHandle_instance;
               }
               tmp = tmp_0;
             } else {
-              tmp = list.n1t(node, 1);
+              tmp = list.o1t(node, 1);
             }
             if (tmp) {
               tmp$ret$0 = true;
@@ -2793,25 +2793,25 @@ protoOf(JobSupport).g1o = function (invokeImmediately, node) {
   if (added)
     return node;
   else if (invokeImmediately) {
-    var tmp_1 = this.w1n();
+    var tmp_1 = this.x1n();
     var tmp0_safe_receiver_0 = tmp_1 instanceof CompletedExceptionally ? tmp_1 : null;
-    node.x1q(tmp0_safe_receiver_0 == null ? null : tmp0_safe_receiver_0.i1n_1);
+    node.y1q(tmp0_safe_receiver_0 == null ? null : tmp0_safe_receiver_0.j1n_1);
   }
   return NonDisposableHandle_instance;
 };
-protoOf(JobSupport).h1o = function (node) {
+protoOf(JobSupport).i1o = function (node) {
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var state = this.w1n();
+    var state = this.x1n();
     if (state instanceof JobNode) {
       if (!(state === node))
         return Unit_instance;
-      if (this.w1m_1.atomicfu$compareAndSet(state, get_EMPTY_ACTIVE()))
+      if (this.x1m_1.atomicfu$compareAndSet(state, get_EMPTY_ACTIVE()))
         return Unit_instance;
     } else {
       if (!(state == null) ? isInterface(state, Incomplete) : false) {
-        if (!(state.j1t() == null)) {
-          node.o1t();
+        if (!(state.k1t() == null)) {
+          node.p1t();
         }
         return Unit_instance;
       } else {
@@ -2820,39 +2820,39 @@ protoOf(JobSupport).h1o = function (node) {
     }
   }
 };
-protoOf(JobSupport).i1o = function () {
+protoOf(JobSupport).j1o = function () {
   return false;
 };
-protoOf(JobSupport).j1o = function (cause) {
+protoOf(JobSupport).k1o = function (cause) {
   var tmp;
   if (cause == null) {
     // Inline function 'kotlinx.coroutines.JobSupport.defaultCancellationException' call
-    tmp = new JobCancellationException(null == null ? this.g1n() : null, null, this);
+    tmp = new JobCancellationException(null == null ? this.h1n() : null, null, this);
   } else {
     tmp = cause;
   }
-  this.l1o(tmp);
+  this.m1o(tmp);
 };
-protoOf(JobSupport).g1n = function () {
+protoOf(JobSupport).h1n = function () {
   return 'Job was cancelled';
 };
-protoOf(JobSupport).l1o = function (cause) {
-  this.p1o(cause);
+protoOf(JobSupport).m1o = function (cause) {
+  this.q1o(cause);
 };
-protoOf(JobSupport).m1o = function (parentJob) {
-  this.p1o(parentJob);
-};
-protoOf(JobSupport).n1o = function (cause) {
-  if (cause instanceof CancellationException)
-    return true;
-  return this.p1o(cause) && this.v1o();
+protoOf(JobSupport).n1o = function (parentJob) {
+  this.q1o(parentJob);
 };
 protoOf(JobSupport).o1o = function (cause) {
-  return this.p1o(cause);
+  if (cause instanceof CancellationException)
+    return true;
+  return this.q1o(cause) && this.w1o();
 };
 protoOf(JobSupport).p1o = function (cause) {
+  return this.q1o(cause);
+};
+protoOf(JobSupport).q1o = function (cause) {
   var finalState = get_COMPLETING_ALREADY();
-  if (this.i1o()) {
+  if (this.j1o()) {
     finalState = cancelMakeCompleting(this, cause);
     if (finalState === get_COMPLETING_WAITING_CHILDREN())
       return true;
@@ -2868,19 +2868,19 @@ protoOf(JobSupport).p1o = function (cause) {
   } else if (finalState === get_TOO_LATE_TO_CANCEL()) {
     tmp = false;
   } else {
-    this.n1n(finalState);
+    this.o1n(finalState);
     tmp = true;
   }
   return tmp;
 };
-protoOf(JobSupport).q1o = function () {
-  var state = this.w1n();
+protoOf(JobSupport).r1o = function () {
+  var state = this.x1n();
   var tmp;
   if (state instanceof Finishing) {
-    tmp = state.w1v();
+    tmp = state.x1v();
   } else {
     if (state instanceof CompletedExceptionally) {
-      tmp = state.i1n_1;
+      tmp = state.j1n_1;
     } else {
       if (!(state == null) ? isInterface(state, Incomplete) : false) {
         var message = 'Cannot be cancelling child in this state: ' + toString(state);
@@ -2894,10 +2894,10 @@ protoOf(JobSupport).q1o = function () {
   var tmp1_elvis_lhs = rootCause instanceof CancellationException ? rootCause : null;
   return tmp1_elvis_lhs == null ? new JobCancellationException('Parent job is ' + stateString(this, state), rootCause, this) : tmp1_elvis_lhs;
 };
-protoOf(JobSupport).r1o = function (proposedUpdate) {
+protoOf(JobSupport).s1o = function (proposedUpdate) {
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var tmp0 = this.w1n();
+    var tmp0 = this.x1n();
     $l$block: {
       var finalState = tryMakeCompleting(this, tmp0, proposedUpdate);
       if (finalState === get_COMPLETING_ALREADY())
@@ -2907,16 +2907,16 @@ protoOf(JobSupport).r1o = function (proposedUpdate) {
       else if (finalState === get_COMPLETING_RETRY()) {
         break $l$block;
       } else {
-        this.n1n(finalState);
+        this.o1n(finalState);
         return true;
       }
     }
   }
 };
-protoOf(JobSupport).l1n = function (proposedUpdate) {
+protoOf(JobSupport).m1n = function (proposedUpdate) {
   // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
   while (true) {
-    var tmp0 = this.w1n();
+    var tmp0 = this.x1n();
     $l$block: {
       var finalState = tryMakeCompleting(this, tmp0, proposedUpdate);
       if (finalState === get_COMPLETING_ALREADY())
@@ -2928,20 +2928,20 @@ protoOf(JobSupport).l1n = function (proposedUpdate) {
     }
   }
 };
-protoOf(JobSupport).s1o = function (child) {
+protoOf(JobSupport).t1o = function (child) {
   // Inline function 'kotlin.also' call
   var this_0 = new ChildHandleNode(child);
-  this_0.h1t_1 = this;
+  this_0.i1t_1 = this;
   var node = this_0;
   var tmp$ret$2;
   $l$block_1: {
     // Inline function 'kotlinx.coroutines.JobSupport.tryPutNodeIntoList' call
     // Inline function 'kotlinx.coroutines.JobSupport.loopOnState' call
     while (true) {
-      var state = this.w1n();
+      var state = this.x1n();
       if (state instanceof Empty) {
-        if (state.g1v_1) {
-          if (this.w1m_1.atomicfu$compareAndSet(state, node)) {
+        if (state.h1v_1) {
+          if (this.x1m_1.atomicfu$compareAndSet(state, node)) {
             tmp$ret$2 = true;
             break $l$block_1;
           }
@@ -2950,27 +2950,27 @@ protoOf(JobSupport).s1o = function (child) {
         }
       } else {
         if (!(state == null) ? isInterface(state, Incomplete) : false) {
-          var list = state.j1t();
+          var list = state.k1t();
           if (list == null) {
             promoteSingleToNodeList(this, state instanceof JobNode ? state : THROW_CCE());
           } else {
-            var addedBeforeCancellation = list.n1t(node, 7);
+            var addedBeforeCancellation = list.o1t(node, 7);
             var tmp;
             if (addedBeforeCancellation) {
               tmp = true;
             } else {
-              var addedBeforeCompletion = list.n1t(node, 3);
-              var latestState = this.w1n();
+              var addedBeforeCompletion = list.o1t(node, 3);
+              var latestState = this.x1n();
               var tmp_0;
               if (latestState instanceof Finishing) {
-                tmp_0 = latestState.w1v();
+                tmp_0 = latestState.x1v();
               } else {
                 // Inline function 'kotlinx.coroutines.assert' call
                 var tmp0_safe_receiver = latestState instanceof CompletedExceptionally ? latestState : null;
-                tmp_0 = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.i1n_1;
+                tmp_0 = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.j1n_1;
               }
               var rootCause = tmp_0;
-              node.x1q(rootCause);
+              node.y1q(rootCause);
               var tmp_1;
               if (addedBeforeCompletion) {
                 // Inline function 'kotlinx.coroutines.assert' call
@@ -2995,40 +2995,40 @@ protoOf(JobSupport).s1o = function (child) {
   var added = tmp$ret$2;
   if (added)
     return node;
-  var tmp_2 = this.w1n();
+  var tmp_2 = this.x1n();
   var tmp0_safe_receiver_0 = tmp_2 instanceof CompletedExceptionally ? tmp_2 : null;
-  node.x1q(tmp0_safe_receiver_0 == null ? null : tmp0_safe_receiver_0.i1n_1);
+  node.y1q(tmp0_safe_receiver_0 == null ? null : tmp0_safe_receiver_0.j1n_1);
   return NonDisposableHandle_instance;
 };
-protoOf(JobSupport).o1n = function (exception) {
+protoOf(JobSupport).p1n = function (exception) {
   throw exception;
 };
-protoOf(JobSupport).t1o = function (cause) {
-};
-protoOf(JobSupport).u1o = function () {
-  return false;
+protoOf(JobSupport).u1o = function (cause) {
 };
 protoOf(JobSupport).v1o = function () {
-  return true;
-};
-protoOf(JobSupport).w1o = function (exception) {
   return false;
 };
-protoOf(JobSupport).h1n = function (state) {
+protoOf(JobSupport).w1o = function () {
+  return true;
 };
-protoOf(JobSupport).n1n = function (state) {
+protoOf(JobSupport).x1o = function (exception) {
+  return false;
+};
+protoOf(JobSupport).i1n = function (state) {
+};
+protoOf(JobSupport).o1n = function (state) {
 };
 protoOf(JobSupport).toString = function () {
-  return this.x1o() + '@' + get_hexAddress(this);
-};
-protoOf(JobSupport).x1o = function () {
-  return this.p1n() + '{' + stateString(this, this.w1n()) + '}';
-};
-protoOf(JobSupport).p1n = function () {
-  return get_classSimpleName(this);
+  return this.y1o() + '@' + get_hexAddress(this);
 };
 protoOf(JobSupport).y1o = function () {
-  var state = this.w1n();
+  return this.q1n() + '{' + stateString(this, this.x1n()) + '}';
+};
+protoOf(JobSupport).q1n = function () {
+  return get_classSimpleName(this);
+};
+protoOf(JobSupport).z1o = function () {
+  var state = this.x1n();
   // Inline function 'kotlin.check' call
   if (!!(!(state == null) ? isInterface(state, Incomplete) : false)) {
     var message = 'This job has not completed yet';
@@ -3036,24 +3036,24 @@ protoOf(JobSupport).y1o = function () {
   }
   return _get_exceptionOrNull__b3j7js(this, state);
 };
-protoOf(JobSupport).z1o = function () {
-  var state = this.w1n();
+protoOf(JobSupport).a1p = function () {
+  var state = this.x1n();
   // Inline function 'kotlin.check' call
   if (!!(!(state == null) ? isInterface(state, Incomplete) : false)) {
     var message = 'This job has not completed yet';
     throw IllegalStateException_init_$Create$(toString(message));
   }
   if (state instanceof CompletedExceptionally)
-    throw state.i1n_1;
+    throw state.j1n_1;
   return unboxState(state);
 };
-protoOf(JobSupport).a1p = function ($completion) {
+protoOf(JobSupport).b1p = function ($completion) {
   $l$loop: while (true) {
-    var state = this.w1n();
+    var state = this.x1n();
     if (!(!(state == null) ? isInterface(state, Incomplete) : false)) {
       if (state instanceof CompletedExceptionally) {
         // Inline function 'kotlinx.coroutines.internal.recoverAndThrow' call
-        throw state.i1n_1;
+        throw state.j1n_1;
       }
       return unboxState(state);
     }
@@ -3073,80 +3073,80 @@ function boxIncomplete(_this__u8e3s4) {
   return tmp;
 }
 function InactiveNodeList(list) {
-  this.s1v_1 = list;
+  this.t1v_1 = list;
 }
-protoOf(InactiveNodeList).j1t = function () {
-  return this.s1v_1;
+protoOf(InactiveNodeList).k1t = function () {
+  return this.t1v_1;
 };
-protoOf(InactiveNodeList).d1n = function () {
+protoOf(InactiveNodeList).e1n = function () {
   return false;
 };
 protoOf(InactiveNodeList).toString = function () {
-  return get_DEBUG() ? this.s1v_1.k1v('New') : anyToString(this);
+  return get_DEBUG() ? this.t1v_1.l1v('New') : anyToString(this);
 };
 function InvokeOnCompletion(handler) {
   JobNode.call(this);
-  this.x1w_1 = handler;
+  this.y1w_1 = handler;
 }
-protoOf(InvokeOnCompletion).d1t = function () {
+protoOf(InvokeOnCompletion).e1t = function () {
   return false;
 };
-protoOf(InvokeOnCompletion).x1q = function (cause) {
-  return this.x1w_1(cause);
+protoOf(InvokeOnCompletion).y1q = function (cause) {
+  return this.y1w_1(cause);
 };
 function InvokeOnCancelling(handler) {
   JobNode.call(this);
-  this.c1x_1 = handler;
-  this.d1x_1 = atomic$boolean$1(false);
+  this.d1x_1 = handler;
+  this.e1x_1 = atomic$boolean$1(false);
 }
-protoOf(InvokeOnCancelling).d1t = function () {
+protoOf(InvokeOnCancelling).e1t = function () {
   return true;
 };
-protoOf(InvokeOnCancelling).x1q = function (cause) {
-  if (this.d1x_1.atomicfu$compareAndSet(false, true))
-    this.c1x_1(cause);
+protoOf(InvokeOnCancelling).y1q = function (cause) {
+  if (this.e1x_1.atomicfu$compareAndSet(false, true))
+    this.d1x_1(cause);
 };
 function ChildHandleNode(childJob) {
   JobNode.call(this);
-  this.c1w_1 = childJob;
+  this.d1w_1 = childJob;
 }
-protoOf(ChildHandleNode).a1m = function () {
-  return this.i1t();
+protoOf(ChildHandleNode).b1m = function () {
+  return this.j1t();
 };
-protoOf(ChildHandleNode).d1t = function () {
+protoOf(ChildHandleNode).e1t = function () {
   return true;
 };
-protoOf(ChildHandleNode).x1q = function (cause) {
-  return this.c1w_1.m1o(this.i1t());
+protoOf(ChildHandleNode).y1q = function (cause) {
+  return this.d1w_1.n1o(this.j1t());
 };
-protoOf(ChildHandleNode).n1o = function (cause) {
-  return this.i1t().n1o(cause);
+protoOf(ChildHandleNode).o1o = function (cause) {
+  return this.j1t().o1o(cause);
 };
 function unboxState(_this__u8e3s4) {
   _init_properties_JobSupport_kt__68f172();
   var tmp0_safe_receiver = _this__u8e3s4 instanceof IncompleteStateBox ? _this__u8e3s4 : null;
-  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.e1x_1;
+  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.f1x_1;
   return tmp1_elvis_lhs == null ? _this__u8e3s4 : tmp1_elvis_lhs;
 }
 function ResumeAwaitOnCompletion(continuation) {
   JobNode.call(this);
-  this.j1x_1 = continuation;
+  this.k1x_1 = continuation;
 }
-protoOf(ResumeAwaitOnCompletion).d1t = function () {
+protoOf(ResumeAwaitOnCompletion).e1t = function () {
   return false;
 };
-protoOf(ResumeAwaitOnCompletion).x1q = function (cause) {
-  var state = this.i1t().w1n();
+protoOf(ResumeAwaitOnCompletion).y1q = function (cause) {
+  var state = this.j1t().x1n();
   // Inline function 'kotlinx.coroutines.assert' call
   if (state instanceof CompletedExceptionally) {
-    var tmp0 = this.j1x_1;
+    var tmp0 = this.k1x_1;
     // Inline function 'kotlin.coroutines.resumeWithException' call
     // Inline function 'kotlin.Companion.failure' call
-    var exception = state.i1n_1;
+    var exception = state.j1n_1;
     var tmp$ret$1 = _Result___init__impl__xyqfz8(createFailure(exception));
     tmp0.v8(tmp$ret$1);
   } else {
-    var tmp0_0 = this.j1x_1;
+    var tmp0_0 = this.k1x_1;
     var tmp = unboxState(state);
     // Inline function 'kotlin.coroutines.resume' call
     // Inline function 'kotlin.Companion.success' call
@@ -3156,12 +3156,12 @@ protoOf(ResumeAwaitOnCompletion).x1q = function (cause) {
   }
 };
 function IncompleteStateBox(state) {
-  this.e1x_1 = state;
+  this.f1x_1 = state;
 }
 function handlesExceptionF($this) {
-  var tmp = $this.v1n();
+  var tmp = $this.w1n();
   var tmp0_safe_receiver = tmp instanceof ChildHandleNode ? tmp : null;
-  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.i1t();
+  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.j1t();
   var tmp_0;
   if (tmp1_elvis_lhs == null) {
     return false;
@@ -3170,11 +3170,11 @@ function handlesExceptionF($this) {
   }
   var parentJob = tmp_0;
   while (true) {
-    if (parentJob.v1o())
+    if (parentJob.w1o())
       return true;
-    var tmp_1 = parentJob.v1n();
+    var tmp_1 = parentJob.w1n();
     var tmp2_safe_receiver = tmp_1 instanceof ChildHandleNode ? tmp_1 : null;
-    var tmp3_elvis_lhs = tmp2_safe_receiver == null ? null : tmp2_safe_receiver.i1t();
+    var tmp3_elvis_lhs = tmp2_safe_receiver == null ? null : tmp2_safe_receiver.j1t();
     var tmp_2;
     if (tmp3_elvis_lhs == null) {
       return false;
@@ -3186,14 +3186,14 @@ function handlesExceptionF($this) {
 }
 function JobImpl(parent) {
   JobSupport.call(this, true);
-  this.y1m(parent);
-  this.m1x_1 = handlesExceptionF(this);
+  this.z1m(parent);
+  this.n1x_1 = handlesExceptionF(this);
 }
-protoOf(JobImpl).i1o = function () {
+protoOf(JobImpl).j1o = function () {
   return true;
 };
-protoOf(JobImpl).v1o = function () {
-  return this.m1x_1;
+protoOf(JobImpl).w1o = function () {
+  return this.n1x_1;
 };
 var properties_initialized_JobSupport_kt_5iq8a4;
 function _init_properties_JobSupport_kt__68f172() {
@@ -3212,16 +3212,16 @@ function MainCoroutineDispatcher() {
   CoroutineDispatcher.call(this);
 }
 protoOf(MainCoroutineDispatcher).toString = function () {
-  var tmp0_elvis_lhs = this.p1x();
+  var tmp0_elvis_lhs = this.q1x();
   return tmp0_elvis_lhs == null ? get_classSimpleName(this) + '@' + get_hexAddress(this) : tmp0_elvis_lhs;
 };
-protoOf(MainCoroutineDispatcher).p1x = function () {
-  var main = Dispatchers_getInstance().o1u();
+protoOf(MainCoroutineDispatcher).q1x = function () {
+  var main = Dispatchers_getInstance().p1u();
   if (this === main)
     return 'Dispatchers.Main';
   var tmp;
   try {
-    tmp = main.o1x();
+    tmp = main.p1x();
   } catch ($p) {
     var tmp_0;
     if ($p instanceof UnsupportedOperationException) {
@@ -3244,7 +3244,7 @@ function SupervisorJob(parent) {
 function SupervisorJobImpl(parent) {
   JobImpl.call(this, parent);
 }
-protoOf(SupervisorJobImpl).n1o = function (cause) {
+protoOf(SupervisorJobImpl).o1o = function (cause) {
   return false;
 };
 function TimeoutCancellationException() {
@@ -3253,13 +3253,13 @@ function Unconfined() {
   Unconfined_instance = this;
   CoroutineDispatcher.call(this);
 }
-protoOf(Unconfined).e1u = function (context) {
+protoOf(Unconfined).f1u = function (context) {
   return false;
 };
-protoOf(Unconfined).f1u = function (context, block) {
+protoOf(Unconfined).g1u = function (context, block) {
   var yieldContext = context.x8(Key_instance_3);
   if (!(yieldContext == null)) {
-    yieldContext.v1x_1 = true;
+    yieldContext.w1x_1 = true;
     return Unit_instance;
   }
   throw UnsupportedOperationException_init_$Create$('Dispatchers.Unconfined.dispatch function can only be used by the yield function. If you wrap Unconfined dispatcher in your code, make sure you properly delegate isDispatchNeeded and dispatch calls.');
@@ -3281,7 +3281,7 @@ function Key_getInstance_2() {
 }
 function YieldContext() {
   AbstractCoroutineContextElement.call(this, Key_instance_3);
-  this.v1x_1 = false;
+  this.w1x_1 = false;
 }
 function Waiter() {
 }
@@ -3300,12 +3300,12 @@ function yield_0($completion) {
       tmp_0 = tmp0_elvis_lhs;
     }
     var cont = tmp_0;
-    if (safeIsDispatchNeeded(cont.a1r_1, context)) {
-      cont.w1x(context, Unit_instance);
+    if (safeIsDispatchNeeded(cont.b1r_1, context)) {
+      cont.x1x(context, Unit_instance);
     } else {
       var yieldContext = new YieldContext();
-      cont.w1x(context.ag(yieldContext), Unit_instance);
-      if (yieldContext.v1x_1) {
+      cont.x1x(context.bg(yieldContext), Unit_instance);
+      if (yieldContext.w1x_1) {
         tmp$ret$0 = yieldUndispatched(cont) ? get_COROUTINE_SUSPENDED() : Unit_instance;
         break $l$block_0;
       }
@@ -3438,53 +3438,53 @@ function get_NO_CLOSE_CAUSE() {
 var NO_CLOSE_CAUSE;
 function setElementLazy($this, index, value) {
   // Inline function 'kotlinx.atomicfu.AtomicRef.lazySet' call
-  $this.c1y_1.atomicfu$get(imul(index, 2)).kotlinx$atomicfu$value = value;
+  $this.d1y_1.atomicfu$get(imul(index, 2)).kotlinx$atomicfu$value = value;
 }
 function ChannelSegment(id, prev, channel, pointers) {
   Segment.call(this, id, prev, pointers);
-  this.b1y_1 = channel;
-  this.c1y_1 = atomicfu$AtomicRefArray$ofNulls(imul(get_SEGMENT_SIZE(), 2));
+  this.c1y_1 = channel;
+  this.d1y_1 = atomicfu$AtomicRefArray$ofNulls(imul(get_SEGMENT_SIZE(), 2));
 }
-protoOf(ChannelSegment).d1y = function () {
-  return ensureNotNull(this.b1y_1);
-};
 protoOf(ChannelSegment).e1y = function () {
+  return ensureNotNull(this.c1y_1);
+};
+protoOf(ChannelSegment).f1y = function () {
   return get_SEGMENT_SIZE();
 };
-protoOf(ChannelSegment).f1y = function (index, element) {
+protoOf(ChannelSegment).g1y = function (index, element) {
   setElementLazy(this, index, element);
 };
-protoOf(ChannelSegment).g1y = function (index) {
-  var tmp = this.c1y_1.atomicfu$get(imul(index, 2)).kotlinx$atomicfu$value;
+protoOf(ChannelSegment).h1y = function (index) {
+  var tmp = this.d1y_1.atomicfu$get(imul(index, 2)).kotlinx$atomicfu$value;
   return (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
 };
-protoOf(ChannelSegment).h1y = function (index) {
+protoOf(ChannelSegment).i1y = function (index) {
   // Inline function 'kotlin.also' call
-  var this_0 = this.g1y(index);
-  this.i1y(index);
+  var this_0 = this.h1y(index);
+  this.j1y(index);
   return this_0;
 };
-protoOf(ChannelSegment).i1y = function (index) {
+protoOf(ChannelSegment).j1y = function (index) {
   setElementLazy(this, index, null);
 };
-protoOf(ChannelSegment).j1y = function (index) {
-  return this.c1y_1.atomicfu$get(imul(index, 2) + 1 | 0).kotlinx$atomicfu$value;
+protoOf(ChannelSegment).k1y = function (index) {
+  return this.d1y_1.atomicfu$get(imul(index, 2) + 1 | 0).kotlinx$atomicfu$value;
 };
-protoOf(ChannelSegment).k1y = function (index, value) {
-  this.c1y_1.atomicfu$get(imul(index, 2) + 1 | 0).kotlinx$atomicfu$value = value;
+protoOf(ChannelSegment).l1y = function (index, value) {
+  this.d1y_1.atomicfu$get(imul(index, 2) + 1 | 0).kotlinx$atomicfu$value = value;
 };
-protoOf(ChannelSegment).l1y = function (index, from, to) {
-  return this.c1y_1.atomicfu$get(imul(index, 2) + 1 | 0).atomicfu$compareAndSet(from, to);
+protoOf(ChannelSegment).m1y = function (index, from, to) {
+  return this.d1y_1.atomicfu$get(imul(index, 2) + 1 | 0).atomicfu$compareAndSet(from, to);
 };
-protoOf(ChannelSegment).m1y = function (index, update) {
-  return this.c1y_1.atomicfu$get(imul(index, 2) + 1 | 0).atomicfu$getAndSet(update);
+protoOf(ChannelSegment).n1y = function (index, update) {
+  return this.d1y_1.atomicfu$get(imul(index, 2) + 1 | 0).atomicfu$getAndSet(update);
 };
-protoOf(ChannelSegment).o1r = function (index, cause, context) {
+protoOf(ChannelSegment).p1r = function (index, cause, context) {
   var isSender = index >= get_SEGMENT_SIZE();
   var index_0 = isSender ? index - get_SEGMENT_SIZE() | 0 : index;
-  var element = this.g1y(index_0);
+  var element = this.h1y(index_0);
   $l$loop: while (true) {
-    var cur = this.j1y(index_0);
+    var cur = this.k1y(index_0);
     var tmp;
     if (!(cur == null) ? isInterface(cur, Waiter) : false) {
       tmp = true;
@@ -3493,11 +3493,11 @@ protoOf(ChannelSegment).o1r = function (index, cause, context) {
     }
     if (tmp) {
       var update = isSender ? get_INTERRUPTED_SEND() : get_INTERRUPTED_RCV();
-      if (this.l1y(index_0, cur, update)) {
-        this.i1y(index_0);
-        this.z1y(index_0, !isSender);
+      if (this.m1y(index_0, cur, update)) {
+        this.j1y(index_0);
+        this.a1z(index_0, !isSender);
         if (isSender) {
-          var tmp0_safe_receiver = this.d1y().o1y_1;
+          var tmp0_safe_receiver = this.e1y().p1y_1;
           if (tmp0_safe_receiver == null)
             null;
           else {
@@ -3508,9 +3508,9 @@ protoOf(ChannelSegment).o1r = function (index, cause, context) {
       }
     } else {
       if (cur === get_INTERRUPTED_SEND() || cur === get_INTERRUPTED_RCV()) {
-        this.i1y(index_0);
+        this.j1y(index_0);
         if (isSender) {
-          var tmp1_safe_receiver = this.d1y().o1y_1;
+          var tmp1_safe_receiver = this.e1y().p1y_1;
           if (tmp1_safe_receiver == null)
             null;
           else {
@@ -3538,22 +3538,22 @@ protoOf(ChannelSegment).o1r = function (index, cause, context) {
     }
   }
 };
-protoOf(ChannelSegment).z1y = function (index, receiver) {
+protoOf(ChannelSegment).a1z = function (index, receiver) {
   if (receiver) {
-    var tmp = this.d1y();
-    var tmp0 = this.m1r_1;
+    var tmp = this.e1y();
+    var tmp0 = this.n1r_1;
     // Inline function 'kotlin.Long.times' call
     var other = get_SEGMENT_SIZE();
     // Inline function 'kotlin.Long.plus' call
     var this_0 = multiply(tmp0, fromInt(other));
     var tmp$ret$1 = add(this_0, fromInt(index));
-    tmp.a1z(tmp$ret$1);
+    tmp.b1z(tmp$ret$1);
   }
-  this.b1z();
+  this.c1z();
 };
 function onClosedHasNext($this) {
-  $this.n1z_1 = get_CHANNEL_CLOSED();
-  var tmp0_elvis_lhs = $this.p1z_1.q1z();
+  $this.o1z_1 = get_CHANNEL_CLOSED();
+  var tmp0_elvis_lhs = $this.q1z_1.r1z();
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return false;
@@ -3566,25 +3566,25 @@ function onClosedHasNext($this) {
 function hasNextOnNoWaiterSuspend($this, segment, index, r, $completion) {
   var cancellable = getOrCreateCancellableContinuation(intercepted($completion));
   try {
-    $this.o1z_1 = cancellable;
+    $this.p1z_1 = cancellable;
     // Inline function 'kotlinx.coroutines.channels.BufferedChannel.receiveImplOnNoWaiter' call
-    var this_0 = $this.p1z_1;
+    var this_0 = $this.q1z_1;
     var updCellResult = updateCellReceive(this_0, segment, index, r, $this);
     if (updCellResult === get_SUSPEND()) {
       prepareReceiverForSuspension(this_0, $this, segment, index);
     } else if (updCellResult === get_FAILED()) {
-      if (compare(r, this_0.r1z()) < 0) {
-        segment.l1z();
+      if (compare(r, this_0.s1z()) < 0) {
+        segment.m1z();
       }
       $l$block_0: {
         // Inline function 'kotlinx.coroutines.channels.BufferedChannel.receiveImpl' call
-        var segment_0 = this_0.u1y_1.kotlinx$atomicfu$value;
+        var segment_0 = this_0.v1y_1.kotlinx$atomicfu$value;
         $l$loop_0: while (true) {
-          if (this_0.s1z()) {
+          if (this_0.t1z()) {
             onClosedHasNextNoWaiterSuspend($this);
             break $l$block_0;
           }
-          var r_0 = this_0.q1y_1.atomicfu$getAndIncrement$long();
+          var r_0 = this_0.r1y_1.atomicfu$getAndIncrement$long();
           // Inline function 'kotlin.Long.div' call
           var other = get_SEGMENT_SIZE();
           var id = divide(r_0, fromInt(other));
@@ -3592,7 +3592,7 @@ function hasNextOnNoWaiterSuspend($this, segment, index, r, $completion) {
           var other_0 = get_SEGMENT_SIZE();
           var tmp$ret$3 = modulo(r_0, fromInt(other_0));
           var i = convertToInt(tmp$ret$3);
-          if (!equalsLong(segment_0.m1r_1, id)) {
+          if (!equalsLong(segment_0.n1r_1, id)) {
             var tmp0_elvis_lhs = findSegmentReceive(this_0, id, segment_0);
             var tmp;
             if (tmp0_elvis_lhs == null) {
@@ -3611,8 +3611,8 @@ function hasNextOnNoWaiterSuspend($this, segment, index, r, $completion) {
               prepareReceiverForSuspension(this_0, tmp1_safe_receiver, segment_0, i);
             }
           } else if (updCellResult_0 === get_FAILED()) {
-            if (compare(r_0, this_0.r1z()) < 0) {
-              segment_0.l1z();
+            if (compare(r_0, this_0.s1z()) < 0) {
+              segment_0.m1z();
             }
             continue $l$loop_0;
           } else if (updCellResult_0 === get_SUSPEND_NO_WAITER()) {
@@ -3620,40 +3620,40 @@ function hasNextOnNoWaiterSuspend($this, segment, index, r, $completion) {
             var message = 'unexpected';
             throw IllegalStateException_init_$Create$(toString(message));
           } else {
-            segment_0.l1z();
+            segment_0.m1z();
             var element = (updCellResult_0 == null ? true : !(updCellResult_0 == null)) ? updCellResult_0 : THROW_CCE();
-            $this.n1z_1 = element;
-            $this.o1z_1 = null;
-            var tmp0_safe_receiver = $this.p1z_1.o1y_1;
-            cancellable.m1s(true, tmp0_safe_receiver == null ? null : bindCancellationFun($this.p1z_1, tmp0_safe_receiver, element));
+            $this.o1z_1 = element;
+            $this.p1z_1 = null;
+            var tmp0_safe_receiver = $this.q1z_1.p1y_1;
+            cancellable.n1s(true, tmp0_safe_receiver == null ? null : bindCancellationFun($this.q1z_1, tmp0_safe_receiver, element));
           }
           break $l$block_0;
         }
       }
     } else {
-      segment.l1z();
+      segment.m1z();
       var element_0 = (updCellResult == null ? true : !(updCellResult == null)) ? updCellResult : THROW_CCE();
-      $this.n1z_1 = element_0;
-      $this.o1z_1 = null;
-      var tmp0_safe_receiver_0 = $this.p1z_1.o1y_1;
-      cancellable.m1s(true, tmp0_safe_receiver_0 == null ? null : bindCancellationFun($this.p1z_1, tmp0_safe_receiver_0, element_0));
+      $this.o1z_1 = element_0;
+      $this.p1z_1 = null;
+      var tmp0_safe_receiver_0 = $this.q1z_1.p1y_1;
+      cancellable.n1s(true, tmp0_safe_receiver_0 == null ? null : bindCancellationFun($this.q1z_1, tmp0_safe_receiver_0, element_0));
     }
   } catch ($p) {
     if ($p instanceof Error) {
       var e = $p;
-      cancellable.i1s();
+      cancellable.j1s();
       throw e;
     } else {
       throw $p;
     }
   }
-  return cancellable.g1p();
+  return cancellable.h1p();
 }
 function onClosedHasNextNoWaiterSuspend($this) {
-  var cont = ensureNotNull($this.o1z_1);
-  $this.o1z_1 = null;
-  $this.n1z_1 = get_CHANNEL_CLOSED();
-  var cause = $this.p1z_1.q1z();
+  var cont = ensureNotNull($this.p1z_1);
+  $this.p1z_1 = null;
+  $this.o1z_1 = get_CHANNEL_CLOSED();
+  var cause = $this.q1z_1.r1z();
   if (cause == null) {
     // Inline function 'kotlin.coroutines.resume' call
     // Inline function 'kotlin.Companion.success' call
@@ -3669,7 +3669,7 @@ function onClosedHasNextNoWaiterSuspend($this) {
 }
 function $hasNextCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.b20_1 = _this__u8e3s4;
+  this.c20_1 = _this__u8e3s4;
 }
 protoOf($hasNextCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -3679,24 +3679,24 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 8;
-          if (!(this.b20_1.n1z_1 === get_NO_RECEIVE_RESULT()) && !(this.b20_1.n1z_1 === get_CHANNEL_CLOSED())) {
+          if (!(this.c20_1.o1z_1 === get_NO_RECEIVE_RESULT()) && !(this.c20_1.o1z_1 === get_CHANNEL_CLOSED())) {
             var tmp_0 = this;
-            tmp_0.c20_1 = true;
+            tmp_0.d20_1 = true;
             this.k8_1 = 11;
             continue $sm;
           } else {
             var tmp_1 = this;
-            tmp_1.m20_1 = this.b20_1.p1z_1;
+            tmp_1.n20_1 = this.c20_1.q1z_1;
             var tmp_2 = this;
-            tmp_2.l20_1 = null;
+            tmp_2.m20_1 = null;
             this.k8_1 = 1;
             continue $sm;
           }
 
         case 1:
-          this.i20_1 = this.m20_1;
-          this.j20_1 = this.l20_1;
-          this.f20_1 = this.i20_1.u1y_1.kotlinx$atomicfu$value;
+          this.j20_1 = this.n20_1;
+          this.k20_1 = this.m20_1;
+          this.g20_1 = this.j20_1.v1y_1.kotlinx$atomicfu$value;
           this.k8_1 = 2;
           continue $sm;
         case 2:
@@ -3705,9 +3705,9 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
             continue $sm;
           }
 
-          if (this.i20_1.s1z()) {
+          if (this.j20_1.t1z()) {
             var tmp_3 = this;
-            tmp_3.d20_1 = onClosedHasNext(this.b20_1);
+            tmp_3.e20_1 = onClosedHasNext(this.c20_1);
             this.k8_1 = 10;
             continue $sm;
           } else {
@@ -3716,22 +3716,22 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
           }
 
         case 3:
-          this.g20_1 = this.i20_1.q1y_1.atomicfu$getAndIncrement$long();
-          var tmp0 = this.g20_1;
+          this.h20_1 = this.j20_1.r1y_1.atomicfu$getAndIncrement$long();
+          var tmp0 = this.h20_1;
           var other = get_SEGMENT_SIZE();
           var id = divide(tmp0, fromInt(other));
           var tmp_4 = this;
-          var tmp0_0 = this.g20_1;
+          var tmp0_0 = this.h20_1;
           var other_0 = get_SEGMENT_SIZE();
-          tmp_4.h20_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
-          if (!equalsLong(this.f20_1.m1r_1, id)) {
-            var tmp0_elvis_lhs = findSegmentReceive(this.i20_1, id, this.f20_1);
+          tmp_4.i20_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
+          if (!equalsLong(this.g20_1.n1r_1, id)) {
+            var tmp0_elvis_lhs = findSegmentReceive(this.j20_1, id, this.g20_1);
             if (tmp0_elvis_lhs == null) {
               this.k8_1 = 2;
               var tmp_5 = this;
               continue $sm;
             } else {
-              this.k20_1 = tmp0_elvis_lhs;
+              this.l20_1 = tmp0_elvis_lhs;
               this.k8_1 = 4;
               continue $sm;
             }
@@ -3741,50 +3741,50 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
           }
 
         case 4:
-          this.f20_1 = this.k20_1;
+          this.g20_1 = this.l20_1;
           this.k8_1 = 5;
           continue $sm;
         case 5:
-          var updCellResult = updateCellReceive(this.i20_1, this.f20_1, this.h20_1, this.g20_1, this.j20_1);
+          var updCellResult = updateCellReceive(this.j20_1, this.g20_1, this.i20_1, this.h20_1, this.k20_1);
           if (updCellResult === get_SUSPEND()) {
             var tmp_6 = this;
-            var tmp_7 = this.j20_1;
+            var tmp_7 = this.k20_1;
             var tmp1_safe_receiver = (!(tmp_7 == null) ? isInterface(tmp_7, Waiter) : false) ? tmp_7 : null;
             if (tmp1_safe_receiver == null)
               null;
             else {
-              prepareReceiverForSuspension(this.i20_1, tmp1_safe_receiver, this.f20_1, this.h20_1);
+              prepareReceiverForSuspension(this.j20_1, tmp1_safe_receiver, this.g20_1, this.i20_1);
             }
-            this.f20_1;
-            this.h20_1;
             this.g20_1;
+            this.i20_1;
+            this.h20_1;
             var message = 'unreachable';
             throw IllegalStateException_init_$Create$(toString(message));
           } else {
             if (updCellResult === get_FAILED()) {
-              if (compare(this.g20_1, this.i20_1.r1z()) < 0) {
-                this.f20_1.l1z();
+              if (compare(this.h20_1, this.j20_1.s1z()) < 0) {
+                this.g20_1.m1z();
               }
               this.k8_1 = 2;
               var tmp_8 = this;
               continue $sm;
             } else {
               if (updCellResult === get_SUSPEND_NO_WAITER()) {
-                var tmp0_1 = this.f20_1;
-                var tmp2 = this.h20_1;
-                var r = this.g20_1;
+                var tmp0_1 = this.g20_1;
+                var tmp2 = this.i20_1;
+                var r = this.h20_1;
                 this.k8_1 = 6;
-                suspendResult = hasNextOnNoWaiterSuspend(this.b20_1, tmp0_1, tmp2, r, this);
+                suspendResult = hasNextOnNoWaiterSuspend(this.c20_1, tmp0_1, tmp2, r, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
                 continue $sm;
               } else {
                 var tmp_9 = this;
-                this.f20_1.l1z();
+                this.g20_1.m1z();
                 var element = (updCellResult == null ? true : !(updCellResult == null)) ? updCellResult : THROW_CCE();
-                this.b20_1.n1z_1 = element;
-                tmp_9.e20_1 = true;
+                this.c20_1.o1z_1 = element;
+                tmp_9.f20_1 = true;
                 this.k8_1 = 7;
                 continue $sm;
               }
@@ -3795,7 +3795,7 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
           var tmp_10 = this;
           return suspendResult;
         case 7:
-          this.d20_1 = this.e20_1;
+          this.e20_1 = this.f20_1;
           this.k8_1 = 10;
           continue $sm;
         case 8:
@@ -3809,11 +3809,11 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
           this.k8_1 = 10;
           continue $sm;
         case 10:
-          this.c20_1 = this.d20_1;
+          this.d20_1 = this.e20_1;
           this.k8_1 = 11;
           continue $sm;
         case 11:
-          return this.c20_1;
+          return this.d20_1;
       }
     } catch ($p) {
       var e = $p;
@@ -3827,7 +3827,7 @@ protoOf($hasNextCOROUTINE$).s8 = function () {
    while (true);
 };
 function _get_bufferEndCounter__2d4hee($this) {
-  return $this.r1y_1.kotlinx$atomicfu$value;
+  return $this.s1y_1.kotlinx$atomicfu$value;
 }
 function _get_isRendezvousOrUnlimited__3mdufi($this) {
   // Inline function 'kotlin.let' call
@@ -3836,15 +3836,15 @@ function _get_isRendezvousOrUnlimited__3mdufi($this) {
 }
 function onClosedSend($this, element, $completion) {
   var cancellable = new CancellableContinuationImpl(intercepted($completion), 1);
-  cancellable.a1s();
+  cancellable.b1s();
   $l$block: {
-    var tmp0_safe_receiver = $this.o1y_1;
+    var tmp0_safe_receiver = $this.p1y_1;
     var tmp1_safe_receiver = tmp0_safe_receiver == null ? null : callUndeliveredElementCatchingException(tmp0_safe_receiver, element);
     if (tmp1_safe_receiver == null)
       null;
     else {
       // Inline function 'kotlin.let' call
-      addSuppressed(tmp1_safe_receiver, $this.n20());
+      addSuppressed(tmp1_safe_receiver, $this.o20());
       // Inline function 'kotlinx.coroutines.resumeWithStackTrace' call
       // Inline function 'kotlin.Companion.failure' call
       var exception = recoverStackTrace(tmp1_safe_receiver, cancellable);
@@ -3853,13 +3853,13 @@ function onClosedSend($this, element, $completion) {
       break $l$block;
     }
     // Inline function 'kotlinx.coroutines.resumeWithStackTrace' call
-    var exception_0 = $this.n20();
+    var exception_0 = $this.o20();
     // Inline function 'kotlin.Companion.failure' call
     var exception_1 = recoverStackTrace(exception_0, cancellable);
     var tmp$ret$4 = _Result___init__impl__xyqfz8(createFailure(exception_1));
     cancellable.v8(tmp$ret$4);
   }
-  return cancellable.g1p();
+  return cancellable.h1p();
 }
 function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
   var cancellable = getOrCreateCancellableContinuation(intercepted($completion));
@@ -3867,7 +3867,7 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
     // Inline function 'kotlinx.coroutines.channels.BufferedChannel.sendImplOnNoWaiter' call
     switch (updateCellSend($this, segment, index, element, s, cancellable, false)) {
       case 0:
-        segment.l1z();
+        segment.m1z();
         // Inline function 'kotlin.coroutines.resume' call
 
         // Inline function 'kotlin.Companion.success' call
@@ -3887,19 +3887,19 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
         prepareSenderForSuspension($this, cancellable, segment, index);
         break;
       case 4:
-        if (compare(s, $this.o20()) < 0) {
-          segment.l1z();
+        if (compare(s, $this.p20()) < 0) {
+          segment.m1z();
         }
 
         onClosedSendOnNoWaiterSuspend($this, element, cancellable);
         break;
       case 5:
-        segment.l1z();
+        segment.m1z();
         $l$block_5: {
           // Inline function 'kotlinx.coroutines.channels.BufferedChannel.sendImpl' call
-          var segment_0 = $this.t1y_1.kotlinx$atomicfu$value;
+          var segment_0 = $this.u1y_1.kotlinx$atomicfu$value;
           $l$loop_0: while (true) {
-            var sendersAndCloseStatusCur = $this.p1y_1.atomicfu$getAndIncrement$long();
+            var sendersAndCloseStatusCur = $this.q1y_1.atomicfu$getAndIncrement$long();
             // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
             var s_0 = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
             var closed = _get_isClosedForSend0__kxgf9m($this, sendersAndCloseStatusCur);
@@ -3910,7 +3910,7 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
             var other_0 = get_SEGMENT_SIZE();
             var tmp$ret$9 = modulo(s_0, fromInt(other_0));
             var i = convertToInt(tmp$ret$9);
-            if (!equalsLong(segment_0.m1r_1, id)) {
+            if (!equalsLong(segment_0.n1r_1, id)) {
               var tmp0_elvis_lhs = findSegmentSend($this, id, segment_0);
               var tmp;
               if (tmp0_elvis_lhs == null) {
@@ -3928,7 +3928,7 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
             }
             switch (updateCellSend($this, segment_0, i, element, s_0, cancellable, closed)) {
               case 0:
-                segment_0.l1z();
+                segment_0.m1z();
                 // Inline function 'kotlin.coroutines.resume' call
 
                 // Inline function 'kotlin.Companion.success' call
@@ -3946,7 +3946,7 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
                 break $l$block_5;
               case 2:
                 if (closed) {
-                  segment_0.b1z();
+                  segment_0.c1z();
                   onClosedSendOnNoWaiterSuspend($this, element, cancellable);
                   break $l$block_5;
                 }
@@ -3960,14 +3960,14 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
 
                 break $l$block_5;
               case 4:
-                if (compare(s_0, $this.o20()) < 0) {
-                  segment_0.l1z();
+                if (compare(s_0, $this.p20()) < 0) {
+                  segment_0.m1z();
                 }
 
                 onClosedSendOnNoWaiterSuspend($this, element, cancellable);
                 break $l$block_5;
               case 5:
-                segment_0.l1z();
+                segment_0.m1z();
                 continue $l$loop_0;
               case 3:
                 // Inline function 'kotlin.error' call
@@ -3988,19 +3988,19 @@ function sendOnNoWaiterSuspend($this, segment, index, element, s, $completion) {
   } catch ($p) {
     if ($p instanceof Error) {
       var e = $p;
-      cancellable.i1s();
+      cancellable.j1s();
       throw e;
     } else {
       throw $p;
     }
   }
-  return cancellable.g1p();
+  return cancellable.h1p();
 }
 function prepareSenderForSuspension($this, _this__u8e3s4, segment, index) {
-  _this__u8e3s4.o1s(segment, index + get_SEGMENT_SIZE() | 0);
+  _this__u8e3s4.p1s(segment, index + get_SEGMENT_SIZE() | 0);
 }
 function onClosedSendOnNoWaiterSuspend($this, element, cont) {
-  var tmp0_safe_receiver = $this.o1y_1;
+  var tmp0_safe_receiver = $this.p1y_1;
   if (tmp0_safe_receiver == null)
     null;
   else {
@@ -4008,41 +4008,41 @@ function onClosedSendOnNoWaiterSuspend($this, element, cont) {
   }
   // Inline function 'kotlin.coroutines.resumeWithException' call
   // Inline function 'kotlin.Companion.failure' call
-  var exception = recoverStackTrace($this.n20(), cont);
+  var exception = recoverStackTrace($this.o20(), cont);
   var tmp$ret$0 = _Result___init__impl__xyqfz8(createFailure(exception));
   cont.v8(tmp$ret$0);
 }
 function SendBroadcast() {
 }
 function updateCellSend($this, segment, index, element, s, waiter, closed) {
-  segment.f1y(index, element);
+  segment.g1y(index, element);
   if (closed)
     return updateCellSendSlow($this, segment, index, element, s, waiter, closed);
-  var state = segment.j1y(index);
+  var state = segment.k1y(index);
   if (state === null) {
     if (bufferOrRendezvousSend($this, s)) {
-      if (segment.l1y(index, null, get_BUFFERED())) {
+      if (segment.m1y(index, null, get_BUFFERED())) {
         return 1;
       }
     } else {
       if (waiter == null) {
         return 3;
       } else {
-        if (segment.l1y(index, null, waiter))
+        if (segment.m1y(index, null, waiter))
           return 2;
       }
     }
   } else {
     if (!(state == null) ? isInterface(state, Waiter) : false) {
-      segment.i1y(index);
+      segment.j1y(index);
       var tmp;
       if (tryResumeReceiver($this, state, element)) {
-        segment.k1y(index, get_DONE_RCV());
-        $this.p20();
+        segment.l1y(index, get_DONE_RCV());
+        $this.q20();
         tmp = 0;
       } else {
-        if (!(segment.m1y(index, get_INTERRUPTED_RCV()) === get_INTERRUPTED_RCV())) {
-          segment.z1y(index, true);
+        if (!(segment.n1y(index, get_INTERRUPTED_RCV()) === get_INTERRUPTED_RCV())) {
+          segment.a1z(index, true);
         }
         tmp = 5;
       }
@@ -4053,55 +4053,55 @@ function updateCellSend($this, segment, index, element, s, waiter, closed) {
 }
 function updateCellSendSlow($this, segment, index, element, s, waiter, closed) {
   while (true) {
-    var state = segment.j1y(index);
+    var state = segment.k1y(index);
     if (state === null) {
       if (bufferOrRendezvousSend($this, s) && !closed) {
-        if (segment.l1y(index, null, get_BUFFERED())) {
+        if (segment.m1y(index, null, get_BUFFERED())) {
           return 1;
         }
       } else {
         if (closed) {
-          if (segment.l1y(index, null, get_INTERRUPTED_SEND())) {
-            segment.z1y(index, false);
+          if (segment.m1y(index, null, get_INTERRUPTED_SEND())) {
+            segment.a1z(index, false);
             return 4;
           }
         } else if (waiter == null)
           return 3;
-        else if (segment.l1y(index, null, waiter))
+        else if (segment.m1y(index, null, waiter))
           return 2;
       }
     } else if (state === get_IN_BUFFER()) {
-      if (segment.l1y(index, state, get_BUFFERED())) {
+      if (segment.m1y(index, state, get_BUFFERED())) {
         return 1;
       }
     } else if (state === get_INTERRUPTED_RCV()) {
-      segment.i1y(index);
+      segment.j1y(index);
       return 5;
     } else if (state === get_POISONED()) {
-      segment.i1y(index);
+      segment.j1y(index);
       return 5;
     } else if (state === get_CHANNEL_CLOSED()) {
-      segment.i1y(index);
+      segment.j1y(index);
       completeCloseOrCancel($this);
       return 4;
     } else {
       // Inline function 'kotlinx.coroutines.assert' call
-      segment.i1y(index);
+      segment.j1y(index);
       var tmp;
       if (state instanceof WaiterEB) {
-        tmp = state.q20_1;
+        tmp = state.r20_1;
       } else {
         tmp = state;
       }
       var receiver = tmp;
       var tmp_0;
       if (tryResumeReceiver($this, receiver, element)) {
-        segment.k1y(index, get_DONE_RCV());
-        $this.p20();
+        segment.l1y(index, get_DONE_RCV());
+        $this.q20();
         tmp_0 = 0;
       } else {
-        if (!(segment.m1y(index, get_INTERRUPTED_RCV()) === get_INTERRUPTED_RCV())) {
-          segment.z1y(index, true);
+        if (!(segment.n1y(index, get_INTERRUPTED_RCV()) === get_INTERRUPTED_RCV())) {
+          segment.a1z(index, true);
         }
         tmp_0 = 5;
       }
@@ -4121,9 +4121,9 @@ function bufferOrRendezvousSend($this, curSenders) {
   if (compare(curSenders, _get_bufferEndCounter__2d4hee($this)) < 0) {
     tmp = true;
   } else {
-    var tmp0 = $this.o20();
+    var tmp0 = $this.p20();
     // Inline function 'kotlin.Long.plus' call
-    var other = $this.n1y_1;
+    var other = $this.o1y_1;
     var tmp$ret$0 = add(tmp0, fromInt(other));
     tmp = compare(curSenders, tmp$ret$0) < 0;
   }
@@ -4132,24 +4132,24 @@ function bufferOrRendezvousSend($this, curSenders) {
 function tryResumeReceiver($this, _this__u8e3s4, element) {
   var tmp;
   if (isInterface(_this__u8e3s4, SelectInstance)) {
-    tmp = _this__u8e3s4.v20($this, element);
+    tmp = _this__u8e3s4.w20($this, element);
   } else {
     if (_this__u8e3s4 instanceof ReceiveCatching) {
       if (!(_this__u8e3s4 instanceof ReceiveCatching))
         THROW_CCE();
-      var tmp_0 = Companion_getInstance().t20(element);
-      var tmp1_safe_receiver = $this.o1y_1;
-      tmp = tryResume0(_this__u8e3s4.u20_1, new ChannelResult(tmp_0), tmp1_safe_receiver == null ? null : bindCancellationFunResult($this, tmp1_safe_receiver));
+      var tmp_0 = Companion_getInstance().u20(element);
+      var tmp1_safe_receiver = $this.p1y_1;
+      tmp = tryResume0(_this__u8e3s4.v20_1, new ChannelResult(tmp_0), tmp1_safe_receiver == null ? null : bindCancellationFunResult($this, tmp1_safe_receiver));
     } else {
       if (_this__u8e3s4 instanceof BufferedChannelIterator) {
         if (!(_this__u8e3s4 instanceof BufferedChannelIterator))
           THROW_CCE();
-        tmp = _this__u8e3s4.r20(element);
+        tmp = _this__u8e3s4.s20(element);
       } else {
         if (isInterface(_this__u8e3s4, CancellableContinuation)) {
           if (!isInterface(_this__u8e3s4, CancellableContinuation))
             THROW_CCE();
-          var tmp2_safe_receiver = $this.o1y_1;
+          var tmp2_safe_receiver = $this.p1y_1;
           tmp = tryResume0(_this__u8e3s4, element, tmp2_safe_receiver == null ? null : bindCancellationFun_0($this, tmp2_safe_receiver));
         } else {
           var message = 'Unexpected receiver type: ' + toString(_this__u8e3s4);
@@ -4161,8 +4161,8 @@ function tryResumeReceiver($this, _this__u8e3s4, element) {
   return tmp;
 }
 function prepareReceiverForSuspension($this, _this__u8e3s4, segment, index) {
-  $this.w20();
-  _this__u8e3s4.o1s(segment, index);
+  $this.x20();
+  _this__u8e3s4.p1s(segment, index);
 }
 function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion) {
   var cancellable = getOrCreateCancellableContinuation(intercepted($completion));
@@ -4173,18 +4173,18 @@ function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion)
     if (updCellResult === get_SUSPEND()) {
       prepareReceiverForSuspension($this, waiter, segment, index);
     } else if (updCellResult === get_FAILED()) {
-      if (compare(r, $this.r1z()) < 0) {
-        segment.l1z();
+      if (compare(r, $this.s1z()) < 0) {
+        segment.m1z();
       }
       $l$block_0: {
         // Inline function 'kotlinx.coroutines.channels.BufferedChannel.receiveImpl' call
-        var segment_0 = $this.u1y_1.kotlinx$atomicfu$value;
+        var segment_0 = $this.v1y_1.kotlinx$atomicfu$value;
         $l$loop_0: while (true) {
-          if ($this.s1z()) {
+          if ($this.t1z()) {
             onClosedReceiveCatchingOnNoWaiterSuspend($this, cancellable);
             break $l$block_0;
           }
-          var r_0 = $this.q1y_1.atomicfu$getAndIncrement$long();
+          var r_0 = $this.r1y_1.atomicfu$getAndIncrement$long();
           // Inline function 'kotlin.Long.div' call
           var other = get_SEGMENT_SIZE();
           var id = divide(r_0, fromInt(other));
@@ -4192,7 +4192,7 @@ function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion)
           var other_0 = get_SEGMENT_SIZE();
           var tmp$ret$3 = modulo(r_0, fromInt(other_0));
           var i = convertToInt(tmp$ret$3);
-          if (!equalsLong(segment_0.m1r_1, id)) {
+          if (!equalsLong(segment_0.n1r_1, id)) {
             var tmp0_elvis_lhs = findSegmentReceive($this, id, segment_0);
             var tmp;
             if (tmp0_elvis_lhs == null) {
@@ -4211,8 +4211,8 @@ function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion)
               prepareReceiverForSuspension($this, tmp1_safe_receiver, segment_0, i);
             }
           } else if (updCellResult_0 === get_FAILED()) {
-            if (compare(r_0, $this.r1z()) < 0) {
-              segment_0.l1z();
+            if (compare(r_0, $this.s1z()) < 0) {
+              segment_0.m1z();
             }
             continue $l$loop_0;
           } else if (updCellResult_0 === get_SUSPEND_NO_WAITER()) {
@@ -4220,32 +4220,32 @@ function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion)
             var message = 'unexpected';
             throw IllegalStateException_init_$Create$(toString(message));
           } else {
-            segment_0.l1z();
+            segment_0.m1z();
             var element = (updCellResult_0 == null ? true : !(updCellResult_0 == null)) ? updCellResult_0 : THROW_CCE();
-            var tmp_0 = Companion_getInstance().t20(element);
-            var tmp0_safe_receiver = $this.o1y_1;
-            cancellable.m1s(new ChannelResult(tmp_0), tmp0_safe_receiver == null ? null : bindCancellationFunResult($this, tmp0_safe_receiver));
+            var tmp_0 = Companion_getInstance().u20(element);
+            var tmp0_safe_receiver = $this.p1y_1;
+            cancellable.n1s(new ChannelResult(tmp_0), tmp0_safe_receiver == null ? null : bindCancellationFunResult($this, tmp0_safe_receiver));
           }
           break $l$block_0;
         }
       }
     } else {
-      segment.l1z();
+      segment.m1z();
       var element_0 = (updCellResult == null ? true : !(updCellResult == null)) ? updCellResult : THROW_CCE();
-      var tmp_1 = Companion_getInstance().t20(element_0);
-      var tmp0_safe_receiver_0 = $this.o1y_1;
-      cancellable.m1s(new ChannelResult(tmp_1), tmp0_safe_receiver_0 == null ? null : bindCancellationFunResult($this, tmp0_safe_receiver_0));
+      var tmp_1 = Companion_getInstance().u20(element_0);
+      var tmp0_safe_receiver_0 = $this.p1y_1;
+      cancellable.n1s(new ChannelResult(tmp_1), tmp0_safe_receiver_0 == null ? null : bindCancellationFunResult($this, tmp0_safe_receiver_0));
     }
   } catch ($p) {
     if ($p instanceof Error) {
       var e = $p;
-      cancellable.i1s();
+      cancellable.j1s();
       throw e;
     } else {
       throw $p;
     }
   }
-  var tmp_2 = cancellable.g1p();
+  var tmp_2 = cancellable.h1p();
   if (tmp_2 === get_COROUTINE_SUSPENDED())
     return tmp_2;
   return tmp_2;
@@ -4253,41 +4253,41 @@ function receiveCatchingOnNoWaiterSuspend($this, segment, index, r, $completion)
 function onClosedReceiveCatchingOnNoWaiterSuspend($this, cont) {
   // Inline function 'kotlin.coroutines.resume' call
   // Inline function 'kotlin.Companion.success' call
-  var value = new ChannelResult(Companion_getInstance().y20($this.q1z()));
+  var value = new ChannelResult(Companion_getInstance().z20($this.r1z()));
   var tmp$ret$0 = _Result___init__impl__xyqfz8(value);
   cont.v8(tmp$ret$0);
 }
 function updateCellReceive($this, segment, index, r, waiter) {
-  var state = segment.j1y(index);
+  var state = segment.k1y(index);
   if (state === null) {
     // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
-    var this_0 = $this.p1y_1.kotlinx$atomicfu$value;
+    var this_0 = $this.q1y_1.kotlinx$atomicfu$value;
     var senders = bitwiseAnd(this_0, new Long(-1, 268435455));
     if (compare(r, senders) >= 0) {
       if (waiter === null) {
         return get_SUSPEND_NO_WAITER();
       }
-      if (segment.l1y(index, state, waiter)) {
+      if (segment.m1y(index, state, waiter)) {
         expandBuffer($this);
         return get_SUSPEND();
       }
     }
   } else if (state === get_BUFFERED())
-    if (segment.l1y(index, state, get_DONE_RCV())) {
+    if (segment.m1y(index, state, get_DONE_RCV())) {
       expandBuffer($this);
-      return segment.h1y(index);
+      return segment.i1y(index);
     }
   return updateCellReceiveSlow($this, segment, index, r, waiter);
 }
 function updateCellReceiveSlow($this, segment, index, r, waiter) {
   $l$loop: while (true) {
-    var state = segment.j1y(index);
+    var state = segment.k1y(index);
     if (state === null || state === get_IN_BUFFER()) {
       // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
-      var this_0 = $this.p1y_1.kotlinx$atomicfu$value;
+      var this_0 = $this.q1y_1.kotlinx$atomicfu$value;
       var senders = bitwiseAnd(this_0, new Long(-1, 268435455));
       if (compare(r, senders) < 0) {
-        if (segment.l1y(index, state, get_POISONED())) {
+        if (segment.m1y(index, state, get_POISONED())) {
           expandBuffer($this);
           return get_FAILED();
         }
@@ -4295,15 +4295,15 @@ function updateCellReceiveSlow($this, segment, index, r, waiter) {
         if (waiter === null) {
           return get_SUSPEND_NO_WAITER();
         }
-        if (segment.l1y(index, state, waiter)) {
+        if (segment.m1y(index, state, waiter)) {
           expandBuffer($this);
           return get_SUSPEND();
         }
       }
     } else if (state === get_BUFFERED()) {
-      if (segment.l1y(index, state, get_DONE_RCV())) {
+      if (segment.m1y(index, state, get_DONE_RCV())) {
         expandBuffer($this);
-        return segment.h1y(index);
+        return segment.i1y(index);
       }
     } else if (state === get_INTERRUPTED_SEND())
       return get_FAILED();
@@ -4315,23 +4315,23 @@ function updateCellReceiveSlow($this, segment, index, r, waiter) {
     } else if (state === get_RESUMING_BY_EB())
       continue $l$loop;
     else {
-      if (segment.l1y(index, state, get_RESUMING_BY_RCV())) {
+      if (segment.m1y(index, state, get_RESUMING_BY_RCV())) {
         var helpExpandBuffer = state instanceof WaiterEB;
         var tmp;
         if (state instanceof WaiterEB) {
-          tmp = state.q20_1;
+          tmp = state.r20_1;
         } else {
           tmp = state;
         }
         var sender = tmp;
         var tmp_0;
         if (tryResumeSender($this, sender, segment, index)) {
-          segment.k1y(index, get_DONE_RCV());
+          segment.l1y(index, get_DONE_RCV());
           expandBuffer($this);
-          tmp_0 = segment.h1y(index);
+          tmp_0 = segment.i1y(index);
         } else {
-          segment.k1y(index, get_INTERRUPTED_SEND());
-          segment.z1y(index, false);
+          segment.l1y(index, get_INTERRUPTED_SEND());
+          segment.a1z(index, false);
           if (helpExpandBuffer) {
             expandBuffer($this);
           }
@@ -4352,14 +4352,14 @@ function tryResumeSender($this, _this__u8e3s4, segment, index) {
     if (isInterface(_this__u8e3s4, SelectInstance)) {
       if (!(_this__u8e3s4 instanceof SelectImplementation))
         THROW_CCE();
-      var trySelectResult = _this__u8e3s4.d21($this, Unit_instance);
+      var trySelectResult = _this__u8e3s4.e21($this, Unit_instance);
       if (trySelectResult === TrySelectDetailedResult_REREGISTER_getInstance()) {
-        segment.i1y(index);
+        segment.j1y(index);
       }
       tmp = trySelectResult === TrySelectDetailedResult_SUCCESSFUL_getInstance();
     } else {
       if (_this__u8e3s4 instanceof SendBroadcast) {
-        tmp = tryResume0(_this__u8e3s4.z20_1, true);
+        tmp = tryResume0(_this__u8e3s4.a21_1, true);
       } else {
         var message = 'Unexpected waiter: ' + toString(_this__u8e3s4);
         throw IllegalStateException_init_$Create$(toString(message));
@@ -4371,21 +4371,21 @@ function tryResumeSender($this, _this__u8e3s4, segment, index) {
 function expandBuffer($this) {
   if (_get_isRendezvousOrUnlimited__3mdufi($this))
     return Unit_instance;
-  var segment = $this.v1y_1.kotlinx$atomicfu$value;
+  var segment = $this.w1y_1.kotlinx$atomicfu$value;
   try_again: while (true) {
-    var b = $this.r1y_1.atomicfu$getAndIncrement$long();
+    var b = $this.s1y_1.atomicfu$getAndIncrement$long();
     // Inline function 'kotlin.Long.div' call
     var other = get_SEGMENT_SIZE();
     var id = divide(b, fromInt(other));
-    var s = $this.r1z();
+    var s = $this.s1z();
     if (compare(s, b) <= 0) {
-      if (compare(segment.m1r_1, id) < 0 && !(segment.h1z() == null)) {
+      if (compare(segment.n1r_1, id) < 0 && !(segment.i1z() == null)) {
         moveSegmentBufferEndToSpecifiedOrLast($this, id, segment);
       }
       incCompletedExpandBufferAttempts$default($this);
       return Unit_instance;
     }
-    if (!equalsLong(segment.m1r_1, id)) {
+    if (!equalsLong(segment.n1r_1, id)) {
       var tmp0_elvis_lhs = findSegmentBufferEnd($this, id, segment, b);
       var tmp;
       if (tmp0_elvis_lhs == null) {
@@ -4409,17 +4409,17 @@ function expandBuffer($this) {
   }
 }
 function updateCellExpandBuffer($this, segment, index, b) {
-  var state = segment.j1y(index);
+  var state = segment.k1y(index);
   if (!(state == null) ? isInterface(state, Waiter) : false) {
-    if (compare(b, $this.q1y_1.kotlinx$atomicfu$value) >= 0) {
-      if (segment.l1y(index, state, get_RESUMING_BY_EB())) {
+    if (compare(b, $this.r1y_1.kotlinx$atomicfu$value) >= 0) {
+      if (segment.m1y(index, state, get_RESUMING_BY_EB())) {
         var tmp;
         if (tryResumeSender($this, state, segment, index)) {
-          segment.k1y(index, get_BUFFERED());
+          segment.l1y(index, get_BUFFERED());
           tmp = true;
         } else {
-          segment.k1y(index, get_INTERRUPTED_SEND());
-          segment.z1y(index, false);
+          segment.l1y(index, get_INTERRUPTED_SEND());
+          segment.a1z(index, false);
           tmp = false;
         }
         return tmp;
@@ -4430,20 +4430,20 @@ function updateCellExpandBuffer($this, segment, index, b) {
 }
 function updateCellExpandBufferSlow($this, segment, index, b) {
   $l$loop: while (true) {
-    var state = segment.j1y(index);
+    var state = segment.k1y(index);
     if (!(state == null) ? isInterface(state, Waiter) : false) {
-      if (compare(b, $this.q1y_1.kotlinx$atomicfu$value) < 0) {
-        if (segment.l1y(index, state, new WaiterEB(state)))
+      if (compare(b, $this.r1y_1.kotlinx$atomicfu$value) < 0) {
+        if (segment.m1y(index, state, new WaiterEB(state)))
           return true;
       } else {
-        if (segment.l1y(index, state, get_RESUMING_BY_EB())) {
+        if (segment.m1y(index, state, get_RESUMING_BY_EB())) {
           var tmp;
           if (tryResumeSender($this, state, segment, index)) {
-            segment.k1y(index, get_BUFFERED());
+            segment.l1y(index, get_BUFFERED());
             tmp = true;
           } else {
-            segment.k1y(index, get_INTERRUPTED_SEND());
-            segment.z1y(index, false);
+            segment.l1y(index, get_INTERRUPTED_SEND());
+            segment.a1z(index, false);
             tmp = false;
           }
           return tmp;
@@ -4454,7 +4454,7 @@ function updateCellExpandBufferSlow($this, segment, index, b) {
         return false;
       else {
         if (state === null) {
-          if (segment.l1y(index, state, get_IN_BUFFER()))
+          if (segment.m1y(index, state, get_IN_BUFFER()))
             return true;
         } else {
           if (state === get_BUFFERED())
@@ -4483,12 +4483,12 @@ function updateCellExpandBufferSlow($this, segment, index, b) {
 }
 function incCompletedExpandBufferAttempts($this, nAttempts) {
   // Inline function 'kotlin.also' call
-  var this_0 = $this.s1y_1.atomicfu$addAndGet$long(nAttempts);
+  var this_0 = $this.t1y_1.atomicfu$addAndGet$long(nAttempts);
   // Inline function 'kotlinx.coroutines.channels.ebPauseExpandBuffers' call
   if (!equalsLong(bitwiseAnd(this_0, new Long(0, 1073741824)), new Long(0, 0))) {
     $l$loop: while (true) {
       // Inline function 'kotlinx.coroutines.channels.ebPauseExpandBuffers' call
-      var this_1 = $this.s1y_1.kotlinx$atomicfu$value;
+      var this_1 = $this.t1y_1.kotlinx$atomicfu$value;
       if (!!equalsLong(bitwiseAnd(this_1, new Long(0, 1073741824)), new Long(0, 0))) {
         break $l$loop;
       }
@@ -4500,48 +4500,48 @@ function incCompletedExpandBufferAttempts$default($this, nAttempts, $super) {
   return incCompletedExpandBufferAttempts($this, nAttempts);
 }
 function BufferedChannelIterator($outer) {
-  this.p1z_1 = $outer;
-  this.n1z_1 = get_NO_RECEIVE_RESULT();
-  this.o1z_1 = null;
+  this.q1z_1 = $outer;
+  this.o1z_1 = get_NO_RECEIVE_RESULT();
+  this.p1z_1 = null;
 }
-protoOf(BufferedChannelIterator).e21 = function ($completion) {
+protoOf(BufferedChannelIterator).f21 = function ($completion) {
   var tmp = new $hasNextCOROUTINE$(this, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(BufferedChannelIterator).o1s = function (segment, index) {
-  var tmp0_safe_receiver = this.o1z_1;
+protoOf(BufferedChannelIterator).p1s = function (segment, index) {
+  var tmp0_safe_receiver = this.p1z_1;
   if (tmp0_safe_receiver == null)
     null;
   else {
-    tmp0_safe_receiver.o1s(segment, index);
+    tmp0_safe_receiver.p1s(segment, index);
   }
 };
 protoOf(BufferedChannelIterator).t = function () {
-  var result = this.n1z_1;
+  var result = this.o1z_1;
   // Inline function 'kotlin.check' call
   if (!!(result === get_NO_RECEIVE_RESULT())) {
     var message = '`hasNext()` has not been invoked';
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  this.n1z_1 = get_NO_RECEIVE_RESULT();
+  this.o1z_1 = get_NO_RECEIVE_RESULT();
   if (result === get_CHANNEL_CLOSED())
-    throw recoverStackTrace_0(_get_receiveException__foorc1(this.p1z_1));
+    throw recoverStackTrace_0(_get_receiveException__foorc1(this.q1z_1));
   return (result == null ? true : !(result == null)) ? result : THROW_CCE();
 };
-protoOf(BufferedChannelIterator).r20 = function (element) {
-  var cont = ensureNotNull(this.o1z_1);
-  this.o1z_1 = null;
-  this.n1z_1 = element;
-  var tmp0_safe_receiver = this.p1z_1.o1y_1;
-  return tryResume0(cont, true, tmp0_safe_receiver == null ? null : bindCancellationFun(this.p1z_1, tmp0_safe_receiver, element));
+protoOf(BufferedChannelIterator).s20 = function (element) {
+  var cont = ensureNotNull(this.p1z_1);
+  this.p1z_1 = null;
+  this.o1z_1 = element;
+  var tmp0_safe_receiver = this.q1z_1.p1y_1;
+  return tryResume0(cont, true, tmp0_safe_receiver == null ? null : bindCancellationFun(this.q1z_1, tmp0_safe_receiver, element));
 };
-protoOf(BufferedChannelIterator).f21 = function () {
-  var cont = ensureNotNull(this.o1z_1);
-  this.o1z_1 = null;
-  this.n1z_1 = get_CHANNEL_CLOSED();
-  var cause = this.p1z_1.q1z();
+protoOf(BufferedChannelIterator).g21 = function () {
+  var cont = ensureNotNull(this.p1z_1);
+  this.p1z_1 = null;
+  this.o1z_1 = get_CHANNEL_CLOSED();
+  var cause = this.q1z_1.r1z();
   if (cause == null) {
     // Inline function 'kotlin.coroutines.resume' call
     // Inline function 'kotlin.Companion.success' call
@@ -4556,11 +4556,11 @@ protoOf(BufferedChannelIterator).f21 = function () {
   }
 };
 function _get_receiveException__foorc1($this) {
-  var tmp0_elvis_lhs = $this.q1z();
+  var tmp0_elvis_lhs = $this.r1z();
   return tmp0_elvis_lhs == null ? new ClosedReceiveChannelException('Channel was closed') : tmp0_elvis_lhs;
 }
 function invokeCloseHandler($this) {
-  var tmp0 = $this.y1y_1;
+  var tmp0 = $this.z1y_1;
   var tmp$ret$1;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.getAndUpdate' call
@@ -4589,10 +4589,10 @@ function invokeCloseHandler($this) {
   var closeHandler = tmp_0;
   if (typeof closeHandler !== 'function')
     THROW_CCE();
-  closeHandler($this.q1z());
+  closeHandler($this.r1z());
 }
 function markClosed($this) {
-  var tmp0 = $this.p1y_1;
+  var tmp0 = $this.q1y_1;
   var tmp$ret$4;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.update' call
@@ -4627,7 +4627,7 @@ function markClosed($this) {
   return tmp$ret$4;
 }
 function markCancelled($this) {
-  var tmp0 = $this.p1y_1;
+  var tmp0 = $this.q1y_1;
   var tmp$ret$2;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.update' call
@@ -4646,7 +4646,7 @@ function markCancelled($this) {
   return tmp$ret$2;
 }
 function markCancellationStarted($this) {
-  var tmp0 = $this.p1y_1;
+  var tmp0 = $this.q1y_1;
   var tmp$ret$3;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.update' call
@@ -4672,14 +4672,14 @@ function markCancellationStarted($this) {
   return tmp$ret$3;
 }
 function completeCloseOrCancel($this) {
-  $this.g21();
+  $this.h21();
 }
 function completeClose($this, sendersCur) {
   var lastSegment = closeLinkedList($this);
-  if ($this.i21()) {
+  if ($this.j21()) {
     var lastBufferedCellGlobalIndex = markAllEmptyCellsAsClosed($this, lastSegment);
     if (!equalsLong(lastBufferedCellGlobalIndex, new Long(-1, -1))) {
-      $this.h21(lastBufferedCellGlobalIndex);
+      $this.i21(lastBufferedCellGlobalIndex);
     }
   }
   cancelSuspendedReceiveRequests($this, lastSegment, sendersCur);
@@ -4690,14 +4690,14 @@ function completeCancel($this, sendersCur) {
   removeUnprocessedElements($this, lastSegment);
 }
 function closeLinkedList($this) {
-  var lastSegment = $this.v1y_1.kotlinx$atomicfu$value;
+  var lastSegment = $this.w1y_1.kotlinx$atomicfu$value;
   // Inline function 'kotlin.let' call
-  var it = $this.t1y_1.kotlinx$atomicfu$value;
-  if (compare(it.m1r_1, lastSegment.m1r_1) > 0)
+  var it = $this.u1y_1.kotlinx$atomicfu$value;
+  if (compare(it.n1r_1, lastSegment.n1r_1) > 0)
     lastSegment = it;
   // Inline function 'kotlin.let' call
-  var it_0 = $this.u1y_1.kotlinx$atomicfu$value;
-  if (compare(it_0.m1r_1, lastSegment.m1r_1) > 0)
+  var it_0 = $this.v1y_1.kotlinx$atomicfu$value;
+  if (compare(it_0.n1r_1, lastSegment.n1r_1) > 0)
     lastSegment = it_0;
   return close(lastSegment);
 }
@@ -4709,19 +4709,19 @@ function markAllEmptyCellsAsClosed($this, lastSegment) {
       do {
         var index = inductionVariable;
         inductionVariable = inductionVariable + -1 | 0;
-        var tmp0 = segment.m1r_1;
+        var tmp0 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
         var other = get_SEGMENT_SIZE();
         // Inline function 'kotlin.Long.plus' call
         var this_0 = multiply(tmp0, fromInt(other));
         var globalIndex = add(this_0, fromInt(index));
-        if (compare(globalIndex, $this.o20()) < 0)
+        if (compare(globalIndex, $this.p20()) < 0)
           return new Long(-1, -1);
         cell_update: while (true) {
-          var state = segment.j1y(index);
+          var state = segment.k1y(index);
           if (state === null || state === get_IN_BUFFER()) {
-            if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
-              segment.b1z();
+            if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
+              segment.c1z();
               break cell_update;
             }
           } else if (state === get_BUFFERED())
@@ -4731,7 +4731,7 @@ function markAllEmptyCellsAsClosed($this, lastSegment) {
         }
       }
        while (0 <= inductionVariable);
-    var tmp0_elvis_lhs = segment.k1z();
+    var tmp0_elvis_lhs = segment.l1z();
     var tmp;
     if (tmp0_elvis_lhs == null) {
       return new Long(-1, -1);
@@ -4742,7 +4742,7 @@ function markAllEmptyCellsAsClosed($this, lastSegment) {
   }
 }
 function removeUnprocessedElements($this, lastSegment) {
-  var onUndeliveredElement = $this.o1y_1;
+  var onUndeliveredElement = $this.p1y_1;
   var undeliveredElementException = null;
   var suspendedSenders = _InlineList___init__impl__z8n56();
   var segment = lastSegment;
@@ -4752,33 +4752,33 @@ function removeUnprocessedElements($this, lastSegment) {
       do {
         var index = inductionVariable;
         inductionVariable = inductionVariable + -1 | 0;
-        var tmp0 = segment.m1r_1;
+        var tmp0 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
         var other = get_SEGMENT_SIZE();
         // Inline function 'kotlin.Long.plus' call
         var this_0 = multiply(tmp0, fromInt(other));
         var globalIndex = add(this_0, fromInt(index));
         update_cell: while (true) {
-          var state = segment.j1y(index);
+          var state = segment.k1y(index);
           if (state === get_DONE_RCV())
             break process_segments;
           else {
             if (state === get_BUFFERED()) {
-              if (compare(globalIndex, $this.o20()) < 0)
+              if (compare(globalIndex, $this.p20()) < 0)
                 break process_segments;
-              if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
+              if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
                 if (!(onUndeliveredElement == null)) {
-                  var element = segment.g1y(index);
+                  var element = segment.h1y(index);
                   undeliveredElementException = callUndeliveredElementCatchingException(onUndeliveredElement, element, undeliveredElementException);
                 }
-                segment.i1y(index);
-                segment.b1z();
+                segment.j1y(index);
+                segment.c1z();
                 break update_cell;
               }
             } else {
               if (state === get_IN_BUFFER() || state === null) {
-                if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
-                  segment.b1z();
+                if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
+                  segment.c1z();
                   break update_cell;
                 }
               } else {
@@ -4789,23 +4789,23 @@ function removeUnprocessedElements($this, lastSegment) {
                   tmp = state instanceof WaiterEB;
                 }
                 if (tmp) {
-                  if (compare(globalIndex, $this.o20()) < 0)
+                  if (compare(globalIndex, $this.p20()) < 0)
                     break process_segments;
                   var tmp_0;
                   if (state instanceof WaiterEB) {
-                    tmp_0 = state.q20_1;
+                    tmp_0 = state.r20_1;
                   } else {
                     tmp_0 = (!(state == null) ? isInterface(state, Waiter) : false) ? state : THROW_CCE();
                   }
                   var sender = tmp_0;
-                  if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
+                  if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
                     if (!(onUndeliveredElement == null)) {
-                      var element_0 = segment.g1y(index);
+                      var element_0 = segment.h1y(index);
                       undeliveredElementException = callUndeliveredElementCatchingException(onUndeliveredElement, element_0, undeliveredElementException);
                     }
                     suspendedSenders = InlineList__plus_impl_nuetvo(suspendedSenders, sender);
-                    segment.i1y(index);
-                    segment.b1z();
+                    segment.j1y(index);
+                    segment.c1z();
                     break update_cell;
                   }
                 } else {
@@ -4825,7 +4825,7 @@ function removeUnprocessedElements($this, lastSegment) {
         }
       }
        while (0 <= inductionVariable);
-    var tmp0_elvis_lhs = segment.k1z();
+    var tmp0_elvis_lhs = segment.l1z();
     var tmp_1;
     if (tmp0_elvis_lhs == null) {
       break process_segments;
@@ -4877,7 +4877,7 @@ function cancelSuspendedReceiveRequests($this, lastSegment, sendersCounter) {
       do {
         var index = inductionVariable;
         inductionVariable = inductionVariable + -1 | 0;
-        var tmp0 = segment.m1r_1;
+        var tmp0 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
         var other = get_SEGMENT_SIZE();
         // Inline function 'kotlin.Long.plus' call
@@ -4886,24 +4886,24 @@ function cancelSuspendedReceiveRequests($this, lastSegment, sendersCounter) {
         if (compare(tmp$ret$1, sendersCounter) < 0)
           break process_segments;
         cell_update: while (true) {
-          var state = segment.j1y(index);
+          var state = segment.k1y(index);
           if (state === null || state === get_IN_BUFFER()) {
-            if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
-              segment.b1z();
+            if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
+              segment.c1z();
               break cell_update;
             }
           } else {
             if (state instanceof WaiterEB) {
-              if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
-                suspendedReceivers = InlineList__plus_impl_nuetvo(suspendedReceivers, state.q20_1);
-                segment.z1y(index, true);
+              if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
+                suspendedReceivers = InlineList__plus_impl_nuetvo(suspendedReceivers, state.r20_1);
+                segment.a1z(index, true);
                 break cell_update;
               }
             } else {
               if (!(state == null) ? isInterface(state, Waiter) : false) {
-                if (segment.l1y(index, state, get_CHANNEL_CLOSED())) {
+                if (segment.m1y(index, state, get_CHANNEL_CLOSED())) {
                   suspendedReceivers = InlineList__plus_impl_nuetvo(suspendedReceivers, state);
-                  segment.z1y(index, true);
+                  segment.a1z(index, true);
                   break cell_update;
                 }
               } else {
@@ -4914,7 +4914,7 @@ function cancelSuspendedReceiveRequests($this, lastSegment, sendersCounter) {
         }
       }
        while (0 <= inductionVariable);
-    segment = segment.k1z();
+    segment = segment.l1z();
   }
   var tmp0_0 = suspendedReceivers;
   $l$block: {
@@ -4952,7 +4952,7 @@ function resumeSenderOnCancelledChannel($this, _this__u8e3s4) {
 function resumeWaiterOnClosedChannel($this, _this__u8e3s4, receiver) {
   if (_this__u8e3s4 instanceof SendBroadcast) {
     // Inline function 'kotlin.coroutines.resume' call
-    var this_0 = _this__u8e3s4.z20_1;
+    var this_0 = _this__u8e3s4.a21_1;
     // Inline function 'kotlin.Companion.success' call
     var tmp$ret$0 = _Result___init__impl__xyqfz8(false);
     this_0.v8(tmp$ret$0);
@@ -4960,23 +4960,23 @@ function resumeWaiterOnClosedChannel($this, _this__u8e3s4, receiver) {
     if (isInterface(_this__u8e3s4, CancellableContinuation)) {
       // Inline function 'kotlin.coroutines.resumeWithException' call
       // Inline function 'kotlin.Companion.failure' call
-      var exception = receiver ? _get_receiveException__foorc1($this) : $this.n20();
+      var exception = receiver ? _get_receiveException__foorc1($this) : $this.o20();
       var tmp$ret$2 = _Result___init__impl__xyqfz8(createFailure(exception));
       _this__u8e3s4.v8(tmp$ret$2);
     } else {
       if (_this__u8e3s4 instanceof ReceiveCatching) {
-        var tmp0 = _this__u8e3s4.u20_1;
+        var tmp0 = _this__u8e3s4.v20_1;
         // Inline function 'kotlin.coroutines.resume' call
         // Inline function 'kotlin.Companion.success' call
-        var value = new ChannelResult(Companion_getInstance().y20($this.q1z()));
+        var value = new ChannelResult(Companion_getInstance().z20($this.r1z()));
         var tmp$ret$4 = _Result___init__impl__xyqfz8(value);
         tmp0.v8(tmp$ret$4);
       } else {
         if (_this__u8e3s4 instanceof BufferedChannelIterator) {
-          _this__u8e3s4.f21();
+          _this__u8e3s4.g21();
         } else {
           if (isInterface(_this__u8e3s4, SelectInstance))
-            _this__u8e3s4.v20($this, get_CHANNEL_CLOSED());
+            _this__u8e3s4.w20($this, get_CHANNEL_CLOSED());
           else {
             // Inline function 'kotlin.error' call
             var message = 'Unexpected waiter: ' + toString(_this__u8e3s4);
@@ -5008,7 +5008,7 @@ function isClosed($this, sendersAndCloseStatusCur, isClosedForReceive) {
 
       var tmp$ret$1 = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
       completeClose($this, tmp$ret$1);
-      tmp = isClosedForReceive ? !$this.j21() : true;
+      tmp = isClosedForReceive ? !$this.k21() : true;
       break;
     case 3:
       // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
@@ -5027,9 +5027,9 @@ function isClosed($this, sendersAndCloseStatusCur, isClosedForReceive) {
 }
 function isCellNonEmpty($this, segment, index, globalIndex) {
   while (true) {
-    var state = segment.j1y(index);
+    var state = segment.k1y(index);
     if (state === null || state === get_IN_BUFFER()) {
-      if (segment.l1y(index, state, get_POISONED())) {
+      if (segment.m1y(index, state, get_POISONED())) {
         expandBuffer($this);
         return false;
       }
@@ -5048,95 +5048,10 @@ function isCellNonEmpty($this, segment, index, globalIndex) {
     else if (state === get_RESUMING_BY_RCV())
       return false;
     else
-      return equalsLong(globalIndex, $this.o20());
+      return equalsLong(globalIndex, $this.p20());
   }
 }
 function findSegmentSend($this, id, startFrom) {
-  var tmp0 = $this.t1y_1;
-  var tmp6 = createSegmentFunction();
-  var tmp$ret$2;
-  $l$block_2: {
-    // Inline function 'kotlinx.coroutines.internal.findSegmentAndMoveForward' call
-    while (true) {
-      var s = findSegmentInternal(startFrom, id, tmp6);
-      var tmp;
-      if (_SegmentOrClosed___get_isClosed__impl__qmxmlo(s)) {
-        tmp = true;
-      } else {
-        var tmp2 = _SegmentOrClosed___get_segment__impl__jvcr9l(s);
-        var tmp$ret$0;
-        $l$block_1: {
-          // Inline function 'kotlinx.coroutines.internal.moveForward' call
-          while (true) {
-            var cur = tmp0.kotlinx$atomicfu$value;
-            if (compare(cur.m1r_1, tmp2.m1r_1) >= 0) {
-              tmp$ret$0 = true;
-              break $l$block_1;
-            }
-            if (!tmp2.d1z()) {
-              tmp$ret$0 = false;
-              break $l$block_1;
-            }
-            if (tmp0.atomicfu$compareAndSet(cur, tmp2)) {
-              if (cur.e1z()) {
-                cur.u3();
-              }
-              tmp$ret$0 = true;
-              break $l$block_1;
-            }
-            if (tmp2.e1z()) {
-              tmp2.u3();
-            }
-          }
-          tmp$ret$0 = Unit_instance;
-        }
-        tmp = tmp$ret$0;
-      }
-      if (tmp) {
-        tmp$ret$2 = s;
-        break $l$block_2;
-      }
-    }
-  }
-  // Inline function 'kotlin.let' call
-  var it = tmp$ret$2;
-  var tmp_0;
-  if (_SegmentOrClosed___get_isClosed__impl__qmxmlo(it)) {
-    completeCloseOrCancel($this);
-    var tmp0_0 = startFrom.m1r_1;
-    // Inline function 'kotlin.Long.times' call
-    var other = get_SEGMENT_SIZE();
-    var tmp$ret$3 = multiply(tmp0_0, fromInt(other));
-    if (compare(tmp$ret$3, $this.o20()) < 0) {
-      startFrom.l1z();
-    }
-    tmp_0 = null;
-  } else {
-    var segment = _SegmentOrClosed___get_segment__impl__jvcr9l(it);
-    var tmp_1;
-    if (compare(segment.m1r_1, id) > 0) {
-      var tmp0_1 = segment.m1r_1;
-      // Inline function 'kotlin.Long.times' call
-      var other_0 = get_SEGMENT_SIZE();
-      var tmp$ret$4 = multiply(tmp0_1, fromInt(other_0));
-      updateSendersCounterIfLower($this, tmp$ret$4);
-      var tmp0_2 = segment.m1r_1;
-      // Inline function 'kotlin.Long.times' call
-      var other_1 = get_SEGMENT_SIZE();
-      var tmp$ret$5 = multiply(tmp0_2, fromInt(other_1));
-      if (compare(tmp$ret$5, $this.o20()) < 0) {
-        segment.l1z();
-      }
-      tmp_1 = null;
-    } else {
-      // Inline function 'kotlinx.coroutines.assert' call
-      tmp_1 = segment;
-    }
-    tmp_0 = tmp_1;
-  }
-  return tmp_0;
-}
-function findSegmentReceive($this, id, startFrom) {
   var tmp0 = $this.u1y_1;
   var tmp6 = createSegmentFunction();
   var tmp$ret$2;
@@ -5154,22 +5069,22 @@ function findSegmentReceive($this, id, startFrom) {
           // Inline function 'kotlinx.coroutines.internal.moveForward' call
           while (true) {
             var cur = tmp0.kotlinx$atomicfu$value;
-            if (compare(cur.m1r_1, tmp2.m1r_1) >= 0) {
+            if (compare(cur.n1r_1, tmp2.n1r_1) >= 0) {
               tmp$ret$0 = true;
               break $l$block_1;
             }
-            if (!tmp2.d1z()) {
+            if (!tmp2.e1z()) {
               tmp$ret$0 = false;
               break $l$block_1;
             }
             if (tmp0.atomicfu$compareAndSet(cur, tmp2)) {
-              if (cur.e1z()) {
+              if (cur.f1z()) {
                 cur.u3();
               }
               tmp$ret$0 = true;
               break $l$block_1;
             }
-            if (tmp2.e1z()) {
+            if (tmp2.f1z()) {
               tmp2.u3();
             }
           }
@@ -5188,74 +5103,40 @@ function findSegmentReceive($this, id, startFrom) {
   var tmp_0;
   if (_SegmentOrClosed___get_isClosed__impl__qmxmlo(it)) {
     completeCloseOrCancel($this);
-    var tmp0_0 = startFrom.m1r_1;
+    var tmp0_0 = startFrom.n1r_1;
     // Inline function 'kotlin.Long.times' call
     var other = get_SEGMENT_SIZE();
     var tmp$ret$3 = multiply(tmp0_0, fromInt(other));
-    if (compare(tmp$ret$3, $this.r1z()) < 0) {
-      startFrom.l1z();
+    if (compare(tmp$ret$3, $this.p20()) < 0) {
+      startFrom.m1z();
     }
     tmp_0 = null;
   } else {
     var segment = _SegmentOrClosed___get_segment__impl__jvcr9l(it);
     var tmp_1;
-    if (!_get_isRendezvousOrUnlimited__3mdufi($this)) {
-      var tmp0_1 = _get_bufferEndCounter__2d4hee($this);
-      // Inline function 'kotlin.Long.div' call
+    if (compare(segment.n1r_1, id) > 0) {
+      var tmp0_1 = segment.n1r_1;
+      // Inline function 'kotlin.Long.times' call
       var other_0 = get_SEGMENT_SIZE();
-      var tmp$ret$4 = divide(tmp0_1, fromInt(other_0));
-      tmp_1 = compare(id, tmp$ret$4) <= 0;
-    } else {
-      tmp_1 = false;
-    }
-    if (tmp_1) {
-      var tmp0_2 = $this.v1y_1;
-      $l$block_5: {
-        // Inline function 'kotlinx.coroutines.internal.moveForward' call
-        while (true) {
-          var cur_0 = tmp0_2.kotlinx$atomicfu$value;
-          if (compare(cur_0.m1r_1, segment.m1r_1) >= 0) {
-            break $l$block_5;
-          }
-          if (!segment.d1z()) {
-            break $l$block_5;
-          }
-          if (tmp0_2.atomicfu$compareAndSet(cur_0, segment)) {
-            if (cur_0.e1z()) {
-              cur_0.u3();
-            }
-            break $l$block_5;
-          }
-          if (segment.e1z()) {
-            segment.u3();
-          }
-        }
-      }
-    }
-    var tmp_2;
-    if (compare(segment.m1r_1, id) > 0) {
-      var tmp0_3 = segment.m1r_1;
+      var tmp$ret$4 = multiply(tmp0_1, fromInt(other_0));
+      updateSendersCounterIfLower($this, tmp$ret$4);
+      var tmp0_2 = segment.n1r_1;
       // Inline function 'kotlin.Long.times' call
       var other_1 = get_SEGMENT_SIZE();
-      var tmp$ret$7 = multiply(tmp0_3, fromInt(other_1));
-      updateReceiversCounterIfLower($this, tmp$ret$7);
-      var tmp0_4 = segment.m1r_1;
-      // Inline function 'kotlin.Long.times' call
-      var other_2 = get_SEGMENT_SIZE();
-      var tmp$ret$8 = multiply(tmp0_4, fromInt(other_2));
-      if (compare(tmp$ret$8, $this.r1z()) < 0) {
-        segment.l1z();
+      var tmp$ret$5 = multiply(tmp0_2, fromInt(other_1));
+      if (compare(tmp$ret$5, $this.p20()) < 0) {
+        segment.m1z();
       }
-      tmp_2 = null;
+      tmp_1 = null;
     } else {
       // Inline function 'kotlinx.coroutines.assert' call
-      tmp_2 = segment;
+      tmp_1 = segment;
     }
-    tmp_0 = tmp_2;
+    tmp_0 = tmp_1;
   }
   return tmp_0;
 }
-function findSegmentBufferEnd($this, id, startFrom, currentBufferEndCounter) {
+function findSegmentReceive($this, id, startFrom) {
   var tmp0 = $this.v1y_1;
   var tmp6 = createSegmentFunction();
   var tmp$ret$2;
@@ -5273,22 +5154,141 @@ function findSegmentBufferEnd($this, id, startFrom, currentBufferEndCounter) {
           // Inline function 'kotlinx.coroutines.internal.moveForward' call
           while (true) {
             var cur = tmp0.kotlinx$atomicfu$value;
-            if (compare(cur.m1r_1, tmp2.m1r_1) >= 0) {
+            if (compare(cur.n1r_1, tmp2.n1r_1) >= 0) {
               tmp$ret$0 = true;
               break $l$block_1;
             }
-            if (!tmp2.d1z()) {
+            if (!tmp2.e1z()) {
               tmp$ret$0 = false;
               break $l$block_1;
             }
             if (tmp0.atomicfu$compareAndSet(cur, tmp2)) {
-              if (cur.e1z()) {
+              if (cur.f1z()) {
                 cur.u3();
               }
               tmp$ret$0 = true;
               break $l$block_1;
             }
-            if (tmp2.e1z()) {
+            if (tmp2.f1z()) {
+              tmp2.u3();
+            }
+          }
+          tmp$ret$0 = Unit_instance;
+        }
+        tmp = tmp$ret$0;
+      }
+      if (tmp) {
+        tmp$ret$2 = s;
+        break $l$block_2;
+      }
+    }
+  }
+  // Inline function 'kotlin.let' call
+  var it = tmp$ret$2;
+  var tmp_0;
+  if (_SegmentOrClosed___get_isClosed__impl__qmxmlo(it)) {
+    completeCloseOrCancel($this);
+    var tmp0_0 = startFrom.n1r_1;
+    // Inline function 'kotlin.Long.times' call
+    var other = get_SEGMENT_SIZE();
+    var tmp$ret$3 = multiply(tmp0_0, fromInt(other));
+    if (compare(tmp$ret$3, $this.s1z()) < 0) {
+      startFrom.m1z();
+    }
+    tmp_0 = null;
+  } else {
+    var segment = _SegmentOrClosed___get_segment__impl__jvcr9l(it);
+    var tmp_1;
+    if (!_get_isRendezvousOrUnlimited__3mdufi($this)) {
+      var tmp0_1 = _get_bufferEndCounter__2d4hee($this);
+      // Inline function 'kotlin.Long.div' call
+      var other_0 = get_SEGMENT_SIZE();
+      var tmp$ret$4 = divide(tmp0_1, fromInt(other_0));
+      tmp_1 = compare(id, tmp$ret$4) <= 0;
+    } else {
+      tmp_1 = false;
+    }
+    if (tmp_1) {
+      var tmp0_2 = $this.w1y_1;
+      $l$block_5: {
+        // Inline function 'kotlinx.coroutines.internal.moveForward' call
+        while (true) {
+          var cur_0 = tmp0_2.kotlinx$atomicfu$value;
+          if (compare(cur_0.n1r_1, segment.n1r_1) >= 0) {
+            break $l$block_5;
+          }
+          if (!segment.e1z()) {
+            break $l$block_5;
+          }
+          if (tmp0_2.atomicfu$compareAndSet(cur_0, segment)) {
+            if (cur_0.f1z()) {
+              cur_0.u3();
+            }
+            break $l$block_5;
+          }
+          if (segment.f1z()) {
+            segment.u3();
+          }
+        }
+      }
+    }
+    var tmp_2;
+    if (compare(segment.n1r_1, id) > 0) {
+      var tmp0_3 = segment.n1r_1;
+      // Inline function 'kotlin.Long.times' call
+      var other_1 = get_SEGMENT_SIZE();
+      var tmp$ret$7 = multiply(tmp0_3, fromInt(other_1));
+      updateReceiversCounterIfLower($this, tmp$ret$7);
+      var tmp0_4 = segment.n1r_1;
+      // Inline function 'kotlin.Long.times' call
+      var other_2 = get_SEGMENT_SIZE();
+      var tmp$ret$8 = multiply(tmp0_4, fromInt(other_2));
+      if (compare(tmp$ret$8, $this.s1z()) < 0) {
+        segment.m1z();
+      }
+      tmp_2 = null;
+    } else {
+      // Inline function 'kotlinx.coroutines.assert' call
+      tmp_2 = segment;
+    }
+    tmp_0 = tmp_2;
+  }
+  return tmp_0;
+}
+function findSegmentBufferEnd($this, id, startFrom, currentBufferEndCounter) {
+  var tmp0 = $this.w1y_1;
+  var tmp6 = createSegmentFunction();
+  var tmp$ret$2;
+  $l$block_2: {
+    // Inline function 'kotlinx.coroutines.internal.findSegmentAndMoveForward' call
+    while (true) {
+      var s = findSegmentInternal(startFrom, id, tmp6);
+      var tmp;
+      if (_SegmentOrClosed___get_isClosed__impl__qmxmlo(s)) {
+        tmp = true;
+      } else {
+        var tmp2 = _SegmentOrClosed___get_segment__impl__jvcr9l(s);
+        var tmp$ret$0;
+        $l$block_1: {
+          // Inline function 'kotlinx.coroutines.internal.moveForward' call
+          while (true) {
+            var cur = tmp0.kotlinx$atomicfu$value;
+            if (compare(cur.n1r_1, tmp2.n1r_1) >= 0) {
+              tmp$ret$0 = true;
+              break $l$block_1;
+            }
+            if (!tmp2.e1z()) {
+              tmp$ret$0 = false;
+              break $l$block_1;
+            }
+            if (tmp0.atomicfu$compareAndSet(cur, tmp2)) {
+              if (cur.f1z()) {
+                cur.u3();
+              }
+              tmp$ret$0 = true;
+              break $l$block_1;
+            }
+            if (tmp2.f1z()) {
               tmp2.u3();
             }
           }
@@ -5313,15 +5313,15 @@ function findSegmentBufferEnd($this, id, startFrom, currentBufferEndCounter) {
   } else {
     var segment = _SegmentOrClosed___get_segment__impl__jvcr9l(it);
     var tmp_1;
-    if (compare(segment.m1r_1, id) > 0) {
+    if (compare(segment.n1r_1, id) > 0) {
       // Inline function 'kotlin.Long.plus' call
       var tmp_2 = add(currentBufferEndCounter, fromInt(1));
-      var tmp0_0 = segment.m1r_1;
+      var tmp0_0 = segment.n1r_1;
       // Inline function 'kotlin.Long.times' call
       var other = get_SEGMENT_SIZE();
       var tmp$ret$4 = multiply(tmp0_0, fromInt(other));
-      if ($this.r1y_1.atomicfu$compareAndSet(tmp_2, tmp$ret$4)) {
-        var tmp0_1 = segment.m1r_1;
+      if ($this.s1y_1.atomicfu$compareAndSet(tmp_2, tmp$ret$4)) {
+        var tmp0_1 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
         var other_0 = get_SEGMENT_SIZE();
         var tmp$ret$5 = multiply(tmp0_1, fromInt(other_0));
@@ -5340,8 +5340,8 @@ function findSegmentBufferEnd($this, id, startFrom, currentBufferEndCounter) {
 }
 function moveSegmentBufferEndToSpecifiedOrLast($this, id, startFrom) {
   var segment = startFrom;
-  $l$loop: while (compare(segment.m1r_1, id) < 0) {
-    var tmp0_elvis_lhs = segment.h1z();
+  $l$loop: while (compare(segment.n1r_1, id) < 0) {
+    var tmp0_elvis_lhs = segment.i1z();
     var tmp;
     if (tmp0_elvis_lhs == null) {
       break $l$loop;
@@ -5351,8 +5351,8 @@ function moveSegmentBufferEndToSpecifiedOrLast($this, id, startFrom) {
     segment = tmp;
   }
   while (true) {
-    $l$loop_0: while (segment.c1z()) {
-      var tmp1_elvis_lhs = segment.h1z();
+    $l$loop_0: while (segment.d1z()) {
+      var tmp1_elvis_lhs = segment.i1z();
       var tmp_0;
       if (tmp1_elvis_lhs == null) {
         break $l$loop_0;
@@ -5361,29 +5361,29 @@ function moveSegmentBufferEndToSpecifiedOrLast($this, id, startFrom) {
       }
       segment = tmp_0;
     }
-    var tmp0 = $this.v1y_1;
+    var tmp0 = $this.w1y_1;
     var tmp2 = segment;
     var tmp$ret$0;
     $l$block_1: {
       // Inline function 'kotlinx.coroutines.internal.moveForward' call
       while (true) {
         var cur = tmp0.kotlinx$atomicfu$value;
-        if (compare(cur.m1r_1, tmp2.m1r_1) >= 0) {
+        if (compare(cur.n1r_1, tmp2.n1r_1) >= 0) {
           tmp$ret$0 = true;
           break $l$block_1;
         }
-        if (!tmp2.d1z()) {
+        if (!tmp2.e1z()) {
           tmp$ret$0 = false;
           break $l$block_1;
         }
         if (tmp0.atomicfu$compareAndSet(cur, tmp2)) {
-          if (cur.e1z()) {
+          if (cur.f1z()) {
             cur.u3();
           }
           tmp$ret$0 = true;
           break $l$block_1;
         }
-        if (tmp2.e1z()) {
+        if (tmp2.f1z()) {
           tmp2.u3();
         }
       }
@@ -5394,7 +5394,7 @@ function moveSegmentBufferEndToSpecifiedOrLast($this, id, startFrom) {
   }
 }
 function updateSendersCounterIfLower($this, value) {
-  var this_0 = $this.p1y_1;
+  var this_0 = $this.q1y_1;
   while (true) {
     var cur = this_0.kotlinx$atomicfu$value;
     // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
@@ -5404,18 +5404,18 @@ function updateSendersCounterIfLower($this, value) {
     // Inline function 'kotlinx.coroutines.channels.sendersCloseStatus' call
     var tmp$ret$1 = convertToInt(shiftRight(cur, 60));
     var update = constructSendersAndCloseStatus(curCounter, tmp$ret$1);
-    if ($this.p1y_1.atomicfu$compareAndSet(cur, update))
+    if ($this.q1y_1.atomicfu$compareAndSet(cur, update))
       return Unit_instance;
   }
   return Unit_instance;
 }
 function updateReceiversCounterIfLower($this, value) {
-  var this_0 = $this.q1y_1;
+  var this_0 = $this.r1y_1;
   while (true) {
     var cur = this_0.kotlinx$atomicfu$value;
     if (compare(cur, value) >= 0)
       return Unit_instance;
-    if ($this.q1y_1.atomicfu$compareAndSet(cur, value))
+    if ($this.r1y_1.atomicfu$compareAndSet(cur, value))
       return Unit_instance;
   }
   return Unit_instance;
@@ -5424,7 +5424,7 @@ function bindCancellationFunResult($this, _this__u8e3s4) {
   return BufferedChannel$onCancellationChannelResultImplDoNotCall$ref($this);
 }
 function onCancellationChannelResultImplDoNotCall($this, cause, element, context) {
-  callUndeliveredElement(ensureNotNull($this.o1y_1), ensureNotNull(ChannelResult__getOrNull_impl_f5e07h(element)), context);
+  callUndeliveredElement(ensureNotNull($this.p1y_1), ensureNotNull(ChannelResult__getOrNull_impl_f5e07h(element)), context);
 }
 function bindCancellationFun($this, _this__u8e3s4, element) {
   return BufferedChannel$bindCancellationFun$lambda(_this__u8e3s4, element);
@@ -5433,13 +5433,13 @@ function bindCancellationFun_0($this, _this__u8e3s4) {
   return BufferedChannel$onCancellationImplDoNotCall$ref($this);
 }
 function onCancellationImplDoNotCall($this, cause, element, context) {
-  callUndeliveredElement(ensureNotNull($this.o1y_1), element, context);
+  callUndeliveredElement(ensureNotNull($this.p1y_1), element, context);
 }
 function BufferedChannel$onUndeliveredElementReceiveCancellationConstructor$lambda$lambda($element, this$0, $select) {
   return function (_unused_var__etf5q3, _unused_var__etf5q3_0, _unused_var__etf5q3_1) {
     var tmp;
     if (!($element === get_CHANNEL_CLOSED())) {
-      callUndeliveredElement(this$0.o1y_1, ($element == null ? true : !($element == null)) ? $element : THROW_CCE(), $select.q8());
+      callUndeliveredElement(this$0.p1y_1, ($element == null ? true : !($element == null)) ? $element : THROW_CCE(), $select.q8());
       tmp = Unit_instance;
     }
     return Unit_instance;
@@ -5453,7 +5453,7 @@ function BufferedChannel$onUndeliveredElementReceiveCancellationConstructor$lamb
 function BufferedChannel$onCancellationChannelResultImplDoNotCall$ref(p0) {
   var l = function (_this__u8e3s4, p0_0, p1) {
     var tmp0 = p0;
-    onCancellationChannelResultImplDoNotCall(tmp0, _this__u8e3s4, p0_0.x20_1, p1);
+    onCancellationChannelResultImplDoNotCall(tmp0, _this__u8e3s4, p0_0.y20_1, p1);
     return Unit_instance;
   };
   l.callableName = 'onCancellationChannelResultImplDoNotCall';
@@ -5476,8 +5476,8 @@ function BufferedChannel$onCancellationImplDoNotCall$ref(p0) {
 }
 function $sendCOROUTINE$(_this__u8e3s4, element, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.t21_1 = _this__u8e3s4;
-  this.u21_1 = element;
+  this.u21_1 = _this__u8e3s4;
+  this.v21_1 = element;
 }
 protoOf($sendCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -5488,18 +5488,18 @@ protoOf($sendCOROUTINE$).s8 = function () {
         case 0:
           this.l8_1 = 11;
           var tmp_0 = this;
-          tmp_0.f22_1 = this.t21_1;
+          tmp_0.g22_1 = this.u21_1;
           var tmp_1 = this;
-          tmp_1.e22_1 = this.u21_1;
+          tmp_1.f22_1 = this.v21_1;
           var tmp_2 = this;
-          tmp_2.d22_1 = null;
+          tmp_2.e22_1 = null;
           this.k8_1 = 1;
           continue $sm;
         case 1:
-          this.x21_1 = this.f22_1;
-          this.a22_1 = this.e22_1;
-          this.y21_1 = this.d22_1;
-          this.w21_1 = this.x21_1.t1y_1.kotlinx$atomicfu$value;
+          this.y21_1 = this.g22_1;
+          this.b22_1 = this.f22_1;
+          this.z21_1 = this.e22_1;
+          this.x21_1 = this.y21_1.u1y_1.kotlinx$atomicfu$value;
           this.k8_1 = 2;
           continue $sm;
         case 2:
@@ -5508,23 +5508,23 @@ protoOf($sendCOROUTINE$).s8 = function () {
             continue $sm;
           }
 
-          var sendersAndCloseStatusCur = this.x21_1.p1y_1.atomicfu$getAndIncrement$long();
+          var sendersAndCloseStatusCur = this.y21_1.q1y_1.atomicfu$getAndIncrement$long();
           var tmp_3 = this;
-          tmp_3.z21_1 = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
-          this.b22_1 = _get_isClosedForSend0__kxgf9m(this.x21_1, sendersAndCloseStatusCur);
-          var tmp0 = this.z21_1;
+          tmp_3.a22_1 = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
+          this.c22_1 = _get_isClosedForSend0__kxgf9m(this.y21_1, sendersAndCloseStatusCur);
+          var tmp0 = this.a22_1;
           var other = get_SEGMENT_SIZE();
           var id = divide(tmp0, fromInt(other));
           var tmp_4 = this;
-          var tmp0_0 = this.z21_1;
+          var tmp0_0 = this.a22_1;
           var other_0 = get_SEGMENT_SIZE();
-          tmp_4.v21_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
-          if (!equalsLong(this.w21_1.m1r_1, id)) {
-            var tmp0_elvis_lhs = findSegmentSend(this.x21_1, id, this.w21_1);
+          tmp_4.w21_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
+          if (!equalsLong(this.x21_1.n1r_1, id)) {
+            var tmp0_elvis_lhs = findSegmentSend(this.y21_1, id, this.x21_1);
             if (tmp0_elvis_lhs == null) {
-              if (this.b22_1) {
+              if (this.c22_1) {
                 this.k8_1 = 10;
-                suspendResult = onClosedSend(this.t21_1, this.u21_1, this);
+                suspendResult = onClosedSend(this.u21_1, this.v21_1, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
@@ -5535,7 +5535,7 @@ protoOf($sendCOROUTINE$).s8 = function () {
                 continue $sm;
               }
             } else {
-              this.c22_1 = tmp0_elvis_lhs;
+              this.d22_1 = tmp0_elvis_lhs;
               this.k8_1 = 3;
               continue $sm;
             }
@@ -5545,13 +5545,13 @@ protoOf($sendCOROUTINE$).s8 = function () {
           }
 
         case 3:
-          this.w21_1 = this.c22_1;
+          this.x21_1 = this.d22_1;
           this.k8_1 = 4;
           continue $sm;
         case 4:
-          var tmp1_subject = updateCellSend(this.x21_1, this.w21_1, this.v21_1, this.a22_1, this.z21_1, this.y21_1, this.b22_1);
+          var tmp1_subject = updateCellSend(this.y21_1, this.x21_1, this.w21_1, this.b22_1, this.a22_1, this.z21_1, this.c22_1);
           if (tmp1_subject === 0) {
-            this.w21_1.l1z();
+            this.x21_1.m1z();
             this.k8_1 = 13;
             continue $sm;
           } else {
@@ -5560,10 +5560,10 @@ protoOf($sendCOROUTINE$).s8 = function () {
               continue $sm;
             } else {
               if (tmp1_subject === 2) {
-                if (this.b22_1) {
-                  this.w21_1.b1z();
+                if (this.c22_1) {
+                  this.x21_1.c1z();
                   this.k8_1 = 9;
-                  suspendResult = onClosedSend(this.t21_1, this.u21_1, this);
+                  suspendResult = onClosedSend(this.u21_1, this.v21_1, this);
                   if (suspendResult === get_COROUTINE_SUSPENDED()) {
                     return suspendResult;
                   }
@@ -5574,28 +5574,28 @@ protoOf($sendCOROUTINE$).s8 = function () {
                 }
               } else {
                 if (tmp1_subject === 4) {
-                  if (compare(this.z21_1, this.x21_1.o20()) < 0) {
-                    this.w21_1.l1z();
+                  if (compare(this.a22_1, this.y21_1.p20()) < 0) {
+                    this.x21_1.m1z();
                   }
                   this.k8_1 = 7;
-                  suspendResult = onClosedSend(this.t21_1, this.u21_1, this);
+                  suspendResult = onClosedSend(this.u21_1, this.v21_1, this);
                   if (suspendResult === get_COROUTINE_SUSPENDED()) {
                     return suspendResult;
                   }
                   continue $sm;
                 } else {
                   if (tmp1_subject === 5) {
-                    this.w21_1.l1z();
+                    this.x21_1.m1z();
                     this.k8_1 = 2;
                     continue $sm;
                   } else {
                     if (tmp1_subject === 3) {
-                      var tmp0_1 = this.w21_1;
-                      var tmp2 = this.v21_1;
-                      var tmp4 = this.a22_1;
-                      var s = this.z21_1;
+                      var tmp0_1 = this.x21_1;
+                      var tmp2 = this.w21_1;
+                      var tmp4 = this.b22_1;
+                      var s = this.a22_1;
                       this.k8_1 = 6;
-                      suspendResult = sendOnNoWaiterSuspend(this.t21_1, tmp0_1, tmp2, tmp4, s, this);
+                      suspendResult = sendOnNoWaiterSuspend(this.u21_1, tmp0_1, tmp2, tmp4, s, this);
                       if (suspendResult === get_COROUTINE_SUSPENDED()) {
                         return suspendResult;
                       }
@@ -5620,16 +5620,16 @@ protoOf($sendCOROUTINE$).s8 = function () {
           this.k8_1 = 13;
           continue $sm;
         case 8:
-          var tmp_6 = this.y21_1;
+          var tmp_6 = this.z21_1;
           var tmp2_safe_receiver = (!(tmp_6 == null) ? isInterface(tmp_6, Waiter) : false) ? tmp_6 : null;
           if (tmp2_safe_receiver == null)
             null;
           else {
-            prepareSenderForSuspension(this.x21_1, tmp2_safe_receiver, this.w21_1, this.v21_1);
+            prepareSenderForSuspension(this.y21_1, tmp2_safe_receiver, this.x21_1, this.w21_1);
           }
 
+          this.x21_1;
           this.w21_1;
-          this.v21_1;
           this.k8_1 = 13;
           continue $sm;
         case 9:
@@ -5664,7 +5664,7 @@ protoOf($sendCOROUTINE$).s8 = function () {
 };
 function $receiveCatchingCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.o22_1 = _this__u8e3s4;
+  this.p22_1 = _this__u8e3s4;
 }
 protoOf($receiveCatchingCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -5675,15 +5675,15 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
         case 0:
           this.l8_1 = 9;
           var tmp_0 = this;
-          tmp_0.y22_1 = this.o22_1;
+          tmp_0.z22_1 = this.p22_1;
           var tmp_1 = this;
-          tmp_1.x22_1 = null;
+          tmp_1.y22_1 = null;
           this.k8_1 = 1;
           continue $sm;
         case 1:
-          this.u22_1 = this.y22_1;
-          this.v22_1 = this.x22_1;
-          this.r22_1 = this.u22_1.u1y_1.kotlinx$atomicfu$value;
+          this.v22_1 = this.z22_1;
+          this.w22_1 = this.y22_1;
+          this.s22_1 = this.v22_1.v1y_1.kotlinx$atomicfu$value;
           this.k8_1 = 2;
           continue $sm;
         case 2:
@@ -5692,9 +5692,9 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
             continue $sm;
           }
 
-          if (this.u22_1.s1z()) {
+          if (this.v22_1.t1z()) {
             var tmp_2 = this;
-            tmp_2.p22_1 = Companion_getInstance().y20(this.o22_1.q1z());
+            tmp_2.q22_1 = Companion_getInstance().z20(this.p22_1.r1z());
             this.k8_1 = 11;
             continue $sm;
           } else {
@@ -5703,22 +5703,22 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
           }
 
         case 3:
-          this.s22_1 = this.u22_1.q1y_1.atomicfu$getAndIncrement$long();
-          var tmp0 = this.s22_1;
+          this.t22_1 = this.v22_1.r1y_1.atomicfu$getAndIncrement$long();
+          var tmp0 = this.t22_1;
           var other = get_SEGMENT_SIZE();
           var id = divide(tmp0, fromInt(other));
           var tmp_3 = this;
-          var tmp0_0 = this.s22_1;
+          var tmp0_0 = this.t22_1;
           var other_0 = get_SEGMENT_SIZE();
-          tmp_3.t22_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
-          if (!equalsLong(this.r22_1.m1r_1, id)) {
-            var tmp0_elvis_lhs = findSegmentReceive(this.u22_1, id, this.r22_1);
+          tmp_3.u22_1 = convertToInt(modulo(tmp0_0, fromInt(other_0)));
+          if (!equalsLong(this.s22_1.n1r_1, id)) {
+            var tmp0_elvis_lhs = findSegmentReceive(this.v22_1, id, this.s22_1);
             if (tmp0_elvis_lhs == null) {
               this.k8_1 = 2;
               var tmp_4 = this;
               continue $sm;
             } else {
-              this.w22_1 = tmp0_elvis_lhs;
+              this.x22_1 = tmp0_elvis_lhs;
               this.k8_1 = 4;
               continue $sm;
             }
@@ -5728,40 +5728,40 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
           }
 
         case 4:
-          this.r22_1 = this.w22_1;
+          this.s22_1 = this.x22_1;
           this.k8_1 = 5;
           continue $sm;
         case 5:
-          var updCellResult = updateCellReceive(this.u22_1, this.r22_1, this.t22_1, this.s22_1, this.v22_1);
+          var updCellResult = updateCellReceive(this.v22_1, this.s22_1, this.u22_1, this.t22_1, this.w22_1);
           if (updCellResult === get_SUSPEND()) {
             var tmp_5 = this;
-            var tmp_6 = this.v22_1;
+            var tmp_6 = this.w22_1;
             var tmp1_safe_receiver = (!(tmp_6 == null) ? isInterface(tmp_6, Waiter) : false) ? tmp_6 : null;
             if (tmp1_safe_receiver == null)
               null;
             else {
-              prepareReceiverForSuspension(this.u22_1, tmp1_safe_receiver, this.r22_1, this.t22_1);
+              prepareReceiverForSuspension(this.v22_1, tmp1_safe_receiver, this.s22_1, this.u22_1);
             }
-            this.r22_1;
-            this.t22_1;
             this.s22_1;
+            this.u22_1;
+            this.t22_1;
             var message = 'unexpected';
             throw IllegalStateException_init_$Create$(toString(message));
           } else {
             if (updCellResult === get_FAILED()) {
-              if (compare(this.s22_1, this.u22_1.r1z()) < 0) {
-                this.r22_1.l1z();
+              if (compare(this.t22_1, this.v22_1.s1z()) < 0) {
+                this.s22_1.m1z();
               }
               this.k8_1 = 2;
               var tmp_7 = this;
               continue $sm;
             } else {
               if (updCellResult === get_SUSPEND_NO_WAITER()) {
-                var tmp0_1 = this.r22_1;
-                var tmp2 = this.t22_1;
-                var r = this.s22_1;
+                var tmp0_1 = this.s22_1;
+                var tmp2 = this.u22_1;
+                var r = this.t22_1;
                 this.k8_1 = 6;
-                suspendResult = receiveCatchingOnNoWaiterSuspend(this.o22_1, tmp0_1, tmp2, r, this);
+                suspendResult = receiveCatchingOnNoWaiterSuspend(this.p22_1, tmp0_1, tmp2, r, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
@@ -5769,9 +5769,9 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
                 continue $sm;
               } else {
                 var tmp_8 = this;
-                this.r22_1.l1z();
+                this.s22_1.m1z();
                 var element = (updCellResult == null ? true : !(updCellResult == null)) ? updCellResult : THROW_CCE();
-                tmp_8.q22_1 = new ChannelResult(Companion_getInstance().t20(element));
+                tmp_8.r22_1 = new ChannelResult(Companion_getInstance().u20(element));
                 this.k8_1 = 8;
                 continue $sm;
               }
@@ -5779,16 +5779,16 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
           }
 
         case 6:
-          var unboxed = suspendResult.x20_1;
+          var unboxed = suspendResult.y20_1;
           suspendResult = new ChannelResult(unboxed);
           this.k8_1 = 7;
           continue $sm;
         case 7:
-          this.q22_1 = suspendResult;
+          this.r22_1 = suspendResult;
           this.k8_1 = 8;
           continue $sm;
         case 8:
-          this.p22_1 = this.q22_1.x20_1;
+          this.q22_1 = this.r22_1.y20_1;
           this.k8_1 = 11;
           continue $sm;
         case 9:
@@ -5802,7 +5802,7 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
           this.k8_1 = 11;
           continue $sm;
         case 11:
-          return new ChannelResult(this.p22_1);
+          return new ChannelResult(this.q22_1);
       }
     } catch ($p) {
       var e = $p;
@@ -5817,20 +5817,20 @@ protoOf($receiveCatchingCOROUTINE$).s8 = function () {
 };
 function BufferedChannel(capacity, onUndeliveredElement) {
   onUndeliveredElement = onUndeliveredElement === VOID ? null : onUndeliveredElement;
-  this.n1y_1 = capacity;
-  this.o1y_1 = onUndeliveredElement;
+  this.o1y_1 = capacity;
+  this.p1y_1 = onUndeliveredElement;
   // Inline function 'kotlin.require' call
-  if (!(this.n1y_1 >= 0)) {
-    var message = 'Invalid channel capacity: ' + this.n1y_1 + ', should be >=0';
+  if (!(this.o1y_1 >= 0)) {
+    var message = 'Invalid channel capacity: ' + this.o1y_1 + ', should be >=0';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  this.p1y_1 = atomic$long$1(new Long(0, 0));
   this.q1y_1 = atomic$long$1(new Long(0, 0));
-  this.r1y_1 = atomic$long$1(initialBufferEnd(this.n1y_1));
-  this.s1y_1 = atomic$long$1(_get_bufferEndCounter__2d4hee(this));
+  this.r1y_1 = atomic$long$1(new Long(0, 0));
+  this.s1y_1 = atomic$long$1(initialBufferEnd(this.o1y_1));
+  this.t1y_1 = atomic$long$1(_get_bufferEndCounter__2d4hee(this));
   var firstSegment = new ChannelSegment(new Long(0, 0), null, this, 3);
-  this.t1y_1 = atomic$ref$1(firstSegment);
   this.u1y_1 = atomic$ref$1(firstSegment);
+  this.v1y_1 = atomic$ref$1(firstSegment);
   var tmp = this;
   var tmp_0;
   if (_get_isRendezvousOrUnlimited__3mdufi(this)) {
@@ -5839,43 +5839,43 @@ function BufferedChannel(capacity, onUndeliveredElement) {
   } else {
     tmp_0 = firstSegment;
   }
-  tmp.v1y_1 = atomic$ref$1(tmp_0);
+  tmp.w1y_1 = atomic$ref$1(tmp_0);
   var tmp_2 = this;
   var tmp_3;
-  if (this.o1y_1 == null) {
+  if (this.p1y_1 == null) {
     tmp_3 = null;
   } else {
     // Inline function 'kotlin.let' call
     tmp_3 = BufferedChannel$onUndeliveredElementReceiveCancellationConstructor$lambda(this);
   }
-  tmp_2.w1y_1 = tmp_3;
-  this.x1y_1 = atomic$ref$1(get_NO_CLOSE_CAUSE());
-  this.y1y_1 = atomic$ref$1(null);
+  tmp_2.x1y_1 = tmp_3;
+  this.y1y_1 = atomic$ref$1(get_NO_CLOSE_CAUSE());
+  this.z1y_1 = atomic$ref$1(null);
 }
-protoOf(BufferedChannel).r1z = function () {
+protoOf(BufferedChannel).s1z = function () {
   // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
-  var this_0 = this.p1y_1.kotlinx$atomicfu$value;
+  var this_0 = this.q1y_1.kotlinx$atomicfu$value;
   return bitwiseAnd(this_0, new Long(-1, 268435455));
 };
-protoOf(BufferedChannel).o20 = function () {
-  return this.q1y_1.kotlinx$atomicfu$value;
+protoOf(BufferedChannel).p20 = function () {
+  return this.r1y_1.kotlinx$atomicfu$value;
 };
-protoOf(BufferedChannel).z22 = function (element, $completion) {
+protoOf(BufferedChannel).a23 = function (element, $completion) {
   var tmp = new $sendCOROUTINE$(this, element, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(BufferedChannel).a23 = function (element) {
-  if (shouldSendSuspend0(this, this.p1y_1.kotlinx$atomicfu$value))
-    return Companion_getInstance().b23();
+protoOf(BufferedChannel).b23 = function (element) {
+  if (shouldSendSuspend0(this, this.q1y_1.kotlinx$atomicfu$value))
+    return Companion_getInstance().c23();
   var tmp4 = get_INTERRUPTED_SEND();
   var tmp$ret$4;
   $l$block_4: {
     // Inline function 'kotlinx.coroutines.channels.BufferedChannel.sendImpl' call
-    var segment = this.t1y_1.kotlinx$atomicfu$value;
+    var segment = this.u1y_1.kotlinx$atomicfu$value;
     $l$loop_0: while (true) {
-      var sendersAndCloseStatusCur = this.p1y_1.atomicfu$getAndIncrement$long();
+      var sendersAndCloseStatusCur = this.q1y_1.atomicfu$getAndIncrement$long();
       // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
       var s = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
       var closed = _get_isClosedForSend0__kxgf9m(this, sendersAndCloseStatusCur);
@@ -5886,13 +5886,13 @@ protoOf(BufferedChannel).a23 = function (element) {
       var other_0 = get_SEGMENT_SIZE();
       var tmp$ret$2 = modulo(s, fromInt(other_0));
       var i = convertToInt(tmp$ret$2);
-      if (!equalsLong(segment.m1r_1, id)) {
+      if (!equalsLong(segment.n1r_1, id)) {
         var tmp0_elvis_lhs = findSegmentSend(this, id, segment);
         var tmp;
         if (tmp0_elvis_lhs == null) {
           var tmp_0;
           if (closed) {
-            tmp$ret$4 = Companion_getInstance().y20(this.n20());
+            tmp$ret$4 = Companion_getInstance().z20(this.o20());
             break $l$block_4;
           } else {
             continue $l$loop_0;
@@ -5904,16 +5904,16 @@ protoOf(BufferedChannel).a23 = function (element) {
       }
       switch (updateCellSend(this, segment, i, element, s, tmp4, closed)) {
         case 0:
-          segment.l1z();
-          tmp$ret$4 = Companion_getInstance().t20(Unit_instance);
+          segment.m1z();
+          tmp$ret$4 = Companion_getInstance().u20(Unit_instance);
           break $l$block_4;
         case 1:
-          tmp$ret$4 = Companion_getInstance().t20(Unit_instance);
+          tmp$ret$4 = Companion_getInstance().u20(Unit_instance);
           break $l$block_4;
         case 2:
           if (closed) {
-            segment.b1z();
-            tmp$ret$4 = Companion_getInstance().y20(this.n20());
+            segment.c1z();
+            tmp$ret$4 = Companion_getInstance().z20(this.o20());
             break $l$block_4;
           }
 
@@ -5924,18 +5924,18 @@ protoOf(BufferedChannel).a23 = function (element) {
             prepareSenderForSuspension(this, tmp2_safe_receiver, segment, i);
           }
 
-          segment.b1z();
-          tmp$ret$4 = Companion_getInstance().b23();
+          segment.c1z();
+          tmp$ret$4 = Companion_getInstance().c23();
           break $l$block_4;
         case 4:
-          if (compare(s, this.o20()) < 0) {
-            segment.l1z();
+          if (compare(s, this.p20()) < 0) {
+            segment.m1z();
           }
 
-          tmp$ret$4 = Companion_getInstance().y20(this.n20());
+          tmp$ret$4 = Companion_getInstance().z20(this.o20());
           break $l$block_4;
         case 5:
-          segment.l1z();
+          segment.m1z();
           continue $l$loop_0;
         case 3:
           var message = 'unexpected';
@@ -5945,13 +5945,13 @@ protoOf(BufferedChannel).a23 = function (element) {
   }
   return tmp$ret$4;
 };
-protoOf(BufferedChannel).c23 = function (element) {
+protoOf(BufferedChannel).d23 = function (element) {
   var tmp$ret$3;
   // Inline function 'kotlinx.coroutines.channels.BufferedChannel.sendImpl' call
   var waiter = get_BUFFERED();
-  var segment = this.t1y_1.kotlinx$atomicfu$value;
+  var segment = this.u1y_1.kotlinx$atomicfu$value;
   $l$loop_0: while (true) {
-    var sendersAndCloseStatusCur = this.p1y_1.atomicfu$getAndIncrement$long();
+    var sendersAndCloseStatusCur = this.q1y_1.atomicfu$getAndIncrement$long();
     // Inline function 'kotlinx.coroutines.channels.sendersCounter' call
     var s = bitwiseAnd(sendersAndCloseStatusCur, new Long(-1, 268435455));
     var closed = _get_isClosedForSend0__kxgf9m(this, sendersAndCloseStatusCur);
@@ -5962,13 +5962,13 @@ protoOf(BufferedChannel).c23 = function (element) {
     var other_0 = get_SEGMENT_SIZE();
     var tmp$ret$2 = modulo(s, fromInt(other_0));
     var i = convertToInt(tmp$ret$2);
-    if (!equalsLong(segment.m1r_1, id)) {
+    if (!equalsLong(segment.n1r_1, id)) {
       var tmp0_elvis_lhs = findSegmentSend(this, id, segment);
       var tmp;
       if (tmp0_elvis_lhs == null) {
         var tmp_0;
         if (closed) {
-          return Companion_getInstance().y20(this.n20());
+          return Companion_getInstance().z20(this.o20());
         } else {
           continue $l$loop_0;
         }
@@ -5979,14 +5979,14 @@ protoOf(BufferedChannel).c23 = function (element) {
     }
     switch (updateCellSend(this, segment, i, element, s, waiter, closed)) {
       case 0:
-        segment.l1z();
-        return Companion_getInstance().t20(Unit_instance);
+        segment.m1z();
+        return Companion_getInstance().u20(Unit_instance);
       case 1:
-        return Companion_getInstance().t20(Unit_instance);
+        return Companion_getInstance().u20(Unit_instance);
       case 2:
         if (closed) {
-          segment.b1z();
-          return Companion_getInstance().y20(this.n20());
+          segment.c1z();
+          return Companion_getInstance().z20(this.o20());
         }
 
         var tmp2_safe_receiver = (!(waiter == null) ? isInterface(waiter, Waiter) : false) ? waiter : null;
@@ -5996,7 +5996,7 @@ protoOf(BufferedChannel).c23 = function (element) {
           prepareSenderForSuspension(this, tmp2_safe_receiver, segment, i);
         }
 
-        var tmp0 = segment.m1r_1;
+        var tmp0 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
 
         var other_1 = get_SEGMENT_SIZE();
@@ -6004,16 +6004,16 @@ protoOf(BufferedChannel).c23 = function (element) {
 
         var this_0 = multiply(tmp0, fromInt(other_1));
         var tmp$ret$5 = add(this_0, fromInt(i));
-        this.h21(tmp$ret$5);
-        return Companion_getInstance().t20(Unit_instance);
+        this.i21(tmp$ret$5);
+        return Companion_getInstance().u20(Unit_instance);
       case 4:
-        if (compare(s, this.o20()) < 0) {
-          segment.l1z();
+        if (compare(s, this.p20()) < 0) {
+          segment.m1z();
         }
 
-        return Companion_getInstance().y20(this.n20());
+        return Companion_getInstance().z20(this.o20());
       case 5:
-        segment.l1z();
+        segment.m1z();
         continue $l$loop_0;
       case 3:
         var message = 'unexpected';
@@ -6022,11 +6022,11 @@ protoOf(BufferedChannel).c23 = function (element) {
   }
   return tmp$ret$3;
 };
-protoOf(BufferedChannel).w20 = function () {
+protoOf(BufferedChannel).x20 = function () {
 };
-protoOf(BufferedChannel).p20 = function () {
+protoOf(BufferedChannel).q20 = function () {
 };
-protoOf(BufferedChannel).d23 = function ($completion) {
+protoOf(BufferedChannel).e23 = function ($completion) {
   var tmp = new $receiveCatchingCOROUTINE$(this, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
@@ -6035,13 +6035,13 @@ protoOf(BufferedChannel).d23 = function ($completion) {
     return tmp_0;
   return tmp_0;
 };
-protoOf(BufferedChannel).h21 = function (globalCellIndex) {
+protoOf(BufferedChannel).i21 = function (globalCellIndex) {
   // Inline function 'kotlinx.coroutines.assert' call
-  var segment = this.u1y_1.kotlinx$atomicfu$value;
+  var segment = this.v1y_1.kotlinx$atomicfu$value;
   $l$loop_0: while (true) {
-    var r = this.q1y_1.kotlinx$atomicfu$value;
+    var r = this.r1y_1.kotlinx$atomicfu$value;
     // Inline function 'kotlin.Long.plus' call
-    var other = this.n1y_1;
+    var other = this.o1y_1;
     var tmp0 = add(r, fromInt(other));
     // Inline function 'kotlin.math.max' call
     var b = _get_bufferEndCounter__2d4hee(this);
@@ -6050,7 +6050,7 @@ protoOf(BufferedChannel).h21 = function (globalCellIndex) {
       return Unit_instance;
     // Inline function 'kotlin.Long.plus' call
     var tmp$ret$3 = add(r, fromInt(1));
-    if (!this.q1y_1.atomicfu$compareAndSet(r, tmp$ret$3))
+    if (!this.r1y_1.atomicfu$compareAndSet(r, tmp$ret$3))
       continue $l$loop_0;
     // Inline function 'kotlin.Long.div' call
     var other_0 = get_SEGMENT_SIZE();
@@ -6059,7 +6059,7 @@ protoOf(BufferedChannel).h21 = function (globalCellIndex) {
     var other_1 = get_SEGMENT_SIZE();
     var tmp$ret$5 = modulo(r, fromInt(other_1));
     var i = convertToInt(tmp$ret$5);
-    if (!equalsLong(segment.m1r_1, id)) {
+    if (!equalsLong(segment.n1r_1, id)) {
       var tmp0_elvis_lhs = findSegmentReceive(this, id, segment);
       var tmp;
       if (tmp0_elvis_lhs == null) {
@@ -6071,12 +6071,12 @@ protoOf(BufferedChannel).h21 = function (globalCellIndex) {
     }
     var updCellResult = updateCellReceive(this, segment, i, r, null);
     if (updCellResult === get_FAILED()) {
-      if (compare(r, this.r1z()) < 0) {
-        segment.l1z();
+      if (compare(r, this.s1z()) < 0) {
+        segment.m1z();
       }
     } else {
-      segment.l1z();
-      var tmp1_safe_receiver = this.o1y_1;
+      segment.m1z();
+      var tmp1_safe_receiver = this.p1y_1;
       var tmp_0;
       if (tmp1_safe_receiver == null) {
         tmp_0 = null;
@@ -6093,7 +6093,7 @@ protoOf(BufferedChannel).h21 = function (globalCellIndex) {
     }
   }
 };
-protoOf(BufferedChannel).a1z = function (globalIndex) {
+protoOf(BufferedChannel).b1z = function (globalIndex) {
   if (_get_isRendezvousOrUnlimited__3mdufi(this))
     return Unit_instance;
   while (compare(_get_bufferEndCounter__2d4hee(this), globalIndex) <= 0) {
@@ -6107,13 +6107,13 @@ protoOf(BufferedChannel).a1z = function (globalIndex) {
       inductionVariable = inductionVariable + 1 | 0;
       var b = _get_bufferEndCounter__2d4hee(this);
       // Inline function 'kotlinx.coroutines.channels.ebCompletedCounter' call
-      var this_0 = this.s1y_1.kotlinx$atomicfu$value;
+      var this_0 = this.t1y_1.kotlinx$atomicfu$value;
       var ebCompleted = bitwiseAnd(this_0, new Long(-1, 1073741823));
       if (equalsLong(b, ebCompleted) && equalsLong(b, _get_bufferEndCounter__2d4hee(this)))
         return Unit_instance;
     }
      while (inductionVariable < times);
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.t1y_1;
   $l$block: {
     // Inline function 'kotlinx.atomicfu.update' call
     while (true) {
@@ -6128,13 +6128,13 @@ protoOf(BufferedChannel).a1z = function (globalIndex) {
   }
   while (true) {
     var b_0 = _get_bufferEndCounter__2d4hee(this);
-    var ebCompletedAndBit = this.s1y_1.kotlinx$atomicfu$value;
+    var ebCompletedAndBit = this.t1y_1.kotlinx$atomicfu$value;
     // Inline function 'kotlinx.coroutines.channels.ebCompletedCounter' call
     var ebCompleted_0 = bitwiseAnd(ebCompletedAndBit, new Long(-1, 1073741823));
     // Inline function 'kotlinx.coroutines.channels.ebPauseExpandBuffers' call
     var pauseExpandBuffers = !equalsLong(bitwiseAnd(ebCompletedAndBit, new Long(0, 1073741824)), new Long(0, 0));
     if (equalsLong(b_0, ebCompleted_0) && equalsLong(b_0, _get_bufferEndCounter__2d4hee(this))) {
-      var tmp0_0 = this.s1y_1;
+      var tmp0_0 = this.t1y_1;
       $l$block_0: {
         // Inline function 'kotlinx.atomicfu.update' call
         while (true) {
@@ -6150,37 +6150,37 @@ protoOf(BufferedChannel).a1z = function (globalIndex) {
       return Unit_instance;
     }
     if (!pauseExpandBuffers) {
-      this.s1y_1.atomicfu$compareAndSet(ebCompletedAndBit, constructEBCompletedAndPauseFlag(ebCompleted_0, true));
+      this.t1y_1.atomicfu$compareAndSet(ebCompletedAndBit, constructEBCompletedAndPauseFlag(ebCompleted_0, true));
     }
   }
 };
 protoOf(BufferedChannel).r = function () {
   return new BufferedChannelIterator(this);
 };
-protoOf(BufferedChannel).q1z = function () {
-  var tmp = this.x1y_1.kotlinx$atomicfu$value;
+protoOf(BufferedChannel).r1z = function () {
+  var tmp = this.y1y_1.kotlinx$atomicfu$value;
   return (tmp == null ? true : tmp instanceof Error) ? tmp : THROW_CCE();
 };
-protoOf(BufferedChannel).n20 = function () {
-  var tmp0_elvis_lhs = this.q1z();
+protoOf(BufferedChannel).o20 = function () {
+  var tmp0_elvis_lhs = this.r1z();
   return tmp0_elvis_lhs == null ? new ClosedSendChannelException('Channel was closed') : tmp0_elvis_lhs;
 };
-protoOf(BufferedChannel).e23 = function () {
+protoOf(BufferedChannel).f23 = function () {
 };
-protoOf(BufferedChannel).f23 = function (cause) {
-  return this.g23(cause, false);
+protoOf(BufferedChannel).g23 = function (cause) {
+  return this.h23(cause, false);
 };
-protoOf(BufferedChannel).j1o = function (cause) {
-  this.i23(cause);
+protoOf(BufferedChannel).k1o = function (cause) {
+  this.j23(cause);
 };
-protoOf(BufferedChannel).i23 = function (cause) {
-  return this.g23(cause == null ? CancellationException_init_$Create$('Channel was cancelled') : cause, true);
+protoOf(BufferedChannel).j23 = function (cause) {
+  return this.h23(cause == null ? CancellationException_init_$Create$('Channel was cancelled') : cause, true);
 };
-protoOf(BufferedChannel).g23 = function (cause, cancel) {
+protoOf(BufferedChannel).h23 = function (cause, cancel) {
   if (cancel) {
     markCancellationStarted(this);
   }
-  var closedByThisOperation = this.x1y_1.atomicfu$compareAndSet(get_NO_CLOSE_CAUSE(), cause);
+  var closedByThisOperation = this.y1y_1.atomicfu$compareAndSet(get_NO_CLOSE_CAUSE(), cause);
   if (cancel) {
     markCancelled(this);
   } else {
@@ -6188,37 +6188,37 @@ protoOf(BufferedChannel).g23 = function (cause, cancel) {
   }
   completeCloseOrCancel(this);
   // Inline function 'kotlin.also' call
-  this.e23();
+  this.f23();
   if (closedByThisOperation) {
     invokeCloseHandler(this);
   }
   return closedByThisOperation;
 };
-protoOf(BufferedChannel).i21 = function () {
+protoOf(BufferedChannel).j21 = function () {
   return false;
 };
-protoOf(BufferedChannel).g21 = function () {
-  return _get_isClosedForSend0__kxgf9m(this, this.p1y_1.kotlinx$atomicfu$value);
+protoOf(BufferedChannel).h21 = function () {
+  return _get_isClosedForSend0__kxgf9m(this, this.q1y_1.kotlinx$atomicfu$value);
 };
-protoOf(BufferedChannel).s1z = function () {
-  return _get_isClosedForReceive0__f7qknl(this, this.p1y_1.kotlinx$atomicfu$value);
+protoOf(BufferedChannel).t1z = function () {
+  return _get_isClosedForReceive0__f7qknl(this, this.q1y_1.kotlinx$atomicfu$value);
 };
-protoOf(BufferedChannel).j21 = function () {
+protoOf(BufferedChannel).k21 = function () {
   $l$loop: while (true) {
-    var segment = this.u1y_1.kotlinx$atomicfu$value;
-    var r = this.o20();
-    var s = this.r1z();
+    var segment = this.v1y_1.kotlinx$atomicfu$value;
+    var r = this.p20();
+    var s = this.s1z();
     if (compare(s, r) <= 0)
       return false;
     // Inline function 'kotlin.Long.div' call
     var other = get_SEGMENT_SIZE();
     var id = divide(r, fromInt(other));
-    if (!equalsLong(segment.m1r_1, id)) {
+    if (!equalsLong(segment.n1r_1, id)) {
       var tmp0_elvis_lhs = findSegmentReceive(this, id, segment);
       var tmp;
       if (tmp0_elvis_lhs == null) {
         var tmp_0;
-        if (compare(this.u1y_1.kotlinx$atomicfu$value.m1r_1, id) < 0) {
+        if (compare(this.v1y_1.kotlinx$atomicfu$value.n1r_1, id) < 0) {
           return false;
         } else {
           continue $l$loop;
@@ -6228,7 +6228,7 @@ protoOf(BufferedChannel).j21 = function () {
       }
       segment = tmp;
     }
-    segment.l1z();
+    segment.m1z();
     // Inline function 'kotlin.Long.rem' call
     var other_0 = get_SEGMENT_SIZE();
     var tmp$ret$1 = modulo(r, fromInt(other_0));
@@ -6237,30 +6237,30 @@ protoOf(BufferedChannel).j21 = function () {
       return true;
     // Inline function 'kotlin.Long.plus' call
     var tmp$ret$2 = add(r, fromInt(1));
-    this.q1y_1.atomicfu$compareAndSet(r, tmp$ret$2);
+    this.r1y_1.atomicfu$compareAndSet(r, tmp$ret$2);
   }
 };
 protoOf(BufferedChannel).toString = function () {
   var sb = StringBuilder_init_$Create$();
   // Inline function 'kotlinx.coroutines.channels.sendersCloseStatus' call
-  var this_0 = this.p1y_1.kotlinx$atomicfu$value;
+  var this_0 = this.q1y_1.kotlinx$atomicfu$value;
   var tmp0_subject = convertToInt(shiftRight(this_0, 60));
   if (tmp0_subject === 2) {
     sb.r7('closed,');
   } else if (tmp0_subject === 3) {
     sb.r7('cancelled,');
   }
-  sb.r7('capacity=' + this.n1y_1 + ',');
+  sb.r7('capacity=' + this.o1y_1 + ',');
   sb.r7('data=[');
   // Inline function 'kotlin.collections.filter' call
-  var tmp0 = listOf([this.u1y_1.kotlinx$atomicfu$value, this.t1y_1.kotlinx$atomicfu$value, this.v1y_1.kotlinx$atomicfu$value]);
+  var tmp0 = listOf([this.v1y_1.kotlinx$atomicfu$value, this.u1y_1.kotlinx$atomicfu$value, this.w1y_1.kotlinx$atomicfu$value]);
   // Inline function 'kotlin.collections.filterTo' call
   var destination = ArrayList_init_$Create$_0();
   var _iterator__ex2g4s = tmp0.r();
   while (_iterator__ex2g4s.s()) {
     var element = _iterator__ex2g4s.t();
     if (!(element === get_NULL_SEGMENT())) {
-      destination.j(element);
+      destination.g(element);
     }
   }
   var tmp$ret$4;
@@ -6274,10 +6274,10 @@ protoOf(BufferedChannel).toString = function () {
       tmp$ret$4 = minElem;
       break $l$block;
     }
-    var minValue = minElem.m1r_1;
+    var minValue = minElem.n1r_1;
     do {
       var e = iterator.t();
-      var v = e.m1r_1;
+      var v = e.n1r_1;
       if (compareTo(minValue, v) > 0) {
         minElem = e;
         minValue = v;
@@ -6287,8 +6287,8 @@ protoOf(BufferedChannel).toString = function () {
     tmp$ret$4 = minElem;
   }
   var firstSegment = tmp$ret$4;
-  var r = this.o20();
-  var s = this.r1z();
+  var r = this.p20();
+  var s = this.s1z();
   var segment = firstSegment;
   append_elements: while (true) {
     var inductionVariable = 0;
@@ -6297,7 +6297,7 @@ protoOf(BufferedChannel).toString = function () {
       process_cell: do {
         var i = inductionVariable;
         inductionVariable = inductionVariable + 1 | 0;
-        var tmp0_0 = segment.m1r_1;
+        var tmp0_0 = segment.n1r_1;
         // Inline function 'kotlin.Long.times' call
         var other = get_SEGMENT_SIZE();
         // Inline function 'kotlin.Long.plus' call
@@ -6305,8 +6305,8 @@ protoOf(BufferedChannel).toString = function () {
         var globalCellIndex = add(this_1, fromInt(i));
         if (compare(globalCellIndex, s) >= 0 && compare(globalCellIndex, r) >= 0)
           break append_elements;
-        var cellState = segment.j1y(i);
-        var element_0 = segment.g1y(i);
+        var cellState = segment.k1y(i);
+        var element_0 = segment.h1y(i);
         var tmp;
         if (!(cellState == null) ? isInterface(cellState, CancellableContinuation) : false) {
           tmp = compare(globalCellIndex, r) < 0 && compare(globalCellIndex, s) >= 0 ? 'receive' : compare(globalCellIndex, s) < 0 && compare(globalCellIndex, r) >= 0 ? 'send' : 'cont';
@@ -6345,7 +6345,7 @@ protoOf(BufferedChannel).toString = function () {
         }
       }
        while (inductionVariable < last_0);
-    var tmp2_elvis_lhs = segment.h1z();
+    var tmp2_elvis_lhs = segment.i1z();
     var tmp_0;
     if (tmp2_elvis_lhs == null) {
       break append_elements;
@@ -6361,10 +6361,10 @@ protoOf(BufferedChannel).toString = function () {
   return sb.toString();
 };
 function WaiterEB(waiter) {
-  this.q20_1 = waiter;
+  this.r20_1 = waiter;
 }
 protoOf(WaiterEB).toString = function () {
-  return 'WaiterEB(' + toString(this.q20_1) + ')';
+  return 'WaiterEB(' + toString(this.r20_1) + ')';
 };
 function initialBufferEnd(capacity) {
   _init_properties_BufferedChannel_kt__d6uc4y();
@@ -6378,19 +6378,19 @@ function initialBufferEnd(capacity) {
   }
 }
 function ReceiveCatching(cont) {
-  this.u20_1 = cont;
+  this.v20_1 = cont;
 }
-protoOf(ReceiveCatching).o1s = function (segment, index) {
-  this.u20_1.o1s(segment, index);
+protoOf(ReceiveCatching).p1s = function (segment, index) {
+  this.v20_1.p1s(segment, index);
 };
 function tryResume0(_this__u8e3s4, value, onCancellation) {
   onCancellation = onCancellation === VOID ? null : onCancellation;
   _init_properties_BufferedChannel_kt__d6uc4y();
   // Inline function 'kotlin.let' call
-  var token = _this__u8e3s4.m1q(value, null, onCancellation);
+  var token = _this__u8e3s4.n1q(value, null, onCancellation);
   var tmp;
   if (!(token == null)) {
-    _this__u8e3s4.n1q(token);
+    _this__u8e3s4.o1q(token);
     tmp = true;
   } else {
     tmp = false;
@@ -6411,7 +6411,7 @@ function createSegmentFunction() {
 }
 function createSegment(id, prev) {
   _init_properties_BufferedChannel_kt__d6uc4y();
-  return new ChannelSegment(id, prev, prev.d1y(), 0);
+  return new ChannelSegment(id, prev, prev.e1y(), 0);
 }
 function createSegment$ref() {
   var l = function (p0, p1) {
@@ -6447,13 +6447,13 @@ function _init_properties_BufferedChannel_kt__d6uc4y() {
 }
 function Factory() {
   Factory_instance = this;
-  this.j23_1 = 2147483647;
-  this.k23_1 = 0;
-  this.l23_1 = -1;
-  this.m23_1 = -2;
-  this.n23_1 = -3;
-  this.o23_1 = 'kotlinx.coroutines.channels.defaultBuffer';
-  this.p23_1 = systemProp('kotlinx.coroutines.channels.defaultBuffer', 64, 1, 2147483646);
+  this.k23_1 = 2147483647;
+  this.l23_1 = 0;
+  this.m23_1 = -1;
+  this.n23_1 = -2;
+  this.o23_1 = -3;
+  this.p23_1 = 'kotlinx.coroutines.channels.defaultBuffer';
+  this.q23_1 = systemProp('kotlinx.coroutines.channels.defaultBuffer', 64, 1, 2147483646);
 }
 var Factory_instance;
 function Factory_getInstance() {
@@ -6489,7 +6489,7 @@ function ChannelResult__getOrNull_impl_f5e07h($this) {
 function ChannelResult__exceptionOrNull_impl_16ei30($this) {
   var tmp = _ChannelResult___get_holder__impl__pm9gzw($this);
   var tmp0_safe_receiver = tmp instanceof Closed ? tmp : null;
-  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.q23_1;
+  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.r23_1;
 }
 function Failed() {
 }
@@ -6498,12 +6498,12 @@ protoOf(Failed).toString = function () {
 };
 function Closed(cause) {
   Failed.call(this);
-  this.q23_1 = cause;
+  this.r23_1 = cause;
 }
 protoOf(Closed).equals = function (other) {
   var tmp;
   if (other instanceof Closed) {
-    tmp = equals(this.q23_1, other.q23_1);
+    tmp = equals(this.r23_1, other.r23_1);
   } else {
     tmp = false;
   }
@@ -6511,24 +6511,24 @@ protoOf(Closed).equals = function (other) {
 };
 protoOf(Closed).hashCode = function () {
   // Inline function 'kotlin.hashCode' call
-  var tmp0_safe_receiver = this.q23_1;
+  var tmp0_safe_receiver = this.r23_1;
   var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : hashCode(tmp0_safe_receiver);
   return tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs;
 };
 protoOf(Closed).toString = function () {
-  return 'Closed(' + toString_0(this.q23_1) + ')';
+  return 'Closed(' + toString_0(this.r23_1) + ')';
 };
 function Companion() {
   Companion_instance_0 = this;
-  this.s20_1 = new Failed();
+  this.t20_1 = new Failed();
 }
-protoOf(Companion).t20 = function (value) {
+protoOf(Companion).u20 = function (value) {
   return _ChannelResult___init__impl__siwsuf(value);
 };
-protoOf(Companion).b23 = function () {
-  return _ChannelResult___init__impl__siwsuf(this.s20_1);
+protoOf(Companion).c23 = function () {
+  return _ChannelResult___init__impl__siwsuf(this.t20_1);
 };
-protoOf(Companion).y20 = function (cause) {
+protoOf(Companion).z20 = function (cause) {
   return _ChannelResult___init__impl__siwsuf(new Closed(cause));
 };
 var Companion_instance_0;
@@ -6552,23 +6552,23 @@ function ChannelResult__hashCode_impl_lilec2($this) {
 function ChannelResult__equals_impl_f471ri($this, other) {
   if (!(other instanceof ChannelResult))
     return false;
-  var tmp0_other_with_cast = other instanceof ChannelResult ? other.x20_1 : THROW_CCE();
+  var tmp0_other_with_cast = other instanceof ChannelResult ? other.y20_1 : THROW_CCE();
   if (!equals($this, tmp0_other_with_cast))
     return false;
   return true;
 }
 function ChannelResult(holder) {
   Companion_getInstance();
-  this.x20_1 = holder;
+  this.y20_1 = holder;
 }
 protoOf(ChannelResult).toString = function () {
-  return ChannelResult__toString_impl_rrcqu7(this.x20_1);
+  return ChannelResult__toString_impl_rrcqu7(this.y20_1);
 };
 protoOf(ChannelResult).hashCode = function () {
-  return ChannelResult__hashCode_impl_lilec2(this.x20_1);
+  return ChannelResult__hashCode_impl_lilec2(this.y20_1);
 };
 protoOf(ChannelResult).equals = function (other) {
-  return ChannelResult__equals_impl_f471ri(this.x20_1, other);
+  return ChannelResult__equals_impl_f471ri(this.y20_1, other);
 };
 function ClosedSendChannelException(message) {
   IllegalStateException_init_$Init$(message, this);
@@ -6605,7 +6605,7 @@ function Channel(capacity, onBufferOverflow, onUndeliveredElement) {
       tmp = new BufferedChannel(2147483647, onUndeliveredElement);
       break;
     case -2:
-      tmp = onBufferOverflow.equals(BufferOverflow_SUSPEND_getInstance()) ? new BufferedChannel(Factory_getInstance().p23_1, onUndeliveredElement) : new ConflatedBufferedChannel(1, onBufferOverflow, onUndeliveredElement);
+      tmp = onBufferOverflow.equals(BufferOverflow_SUSPEND_getInstance()) ? new BufferedChannel(Factory_getInstance().q23_1, onUndeliveredElement) : new ConflatedBufferedChannel(1, onBufferOverflow, onUndeliveredElement);
       break;
     default:
       tmp = onBufferOverflow === BufferOverflow_SUSPEND_getInstance() ? new BufferedChannel(capacity, onUndeliveredElement) : new ConflatedBufferedChannel(capacity, onBufferOverflow, onUndeliveredElement);
@@ -6615,42 +6615,42 @@ function Channel(capacity, onBufferOverflow, onUndeliveredElement) {
 }
 function ChannelCoroutine(parentContext, _channel, initParentJob, active) {
   AbstractCoroutine.call(this, parentContext, initParentJob, active);
-  this.v23_1 = _channel;
+  this.w23_1 = _channel;
 }
-protoOf(ChannelCoroutine).j1o = function (cause) {
-  if (this.y1n())
+protoOf(ChannelCoroutine).k1o = function (cause) {
+  if (this.z1n())
     return Unit_instance;
   var tmp;
   if (cause == null) {
     // Inline function 'kotlinx.coroutines.JobSupport.defaultCancellationException' call
-    tmp = new JobCancellationException(null == null ? this.g1n() : null, null, this);
+    tmp = new JobCancellationException(null == null ? this.h1n() : null, null, this);
   } else {
     tmp = cause;
   }
-  this.l1o(tmp);
+  this.m1o(tmp);
 };
-protoOf(ChannelCoroutine).r23 = function (cause, $super) {
-  return this.k1o(cause, ($super == null ? true : $super instanceof ChannelCoroutine) ? $super : THROW_CCE());
+protoOf(ChannelCoroutine).s23 = function (cause, $super) {
+  return this.l1o(cause, ($super == null ? true : $super instanceof ChannelCoroutine) ? $super : THROW_CCE());
 };
-protoOf(ChannelCoroutine).l1o = function (cause) {
-  var exception = this.d1o(cause);
-  this.v23_1.j1o(exception);
-  this.o1o(exception);
+protoOf(ChannelCoroutine).m1o = function (cause) {
+  var exception = this.e1o(cause);
+  this.w23_1.k1o(exception);
+  this.p1o(exception);
 };
-protoOf(ChannelCoroutine).z22 = function (element, $completion) {
-  return this.v23_1.z22(element, $completion);
+protoOf(ChannelCoroutine).a23 = function (element, $completion) {
+  return this.w23_1.a23(element, $completion);
 };
-protoOf(ChannelCoroutine).f23 = function (cause) {
-  return this.v23_1.f23(cause);
+protoOf(ChannelCoroutine).g23 = function (cause) {
+  return this.w23_1.g23(cause);
 };
-protoOf(ChannelCoroutine).d23 = function ($completion) {
-  var tmp = this.v23_1.d23($completion);
+protoOf(ChannelCoroutine).e23 = function ($completion) {
+  var tmp = this.w23_1.e23($completion);
   if (tmp === get_COROUTINE_SUSPENDED())
     return tmp;
   return tmp;
 };
 protoOf(ChannelCoroutine).r = function () {
-  return this.v23_1.r();
+  return this.w23_1.r();
 };
 function cancelConsumed(_this__u8e3s4, cause) {
   var tmp;
@@ -6661,17 +6661,17 @@ function cancelConsumed(_this__u8e3s4, cause) {
     var tmp0_elvis_lhs = cause instanceof CancellationException ? cause : null;
     tmp = tmp0_elvis_lhs == null ? CancellationException_0('Channel was consumed, consumer had failed', cause) : tmp0_elvis_lhs;
   }
-  _this__u8e3s4.j1o(tmp);
+  _this__u8e3s4.k1o(tmp);
 }
 function trySendImpl($this, element, isSendOp) {
-  return $this.j24_1 === BufferOverflow_DROP_LATEST_getInstance() ? trySendDropLatest($this, element, isSendOp) : $this.c23(element);
+  return $this.k24_1 === BufferOverflow_DROP_LATEST_getInstance() ? trySendDropLatest($this, element, isSendOp) : $this.d23(element);
 }
 function trySendDropLatest($this, element, isSendOp) {
-  var result = protoOf(BufferedChannel).a23.call($this, element);
+  var result = protoOf(BufferedChannel).b23.call($this, element);
   if (_ChannelResult___get_isSuccess__impl__odq1z9(result) || _ChannelResult___get_isClosed__impl__mg7kuu(result))
     return result;
   if (isSendOp) {
-    var tmp0_safe_receiver = $this.o1y_1;
+    var tmp0_safe_receiver = $this.p1y_1;
     var tmp1_safe_receiver = tmp0_safe_receiver == null ? null : callUndeliveredElementCatchingException(tmp0_safe_receiver, element);
     if (tmp1_safe_receiver == null)
       null;
@@ -6680,47 +6680,47 @@ function trySendDropLatest($this, element, isSendOp) {
       throw tmp1_safe_receiver;
     }
   }
-  return Companion_getInstance().t20(Unit_instance);
+  return Companion_getInstance().u20(Unit_instance);
 }
 function ConflatedBufferedChannel(capacity, onBufferOverflow, onUndeliveredElement) {
   onUndeliveredElement = onUndeliveredElement === VOID ? null : onUndeliveredElement;
   BufferedChannel.call(this, capacity, onUndeliveredElement);
-  this.i24_1 = capacity;
-  this.j24_1 = onBufferOverflow;
+  this.j24_1 = capacity;
+  this.k24_1 = onBufferOverflow;
   // Inline function 'kotlin.require' call
-  if (!!(this.j24_1 === BufferOverflow_SUSPEND_getInstance())) {
+  if (!!(this.k24_1 === BufferOverflow_SUSPEND_getInstance())) {
     var message = 'This implementation does not support suspension for senders, use ' + getKClass(BufferedChannel).x9() + ' instead';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.require' call
-  if (!(this.i24_1 >= 1)) {
-    var message_0 = 'Buffered channel capacity must be at least 1, but ' + this.i24_1 + ' was specified';
+  if (!(this.j24_1 >= 1)) {
+    var message_0 = 'Buffered channel capacity must be at least 1, but ' + this.j24_1 + ' was specified';
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
 }
-protoOf(ConflatedBufferedChannel).i21 = function () {
-  return this.j24_1.equals(BufferOverflow_DROP_OLDEST_getInstance());
+protoOf(ConflatedBufferedChannel).j21 = function () {
+  return this.k24_1.equals(BufferOverflow_DROP_OLDEST_getInstance());
 };
-protoOf(ConflatedBufferedChannel).z22 = function (element, $completion) {
+protoOf(ConflatedBufferedChannel).a23 = function (element, $completion) {
   // Inline function 'kotlinx.coroutines.channels.onClosed' call
   var this_0 = trySendImpl(this, element, true);
   var tmp = _ChannelResult___get_holder__impl__pm9gzw(this_0);
   if (tmp instanceof Closed) {
     ChannelResult__exceptionOrNull_impl_16ei30(this_0);
-    var tmp0_safe_receiver = this.o1y_1;
+    var tmp0_safe_receiver = this.p1y_1;
     var tmp1_safe_receiver = tmp0_safe_receiver == null ? null : callUndeliveredElementCatchingException(tmp0_safe_receiver, element);
     if (tmp1_safe_receiver == null)
       null;
     else {
       // Inline function 'kotlin.let' call
-      addSuppressed(tmp1_safe_receiver, this.n20());
+      addSuppressed(tmp1_safe_receiver, this.o20());
       throw tmp1_safe_receiver;
     }
-    throw this.n20();
+    throw this.o20();
   }
   return Unit_instance;
 };
-protoOf(ConflatedBufferedChannel).a23 = function (element) {
+protoOf(ConflatedBufferedChannel).b23 = function (element) {
   return trySendImpl(this, element, false);
 };
 function ProducerScope() {
@@ -6735,31 +6735,31 @@ function produce(_this__u8e3s4, context, capacity, onBufferOverflow, start, onCo
   var newContext = newCoroutineContext_0(_this__u8e3s4, context);
   var coroutine = new ProducerCoroutine(newContext, channel);
   if (!(onCompletion == null)) {
-    coroutine.e1o(onCompletion);
+    coroutine.f1o(onCompletion);
   }
-  coroutine.q1n(start, coroutine, block);
+  coroutine.r1n(start, coroutine, block);
   return coroutine;
 }
 function ProducerCoroutine(parentContext, channel) {
   ChannelCoroutine.call(this, parentContext, channel, true, true);
 }
-protoOf(ProducerCoroutine).d1n = function () {
-  return protoOf(ChannelCoroutine).d1n.call(this);
+protoOf(ProducerCoroutine).e1n = function () {
+  return protoOf(ChannelCoroutine).e1n.call(this);
 };
-protoOf(ProducerCoroutine).o24 = function (value) {
-  this.v23_1.h23();
+protoOf(ProducerCoroutine).p24 = function (value) {
+  this.w23_1.i23();
 };
-protoOf(ProducerCoroutine).e1n = function (value) {
-  return this.o24(value instanceof Unit ? value : THROW_CCE());
+protoOf(ProducerCoroutine).f1n = function (value) {
+  return this.p24(value instanceof Unit ? value : THROW_CCE());
 };
-protoOf(ProducerCoroutine).f1n = function (cause, handled) {
-  var processed = this.v23_1.f23(cause);
+protoOf(ProducerCoroutine).g1n = function (cause, handled) {
+  var processed = this.w23_1.g23(cause);
   if (!processed && !handled) {
-    handleCoroutineException(this.b1n_1, cause);
+    handleCoroutineException(this.c1n_1, cause);
   }
 };
-protoOf(ProducerCoroutine).r23 = function (cause, $super) {
-  return this.k1o(cause, ($super == null ? true : $super instanceof ProducerCoroutine) ? $super : THROW_CCE());
+protoOf(ProducerCoroutine).s23 = function (cause, $super) {
+  return this.l1o(cause, ($super == null ? true : $super instanceof ProducerCoroutine) ? $super : THROW_CCE());
 };
 function flow(block) {
   return new SafeFlow(block);
@@ -6770,15 +6770,15 @@ function flowOf(value) {
 }
 function SafeFlow(block) {
   AbstractFlow.call(this);
-  this.p24_1 = block;
+  this.q24_1 = block;
 }
-protoOf(SafeFlow).q24 = function (collector, $completion) {
-  return this.p24_1(collector, $completion);
+protoOf(SafeFlow).r24 = function (collector, $completion) {
+  return this.q24_1(collector, $completion);
 };
 function $collectCOROUTINE$(_this__u8e3s4, collector, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.a25_1 = _this__u8e3s4;
-  this.b25_1 = collector;
+  this.b25_1 = _this__u8e3s4;
+  this.c25_1 = collector;
 }
 protoOf($collectCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -6788,9 +6788,9 @@ protoOf($collectCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 2;
-          var $this$flow = this.b25_1;
+          var $this$flow = this.c25_1;
           this.k8_1 = 1;
-          suspendResult = $this$flow.d25(this.a25_1.c25_1, this);
+          suspendResult = $this$flow.e25(this.b25_1.d25_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -6813,19 +6813,19 @@ protoOf($collectCOROUTINE$).s8 = function () {
    while (true);
 };
 function flowOf$$inlined$unsafeFlow$1($value) {
-  this.c25_1 = $value;
+  this.d25_1 = $value;
 }
-protoOf(flowOf$$inlined$unsafeFlow$1).e25 = function (collector, $completion) {
+protoOf(flowOf$$inlined$unsafeFlow$1).f25 = function (collector, $completion) {
   var tmp = new $collectCOROUTINE$(this, collector, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(flowOf$$inlined$unsafeFlow$1).r24 = function (collector, $completion) {
-  return this.e25(collector, $completion);
+protoOf(flowOf$$inlined$unsafeFlow$1).s24 = function (collector, $completion) {
+  return this.f25(collector, $completion);
 };
 function produceIn(_this__u8e3s4, scope) {
-  return asChannelFlow(_this__u8e3s4).i25(scope);
+  return asChannelFlow(_this__u8e3s4).j25(scope);
 }
 function emitAll(_this__u8e3s4, channel, $completion) {
   return emitAllImpl(_this__u8e3s4, channel, true, $completion);
@@ -6838,9 +6838,9 @@ function emitAllImpl(_this__u8e3s4, channel, consume, $completion) {
 }
 function $emitAllImplCOROUTINE$(_this__u8e3s4, channel, consume, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.r25_1 = _this__u8e3s4;
-  this.s25_1 = channel;
-  this.t25_1 = consume;
+  this.s25_1 = _this__u8e3s4;
+  this.t25_1 = channel;
+  this.u25_1 = consume;
 }
 protoOf($emitAllImplCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -6850,19 +6850,19 @@ protoOf($emitAllImplCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 9;
-          ensureActive_1(this.r25_1);
-          this.u25_1 = null;
+          ensureActive_1(this.s25_1);
+          this.v25_1 = null;
           this.k8_1 = 1;
           continue $sm;
         case 1:
           this.l8_1 = 7;
           this.l8_1 = 6;
-          this.v25_1 = this.s25_1.r();
+          this.w25_1 = this.t25_1.r();
           this.k8_1 = 2;
           continue $sm;
         case 2:
           this.k8_1 = 3;
-          suspendResult = this.v25_1.e21(this);
+          suspendResult = this.w25_1.f21(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -6874,9 +6874,9 @@ protoOf($emitAllImplCOROUTINE$).s8 = function () {
             continue $sm;
           }
 
-          var element = this.v25_1.t();
+          var element = this.w25_1.t();
           this.k8_1 = 4;
-          suspendResult = this.r25_1.d25(element, this);
+          suspendResult = this.s25_1.e25(element, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -6894,7 +6894,7 @@ protoOf($emitAllImplCOROUTINE$).s8 = function () {
           var tmp_0 = this.n8_1;
           if (tmp_0 instanceof Error) {
             var e = this.n8_1;
-            this.u25_1 = e;
+            this.v25_1 = e;
             throw e;
           } else {
             throw this.n8_1;
@@ -6903,15 +6903,15 @@ protoOf($emitAllImplCOROUTINE$).s8 = function () {
         case 7:
           this.l8_1 = 9;
           var t = this.n8_1;
-          if (this.t25_1) {
-            cancelConsumed(this.s25_1, this.u25_1);
+          if (this.u25_1) {
+            cancelConsumed(this.t25_1, this.v25_1);
           }
 
           throw t;
         case 8:
           this.l8_1 = 9;
-          if (this.t25_1) {
-            cancelConsumed(this.s25_1, this.u25_1);
+          if (this.u25_1) {
+            cancelConsumed(this.t25_1, this.v25_1);
           }
 
           return Unit_instance;
@@ -6931,8 +6931,8 @@ protoOf($emitAllImplCOROUTINE$).s8 = function () {
 };
 function $collectCOROUTINE$_0(_this__u8e3s4, collector, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.e26_1 = _this__u8e3s4;
-  this.f26_1 = collector;
+  this.f26_1 = _this__u8e3s4;
+  this.g26_1 = collector;
 }
 protoOf($collectCOROUTINE$_0).s8 = function () {
   var suspendResult = this.m8_1;
@@ -6943,13 +6943,13 @@ protoOf($collectCOROUTINE$_0).s8 = function () {
         case 0:
           this.l8_1 = 5;
           var tmp_0 = this;
-          tmp_0.g26_1 = new SafeCollector(this.f26_1, this.q8());
+          tmp_0.h26_1 = new SafeCollector(this.g26_1, this.q8());
           this.k8_1 = 1;
           continue $sm;
         case 1:
           this.l8_1 = 4;
           this.k8_1 = 2;
-          suspendResult = this.e26_1.q24(this.g26_1, this);
+          suspendResult = this.f26_1.r24(this.h26_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -6961,12 +6961,12 @@ protoOf($collectCOROUTINE$_0).s8 = function () {
           continue $sm;
         case 3:
           this.l8_1 = 5;
-          this.g26_1.u8();
+          this.h26_1.u8();
           return Unit_instance;
         case 4:
           this.l8_1 = 5;
           var t = this.n8_1;
-          this.g26_1.u8();
+          this.h26_1.u8();
           throw t;
         case 5:
           throw this.n8_1;
@@ -6984,7 +6984,7 @@ protoOf($collectCOROUTINE$_0).s8 = function () {
 };
 function AbstractFlow() {
 }
-protoOf(AbstractFlow).r24 = function (collector, $completion) {
+protoOf(AbstractFlow).s24 = function (collector, $completion) {
   var tmp = new $collectCOROUTINE$_0(this, collector, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
@@ -6993,17 +6993,17 @@ protoOf(AbstractFlow).r24 = function (collector, $completion) {
 function FlowCollector() {
 }
 function ChannelFlow$_get_collectToFun_$slambda_j53z2e(this$0, resultContinuation) {
-  this.t26_1 = this$0;
+  this.u26_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).v26 = function (it, $completion) {
-  var tmp = this.w26(it, $completion);
+protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).w26 = function (it, $completion) {
+  var tmp = this.x26(it, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).b9 = function (p1, $completion) {
-  return this.v26((!(p1 == null) ? isInterface(p1, ProducerScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.w26((!(p1 == null) ? isInterface(p1, ProducerScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7014,7 +7014,7 @@ protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this.t26_1.x26(this.u26_1, this);
+          suspendResult = this.u26_1.y26(this.v26_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7036,32 +7036,32 @@ protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).s8 = function () {
     }
    while (true);
 };
-protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).w26 = function (it, completion) {
-  var i = new ChannelFlow$_get_collectToFun_$slambda_j53z2e(this.t26_1, completion);
-  i.u26_1 = it;
+protoOf(ChannelFlow$_get_collectToFun_$slambda_j53z2e).x26 = function (it, completion) {
+  var i = new ChannelFlow$_get_collectToFun_$slambda_j53z2e(this.u26_1, completion);
+  i.v26_1 = it;
   return i;
 };
 function ChannelFlow$_get_collectToFun_$slambda_j53z2e_0(this$0, resultContinuation) {
   var i = new ChannelFlow$_get_collectToFun_$slambda_j53z2e(this$0, resultContinuation);
   var l = function (it, $completion) {
-    return i.v26(it, $completion);
+    return i.w26(it, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function ChannelFlow$collect$slambda($collector, this$0, resultContinuation) {
-  this.g27_1 = $collector;
-  this.h27_1 = this$0;
+  this.h27_1 = $collector;
+  this.i27_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(ChannelFlow$collect$slambda).j27 = function ($this$coroutineScope, $completion) {
-  var tmp = this.k27($this$coroutineScope, $completion);
+protoOf(ChannelFlow$collect$slambda).k27 = function ($this$coroutineScope, $completion) {
+  var tmp = this.l27($this$coroutineScope, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(ChannelFlow$collect$slambda).b9 = function (p1, $completion) {
-  return this.j27((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.k27((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(ChannelFlow$collect$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7072,7 +7072,7 @@ protoOf(ChannelFlow$collect$slambda).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = emitAll(this.g27_1, this.h27_1.i25(this.i27_1), this);
+          suspendResult = emitAll(this.h27_1, this.i27_1.j25(this.j27_1), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7094,57 +7094,57 @@ protoOf(ChannelFlow$collect$slambda).s8 = function () {
     }
    while (true);
 };
-protoOf(ChannelFlow$collect$slambda).k27 = function ($this$coroutineScope, completion) {
-  var i = new ChannelFlow$collect$slambda(this.g27_1, this.h27_1, completion);
-  i.i27_1 = $this$coroutineScope;
+protoOf(ChannelFlow$collect$slambda).l27 = function ($this$coroutineScope, completion) {
+  var i = new ChannelFlow$collect$slambda(this.h27_1, this.i27_1, completion);
+  i.j27_1 = $this$coroutineScope;
   return i;
 };
 function ChannelFlow$collect$slambda_0($collector, this$0, resultContinuation) {
   var i = new ChannelFlow$collect$slambda($collector, this$0, resultContinuation);
   var l = function ($this$coroutineScope, $completion) {
-    return i.j27($this$coroutineScope, $completion);
+    return i.k27($this$coroutineScope, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function ChannelFlow(context, capacity, onBufferOverflow) {
-  this.f25_1 = context;
-  this.g25_1 = capacity;
-  this.h25_1 = onBufferOverflow;
+  this.g25_1 = context;
+  this.h25_1 = capacity;
+  this.i25_1 = onBufferOverflow;
   // Inline function 'kotlinx.coroutines.assert' call
 }
-protoOf(ChannelFlow).l27 = function () {
+protoOf(ChannelFlow).m27 = function () {
   return ChannelFlow$_get_collectToFun_$slambda_j53z2e_0(this, null);
 };
-protoOf(ChannelFlow).m27 = function () {
-  return this.g25_1 === -3 ? -2 : this.g25_1;
+protoOf(ChannelFlow).n27 = function () {
+  return this.h25_1 === -3 ? -2 : this.h25_1;
 };
-protoOf(ChannelFlow).i25 = function (scope) {
-  return produce(scope, this.f25_1, this.m27(), this.h25_1, CoroutineStart_ATOMIC_getInstance(), VOID, this.l27());
+protoOf(ChannelFlow).j25 = function (scope) {
+  return produce(scope, this.g25_1, this.n27(), this.i25_1, CoroutineStart_ATOMIC_getInstance(), VOID, this.m27());
 };
-protoOf(ChannelFlow).r24 = function (collector, $completion) {
+protoOf(ChannelFlow).s24 = function (collector, $completion) {
   return coroutineScope(ChannelFlow$collect$slambda_0(collector, this, null), $completion);
 };
-protoOf(ChannelFlow).n27 = function () {
+protoOf(ChannelFlow).o27 = function () {
   return null;
 };
 protoOf(ChannelFlow).toString = function () {
   var props = ArrayList_init_$Create$(4);
-  var tmp0_safe_receiver = this.n27();
+  var tmp0_safe_receiver = this.o27();
   if (tmp0_safe_receiver == null)
     null;
   else {
     // Inline function 'kotlin.let' call
-    props.j(tmp0_safe_receiver);
+    props.g(tmp0_safe_receiver);
   }
-  if (!(this.f25_1 === EmptyCoroutineContext_getInstance())) {
-    props.j('context=' + toString(this.f25_1));
+  if (!(this.g25_1 === EmptyCoroutineContext_getInstance())) {
+    props.g('context=' + toString(this.g25_1));
   }
-  if (!(this.g25_1 === -3)) {
-    props.j('capacity=' + this.g25_1);
+  if (!(this.h25_1 === -3)) {
+    props.g('capacity=' + this.h25_1);
   }
-  if (!this.h25_1.equals(BufferOverflow_SUSPEND_getInstance())) {
-    props.j('onBufferOverflow=' + this.h25_1.toString());
+  if (!this.i25_1.equals(BufferOverflow_SUSPEND_getInstance())) {
+    props.g('onBufferOverflow=' + this.i25_1.toString());
   }
   return get_classSimpleName(this) + '[' + joinToString(props, ', ') + ']';
 };
@@ -7158,8 +7158,8 @@ function ChannelFlowOperatorImpl(flow, context, capacity, onBufferOverflow) {
   onBufferOverflow = onBufferOverflow === VOID ? BufferOverflow_SUSPEND_getInstance() : onBufferOverflow;
   ChannelFlowOperator.call(this, flow, context, capacity, onBufferOverflow);
 }
-protoOf(ChannelFlowOperatorImpl).s27 = function (collector, $completion) {
-  return this.w27_1.r24(collector, $completion);
+protoOf(ChannelFlowOperatorImpl).t27 = function (collector, $completion) {
+  return this.x27_1.s24(collector, $completion);
 };
 function collectWithContextUndispatched($this, collector, newContext, $completion) {
   // Inline function 'kotlin.js.getCoroutineContext' call
@@ -7168,17 +7168,17 @@ function collectWithContextUndispatched($this, collector, newContext, $completio
   return withContextUndispatched(newContext, originalContextCollector, VOID, ChannelFlowOperator$collectWithContextUndispatched$slambda_0($this, null), $completion);
 }
 function ChannelFlowOperator$collectWithContextUndispatched$slambda(this$0, resultContinuation) {
-  this.f28_1 = this$0;
+  this.g28_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).h28 = function (it, $completion) {
-  var tmp = this.i28(it, $completion);
+protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).i28 = function (it, $completion) {
+  var tmp = this.j28(it, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).b9 = function (p1, $completion) {
-  return this.h28((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
+  return this.i28((!(p1 == null) ? isInterface(p1, FlowCollector) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7189,7 +7189,7 @@ protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).s8 = functio
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this.f28_1.s27(this.g28_1, this);
+          suspendResult = this.g28_1.t27(this.h28_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7211,23 +7211,23 @@ protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).s8 = functio
     }
    while (true);
 };
-protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).i28 = function (it, completion) {
-  var i = new ChannelFlowOperator$collectWithContextUndispatched$slambda(this.f28_1, completion);
-  i.g28_1 = it;
+protoOf(ChannelFlowOperator$collectWithContextUndispatched$slambda).j28 = function (it, completion) {
+  var i = new ChannelFlowOperator$collectWithContextUndispatched$slambda(this.g28_1, completion);
+  i.h28_1 = it;
   return i;
 };
 function ChannelFlowOperator$collectWithContextUndispatched$slambda_0(this$0, resultContinuation) {
   var i = new ChannelFlowOperator$collectWithContextUndispatched$slambda(this$0, resultContinuation);
   var l = function (it, $completion) {
-    return i.h28(it, $completion);
+    return i.i28(it, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function $collectCOROUTINE$_1(_this__u8e3s4, collector, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.r28_1 = _this__u8e3s4;
-  this.s28_1 = collector;
+  this.s28_1 = _this__u8e3s4;
+  this.t28_1 = collector;
 }
 protoOf($collectCOROUTINE$_1).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7237,13 +7237,13 @@ protoOf($collectCOROUTINE$_1).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 7;
-          if (this.r28_1.g25_1 === -3) {
+          if (this.s28_1.h25_1 === -3) {
             var tmp_0 = this;
-            tmp_0.u28_1 = this.q8();
-            this.t28_1 = newCoroutineContext(this.u28_1, this.r28_1.f25_1);
-            if (equals(this.t28_1, this.u28_1)) {
+            tmp_0.v28_1 = this.q8();
+            this.u28_1 = newCoroutineContext(this.v28_1, this.s28_1.g25_1);
+            if (equals(this.u28_1, this.v28_1)) {
               this.k8_1 = 6;
-              suspendResult = this.r28_1.s27(this.s28_1, this);
+              suspendResult = this.s28_1.t27(this.t28_1, this);
               if (suspendResult === get_COROUTINE_SUSPENDED()) {
                 return suspendResult;
               }
@@ -7258,9 +7258,9 @@ protoOf($collectCOROUTINE$_1).s8 = function () {
           }
 
         case 1:
-          if (equals(this.t28_1.x8(Key_instance), this.u28_1.x8(Key_instance))) {
+          if (equals(this.u28_1.x8(Key_instance), this.v28_1.x8(Key_instance))) {
             this.k8_1 = 5;
-            suspendResult = collectWithContextUndispatched(this.r28_1, this.s28_1, this.t28_1, this);
+            suspendResult = collectWithContextUndispatched(this.s28_1, this.t28_1, this.u28_1, this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -7275,7 +7275,7 @@ protoOf($collectCOROUTINE$_1).s8 = function () {
           continue $sm;
         case 3:
           this.k8_1 = 4;
-          suspendResult = protoOf(ChannelFlow).r24.call(this.r28_1, this.s28_1, this);
+          suspendResult = protoOf(ChannelFlow).s24.call(this.s28_1, this.t28_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7303,19 +7303,19 @@ protoOf($collectCOROUTINE$_1).s8 = function () {
 };
 function ChannelFlowOperator(flow, context, capacity, onBufferOverflow) {
   ChannelFlow.call(this, context, capacity, onBufferOverflow);
-  this.w27_1 = flow;
+  this.x27_1 = flow;
 }
-protoOf(ChannelFlowOperator).x26 = function (scope, $completion) {
-  return this.s27(new SendingCollector(scope), $completion);
+protoOf(ChannelFlowOperator).y26 = function (scope, $completion) {
+  return this.t27(new SendingCollector(scope), $completion);
 };
-protoOf(ChannelFlowOperator).r24 = function (collector, $completion) {
+protoOf(ChannelFlowOperator).s24 = function (collector, $completion) {
   var tmp = new $collectCOROUTINE$_1(this, collector, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(ChannelFlowOperator).toString = function () {
-  return toString(this.w27_1) + ' -> ' + protoOf(ChannelFlow).toString.call(this);
+  return toString(this.x27_1) + ' -> ' + protoOf(ChannelFlow).toString.call(this);
 };
 function withUndispatchedContextCollector(_this__u8e3s4, emitContext) {
   var tmp;
@@ -7340,17 +7340,17 @@ function withContextUndispatched(newContext, value, countOrElement, block, $comp
   return startCoroutineUninterceptedOrReturnNonGeneratorVersion(block, value, completion);
 }
 function UndispatchedContextCollector$emitRef$slambda($downstream, resultContinuation) {
-  this.d29_1 = $downstream;
+  this.e29_1 = $downstream;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(UndispatchedContextCollector$emitRef$slambda).f29 = function (it, $completion) {
-  var tmp = this.g29(it, $completion);
+protoOf(UndispatchedContextCollector$emitRef$slambda).g29 = function (it, $completion) {
+  var tmp = this.h29(it, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(UndispatchedContextCollector$emitRef$slambda).b9 = function (p1, $completion) {
-  return this.f29((p1 == null ? true : !(p1 == null)) ? p1 : THROW_CCE(), $completion);
+  return this.g29((p1 == null ? true : !(p1 == null)) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(UndispatchedContextCollector$emitRef$slambda).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7361,7 +7361,7 @@ protoOf(UndispatchedContextCollector$emitRef$slambda).s8 = function () {
         case 0:
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this.d29_1.d25(this.e29_1, this);
+          suspendResult = this.e29_1.e25(this.f29_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7383,40 +7383,40 @@ protoOf(UndispatchedContextCollector$emitRef$slambda).s8 = function () {
     }
    while (true);
 };
-protoOf(UndispatchedContextCollector$emitRef$slambda).g29 = function (it, completion) {
-  var i = new UndispatchedContextCollector$emitRef$slambda(this.d29_1, completion);
-  i.e29_1 = it;
+protoOf(UndispatchedContextCollector$emitRef$slambda).h29 = function (it, completion) {
+  var i = new UndispatchedContextCollector$emitRef$slambda(this.e29_1, completion);
+  i.f29_1 = it;
   return i;
 };
 function UndispatchedContextCollector$emitRef$slambda_0($downstream, resultContinuation) {
   var i = new UndispatchedContextCollector$emitRef$slambda($downstream, resultContinuation);
   var l = function (it, $completion) {
-    return i.f29(it, $completion);
+    return i.g29(it, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function UndispatchedContextCollector(downstream, emitContext) {
-  this.h29_1 = emitContext;
-  this.i29_1 = threadContextElements(this.h29_1);
+  this.i29_1 = emitContext;
+  this.j29_1 = threadContextElements(this.i29_1);
   var tmp = this;
-  tmp.j29_1 = UndispatchedContextCollector$emitRef$slambda_0(downstream, null);
+  tmp.k29_1 = UndispatchedContextCollector$emitRef$slambda_0(downstream, null);
 }
-protoOf(UndispatchedContextCollector).d25 = function (value, $completion) {
-  return withContextUndispatched(this.h29_1, value, this.i29_1, this.j29_1, $completion);
+protoOf(UndispatchedContextCollector).e25 = function (value, $completion) {
+  return withContextUndispatched(this.i29_1, value, this.j29_1, this.k29_1, $completion);
 };
 function StackFrameContinuation(uCont, context) {
-  this.k29_1 = uCont;
-  this.l29_1 = context;
+  this.l29_1 = uCont;
+  this.m29_1 = context;
 }
 protoOf(StackFrameContinuation).q8 = function () {
-  return this.l29_1;
+  return this.m29_1;
 };
 protoOf(StackFrameContinuation).v8 = function (result) {
-  this.k29_1.v8(result);
+  this.l29_1.v8(result);
 };
 function checkOwnership(_this__u8e3s4, owner) {
-  if (!(_this__u8e3s4.m29_1 === owner))
+  if (!(_this__u8e3s4.n29_1 === owner))
     throw _this__u8e3s4;
 }
 function NopCollector() {
@@ -7438,10 +7438,10 @@ function _init_properties_NullSurrogate_kt__n2yti9() {
   }
 }
 function checkContext(_this__u8e3s4, currentContext) {
-  var result = currentContext.zf(0, checkContext$lambda(_this__u8e3s4));
-  if (!(result === _this__u8e3s4.j26_1)) {
+  var result = currentContext.ag(0, checkContext$lambda(_this__u8e3s4));
+  if (!(result === _this__u8e3s4.k26_1)) {
     // Inline function 'kotlin.error' call
-    var message = 'Flow invariant is violated:\n' + ('\t\tFlow was collected in ' + toString(_this__u8e3s4.i26_1) + ',\n') + ('\t\tbut emission happened in ' + toString(currentContext) + '.\n') + "\t\tPlease refer to 'flow' documentation or use 'flowOn' instead";
+    var message = 'Flow invariant is violated:\n' + ('\t\tFlow was collected in ' + toString(_this__u8e3s4.j26_1) + ',\n') + ('\t\tbut emission happened in ' + toString(currentContext) + '.\n') + "\t\tPlease refer to 'flow' documentation or use 'flowOn' instead";
     throw IllegalStateException_init_$Create$(toString(message));
   }
 }
@@ -7456,7 +7456,7 @@ function transitiveCoroutineParent(_this__u8e3s4, collectJob) {
         return $this;
       if (!($this instanceof ScopeCoroutine))
         return $this;
-      var tmp0 = $this.a1m();
+      var tmp0 = $this.b1m();
       var tmp1 = collectJob_0;
       $this = tmp0;
       collectJob_0 = tmp1;
@@ -7469,7 +7469,7 @@ function transitiveCoroutineParent(_this__u8e3s4, collectJob) {
 function checkContext$lambda($this_checkContext) {
   return function (count, element) {
     var key = element.l2();
-    var collectElement = $this_checkContext.i26_1.x8(key);
+    var collectElement = $this_checkContext.j26_1.x8(key);
     var tmp;
     if (!(key === Key_instance_2)) {
       return !(element === collectElement) ? -2147483648 : count + 1 | 0;
@@ -7485,14 +7485,14 @@ function checkContext$lambda($this_checkContext) {
   };
 }
 function SendingCollector(channel) {
-  this.n29_1 = channel;
+  this.o29_1 = channel;
 }
-protoOf(SendingCollector).d25 = function (value, $completion) {
-  return this.n29_1.z22(value, $completion);
+protoOf(SendingCollector).e25 = function (value, $completion) {
+  return this.o29_1.a23(value, $completion);
 };
 function ensureActive_1(_this__u8e3s4) {
   if (_this__u8e3s4 instanceof ThrowingCollector)
-    throw _this__u8e3s4.o29_1;
+    throw _this__u8e3s4.p29_1;
 }
 function ThrowingCollector() {
 }
@@ -7509,34 +7509,34 @@ function firstOrNull(_this__u8e3s4, $completion) {
   return tmp.s8();
 }
 function first$$inlined$collectWhile$1($result) {
-  this.l2a_1 = $result;
+  this.m2a_1 = $result;
 }
-protoOf(first$$inlined$collectWhile$1).m2a = function (value, $completion) {
-  this.l2a_1._v = value;
+protoOf(first$$inlined$collectWhile$1).n2a = function (value, $completion) {
+  this.m2a_1._v = value;
   if (!false) {
     throw new AbortFlowException(this);
   }
   return Unit_instance;
 };
-protoOf(first$$inlined$collectWhile$1).d25 = function (value, $completion) {
-  return this.m2a((value == null ? true : !(value == null)) ? value : THROW_CCE(), $completion);
+protoOf(first$$inlined$collectWhile$1).e25 = function (value, $completion) {
+  return this.n2a((value == null ? true : !(value == null)) ? value : THROW_CCE(), $completion);
 };
 function firstOrNull$$inlined$collectWhile$1($result) {
-  this.n2a_1 = $result;
+  this.o2a_1 = $result;
 }
-protoOf(firstOrNull$$inlined$collectWhile$1).m2a = function (value, $completion) {
-  this.n2a_1._v = value;
+protoOf(firstOrNull$$inlined$collectWhile$1).n2a = function (value, $completion) {
+  this.o2a_1._v = value;
   if (!false) {
     throw new AbortFlowException(this);
   }
   return Unit_instance;
 };
-protoOf(firstOrNull$$inlined$collectWhile$1).d25 = function (value, $completion) {
-  return this.m2a((value == null ? true : !(value == null)) ? value : THROW_CCE(), $completion);
+protoOf(firstOrNull$$inlined$collectWhile$1).e25 = function (value, $completion) {
+  return this.n2a((value == null ? true : !(value == null)) ? value : THROW_CCE(), $completion);
 };
 function $firstCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.x29_1 = _this__u8e3s4;
+  this.y29_1 = _this__u8e3s4;
 }
 protoOf($firstCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7546,13 +7546,13 @@ protoOf($firstCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 3;
-          this.y29_1 = {_v: get_NULL()};
-          var this_0 = this.x29_1;
+          this.z29_1 = {_v: get_NULL()};
+          var this_0 = this.y29_1;
           var tmp_0 = this;
-          tmp_0.z29_1 = new first$$inlined$collectWhile$1(this.y29_1);
+          tmp_0.a2a_1 = new first$$inlined$collectWhile$1(this.z29_1);
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this_0.r24(this.z29_1, this);
+          suspendResult = this_0.s24(this.a2a_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7567,7 +7567,7 @@ protoOf($firstCOROUTINE$).s8 = function () {
           var tmp_1 = this.n8_1;
           if (tmp_1 instanceof AbortFlowException) {
             var e = this.n8_1;
-            checkOwnership(e, this.z29_1);
+            checkOwnership(e, this.a2a_1);
             ensureActive(this.q8());
             this.k8_1 = 4;
             continue $sm;
@@ -7579,9 +7579,9 @@ protoOf($firstCOROUTINE$).s8 = function () {
           throw this.n8_1;
         case 4:
           this.l8_1 = 3;
-          if (this.y29_1._v === get_NULL())
+          if (this.z29_1._v === get_NULL())
             throw NoSuchElementException_init_$Create$_0('Expected at least one element');
-          var tmp_2 = this.y29_1._v;
+          var tmp_2 = this.z29_1._v;
           return (tmp_2 == null ? true : !(tmp_2 == null)) ? tmp_2 : THROW_CCE();
       }
     } catch ($p) {
@@ -7597,7 +7597,7 @@ protoOf($firstCOROUTINE$).s8 = function () {
 };
 function $firstOrNullCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.i2a_1 = _this__u8e3s4;
+  this.j2a_1 = _this__u8e3s4;
 }
 protoOf($firstOrNullCOROUTINE$).s8 = function () {
   var suspendResult = this.m8_1;
@@ -7607,13 +7607,13 @@ protoOf($firstOrNullCOROUTINE$).s8 = function () {
       switch (tmp) {
         case 0:
           this.l8_1 = 4;
-          this.j2a_1 = {_v: null};
-          var this_0 = this.i2a_1;
+          this.k2a_1 = {_v: null};
+          var this_0 = this.j2a_1;
           var tmp_0 = this;
-          tmp_0.k2a_1 = new firstOrNull$$inlined$collectWhile$1(this.j2a_1);
+          tmp_0.l2a_1 = new firstOrNull$$inlined$collectWhile$1(this.k2a_1);
           this.l8_1 = 2;
           this.k8_1 = 1;
-          suspendResult = this_0.r24(this.k2a_1, this);
+          suspendResult = this_0.s24(this.l2a_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -7628,7 +7628,7 @@ protoOf($firstOrNullCOROUTINE$).s8 = function () {
           var tmp_1 = this.n8_1;
           if (tmp_1 instanceof AbortFlowException) {
             var e = this.n8_1;
-            checkOwnership(e, this.k2a_1);
+            checkOwnership(e, this.l2a_1);
             ensureActive(this.q8());
             this.k8_1 = 3;
             continue $sm;
@@ -7638,7 +7638,7 @@ protoOf($firstOrNullCOROUTINE$).s8 = function () {
 
         case 3:
           this.l8_1 = 4;
-          return this.j2a_1._v;
+          return this.k2a_1._v;
         case 4:
           throw this.n8_1;
       }
@@ -7660,20 +7660,20 @@ function get_CLOSED() {
 var CLOSED;
 function Segment(id, prev, pointers) {
   ConcurrentLinkedListNode.call(this, prev);
-  this.m1r_1 = id;
-  this.n1r_1 = atomic$int$1(pointers << 16);
+  this.n1r_1 = id;
+  this.o1r_1 = atomic$int$1(pointers << 16);
 }
-protoOf(Segment).c1z = function () {
-  return this.n1r_1.kotlinx$atomicfu$value === this.e1y() && !this.j1z();
-};
 protoOf(Segment).d1z = function () {
-  var tmp0 = this.n1r_1;
+  return this.o1r_1.kotlinx$atomicfu$value === this.f1y() && !this.k1z();
+};
+protoOf(Segment).e1z = function () {
+  var tmp0 = this.o1r_1;
   var tmp$ret$1;
   $l$block_0: {
     // Inline function 'kotlinx.coroutines.internal.addConditionally' call
     while (true) {
       var cur = tmp0.kotlinx$atomicfu$value;
-      if (!(!(cur === this.e1y()) || this.j1z())) {
+      if (!(!(cur === this.f1y()) || this.k1z())) {
         tmp$ret$1 = false;
         break $l$block_0;
       }
@@ -7685,11 +7685,11 @@ protoOf(Segment).d1z = function () {
   }
   return tmp$ret$1;
 };
-protoOf(Segment).e1z = function () {
-  return this.n1r_1.atomicfu$addAndGet(-65536) === this.e1y() && !this.j1z();
+protoOf(Segment).f1z = function () {
+  return this.o1r_1.atomicfu$addAndGet(-65536) === this.f1y() && !this.k1z();
 };
-protoOf(Segment).b1z = function () {
-  if (this.n1r_1.atomicfu$incrementAndGet() === this.e1y()) {
+protoOf(Segment).c1z = function () {
+  if (this.o1r_1.atomicfu$incrementAndGet() === this.f1y()) {
     this.u3();
   }
 };
@@ -7709,7 +7709,7 @@ function close(_this__u8e3s4) {
     }
     var next = tmp;
     if (next === null) {
-      if (cur.m1z())
+      if (cur.n1z())
         return cur;
     } else {
       cur = next;
@@ -7745,37 +7745,37 @@ function SegmentOrClosed__hashCode_impl_4855hs($this) {
 function SegmentOrClosed__equals_impl_6erq1g($this, other) {
   if (!(other instanceof SegmentOrClosed))
     return false;
-  var tmp0_other_with_cast = other instanceof SegmentOrClosed ? other.k21_1 : THROW_CCE();
+  var tmp0_other_with_cast = other instanceof SegmentOrClosed ? other.l21_1 : THROW_CCE();
   if (!equals($this, tmp0_other_with_cast))
     return false;
   return true;
 }
 function SegmentOrClosed(value) {
-  this.k21_1 = value;
+  this.l21_1 = value;
 }
 protoOf(SegmentOrClosed).toString = function () {
-  return SegmentOrClosed__toString_impl_pzb2an(this.k21_1);
+  return SegmentOrClosed__toString_impl_pzb2an(this.l21_1);
 };
 protoOf(SegmentOrClosed).hashCode = function () {
-  return SegmentOrClosed__hashCode_impl_4855hs(this.k21_1);
+  return SegmentOrClosed__hashCode_impl_4855hs(this.l21_1);
 };
 protoOf(SegmentOrClosed).equals = function (other) {
-  return SegmentOrClosed__equals_impl_6erq1g(this.k21_1, other);
+  return SegmentOrClosed__equals_impl_6erq1g(this.l21_1, other);
 };
 function _get_nextOrClosed__w0gmuv($this) {
-  return $this.f1z_1.kotlinx$atomicfu$value;
+  return $this.g1z_1.kotlinx$atomicfu$value;
 }
 function _get_aliveSegmentLeft__mr4ndu($this) {
-  var cur = $this.k1z();
-  while (!(cur === null) && cur.c1z())
-    cur = cur.g1z_1.kotlinx$atomicfu$value;
+  var cur = $this.l1z();
+  while (!(cur === null) && cur.d1z())
+    cur = cur.h1z_1.kotlinx$atomicfu$value;
   return cur;
 }
 function _get_aliveSegmentRight__7ulr0b($this) {
   // Inline function 'kotlinx.coroutines.assert' call
-  var cur = ensureNotNull($this.h1z());
-  while (cur.c1z()) {
-    var tmp0_elvis_lhs = cur.h1z();
+  var cur = ensureNotNull($this.i1z());
+  while (cur.d1z()) {
+    var tmp0_elvis_lhs = cur.i1z();
     var tmp;
     if (tmp0_elvis_lhs == null) {
       return cur;
@@ -7790,10 +7790,10 @@ function access$_get_nextOrClosed__ywzond($this) {
   return _get_nextOrClosed__w0gmuv($this);
 }
 function ConcurrentLinkedListNode(prev) {
-  this.f1z_1 = atomic$ref$1(null);
-  this.g1z_1 = atomic$ref$1(prev);
+  this.g1z_1 = atomic$ref$1(null);
+  this.h1z_1 = atomic$ref$1(prev);
 }
-protoOf(ConcurrentLinkedListNode).h1z = function () {
+protoOf(ConcurrentLinkedListNode).i1z = function () {
   // Inline function 'kotlinx.coroutines.internal.ConcurrentLinkedListNode.nextOrIfClosed' call
   // Inline function 'kotlin.let' call
   var it = access$_get_nextOrClosed__ywzond(this);
@@ -7805,30 +7805,30 @@ protoOf(ConcurrentLinkedListNode).h1z = function () {
   }
   return tmp;
 };
-protoOf(ConcurrentLinkedListNode).i1z = function (value) {
-  return this.f1z_1.atomicfu$compareAndSet(null, value);
-};
-protoOf(ConcurrentLinkedListNode).j1z = function () {
-  return this.h1z() == null;
+protoOf(ConcurrentLinkedListNode).j1z = function (value) {
+  return this.g1z_1.atomicfu$compareAndSet(null, value);
 };
 protoOf(ConcurrentLinkedListNode).k1z = function () {
-  return this.g1z_1.kotlinx$atomicfu$value;
+  return this.i1z() == null;
 };
 protoOf(ConcurrentLinkedListNode).l1z = function () {
-  // Inline function 'kotlinx.atomicfu.AtomicRef.lazySet' call
-  this.g1z_1.kotlinx$atomicfu$value = null;
+  return this.h1z_1.kotlinx$atomicfu$value;
 };
 protoOf(ConcurrentLinkedListNode).m1z = function () {
-  return this.f1z_1.atomicfu$compareAndSet(null, get_CLOSED());
+  // Inline function 'kotlinx.atomicfu.AtomicRef.lazySet' call
+  this.h1z_1.kotlinx$atomicfu$value = null;
+};
+protoOf(ConcurrentLinkedListNode).n1z = function () {
+  return this.g1z_1.atomicfu$compareAndSet(null, get_CLOSED());
 };
 protoOf(ConcurrentLinkedListNode).u3 = function () {
   // Inline function 'kotlinx.coroutines.assert' call
-  if (this.j1z())
+  if (this.k1z())
     return Unit_instance;
   $l$loop_0: while (true) {
     var prev = _get_aliveSegmentLeft__mr4ndu(this);
     var next = _get_aliveSegmentRight__7ulr0b(this);
-    var tmp0 = next.g1z_1;
+    var tmp0 = next.h1z_1;
     $l$block: {
       // Inline function 'kotlinx.atomicfu.update' call
       while (true) {
@@ -7840,10 +7840,10 @@ protoOf(ConcurrentLinkedListNode).u3 = function () {
       }
     }
     if (!(prev === null))
-      prev.f1z_1.kotlinx$atomicfu$value = next;
-    if (next.c1z() && !next.j1z())
+      prev.g1z_1.kotlinx$atomicfu$value = next;
+    if (next.d1z() && !next.k1z())
       continue $l$loop_0;
-    if (!(prev === null) && prev.c1z())
+    if (!(prev === null) && prev.d1z())
       continue $l$loop_0;
     return Unit_instance;
   }
@@ -7851,7 +7851,7 @@ protoOf(ConcurrentLinkedListNode).u3 = function () {
 function findSegmentInternal(_this__u8e3s4, id, createNewSegment) {
   _init_properties_ConcurrentLinkedList_kt__5gcgzy();
   var cur = _this__u8e3s4;
-  $l$loop: while (compare(cur.m1r_1, id) < 0 || cur.c1z()) {
+  $l$loop: while (compare(cur.n1r_1, id) < 0 || cur.d1z()) {
     // Inline function 'kotlinx.coroutines.internal.ConcurrentLinkedListNode.nextOrIfClosed' call
     var this_0 = cur;
     // Inline function 'kotlin.let' call
@@ -7868,10 +7868,10 @@ function findSegmentInternal(_this__u8e3s4, id, createNewSegment) {
       continue $l$loop;
     }
     // Inline function 'kotlin.Long.plus' call
-    var this_1 = cur.m1r_1;
+    var this_1 = cur.n1r_1;
     var newTail = createNewSegment(add(this_1, fromInt(1)), cur);
-    if (cur.i1z(newTail)) {
-      if (cur.c1z()) {
+    if (cur.j1z(newTail)) {
+      if (cur.d1z()) {
         cur.u3();
       }
       cur = newTail;
@@ -7894,7 +7894,7 @@ function handleUncaughtCoroutineException(context, exception) {
   while (_iterator__ex2g4s.s()) {
     var handler = _iterator__ex2g4s.t();
     try {
-      handler.j1u(context, exception);
+      handler.k1u(context, exception);
     } catch ($p) {
       if ($p instanceof ExceptionSuccessfullyProcessed) {
         var _unused_var__etf5q3 = $p;
@@ -7933,48 +7933,48 @@ function get_REUSABLE_CLAIMED() {
 }
 var REUSABLE_CLAIMED;
 function _get_reusableCancellableContinuation__9qex09($this) {
-  var tmp = $this.e1r_1.kotlinx$atomicfu$value;
+  var tmp = $this.f1r_1.kotlinx$atomicfu$value;
   return tmp instanceof CancellableContinuationImpl ? tmp : null;
 }
 function DispatchedContinuation(dispatcher, continuation) {
   DispatchedTask.call(this, -1);
-  this.a1r_1 = dispatcher;
-  this.b1r_1 = continuation;
-  this.c1r_1 = get_UNDEFINED();
-  this.d1r_1 = threadContextElements(this.q8());
-  this.e1r_1 = atomic$ref$1(null);
+  this.b1r_1 = dispatcher;
+  this.c1r_1 = continuation;
+  this.d1r_1 = get_UNDEFINED();
+  this.e1r_1 = threadContextElements(this.q8());
+  this.f1r_1 = atomic$ref$1(null);
 }
-protoOf(DispatchedContinuation).h1r = function () {
-  return !(this.e1r_1.kotlinx$atomicfu$value == null);
+protoOf(DispatchedContinuation).i1r = function () {
+  return !(this.f1r_1.kotlinx$atomicfu$value == null);
 };
-protoOf(DispatchedContinuation).o2a = function () {
+protoOf(DispatchedContinuation).p2a = function () {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.e1r_1;
+  var this_0 = this.f1r_1;
   while (true) {
     if (!(this_0.kotlinx$atomicfu$value === get_REUSABLE_CLAIMED()))
       return Unit_instance;
   }
 };
-protoOf(DispatchedContinuation).h1u = function () {
-  this.o2a();
+protoOf(DispatchedContinuation).i1u = function () {
+  this.p2a();
   var tmp0_safe_receiver = _get_reusableCancellableContinuation__9qex09(this);
   if (tmp0_safe_receiver == null)
     null;
   else {
-    tmp0_safe_receiver.y1r();
+    tmp0_safe_receiver.z1r();
   }
 };
-protoOf(DispatchedContinuation).f1r = function () {
+protoOf(DispatchedContinuation).g1r = function () {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.e1r_1;
+  var this_0 = this.f1r_1;
   while (true) {
     var state = this_0.kotlinx$atomicfu$value;
     if (state === null) {
-      this.e1r_1.kotlinx$atomicfu$value = get_REUSABLE_CLAIMED();
+      this.f1r_1.kotlinx$atomicfu$value = get_REUSABLE_CLAIMED();
       return null;
     } else {
       if (state instanceof CancellableContinuationImpl) {
-        if (this.e1r_1.atomicfu$compareAndSet(state, get_REUSABLE_CLAIMED())) {
+        if (this.f1r_1.atomicfu$compareAndSet(state, get_REUSABLE_CLAIMED())) {
           return state instanceof CancellableContinuationImpl ? state : THROW_CCE();
         }
       } else {
@@ -7989,19 +7989,19 @@ protoOf(DispatchedContinuation).f1r = function () {
     }
   }
 };
-protoOf(DispatchedContinuation).k1s = function (continuation) {
+protoOf(DispatchedContinuation).l1s = function (continuation) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.e1r_1;
+  var this_0 = this.f1r_1;
   while (true) {
     var state = this_0.kotlinx$atomicfu$value;
     if (state === get_REUSABLE_CLAIMED()) {
-      if (this.e1r_1.atomicfu$compareAndSet(get_REUSABLE_CLAIMED(), continuation))
+      if (this.f1r_1.atomicfu$compareAndSet(get_REUSABLE_CLAIMED(), continuation))
         return null;
     } else {
       if (state instanceof Error) {
         // Inline function 'kotlin.require' call
         // Inline function 'kotlin.require' call
-        if (!this.e1r_1.atomicfu$compareAndSet(state, null)) {
+        if (!this.f1r_1.atomicfu$compareAndSet(state, null)) {
           var message = 'Failed requirement.';
           throw IllegalArgumentException_init_$Create$(toString(message));
         }
@@ -8014,94 +8014,94 @@ protoOf(DispatchedContinuation).k1s = function (continuation) {
     }
   }
 };
-protoOf(DispatchedContinuation).j1r = function (cause) {
+protoOf(DispatchedContinuation).k1r = function (cause) {
   // Inline function 'kotlinx.atomicfu.loop' call
-  var this_0 = this.e1r_1;
+  var this_0 = this.f1r_1;
   while (true) {
     var state = this_0.kotlinx$atomicfu$value;
     if (equals(state, get_REUSABLE_CLAIMED())) {
-      if (this.e1r_1.atomicfu$compareAndSet(get_REUSABLE_CLAIMED(), cause))
+      if (this.f1r_1.atomicfu$compareAndSet(get_REUSABLE_CLAIMED(), cause))
         return true;
     } else {
       if (state instanceof Error)
         return true;
       else {
-        if (this.e1r_1.atomicfu$compareAndSet(state, null))
+        if (this.f1r_1.atomicfu$compareAndSet(state, null))
           return false;
       }
     }
   }
 };
-protoOf(DispatchedContinuation).b1s = function () {
-  var state = this.c1r_1;
+protoOf(DispatchedContinuation).c1s = function () {
+  var state = this.d1r_1;
   // Inline function 'kotlinx.coroutines.assert' call
-  this.c1r_1 = get_UNDEFINED();
+  this.d1r_1 = get_UNDEFINED();
   return state;
 };
-protoOf(DispatchedContinuation).z1r = function () {
+protoOf(DispatchedContinuation).a1s = function () {
   return this;
 };
 protoOf(DispatchedContinuation).v8 = function (result) {
   var state = toState_0(result);
-  if (safeIsDispatchNeeded(this.a1r_1, this.q8())) {
-    this.c1r_1 = state;
-    this.i1r_1 = 0;
-    safeDispatch(this.a1r_1, this.q8(), this);
+  if (safeIsDispatchNeeded(this.b1r_1, this.q8())) {
+    this.d1r_1 = state;
+    this.j1r_1 = 0;
+    safeDispatch(this.b1r_1, this.q8(), this);
   } else {
     $l$block: {
       // Inline function 'kotlinx.coroutines.internal.executeUnconfined' call
       // Inline function 'kotlinx.coroutines.assert' call
-      var eventLoop = ThreadLocalEventLoop_getInstance().c1v();
-      if (false && eventLoop.x1u()) {
+      var eventLoop = ThreadLocalEventLoop_getInstance().d1v();
+      if (false && eventLoop.y1u()) {
         break $l$block;
       }
       var tmp;
-      if (eventLoop.w1u()) {
-        this.c1r_1 = state;
-        this.i1r_1 = 0;
-        eventLoop.v1u(this);
+      if (eventLoop.x1u()) {
+        this.d1r_1 = state;
+        this.j1r_1 = 0;
+        eventLoop.w1u(this);
         tmp = true;
       } else {
         // Inline function 'kotlinx.coroutines.runUnconfinedEventLoop' call
-        eventLoop.y1u(true);
+        eventLoop.z1u(true);
         try {
           this.q8();
           // Inline function 'kotlinx.coroutines.withCoroutineContext' call
-          this.d1r_1;
-          this.b1r_1.v8(result);
-          $l$loop: while (eventLoop.u1u()) {
+          this.e1r_1;
+          this.c1r_1.v8(result);
+          $l$loop: while (eventLoop.v1u()) {
           }
         } catch ($p) {
           if ($p instanceof Error) {
             var e = $p;
-            this.w1s(e);
+            this.x1s(e);
           } else {
             throw $p;
           }
         }
         finally {
-          eventLoop.z1u(true);
+          eventLoop.a1v(true);
         }
         tmp = false;
       }
     }
   }
 };
-protoOf(DispatchedContinuation).w1x = function (context, value) {
-  this.c1r_1 = value;
-  this.i1r_1 = 1;
-  this.a1r_1.g1u(context, this);
+protoOf(DispatchedContinuation).x1x = function (context, value) {
+  this.d1r_1 = value;
+  this.j1r_1 = 1;
+  this.b1r_1.h1u(context, this);
 };
 protoOf(DispatchedContinuation).toString = function () {
-  return 'DispatchedContinuation[' + this.a1r_1.toString() + ', ' + toDebugString(this.b1r_1) + ']';
+  return 'DispatchedContinuation[' + this.b1r_1.toString() + ', ' + toDebugString(this.c1r_1) + ']';
 };
 protoOf(DispatchedContinuation).q8 = function () {
-  return this.b1r_1.q8();
+  return this.c1r_1.q8();
 };
 function safeDispatch(_this__u8e3s4, context, runnable) {
   _init_properties_DispatchedContinuation_kt__tnmqc0();
   try {
-    _this__u8e3s4.f1u(context, runnable);
+    _this__u8e3s4.g1u(context, runnable);
   } catch ($p) {
     if ($p instanceof Error) {
       var e = $p;
@@ -8114,7 +8114,7 @@ function safeDispatch(_this__u8e3s4, context, runnable) {
 function safeIsDispatchNeeded(_this__u8e3s4, context) {
   _init_properties_DispatchedContinuation_kt__tnmqc0();
   try {
-    return _this__u8e3s4.e1u(context);
+    return _this__u8e3s4.f1u(context);
   } catch ($p) {
     if ($p instanceof Error) {
       var e = $p;
@@ -8130,35 +8130,35 @@ function resumeCancellableWith(_this__u8e3s4, result) {
   if (_this__u8e3s4 instanceof DispatchedContinuation) {
     // Inline function 'kotlinx.coroutines.internal.DispatchedContinuation.resumeCancellableWith' call
     var state = toState_0(result);
-    if (safeIsDispatchNeeded(_this__u8e3s4.a1r_1, _this__u8e3s4.q8())) {
-      _this__u8e3s4.c1r_1 = state;
-      _this__u8e3s4.i1r_1 = 1;
-      safeDispatch(_this__u8e3s4.a1r_1, _this__u8e3s4.q8(), _this__u8e3s4);
+    if (safeIsDispatchNeeded(_this__u8e3s4.b1r_1, _this__u8e3s4.q8())) {
+      _this__u8e3s4.d1r_1 = state;
+      _this__u8e3s4.j1r_1 = 1;
+      safeDispatch(_this__u8e3s4.b1r_1, _this__u8e3s4.q8(), _this__u8e3s4);
     } else {
       $l$block: {
         // Inline function 'kotlinx.coroutines.internal.executeUnconfined' call
         // Inline function 'kotlinx.coroutines.assert' call
-        var eventLoop = ThreadLocalEventLoop_getInstance().c1v();
-        if (false && eventLoop.x1u()) {
+        var eventLoop = ThreadLocalEventLoop_getInstance().d1v();
+        if (false && eventLoop.y1u()) {
           break $l$block;
         }
         var tmp_0;
-        if (eventLoop.w1u()) {
-          _this__u8e3s4.c1r_1 = state;
-          _this__u8e3s4.i1r_1 = 1;
-          eventLoop.v1u(_this__u8e3s4);
+        if (eventLoop.x1u()) {
+          _this__u8e3s4.d1r_1 = state;
+          _this__u8e3s4.j1r_1 = 1;
+          eventLoop.w1u(_this__u8e3s4);
           tmp_0 = true;
         } else {
           // Inline function 'kotlinx.coroutines.runUnconfinedEventLoop' call
-          eventLoop.y1u(true);
+          eventLoop.z1u(true);
           try {
             var tmp$ret$4;
             $l$block_0: {
               // Inline function 'kotlinx.coroutines.internal.DispatchedContinuation.resumeCancelled' call
               var job = _this__u8e3s4.q8().x8(Key_instance_2);
-              if (!(job == null) && !job.d1n()) {
-                var cause = job.b1o();
-                _this__u8e3s4.c1s(state, cause);
+              if (!(job == null) && !job.e1n()) {
+                var cause = job.c1o();
+                _this__u8e3s4.d1s(state, cause);
                 // Inline function 'kotlin.coroutines.resumeWithException' call
                 // Inline function 'kotlin.Companion.failure' call
                 var tmp$ret$2 = _Result___init__impl__xyqfz8(createFailure(cause));
@@ -8170,23 +8170,23 @@ function resumeCancellableWith(_this__u8e3s4, result) {
             }
             if (!tmp$ret$4) {
               // Inline function 'kotlinx.coroutines.internal.DispatchedContinuation.resumeUndispatchedWith' call
-              _this__u8e3s4.b1r_1;
+              _this__u8e3s4.c1r_1;
               // Inline function 'kotlinx.coroutines.withContinuationContext' call
-              _this__u8e3s4.d1r_1;
-              _this__u8e3s4.b1r_1.v8(result);
+              _this__u8e3s4.e1r_1;
+              _this__u8e3s4.c1r_1.v8(result);
             }
-            $l$loop: while (eventLoop.u1u()) {
+            $l$loop: while (eventLoop.v1u()) {
             }
           } catch ($p) {
             if ($p instanceof Error) {
               var e = $p;
-              _this__u8e3s4.w1s(e);
+              _this__u8e3s4.x1s(e);
             } else {
               throw $p;
             }
           }
           finally {
-            eventLoop.z1u(true);
+            eventLoop.a1v(true);
           }
           tmp_0 = false;
         }
@@ -8205,34 +8205,34 @@ function yieldUndispatched(_this__u8e3s4) {
   $l$block: {
     // Inline function 'kotlinx.coroutines.internal.executeUnconfined' call
     // Inline function 'kotlinx.coroutines.assert' call
-    var eventLoop = ThreadLocalEventLoop_getInstance().c1v();
-    if (true && eventLoop.x1u()) {
+    var eventLoop = ThreadLocalEventLoop_getInstance().d1v();
+    if (true && eventLoop.y1u()) {
       tmp$ret$1 = false;
       break $l$block;
     }
     var tmp;
-    if (eventLoop.w1u()) {
-      _this__u8e3s4.c1r_1 = Unit_instance;
-      _this__u8e3s4.i1r_1 = 1;
-      eventLoop.v1u(_this__u8e3s4);
+    if (eventLoop.x1u()) {
+      _this__u8e3s4.d1r_1 = Unit_instance;
+      _this__u8e3s4.j1r_1 = 1;
+      eventLoop.w1u(_this__u8e3s4);
       tmp = true;
     } else {
       // Inline function 'kotlinx.coroutines.runUnconfinedEventLoop' call
-      eventLoop.y1u(true);
+      eventLoop.z1u(true);
       try {
-        _this__u8e3s4.v1s();
-        $l$loop: while (eventLoop.u1u()) {
+        _this__u8e3s4.w1s();
+        $l$loop: while (eventLoop.v1u()) {
         }
       } catch ($p) {
         if ($p instanceof Error) {
           var e = $p;
-          _this__u8e3s4.w1s(e);
+          _this__u8e3s4.x1s(e);
         } else {
           throw $p;
         }
       }
       finally {
-        eventLoop.z1u(true);
+        eventLoop.a1v(true);
       }
       tmp = false;
     }
@@ -8250,32 +8250,32 @@ function _init_properties_DispatchedContinuation_kt__tnmqc0() {
 }
 function DispatchedTask(resumeMode) {
   SchedulerTask.call(this);
-  this.i1r_1 = resumeMode;
+  this.j1r_1 = resumeMode;
 }
-protoOf(DispatchedTask).c1s = function (takenState, cause) {
+protoOf(DispatchedTask).d1s = function (takenState, cause) {
 };
-protoOf(DispatchedTask).j1s = function (state) {
+protoOf(DispatchedTask).k1s = function (state) {
   return (state == null ? true : !(state == null)) ? state : THROW_CCE();
 };
-protoOf(DispatchedTask).t1s = function (state) {
+protoOf(DispatchedTask).u1s = function (state) {
   var tmp0_safe_receiver = state instanceof CompletedExceptionally ? state : null;
-  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.i1n_1;
+  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver.j1n_1;
 };
-protoOf(DispatchedTask).v1s = function () {
+protoOf(DispatchedTask).w1s = function () {
   // Inline function 'kotlinx.coroutines.assert' call
   try {
-    var tmp = this.z1r();
+    var tmp = this.a1s();
     var delegate = tmp instanceof DispatchedContinuation ? tmp : THROW_CCE();
-    var continuation = delegate.b1r_1;
+    var continuation = delegate.c1r_1;
     // Inline function 'kotlinx.coroutines.withContinuationContext' call
-    delegate.d1r_1;
+    delegate.e1r_1;
     var context = continuation.q8();
-    var state = this.b1s();
-    var exception = this.t1s(state);
-    var job = exception == null && get_isCancellableMode(this.i1r_1) ? context.x8(Key_instance_2) : null;
-    if (!(job == null) && !job.d1n()) {
-      var cause = job.b1o();
-      this.c1s(state, cause);
+    var state = this.c1s();
+    var exception = this.u1s(state);
+    var job = exception == null && get_isCancellableMode(this.j1r_1) ? context.x8(Key_instance_2) : null;
+    if (!(job == null) && !job.e1n()) {
+      var cause = job.c1o();
+      this.d1s(state, cause);
       // Inline function 'kotlinx.coroutines.resumeWithStackTrace' call
       // Inline function 'kotlin.Companion.failure' call
       var exception_0 = recoverStackTrace(cause, continuation);
@@ -8290,7 +8290,7 @@ protoOf(DispatchedTask).v1s = function () {
       } else {
         // Inline function 'kotlin.coroutines.resume' call
         // Inline function 'kotlin.Companion.success' call
-        var value = this.j1s(state);
+        var value = this.k1s(state);
         var tmp$ret$5 = _Result___init__impl__xyqfz8(value);
         continuation.v8(tmp$ret$5);
       }
@@ -8298,20 +8298,20 @@ protoOf(DispatchedTask).v1s = function () {
   } catch ($p) {
     if ($p instanceof DispatchException) {
       var e = $p;
-      handleCoroutineException(this.z1r().q8(), e.i1u_1);
+      handleCoroutineException(this.a1s().q8(), e.j1u_1);
     } else {
       if ($p instanceof Error) {
         var e_0 = $p;
-        this.w1s(e_0);
+        this.x1s(e_0);
       } else {
         throw $p;
       }
     }
   }
 };
-protoOf(DispatchedTask).w1s = function (exception) {
+protoOf(DispatchedTask).x1s = function (exception) {
   var reason = new CoroutinesInternalError('Fatal exception in coroutines machinery for ' + toString(this) + '. ' + "Please read KDoc to 'handleFatalException' method and report this incident to maintainers", exception);
-  handleCoroutineException(this.z1r().q8(), reason);
+  handleCoroutineException(this.a1s().q8(), reason);
 };
 function get_isReusableMode(_this__u8e3s4) {
   return _this__u8e3s4 === 2;
@@ -8321,7 +8321,7 @@ function get_isCancellableMode(_this__u8e3s4) {
 }
 function dispatch(_this__u8e3s4, mode) {
   // Inline function 'kotlinx.coroutines.assert' call
-  var delegate = _this__u8e3s4.z1r();
+  var delegate = _this__u8e3s4.a1s();
   var undispatched = mode === 4;
   var tmp;
   var tmp_0;
@@ -8331,12 +8331,12 @@ function dispatch(_this__u8e3s4, mode) {
     tmp_0 = false;
   }
   if (tmp_0) {
-    tmp = get_isCancellableMode(mode) === get_isCancellableMode(_this__u8e3s4.i1r_1);
+    tmp = get_isCancellableMode(mode) === get_isCancellableMode(_this__u8e3s4.j1r_1);
   } else {
     tmp = false;
   }
   if (tmp) {
-    var dispatcher = delegate.a1r_1;
+    var dispatcher = delegate.b1r_1;
     var context = delegate.q8();
     if (safeIsDispatchNeeded(dispatcher, context)) {
       safeDispatch(dispatcher, context, _this__u8e3s4);
@@ -8350,56 +8350,56 @@ function dispatch(_this__u8e3s4, mode) {
 function DispatchException(cause, dispatcher, context) {
   Exception_init_$Init$('Coroutine dispatcher ' + dispatcher.toString() + ' threw an exception, context = ' + toString(context), cause, this);
   captureStack(this, DispatchException);
-  this.i1u_1 = cause;
+  this.j1u_1 = cause;
   delete this.cause;
 }
 protoOf(DispatchException).f = function () {
-  return this.i1u_1;
+  return this.j1u_1;
 };
 function resumeUnconfined(_this__u8e3s4) {
-  var eventLoop = ThreadLocalEventLoop_getInstance().c1v();
-  if (eventLoop.w1u()) {
-    eventLoop.v1u(_this__u8e3s4);
+  var eventLoop = ThreadLocalEventLoop_getInstance().d1v();
+  if (eventLoop.x1u()) {
+    eventLoop.w1u(_this__u8e3s4);
   } else {
     // Inline function 'kotlinx.coroutines.runUnconfinedEventLoop' call
-    eventLoop.y1u(true);
+    eventLoop.z1u(true);
     try {
-      resume(_this__u8e3s4, _this__u8e3s4.z1r(), true);
-      $l$loop: while (eventLoop.u1u()) {
+      resume(_this__u8e3s4, _this__u8e3s4.a1s(), true);
+      $l$loop: while (eventLoop.v1u()) {
       }
     } catch ($p) {
       if ($p instanceof Error) {
         var e = $p;
-        _this__u8e3s4.w1s(e);
+        _this__u8e3s4.x1s(e);
       } else {
         throw $p;
       }
     }
     finally {
-      eventLoop.z1u(true);
+      eventLoop.a1v(true);
     }
   }
 }
 function resume(_this__u8e3s4, delegate, undispatched) {
-  var state = _this__u8e3s4.b1s();
-  var exception = _this__u8e3s4.t1s(state);
+  var state = _this__u8e3s4.c1s();
+  var exception = _this__u8e3s4.u1s(state);
   var tmp;
   if (!(exception == null)) {
     // Inline function 'kotlin.Companion.failure' call
     tmp = _Result___init__impl__xyqfz8(createFailure(exception));
   } else {
     // Inline function 'kotlin.Companion.success' call
-    var value = _this__u8e3s4.j1s(state);
+    var value = _this__u8e3s4.k1s(state);
     tmp = _Result___init__impl__xyqfz8(value);
   }
   var result = tmp;
   if (undispatched) {
     // Inline function 'kotlinx.coroutines.internal.DispatchedContinuation.resumeUndispatchedWith' call
     var this_0 = delegate instanceof DispatchedContinuation ? delegate : THROW_CCE();
-    this_0.b1r_1;
+    this_0.c1r_1;
     // Inline function 'kotlinx.coroutines.withContinuationContext' call
-    this_0.d1r_1;
-    this_0.b1r_1.v8(result);
+    this_0.e1r_1;
+    this_0.c1r_1.v8(result);
   } else {
     delegate.v8(result);
   }
@@ -8420,13 +8420,13 @@ function InlineList__plus_impl_nuetvo($this, element) {
   } else {
     if (tmp0_subject instanceof ArrayList) {
       var tmp_0 = _get_holder__f6h5pd($this);
-      (tmp_0 instanceof ArrayList ? tmp_0 : THROW_CCE()).j(element);
+      (tmp_0 instanceof ArrayList ? tmp_0 : THROW_CCE()).g(element);
       tmp = _InlineList___init__impl__z8n56(_get_holder__f6h5pd($this));
     } else {
       var list = ArrayList_init_$Create$(4);
       var tmp_1 = _get_holder__f6h5pd($this);
-      list.j((tmp_1 == null ? true : !(tmp_1 == null)) ? tmp_1 : THROW_CCE());
-      list.j(element);
+      list.g((tmp_1 == null ? true : !(tmp_1 == null)) ? tmp_1 : THROW_CCE());
+      list.g(element);
       tmp = _InlineList___init__impl__z8n56(list);
     }
   }
@@ -8467,34 +8467,34 @@ function callUndeliveredElementCatchingException(_this__u8e3s4, element, undeliv
   return undeliveredElementException;
 }
 function ContextScope(context) {
-  this.p2a_1 = context;
+  this.q2a_1 = context;
 }
-protoOf(ContextScope).c1n = function () {
-  return this.p2a_1;
+protoOf(ContextScope).d1n = function () {
+  return this.q2a_1;
 };
 protoOf(ContextScope).toString = function () {
-  return 'CoroutineScope(coroutineContext=' + toString(this.p2a_1) + ')';
+  return 'CoroutineScope(coroutineContext=' + toString(this.q2a_1) + ')';
 };
 function ScopeCoroutine(context, uCont) {
   AbstractCoroutine.call(this, context, true, true);
-  this.l1p_1 = uCont;
+  this.m1p_1 = uCont;
 }
-protoOf(ScopeCoroutine).u1o = function () {
+protoOf(ScopeCoroutine).v1o = function () {
   return true;
 };
+protoOf(ScopeCoroutine).o1n = function (state) {
+  resumeCancellableWith(intercepted(this.m1p_1), recoverResult(state, this.m1p_1));
+};
+protoOf(ScopeCoroutine).n1p = function () {
+};
 protoOf(ScopeCoroutine).n1n = function (state) {
-  resumeCancellableWith(intercepted(this.l1p_1), recoverResult(state, this.l1p_1));
-};
-protoOf(ScopeCoroutine).m1p = function () {
-};
-protoOf(ScopeCoroutine).m1n = function (state) {
-  this.l1p_1.v8(recoverResult(state, this.l1p_1));
+  this.m1p_1.v8(recoverResult(state, this.m1p_1));
 };
 function Symbol(symbol) {
-  this.q2a_1 = symbol;
+  this.r2a_1 = symbol;
 }
 protoOf(Symbol).toString = function () {
-  return '<' + this.q2a_1 + '>';
+  return '<' + this.r2a_1 + '>';
 };
 function systemProp(propertyName, defaultValue, minValue, maxValue) {
   minValue = minValue === VOID ? 1 : minValue;
@@ -8565,7 +8565,7 @@ function startCoroutineCancellable_0(_this__u8e3s4, fatalCompletion) {
 function dispatcherFailure(completion, e) {
   var tmp;
   if (e instanceof DispatchException) {
-    tmp = e.i1u_1;
+    tmp = e.j1u_1;
   } else {
     tmp = e;
   }
@@ -8594,7 +8594,7 @@ function startCoroutineUndispatched(_this__u8e3s4, receiver, completion) {
       var e = $p;
       var tmp_1;
       if (e instanceof DispatchException) {
-        tmp_1 = e.i1u_1;
+        tmp_1 = e.j1u_1;
       } else {
         tmp_1 = e;
       }
@@ -8640,18 +8640,18 @@ function startUndspatched(_this__u8e3s4, alwaysRethrow, receiver, block) {
   var result = tmp;
   if (result === get_COROUTINE_SUSPENDED())
     return get_COROUTINE_SUSPENDED();
-  var state = _this__u8e3s4.l1n(result);
+  var state = _this__u8e3s4.m1n(result);
   if (state === get_COMPLETING_WAITING_CHILDREN())
     return get_COROUTINE_SUSPENDED();
-  _this__u8e3s4.m1p();
+  _this__u8e3s4.n1p();
   var tmp_1;
   if (state instanceof CompletedExceptionally) {
     var tmp_2;
-    if (alwaysRethrow || notOwnTimeout(_this__u8e3s4, state.i1n_1)) {
-      throw recoverStackTrace(state.i1n_1, _this__u8e3s4.l1p_1);
+    if (alwaysRethrow || notOwnTimeout(_this__u8e3s4, state.j1n_1)) {
+      throw recoverStackTrace(state.j1n_1, _this__u8e3s4.m1p_1);
     } else {
       if (result instanceof CompletedExceptionally) {
-        throw recoverStackTrace(result.i1n_1, _this__u8e3s4.l1p_1);
+        throw recoverStackTrace(result.j1n_1, _this__u8e3s4.m1p_1);
       } else {
         tmp_2 = result;
       }
@@ -8663,15 +8663,15 @@ function startUndspatched(_this__u8e3s4, alwaysRethrow, receiver, block) {
   return tmp_1;
 }
 function dispatchExceptionAndMakeCompleting(_this__u8e3s4, e) {
-  _this__u8e3s4.r1o(new CompletedExceptionally(e.i1u_1));
-  throw recoverStackTrace(e.i1u_1, _this__u8e3s4.l1p_1);
+  _this__u8e3s4.s1o(new CompletedExceptionally(e.j1u_1));
+  throw recoverStackTrace(e.j1u_1, _this__u8e3s4.m1p_1);
 }
 function notOwnTimeout(_this__u8e3s4, cause) {
   var tmp;
   if (!(cause instanceof TimeoutCancellationException)) {
     tmp = true;
   } else {
-    tmp = !(cause.r2a_1 === _this__u8e3s4);
+    tmp = !(cause.s2a_1 === _this__u8e3s4);
   }
   return tmp;
 }
@@ -8701,7 +8701,7 @@ function SelectInstance() {
 }
 function trySelectInternal($this, clauseObject, internalResult) {
   $l$loop: while (true) {
-    var curState = $this.a21_1.kotlinx$atomicfu$value;
+    var curState = $this.b21_1.kotlinx$atomicfu$value;
     if (isInterface(curState, CancellableContinuation)) {
       var tmp0_elvis_lhs = findClause($this, clauseObject);
       var tmp;
@@ -8711,13 +8711,13 @@ function trySelectInternal($this, clauseObject, internalResult) {
         tmp = tmp0_elvis_lhs;
       }
       var clause = tmp;
-      var onCancellation = clause.v2a($this, internalResult);
-      if ($this.a21_1.atomicfu$compareAndSet(curState, clause)) {
+      var onCancellation = clause.w2a($this, internalResult);
+      if ($this.b21_1.atomicfu$compareAndSet(curState, clause)) {
         var cont = isInterface(curState, CancellableContinuation) ? curState : THROW_CCE();
-        $this.c21_1 = internalResult;
+        $this.d21_1 = internalResult;
         if (tryResume_1(cont, onCancellation))
           return 0;
-        $this.c21_1 = get_NO_RESULT();
+        $this.d21_1 = get_NO_RESULT();
         return 2;
       }
     } else {
@@ -8734,11 +8734,11 @@ function trySelectInternal($this, clauseObject, internalResult) {
           return 2;
         else {
           if (equals(curState, get_STATE_REG())) {
-            if ($this.a21_1.atomicfu$compareAndSet(curState, listOf_0(clauseObject)))
+            if ($this.b21_1.atomicfu$compareAndSet(curState, listOf_0(clauseObject)))
               return 1;
           } else {
             if (isInterface(curState, KtList)) {
-              if ($this.a21_1.atomicfu$compareAndSet(curState, plus_0(curState, clauseObject)))
+              if ($this.b21_1.atomicfu$compareAndSet(curState, plus_0(curState, clauseObject)))
                 return 1;
             } else {
               // Inline function 'kotlin.error' call
@@ -8752,7 +8752,7 @@ function trySelectInternal($this, clauseObject, internalResult) {
   }
 }
 function findClause($this, clauseObject) {
-  var tmp0_elvis_lhs = $this.b21_1;
+  var tmp0_elvis_lhs = $this.c21_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return null;
@@ -8767,7 +8767,7 @@ function findClause($this, clauseObject) {
     var _iterator__ex2g4s = clauses.r();
     while (_iterator__ex2g4s.s()) {
       var element = _iterator__ex2g4s.t();
-      if (element.s2a_1 === clauseObject) {
+      if (element.t2a_1 === clauseObject) {
         tmp$ret$1 = element;
         break $l$block;
       }
@@ -8786,13 +8786,13 @@ function findClause($this, clauseObject) {
 }
 function ClauseData() {
 }
-protoOf(ClauseData).v2a = function (select, internalResult) {
-  var tmp0_safe_receiver = this.u2a_1;
-  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver(select, this.t2a_1, internalResult);
+protoOf(ClauseData).w2a = function (select, internalResult) {
+  var tmp0_safe_receiver = this.v2a_1;
+  return tmp0_safe_receiver == null ? null : tmp0_safe_receiver(select, this.u2a_1, internalResult);
 };
 function SelectImplementation() {
 }
-protoOf(SelectImplementation).d21 = function (clauseObject, result) {
+protoOf(SelectImplementation).e21 = function (clauseObject, result) {
   return TrySelectDetailedResult_0(trySelectInternal(this, clauseObject, result));
 };
 var TrySelectDetailedResult_SUCCESSFUL_instance;
@@ -8836,7 +8836,7 @@ function TrySelectDetailedResult_0(trySelectInternalResult) {
 }
 function tryResume_1(_this__u8e3s4, onCancellation) {
   _init_properties_Select_kt__zhm2jg();
-  var tmp0_elvis_lhs = _this__u8e3s4.m1q(Unit_instance, null, onCancellation);
+  var tmp0_elvis_lhs = _this__u8e3s4.n1q(Unit_instance, null, onCancellation);
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return false;
@@ -8844,7 +8844,7 @@ function tryResume_1(_this__u8e3s4, onCancellation) {
     tmp = tmp0_elvis_lhs;
   }
   var token = tmp;
-  _this__u8e3s4.n1q(token);
+  _this__u8e3s4.o1q(token);
   return true;
 }
 function DUMMY_PROCESS_RESULT_FUNCTION$lambda(_unused_var__etf5q3, _unused_var__etf5q3_0, _unused_var__etf5q3_1) {
@@ -8937,8 +8937,8 @@ function NodeDispatcher() {
   NodeDispatcher_instance = this;
   SetTimeoutBasedDispatcher.call(this);
 }
-protoOf(NodeDispatcher).y2a = function () {
-  process.nextTick(this.f2b_1.d2b_1);
+protoOf(NodeDispatcher).z2a = function () {
+  process.nextTick(this.g2b_1.e2b_1);
 };
 var NodeDispatcher_instance;
 function NodeDispatcher_getInstance() {
@@ -8948,24 +8948,24 @@ function NodeDispatcher_getInstance() {
 }
 function ScheduledMessageQueue$processQueue$lambda(this$0) {
   return function () {
-    this$0.j2b();
+    this$0.k2b();
     return Unit_instance;
   };
 }
 function ScheduledMessageQueue(dispatcher) {
   MessageQueue.call(this);
-  this.c2b_1 = dispatcher;
+  this.d2b_1 = dispatcher;
   var tmp = this;
-  tmp.d2b_1 = ScheduledMessageQueue$processQueue$lambda(this);
+  tmp.e2b_1 = ScheduledMessageQueue$processQueue$lambda(this);
 }
-protoOf(ScheduledMessageQueue).k2b = function () {
-  this.c2b_1.y2a();
-};
 protoOf(ScheduledMessageQueue).l2b = function () {
-  setTimeout(this.d2b_1, 0);
+  this.d2b_1.z2a();
 };
-protoOf(ScheduledMessageQueue).m2b = function (timeout) {
-  setTimeout(this.d2b_1, timeout);
+protoOf(ScheduledMessageQueue).m2b = function () {
+  setTimeout(this.e2b_1, 0);
+};
+protoOf(ScheduledMessageQueue).n2b = function (timeout) {
+  setTimeout(this.e2b_1, timeout);
 };
 function w3cSetTimeout(handler, timeout) {
   return setTimeout(handler, timeout);
@@ -8973,9 +8973,9 @@ function w3cSetTimeout(handler, timeout) {
 function WindowMessageQueue$lambda(this$0) {
   return function (event) {
     var tmp;
-    if (event.source == this$0.w2b_1 && event.data == this$0.x2b_1) {
+    if (event.source == this$0.x2b_1 && event.data == this$0.y2b_1) {
       event.stopPropagation();
-      this$0.j2b();
+      this$0.k2b();
       tmp = Unit_instance;
     }
     return Unit_instance;
@@ -8983,22 +8983,22 @@ function WindowMessageQueue$lambda(this$0) {
 }
 function WindowMessageQueue$schedule$lambda(this$0) {
   return function (it) {
-    this$0.j2b();
+    this$0.k2b();
     return Unit_instance;
   };
 }
 function WindowMessageQueue(window_0) {
   MessageQueue.call(this);
-  this.w2b_1 = window_0;
-  this.x2b_1 = 'dispatchCoroutine';
-  this.w2b_1.addEventListener('message', WindowMessageQueue$lambda(this), true);
+  this.x2b_1 = window_0;
+  this.y2b_1 = 'dispatchCoroutine';
+  this.x2b_1.addEventListener('message', WindowMessageQueue$lambda(this), true);
 }
-protoOf(WindowMessageQueue).k2b = function () {
+protoOf(WindowMessageQueue).l2b = function () {
   var tmp = Promise.resolve(Unit_instance);
   tmp.then(WindowMessageQueue$schedule$lambda(this));
 };
-protoOf(WindowMessageQueue).l2b = function () {
-  this.w2b_1.postMessage(this.x2b_1, '*');
+protoOf(WindowMessageQueue).m2b = function () {
+  this.x2b_1.postMessage(this.y2b_1, '*');
 };
 function w3cSetTimeout_0(window_0, handler, timeout) {
   return setTimeout_0(window_0, handler, timeout);
@@ -9014,10 +9014,10 @@ function setTimeout_0(window_0, handler, timeout) {
 }
 function await_0(_this__u8e3s4, $completion) {
   var cancellable = new CancellableContinuationImpl(intercepted($completion), 1);
-  cancellable.a1s();
+  cancellable.b1s();
   var tmp = await$lambda(cancellable);
   _this__u8e3s4.then(tmp, await$lambda_0(cancellable));
-  return cancellable.g1p();
+  return cancellable.h1p();
 }
 function promise(_this__u8e3s4, context, start, block) {
   context = context === VOID ? EmptyCoroutineContext_getInstance() : context;
@@ -9054,19 +9054,19 @@ function await$lambda_0($cont) {
 }
 function asPromise$lambda$lambda($this_asPromise, $reject, $resolve) {
   return function (it) {
-    var e = $this_asPromise.y1o();
+    var e = $this_asPromise.z1o();
     var tmp;
     if (!(e == null)) {
       tmp = $reject(e);
     } else {
-      tmp = $resolve($this_asPromise.g1q());
+      tmp = $resolve($this_asPromise.h1q());
     }
     return Unit_instance;
   };
 }
 function asPromise$lambda($this_asPromise) {
   return function (resolve, reject) {
-    $this_asPromise.e1o(asPromise$lambda$lambda($this_asPromise, reject, resolve));
+    $this_asPromise.f1o(asPromise$lambda$lambda($this_asPromise, reject, resolve));
     return Unit_instance;
   };
 }
@@ -9094,7 +9094,7 @@ function createEventLoop() {
 function UnconfinedEventLoop() {
   EventLoop.call(this);
 }
-protoOf(UnconfinedEventLoop).f1u = function (context, block) {
+protoOf(UnconfinedEventLoop).g1u = function (context, block) {
   unsupported();
 };
 function unsupported() {
@@ -9104,8 +9104,8 @@ function SetTimeoutDispatcher() {
   SetTimeoutDispatcher_instance = this;
   SetTimeoutBasedDispatcher.call(this);
 }
-protoOf(SetTimeoutDispatcher).y2a = function () {
-  this.f2b_1.m2b(0);
+protoOf(SetTimeoutDispatcher).z2a = function () {
+  this.g2b_1.n2b(0);
 };
 var SetTimeoutDispatcher_instance;
 function SetTimeoutDispatcher_getInstance() {
@@ -9116,37 +9116,37 @@ function SetTimeoutDispatcher_getInstance() {
 function SetTimeoutBasedDispatcher$scheduleResumeAfterDelay$lambda($continuation, this$0) {
   return function () {
     // Inline function 'kotlin.with' call
-    $continuation.o1q(this$0, Unit_instance);
+    $continuation.p1q(this$0, Unit_instance);
     return Unit_instance;
   };
 }
 function SetTimeoutBasedDispatcher() {
   CoroutineDispatcher.call(this);
-  this.f2b_1 = new ScheduledMessageQueue(this);
+  this.g2b_1 = new ScheduledMessageQueue(this);
 }
-protoOf(SetTimeoutBasedDispatcher).f1u = function (context, block) {
-  this.f2b_1.n2b(block);
+protoOf(SetTimeoutBasedDispatcher).g1u = function (context, block) {
+  this.g2b_1.o2b(block);
 };
-protoOf(SetTimeoutBasedDispatcher).p1u = function (timeMillis, continuation) {
+protoOf(SetTimeoutBasedDispatcher).q1u = function (timeMillis, continuation) {
   var handle = w3cSetTimeout(SetTimeoutBasedDispatcher$scheduleResumeAfterDelay$lambda(continuation, this), delayToInt(timeMillis));
   invokeOnCancellation(continuation, new ClearTimeout(handle));
 };
 function MessageQueue() {
-  this.g2b_1 = ArrayDeque_init_$Create$();
-  this.h2b_1 = 16;
-  this.i2b_1 = false;
+  this.h2b_1 = ArrayDeque_init_$Create$();
+  this.i2b_1 = 16;
+  this.j2b_1 = false;
 }
-protoOf(MessageQueue).n2b = function (element) {
-  this.o2b(element);
-  if (!this.i2b_1) {
-    this.i2b_1 = true;
-    this.k2b();
+protoOf(MessageQueue).o2b = function (element) {
+  this.p2b(element);
+  if (!this.j2b_1) {
+    this.j2b_1 = true;
+    this.l2b();
   }
 };
-protoOf(MessageQueue).j2b = function () {
+protoOf(MessageQueue).k2b = function () {
   try {
     // Inline function 'kotlin.repeat' call
-    var times = this.h2b_1;
+    var times = this.i2b_1;
     var inductionVariable = 0;
     if (inductionVariable < times)
       do {
@@ -9160,147 +9160,147 @@ protoOf(MessageQueue).j2b = function () {
           tmp = tmp0_elvis_lhs;
         }
         var element = tmp;
-        element.v1s();
+        element.w1s();
       }
        while (inductionVariable < times);
   }finally {
     if (this.o()) {
-      this.i2b_1 = false;
+      this.j2b_1 = false;
     } else {
-      this.l2b();
+      this.m2b();
     }
   }
 };
-protoOf(MessageQueue).o2b = function (element) {
-  return this.g2b_1.j(element);
+protoOf(MessageQueue).p2b = function (element) {
+  return this.h2b_1.g(element);
 };
-protoOf(MessageQueue).j = function (element) {
-  return this.o2b((!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
+protoOf(MessageQueue).g = function (element) {
+  return this.p2b((!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
 };
-protoOf(MessageQueue).p2b = function (index, element) {
-  this.g2b_1.n2(index, element);
+protoOf(MessageQueue).q2b = function (index, element) {
+  this.h2b_1.n2(index, element);
 };
 protoOf(MessageQueue).n2 = function (index, element) {
-  return this.p2b(index, (!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
+  return this.q2b(index, (!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
 };
-protoOf(MessageQueue).q2b = function (elements) {
-  return this.g2b_1.v(elements);
+protoOf(MessageQueue).r2b = function (elements) {
+  return this.h2b_1.v(elements);
 };
 protoOf(MessageQueue).v = function (elements) {
-  return this.q2b(elements);
+  return this.r2b(elements);
 };
 protoOf(MessageQueue).e2 = function () {
-  this.g2b_1.e2();
+  this.h2b_1.e2();
 };
-protoOf(MessageQueue).r2b = function (index, element) {
-  return this.g2b_1.z(index, element);
+protoOf(MessageQueue).s2b = function (index, element) {
+  return this.h2b_1.z(index, element);
 };
 protoOf(MessageQueue).z = function (index, element) {
-  return this.r2b(index, (!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
+  return this.s2b(index, (!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
 };
 protoOf(MessageQueue).o2 = function (index) {
-  return this.g2b_1.o2(index);
+  return this.h2b_1.o2(index);
 };
 protoOf(MessageQueue).x = function (index) {
-  return this.g2b_1.x(index);
+  return this.h2b_1.x(index);
 };
 protoOf(MessageQueue).z1 = function (fromIndex, toIndex) {
-  return this.g2b_1.z1(fromIndex, toIndex);
+  return this.h2b_1.z1(fromIndex, toIndex);
 };
 protoOf(MessageQueue).o = function () {
-  return this.g2b_1.o();
+  return this.h2b_1.o();
 };
-protoOf(MessageQueue).s2b = function (element) {
-  return this.g2b_1.y1(element);
+protoOf(MessageQueue).t2b = function (element) {
+  return this.h2b_1.y1(element);
 };
 protoOf(MessageQueue).y1 = function (element) {
   if (!(!(element == null) ? isInterface(element, Runnable) : false))
     return false;
-  return this.s2b((!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
+  return this.t2b((!(element == null) ? isInterface(element, Runnable) : false) ? element : THROW_CCE());
 };
 protoOf(MessageQueue).r = function () {
-  return this.g2b_1.r();
+  return this.h2b_1.r();
 };
 protoOf(MessageQueue).w = function (index) {
-  return this.g2b_1.w(index);
+  return this.h2b_1.w(index);
 };
 protoOf(MessageQueue).u = function () {
-  return this.g2b_1.ud_1;
+  return this.h2b_1.vd_1;
 };
 function WindowClearTimeout($outer, handle) {
-  this.f2c_1 = $outer;
+  this.g2c_1 = $outer;
   ClearTimeout.call(this, handle);
 }
-protoOf(WindowClearTimeout).y1q = function () {
-  w3cClearTimeout(this.f2c_1.h2c_1, this.j2c_1);
+protoOf(WindowClearTimeout).z1q = function () {
+  w3cClearTimeout(this.g2c_1.i2c_1, this.k2c_1);
 };
 function WindowDispatcher$scheduleResumeAfterDelay$lambda($continuation, this$0) {
   return function () {
     // Inline function 'kotlin.with' call
-    $continuation.o1q(this$0, Unit_instance);
+    $continuation.p1q(this$0, Unit_instance);
     return Unit_instance;
   };
 }
 function WindowDispatcher(window_0) {
   CoroutineDispatcher.call(this);
-  this.h2c_1 = window_0;
-  this.i2c_1 = new WindowMessageQueue(this.h2c_1);
+  this.i2c_1 = window_0;
+  this.j2c_1 = new WindowMessageQueue(this.i2c_1);
 }
-protoOf(WindowDispatcher).f1u = function (context, block) {
-  return this.i2c_1.n2b(block);
+protoOf(WindowDispatcher).g1u = function (context, block) {
+  return this.j2c_1.o2b(block);
 };
-protoOf(WindowDispatcher).p1u = function (timeMillis, continuation) {
-  var handle = w3cSetTimeout_0(this.h2c_1, WindowDispatcher$scheduleResumeAfterDelay$lambda(continuation, this), delayToInt(timeMillis));
+protoOf(WindowDispatcher).q1u = function (timeMillis, continuation) {
+  var handle = w3cSetTimeout_0(this.i2c_1, WindowDispatcher$scheduleResumeAfterDelay$lambda(continuation, this), delayToInt(timeMillis));
   invokeOnCancellation(continuation, new WindowClearTimeout(this, handle));
 };
 function delayToInt(timeMillis) {
   return convertToInt(coerceIn(timeMillis, new Long(0, 0), new Long(2147483647, 0)));
 }
 function ClearTimeout(handle) {
-  this.j2c_1 = handle;
+  this.k2c_1 = handle;
 }
-protoOf(ClearTimeout).y1q = function () {
-  w3cClearTimeout_0(this.j2c_1);
+protoOf(ClearTimeout).z1q = function () {
+  w3cClearTimeout_0(this.k2c_1);
 };
-protoOf(ClearTimeout).x1q = function (cause) {
-  this.y1q();
+protoOf(ClearTimeout).y1q = function (cause) {
+  this.z1q();
 };
 protoOf(ClearTimeout).toString = function () {
-  return 'ClearTimeout[' + this.j2c_1 + ']';
+  return 'ClearTimeout[' + this.k2c_1 + ']';
 };
 function get_DefaultDelay() {
-  var tmp = Dispatchers_getInstance().k1u_1;
+  var tmp = Dispatchers_getInstance().l1u_1;
   return isInterface(tmp, Delay) ? tmp : THROW_CCE();
 }
 function toDebugString(_this__u8e3s4) {
   return toString(_this__u8e3s4);
 }
 function newCoroutineContext(_this__u8e3s4, addedContext) {
-  return _this__u8e3s4.ag(addedContext);
+  return _this__u8e3s4.bg(addedContext);
 }
 function UndispatchedCoroutine(context, uCont) {
   ScopeCoroutine.call(this, context, uCont);
 }
-protoOf(UndispatchedCoroutine).m1n = function (state) {
-  return this.l1p_1.v8(recoverResult(state, this.l1p_1));
+protoOf(UndispatchedCoroutine).n1n = function (state) {
+  return this.m1p_1.v8(recoverResult(state, this.m1p_1));
 };
 function newCoroutineContext_0(_this__u8e3s4, context) {
-  var combined = _this__u8e3s4.c1n().ag(context);
-  return !(combined === Dispatchers_getInstance().k1u_1) && combined.x8(Key_instance) == null ? combined.ag(Dispatchers_getInstance().k1u_1) : combined;
+  var combined = _this__u8e3s4.d1n().bg(context);
+  return !(combined === Dispatchers_getInstance().l1u_1) && combined.x8(Key_instance) == null ? combined.bg(Dispatchers_getInstance().l1u_1) : combined;
 }
 function get_coroutineName(_this__u8e3s4) {
   return null;
 }
 function Dispatchers() {
   Dispatchers_instance = this;
-  this.k1u_1 = createDefaultDispatcher();
-  this.l1u_1 = Unconfined_getInstance();
-  this.m1u_1 = new JsMainDispatcher(this.k1u_1, false);
-  this.n1u_1 = null;
+  this.l1u_1 = createDefaultDispatcher();
+  this.m1u_1 = Unconfined_getInstance();
+  this.n1u_1 = new JsMainDispatcher(this.l1u_1, false);
+  this.o1u_1 = null;
 }
-protoOf(Dispatchers).o1u = function () {
-  var tmp0_elvis_lhs = this.n1u_1;
-  return tmp0_elvis_lhs == null ? this.m1u_1 : tmp0_elvis_lhs;
+protoOf(Dispatchers).p1u = function () {
+  var tmp0_elvis_lhs = this.o1u_1;
+  return tmp0_elvis_lhs == null ? this.n1u_1 : tmp0_elvis_lhs;
 };
 var Dispatchers_instance;
 function Dispatchers_getInstance() {
@@ -9310,33 +9310,33 @@ function Dispatchers_getInstance() {
 }
 function JsMainDispatcher(delegate, invokeImmediately) {
   MainCoroutineDispatcher.call(this);
-  this.p2c_1 = delegate;
-  this.q2c_1 = invokeImmediately;
-  this.r2c_1 = this.q2c_1 ? this : new JsMainDispatcher(this.p2c_1, true);
+  this.q2c_1 = delegate;
+  this.r2c_1 = invokeImmediately;
+  this.s2c_1 = this.r2c_1 ? this : new JsMainDispatcher(this.q2c_1, true);
 }
-protoOf(JsMainDispatcher).o1x = function () {
-  return this.r2c_1;
+protoOf(JsMainDispatcher).p1x = function () {
+  return this.s2c_1;
 };
-protoOf(JsMainDispatcher).e1u = function (context) {
-  return !this.q2c_1;
-};
-protoOf(JsMainDispatcher).f1u = function (context, block) {
-  return this.p2c_1.f1u(context, block);
+protoOf(JsMainDispatcher).f1u = function (context) {
+  return !this.r2c_1;
 };
 protoOf(JsMainDispatcher).g1u = function (context, block) {
-  return this.p2c_1.g1u(context, block);
+  return this.q2c_1.g1u(context, block);
+};
+protoOf(JsMainDispatcher).h1u = function (context, block) {
+  return this.q2c_1.h1u(context, block);
 };
 protoOf(JsMainDispatcher).toString = function () {
-  var tmp0_elvis_lhs = this.p1x();
-  return tmp0_elvis_lhs == null ? this.p2c_1.toString() : tmp0_elvis_lhs;
+  var tmp0_elvis_lhs = this.q1x();
+  return tmp0_elvis_lhs == null ? this.q2c_1.toString() : tmp0_elvis_lhs;
 };
 function JobCancellationException(message, cause, job) {
   CancellationException_init_$Init$(message, cause, this);
   captureStack(this, JobCancellationException);
-  this.s2c_1 = job;
+  this.t2c_1 = job;
 }
 protoOf(JobCancellationException).toString = function () {
-  return protoOf(CancellationException).toString.call(this) + '; job=' + toString(this.s2c_1);
+  return protoOf(CancellationException).toString.call(this) + '; job=' + toString(this.t2c_1);
 };
 protoOf(JobCancellationException).equals = function (other) {
   var tmp;
@@ -9352,7 +9352,7 @@ protoOf(JobCancellationException).equals = function (other) {
       tmp_2 = false;
     }
     if (tmp_2) {
-      tmp_1 = equals(other.s2c_1, this.s2c_1);
+      tmp_1 = equals(other.t2c_1, this.t2c_1);
     } else {
       tmp_1 = false;
     }
@@ -9366,7 +9366,7 @@ protoOf(JobCancellationException).equals = function (other) {
   return tmp;
 };
 protoOf(JobCancellationException).hashCode = function () {
-  var tmp = imul(imul(getStringHashCode(ensureNotNull(this.message)), 31) + hashCode(this.s2c_1) | 0, 31);
+  var tmp = imul(imul(getStringHashCode(ensureNotNull(this.message)), 31) + hashCode(this.t2c_1) | 0, 31);
   var tmp0_safe_receiver = this.cause;
   var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : hashCode(tmp0_safe_receiver);
   return tmp + (tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs) | 0;
@@ -9381,28 +9381,28 @@ function SchedulerTask() {
 function AbortFlowException(owner) {
   CancellationException_init_$Init$_0('Flow was aborted, no more elements needed', this);
   captureStack(this, AbortFlowException);
-  this.m29_1 = owner;
+  this.n29_1 = owner;
 }
 function SafeCollector$collectContextSize$lambda(count, _unused_var__etf5q3) {
   return count + 1 | 0;
 }
 function SafeCollector(collector, collectContext) {
-  this.h26_1 = collector;
-  this.i26_1 = collectContext;
+  this.i26_1 = collector;
+  this.j26_1 = collectContext;
   var tmp = this;
-  tmp.j26_1 = this.i26_1.zf(0, SafeCollector$collectContextSize$lambda);
-  this.k26_1 = null;
+  tmp.k26_1 = this.j26_1.ag(0, SafeCollector$collectContextSize$lambda);
+  this.l26_1 = null;
 }
-protoOf(SafeCollector).d25 = function (value, $completion) {
+protoOf(SafeCollector).e25 = function (value, $completion) {
   // Inline function 'kotlinx.coroutines.currentCoroutineContext' call
   // Inline function 'kotlin.js.getCoroutineContext' call
   var currentContext = $completion.q8();
   ensureActive(currentContext);
-  if (!(this.k26_1 === currentContext)) {
+  if (!(this.l26_1 === currentContext)) {
     checkContext(this, currentContext);
-    this.k26_1 = currentContext;
+    this.l26_1 = currentContext;
   }
-  return this.h26_1.d25(value, $completion);
+  return this.i26_1.e25(value, $completion);
 };
 protoOf(SafeCollector).u8 = function () {
 };
@@ -9434,46 +9434,46 @@ function LockFreeLinkedListHead() {
   LockFreeLinkedListNode.call(this);
 }
 function LockFreeLinkedListNode() {
-  this.k1t_1 = this;
   this.l1t_1 = this;
-  this.m1t_1 = false;
+  this.m1t_1 = this;
+  this.n1t_1 = false;
 }
-protoOf(LockFreeLinkedListNode).n1t = function (node, permissionsBitmask) {
-  var prev = this.l1t_1;
+protoOf(LockFreeLinkedListNode).o1t = function (node, permissionsBitmask) {
+  var prev = this.m1t_1;
   var tmp;
   if (prev instanceof ListClosed) {
-    tmp = ((prev.w2c_1 & permissionsBitmask) === 0 && prev.n1t(node, permissionsBitmask));
+    tmp = ((prev.x2c_1 & permissionsBitmask) === 0 && prev.o1t(node, permissionsBitmask));
   } else {
-    node.k1t_1 = this;
-    node.l1t_1 = prev;
-    prev.k1t_1 = node;
-    this.l1t_1 = node;
+    node.l1t_1 = this;
+    node.m1t_1 = prev;
+    prev.l1t_1 = node;
+    this.m1t_1 = node;
     tmp = true;
   }
   return tmp;
 };
-protoOf(LockFreeLinkedListNode).l1v = function (forbiddenElementsBit) {
-  this.n1t(new ListClosed(forbiddenElementsBit), forbiddenElementsBit);
+protoOf(LockFreeLinkedListNode).m1v = function (forbiddenElementsBit) {
+  this.o1t(new ListClosed(forbiddenElementsBit), forbiddenElementsBit);
 };
-protoOf(LockFreeLinkedListNode).o1t = function () {
-  if (this.m1t_1)
+protoOf(LockFreeLinkedListNode).p1t = function () {
+  if (this.n1t_1)
     return false;
-  var prev = this.l1t_1;
-  var next = this.k1t_1;
-  prev.k1t_1 = next;
-  next.l1t_1 = prev;
-  this.m1t_1 = true;
+  var prev = this.m1t_1;
+  var next = this.l1t_1;
+  prev.l1t_1 = next;
+  next.m1t_1 = prev;
+  this.n1t_1 = true;
   return true;
 };
-protoOf(LockFreeLinkedListNode).p1t = function (node) {
-  if (!(this.k1t_1 === this))
+protoOf(LockFreeLinkedListNode).q1t = function (node) {
+  if (!(this.l1t_1 === this))
     return false;
-  this.n1t(node, -2147483648);
+  this.o1t(node, -2147483648);
   return true;
 };
 function ListClosed(forbiddenElementsBitmask) {
   LockFreeLinkedListNode.call(this);
-  this.w2c_1 = forbiddenElementsBitmask;
+  this.x2c_1 = forbiddenElementsBitmask;
 }
 function unwrap(exception) {
   return exception;
@@ -9493,28 +9493,28 @@ function threadContextElements(context) {
   return 0;
 }
 function CommonThreadLocal() {
-  this.d1v_1 = null;
+  this.e1v_1 = null;
 }
-protoOf(CommonThreadLocal).e1v = function () {
-  var tmp = this.d1v_1;
+protoOf(CommonThreadLocal).f1v = function () {
+  var tmp = this.e1v_1;
   return (tmp == null ? true : !(tmp == null)) ? tmp : THROW_CCE();
 };
-protoOf(CommonThreadLocal).f1v = function (value) {
-  this.d1v_1 = value;
+protoOf(CommonThreadLocal).g1v = function (value) {
+  this.e1v_1 = value;
 };
 function commonThreadLocal(name) {
   return new CommonThreadLocal();
 }
 //region block: post-declaration
-protoOf(JobSupport).k1o = cancel$default;
-protoOf(JobSupport).ag = plus;
+protoOf(JobSupport).l1o = cancel$default;
+protoOf(JobSupport).bg = plus;
 protoOf(JobSupport).x8 = get_0;
-protoOf(JobSupport).zf = fold;
-protoOf(JobSupport).yf = minusKey_0;
+protoOf(JobSupport).ag = fold;
+protoOf(JobSupport).zf = minusKey_0;
 protoOf(CoroutineDispatcher).x8 = get;
-protoOf(CoroutineDispatcher).yf = minusKey;
-protoOf(BufferedChannel).h23 = close$default;
-protoOf(ChannelCoroutine).h23 = close$default;
+protoOf(CoroutineDispatcher).zf = minusKey;
+protoOf(BufferedChannel).i23 = close$default;
+protoOf(ChannelCoroutine).i23 = close$default;
 defineProp(protoOf(DispatchException), 'cause', function () {
   return this.f();
 });
