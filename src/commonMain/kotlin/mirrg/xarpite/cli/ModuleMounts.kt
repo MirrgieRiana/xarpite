@@ -9,6 +9,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
+import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
@@ -24,8 +25,15 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
-                val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                getFileSystem().getOrThrow().canonicalize(parentPath)
+                val parentPath = location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
+                // If parentPath is relative (e.g., "."), convert to absolute path using same logic as PWD mount
+                if (!parentPath.isAbsolute) {
+                    val env = getEnv()
+                    val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()
+                    pwd.toPath().normalized()
+                } else {
+                    parentPath
+                }
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
@@ -59,7 +67,7 @@ private fun resolveModulePath(baseDir: Path, reference: String): Path? {
     // 絶対パス
     if (reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
         val pathStr = reference.replace("\\", "/")
-        val path = pathStr.toPath().normalized()
+        val path = baseDir.resolve(pathStr.toPath()).normalized()
         path.let { if (it.canLoad()) return it }
         path.map { "$it$MODULE_EXTENSION" }.normalized().let { if (it.canLoad()) return it }
         return null
