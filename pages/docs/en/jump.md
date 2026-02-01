@@ -42,7 +42,7 @@ However, the label operator has low binding precedence, allowing `formula` to in
 
 The return operator `label!! value` provides decent readability when `label` is a string like `return`, as in `return!! "Result"`.
 
-The `!!` operator's appearance corresponds to the throw operator `!! error`, and their behaviors are also similar.
+The `!!` operator's appearance corresponds to the throw operator `!! value`, and their behaviors are also similar.
 
 ## Escaping from Loops
 

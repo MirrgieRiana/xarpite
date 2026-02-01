@@ -671,7 +671,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-Returns the only element of the first argument stream. Throws an error if the stream is empty or has multiple elements.
+Returns the only element of the first argument stream. Throws an exception value if the stream is empty or has multiple elements.
 
 If a non-stream is passed, returns that value as-is.
 
