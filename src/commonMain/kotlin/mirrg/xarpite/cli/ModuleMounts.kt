@@ -28,8 +28,8 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
-                val file = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
+                val reference = arguments[0].toFluoriteString(null).value
+                val modulePath = resolveModulePath(baseDir, reference) ?: throw FluoriteException("Module not found: $reference".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
