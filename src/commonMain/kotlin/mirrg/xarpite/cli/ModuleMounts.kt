@@ -11,7 +11,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
-import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
@@ -28,9 +27,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
                 val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                val env = getEnv()
-                val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPlatformPwd()
-                pwd.toPath().resolve(parentPath).normalized()
+                context.io.getPwd().toPath().resolve(parentPath).normalized()
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")

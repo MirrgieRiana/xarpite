@@ -1,6 +1,7 @@
 package mirrg.xarpite.cli
 
 import kotlinx.coroutines.CoroutineScope
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.Position
@@ -171,4 +172,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             }
         }
     }
+}
+
+fun IoContext.getPwd(): String {
+    val env = getEnv()
+    return env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: this.getPlatformPwd()
 }
