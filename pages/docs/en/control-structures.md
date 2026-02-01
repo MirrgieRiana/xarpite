@@ -30,9 +30,9 @@ Label and return operators allow you to break out of arbitrary locations.
 
 See [Jump](jump.md) for details.
 
-### Error Handling
+### Exception Mechanism
 
-Throw and catch operators allow you to throw and catch errors.
+Throw and catch operators allow you to throw and catch values.
 
 See [Jump](jump.md) for details.
 
