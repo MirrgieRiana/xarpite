@@ -601,6 +601,48 @@ class CliTest {
         val incArray = cliEval(context, "INC").array()
         assertTrue("./.xarpite/maven" in incArray)
     }
+    @Test
+    fun incCanBeModified() = runTest {
+        val context = TestIoContext()
+        // INC に値を追加できる
+        val result = cliEval(context, """
+            INC::push("/custom/path")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("/custom/path" in arrayStr)
+    }
+
+    @Test
+    fun useMavenCoordinateSearchesInInc() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        
+        // カスタムINCパスにモジュールを配置
+        val customIncDir = "build/test/custom-inc".toPath()
+        val moduleDir = customIncDir.resolve("com/example/custom/mylib")
+        fileSystem.createDirectories(moduleDir)
+        val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
+        
+        // INCにカスタムパスを追加してモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/custom-inc")
+            USE("com.example.custom:mylib:1.0.0")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("CustomModule", result)
+        
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(moduleDir)
+        fileSystem.delete(customIncDir.resolve("com/example/custom"))
+        fileSystem.delete(customIncDir.resolve("com/example"))
+        fileSystem.delete(customIncDir.resolve("com"))
+        fileSystem.delete(customIncDir)
+    }
+
 
     @Test
     fun inb() = runTest {

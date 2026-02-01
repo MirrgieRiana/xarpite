@@ -373,6 +373,28 @@ Maven座標形式でモジュールを `USE` する際に検索されるディ�
 
 ---
 
+`INC` に値を追加することで、カスタムのモジュール検索パスを設定できます。
+
+```shell
+$ {
+  # カスタムパスにモジュールを配置
+  mkdir -p custom-lib/com/example/mylib
+  echo '"Custom Library"' > custom-lib/com/example/mylib/mylib-1.0.0.xa1
+  
+  # INCにカスタムパスを追加
+  xa '
+    INC::push("custom-lib")
+    USE("com.example:mylib:1.0.0")
+  '
+  
+  # クリーンアップ
+  rm -r custom-lib
+}
+# Custom Library
+```
+
+---
+
 相対パスまたは絶対パスで `USE` を呼び出した場合、 `INC` は参照されません。
 
 `INC` はMaven座標形式の指定でのみ使用されます。
@@ -814,6 +836,26 @@ $ {
   rm -r .xarpite
 }
 # Apple
+```
+
+---
+
+カスタムのモジュール検索パスを使用する場合は、 `INC::push` を使って配列に追加します。
+
+```shell
+$ {
+  mkdir -p custom-lib/com/example/fruit/orange
+  
+  echo ' "Orange" ' > custom-lib/com/example/fruit/orange/orange-2.0.0.xa1
+  
+  xa '
+    INC::push("custom-lib")
+    USE("com.example.fruit:orange:2.0.0")
+  '
+  
+  rm -r custom-lib
+}
+# Orange
 ```
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]

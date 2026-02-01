@@ -361,6 +361,28 @@ By default, `./.xarpite/maven` is included.
 
 ---
 
+You can add custom module search paths by using `INC::push`.
+
+```shell
+$ {
+  # Place a module in a custom path
+  mkdir -p custom-lib/com/example/mylib
+  echo '"Custom Library"' > custom-lib/com/example/mylib/mylib-1.0.0.xa1
+  
+  # Add custom path to INC
+  xa '
+    INC::push("custom-lib")
+    USE("com.example:mylib:1.0.0")
+  '
+  
+  # Cleanup
+  rm -r custom-lib
+}
+# Custom Library
+```
+
+---
+
 When `USE` is called with a relative or absolute path, `INC` is not referenced.
 
 `INC` is only used with Maven coordinate format specifications.
@@ -806,6 +828,26 @@ $ {
   rm -r .xarpite
 }
 # Apple
+```
+
+---
+
+To use custom module search paths, add them to the `INC` array using `INC::push`.
+
+```shell
+$ {
+  mkdir -p custom-lib/com/example/fruit/orange
+  
+  echo ' "Orange" ' > custom-lib/com/example/fruit/orange/orange-2.0.0.xa1
+  
+  xa '
+    INC::push("custom-lib")
+    USE("com.example.fruit:orange:2.0.0")
+  '
+  
+  rm -r custom-lib
+}
+# Orange
 ```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
