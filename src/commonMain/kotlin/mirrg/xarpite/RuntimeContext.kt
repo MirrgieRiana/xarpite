@@ -3,6 +3,7 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -56,13 +57,7 @@ interface IoContext {
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
 }
 
-/**
- * 環境変数を加味してPWDを取得する
- */
-fun IoContext.getPwd(): String {
-    val env = getEnv()
-    return env["XARPITE_PWD"]?.takeIf { it.isNotBlank() } ?: env["PWD"]?.takeIf { it.isNotBlank() } ?: getPlatformPwd()
-}
+fun IoContext.getPwd(): String = getEnv().run { this["XARPITE_PWD"]?.notBlankOrNull ?: this["PWD"]?.notBlankOrNull ?: getPlatformPwd() }
 
 open class UnsupportedIoContext : IoContext {
     override fun getPlatformPwd(): String = throw UnsupportedOperationException()

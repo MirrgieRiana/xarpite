@@ -19,12 +19,8 @@ import mirrg.xarpite.withStackTrace
 import okio.Path
 import okio.Path.Companion.toPath
 
-/**
- * Resolves a file path to an absolute path using the current working directory.
- * Similar to the PWD mechanism.
- */
-fun resolveAbsolutePath(filePath: String, pwd: String): String {
-    val path = filePath.toPath()
+fun resolveAbsolutePath(file: String, pwd: String): String {
+    val path = file.toPath()
     return if (path.isAbsolute) {
         path.normalized().toString()
     } else {
