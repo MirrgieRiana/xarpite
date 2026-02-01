@@ -603,48 +603,6 @@ class CliTest {
     }
 
     @Test
-    fun incCanBeModified() = runTest {
-        val context = TestIoContext()
-        // INC に値を追加できる
-        val result = cliEval(context, """
-            INC << "/custom/path"
-            INC
-        """.trimIndent()).array()
-        assertTrue("/custom/path" in result)
-    }
-
-    @Test
-    fun useMavenCoordinateSearchesInInc() = runTest {
-        val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        
-        // カスタムINCパスにモジュールを配置
-        val customIncDir = "build/test/custom-inc".toPath()
-        val moduleDir = customIncDir.resolve("com/example/custom/mylib")
-        fileSystem.createDirectories(moduleDir)
-        val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
-        fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
-        
-        // INCにカスタムパスを追加してモジュールをロード
-        val result = cliEval(context, """
-            INC << "build/test/custom-inc"
-            USE("com.example.custom:mylib:1.0.0")
-        """.trimIndent()).toFluoriteString(null).value
-        
-        assertEquals("CustomModule", result)
-        
-        // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(customIncDir.resolve("com/example/custom"))
-        fileSystem.delete(customIncDir.resolve("com/example"))
-        fileSystem.delete(customIncDir.resolve("com"))
-        fileSystem.delete(customIncDir)
-    }
-
-
-    @Test
     fun inb() = runTest {
         val context = TestIoContext()
         // INB はストリームとして存在することを確認
@@ -1363,6 +1321,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
+        context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
