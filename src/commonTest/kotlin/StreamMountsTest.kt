@@ -141,30 +141,44 @@ class StreamMountsTest {
         assertEquals(10, eval("GET(0; 10, 20, 30)").int)
         assertEquals(30, eval("GET(2; 10, 20, 30)").int)
 
+        // GET with negative indices (from the end)
+        assertEquals(30, eval("GET(-1; 10, 20, 30)").int) // Last element
+        assertEquals(20, eval("GET(-2; 10, 20, 30)").int) // Second to last
+        assertEquals(10, eval("GET(-3; 10, 20, 30)").int) // Third to last
+
         // GET with out-of-bounds index returns NULL
         assertEquals(FluoriteNull, eval("GET(3; 10, 20, 30)"))
-        assertEquals(FluoriteNull, eval("GET(-1; 10, 20, 30)"))
+        assertEquals(FluoriteNull, eval("GET(-4; 10, 20, 30)")) // Out of bounds from the end
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)"))
 
         // GET with stream of indices returns stream of elements
         assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream())
         assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream())
 
+        // GET with stream of negative indices
+        assertEquals("30,20", eval("GET(-1, -2; 10, 20, 30)").stream())
+        assertEquals("10,30,20", eval("GET(0, -1, -2; 10, 20, 30)").stream())
+
         // GET with stream of indices including out-of-bounds returns NULL for those indices
         assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream())
+        assertEquals("NULL,30,NULL", eval("GET(-10, -1, 10; 10, 20, 30)").stream())
 
         // GET with empty index stream returns empty stream
         assertEquals("", eval("GET(,; 10, 20, 30)").stream())
 
         // GET with empty value stream and single index returns NULL
         assertEquals(FluoriteNull, eval("GET(0; ,)"))
+        assertEquals(FluoriteNull, eval("GET(-1; ,)"))
 
         // GET with empty value stream and stream indices returns stream of NULLs
         assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream())
+        assertEquals("NULL,NULL", eval("GET(-1, -2; ,)").stream())
 
         // GET with non-stream index on non-stream value
         assertEquals(10, eval("GET(0; 10)").int)
         assertEquals(FluoriteNull, eval("GET(1; 10)"))
+        assertEquals(10, eval("GET(-1; 10)").int) // -1 on single value returns that value
+        assertEquals(FluoriteNull, eval("GET(-2; 10)")) // Out of bounds
 
         // GET can be used with partial application
         assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream())

@@ -673,12 +673,18 @@ $ xa 'LAST(,)'
 
 Returns elements at the indices specified by `indices` from `stream`.
 
-Indices start from 0. If an index does not exist, returns `NULL` for that index.
+Indices start from 0. Negative indices represent indices from the end (-1 is the last element, -2 is the second to last). If an index does not exist, returns `NULL` for that index.
 
 If `indices` is a non-stream, the return value is also a non-stream. If `indices` is a stream, the return value is a stream.
 
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(-1; 10, 20, 30)'
+# 30
+
+$ xa 'GET(-2; 10, 20, 30)'
 # 20
 
 $ xa 'GET(5; 10, 20, 30)'
@@ -687,6 +693,10 @@ $ xa 'GET(5; 10, 20, 30)'
 $ xa 'GET(0, 2; 10, 20, 30)'
 # 10
 # 30
+
+$ xa 'GET(-1, -2; 10, 20, 30)'
+# 30
+# 20
 
 $ xa 'GET(1 .. 3; 10, 20, 30, 40, 50)'
 # 20

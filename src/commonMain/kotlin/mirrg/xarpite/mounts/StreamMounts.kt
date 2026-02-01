@@ -426,44 +426,77 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             if (indices is FluoriteStream) {
                 // Return a stream of elements at the specified indices
                 FluoriteStream {
-                    if (stream is FluoriteStream) {
-                        coroutineScope {
-                            val cache = mutableListOf<FluoriteValue>()
-                            val channel = stream.toFlow().produceIn(this)
+                    coroutineScope {
+                        val cache = mutableListOf<FluoriteValue>()
+                        val channel = stream.toFlow().produceIn(this)
+                        var streamEnded = false
+                        
+                        indices.collect { indexValue ->
+                            val index = indexValue.toFluoriteNumber(null).roundToInt()
                             
-                            indices.collect { indexValue ->
-                                val index = indexValue.toFluoriteNumber(null).roundToInt()
+                            if (index < 0) {
+                                // Negative index: need to read entire stream to determine length
+                                if (!streamEnded) {
+                                    while (true) {
+                                        val result = channel.receiveCatching()
+                                        if (result.isSuccess) {
+                                            cache.add(result.getOrThrow())
+                                        } else {
+                                            streamEnded = true
+                                            break
+                                        }
+                                    }
+                                }
                                 
-                                // Fetch elements until we have the requested index
-                                while (cache.size <= index) {
+                                // Calculate actual index from the end
+                                val actualIndex = cache.size + index
+                                if (actualIndex >= 0 && actualIndex < cache.size) {
+                                    emit(cache[actualIndex])
+                                } else {
+                                    emit(FluoriteNull)
+                                }
+                            } else {
+                                // Positive index: fetch elements until we have the requested index
+                                while (cache.size <= index && !streamEnded) {
                                     val result = channel.receiveCatching()
                                     if (result.isSuccess) {
                                         cache.add(result.getOrThrow())
                                     } else {
-                                        // Stream ended, emit NULL
-                                        emit(FluoriteNull)
-                                        return@collect
+                                        streamEnded = true
+                                        break
                                     }
                                 }
                                 
-                                // Emit the cached element
-                                emit(cache[index])
+                                // Emit the cached element or NULL if out of bounds
+                                if (index < cache.size) {
+                                    emit(cache[index])
+                                } else {
+                                    emit(FluoriteNull)
+                                }
                             }
-                            
-                            channel.cancel()
                         }
-                    } else {
-                        // Non-stream: only index 0 is valid
-                        indices.collect { indexValue ->
-                            val index = indexValue.toFluoriteNumber(null).roundToInt()
-                            emit(if (index == 0) stream else FluoriteNull)
-                        }
+                        
+                        channel.cancel()
                     }
                 }
             } else {
                 // Single index, return single value
                 val index = indices.toFluoriteNumber(null).roundToInt()
-                if (stream is FluoriteStream) {
+                
+                if (index < 0) {
+                    // Negative index: need to read entire stream
+                    val cache = mutableListOf<FluoriteValue>()
+                    stream.toFlow().collect { item ->
+                        cache.add(item)
+                    }
+                    val actualIndex = cache.size + index
+                    if (actualIndex >= 0 && actualIndex < cache.size) {
+                        cache[actualIndex]
+                    } else {
+                        FluoriteNull
+                    }
+                } else {
+                    // Positive index: skip to the target element
                     var currentIndex = 0
                     var result: FluoriteValue? = null
                     try {
@@ -478,9 +511,6 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         
                     }
                     result ?: FluoriteNull
-                } else {
-                    // Non-stream: only index 0 is valid
-                    if (index == 0) stream else FluoriteNull
                 }
             }
         },
