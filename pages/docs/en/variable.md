@@ -273,6 +273,101 @@ $ xa '
 # abc1
 ```
 
+### Overriding Increment/Decrement
+
+Increment and decrement operators can be overridden with dedicated methods.
+
+| Operator    | Method Name | Description       |
+|-------------|-------------|-------------------|
+| `formula++` | `_++`       | Postfix increment |
+| `++formula` | `++_`       | Prefix increment  |
+| `formula--` | `_--`       | Postfix decrement |
+| `--formula` | `--_`       | Prefix decrement  |
+
+By overriding these methods, you can customize the behavior of increment and decrement operations.
+
+---
+
+Override methods take an `accessor` function as an argument in addition to the object itself. This function performs get and set operations on the expression.
+
+Calling `accessor` with 0 arguments performs a value get operation on the expression.
+
+Calling `accessor` with 1 argument performs a value set operation on the expression.
+
+Increment and decrement behavior can be defined either as an object mutation operation or as an immutable operation with assignment.
+
+```shell
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
+    `_++`: this, accessor -> (
+      this.value++
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 1
+# New: 1
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_++`: this, accessor -> (
+      accessor(new(this.value + 1))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 1
+```
+
+---
+
+The operator's return value is the return value of the override method.
+
+Due to this property, prefix and postfix versions are defined as independent operations, and one does not fall back to the other.
+
+```shell
+$ xa -q '
+  Object := {
+    `_++`: this, accessor -> "suffix"
+    `++_`: this, accessor -> "prefix"
+  }
+
+  object := Object{}
+
+  OUT << object++
+  OUT << ++object
+'
+# suffix
+# prefix
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.

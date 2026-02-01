@@ -254,15 +254,15 @@ $ xa '
 `formula++` の挙動は概ね以下の疑似コードと同じです。
 
 ```
-old = get(formula)
-new = plus(old, 1)
-set(formula, new)
-return old
+old := formula
+new := old + 1
+formula = new
+old
 ```
 
 ---
 
-実は `formula` が代入をサポートし、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
+実は `formula` が代入をサポートする式であり、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
 
 ```shell
 $ xa '
@@ -271,6 +271,101 @@ $ xa '
   s
 '
 # abc1
+```
+
+### インクリメント・デクリメントのオーバーライド
+
+インクリメント・デクリメント演算子は専用のメソッドでオーバーライドできます。
+
+| 演算子         | メソッド名 | 説明        |
+|-------------|-------|-----------|
+| `formula++` | `_++` | 後置インクリメント |
+| `++formula` | `++_` | 前置インクリメント |
+| `formula--` | `_--` | 後置デクリメント  |
+| `--formula` | `--_` | 前置デクリメント  |
+
+これらのメソッドをオーバーライドすることで、インクリメント・デクリメントの動作をカスタマイズできます。
+
+---
+
+オーバーライドメソッドはオブジェクト自身の他に、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
+
+`accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
+
+`accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
+
+インクリメント・デクリメントの動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+
+```shell
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
+    `_++`: this, accessor -> (
+      this.value++
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 1
+# New: 1
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_++`: this, accessor -> (
+      accessor(new(this.value + 1))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 1
+```
+
+---
+
+演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+この性質上、前置版と後置版は互いに独立の操作として定義されており、片方がもう片方にフォールバックされることはありません。
+
+```shell
+$ xa -q '
+  Object := {
+    `_++`: this, accessor -> "suffix"
+    `++_`: this, accessor -> "prefix"
+  }
+
+  object := Object{}
+
+  OUT << object++
+  OUT << ++object
+'
+# suffix
+# prefix
 ```
 
 # 変数
