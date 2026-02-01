@@ -70,8 +70,7 @@ private fun resolveModulePath(baseDir: Path, reference: String): Path? {
         val artifact = segments[1].notBlankOrNull ?: return@run
         val version = segments[2].notBlankOrNull ?: return@run
 
-        val file = "${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION"
-        val path = baseDir.resolve(".xarpite").resolve(file).normalized()
+        val path = ".xarpite/${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION".toPath().normalized()
         path.let { if (it.canLoad()) return it }
         return null
     }
