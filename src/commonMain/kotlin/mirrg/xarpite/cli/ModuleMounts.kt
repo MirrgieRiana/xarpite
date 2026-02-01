@@ -44,23 +44,19 @@ private fun resolveModulePath(baseDir: Path, file: String): Path? {
         file.startsWith("./") -> baseDir.resolve(file.drop(2).toPath()).normalized()
         file.startsWith("/") -> file.toPath().normalized()
         file.contains(":") -> {
-            // Maven coordinate format: "group:artifact:version" or "group:artifact"
+            // Maven coordinate format: "group:artifact:version"
             val parts = file.split(":")
-            if (parts.size < 2 || parts.size > 3) {
-                throw FluoriteException("""Invalid Maven coordinate format: $file. Expected "group:artifact" or "group:artifact:version".""".toFluoriteString())
+            if (parts.size != 3) {
+                throw FluoriteException("""Invalid Maven coordinate format: $file. Expected "group:artifact:version".""".toFluoriteString())
             }
             if (parts.any { it.isEmpty() }) {
                 throw FluoriteException("""Invalid Maven coordinate format: $file. All parts must be non-empty.""".toFluoriteString())
             }
             val group = parts[0].replace(".", "/")
             val artifact = parts[1]
-            val version = parts.getOrNull(2)
+            val version = parts[2]
             
-            val relativePath = if (version != null) {
-                "$group/$artifact/$version$MODULE_EXTENSION"
-            } else {
-                "$group/$artifact$MODULE_EXTENSION"
-            }
+            val relativePath = "$group/$artifact/$artifact-$version$MODULE_EXTENSION"
             baseDir.resolve(".xarpite").resolve(relativePath.toPath()).normalized()
         }
         else -> throw FluoriteException("""Module file path must start with "./", "/", or be in Maven coordinate format (containing ":").""".toFluoriteString())

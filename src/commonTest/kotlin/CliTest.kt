@@ -485,28 +485,12 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         val xarpiteDir = ".xarpite/com/example/utils".toPath()
         fileSystem.createDirectories(xarpiteDir)
-        val moduleFile = xarpiteDir.resolve("1.0.0.xa1")
+        val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
         fileSystem.delete(".xarpite/com/example".toPath())
-        fileSystem.delete(".xarpite/com".toPath())
-        fileSystem.delete(".xarpite".toPath())
-    }
-
-    @Test
-    fun useSupportsMavenCoordinateWithoutVersion() = runTest {
-        val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        val xarpiteDir = ".xarpite/com/example".toPath()
-        fileSystem.createDirectories(xarpiteDir)
-        val moduleFile = xarpiteDir.resolve("utils.xa1")
-        fileSystem.write(moduleFile) { writeUtf8("888") }
-        assertEquals("888", cliEval(context, """USE("com.example:utils")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
         fileSystem.delete(".xarpite/com".toPath())
         fileSystem.delete(".xarpite".toPath())
     }
@@ -518,7 +502,7 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         val xarpiteDir = ".xarpite/org/jetbrains/kotlin/lib".toPath()
         fileSystem.createDirectories(xarpiteDir)
-        val moduleFile = xarpiteDir.resolve("2.0.0.xa1")
+        val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
@@ -534,9 +518,9 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        val xarpiteDir = ".xarpite/com/test".toPath()
+        val xarpiteDir = ".xarpite/com/test/module".toPath()
         fileSystem.createDirectories(xarpiteDir)
-        val moduleFile = xarpiteDir.resolve("module.xa1")
+        val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
         fileSystem.write(moduleFile) {
             writeUtf8(
                 """
@@ -551,8 +535,8 @@ class CliTest {
         val result = cliEval(
             context,
             """
-            a := USE("com.test:module")
-            b := USE("com.test:module")
+            a := USE("com.test:module:1.0.0")
+            b := USE("com.test:module:1.0.0")
             a.variables.value = "changed"
             b.variables.value
             """.trimIndent()
@@ -560,6 +544,7 @@ class CliTest {
         assertEquals("changed", result)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/com/test".toPath())
         fileSystem.delete(".xarpite/com".toPath())
         fileSystem.delete(".xarpite".toPath())
     }
@@ -572,6 +557,10 @@ class CliTest {
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("invalid_module_name")""")
         }
+        // Reject Maven coordinates with wrong number of parts
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:artifact")""")
+        }
         // Reject Maven coordinates with empty parts
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE(":artifact:version")""")
@@ -581,9 +570,6 @@ class CliTest {
         }
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("group:artifact:")""")
-        }
-        assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group:")""")
         }
     }
 
