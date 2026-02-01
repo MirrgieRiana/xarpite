@@ -1,70 +1,78 @@
 package mirrg.xarpite.mounts
 
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.define
 
 context(context: RuntimeContext)
-fun createStringMounts(): List<Map<String, FluoriteValue>> {
-    val mounts = mutableMapOf<String, FluoriteValue>()
+fun createStringMounts(): List<Map<String, Mount>> {
+    return mapOf(
 
-    // String constants for special characters
-    mounts["LT"] = "<".toFluoriteString()
-    mounts["GT"] = ">".toFluoriteString()
-    mounts["AMP"] = "&".toFluoriteString()
-    mounts["APOS"] = "'".toFluoriteString()
-    mounts["QUOT"] = "\"".toFluoriteString()
-    mounts["BOM"] = "\uFEFF".toFluoriteString()
+        // String constants for special characters
+        "LT" define "<".toFluoriteString(),
+        "GT" define ">".toFluoriteString(),
+        "AMP" define "&".toFluoriteString(),
+        "APOS" define "'".toFluoriteString(),
+        "QUOT" define "\"".toFluoriteString(),
+        "BOM" define "\uFEFF".toFluoriteString(),
 
-    FluoriteFunction { arguments ->
-        if (arguments.size == 1) {
-            val argument = arguments[0]
-            if (argument is FluoriteStream) {
-                FluoriteStream {
-                    argument.collect { item ->
-                        emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
+        *run {
+            FluoriteFunction { arguments ->
+                if (arguments.size == 1) {
+                    val argument = arguments[0]
+                    if (argument is FluoriteStream) {
+                        FluoriteStream {
+                            argument.collect { item ->
+                                emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
+                            }
+                        }
+                    } else {
+                        argument.toFluoriteString(null).value.uppercase().toFluoriteString()
                     }
+                } else {
+                    usage("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>")
                 }
-            } else {
-                argument.toFluoriteString(null).value.uppercase().toFluoriteString()
+            }.let {
+                arrayOf(
+                    "UC" define it,
+                    "::UC" define fluoriteArrayOf(
+                        FluoriteString.fluoriteClass colon it,
+                    ),
+                )
             }
-        } else {
-            usage("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>")
-        }
-    }.also {
-        mounts["UC"] = it
-        mounts["::UC"] = fluoriteArrayOf(
-            FluoriteString.fluoriteClass colon it,
-        )
-    }
+        },
 
-    FluoriteFunction { arguments ->
-        if (arguments.size == 1) {
-            val argument = arguments[0]
-            if (argument is FluoriteStream) {
-                FluoriteStream {
-                    argument.collect { item ->
-                        emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
+        *run {
+            FluoriteFunction { arguments ->
+                if (arguments.size == 1) {
+                    val argument = arguments[0]
+                    if (argument is FluoriteStream) {
+                        FluoriteStream {
+                            argument.collect { item ->
+                                emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
+                            }
+                        }
+                    } else {
+                        argument.toFluoriteString(null).value.lowercase().toFluoriteString()
                     }
+                } else {
+                    usage("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>")
                 }
-            } else {
-                argument.toFluoriteString(null).value.lowercase().toFluoriteString()
+            }.let {
+                arrayOf(
+                    "LC" define it,
+                    "::LC" define fluoriteArrayOf(
+                        FluoriteString.fluoriteClass colon it,
+                    ),
+                )
             }
-        } else {
-            usage("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>")
-        }
-    }.also {
-        mounts["LC"] = it
-        mounts["::LC"] = fluoriteArrayOf(
-            FluoriteString.fluoriteClass colon it,
-        )
-    }
-
-    return listOf(mounts)
+        },
+    ).let { listOf(it) }
 }

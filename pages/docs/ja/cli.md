@@ -328,6 +328,30 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: カレントディレクトリを取得
+
+`PWD: STRING`
+
+現在のワーキングディレクトリのパスです。
+
+このパスは正規化（ `.` や `..` である階層を含みません）されており、絶対パスです。
+
+---
+
+この定数は以下の優先順位に基づいて値を決定します。
+
+1. 環境変数 `XARPITE_PWD`
+   - この環境変数はLinux版のランチャースクリプト内で自動的に付与されます。
+   - シンボリックリンクの解決はされません。
+2. 環境変数 `PWD`
+   - この環境変数は多くの場合Linuxシェルが自動的に付与します。
+   - シンボリックリンクの解決はされません。
+3. プラットフォーム固有の取得方法
+   - どちらの環境変数も利用できなかった場合、プラットフォームごとに固有の方法でカレントディレクトリを取得します。
+   - シンボリックリンクの解決が行われる場合があります。
+
+Windows上でJVM版ランタイムを起動した場合は3に該当しますが、ジャンクションの解決は行われないことが判明しています。
+
 ### `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
@@ -569,6 +593,61 @@ $ {
 # BLOB.of([32;33;34])
 ```
 
+### `WRITE`: テキストファイルに書き込み
+
+`WRITE(file: STRING; string: STRING): NULL`
+
+`file` で指定されたファイルに `string` をUTF-8エンコードして書き込みます。
+
+改行の付与や正規化は行われません。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple
+```
+
+### `WRITEL`: テキストファイルに行単位で書き込み
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+`file` で指定されたファイルに `lines` の各行を書き込みます。
+
+最後の行も含め、各行の末尾には `\n` が付与されます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+### `WRITEB`: バイナリファイルに書き込み
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+`file` で指定されたファイルに `blobLike` を書き込みます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
 `USE(file: STRING): VALUE`
@@ -765,4 +844,48 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
-**また、この関数は現状JVM版とNative版で提供されます。**
+**また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `BASH`: Bashスクリプトを実行
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+`script` をBashスクリプトとして実行し、その標準出力をUTF-8としてデコードし、文字列として返します。
+
+出力の末尾の改行は取り除かれます。
+
+これはBashの `"$(...)"` の動作と似ています。
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+`args` 引数を指定すると、Bashスクリプトに引数を渡せます。
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+この関数は内部的に `bash` コマンドを実行します。
+
+`bash` コマンドが利用できない環境ではエラーが発生します。
+
+---
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。

@@ -70,12 +70,16 @@ echo "--- Dry run (no changes) ---"
 rsync -n --itemize-changes -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
-read -r -n 1 answer
+read -r answer
 echo
-[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
-  rm -rf "$dir"
-  error "Cancelled."
-}
+case "$answer" in
+  [Yy]*)
+    ;;
+  *)
+    rm -rf "$dir"
+    error "Cancelled."
+    ;;
+esac
 echo "Syncing"
 rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
 

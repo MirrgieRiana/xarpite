@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.Mount
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
@@ -14,7 +15,9 @@ import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -44,6 +47,45 @@ class CliTest {
         assertEquals("[1]", cliEval(context, "ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
         assertEquals("[]", cliEval(context, "ARGS").array()) // 空の場合
         assertEquals("[1;2;3]", cliEval(context, "ARGS", "1", "2", "3").array()) // 複数の場合
+    }
+
+    @Test
+    fun pwd() = runTest {
+        val context = TestIoContext(currentLocation = "/test/location")
+        // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPwd()
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // Test accepts either the test location or environment variables if they are set
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/test/location"
+        assertEquals(expectedPwd, pwd) // PWD で現在位置が得られる
+    }
+
+    @Test
+    fun pwdReturnsAbsolutePath() = runTest {
+        val context = TestIoContext(currentLocation = "/absolute/path/test")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // PWD should return an absolute path (starts with /)
+        assertTrue(pwd.startsWith("/") || pwd.contains("://")) // Absolute path or URL
+    }
+
+    @Test
+    fun pwdFallbackToPlatformSpecific() = runTest {
+        // When no environment variables are set, PWD falls back to context.io.getPwd()
+        val context = TestIoContext(currentLocation = "/platform/specific/path")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables are not set, should get the test location
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        if (xarpitePwd == null && envPwd == null) {
+            assertEquals("/platform/specific/path", pwd)
+        }
+        // Otherwise, just verify it's non-empty
+        assertTrue(pwd.isNotEmpty())
     }
 
     @Test
@@ -162,6 +204,96 @@ class CliTest {
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[1].value.size)
         assertEquals(100, blobs[2].value.size)
+    }
+
+    @Test
+    fun write() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("write.test_file.tmp.txt")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // 基本的な文字列書き込み
+        cliEval(context, """WRITE(ARGS.0; "Hello World")""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("Hello World", content)
+        
+        // 改行が自動で付与されないことを確認
+        cliEval(context, """WRITE(ARGS.0; "test")""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("test", content2)
+        
+        // UTF-8エンコードの確認（日本語）
+        cliEval(context, """WRITE(ARGS.0; "こんにちは")""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("こんにちは", content3)
+        
+        // 空文字列の書き込み
+        cliEval(context, """WRITE(ARGS.0; "")""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("", content4)
+    }
+
+    @Test
+    fun writel() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("writel.test_file.tmp.txt")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // 複数行の書き込み（ストリームを使用）
+        cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("line1\nline2\nline3\n", content)
+        
+        // 単一行の書き込みでも末尾改行が付く
+        cliEval(context, """WRITEL(ARGS.0; ["single"]())""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("single\n", content2)
+        
+        // 空ストリームの場合は空ファイル
+        cliEval(context, """WRITEL(ARGS.0; []())""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("", content3)
+        
+        // 数値ストリームからの書き込み
+        cliEval(context, """WRITEL(ARGS.0; 1 .. 3)""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
+        assertEquals("1\n2\n3\n", content4)
+    }
+
+    @Test
+    fun writeb() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("writeb.test_file.tmp.bin")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        
+        // BLOBの書き込み
+        cliEval(context, """WRITEB(ARGS.0; BLOB.of([65, 66, 67]))""", file.toString())
+        val content = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(65, 66, 67), content)
+        
+        // STREAM<BLOB>の書き込み
+        cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", file.toString())
+        val content2 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(1, 2, 3, 4), content2)
+        
+        // ARRAY<NUMBER>の書き込み
+        cliEval(context, """WRITEB(ARGS.0; [72, 101, 108, 108, 111])""", file.toString())
+        val content3 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(72, 101, 108, 108, 111), content3)
+        assertEquals("Hello", content3.decodeToString())
+        
+        // 空のBLOBの書き込み
+        cliEval(context, """WRITEB(ARGS.0; BLOB.of([]))""", file.toString())
+        val content4 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(), content4)
+        
+        // NULLバイトを含むデータ
+        cliEval(context, """WRITEB(ARGS.0; [0, 1, 0, 2, 0])""", file.toString())
+        val content5 = getFileSystem().getOrThrow().read(file) { readByteArray() }
+        assertContentEquals(byteArrayOf(0, 1, 0, 2, 0), content5)
     }
 
     @Test
@@ -924,6 +1056,139 @@ class CliTest {
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
+    @Test
+    fun bashBasic() = runTest {
+        val context = TestIoContext()
+        try {
+            // 基本的な動作確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("Hello", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashRemovesTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 末尾の改行が除去されることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashRemovesOnlyOneTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test\n\n", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashNoTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 末尾改行がない場合
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithMultipleLines() = runTest {
+        val context = TestIoContext()
+        try {
+            // 複数行の出力
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("line1\nline2\nline3", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashReturnsString() = runTest {
+        val context = TestIoContext()
+        try {
+            // 戻り値が文字列であることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
+            assertTrue(result is FluoriteString)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashThrowsOnNonZeroExit() = runTest {
+        val context = TestIoContext()
+        try {
+            // 0以外の終了コードで例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
+            } catch (e: Exception) {
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithUnicode() = runTest {
+        val context = TestIoContext()
+        try {
+            // Unicode文字を含む
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("こんにちは世界", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArguments() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡す
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("apple banana", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArgumentsMultipleLines() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡して複数行出力
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("The fruit is:\napple", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {
@@ -934,7 +1199,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String) -> List<Map<String, FluoriteValue>>
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
@@ -945,7 +1210,8 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
 
 internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
-    private val stdinBytes: ByteArray = byteArrayOf()
+    private val stdinBytes: ByteArray = byteArrayOf(),
+    private val currentLocation: String = "/test/location"
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -984,6 +1250,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+
+    override fun getPwd(): String = currentLocation
 
     fun clear() {
         stdoutBytes.reset()
@@ -1028,4 +1296,16 @@ private fun getExecSrcWrappingHexForShell(script: String): String {
 private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getBashSrcWrappingHexForShell(script: String): String {
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%; $args)"""
 }

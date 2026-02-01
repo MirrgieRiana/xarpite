@@ -117,6 +117,23 @@ Outputs the value to the output field determined for each web application.
 
 Returns the window object if accessible from that execution environment.
 
+## `PWD` Get Current Page URL
+
+`PWD: STRING`
+
+The URL of the currently displayed page.
+
+```
+PWD
+# https://example.com/page
+```
+
+---
+
+This constant returns the URL of the current page rather than the parent directory (unlike the CLI version), based on the interpretation that it provides the "reference origin" path rather than the "parent hierarchy."
+
+This difference is due to the different handling of paths in file systems and URLs.
+
 ## `JS` Execute JavaScript Code
 
 `JS(code: STRING): VALUE`

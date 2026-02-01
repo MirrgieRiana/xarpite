@@ -215,6 +215,21 @@ class XarpiteTest {
             assertEquals("[ abcdef; abcde; 0abc; 0000;-0abc;-abcd;-abcde;-abcdef]", eval(""" [$s | "$% 05x(_)"] """).array()) // 符号余白 0埋め
         }
 
+        // 16進数（大文字）
+        run {
+            val s = """H#abcdef, H#abcde, H#abc, H#0, -H#abc, -H#abcd, -H#abcde, -H#abcdef"""
+            assertEquals("[ABCDEF;ABCDE;ABC;0;-ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%X(_)"] """).array()) // %X で大文字16進数
+            assertEquals("[ABCDEF;ABCDE;  ABC;    0; -ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%5X(_)"] """).array()) // 空白埋め
+            assertEquals("[ABCDEF;ABCDE;00ABC;00000;-0ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%05X(_)"] """).array()) // 0埋め
+            assertEquals("[ABCDEF;ABCDE;ABC  ;0    ;-ABC ;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%-5X(_)"] """).array()) // 左揃え空白埋め
+            assertEquals("[+ABCDEF;+ABCDE;+ABC;+0;-ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%+X(_)"] """).array()) // 符号表示
+            assertEquals("[ ABCDEF; ABCDE; ABC; 0;-ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$% X(_)"] """).array()) // 符号余白
+            assertEquals("[+ABCDEF;+ABCDE; +ABC;   +0; -ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%+5X(_)"] """).array()) // 符号表示 空白埋め
+            assertEquals("[ ABCDEF; ABCDE;  ABC;    0; -ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$% 5X(_)"] """).array()) // 符号余白 空白埋め
+            assertEquals("[+ABCDEF;+ABCDE;+0ABC;+0000;-0ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$%+05X(_)"] """).array()) // 符号表示 0埋め
+            assertEquals("[ ABCDEF; ABCDE; 0ABC; 0000;-0ABC;-ABCD;-ABCDE;-ABCDEF]", eval(""" [$s | "$% 05X(_)"] """).array()) // 符号余白 0埋め
+        }
+
         // 小数
         run {
             assertEquals("1.5", eval(""" "$%f(1.5)" """).string) // 小数の埋め込み
