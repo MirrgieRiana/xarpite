@@ -262,7 +262,7 @@ old
 
 ---
 
-実は `formula` が代入をサポートし、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
+実は `formula` が代入をサポートする式であり、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
 
 ```shell
 $ xa '
@@ -279,56 +279,92 @@ $ xa '
 
 | 演算子         | メソッド名 | 説明        |
 |-------------|-------|-----------|
-| `++formula` | `++_` | 前置インクリメント |
 | `formula++` | `_++` | 後置インクリメント |
-| `--formula` | `--_` | 前置デクリメント  |
+| `++formula` | `++_` | 前置インクリメント |
 | `formula--` | `_--` | 後置デクリメント  |
+| `--formula` | `--_` | 前置デクリメント  |
 
-これらのメソッドをオブジェクトに定義することで、インクリメント・デクリメントの動作を完全にカスタマイズできます。
+これらのメソッドをオーバーライドすることで、インクリメント・デクリメントの動作をカスタマイズできます。
 
-オーバーライドメソッドは2個の引数を取ります：
+---
 
-1. `this`: オブジェクト自身
-2. `accessor`: 変数アクセサ関数
-   - 0引数呼び出し `accessor()` で変数の値を取得
-   - 1引数呼び出し `accessor(newValue)` で変数に値を設定
+オーバーライドメソッドはオブジェクト自身の他に、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
 
-メソッドの戻り値が演算子の戻り値として直接返されます。
+`accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
+
+`accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
+
+インクリメント・デクリメントの動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
 
 ```shell
-$ xa '
-  obj := {
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
     `_++`: this, accessor -> (
-      oldObj := accessor()
-      newVal := oldObj.value * 2
-      accessor({value: newVal})
-      oldObj.value
+      this.value++
     )
-    value: 100
+    `&_`: this -> this.value.&
   }
-  obj++
-'
-# 100
 
-$ xa '
-  obj := {
-    `_++`: this, accessor -> (
-      oldObj := accessor()
-      newVal := oldObj.value * 2
-      accessor({value: newVal})
-      oldObj.value
-    )
-    value: 100
-  }
-  obj++
-  obj.value
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
 '
-# 200
+# Old: 0
+# New: 0
+# Old: 1
+# New: 1
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_++`: this, accessor -> (
+      accessor(new(this.value + 1))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 1
 ```
 
 ---
 
-オーバーライドされたメソッドが存在しない場合、従来通り `_+_` メソッドと `_-_` メソッドを使用した加減算が行われ、その結果が変数に代入されます。
+演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+この性質上、前置版と後置版は互いに独立の操作として定義されており、片方がもう片方にフォールバックされることはありません。
+
+```shell
+$ xa -q '
+  Object := {
+    `_++`: this, accessor -> "suffix"
+    `++_`: this, accessor -> "prefix"
+  }
+
+  OUT << obj++
+  OUT << ++obj
+'
+# suffix
+# prefix
+```
 
 # 変数
 
