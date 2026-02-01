@@ -746,6 +746,19 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
+## `INDEXED` Convert to Stream with Indices
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>`
+
+Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
+```
+
 ## `GROUP` Group Stream by Key
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
@@ -802,30 +815,6 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [1;2]
 # [3;4]
 # [5]
-```
-
-## `INDEXED` Add Index to Stream Elements
-
-`<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>`
-
-Returns a stream of 2-element arrays with each element of the stream paired with its 0-based index.
-
-```shell
-$ xa '"a", "b", "c" >> INDEXED'
-# [0;a]
-# [1;b]
-# [2;c]
-```
-
----
-
-This function has the same effect as the pipe operator's `i, v => ...`, but differs in that it returns the index-value pairs as a stream.
-
-```shell
-$ xa '"a", "b", "c" | i, v => [i; v]'
-# [0;a]
-# [1;b]
-# [2;c]
 ```
 
 ## `TAKE` Get Beginning of Stream
