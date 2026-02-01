@@ -3,11 +3,8 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
-<<<<<< copilot/update-location-constant-names
 import mirrg.kotlin.helium.notBlankOrNull
-======
 import mirrg.xarpite.compilers.objects.FluoriteArray
->>>>>> main
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 

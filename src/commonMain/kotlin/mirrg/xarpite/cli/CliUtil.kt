@@ -153,14 +153,10 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-<<<<<< copilot/update-location-constant-names
         val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
             resolveAbsolutePath(scriptFile, ioContext.getPwd())
         }
-        
-=====
         context.inc.values += "./.xarpite/maven".toFluoriteString()
->>>>> main
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
         lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
@@ -168,7 +164,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
         val scriptFileName = absoluteScriptPath
-        val scriptDirName = absoluteScriptPath?.toPath()?.parent?.toString() ?: "."
+        val scriptDirName = absoluteScriptPath?.toPath()?.parent?.toString() ?: ioContext.getPwd()
         evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
         try {
             withStackTrace(Position("-", 0)) {

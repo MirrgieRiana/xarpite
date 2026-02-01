@@ -30,14 +30,7 @@ fun createModuleMounts(scriptFileName: String?, scriptDirName: String, mountsFac
         "LOCATION_FILE" define LazyMount { scriptFileName?.toPath()?.name?.toFluoriteString() ?: FluoriteNull },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
-<<<<<< copilot/update-location-constant-names
             val baseDir = scriptDirName.toPath()
-======
-            val baseDir by lazy {
-                val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                context.io.getPwd().toPath().resolve(parentPath).normalized()
-            }
->>>>>> main
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
