@@ -351,6 +351,45 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
+### `INC`: Array of Module Search Paths
+
+`INC: ARRAY<STRING>`
+
+An array of directory paths that are searched when using `USE` with Maven coordinate format.
+
+This array includes the following paths by default:
+
+1. `~/.xarpite/maven` (user's home directory)
+2. `./.xarpite/maven` (current directory)
+
+---
+
+You can add custom module search paths by adding values to `INC`.
+
+```shell
+$ {
+  # Place a module in a custom path
+  mkdir -p custom-lib/com/example/mylib
+  echo '"Custom Library"' > custom-lib/com/example/mylib/mylib-1.0.0.xa1
+  
+  # Add custom path to INC
+  xa '
+    INC << "custom-lib"
+    USE("com.example:mylib:1.0.0")
+  '
+  
+  # Cleanup
+  rm -r custom-lib
+}
+# Custom Library
+```
+
+---
+
+When `USE` is called with a relative or absolute path, `INC` is not referenced.
+
+`INC` is only used with Maven coordinate format specifications.
+
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
@@ -771,27 +810,47 @@ $ {
 
 #### Specification by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in the `./.xarpite` directory.
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
 
 Maven coordinate format is specified as `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `./.xarpite/com/example/fruit/apple/apple-1.0.0.xa1` is loaded.
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
 
-Specification by Maven coordinates is always resolved from the current directory, regardless of the location of the file that called the `USE` function.
+By default, `INC` includes `~/.xarpite/maven` and `./.xarpite/maven`.
 
 ```shell
 $ {
-  mkdir -p .xarpite/com/example/fruit/apple
+  mkdir -p .xarpite/maven/com/example/fruit/apple
 
-  echo ' "Apple" ' > .xarpite/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/apple-1.0.0.xa1
 
   xa 'USE("com.example.fruit:apple:1.0.0")'
 
   rm -r .xarpite
 }
 # Apple
+```
+
+---
+
+To use custom module search paths, add them to the `INC` array.
+
+```shell
+$ {
+  mkdir -p custom-lib/com/example/fruit/orange
+  
+  echo ' "Orange" ' > custom-lib/com/example/fruit/orange/orange-2.0.0.xa1
+  
+  xa '
+    INC << "custom-lib"
+    USE("com.example.fruit:orange:2.0.0")
+  '
+  
+  rm -r custom-lib
+}
+# Orange
 ```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
