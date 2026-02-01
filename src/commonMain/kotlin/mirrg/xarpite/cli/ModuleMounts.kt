@@ -25,15 +25,10 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
-                val parentPath = location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                // If parentPath is relative (e.g., "."), convert to absolute path using same logic as PWD mount
-                if (!parentPath.isAbsolute) {
-                    val env = getEnv()
-                    val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()
-                    pwd.toPath().normalized()
-                } else {
-                    parentPath
-                }
+                val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
+                val env = getEnv()
+                val pwd = env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()
+                pwd.toPath().resolve(parentPath).normalized()
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
@@ -57,19 +52,17 @@ private fun resolveModulePath(baseDir: Path, reference: String): Path? {
 
     // 相対パス
     if (reference.startsWith("./") || reference.startsWith(".\\")) {
-        val pathStr = if (reference.startsWith(".\\")) reference.drop(2).replace("\\", "/") else reference.drop(2)
-        val path = baseDir.resolve(pathStr.toPath()).normalized()
+        val path = baseDir.resolve(reference.toPath()).normalized()
         path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.normalized().let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
         return null
     }
 
     // 絶対パス
     if (reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val pathStr = reference.replace("\\", "/")
-        val path = baseDir.resolve(pathStr.toPath()).normalized()
+        val path = baseDir.resolve(reference.toPath()).normalized()
         path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.normalized().let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
         return null
     }
 
