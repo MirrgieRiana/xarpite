@@ -748,7 +748,7 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `INDEXED` Convert to Stream with Indices
 
-`<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>`
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
 
 Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
 

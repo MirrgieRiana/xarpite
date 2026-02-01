@@ -608,7 +608,7 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 
 ## `INDEXED` インデックス付きのストリームに変換
 
-`<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>`
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
 
 `stream` の各要素に対して0から始まるインデックスを付与した2要素配列のストリームを返します。
 

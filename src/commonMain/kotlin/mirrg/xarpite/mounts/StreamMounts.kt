@@ -661,7 +661,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             )
         },
         "INDEXED" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("<T> INDEXED(stream: STREAM<T>): STREAM<[INT, T]>")
+            fun usage(): Nothing = usage("<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>")
             val arguments2 = arguments.toMutableList()
 
             val stream = arguments2.removeFirstOrNull() ?: usage()
