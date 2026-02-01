@@ -660,6 +660,29 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "GREP" define create("GREP"),
             )
         },
+        "INDEXED" define FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>")
+            val arguments2 = arguments.toMutableList()
+
+            val stream = arguments2.removeFirstOrNull() ?: usage()
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            FluoriteStream {
+                var index = 0
+                if (stream is FluoriteStream) {
+                    stream.collect { item ->
+                        emit(FluoriteInt(index) colon item)
+                        index++
+                    }
+                } else {
+                    emit(FluoriteInt(0) colon stream)
+                }
+            }
+        },
         "GROUP" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
             val arguments2 = arguments.toMutableList()

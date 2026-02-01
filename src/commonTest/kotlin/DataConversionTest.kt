@@ -46,6 +46,14 @@ class DataConversionTest {
         assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい
         assertTrue(eval(""" " " >> JSONSD """).empty()) // ブランク文字列しかない場合、空ストリームになる
         assertTrue(eval(""" , >> JSONSD """).empty()) // 空ストリームの場合、空ストリームになる
+
+        // JSONL (synonym for JSONS)
+        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONL").stream()) // JSONLはJSONSのシノニムとして動作する
+        assertEquals("[\n  1\n],[\n  2\n],[\n  3\n]", eval(""" [1], [2], [3] >> JSONL[indent: "  "] """).stream()) // indentオプションも使用できる
+
+        // JSONLD (synonym for JSONSD)
+        assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
+        assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
     }
 
     @Test

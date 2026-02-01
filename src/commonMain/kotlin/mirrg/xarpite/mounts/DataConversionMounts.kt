@@ -188,27 +188,43 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     val value = arguments[0]
                     value.toFluoriteValueAsSingleJson(null)
                 },
-                "JSONS" define FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
-                    val arguments2 = arguments.toMutableList()
+                *run {
+                    fun create(name: String): FluoriteFunction {
+                        return FluoriteFunction { arguments ->
+                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                            val arguments2 = arguments.toMutableList()
 
-                    if (arguments2.isEmpty()) usage()
-                    val values = arguments2.removeLast()
+                            if (arguments2.isEmpty()) usage()
+                            val values = arguments2.removeLast()
 
-                    val (entries, arguments3) = arguments2.partitionIfEntry()
+                            val (entries, arguments3) = arguments2.partitionIfEntry()
 
-                    val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
+                            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
 
-                    if (entries.isNotEmpty()) usage()
-                    if (arguments3.isNotEmpty()) usage()
+                            if (entries.isNotEmpty()) usage()
+                            if (arguments3.isNotEmpty()) usage()
 
-                    values.toJsonsFluoriteValue(null, indent = indent)
+                            values.toJsonsFluoriteValue(null, indent = indent)
+                        }
+                    }
+                    arrayOf(
+                        "JSONS" define create("JSONS"),
+                        "JSONL" define create("JSONL"),
+                    )
                 },
-                "JSONSD" define FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>")
-                    if (arguments.size != 1) usage()
-                    val value = arguments[0]
-                    value.toFluoriteValueAsJsons(null)
+                *run {
+                    fun create(name: String): FluoriteFunction {
+                        return FluoriteFunction { arguments ->
+                            fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
+                            if (arguments.size != 1) usage()
+                            val value = arguments[0]
+                            value.toFluoriteValueAsJsons(null)
+                        }
+                    }
+                    arrayOf(
+                        "JSONSD" define create("JSONSD"),
+                        "JSONSL" define create("JSONLD"),
+                    )
                 },
             )
         },

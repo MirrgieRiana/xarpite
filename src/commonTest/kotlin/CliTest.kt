@@ -17,6 +17,7 @@ import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -1055,6 +1056,139 @@ class CliTest {
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
+    @Test
+    fun bashBasic() = runTest {
+        val context = TestIoContext()
+        try {
+            // 基本的な動作確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("Hello", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashRemovesTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 末尾の改行が除去されることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashRemovesOnlyOneTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test\n\n", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashNoTrailingNewline() = runTest {
+        val context = TestIoContext()
+        try {
+            // 末尾改行がない場合
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("test", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithMultipleLines() = runTest {
+        val context = TestIoContext()
+        try {
+            // 複数行の出力
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("line1\nline2\nline3", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashReturnsString() = runTest {
+        val context = TestIoContext()
+        try {
+            // 戻り値が文字列であることを確認
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
+            assertTrue(result is FluoriteString)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashThrowsOnNonZeroExit() = runTest {
+        val context = TestIoContext()
+        try {
+            // 0以外の終了コードで例外をスロー
+            var exceptionThrown = false
+            try {
+                cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
+            } catch (e: Exception) {
+                exceptionThrown = true
+            }
+            assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithUnicode() = runTest {
+        val context = TestIoContext()
+        try {
+            // Unicode文字を含む
+            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("こんにちは世界", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArguments() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡す
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("apple banana", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun bashWithArgumentsMultipleLines() = runTest {
+        val context = TestIoContext()
+        try {
+            // 引数を渡して複数行出力
+            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
+            val output = result.toFluoriteString(null).value
+            assertEquals("The fruit is:\napple", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {
@@ -1162,4 +1296,16 @@ private fun getExecSrcWrappingHexForShell(script: String): String {
 private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getBashSrcWrappingHexForShell(script: String): String {
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%)"""
+}
+
+/** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
+private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String): String {
+    // ブロック文字列リテラルを使用して、エスケープの問題を回避
+    return """BASH(%>$script<%; $args)"""
 }

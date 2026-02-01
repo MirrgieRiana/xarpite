@@ -844,4 +844,48 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
-**また、この関数は現状JVM版とNative版で提供されます。**
+**また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `BASH`: Bashスクリプトを実行
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+`script` をBashスクリプトとして実行し、その標準出力をUTF-8としてデコードし、文字列として返します。
+
+出力の末尾の改行は取り除かれます。
+
+これはBashの `"$(...)"` の動作と似ています。
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+`args` 引数を指定すると、Bashスクリプトに引数を渡せます。
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+この関数は内部的に `bash` コマンドを実行します。
+
+`bash` コマンドが利用できない環境ではエラーが発生します。
+
+---
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
