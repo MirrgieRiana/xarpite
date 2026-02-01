@@ -142,3 +142,5 @@ suspend fun FluoriteValue.cache(): FluoriteValue {
 }
 
 fun FluoriteValue.toFlow() = if (this is FluoriteStream) flow(this.flowProvider) else flowOf(this)
+
+suspend fun FluoriteValue.consumeToMutableList() = if (this is FluoriteStream) this.toMutableList() else mutableListOf(this)
