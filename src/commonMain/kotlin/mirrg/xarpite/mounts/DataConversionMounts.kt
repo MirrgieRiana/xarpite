@@ -177,7 +177,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             value.toFluoriteValueAsSingleJson(null)
         },
         *run {
-            fun createJsonsFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("$name([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>")
                     val (indent, value) = when (arguments.size) {
@@ -196,12 +196,12 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "JSONS" define createJsonsFunction("JSONS"),
-                "JSONL" define createJsonsFunction("JSONL"),
+                "JSONS" define create("JSONS"),
+                "JSONL" define create("JSONL"),
             )
         },
         *run {
-            fun createJsonsdFunction(name: String): FluoriteFunction {
+            fun create(name: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
                     if (arguments.size != 1) usage()
@@ -210,8 +210,8 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "JSONSD" define createJsonsdFunction("JSONSD"),
-                "JSONLD" define createJsonsdFunction("JSONLD"),
+                "JSONSD" define create("JSONSD"),
+                "JSONLD" define create("JSONLD"),
             )
         },
         "CSV" define FluoriteFunction { arguments ->
