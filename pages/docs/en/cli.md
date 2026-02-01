@@ -316,6 +316,30 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: Get Current Directory
+
+`PWD: STRING`
+
+The path of the current working directory.
+
+This path is normalized (it does not contain `.` or `..` segments) and is an absolute path.
+
+---
+
+This constant determines its value based on the following priority:
+
+1. Environment variable `XARPITE_PWD`
+   - This environment variable is automatically provided within the Linux launcher script.
+   - Symbolic links are not resolved.
+2. Environment variable `PWD`
+   - This environment variable is automatically provided by most Linux shells.
+   - Symbolic links are not resolved.
+3. Platform-specific retrieval method
+   - If neither environment variable is available, the current directory is retrieved using a platform-specific method.
+   - Symbolic links may be resolved.
+
+When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
@@ -327,11 +351,15 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
-### `IN`: Read Strings Line by Line from Console
+### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
+`I: STREAM<STRING>`
+
 A stream that reads strings line by line from standard input.
+
+`I` is an alias for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -392,11 +420,15 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`: Output to Console
+### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
+`O(value: VALUE): NULL`
+
 Outputs to standard output.
+
+`O` is an alias for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
@@ -551,6 +583,63 @@ $ {
 # BLOB.of([32;33;34])
 ```
 
+### `WRITE`: Write to Text File
+
+`WRITE(file: STRING; string: STRING): NULL`
+
+Writes `string` to the file specified by `file` with UTF-8 encoding.
+
+No newline insertion or normalization is performed.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple
+```
+
+### `WRITEL`: Write to Text File Line by Line
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+Writes each line from `lines` to the file specified by `file`.
+
+`\n` is appended to the end of each line, including the last line.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+### `WRITEB`: Write to Binary File
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+Writes `blobLike` to the file specified by `file`.
+
+`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM<BLOB>, or ARRAY<NUMBER>.
+
+If the file already exists, it will be overwritten.
+
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
 ### `USE`: Get Result of External Xarpite File
 
 `USE(file: STRING): VALUE`
@@ -559,22 +648,26 @@ Returns the result of evaluating the specified Xarpite script.
 
 ```shell
 $ {
-  echo '877' > banana.xa1
-  xa 'USE("./banana")'
-  rm banana.xa1
+  echo ' "Hello, World!" ' > hello.xa1
+  xa 'USE("./hello")'
+  rm hello.xa1
 }
-# 877
+# Hello, World!
 ```
 
 ---
 
-`file` must start with `./` and is interpreted as a relative path from the file that called the `USE` function.
+`file` must start with `./` or `/`.
+
+If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
 
 For example, if you write `USE("./banana")` in `fruit/apple.xa1`, `fruit/banana.xa1` is loaded.
 
-In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
+If the code is specified directly on the command line, relative paths are resolved from the current directory.
 
-If the code is specified directly on the command line, files are resolved from the current directory.
+If it starts with `/`, it is interpreted as an absolute path.
+
+In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
 
 The directory separator character is `/` regardless of the OS on which it is executed.
 
@@ -717,7 +810,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-If the called process exits with a non-zero exit code, an exception is thrown.
+If the called process exits with a non-zero exit code, an error is thrown.
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
@@ -744,3 +837,51 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM version.**
+
+### `BASH`: Execute Bash scripts
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+Executes `script` as a Bash script, decodes its standard output as UTF-8, and returns it as a string.
+
+Trailing newlines in the output are removed.
+
+This behavior is similar to Bash's `"$(...)"`.
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+If the `args` argument is specified, you can pass arguments to the Bash script.
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+This function internally executes the `bash` command.
+
+An error will occur in environments where the `bash` command is not available.
+
+---
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+---
+
+**This function is currently only provided in the JVM and Native versions.**

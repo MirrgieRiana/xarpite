@@ -54,11 +54,13 @@ class StreamMountsTest {
     @Test
     fun filter() = runTest {
         assertEquals("2,4", eval("1 .. 5 >> FILTER [ x => x %% 2 ]").stream()) // FILTER で条件を満たす要素のみを抽出する
+        assertEquals("2,4", eval("1 .. 5 >> FILTER [ by: x -> x %% 2 ]").stream()) // by指定でも同じ結果が得られる
     }
 
     @Test
     fun grep() = runTest {
         assertEquals("2,4", eval("1 .. 5 >> GREP [ x => x %% 2 ]").stream()) // GREP は FILTER のエイリアス
+        assertEquals("2,4", eval("1 .. 5 >> GREP [ by: x -> x %% 2 ]").stream()) // GREPでもby指定できる
     }
 
 
@@ -148,6 +150,15 @@ class StreamMountsTest {
     }
 
     @Test
+    fun indexed() = runTest {
+        assertEquals("[0;a],[1;b],[2;c]", eval("\"a\", \"b\", \"c\" >> INDEXED").stream()) // INDEXED でストリームの各要素にインデックスを付与する
+        assertEquals("[0;10],[1;20],[2;30]", eval("10, 20, 30 >> INDEXED").stream()) // 数値のストリームでも動作する
+        assertEquals("[0;1]", eval("1 >> INDEXED").stream()) // 非ストリームの場合、インデックス0の1要素ストリームになる
+        assertEquals("", eval(", >> INDEXED").stream()) // 空ストリームの場合、空ストリームになる
+        assertEquals("[0;a],[1;b],[2;c]", eval("\"a\", \"b\", \"c\" | i, v => [i; v]").stream()) // パイプ演算子の i, v => と同様の効果を持つ
+    }
+
+    @Test
     fun group() = runTest {
         assertEquals("[1;[14]],[2;[25]]", eval("14, 25 >> GROUP[by: _ -> _.&.0]").stream()) // GROUPでグループのストリームになる
         assertEquals("[1;[14]]", eval("14 >> GROUP[by: _ -> _.&.0]").stream()) // 要素が1個でもよい
@@ -155,6 +166,12 @@ class StreamMountsTest {
         assertEquals("[1;[14;15]]", eval("14, 15 >> GROUP[by: _ -> _.&.0]").stream()) // すべてが同じグループになってもよい
         assertEquals("[1;[14]],[2;[25]],[3;[36]]", eval("14, 25, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 3要素でもよい
         assertEquals("[1;[14;15]],[3;[36]]", eval("14, 15, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 部分的にグループ化されてもよい
+        
+        assertEquals("[1;[1;1]],[2;[2;2]],[3;[3]]", eval("1, 2, 1, 3, 2 >> GROUP").stream()) // byを省略した場合、要素自身がキーになる
+        assertEquals("[1;[1]]", eval("1 >> GROUP").stream()) // 要素が1個でもよい
+        assertEquals("", eval(", >> GROUP").stream()) // 要素が0個でもよい
+        
+        assertEquals("[apple;[apple;apple]],[cherry;[cherry]],[banana;[banana;banana]]", eval(""""apple", "cherry","banana", "banana", "apple" >> GROUP""").stream()) // 文字列のグループ化
     }
 
     @Test

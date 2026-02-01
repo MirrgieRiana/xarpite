@@ -40,6 +40,11 @@ class ObjectTest {
     fun keysValues() = runTest {
         assertEquals("a,b,c", eval("KEYS({a: 1; b: 2; c: 3})").stream()) // KEYS でオブジェクトのキーを得る
         assertEquals("1,2,3", eval("VALUES({a: 1; b: 2; c: 3})").stream()) // VALUES でオブジェクトの値を得る
+        
+        // KEYS のストリーム版
+        assertEquals("a,b,c,d", eval("KEYS({a: 1; b: 2}, {c: 3; d: 4})").stream()) // KEYS でストリームのオブジェクトのキーを平坦化する
+        assertEquals("x", eval("KEYS({x: 10})").stream()) // KEYS で単一のオブジェクトも動作する
+        assertEquals("", eval("KEYS(E)").stream()) // KEYS で空のストリームは空のストリームを返す
     }
 
     @Test

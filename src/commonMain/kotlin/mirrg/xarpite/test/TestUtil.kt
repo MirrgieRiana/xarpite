@@ -1,5 +1,6 @@
 package mirrg.xarpite.test
 
+import io.github.mirrgieriana.xarpeg.parseAllOrThrow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -19,7 +20,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
-import mirrg.xarpite.parser.parseAllOrThrow
 import mirrg.xarpite.withEvaluator
 
 fun parse(src: String): String {

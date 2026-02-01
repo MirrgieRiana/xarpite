@@ -1,6 +1,5 @@
 package mirrg.xarpite
 
-import mirrg.xarpite.WorkInProgressError
 import okio.FileSystem
 
 actual fun getProgramName(): String? = null
@@ -19,6 +18,9 @@ actual fun getFileSystem(): Result<FileSystem> {
         Result.failure(IllegalStateException("Does not support file system operations on JS Browser platform"))
     }
 }
+
+var isWindowsImpl: (() -> Boolean)? = null
+actual fun isWindows(): Boolean = isWindowsImpl!!()
 
 var readLineFromStdinImpl: (suspend () -> String?)? = null
 actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()

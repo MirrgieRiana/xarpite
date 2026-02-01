@@ -1,11 +1,13 @@
 package mirrg.xarpite.cli
 
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.define
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
@@ -15,9 +17,9 @@ import okio.Path.Companion.toPath
 private const val MODULE_EXTENSION = ".xa1"
 
 context(context: RuntimeContext)
-fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
+fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
-        "USE" to run {
+        "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
                 location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
@@ -38,12 +40,17 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 }
 
 private fun resolveModulePath(baseDir: Path, file: String): Path? {
-    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
-    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
-    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
-    if (!file.endsWith(MODULE_EXTENSION)) {
-        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
-        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
+    val modulePath = when {
+        file.startsWith("./") -> baseDir.resolve(file.drop(2).toPath()).normalized()
+        file.startsWith("/") -> file.toPath().normalized()
+        else -> throw FluoriteException("""Module file path must start with "./" or "/".""".toFluoriteString())
     }
+    if (getFileSystem().getOrThrow().exists(modulePath)) return modulePath
+
+    if (!file.endsWith(MODULE_EXTENSION)) {
+        val modulePathWithExtension = (modulePath.toString() + MODULE_EXTENSION).toPath().normalized()
+        if (getFileSystem().getOrThrow().exists(modulePathWithExtension)) return modulePathWithExtension
+    }
+
     return null
 }

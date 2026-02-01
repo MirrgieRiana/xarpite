@@ -14,7 +14,7 @@ class MathTest {
 
     @Test
     fun floor() = runTest {
-        assertEquals(10, eval("FLOOR(10.1)").int) // FLOOR関数は小数点以下を切り捨てて内部的な型をINTEGERにする
+        assertEquals(10, eval("FLOOR(10.1)").int) // FLOOR関数は小数点以下を切り捨てて内部的な型をINTにする
         assertEquals(10, eval("FLOOR(10)").int) // 整数はそのまま
         assertEquals(-11, eval("FLOOR(-10.1)").int) // 負の数も値が小さくなるように切り捨てる
     }
@@ -28,6 +28,15 @@ class MathTest {
         assertEquals(10.5, eval("ABS(-10.5)").double, 0.001) // 負の浮動小数点数
         assertEquals(2147483648.0, eval("ABS(-2147483648)").double, 0.001) // INT_MINはDoubleにフォールバック
         assertEquals(10, eval("ABS('-10')").int) // 文字列からの変換
+    }
+
+    @Test
+    fun lengthOfNumber() = runTest {
+        assertEquals(10, eval("$#10").int) // 正の整数はそのまま
+        assertEquals(10, eval("$#-10").int) // 負の整数は絶対値になる
+        assertEquals(10.5, eval("$#10.5").double, 0.001) // 正の浮動小数点数
+        assertEquals(10.5, eval("$#-10.5").double, 0.001) // 負の浮動小数点数
+        assertEquals(2147483648.0, eval("$#-2147483648").double, 0.001) // INT_MINはDoubleにフォールバック
     }
 
     @Test
@@ -99,6 +108,42 @@ class MathTest {
             val i = random.invoke(null, arrayOf(FluoriteInt(4), FluoriteInt(10))).int
             assertTrue(i >= 4 && i < 10)
         }
+    }
+
+    @Test
+    fun numericLiteralWithUnderscore() = runTest {
+        // 整数リテラル
+        assertEquals(1000000, eval("1_000_000").int) // アンダースコア区切りの整数
+        assertEquals(123, eval("1_2_3").int) // 各桁にアンダースコア
+        assertEquals(42, eval("4__2").int) // 連続したアンダースコア
+        
+        // 16進整数リテラル
+        assertEquals(255, eval("H#F_F").int) // アンダースコア区切りの16進数
+        assertEquals(4095, eval("H#F_F_F").int) // 複数のアンダースコア
+        assertEquals(255, eval("H#F__F").int) // 連続したアンダースコア
+        
+        // 浮動小数点数リテラル
+        assertEquals(1000.5, eval("1_000.5").double, 0.001) // 整数部にアンダースコア
+        assertEquals(1.5, eval("1.5_0_0").double, 0.001) // 小数部にアンダースコア
+        assertEquals(1234.5678, eval("1_2_3_4.5_6_7_8").double, 0.001) // 両方にアンダースコア
+        assertEquals(123.456, eval("1_2_3.4_5_6").double, 0.001) // 複数のアンダースコア
+        
+        // 負の数とアンダースコア
+        assertEquals(-1000000, eval("-1_000_000").int) // 負の整数
+        assertEquals(-1000.5, eval("-1_000.5").double, 0.001) // 負の浮動小数点数
+        assertEquals(-255, eval("-H#F_F").int) // 負の16進数
+        
+        // 演算でも動作する
+        assertEquals(2000000, eval("1_000_000 + 1_000_000").int)
+        assertEquals(2000.0, eval("1_000.0 * 2.0").double, 0.001)
+        
+        // 末尾アンダースコアのテスト（正式仕様）
+        assertEquals(123, eval("123_").int) // 整数の末尾アンダースコア
+        assertEquals(123, eval("1__2__3__").int) // 連続アンダースコアと末尾アンダースコア
+        assertEquals(255, eval("H#FF_").int) // 16進数の末尾アンダースコア
+        assertEquals(255, eval("H#F_F_").int) // 16進数の連続と末尾アンダースコア
+        assertEquals(1.5, eval("1.5_").double, 0.001) // 浮動小数点数の末尾アンダースコア
+        assertEquals(1.5, eval("1.5_0_0_").double, 0.001) // 小数部の連続と末尾アンダースコア
     }
 
 }

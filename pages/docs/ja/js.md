@@ -26,7 +26,7 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 | `ARRAY`        | `Array`           |
 | `NULL`         | `null`            |
 | `FUNCTION`     | `Function`        |
-| それ以外           | 非対応による例外          |
+| それ以外           | 非対応によるエラー         |
 
 | 変換元<br>JavaScript | 変換先<br>Xarpite |
 |-------------------|----------------|
@@ -116,6 +116,23 @@ Basket::new("apple")
 `WINDOW: JS_OBJECT | NULL`
 
 その実行環境から参照可能である場合、windowオブジェクトを返します。
+
+## `PWD` 現在のページのURLを取得
+
+`PWD: STRING`
+
+現在表示しているページのURLです。
+
+```
+PWD
+# https://example.com/page
+```
+
+---
+
+この定数は「親階層」ではなく「参照の起点」となるパスを得るものという解釈に基づき、CLI版と異なり親階層ではなく現在のページのURLを返します。
+
+この違いは、ファイルシステムとURLでのパスの扱いの違いに起因します。
 
 ## `JS` JavaScriptコードの実行
 

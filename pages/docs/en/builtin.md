@@ -77,7 +77,7 @@ $ xa 'ABS(-10)'
 
 ## `FLOOR` Round Down to Integer
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 Rounds the first argument down to the nearest smaller integer.
 
@@ -285,13 +285,15 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 
 ## `SPLIT` Split String into Stream
 
-`SPLIT([separator: STRING; ]string: STRING): STREAM<STRING>`
+`SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`
 
-Splits the second argument string by the first argument separator and returns each part as a stream. If the first argument is omitted, `,` is used.
+Splits `string` by `separator` and returns each part as a stream. If `separator` is omitted, `,` is used.
 
 Note that it returns a stream rather than an array for compatibility with the pipe operator.
 
 `SPLIT` conceptually performs the inverse operation of `JOIN`.
+
+`separator` and `string` are stringified and evaluated.
 
 ```shell
 $ xa 'SPLIT("|"; "a|b|c")'
@@ -307,7 +309,13 @@ $ xa 'SPLIT("a,b,c")'
 
 ---
 
-Separator and target string are stringified and evaluated.
+When `limit` is specified, the string is split into at most `limit` elements, and the `limit`-th element contains the entire remaining string.
+
+```shell
+$ xa 'SPLIT("|"; limit: 2; "a|b|c|d")'
+# a
+# b|c|d
+```
 
 ---
 
@@ -320,17 +328,74 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 # 3.0
 ```
 
+## `LINES` Split String by Lines
+
+`LINES(string: STRING): STREAM<STRING>`
+
+Splits `string` by line breaks and returns each line as a stream.
+
+Line break characters are removed from the resulting lines.
+
+If `string` ends with a line break, only one trailing line break is ignored.
+
+```shell
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C"]
+
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+# ["A","B","C",""]
+```
+
+---
+
+An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
+
+```shell
+$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+# []
+
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+# [""]
+```
+
+---
+
+All line break characters (LF, CR, CRLF) are recognized.
+
+```shell
+$ xa 'LINES("A\rB\nC\r\nD")'
+# A
+# B
+# C
+# D
+```
+
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT): STREAM<STRING>`
+`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
 
-Returns a stream of keys of the first argument object.
+Returns a stream of keys from `object`.
 
 ```shell
 $ xa 'KEYS({a: 1; b: 2; c: 3})'
 # a
 # b
 # c
+```
+
+---
+
+When `object` is a stream, returns a flattened stream that yields keys from each object element in sequence.
+
+```shell
+$ xa 'KEYS({a: 1; b: 2}, {c: 3; d: 4})'
+# a
+# b
+# c
+# d
 ```
 
 ## `VALUES` Get Stream of Object Values
@@ -453,6 +518,117 @@ $ xa 'COUNT(,)'
 # 0
 ```
 
+## `AND` / `ALL` Check if All are True
+
+`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+Determines whether all passed elements evaluate to true.
+
+If there are no elements, returns true.
+
+`ALL` is an alias of `AND` and has the same behavior.
+
+```shell
+$ xa 'AND(TRUE; TRUE)'
+# TRUE
+
+$ xa 'AND(TRUE; FALSE)'
+# FALSE
+
+$ xa 'AND(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE AND FALSE'
+# FALSE
+
+$ xa 'AND(TRUE, FALSE; TRUE, FALSE)'
+# FALSE
+
+$ xa '1 .. 50 | _ != 39 >> AND'
+# FALSE
+```
+
+---
+
+More precisely, this function returns the first element whose booleanization is false, or `TRUE` if none is found.
+
+As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
+
+Unlike the `&&` operator, which skips evaluation of the right-hand side itself based on the left-hand side value, each argument itself is evaluated before the function executes.
+
+```shell
+$ xa '1, "a", TRUE, 0, "b" >> AND'
+# 0
+
+$ xa '1, "a", TRUE, 2, "b" >> AND'
+# TRUE
+```
+
+```shell
+$ xa '
+  list := []
+
+  5 .. -5 | (
+    list += _
+    _
+  ) >> AND
+
+  list
+'
+# [5;4;3;2;1;0]
+```
+
+```shell
+$ xa '
+  list := []
+
+  (
+    list += "left"
+    FALSE
+  ) AND (
+    list += "right"
+    TRUE
+  )
+
+  list
+'
+# [left;right]
+```
+
+## `OR` / `ANY` Check if Any is True
+
+`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+
+Determines whether any of the passed elements evaluate to true.
+
+If there are no elements, returns false.
+
+`ANY` is an alias of `OR` and has the same behavior.
+
+```shell
+$ xa 'OR(TRUE; TRUE)'
+# TRUE
+
+$ xa 'OR(TRUE; FALSE)'
+# TRUE
+
+$ xa 'OR(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE OR FALSE'
+# TRUE
+
+$ xa 'OR(TRUE, FALSE; TRUE, FALSE)'
+# TRUE
+
+$ xa '1 .. 50 | _ != 39 >> OR'
+# TRUE
+```
+
+---
+
+Other properties follow those of the `AND` function.
+
 ## `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
@@ -495,7 +671,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-Returns the only element of the first argument stream. Throws an exception if the stream is empty or has multiple elements.
+Returns the only element of the first argument stream. Throws an error if the stream is empty or has multiple elements.
 
 If a non-stream is passed, returns that value as-is.
 
@@ -570,15 +746,35 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
+## `INDEXED` Convert to Stream with Indices
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
+```
+
 ## `GROUP` Group Stream by Key
 
-`<T, K> GROUP(by = key_getter: T -> K; stream: T,): [K; [T,]],`
+`<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
 
-Applies `key_getter` to each element of `stream`, groups values with the same key into entry arrays, and returns them as a stream.
+Applies `keyGetter` to each element of `stream`, groups values with the same key into arrays as entries, and returns them as a stream.
+
+If `keyGetter` is omitted, groups using the elements themselves as keys.
 
 Entry arrays are in the order in which that key first appeared.
 
 ```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> GROUP'
+# [apple;[apple;apple]]
+# [cherry;[cherry]]
+# [banana;[banana;banana]]
+
 $ xa '
   {category: "fruit" ; value: "apple" },
   {category: "fruit" ; value: "banana"},
@@ -667,21 +863,25 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+## `FILTER` / `GREP` Filter Stream by Condition
 
-`FILTER(predicate: VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+`FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-Applies `predicate` to each element of the second argument stream and returns a stream containing only elements where the result is true.
+Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 ```shell
-$ xa '1, 2, 3, 4, 5 >> FILTER [ x => x % 2 == 0 ]'
-# 2
-# 4
+$ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
+# 1
+# 3
+# 5
+
+$ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
+# 1
+# 3
+# 5
 ```
-
-## `GREP` Filter Stream by Condition
-
-An alias for `FILTER`.
 
 ## `REDUCE` Accumulate Stream Elements
 

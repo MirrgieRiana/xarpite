@@ -15,6 +15,11 @@ actual fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
 
+actual fun isWindows(): Boolean {
+    val os = System.getProperty("os.name")
+    return os != null && os.lowercase().startsWith("windows")
+}
+
 actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {

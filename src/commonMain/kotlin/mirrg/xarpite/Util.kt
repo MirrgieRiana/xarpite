@@ -20,6 +20,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 
 fun String.escapeJsonString() = this
     .replace("\\", "\\\\")
@@ -293,3 +294,21 @@ fun Int.toFluoriteIntAsCompared(): FluoriteInt {
 object IterationAborted : Throwable()
 
 class WorkInProgressError(message: String) : Error(message)
+
+fun Iterable<FluoriteValue>.partitionIfEntry(): Pair<MutableMap<String, FluoriteValue>, MutableList<FluoriteValue>> {
+    val entries = mutableMapOf<String, FluoriteValue>()
+    val nonEntries = mutableListOf<FluoriteValue>()
+    this.forEach { value ->
+        if (value is FluoriteArray && value.values.size == 2) {
+            val key = value.values[0]
+            if (key is FluoriteString) {
+                val keyString = key.value
+                if (keyString in entries) throw FluoriteException("Duplicate key: $keyString".toFluoriteString())
+                entries += keyString to value.values[1]
+                return@forEach
+            }
+        }
+        nonEntries.add(value)
+    }
+    return Pair(entries, nonEntries)
+}

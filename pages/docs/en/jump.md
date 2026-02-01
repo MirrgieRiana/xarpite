@@ -42,7 +42,7 @@ However, the label operator has low binding precedence, allowing `formula` to in
 
 The return operator `label!! value` provides decent readability when `label` is a string like `return`, as in `return!! "Result"`.
 
-The `!!` operator's appearance corresponds to the throw operator `!! error`, and their behaviors are also similar.
+The `!!` operator's appearance corresponds to the throw operator `!! value`, and their behaviors are also similar.
 
 ## Escaping from Loops
 
@@ -220,11 +220,23 @@ $ xa '1 .. 100 | (_ %% 3 && _ %% 5) && found!! _ !: found | _ * 10'
 # 150
 ```
 
-# Error Handling
+# Exception Mechanism
+
+The exception mechanism is a system for returning values through paths other than expression return values.
+
+The exception mechanism consists of throwing and catching values.
+
+Throwing can be done with values of any type, and the thrown value (= exception value) propagates across expression and function call hierarchies until it is caught.
+
+If an exception value is not caught, the dispatcher at the top of the call hierarchy handles the exception.
+
+The exception mechanism is often used to throw values defined as errors to represent processing "failures," but it is not necessarily limited to this use.
+
+You may use the exception mechanism simply as a control structure to return values from deep inside function or expression call hierarchies to the outside.
 
 ## Throw Operator
 
-In Xarpite, error throwing is done with the throw operator `!! error`.
+In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
@@ -243,7 +255,7 @@ $ xa '
 
 ### Omitting Throw Value
 
-The throw operator can also be written simply as `!!` with the `error` clause omitted.
+The throw operator can also be written simply as `!!` with the `value` clause omitted.
 
 In this case, `NULL` is thrown.
 
@@ -254,7 +266,7 @@ $ xa '(!!) !? (e => "Error: $e")'
 
 ## Catch Operator
 
-The catch operator `try !? catch` is an operator that returns the left side if no value is thrown on the left side, and returns the right side if a value is thrown.
+The catch operator `try !? catch` returns the value from the `try` clause if no value is thrown, or the value from the `catch` clause if a value is thrown.
 
 The value to be thrown can be of any type.
 
@@ -273,27 +285,29 @@ With the catch operator with argument `try !? (error => catch)`, you can receive
 ```shell
 $ xa '
   (
-    !! 12345
+    !! "Error, world!"
   ) !? ( e =>
-    "Error: $e"
+    "ERROR: $e"
   )
 '
-# Error: 12345
+# ERROR: Error, world!
 ```
 
 ### Stream Resolution
 
-If the return value of the left side of the catch operator `!?` is a stream, its evaluation is always performed exactly once, and side effects also occur exactly once.
+If the return value of the `try` clause is a stream, that stream is resolved.
 
 ```shell
 $ xa '
   count := 0
+
   stream := (
     1 .. 3 | (
-      count = count + 1
+      count++
       count
     )
-  ) !? "error"
+  ) !? "ERROR"
+
   [stream], [stream], [stream], count
 '
 # [1;2;3]
@@ -304,20 +318,46 @@ $ xa '
 
 ---
 
-This is also true when the stream that is the return value of the catch operator is never evaluated.
+As a result, even if the stream that is the return value of the catch operator is never evaluated, the side effects of the `try` clause always occur exactly once.
 
 ```shell
 $ xa '
   count := 0
+
   stream := (
     1 .. 3 | (
-      count = count + 1
+      count++
       count
     )
-  ) !? "error"
+  ) !? "ERROR"
+
   count
 '
 # 3
+```
+
+---
+
+If an exception value is thrown inside the `try` clause's stream, it is also caught, and the return value of the catch operator becomes the return value of the `catch` clause.
+
+```shell
+$ xa '
+  count := 0
+
+  stream := (
+    1 .. 3 | (
+      _ == 3 && !! "The last element error"
+      count++
+      count
+    )
+  ) !? ( e =>
+    "ERROR: $e"
+  )
+
+  [stream], count
+'
+# [ERROR: The last element error]
+# 2
 ```
 
 ### Statement-Level Catch Operator
@@ -326,24 +366,28 @@ The catch operator functions at both expression and statement levels.
 
 A catch operator written at statement level attempts to interpret both sides as statements.
 
-At the statement level, the left stream is consumed only once, and side effects also occur only once.
+At the statement level, the `try` clause's stream is resolved, and side effects also occur only once.
 
 ```shell
 $ xa '
   count := 0
-  (1 .. 3 | (count = count + 1; count)) !? "error";
+
+  (
+    1 .. 3 | (
+      count++
+    )
+  ) !? "ERROR"
+
   count
 '
 # 3
 ```
 
-This property may show differences when writing statements with stream return values.
-
 ### Binding Precedence of Throw and Catch Operators
 
-The throw operator `!! error` has the same binding rules as the return operator `label!! value`, and the `error` clause can contain comma operators and any expression with higher binding precedence.
+The throw operator `!! value` has the same binding rules as the return operator `label!! value`, and the `value` clause can contain comma operators and any expression with higher binding precedence.
 
-In the following example, the `error` clause directly contains the comma operator.
+In the following example, the `value` clause directly contains the comma operator.
 
 ```shell
 $ xa '

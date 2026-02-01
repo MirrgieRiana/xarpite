@@ -53,6 +53,7 @@ import platform.posix.waitpid
 import platform.posix.write
 
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
+actual fun isWindows(): Boolean = false
 
 // EXEC関数の定数（nativeMainから継承）
 private const val EXEC_MAX_BUFFER_SIZE = 4096
