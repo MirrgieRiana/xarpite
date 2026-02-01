@@ -56,6 +56,16 @@ interface IoContext {
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
 }
 
+/**
+ * 環境変数を加味してPWDを取得する
+ */
+fun IoContext.getResolvedPwd(): String {
+    val env = getEnv()
+    return env["XARPITE_PWD"]?.takeIf { it.isNotBlank() }
+        ?: env["PWD"]?.takeIf { it.isNotBlank() }
+        ?: getPwd()
+}
+
 open class UnsupportedIoContext : IoContext {
     override fun getPwd(): String = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()

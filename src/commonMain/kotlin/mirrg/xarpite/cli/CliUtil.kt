@@ -11,6 +11,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
+import mirrg.xarpite.getResolvedPwd
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
@@ -155,29 +156,17 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-        // Resolve absolute path for the script file if provided
         val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
-            val env = getEnv()
-            val pwd = env["XARPITE_PWD"]?.takeIf { it.isNotBlank() } 
-                ?: env["PWD"]?.takeIf { it.isNotBlank() } 
-                ?: ioContext.getPwd()
-            resolveAbsolutePath(scriptFile, pwd)
+            resolveAbsolutePath(scriptFile, ioContext.getResolvedPwd())
         }
         
         context.setSrc("-", options.src)
-        // Create static mounts (without LOCATION, which is location-specific)
-        val staticMounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
-        mountsFactory = { location ->
-            // Determine the script path for this location
-            // If location is "./-", use the main script's path
-            // Otherwise, use the location itself (for USE'd modules)
-            val scriptPath = if (location == "./-") absoluteScriptPath else location
-            // Create location-specific mounts
-            val locationMounts = context.run { createLocationMounts(scriptPath) }
-            staticMounts + locationMounts + context.run { createModuleMounts(location, mountsFactory) }
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+        lateinit var mountsFactory: (String, String) -> List<Map<String, Mount>>
+        mountsFactory = { scriptName, location ->
+            mounts + context.run { createModuleMounts(scriptName, location, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.defineMounts(mountsFactory("./-", absoluteScriptPath ?: "./-"))
         try {
             withStackTrace(Position("-", 0)) {
                 if (options.quiet) {

@@ -22,6 +22,7 @@ import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.define
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.getResolvedPwd
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
@@ -33,8 +34,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
         "PWD" define LazyMount {
-            val env = getEnv()
-            (env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString()
+            context.io.getResolvedPwd().toFluoriteString()
         },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         *run {
@@ -194,19 +194,6 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 lines
             }
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
-        },
-    ).let { listOf(it) }
-}
-
-context(context: RuntimeContext)
-fun createLocationMounts(scriptPath: String?): List<Map<String, Mount>> {
-    return mapOf(
-        "LOCATION" define LazyMount { scriptPath?.toFluoriteString() ?: FluoriteNull },
-        "LOCATION_DIR" define LazyMount {
-            scriptPath?.toPath()?.parent?.toString()?.toFluoriteString() ?: FluoriteNull
-        },
-        "LOCATION_FILE" define LazyMount {
-            scriptPath?.toPath()?.name?.toFluoriteString() ?: FluoriteNull
         },
     ).let { listOf(it) }
 }

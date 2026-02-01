@@ -1,9 +1,11 @@
 package mirrg.xarpite.cli
 
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -17,8 +19,23 @@ import okio.Path.Companion.toPath
 private const val MODULE_EXTENSION = ".xa1"
 
 context(context: RuntimeContext)
-fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
+fun createModuleMounts(scriptName: String, location: String, mountsFactory: (String, String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
+    // location が "./-" の場合はファイルから読み込まれていないのでNULL
+    val isFileLocation = location != "./-"
     return mapOf(
+        "LOCATION" define LazyMount {
+            if (isFileLocation) location.toFluoriteString() else FluoriteNull
+        },
+        "LOCATION_DIR" define LazyMount {
+            if (isFileLocation) {
+                location.toPath().parent?.toString()?.toFluoriteString() ?: FluoriteNull
+            } else {
+                FluoriteNull
+            }
+        },
+        "LOCATION_FILE" define LazyMount {
+            if (isFileLocation) location.toPath().name.toFluoriteString() else FluoriteNull
+        },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             val baseDir by lazy {
@@ -31,7 +48,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(modulePath.toString()))
+                    evaluator.defineMounts(mountsFactory(modulePath.toString(), modulePath.toString()))
                     evaluator.get(modulePath.toString(), src).cache()
                 }
             }
