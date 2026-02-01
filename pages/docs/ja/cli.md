@@ -369,35 +369,29 @@ $ FOO=bar xa 'ENV.FOO'
 
 Maven座標形式でモジュールを `USE` する際に検索されるディレクトリパスの配列です。
 
+相対パスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+
 デフォルトでは `./.xarpite/maven` が含まれています。
 
 ---
 
-`INC` に値を追加することで、カスタムのモジュール検索パスを設定できます。
+`INC` に値を追加することで、カスタムのモジュール検索パスを追加できます。
 
 ```shell
 $ {
-  # カスタムパスにモジュールを配置
-  mkdir -p custom-lib/com/example/mylib
-  echo '"Custom Library"' > custom-lib/com/example/mylib/mylib-1.0.0.xa1
-  
-  # INCにカスタムパスを追加
+  mkdir -p maven-fruit/com/example/fruit/apple
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa
+
   xa '
-    INC::push("custom-lib")
-    USE("com.example:mylib:1.0.0")
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
   '
-  
-  # クリーンアップ
-  rm -r custom-lib
+
+  rm -r maven-fruit
 }
-# Custom Library
+# Apple
 ```
-
----
-
-相対パスまたは絶対パスで `USE` を呼び出した場合、 `INC` は参照されません。
-
-`INC` はMaven座標形式の指定でのみ使用されます。
 
 ### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
 
@@ -823,8 +817,6 @@ Maven座標形式は `group:artifact:version` の形式で指定します。
 
 例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/apple-1.0.0.xa1` を解決して検索します。
 
-`INC` にはデフォルトで `./.xarpite/maven` が含まれています。
-
 ```shell
 $ {
   mkdir -p .xarpite/maven/com/example/fruit/apple
@@ -836,26 +828,6 @@ $ {
   rm -r .xarpite
 }
 # Apple
-```
-
----
-
-カスタムのモジュール検索パスを使用する場合は、 `INC::push` を使って配列に追加します。
-
-```shell
-$ {
-  mkdir -p custom-lib/com/example/fruit/orange
-  
-  echo ' "Orange" ' > custom-lib/com/example/fruit/orange/orange-2.0.0.xa1
-  
-  xa '
-    INC::push("custom-lib")
-    USE("com.example.fruit:orange:2.0.0")
-  '
-  
-  rm -r custom-lib
-}
-# Orange
 ```
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
