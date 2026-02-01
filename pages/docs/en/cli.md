@@ -402,6 +402,36 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
+### `INC`: Array of Module Search Paths
+
+`INC: ARRAY<STRING>`
+
+An array of directory paths that are searched when using `USE` with Maven coordinate format.
+
+When a relative path is specified, it is resolved based on `PWD`.
+
+By default, `./.xarpite/maven` is included.
+
+---
+
+You can add custom module search paths by adding values to `INC`.
+
+```shell
+$ {
+  mkdir -p maven-fruit/com/example/fruit/apple
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+
+  xa '
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
+  '
+
+  rm -r maven-fruit
+}
+# Apple
+```
+
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
@@ -693,79 +723,19 @@ $ {
 
 ### `USE`: Get Result of External Xarpite File
 
-`USE(file: STRING): VALUE`
+`USE(reference: STRING): VALUE`
 
-Returns the result of evaluating the specified Xarpite script.
+Returns the result of evaluating the Xarpite script specified by `reference`.
 
-```shell
-$ {
-  echo ' "Hello, World!" ' > hello.xa1
-  xa 'USE("./hello")'
-  rm hello.xa1
-}
-# Hello, World!
-```
+There are several ways to specify `reference`.
 
 ---
 
-`file` must start with `./` or `/`.
+Xarpite script files written on the premise of being `USE`d are called modules.
 
-If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
+Modules often expose APIs by returning objects for mounting, but not always.
 
-For example, if you write `USE("./banana")` in `fruit/apple.xa1`, `fruit/banana.xa1` is loaded.
-
-If the code is specified directly on the command line, relative paths are resolved from the current directory.
-
-If it starts with `/`, it is interpreted as an absolute path.
-
-In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
-
-The directory separator character is `/` regardless of the OS on which it is executed.
-
-```shell
-$ {
-  mkdir modules
-  echo '
-    {
-      getBananaImpl: () -> "Banana"
-    }
-  ' > modules/banana.xa1
-  echo '
-    @USE("./banana")
-    {
-      getBanana: () -> getBananaImpl()
-    }
-  ' > modules/fruit.xa1
-  xa '
-    @USE("./modules/fruit")
-    getBanana()
-  '
-  rm modules/banana.xa1
-  rm modules/fruit.xa1
-  rmdir modules
-}
-# Banana
-```
-
----
-
-By mounting the return value of the `USE` function, you can achieve a directive-like usage.
-
-```shell
-$ {
-  echo '
-    {
-      FRUIT: 877
-    }
-  ' > banana.xa1
-  xa '
-    @USE("./banana")
-    FRUIT
-  '
-  rm banana.xa1
-}
-# 877
-```
+APIs provided by modules may be written in uppercase like built-in mounts, or they may not.
 
 ---
 
@@ -777,35 +747,131 @@ If the script result is a stream, that stream is resolved.
 
 Even if the file entity is the same, if it exists on a different absolute path due to symbolic links etc., it is considered a different file.
 
+---
+
+By mounting the return value of the `USE` function, you can achieve a directive-like usage.
+
+#### Specification by Relative Path
+
+If `reference` is a relative path, it is resolved as a relative path from the file that called the `USE` function.
+
+In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` extension is optional.
+
+---
+
+Here is an example of calling a file directly under the current directory.
+
 ```shell
 $ {
-  echo '
-    {
-      variables: {
-        fruit: "apple"
-      }
-    }
-  ' > tmp.xa1
-  xa -q '
-    a := USE("./tmp")
-    b := USE("./tmp")
-    OUT << b.variables.fruit
-    a.variables.fruit = "banana"
-    OUT << b.variables.fruit
-  '
-  rm tmp.xa1
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("./fruit.xa1")'
+  xa 'USE("./fruit")'
+
+  rm fruit.xa1
 }
-# apple
-# banana
+# Apple
+# Apple
 ```
 
 ---
 
-Files written on the premise of being `USE`d are called modules.
+Here is an example of calling a file in the `modules` subdirectory, which then calls another file in the same directory.
 
-Modules often expose APIs by returning objects for mounting, but not always.
+```shell
+$ {
+  mkdir modules
 
-APIs provided by modules may be written in uppercase like built-in mounts, or they may not.
+  echo '
+    {
+      getApple: () -> "Apple"
+    }
+  ' > modules/apple.xa1
+  echo '
+    @USE("./apple.xa1")
+    {
+      getFruit: () -> getApple()
+    }
+  ' > modules/fruit.xa1
+
+  xa '
+    @USE("./modules/fruit.xa1")
+    getFruit()
+  '
+
+  rm -r modules
+}
+# Apple
+```
+
+#### Specification by Absolute Path
+
+If `reference` is an absolute path, that file is called.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` extension is optional.
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("$PWD/fruit.xa1")'
+
+  rm fruit.xa1
+}
+# Apple
+```
+
+---
+
+Even if a file represented by the same absolute path is loaded multiple times with different specification methods, the first loaded result is cached and reused.
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
+
+#### Specification by Maven Coordinates
+
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+
+Maven coordinate format is specified as `group:artifact:version`.
+
+The `.xa1` extension is automatically appended.
+
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
+# Apple
+```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
@@ -861,7 +927,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-If the called process exits with a non-zero exit code, an exception is thrown.
+If the called process exits with a non-zero exit code, an error is thrown.
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'

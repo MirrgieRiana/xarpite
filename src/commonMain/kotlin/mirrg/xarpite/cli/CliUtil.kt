@@ -1,6 +1,7 @@
 package mirrg.xarpite.cli
 
 import kotlinx.coroutines.CoroutineScope
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.Position
@@ -152,10 +153,14 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+<<<<<< copilot/update-location-constant-names
         val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
             resolveAbsolutePath(scriptFile, ioContext.getPwd())
         }
         
+=====
+        context.inc.values += "./.xarpite/maven".toFluoriteString()
+>>>>> main
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
         lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
@@ -187,4 +192,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             }
         }
     }
+}
+
+fun IoContext.getPwd(): String {
+    val env = getEnv()
+    return env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: this.getPlatformPwd()
 }

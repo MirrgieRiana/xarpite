@@ -818,7 +818,7 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = setter.evaluate(env)
         val right = getter.evaluate(env)
-        left.invoke(right)
+        left(right)
         return right
     }
 

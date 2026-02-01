@@ -427,14 +427,14 @@ class CliTest {
     }
 
     @Test
-    fun useRequiresPathPrefix() = runTest {
+    fun useRejectsInvalidModulePath() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.prefix.tmp.xa1")
         fileSystem.write(file) { writeUtf8("1") }
-        // Error when neither relative nor absolute path prefix is present
+        // Error when neither relative/absolute path prefix nor colon (Maven coordinate) is present
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("use.prefix.tmp.xa1")""")
         }
@@ -503,6 +503,171 @@ class CliTest {
         assertEquals("orange", result)
         fileSystem.delete(file)
     }
+
+    @Test
+    fun useSupportsMavenCoordinateWithVersion() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val xarpiteDir = ".xarpite/maven/com/example/utils".toPath()
+        fileSystem.createDirectories(xarpiteDir)
+        val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("999") }
+        assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/com/example".toPath())
+        fileSystem.delete(".xarpite/maven/com".toPath())
+        fileSystem.delete(".xarpite/maven".toPath())
+        fileSystem.delete(".xarpite".toPath())
+    }
+
+    @Test
+    fun useMavenCoordinateConvertsDotsInGroup() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib".toPath()
+        fileSystem.createDirectories(xarpiteDir)
+        val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("777") }
+        assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin".toPath())
+        fileSystem.delete(".xarpite/maven/org/jetbrains".toPath())
+        fileSystem.delete(".xarpite/maven/org".toPath())
+        fileSystem.delete(".xarpite/maven".toPath())
+        fileSystem.delete(".xarpite".toPath())
+    }
+
+    @Test
+    fun useMavenCoordinateCachesByPath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val xarpiteDir = ".xarpite/maven/com/test/module".toPath()
+        fileSystem.createDirectories(xarpiteDir)
+        val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8(
+                """
+                {
+                  variables: {
+                    value: "initial"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        val result = cliEval(
+            context,
+            """
+            a := USE("com.test:module:1.0.0")
+            b := USE("com.test:module:1.0.0")
+            a.variables.value = "changed"
+            b.variables.value
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("changed", result)
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/com/test".toPath())
+        fileSystem.delete(".xarpite/maven/com".toPath())
+        fileSystem.delete(".xarpite/maven".toPath())
+        fileSystem.delete(".xarpite".toPath())
+    }
+
+    @Test
+    fun useRejectsInvalidMavenCoordinate() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        // Reject strings without prefix that don't contain colon (not Maven coordinate)
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("invalid_module_name")""")
+        }
+        // Reject Maven coordinates with wrong number of parts
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:artifact")""")
+        }
+        // Reject Maven coordinates with empty parts
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE(":artifact:version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group::version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:artifact:")""")
+        }
+        // Reject Maven coordinates with blank parts (whitespace only)
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE(" :artifact:version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group: :version")""")
+        }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("group:artifact: ")""")
+        }
+    }
+
+    @Test
+    fun incIsAccessible() = runTest {
+        val context = TestIoContext()
+        // INC はアクセス可能で配列である
+        assertTrue(cliEval(context, "INC ?= ARRAY").boolean)
+    }
+
+    @Test
+    fun incContainsDefaultPaths() = runTest {
+        val context = TestIoContext()
+        // デフォルトで ./.xarpite/maven が含まれている
+        val incArray = cliEval(context, "INC").array()
+        assertTrue("./.xarpite/maven" in incArray)
+    }
+    @Test
+    fun incCanBeModified() = runTest {
+        val context = TestIoContext()
+        // INC に値を追加できる
+        val result = cliEval(context, """
+            INC::push("/custom/path")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("/custom/path" in arrayStr)
+    }
+
+    @Test
+    fun useMavenCoordinateSearchesInInc() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        
+        // カスタムINCパスにモジュールを配置
+        val customIncDir = "build/test/custom-inc".toPath()
+        val moduleDir = customIncDir.resolve("com/example/custom/mylib")
+        fileSystem.createDirectories(moduleDir)
+        val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
+        
+        // INCにカスタムパスを追加してモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/custom-inc")
+            USE("com.example.custom:mylib:1.0.0")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("CustomModule", result)
+        
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(moduleDir)
+        fileSystem.delete(customIncDir.resolve("com/example/custom"))
+        fileSystem.delete(customIncDir.resolve("com/example"))
+        fileSystem.delete(customIncDir.resolve("com"))
+        fileSystem.delete(customIncDir)
+    }
+
 
     @Test
     fun inb() = runTest {
@@ -1327,6 +1492,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
+        context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
         mountsFactory = { scriptFileName, scriptDirName ->

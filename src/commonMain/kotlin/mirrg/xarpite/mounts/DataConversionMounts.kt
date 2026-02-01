@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -16,6 +17,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import mirrg.xarpite.pop
 import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
@@ -153,65 +155,77 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             buffer.readUtf8().toFluoriteString()
         },
-
-        "JSON" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSON([indent: indent: STRING; ]value: VALUE): STRING")
-            val (indent, value) = when (arguments.size) {
-                1 -> Pair(null, arguments[0])
-                2 -> {
-                    val indentParameter = arguments[0] as? FluoriteArray ?: usage()
-                    if (indentParameter.values.size != 2) usage()
-                    val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
-                    if (indentKey.value != "indent") usage()
-                    Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
-                }
-
-                else -> usage()
-            }
-            value.toSingleJsonFluoriteValue(null, indent = indent)
-        },
-        "JSOND" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
-            if (arguments.size != 1) usage()
-            val value = arguments[0]
-            value.toFluoriteValueAsSingleJson(null)
-        },
         *run {
-            fun createJsonsFunction(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("$name([indent: indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>")
-                    val (indent, value) = when (arguments.size) {
-                        1 -> Pair(null, arguments[0])
-                        2 -> {
-                            val indentParameter = arguments[0] as? FluoriteArray ?: usage()
-                            if (indentParameter.values.size != 2) usage()
-                            val indentKey = indentParameter.values[0] as? FluoriteString ?: usage()
-                            if (indentKey.value != "indent") usage()
-                            Pair(indentParameter.values[1].toFluoriteString(null).value, arguments[1])
-                        }
-
-                        else -> usage()
-                    }
-                    value.toJsonsFluoriteValue(null, indent = indent)
+            suspend fun parseIndent(indent: FluoriteValue): String {
+                return if (indent is FluoriteNumber) {
+                    val number = indent.roundToInt()
+                    if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
+                    " ".repeat(number)
+                } else {
+                    indent.toFluoriteString(null).value
                 }
             }
             arrayOf(
-                "JSONS" define createJsonsFunction("JSONS"),
-                "JSONL" define createJsonsFunction("JSONL"),
-            )
-        },
-        *run {
-            fun createJsonsdFunction(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
+                "JSON" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
+                    val arguments2 = arguments.toMutableList()
+
+                    if (arguments2.isEmpty()) usage()
+                    val value = arguments2.removeLast()
+
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                    val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
+
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+
+                    value.toSingleJsonFluoriteValue(null, indent = indent)
+                },
+                "JSOND" define FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
                     if (arguments.size != 1) usage()
                     val value = arguments[0]
-                    value.toFluoriteValueAsJsons(null)
-                }
-            }
-            arrayOf(
-                "JSONSD" define createJsonsdFunction("JSONSD"),
-                "JSONLD" define createJsonsdFunction("JSONLD"),
+                    value.toFluoriteValueAsSingleJson(null)
+                },
+                *run {
+                    fun create(name: String): FluoriteFunction {
+                        return FluoriteFunction { arguments ->
+                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                            val arguments2 = arguments.toMutableList()
+
+                            if (arguments2.isEmpty()) usage()
+                            val values = arguments2.removeLast()
+
+                            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                            val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
+
+                            if (entries.isNotEmpty()) usage()
+                            if (arguments3.isNotEmpty()) usage()
+
+                            values.toJsonsFluoriteValue(null, indent = indent)
+                        }
+                    }
+                    arrayOf(
+                        "JSONS" define create("JSONS"),
+                        "JSONL" define create("JSONL"),
+                    )
+                },
+                *run {
+                    fun create(name: String): FluoriteFunction {
+                        return FluoriteFunction { arguments ->
+                            fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
+                            if (arguments.size != 1) usage()
+                            val value = arguments[0]
+                            value.toFluoriteValueAsJsons(null)
+                        }
+                    }
+                    arrayOf(
+                        "JSONSD" define create("JSONSD"),
+                        "JSONLD" define create("JSONLD"),
+                    )
+                },
             )
         },
         "CSV" define FluoriteFunction { arguments ->

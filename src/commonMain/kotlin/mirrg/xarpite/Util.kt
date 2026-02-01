@@ -21,6 +21,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
+import okio.Path
+import okio.Path.Companion.toPath
 
 fun String.escapeJsonString() = this
     .replace("\\", "\\\\")
@@ -312,3 +314,5 @@ fun Iterable<FluoriteValue>.partitionIfEntry(): Pair<MutableMap<String, Fluorite
     }
     return Pair(entries, nonEntries)
 }
+
+inline fun Path.map(mapper: (String) -> String) = mapper(this.toString()).toPath()

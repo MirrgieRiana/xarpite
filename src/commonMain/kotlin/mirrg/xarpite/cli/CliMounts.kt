@@ -1,6 +1,5 @@
 package mirrg.xarpite.cli
 
-import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -37,6 +36,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
+        "INC" define context.inc,
         *run {
             val inStream = FluoriteStream {
                 while (true) {

@@ -671,7 +671,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-Returns the only element of the first argument stream. Throws an exception if the stream is empty or has multiple elements.
+Returns the only element of the first argument stream. Throws an error if the stream is empty or has multiple elements.
 
 If a non-stream is passed, returns that value as-is.
 
@@ -744,6 +744,19 @@ Except that the sort is in descending order, it is the same as the `SORT` functi
 ```shell
 $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
+```
+
+## `INDEXED` Convert to Stream with Indices
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
 ```
 
 ## `GROUP` Group Stream by Key
