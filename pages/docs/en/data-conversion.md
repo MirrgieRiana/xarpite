@@ -264,12 +264,23 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 ## `JSON` Convert Value to JSON String
 
-`JSON(["indent": indent: STRING | NUMBER; ]value: VALUE): STRING`
+`JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`
 
 Converts `value` to a JSON-formatted string.
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON'
+# {"a":1,"b":2}
+```
+
+---
+
+When the `indent` parameter is specified, you get formatted output.
+
+If you pass a string to `indent`, that string is used for indentation.
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 # {
 #   "a": 1,
 #   "b": 2
@@ -278,10 +289,10 @@ $ xa '{a: 1; b: 2} >> JSON'
 
 ---
 
-If you pass a string to `indent`, that string is used for indentation.
+The `indent` parameter can be specified as either a named argument or a positional argument.
 
 ```shell
-$ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
+$ xa '{a: 1; b: 2} >> JSON["  "]'
 # {
 #   "a": 1,
 #   "b": 2
@@ -313,7 +324,7 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 
 ## `JSONS` Convert Stream of Values to Stream of JSON Strings
 
-`JSONS(["indent": indent: STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 Returns a stream that converts each element of `values` to a JSON-formatted string.
 
@@ -325,7 +336,17 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 
 ---
 
-The `indent` specification is the same as for `JSON`.
+The `indent` parameter specification is the same as for `JSON`.
+
+```shell
+$ xa '{a: 1}, {b: 2} >> JSONS[indent: 2]'
+# {
+#   "a": 1
+# }
+# {
+#   "b": 2
+# }
+```
 
 ## `JSONSD` Convert Stream of JSON Strings to Stream of Values
 

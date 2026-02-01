@@ -21,7 +21,7 @@ class DataConversionTest {
         // JSON
         assertEquals("""{"a":[1,2.5,"3",true,false,null]}""", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
         assertEquals("1", eval("1 >> JSON").string) // プリミティブを直接指定できる
-        assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
+        assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを名前付き引数として指定できる
         assertEquals(
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON["  "] """).string
@@ -30,6 +30,13 @@ class DataConversionTest {
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON[indent: 2] """).string
         ) // indentは数値でも指定でき、その数だけ空白が使用される
+
+        // JSONS
+        assertEquals("[\n 1\n],[\n 2\n]", eval(""" [1], [2] >> JSONS[indent: 1] """).stream()) // JSONS でindentを指定できる
+        assertEquals(
+            eval(""" {a: 1}, {b: 2} >> JSONS[indent: 2] """).stream(),
+            eval(""" {a: 1}, {b: 2} >> JSONS["  "] """).stream()
+        ) // JSONS でindentは位置引数でも指定できる
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
