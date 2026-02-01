@@ -25,7 +25,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
             }
             FluoriteFunction { arguments ->
-                if (arguments.size != 1) usage("USE(file: STRING): VALUE")
+                if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val file = arguments[0].toFluoriteString(null).value
                 val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
                 moduleCache.getOrPut(modulePath) {
