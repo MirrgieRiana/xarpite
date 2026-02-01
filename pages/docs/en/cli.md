@@ -557,7 +557,7 @@ Returned paths are relative to `dir`.
 
 Empty directories are included in the result.
 
-Returned paths are sorted in lexicographic order.
+Files and subdirectories within each directory are reported immediately after that directory. Within each directory, entries are sorted by name.
 
 ```shell
 $ {
@@ -590,7 +590,7 @@ Directories are not included in the result.
 
 Returned paths are relative to `dir`.
 
-Returned paths are sorted in lexicographic order.
+Files and subdirectories within each directory are reported immediately after that directory. Within each directory, entries are sorted by name.
 
 ```shell
 $ {
