@@ -275,24 +275,10 @@ $ xa '{a: 1; b: 2} >> JSON'
 
 ---
 
-When the `indent` parameter is specified, you get formatted output.
-
 If you pass a string to `indent`, that string is used for indentation.
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
-# {
-#   "a": 1,
-#   "b": 2
-# }
-```
-
----
-
-The `indent` parameter can be specified as either a named argument or a positional argument.
-
-```shell
-$ xa '{a: 1; b: 2} >> JSON["  "]'
 # {
 #   "a": 1,
 #   "b": 2
@@ -336,17 +322,7 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 
 ---
 
-The `indent` parameter specification is the same as for `JSON`.
-
-```shell
-$ xa '{a: 1}, {b: 2} >> JSONS[indent: 2]'
-# {
-#   "a": 1
-# }
-# {
-#   "b": 2
-# }
-```
+The `indent` specification is the same as for `JSON`.
 
 ## `JSONSD` Convert Stream of JSON Strings to Stream of Values
 
