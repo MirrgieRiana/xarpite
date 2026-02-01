@@ -19,9 +19,29 @@ class DataConversionTest {
     @Test
     fun jsonFunction() = runTest {
         // JSON
-        assertEquals("""{"a":[1,2.5,"3",true,false,null]}""", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
+        assertEquals("""
+{
+  "a": [
+    1,
+    2.5,
+    "3",
+    true,
+    false,
+    null
+  ]
+}
+""".trim(), eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
         assertEquals("1", eval("1 >> JSON").string) // プリミティブを直接指定できる
-        assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
+        assertEquals("""
+[
+  1,
+  [
+    2,
+    3
+  ],
+  4
+]
+""".trim(), eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
         assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONS").stream()) // ストリームを指定するとJsonのストリームになる
 
         // JSOND
@@ -52,8 +72,19 @@ class DataConversionTest {
         assertEquals("true", eval("$&TRUE").string)
         assertEquals("false", eval("$&FALSE").string)
         assertEquals("null", eval("$&NULL").string)
-        assertEquals("[1,2,3]", eval("$&[1; 2; 3]").string)
-        assertEquals("{\"a\":1,\"b\":2}", eval("$&{a: 1; b: 2}").string)
+        assertEquals("""
+[
+  1,
+  2,
+  3
+]
+""".trim(), eval("$&[1; 2; 3]").string)
+        assertEquals("""
+{
+  "a": 1,
+  "b": 2
+}
+""".trim(), eval("$&{a: 1; b: 2}").string)
 
         // $* でjson文字列がFluoriteValueになる
         assertEquals(10, eval("$*'10'").int)
@@ -70,7 +101,7 @@ class DataConversionTest {
     @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
-        assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
+        assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSONS """).string) // CSVD で文字列を配列に変換できる
 
         // ストリームは各要素が変換される
         assertEquals("""a,b,c,d""", eval(""" ["a","b"],["c","d"] >> CSV """).stream())
@@ -78,36 +109,36 @@ class DataConversionTest {
 
         // 空文字列は空文字列を1個含む配列になる
         assertEquals("", eval(""" [""] >> CSV """).string)
-        assertEquals("""[""]""", eval(""" "" >> CSVD >> JSON """).string)
+        assertEquals("""[""]""", eval(""" "" >> CSVD >> JSONS """).string)
 
         // 区切り文字を含むセルはクォートされる
         assertEquals("\"a,b\"", eval(""" ["a,b"] >> CSV """).string)
-        assertEquals("""["a,b"]""", eval(""" "\"a,b\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a,b"]""", eval(""" "\"a,b\"" >> CSVD >> JSONS """).string)
 
         // クォートを含むセルはクォートされ、クォートが2重になる
         assertEquals("\"a\"\"b\"", eval(""" ["a\"b"] >> CSV """).string)
-        assertEquals("""["a\"b"]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a\"b"]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSONS """).string)
 
         // 前後に半角空白やタブがあるセルはクォートされる
         assertEquals("\" a \",\"\tb\t\"", eval(""" [" a ","\tb\t"] >> CSV """).string)
-        assertEquals("""[" a ","\tb\t"]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSON """).string)
+        assertEquals("""[" a ","\tb\t"]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSONS """).string)
 
         // 改行を含むセルはクォートされる
         assertEquals("\"a\r\n\",\"\nb\"", eval(""" ["a\r\n","\nb"] >> CSV """).string)
-        assertEquals("""["a\r\n","\nb"]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSON """).string)
+        assertEquals("""["a\r\n","\nb"]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSONS """).string)
 
         // 区切り文字とクォート文字の指定
         assertEquals("%a|%|%%%b%", eval(""" ["a|","%b"] >> CSV[separator: "|"; quote: "%"] """).string)
-        assertEquals("""["a|","%b"]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSON """).string)
+        assertEquals("""["a|","%b"]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSONS """).string)
 
         // CSVDのフォーマット
-        assertEquals("""["a","","b"]""", eval(""" "a,,b" >> CSVD >> JSON """).string) // 空のセクションは空文字列になる
-        assertEquals("""["","a","b"]""", eval(""" ",a,b" >> CSVD >> JSON """).string) // 先頭のカンマの前は空文字列になる
-        assertEquals("""["a","b",""]""", eval(""" "a,b," >> CSVD >> JSON """).string) // 末尾のカンマの後は空文字列になる
-        assertEquals("""["","a","","c",""]""", eval(""" " , a , , c , " >> CSVD >> JSON """).string) // 余計な空白はトリムされる
+        assertEquals("""["a","","b"]""", eval(""" "a,,b" >> CSVD >> JSONS """).string) // 空のセクションは空文字列になる
+        assertEquals("""["","a","b"]""", eval(""" ",a,b" >> CSVD >> JSONS """).string) // 先頭のカンマの前は空文字列になる
+        assertEquals("""["a","b",""]""", eval(""" "a,b," >> CSVD >> JSONS """).string) // 末尾のカンマの後は空文字列になる
+        assertEquals("""["","a","","c",""]""", eval(""" " , a , , c , " >> CSVD >> JSONS """).string) // 余計な空白はトリムされる
 
-        assertEquals("""["","a","","b",""]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSON """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
-        assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSON """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSONS """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSONS """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
     }
 
     @Test
