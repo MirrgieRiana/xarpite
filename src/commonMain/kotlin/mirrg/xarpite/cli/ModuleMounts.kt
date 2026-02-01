@@ -48,17 +48,19 @@ private fun resolveModulePath(baseDir: Path, reference: String): Path? {
 
     // 相対パス
     if (reference.startsWith("./") || reference.startsWith(".\\")) {
-        val path = baseDir.resolve(reference.toPath()).normalized()
+        val pathStr = if (reference.startsWith(".\\")) reference.drop(2).replace("\\", "/") else reference.drop(2)
+        val path = baseDir.resolve(pathStr.toPath()).normalized()
         path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.normalized().let { if (it.canLoad()) return it }
         return null
     }
 
     // 絶対パス
     if (reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val path = reference.toPath().normalized()
+        val pathStr = reference.replace("\\", "/")
+        val path = pathStr.toPath().normalized()
         path.let { if (it.canLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.canLoad()) return it }
+        path.map { "$it$MODULE_EXTENSION" }.normalized().let { if (it.canLoad()) return it }
         return null
     }
 
