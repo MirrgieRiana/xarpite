@@ -82,7 +82,7 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
         val artifact = segments[1].notBlankOrNull ?: return@run
         val version = segments[2].notBlankOrNull ?: return@run
 
-        val suffix = "${group.replace(".", "/")}/$artifact/$artifact-$version$MODULE_EXTENSION"
+        val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
             path.let { if (it.tryToLoad()) return it }
