@@ -737,7 +737,7 @@ class CliTest {
         // quiet フラグが false である
         assertEquals(false, options.quiet)
         // スクリプトファイルパスが設定されている
-        assertEquals(file.toString(), options.scriptFilePath)
+        assertEquals(file.toString(), options.scriptFile)
 
         // クリーンアップ
         fileSystem.delete(file)
@@ -857,7 +857,7 @@ class CliTest {
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         assertEquals(false, options.quiet)
         // eval モードでは scriptFilePath は NULL
-        assertEquals(null, options.scriptFilePath)
+        assertEquals(null, options.scriptFile)
     }
 
     @Test
@@ -1270,8 +1270,8 @@ class CliTest {
         val options = parseArguments(listOf("-f", file.toString()))
         
         // scriptFilePathが正しく設定されていることを確認
-        assertTrue(options.scriptFilePath != null)
-        assertEquals(file.toString(), options.scriptFilePath)
+        assertTrue(options.scriptFile != null)
+        assertEquals(file.toString(), options.scriptFile)
         
         // クリーンアップ
         fileSystem.delete(file)
@@ -1295,7 +1295,7 @@ class CliTest {
         val options = parseArguments(listOf("-f", relativeFile))
         
         // scriptFilePathには相対パスが保存される
-        assertEquals(relativeFile, options.scriptFilePath)
+        assertEquals(relativeFile, options.scriptFile)
         
         // cliEvalで絶対パスに解決されることを確認（実装の詳細）
         // 実際の絶対パス解決はcliEval内で行われる
@@ -1319,7 +1319,7 @@ class CliTest {
         val options = parseArguments(listOf("-f", file.toString()))
         
         // scriptFilePathが設定されている
-        assertTrue(options.scriptFilePath != null)
+        assertTrue(options.scriptFile != null)
         
         // 親ディレクトリが正しく取得できることを確認
         val parent = file.parent
@@ -1345,7 +1345,7 @@ class CliTest {
         val options = parseArguments(listOf("-f", file.toString()))
         
         // scriptFilePathが設定されている
-        assertTrue(options.scriptFilePath != null)
+        assertTrue(options.scriptFile != null)
         
         // ファイル名が正しく取得できることを確認
         assertEquals("my_script.xa1", file.name)

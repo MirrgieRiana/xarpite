@@ -16,19 +16,9 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
-import okio.Path
 import okio.Path.Companion.toPath
 
-fun resolveAbsolutePath(file: String, pwd: String): String {
-    val path = file.toPath()
-    return if (path.isAbsolute) {
-        path.normalized().toString()
-    } else {
-        pwd.toPath().resolve(path).normalized().toString()
-    }
-}
-
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFilePath: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -152,9 +142,6 @@ fun showVersion() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-        val absoluteScriptPath = options.scriptFilePath?.let { scriptFile ->
-            resolveAbsolutePath(scriptFile, ioContext.getPwd())
-        }
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
@@ -162,9 +149,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         mountsFactory = { scriptFileName, scriptDirName ->
             mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
         }
-        val scriptFileName = absoluteScriptPath
-        val scriptDirName = absoluteScriptPath?.toPath()?.parent?.toString() ?: ioContext.getPwd()
-        evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
+        val scriptPath = options.scriptFile ?. let { ioContext.getPwd().toPath().resolve(it).normalized() }
+        val scriptDirName = scriptPath?.parent?.toString() ?: ioContext.getPwd()
+        evaluator.defineMounts(mountsFactory(scriptPath.toString(), scriptDirName))
         try {
             withStackTrace(Position("-", 0)) {
                 if (options.quiet) {

@@ -19,7 +19,6 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
-import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.define
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
