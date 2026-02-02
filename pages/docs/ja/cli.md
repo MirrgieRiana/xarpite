@@ -379,9 +379,9 @@ Maven座標形式でモジュールを `USE` する際に検索されるディ�
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa '
     INC::push("maven-fruit")

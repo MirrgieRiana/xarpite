@@ -367,9 +367,9 @@ You can add custom module search paths by adding values to `INC`.
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa '
     INC::push("maven-fruit")
