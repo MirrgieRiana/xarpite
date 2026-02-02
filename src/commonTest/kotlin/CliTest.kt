@@ -509,13 +509,14 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        val xarpiteDir = ".xarpite/maven/com/example/utils".toPath()
+        val xarpiteDir = ".xarpite/maven/com/example/utils/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/com/example/utils".toPath())
         fileSystem.delete(".xarpite/maven/com/example".toPath())
         fileSystem.delete(".xarpite/maven/com".toPath())
         fileSystem.delete(".xarpite/maven".toPath())
@@ -527,13 +528,14 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib".toPath()
+        val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib/2.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin/lib".toPath())
         fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin".toPath())
         fileSystem.delete(".xarpite/maven/org/jetbrains".toPath())
         fileSystem.delete(".xarpite/maven/org".toPath())
@@ -546,7 +548,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        val xarpiteDir = ".xarpite/maven/com/test/module".toPath()
+        val xarpiteDir = ".xarpite/maven/com/test/module/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
         fileSystem.write(moduleFile) {
@@ -572,6 +574,7 @@ class CliTest {
         assertEquals("changed", result)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
+        fileSystem.delete(".xarpite/maven/com/test/module".toPath())
         fileSystem.delete(".xarpite/maven/com/test".toPath())
         fileSystem.delete(".xarpite/maven/com".toPath())
         fileSystem.delete(".xarpite/maven".toPath())
@@ -646,7 +649,7 @@ class CliTest {
         
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
-        val moduleDir = customIncDir.resolve("com/example/custom/mylib")
+        val moduleDir = customIncDir.resolve("com/example/custom/mylib/1.0.0")
         fileSystem.createDirectories(moduleDir)
         val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
@@ -662,6 +665,7 @@ class CliTest {
         // クリーンアップ
         fileSystem.delete(moduleFile)
         fileSystem.delete(moduleDir)
+        fileSystem.delete(customIncDir.resolve("com/example/custom/mylib"))
         fileSystem.delete(customIncDir.resolve("com/example/custom"))
         fileSystem.delete(customIncDir.resolve("com/example"))
         fileSystem.delete(customIncDir.resolve("com"))

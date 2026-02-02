@@ -430,9 +430,9 @@ Maven座標形式でモジュールを `USE` する際に検索されるディ�
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa '
     INC::push("maven-fruit")
@@ -866,13 +866,13 @@ Maven座標形式は `group:artifact:version` の形式で指定します。
 
 拡張子には `.xa1` が自動的に付与されます。
 
-例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/apple-1.0.0.xa1` を解決して検索します。
+例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` を解決して検索します。
 
 ```shell
 $ {
-  mkdir -p .xarpite/maven/com/example/fruit/apple
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa 'USE("com.example.fruit:apple:1.0.0")'
 
