@@ -145,13 +145,14 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         context.setSrc("-", options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptFileName, scriptDirName ->
-            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
+        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
+        mountsFactory = { locationDir, locationFileName ->
+            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
         }
         val scriptPath = options.scriptFile ?. let { ioContext.getPwd().toPath().resolve(it).normalized() }
-        val scriptDirName = scriptPath?.parent?.toString() ?: ioContext.getPwd()
-        evaluator.defineMounts(mountsFactory(scriptPath.toString(), scriptDirName))
+        val locationDir = scriptPath?.parent?.toString() ?: ioContext.getPwd()
+        val locationFileName = scriptPath?.toString()
+        evaluator.defineMounts(mountsFactory(locationDir, locationFileName))
         try {
             withStackTrace(Position("-", 0)) {
                 if (options.quiet) {

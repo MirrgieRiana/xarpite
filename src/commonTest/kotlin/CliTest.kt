@@ -13,6 +13,7 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -1498,11 +1499,11 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
     return withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptFileName, scriptDirName ->
-            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
+        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
+        mountsFactory = { locationDir, locationFileName ->
+            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory(null, "."))
+        evaluator.defineMounts(mountsFactory(context.io.getPwd(), null))
         evaluator.get(src).cache()
     }
 }

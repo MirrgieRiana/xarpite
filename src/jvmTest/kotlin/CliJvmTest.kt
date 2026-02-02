@@ -87,11 +87,12 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptFileName, scriptDirName ->
-            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
+        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
+        mountsFactory = { locationDir, locationFileName ->
+            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory(null, "."))
+        val locationDir = Path.of("").toAbsolutePath().normalize().toString()
+        evaluator.defineMounts(mountsFactory(locationDir, null))
         evaluator.get(src).cache()
     }
 }
@@ -102,13 +103,13 @@ private suspend fun CoroutineScope.cliEvalJvmWithLocation(src: String, scriptPat
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String?, String) -> List<Map<String, Mount>>
-        mountsFactory = { scriptFileName, scriptDirName ->
-            mounts + context.run { createModuleMounts(scriptFileName, scriptDirName, mountsFactory) }
+        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
+        mountsFactory = { locationDir, locationFileName ->
+            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
         }
-        val scriptFileName = scriptPath
-        val scriptDirName = scriptPath?.toPath()?.parent?.toString() ?: "."
-        evaluator.defineMounts(mountsFactory(scriptFileName, scriptDirName))
+        val locationFileName = scriptPath
+        val locationDir = scriptPath?.toPath()?.parent?.toString() ?: Path.of("").toAbsolutePath().normalize().toString()
+        evaluator.defineMounts(mountsFactory(locationDir, locationFileName))
         evaluator.get(src).cache()
     }
 }
