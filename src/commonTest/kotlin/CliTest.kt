@@ -624,7 +624,7 @@ class CliTest {
         
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
-        val moduleDir = customIncDir.resolve("com/example/custom/mylib")
+        val moduleDir = customIncDir.resolve("com/example/custom/mylib/1.0.0")
         fileSystem.createDirectories(moduleDir)
         val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
@@ -640,6 +640,7 @@ class CliTest {
         // クリーンアップ
         fileSystem.delete(moduleFile)
         fileSystem.delete(moduleDir)
+        fileSystem.delete(customIncDir.resolve("com/example/custom/mylib"))
         fileSystem.delete(customIncDir.resolve("com/example/custom"))
         fileSystem.delete(customIncDir.resolve("com/example"))
         fileSystem.delete(customIncDir.resolve("com"))
