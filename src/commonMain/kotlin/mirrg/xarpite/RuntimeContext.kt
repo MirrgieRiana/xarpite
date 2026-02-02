@@ -3,7 +3,6 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
-import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
@@ -60,8 +59,6 @@ interface IoContext {
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
 }
-
-fun IoContext.getPwd(): String = getEnv().run { this["XARPITE_PWD"]?.notBlankOrNull ?: this["PWD"]?.notBlankOrNull ?: getPlatformPwd() }
 
 open class UnsupportedIoContext : IoContext {
     override fun getPlatformPwd(): String = throw UnsupportedOperationException()

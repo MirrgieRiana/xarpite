@@ -12,7 +12,6 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
-import mirrg.xarpite.getPwd
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
