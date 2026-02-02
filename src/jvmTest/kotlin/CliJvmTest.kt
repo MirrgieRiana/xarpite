@@ -24,10 +24,10 @@ class CliJvmTest {
     @Test
     fun locationReturnsAbsolutePath() = runTest {
         // LOCATION定数は絶対パスを返すことを確認
-        // cliEvalJvmは引数なしで呼ばれるとLOCATIONはNULL
+        // cliEvalJvmは引数なしで呼ばれるとLOCATIONは"-"（ダミーファイル名）
         val result = cliEvalJvm("LOCATION")
         val location = result.toFluoriteString(null).value
-        assertEquals("NULL", location) // eval モードでは NULL
+        assertEquals("-", location) // eval モードでは "-"
     }
 
     @Test
@@ -37,25 +37,6 @@ class CliJvmTest {
         val result = cliEvalJvmWithLocation("LOCATION", testPath)
         val location = result.toFluoriteString(null).value
         assertEquals(testPath, location)
-    }
-
-    @Test
-    fun locationDirReturnsParentDirectory() = runTest {
-        // LOCATION_DIRは親ディレクトリを返す
-        val testPath = Path.of("/test/path/script.xa1").toAbsolutePath().normalize().toString()
-        val result = cliEvalJvmWithLocation("LOCATION_DIR", testPath)
-        val locationDir = result.toFluoriteString(null).value
-        val expectedDir = Path.of("/test/path").toAbsolutePath().normalize().toString()
-        assertEquals(expectedDir, locationDir)
-    }
-
-    @Test
-    fun locationFileReturnsFileName() = runTest {
-        // LOCATION_FILEはファイル名を返す
-        val testPath = Path.of("/test/path/script.xa1").toAbsolutePath().normalize().toString()
-        val result = cliEvalJvmWithLocation("LOCATION_FILE", testPath)
-        val locationFile = result.toFluoriteString(null).value
-        assertEquals("script.xa1", locationFile)
     }
 
     @Test
@@ -87,12 +68,11 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
-        mountsFactory = { locationDir, locationFileName ->
-            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        val locationDir = Path.of("").toAbsolutePath().normalize().toString()
-        evaluator.defineMounts(mountsFactory(locationDir, null))
+        evaluator.defineMounts(mountsFactory("-"))
         evaluator.get(src).cache()
     }
 }
@@ -103,13 +83,12 @@ private suspend fun CoroutineScope.cliEvalJvmWithLocation(src: String, scriptPat
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
     }) { context, evaluator ->
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
-        mountsFactory = { locationDir, locationFileName ->
-            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        val locationFileName = scriptPath
-        val locationDir = scriptPath?.toPath()?.parent?.toString() ?: Path.of("").toAbsolutePath().normalize().toString()
-        evaluator.defineMounts(mountsFactory(locationDir, locationFileName))
+        val location = scriptPath?.let { Path.of("").toAbsolutePath().normalize().resolve(it).normalize().toString() } ?: "-"
+        evaluator.defineMounts(mountsFactory(location))
         evaluator.get(src).cache()
     }
 }

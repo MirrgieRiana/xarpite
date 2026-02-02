@@ -350,11 +350,11 @@ This path is normalized (it does not contain `.` or `..` segments) and is an abs
 
 ---
 
-If the code is not loaded from a file (such as direct evaluation with the `-e` option), `NULL` is returned.
+If the code is not loaded from a file (such as direct evaluation with the `-e` option), `-` (a dummy filename) is returned.
 
 ```shell
 $ xa -e 'LOCATION'
-# NULL
+# -
 ```
 
 ---
@@ -365,31 +365,7 @@ When a file is specified with the `-f` option, the absolute path of that file is
 
 In modules loaded by the `USE` function, `LOCATION` contains the absolute path of the module file itself.
 
-### `LOCATION_DIR`: Get Parent Directory of Currently Executing File
-
-`LOCATION_DIR: STRING`
-
-The absolute path of the directory containing the currently executing Xarpite script file.
-
-Even if the code is not loaded from a file, the script directory (equivalent to PWD) is returned.
-
-```shell
-$ xa -e 'LOCATION_DIR'
-# .
-```
-
-### `LOCATION_FILE`: Get Name of Currently Executing File
-
-`LOCATION_FILE: STRING | NULL`
-
-The filename (without directory path) of the currently executing Xarpite script file.
-
-If the code is not loaded from a file, `NULL` is returned.
-
-```shell
-$ xa -e 'LOCATION_FILE'
-# NULL
-```
+Functions to retrieve only the directory name or file name will be provided separately in the future (not yet implemented).
 
 ### `ENV`: Get Environment Variables
 

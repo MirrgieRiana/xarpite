@@ -90,28 +90,12 @@ class CliTest {
     }
 
     @Test
-    fun locationIsNullInEvalMode() = runTest {
+    fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
-        // When code is executed via eval (not from a file), LOCATION should be NULL
+        // When code is executed via eval (not from a file), LOCATION should be "-"
         val location = cliEval(context, "LOCATION")
-        assertTrue(location is FluoriteNull) // LOCATION は eval モードで NULL
-    }
-
-    @Test
-    fun locationDirReturnsScriptDirEvenInEvalMode() = runTest {
-        val context = TestIoContext()
-        // When code is executed via eval (not from a file), LOCATION_DIR should return script directory (equivalent to PWD)
-        val locationDir = cliEval(context, "LOCATION_DIR")
-        assertTrue(locationDir is FluoriteString)
-        // evalモードではscriptDirNameが"."になるため、正規化された絶対パスが返される
-    }
-
-    @Test
-    fun locationFileIsNullInEvalMode() = runTest {
-        val context = TestIoContext()
-        // When code is executed via eval (not from a file), LOCATION_FILE should be NULL
-        val locationFile = cliEval(context, "LOCATION_FILE")
-        assertTrue(locationFile is FluoriteNull) // LOCATION_FILE は eval モードで NULL
+        assertTrue(location is FluoriteString)
+        assertEquals("-", location.toFluoriteString(null).value) // LOCATION は eval モードで "-"
     }
 
     @Test
@@ -1499,11 +1483,11 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
     return withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
-        lateinit var mountsFactory: (String, String?) -> List<Map<String, Mount>>
-        mountsFactory = { locationDir, locationFileName ->
-            mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory(context.io.getPwd(), null))
+        evaluator.defineMounts(mountsFactory("-"))
         evaluator.get(src).cache()
     }
 }

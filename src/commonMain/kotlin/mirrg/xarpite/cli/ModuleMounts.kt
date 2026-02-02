@@ -23,24 +23,22 @@ import okio.Path.Companion.toPath
 private const val MODULE_EXTENSION = ".xa1"
 
 context(context: RuntimeContext)
-fun createModuleMounts(locationDir: String, locationFileName: String?, mountsFactory: (String, String?) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
+fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
-        "LOCATION" define LazyMount { locationFileName?.let { locationDir.toPath().resolve(it) }?.toString()?.toFluoriteString() ?: FluoriteNull },
-        "LOCATION_DIR" define LazyMount { locationDir.toFluoriteString() },
-        "LOCATION_FILE" define LazyMount { locationFileName?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION" define LazyMount { location.toFluoriteString() },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(context.inc, locationDir, reference)
+                val baseDir = if (location == "-") context.io.getPwd() else location.toPath().parent?.toString() ?: context.io.getPwd()
+                val modulePath = resolveModulePath(context.inc, baseDir, reference)
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
-                    val moduleLocationDir = modulePath.parent?.toString() ?: throw FluoriteException("Cannot determine module directory.".toFluoriteString())
-                    val moduleLocationFileName = modulePath.toString()
-                    evaluator.defineMounts(mountsFactory(moduleLocationDir, moduleLocationFileName))
-                    evaluator.get(modulePath.toString(), src).cache()
+                    val moduleLocation = modulePath.toString()
+                    evaluator.defineMounts(mountsFactory(moduleLocation))
+                    evaluator.get(moduleLocation, src).cache()
                 }
             }
         },
