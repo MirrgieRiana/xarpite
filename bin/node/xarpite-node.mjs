@@ -627,14 +627,14 @@ function main$slambda$lambda($cont) {
 function main$slambda_3(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(main$slambda_3).k39 = function (bytes, $completion) {
-  var tmp = this.l39(bytes, $completion);
+protoOf(main$slambda_3).j39 = function (bytes, $completion) {
+  var tmp = this.k39(bytes, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(main$slambda_3).b9 = function (p1, $completion) {
-  return this.k39((!(p1 == null) ? isByteArray(p1) : false) ? p1 : THROW_CCE(), $completion);
+  return this.j39((!(p1 == null) ? isByteArray(p1) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(main$slambda_3).s8 = function () {
   var suspendResult = this.m8_1;
@@ -679,7 +679,7 @@ protoOf(main$slambda_3).s8 = function () {
     }
    while (true);
 };
-protoOf(main$slambda_3).l39 = function (bytes, completion) {
+protoOf(main$slambda_3).k39 = function (bytes, completion) {
   var i = new main$slambda_3(completion);
   i.h8i_1 = bytes;
   return i;
@@ -687,7 +687,7 @@ protoOf(main$slambda_3).l39 = function (bytes, completion) {
 function main$slambda_4(resultContinuation) {
   var i = new main$slambda_3(resultContinuation);
   var l = function (bytes, $completion) {
-    return i.k39(bytes, $completion);
+    return i.j39(bytes, $completion);
   };
   l.$arity = 1;
   return l;
@@ -721,14 +721,14 @@ function main$slambda$lambda_0($cont) {
 function main$slambda_5(resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(main$slambda_5).k39 = function (bytes, $completion) {
-  var tmp = this.l39(bytes, $completion);
+protoOf(main$slambda_5).j39 = function (bytes, $completion) {
+  var tmp = this.k39(bytes, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
 protoOf(main$slambda_5).b9 = function (p1, $completion) {
-  return this.k39((!(p1 == null) ? isByteArray(p1) : false) ? p1 : THROW_CCE(), $completion);
+  return this.j39((!(p1 == null) ? isByteArray(p1) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(main$slambda_5).s8 = function () {
   var suspendResult = this.m8_1;
@@ -773,7 +773,7 @@ protoOf(main$slambda_5).s8 = function () {
     }
    while (true);
 };
-protoOf(main$slambda_5).l39 = function (bytes, completion) {
+protoOf(main$slambda_5).k39 = function (bytes, completion) {
   var i = new main$slambda_5(completion);
   i.q8i_1 = bytes;
   return i;
@@ -781,7 +781,7 @@ protoOf(main$slambda_5).l39 = function (bytes, completion) {
 function main$slambda_6(resultContinuation) {
   var i = new main$slambda_5(resultContinuation);
   var l = function (bytes, $completion) {
-    return i.k39(bytes, $completion);
+    return i.j39(bytes, $completion);
   };
   l.$arity = 1;
   return l;
@@ -848,7 +848,7 @@ protoOf($errCOROUTINE$).s8 = function () {
           var ARGUMENT = suspendResult.b30_1 + '\n';
           var ARGUMENT_0 = encodeToByteArray(ARGUMENT);
           this.k8_1 = 2;
-          suspendResult = this.j8j_1.h3a(ARGUMENT_0, this);
+          suspendResult = this.j8j_1.g3a(ARGUMENT_0, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -872,7 +872,7 @@ protoOf($errCOROUTINE$).s8 = function () {
 };
 function main$17$ioContext$1() {
 }
-protoOf(main$17$ioContext$1).d37 = function () {
+protoOf(main$17$ioContext$1).x3h = function () {
   return get_process().cwd();
 };
 protoOf(main$17$ioContext$1).h5o = function (value, $completion) {
@@ -881,25 +881,25 @@ protoOf(main$17$ioContext$1).h5o = function (value, $completion) {
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(main$17$ioContext$1).m38 = function (value, $completion) {
+protoOf(main$17$ioContext$1).l38 = function (value, $completion) {
   var tmp = new $errCOROUTINE$(this, value, $completion);
   tmp.m8_1 = Unit_instance;
   tmp.n8_1 = null;
   return tmp.s8();
 };
-protoOf(main$17$ioContext$1).p37 = function ($completion) {
+protoOf(main$17$ioContext$1).o37 = function ($completion) {
   return readLineFromStdin($completion);
 };
-protoOf(main$17$ioContext$1).b38 = function ($completion) {
+protoOf(main$17$ioContext$1).a38 = function ($completion) {
   return readBytesFromStdin($completion);
 };
-protoOf(main$17$ioContext$1).m39 = function (bytes, $completion) {
+protoOf(main$17$ioContext$1).l39 = function (bytes, $completion) {
   return writeBytesToStdout(bytes, $completion);
 };
-protoOf(main$17$ioContext$1).h3a = function (bytes, $completion) {
+protoOf(main$17$ioContext$1).g3a = function (bytes, $completion) {
   return writeBytesToStderr(bytes, $completion);
 };
-protoOf(main$17$ioContext$1).i3g = function (process, args, env, $completion) {
+protoOf(main$17$ioContext$1).h3g = function (process, args, env, $completion) {
   return executeProcess(process, args, env, $completion);
 };
 function main$slambda$lambda_1($this$cliEval) {

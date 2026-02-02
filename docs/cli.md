@@ -367,9 +367,9 @@ You can add custom module search paths by adding values to `INC`.
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa '
     INC::push("maven-fruit")
@@ -807,13 +807,13 @@ Maven coordinate format is specified as `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
 
 ```shell
 $ {
-  mkdir -p .xarpite/maven/com/example/fruit/apple
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
 
-  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/apple-1.0.0.xa1
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
 
   xa 'USE("com.example.fruit:apple:1.0.0")'
 
