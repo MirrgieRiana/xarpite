@@ -25,16 +25,15 @@ private const val MODULE_EXTENSION = ".xa1"
 context(context: RuntimeContext)
 fun createModuleMounts(locationDir: String, locationFileName: String?, mountsFactory: (String, String?) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
-        "LOCATION" define LazyMount { locationFileName?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION" define LazyMount { locationFileName?.let { locationDir.toPath().resolve(it) }?.toString()?.toFluoriteString() ?: FluoriteNull },
         "LOCATION_DIR" define LazyMount { locationDir.toFluoriteString() },
-        "LOCATION_FILE" define LazyMount { locationFileName?.toPath()?.name?.toFluoriteString() ?: FluoriteNull },
+        "LOCATION_FILE" define LazyMount { locationFileName?.toFluoriteString() ?: FluoriteNull },
         "USE" define run {
             val moduleCache = mutableMapOf<Path, FluoriteValue>()
-            val baseDir = locationDir.toPath()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(context.inc, baseDir, reference)
+                val modulePath = resolveModulePath(context.inc, locationDir, reference)
                 moduleCache.getOrPut(modulePath) {
                     val src = context.getModuleSrc(modulePath.toString())
                     val evaluator = Evaluator()
@@ -50,7 +49,7 @@ fun createModuleMounts(locationDir: String, locationFileName: String?, mountsFac
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, reference: String): Path {
+private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: String, reference: String): Path {
     val paths = mutableListOf<Path>()
 
     fun Path.tryToLoad(): Boolean {
@@ -72,7 +71,7 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
 
     // ファイルパス
     if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val path = baseDir.resolve(reference.toPath()).normalized()
+        val path = baseDir.toPath().resolve(reference.toPath()).normalized()
         path.let { if (it.tryToLoad()) return it }
         path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it }
         fail("Module file not found: $reference")

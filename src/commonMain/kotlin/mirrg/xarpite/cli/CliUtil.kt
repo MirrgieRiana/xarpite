@@ -149,9 +149,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         mountsFactory = { locationDir, locationFileName ->
             mounts + context.run { createModuleMounts(locationDir, locationFileName, mountsFactory) }
         }
-        val scriptPath = options.scriptFile ?. let { ioContext.getPwd().toPath().resolve(it).normalized() }
-        val locationDir = scriptPath?.parent?.toString() ?: ioContext.getPwd()
-        val locationFileName = scriptPath?.toString()
+        val locationPath = options.scriptFile?.let { ioContext.getPwd().toPath().resolve(it).normalized() }
+        val locationDir = locationPath?.parent?.toString() ?: ioContext.getPwd()
+        val locationFileName = locationPath?.name
         evaluator.defineMounts(mountsFactory(locationDir, locationFileName))
         try {
             withStackTrace(Position("-", 0)) {
