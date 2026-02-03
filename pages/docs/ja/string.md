@@ -505,32 +505,31 @@ $ xa '"Ab"::LC()'
 
 `RESOLVE(dir: STRING; file: STRING): STRING`
 
-2つの引数を文字列化したうえで、パスを結合して正規化します。
+`STRING::RESOLVE(file: STRING): STRING`
 
-第1引数はディレクトリパス、第2引数はファイルパスまたは相対パスです。
-
-この関数は、冗長なパス（`.` や `..` を含むパス）を正規化します。
-ただし、シンボリックリンクは解決しません。
-
-ディレクトリパスの末尾がスラッシュ `/` で終わるかどうかに関わらず、正しくパスを結合します。
-これは、PWDがルートディレクトリ `/` の場合に特に重要です。
+`dir` を起点にして `file` へのパスを解決します。
 
 ```shell
-$ xa 'RESOLVE("/home/user"; "file.txt")'
-# /home/user/file.txt
-
-$ xa 'RESOLVE("/"; "file.txt")'
-# /file.txt
-
-$ xa 'RESOLVE("/home/user"; "../other/file.txt")'
-# /home/other/file.txt
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
 ```
 
 ---
 
-`string::RESOLVE(file)` で呼び出すことができる拡張関数版もあります。
+出力パスは自動で正規化（ `.` や `..` の平坦化）が行われます。
+
+シンボリックリンクの解決は行われません。
 
 ```shell
-$ xa '"/home/user"::RESOLVE("file.txt")'
-# /home/user/file.txt
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
 ```
+
+---
+
+`"$PWD/file"` のような文字列連結を使うと、ルートディレクトリに対して `//file` のようなパスが生成されます。
+
+代わりに `PWD::RESOLVE("file")` のように `RESOLVE` 関数を使用してください。
