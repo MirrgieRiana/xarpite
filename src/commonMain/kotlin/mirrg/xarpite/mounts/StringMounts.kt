@@ -76,25 +76,21 @@ fun createStringMounts(): List<Map<String, Mount>> {
             }
         },
 
-        *createResolveMount(),
+        *run {
+            FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("RESOLVE(dir: STRING; file: STRING): STRING")
+                val dir = arguments[0].toFluoriteString(null).value
+                val file = arguments[1].toFluoriteString(null).value
+                val resolved = dir.toPath().resolve(file).normalized()
+                resolved.toString().toFluoriteString()
+            }.let {
+                arrayOf(
+                    "RESOLVE" define it,
+                    "::RESOLVE" define fluoriteArrayOf(
+                        FluoriteString.fluoriteClass colon it,
+                    ),
+                )
+            }
+        },
     ).let { listOf(it) }
-}
-
-private fun createResolveMount(): Array<Pair<String, Mount>> {
-    val function = FluoriteFunction { arguments ->
-        if (arguments.size == 2) {
-            val dir = arguments[0].toFluoriteString(null).value
-            val file = arguments[1].toFluoriteString(null).value
-            val resolved = dir.toPath().resolve(file.toPath()).normalized()
-            resolved.toString().toFluoriteString()
-        } else {
-            usage("RESOLVE(dir: STRING; file: STRING): STRING")
-        }
-    }
-    return arrayOf(
-        "RESOLVE" define function,
-        "::RESOLVE" define fluoriteArrayOf(
-            FluoriteString.fluoriteClass colon function,
-        ),
-    )
 }
