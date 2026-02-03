@@ -759,6 +759,38 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
+## `TRANSPOSE` / `ZIP` Combine Multiple Streams into Stream of Arrays
+
+`<T1, T2, ...> TRANSPOSE(stream1: STREAM<T1>; stream2: STREAM<T2>[; ...]): STREAM<[T1; T2; ...]>`
+
+Takes multiple streams and returns a stream of arrays combining corresponding elements from each stream.
+
+`ZIP` is an alias of `TRANSPOSE` and has the same behavior.
+
+The output stream terminates when any of the input streams terminates.
+
+```shell
+$ xa 'TRANSPOSE(1, 2, 3; "a", "b", "c")'
+# [1;a]
+# [2;b]
+# [3;c]
+```
+
+---
+
+The following example creates an array of entries from two arrays called `keys` and `values`.
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys(); values())
+'
+# [name;Alice]
+# [age;30]
+# [city;Tokyo]
+```
+
 ## `GROUP` Group Stream by Key
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`

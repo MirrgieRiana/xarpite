@@ -683,6 +683,52 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
         },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("<T1, T2, ...> $name(stream1: STREAM<T1>; stream2: STREAM<T2>[; ...]): STREAM<[T1; T2; ...]>")
+                    
+                    if (arguments.isEmpty()) usage()
+                    
+                    val streams = arguments.toList()
+                    
+                    FluoriteStream {
+                        // Convert all arguments to flows
+                        val flows = streams.map { stream ->
+                            if (stream is FluoriteStream) {
+                                stream.toFlow()
+                            } else {
+                                flow { emit(stream) }
+                            }
+                        }
+                        
+                        // Produce channels from all flows
+                        val channels = flows.map { f ->
+                            f.produceIn(this + EmptyCoroutineContext)
+                        }
+                        
+                        try {
+                            // Iterate until any channel is closed
+                            while (true) {
+                                val items = mutableListOf<FluoriteValue>()
+                                for (channel in channels) {
+                                    val item = channel.receiveCatching().getOrNull() ?: return@FluoriteStream
+                                    items.add(item)
+                                }
+                                emit(items.toFluoriteArray())
+                            }
+                        } finally {
+                            // Cancel all channels
+                            channels.forEach { it.cancel() }
+                        }
+                    }
+                }
+            }
+            arrayOf(
+                "TRANSPOSE" define create("TRANSPOSE"),
+                "ZIP" define create("ZIP"),
+            )
+        },
         "GROUP" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
             val arguments2 = arguments.toMutableList()

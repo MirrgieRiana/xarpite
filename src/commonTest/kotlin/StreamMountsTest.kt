@@ -159,6 +159,20 @@ class StreamMountsTest {
     }
 
     @Test
+    fun transpose() = runTest {
+        assertEquals("[1;a],[2;b],[3;c]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\", \"c\")").stream()) // TRANSPOSE で複数のストリームを配列のストリームに統合する
+        assertEquals("[1;a],[2;b],[3;c]", eval("ZIP(1, 2, 3; \"a\", \"b\", \"c\")").stream()) // ZIP は TRANSPOSE の別名
+        assertEquals("[1;a;x],[2;b;y],[3;c;z]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\", \"c\"; \"x\", \"y\", \"z\")").stream()) // 3つ以上のストリームでも動作する
+        assertEquals("[1;a]", eval("TRANSPOSE(1; \"a\")").stream()) // 2つのストリームでも動作する
+        assertEquals("[name;Alice],[age;30],[city;Tokyo]", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys(); values())").stream()) // keys と values から エントリー配列を構成できる
+        assertEquals("[1;a],[2;b]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\")").stream()) // 長さが異なる場合、短い方に合わせる
+        assertEquals("[1;a],[2;b]", eval("TRANSPOSE(1, 2; \"a\", \"b\", \"c\")").stream()) // 逆も同様
+        assertEquals("", eval("TRANSPOSE(,; \"a\", \"b\")").stream()) // 片方が空ストリームの場合、空ストリームになる
+        assertEquals("", eval("TRANSPOSE(1, 2; ,)").stream()) // 逆も同様
+        assertEquals("", eval("TRANSPOSE(,; ,)").stream()) // 両方が空ストリームの場合、空ストリームになる
+    }
+
+    @Test
     fun group() = runTest {
         assertEquals("[1;[14]],[2;[25]]", eval("14, 25 >> GROUP[by: _ -> _.&.0]").stream()) // GROUPでグループのストリームになる
         assertEquals("[1;[14]]", eval("14 >> GROUP[by: _ -> _.&.0]").stream()) // 要素が1個でもよい

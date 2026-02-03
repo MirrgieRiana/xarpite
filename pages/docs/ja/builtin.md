@@ -619,6 +619,38 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
+## `TRANSPOSE` / `ZIP` 複数のストリームを配列のストリームに統合
+
+`<T1, T2, ...> TRANSPOSE(stream1: STREAM<T1>; stream2: STREAM<T2>[; ...]): STREAM<[T1; T2; ...]>`
+
+複数のストリームを受け取り、それらの対応する要素を組み合わせた配列のストリームを返します。
+
+`ZIP` は `TRANSPOSE` の別名であり、同一の動作を持ちます。
+
+いずれかのストリームが終了した時点で、出力ストリームも終了します。
+
+```shell
+$ xa 'TRANSPOSE(1, 2, 3; "a", "b", "c")'
+# [1;a]
+# [2;b]
+# [3;c]
+```
+
+---
+
+以下の例では、 `keys` と `values` という2つの配列から、エントリーの配列を構成しています。
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys(); values())
+'
+# [name;Alice]
+# [age;30]
+# [city;Tokyo]
+```
+
 ## `GROUP` ストリームをキーでグループ化
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
