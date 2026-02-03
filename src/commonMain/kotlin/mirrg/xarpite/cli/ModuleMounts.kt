@@ -24,20 +24,20 @@ context(context: RuntimeContext)
 fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
         "USE" define run {
-            val moduleCache = mutableMapOf<Path, FluoriteValue>()
+            val moduleCache = mutableMapOf<String, FluoriteValue>()
             val baseDir by lazy {
                 val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                context.io.getPwd().toPath().resolve(parentPath).normalized()
+                context.io.getPwd().toPath().resolve(parentPath).normalized().toString()
             }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(context.inc, baseDir, reference)
-                moduleCache.getOrPut(modulePath) {
-                    val src = context.getModuleSrc(modulePath.toString())
+                val moduleFile = resolveModuleFile(context.inc, baseDir, reference)
+                moduleCache.getOrPut(moduleFile) {
+                    val src = context.getModuleSrc(moduleFile)
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(modulePath.toString()))
-                    evaluator.get(modulePath.toString(), src).cache()
+                    evaluator.defineMounts(mountsFactory(moduleFile))
+                    evaluator.get(moduleFile, src).cache()
                 }
             }
         },
@@ -46,7 +46,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, reference: String): Path {
+private suspend fun resolveModuleFile(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
     fun Path.tryToLoad(): Boolean {
@@ -68,9 +68,9 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
 
     // ファイルパス
     if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val path = baseDir.resolve(reference.toPath()).normalized()
-        path.let { if (it.tryToLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it }
+        val path = baseDir.toPath().resolve(reference.toPath()).normalized()
+        path.let { if (it.tryToLoad()) return it.toString() }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -85,7 +85,7 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
-            path.let { if (it.tryToLoad()) return it }
+            path.let { if (it.tryToLoad()) return it.toString() }
         }
         fail("Maven artifact not found: $reference")
     }
