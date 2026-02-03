@@ -127,7 +127,7 @@ private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
     val totalSize = chunks.sumOf { it.size }
     val result = ByteArray(totalSize)
     var offset = 0
-    for (chunk in chunks) {
+    chunks.forEach { chunk ->
         chunk.copyInto(result, offset)
         offset += chunk.size
     }
