@@ -25,7 +25,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
 
         *run {
             fun create(signature: String): FluoriteFunction {
-                FluoriteFunction { arguments ->
+                return FluoriteFunction { arguments ->
                     if (arguments.size == 1) {
                         val argument = arguments[0]
                         if (argument is FluoriteStream) {
@@ -52,7 +52,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
 
         *run {
             fun create(signature: String): FluoriteFunction {
-                FluoriteFunction { arguments ->
+                return FluoriteFunction { arguments ->
                     if (arguments.size == 1) {
                         val argument = arguments[0]
                         if (argument is FluoriteStream) {
