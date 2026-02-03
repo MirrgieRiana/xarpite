@@ -1310,7 +1310,8 @@ class CliTest {
         }
         
         // ファイルを実行
-        val options = parseArguments(listOf("-f", file.toString()))
+        val context = TestIoContext()
+        val options = parseArguments(listOf("-f", file.toString()), context)
         
         // scriptFilePathが正しく設定されていることを確認
         assertTrue(options.scriptFile != null)
@@ -1335,7 +1336,7 @@ class CliTest {
         }
         
         val context = TestIoContext()
-        val options = parseArguments(listOf("-f", relativeFile))
+        val options = parseArguments(listOf("-f", relativeFile), context)
         
         // scriptFilePathには相対パスが保存される
         assertEquals(relativeFile, options.scriptFile)
