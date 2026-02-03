@@ -528,7 +528,7 @@ $ xa 'RESOLVE("/home/user"; "../other/file.txt")'
 
 ---
 
-There is also an extension function version that can be called with `dir::RESOLVE(file)`.
+There is also an extension function version that can be called with `string::RESOLVE(file)`.
 
 ```shell
 $ xa '"/home/user"::RESOLVE("file.txt")'

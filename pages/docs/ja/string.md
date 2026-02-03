@@ -528,7 +528,7 @@ $ xa 'RESOLVE("/home/user"; "../other/file.txt")'
 
 ---
 
-`dir::RESOLVE(file)` で呼び出すことができる拡張関数版もあります。
+`string::RESOLVE(file)` で呼び出すことができる拡張関数版もあります。
 
 ```shell
 $ xa '"/home/user"::RESOLVE("file.txt")'
