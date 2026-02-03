@@ -119,12 +119,19 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
-    val bytes = mutableListOf<Byte>()
+    val chunks = mutableListOf<ByteArray>()
     while (true) {
         val chunk = ioContext.readBytesFromStdin() ?: break
-        bytes.addAll(chunk.toList())
+        chunks.add(chunk)
     }
-    return bytes.toByteArray().decodeToString()
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    for (chunk in chunks) {
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
 }
 
 fun showUsage() {
