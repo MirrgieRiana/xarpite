@@ -33,7 +33,7 @@ The runtime has different implementations on multiple platforms, which are calle
 The `xarpite` command is the most basic command for executing Xarpite.
 
 ```shell
-$ xarpite -h
+$ xarpite -h | tail -n +2
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -41,8 +41,10 @@ $ xarpite -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -76,7 +78,7 @@ $ {
 The `xa` command is a shortcut for the `xarpite` command.
 
 ```shell
-$ xa -h
+$ xa -h | tail -n +2
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -84,8 +86,10 @@ $ xa -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -245,6 +249,15 @@ $ {
   xa -f script.xa1
   rm script.xa1
 }
+# 123
+```
+
+---
+
+When `scriptfile` is specified as `-`, it loads the script from standard input.
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
 # 123
 ```
 

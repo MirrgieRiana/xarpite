@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -88,6 +89,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -257,6 +259,15 @@ $ {
   xa -f script.xa1
   rm script.xa1
 }
+# 123
+```
+
+---
+
+`scriptfile` に `-` を指定すると、標準入力からスクリプトを読み込みます。
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
 # 123
 ```
 

@@ -23,7 +23,7 @@ class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
 
-fun parseArguments(args: Iterable<String>): Options {
+suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Options {
     val list = args.toMutableList()
     val arguments = mutableListOf<String>()
     var quiet = false
@@ -104,13 +104,34 @@ fun parseArguments(args: Iterable<String>): Options {
 
     // -f オプションが指定された場合、ファイルからスクリプトを読み込む
     if (scriptFile != null) {
-        val fileSystem = getFileSystem().getOrThrow()
-        script = fileSystem.read(scriptFile.toPath()) {
-            readUtf8()
+        if (scriptFile == "-") {
+            // -f - の場合は標準入力から読み込む
+            script = loadScriptFromStdin(ioContext)
+        } else {
+            val fileSystem = getFileSystem().getOrThrow()
+            script = fileSystem.read(scriptFile.toPath()) {
+                readUtf8()
+            }
         }
     }
 
     return Options(script ?: throw ShowUsage, arguments, quiet)
+}
+
+private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
+    val chunks = mutableListOf<ByteArray>()
+    while (true) {
+        val chunk = ioContext.readBytesFromStdin() ?: break
+        chunks.add(chunk)
+    }
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    chunks.forEach { chunk ->
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
 }
 
 fun showUsage() {
@@ -130,6 +151,7 @@ fun showUsage() {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  -f <scriptfile>          Read script from file")
+    println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
