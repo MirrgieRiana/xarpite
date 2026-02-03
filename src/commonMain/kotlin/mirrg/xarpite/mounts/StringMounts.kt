@@ -10,7 +10,6 @@ import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
-import okio.Path.Companion.toPath
 
 // パスを正規化する関数
 // . や .. を解決し、冗長なスラッシュを削除する
@@ -44,7 +43,7 @@ private fun normalizePath(path: String): String {
         stack.joinToString("/")
     }
     
-    return if (result.isEmpty() && !isAbsolute) "." else result
+    return if (result.isEmpty()) if (isAbsolute) "/" else "." else result
 }
 
 context(context: RuntimeContext)
