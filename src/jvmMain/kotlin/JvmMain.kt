@@ -3,6 +3,7 @@ import mirrg.xarpite.IoContext
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.cliEval
+import mirrg.xarpite.cli.loadScriptFromStdin
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
@@ -32,6 +33,12 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
         }
-        cliEval(ioContext, options)
+        val finalOptions = if (options.isStdinScript) {
+            val src = loadScriptFromStdin(ioContext)
+            options.copy(src = src, isStdinScript = false)
+        } else {
+            options
+        }
+        cliEval(ioContext, finalOptions)
     }
 }

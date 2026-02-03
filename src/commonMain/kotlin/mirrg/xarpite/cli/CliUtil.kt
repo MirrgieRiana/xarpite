@@ -18,7 +18,7 @@ import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
+data class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val isStdinScript: Boolean = false)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -103,14 +103,30 @@ fun parseArguments(args: Iterable<String>): Options {
     }
 
     // -f オプションが指定された場合、ファイルからスクリプトを読み込む
+    var isStdinScript = false
     if (scriptFile != null) {
-        val fileSystem = getFileSystem().getOrThrow()
-        script = fileSystem.read(scriptFile.toPath()) {
-            readUtf8()
+        if (scriptFile == "-") {
+            // -f - の場合は標準入力から読み込むためのマーカーを設定
+            isStdinScript = true
+            script = "" // 空文字列をプレースホルダーとして設定
+        } else {
+            val fileSystem = getFileSystem().getOrThrow()
+            script = fileSystem.read(scriptFile.toPath()) {
+                readUtf8()
+            }
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet)
+    return Options(script ?: throw ShowUsage, arguments, quiet, isStdinScript)
+}
+
+suspend fun loadScriptFromStdin(ioContext: IoContext): String {
+    val lines = mutableListOf<String>()
+    while (true) {
+        val line = ioContext.readLineFromStdin() ?: break
+        lines.add(line)
+    }
+    return lines.joinToString("\n")
 }
 
 fun showUsage() {
@@ -130,6 +146,7 @@ fun showUsage() {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  -f <scriptfile>          Read script from file")
+    println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")

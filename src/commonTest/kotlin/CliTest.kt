@@ -13,6 +13,7 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.loadScriptFromStdin
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -852,6 +853,69 @@ class CliTest {
         }
 
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionWithStdinReadsFromStdin() = runTest {
+        // -f - オプションで標準入力から読み込むフラグが設定される
+        val options = parseArguments(listOf("-f", "-"))
+
+        // isStdinScript が true である
+        assertEquals(true, options.isStdinScript)
+        // 引数は空
+        assertEquals(emptyList(), options.arguments)
+        // quiet フラグが false である
+        assertEquals(false, options.quiet)
+    }
+
+    @Test
+    fun fileOptionWithStdinAndArguments() = runTest {
+        // -f - オプションで標準入力から読み込む場合も引数を受け取れる
+        val options = parseArguments(listOf("-f", "-", "arg1", "arg2"))
+
+        // isStdinScript が true である
+        assertEquals(true, options.isStdinScript)
+        // 引数が正しく設定されている
+        assertEquals(listOf("arg1", "arg2"), options.arguments)
+    }
+
+    @Test
+    fun fileOptionWithStdinAndQuiet() = runTest {
+        // -f - と -q を組み合わせる
+        val options = parseArguments(listOf("-q", "-f", "-"))
+
+        // isStdinScript が true である
+        assertEquals(true, options.isStdinScript)
+        // quiet フラグが true である
+        assertEquals(true, options.quiet)
+    }
+
+    @Test
+    fun stdinScriptEvaluation() = runTest {
+        // -f - オプションで標準入力からスクリプトを読み込んで実行
+        val context = TestIoContext(stdinLines = listOf("1 + 2"))
+        val options = parseArguments(listOf("-f", "-"))
+        
+        // 標準入力から読み込む
+        val src = loadScriptFromStdin(context)
+        val finalOptions = options.copy(src = src, isStdinScript = false)
+        
+        val result = cliEval(context, finalOptions.src, *finalOptions.arguments.toTypedArray())
+        assertEquals("3", result.toFluoriteString(null).value)
+    }
+
+    @Test
+    fun stdinScriptMultiLine() = runTest {
+        // 複数行のスクリプトを標準入力から読み込む
+        val context = TestIoContext(stdinLines = listOf("a := 10", "b := 20", "a + b"))
+        val options = parseArguments(listOf("-f", "-"))
+        
+        // 標準入力から読み込む
+        val src = loadScriptFromStdin(context)
+        val finalOptions = options.copy(src = src, isStdinScript = false)
+        
+        val result = cliEval(context, finalOptions.src, *finalOptions.arguments.toTypedArray())
+        assertEquals("30", result.toFluoriteString(null).value)
     }
 
     // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
