@@ -365,8 +365,6 @@ When a file is specified with the `-f` option, the absolute path of that file is
 
 In modules loaded by the `USE` function, `LOCATION` contains the absolute path of the module file itself.
 
-Functions to retrieve only the directory name or file name will be provided separately in the future (not yet implemented).
-
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
