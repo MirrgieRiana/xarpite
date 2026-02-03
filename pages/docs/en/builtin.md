@@ -759,21 +759,32 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
-## `TRANSPOSE` / `ZIP` Combine Multiple Streams into Stream of Arrays
+## `TRANSPOSE` / `ZIP` Transpose Stream of Arrays
 
-`<T1, T2, ...> TRANSPOSE(stream1: STREAM<T1>; stream2: STREAM<T2>[; ...]): STREAM<[T1; T2; ...]>`
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
 
-Takes multiple streams and returns a stream of arrays combining corresponding elements from each stream.
+Takes a stream of arrays and returns a stream of arrays with rows and columns swapped.
 
 `ZIP` is an alias of `TRANSPOSE` and has the same behavior.
 
-The output stream terminates when any of the input streams terminates.
+```shell
+$ xa 'TRANSPOSE([1, 2, 3], [4, 5, 6])'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+With the `fill` parameter, shorter arrays are padded with the specified value.
+
+Without the `fill` parameter, an error occurs if arrays have different lengths.
 
 ```shell
-$ xa 'TRANSPOSE(1, 2, 3; "a", "b", "c")'
-# [1;a]
-# [2;b]
-# [3;c]
+$ xa 'TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])'
+# [1;4]
+# [2;5]
+# [3;0]
 ```
 
 ---
@@ -784,7 +795,7 @@ The following example creates an array of entries from two arrays called `keys` 
 $ xa '
   keys := ["name", "age", "city"]
   values := ["Alice", 30, "Tokyo"]
-  ZIP(keys(); values())
+  ZIP(keys, values)
 '
 # [name;Alice]
 # [age;30]

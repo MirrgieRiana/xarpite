@@ -619,21 +619,32 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
-## `TRANSPOSE` / `ZIP` 複数のストリームを配列のストリームに統合
+## `TRANSPOSE` / `ZIP` 配列のストリームを転置
 
-`<T1, T2, ...> TRANSPOSE(stream1: STREAM<T1>; stream2: STREAM<T2>[; ...]): STREAM<[T1; T2; ...]>`
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
 
-複数のストリームを受け取り、それらの対応する要素を組み合わせた配列のストリームを返します。
+配列のストリームを受け取り、行と列を入れ替えた配列のストリームを返します。
 
 `ZIP` は `TRANSPOSE` の別名であり、同一の動作を持ちます。
 
-いずれかのストリームが終了した時点で、出力ストリームも終了します。
+```shell
+$ xa 'TRANSPOSE([1, 2, 3], [4, 5, 6])'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+`fill` パラメータを指定すると、短い配列を指定した値でパディングします。
+
+`fill` パラメータを指定しない場合、配列の長さが異なるとエラーになります。
 
 ```shell
-$ xa 'TRANSPOSE(1, 2, 3; "a", "b", "c")'
-# [1;a]
-# [2;b]
-# [3;c]
+$ xa 'TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])'
+# [1;4]
+# [2;5]
+# [3;0]
 ```
 
 ---
@@ -644,7 +655,7 @@ $ xa 'TRANSPOSE(1, 2, 3; "a", "b", "c")'
 $ xa '
   keys := ["name", "age", "city"]
   values := ["Alice", 30, "Tokyo"]
-  ZIP(keys(); values())
+  ZIP(keys, values)
 '
 # [name;Alice]
 # [age;30]

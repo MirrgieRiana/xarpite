@@ -160,16 +160,16 @@ class StreamMountsTest {
 
     @Test
     fun transpose() = runTest {
-        assertEquals("[1;a],[2;b],[3;c]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\", \"c\")").stream()) // TRANSPOSE で複数のストリームを配列のストリームに統合する
-        assertEquals("[1;a],[2;b],[3;c]", eval("ZIP(1, 2, 3; \"a\", \"b\", \"c\")").stream()) // ZIP は TRANSPOSE の別名
-        assertEquals("[1;a;x],[2;b;y],[3;c;z]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\", \"c\"; \"x\", \"y\", \"z\")").stream()) // 3つ以上のストリームでも動作する
-        assertEquals("[1;a]", eval("TRANSPOSE(1; \"a\")").stream()) // 2つのストリームでも動作する
-        assertEquals("[name;Alice],[age;30],[city;Tokyo]", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys(); values())").stream()) // keys と values から エントリー配列を構成できる
-        assertEquals("[1;a],[2;b]", eval("TRANSPOSE(1, 2, 3; \"a\", \"b\")").stream()) // 長さが異なる場合、短い方に合わせる
-        assertEquals("[1;a],[2;b]", eval("TRANSPOSE(1, 2; \"a\", \"b\", \"c\")").stream()) // 逆も同様
-        assertEquals("", eval("TRANSPOSE(,; \"a\", \"b\")").stream()) // 片方が空ストリームの場合、空ストリームになる
-        assertEquals("", eval("TRANSPOSE(1, 2; ,)").stream()) // 逆も同様
-        assertEquals("", eval("TRANSPOSE(,; ,)").stream()) // 両方が空ストリームの場合、空ストリームになる
+        assertEquals("[1;4],[2;5],[3;6]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6])").stream()) // TRANSPOSE で配列のストリームを転置する
+        assertEquals("[1;4],[2;5],[3;6]", eval("ZIP([1, 2, 3], [4, 5, 6])").stream()) // ZIP は TRANSPOSE の別名
+        assertEquals("[a;x],[b;y],[c;z]", eval("TRANSPOSE([\"a\", \"b\", \"c\"], [\"x\", \"y\", \"z\"])").stream()) // 文字列でも動作する
+        assertEquals("[1;4;7],[2;5;8],[3;6;9]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6], [7, 8, 9])").stream()) // 3つ以上の配列でも動作する
+        assertEquals("[1;4]", eval("TRANSPOSE([1], [4])").stream()) // 要素が1つでも動作する
+        assertEquals("", eval("TRANSPOSE(,)").stream()) // 空ストリームの場合、空ストリームになる
+        assertFails { eval("TRANSPOSE([1, 2, 3], [4, 5])").stream() } // 長さが異なる場合、エラーになる
+        assertEquals("[1;4],[2;5],[3;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])").stream()) // fill を指定すると、短い配列をパディングする
+        assertEquals("[1;4;7],[2;5;0],[3;0;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5], [7])").stream()) // 複数の配列が短い場合でもパディングする
+        assertEquals("[name;Alice],[age;30],[city;Tokyo]", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values)").stream()) // keys と values から エントリー配列を構成できる
     }
 
     @Test
