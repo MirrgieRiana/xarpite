@@ -159,15 +159,16 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relativePath: String) {
+                        suspend fun walkDirectory(relativePathStr: String) {
+                            val relativePath = relativePathStr.toPath()
                             val fullPath = dir.resolve(relativePath)
 
                             try {
                                 val metadata = fileSystem.metadata(fullPath)
 
                                 if (metadata.isDirectory) {
-                                    if (includeDirectories && relativePath.isNotEmpty()) {
-                                        emit(relativePath.toFluoriteString())
+                                    if (includeDirectories && relativePathStr.isNotEmpty()) {
+                                        emit(relativePathStr.toFluoriteString())
                                     }
 
                                     val children = fileSystem.list(fullPath)
@@ -175,13 +176,17 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                                         .sorted()
 
                                     for (child in children) {
-                                        val childRelativePath = if (relativePath.isEmpty()) child else "$relativePath/$child"
+                                        val childRelativePath = if (relativePathStr.isEmpty()) {
+                                            child
+                                        } else {
+                                            relativePath.resolve(child).toString()
+                                        }
                                         walkDirectory(childRelativePath)
                                     }
                                 } else {
                                     // ファイル
-                                    if (relativePath.isNotEmpty()) {
-                                        emit(relativePath.toFluoriteString())
+                                    if (relativePathStr.isNotEmpty()) {
+                                        emit(relativePathStr.toFluoriteString())
                                     }
                                 }
                             } catch (_: Exception) {
