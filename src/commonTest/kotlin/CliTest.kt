@@ -100,10 +100,6 @@ class CliTest {
         val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
         val expectedPwd = xarpitePwd ?: envPwd ?: "/"
         assertEquals(expectedPwd, pwd)
-        // When PWD is "/", verify that it ends with "/"
-        if (pwd == "/") {
-            assertTrue(pwd.endsWith("/"))
-        }
     }
 
     @Test
