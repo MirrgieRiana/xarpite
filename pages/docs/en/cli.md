@@ -342,7 +342,7 @@ When the JVM runtime is launched on Windows, it corresponds to case 3, but it ha
 
 ### `LOCATION`: Get Path of Currently Executing File
 
-`LOCATION: STRING | NULL`
+`LOCATION: STRING`
 
 The absolute path of the currently executing Xarpite script file.
 

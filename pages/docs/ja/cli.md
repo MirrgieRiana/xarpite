@@ -354,7 +354,7 @@ Windows上でJVM版ランタイムを起動した場合は3に該当しますが
 
 ### `LOCATION`: 実行中のファイルのパスを取得
 
-`LOCATION: STRING | NULL`
+`LOCATION: STRING`
 
 現在実行中のXarpiteスクリプトファイルの絶対パスです。
 

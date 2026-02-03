@@ -1248,7 +1248,7 @@ class CliTest {
         
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
-            writeUtf8("""[LOCATION; LOCATION_DIR; LOCATION_FILE]""")
+            writeUtf8("""[LOCATION]""")
         }
         
         // ファイルを実行
@@ -1284,56 +1284,6 @@ class CliTest {
         
         // cliEvalで絶対パスに解決されることを確認（実装の詳細）
         // 実際の絶対パス解決はcliEval内で行われる
-        
-        // クリーンアップ
-        fileSystem.delete(file)
-    }
-
-    @Test  
-    fun locationDirReturnsParentDirectory() = runTest {
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        
-        val file = baseDir.resolve("subdir").also { fileSystem.createDirectories(it) }.resolve("test.xa1")
-        
-        fileSystem.write(file) {
-            writeUtf8("LOCATION_DIR")
-        }
-        
-        val options = parseArguments(listOf("-f", file.toString()))
-        
-        // scriptFilePathが設定されている
-        assertTrue(options.scriptFile != null)
-        
-        // 親ディレクトリが正しく取得できることを確認
-        val parent = file.parent
-        assertTrue(parent != null)
-        
-        // クリーンアップ
-        fileSystem.delete(file)
-        fileSystem.delete(file.parent!!)
-    }
-
-    @Test
-    fun locationFileReturnsFileName() = runTest {
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        
-        val file = baseDir.resolve("my_script.xa1")
-        
-        fileSystem.write(file) {
-            writeUtf8("LOCATION_FILE")
-        }
-        
-        val options = parseArguments(listOf("-f", file.toString()))
-        
-        // scriptFilePathが設定されている
-        assertTrue(options.scriptFile != null)
-        
-        // ファイル名が正しく取得できることを確認
-        assertEquals("my_script.xa1", file.name)
         
         // クリーンアップ
         fileSystem.delete(file)
