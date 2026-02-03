@@ -159,16 +159,16 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relativePathStr: String) {
-                            val relativePath = relativePathStr.toPath()
+                        suspend fun walkDirectory(relative: String) {
+                            val relativePath = relative.toPath()
                             val fullPath = dir.resolve(relativePath)
 
                             try {
                                 val metadata = fileSystem.metadata(fullPath)
 
                                 if (metadata.isDirectory) {
-                                    if (includeDirectories && relativePathStr.isNotEmpty()) {
-                                        emit(relativePathStr.toFluoriteString())
+                                    if (includeDirectories && relative.isNotEmpty()) {
+                                        emit(relative.toFluoriteString())
                                     }
 
                                     val children = fileSystem.list(fullPath)
@@ -176,17 +176,17 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                                         .sorted()
 
                                     for (child in children) {
-                                        val childRelativePath = if (relativePathStr.isEmpty()) {
+                                        val childRelative = if (relative.isEmpty()) {
                                             child
                                         } else {
                                             relativePath.resolve(child).toString()
                                         }
-                                        walkDirectory(childRelativePath)
+                                        walkDirectory(childRelative)
                                     }
                                 } else {
                                     // ファイル
-                                    if (relativePathStr.isNotEmpty()) {
-                                        emit(relativePathStr.toFluoriteString())
+                                    if (relative.isNotEmpty()) {
+                                        emit(relative.toFluoriteString())
                                     }
                                 }
                             } catch (_: Exception) {
