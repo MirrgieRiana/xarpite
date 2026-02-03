@@ -709,10 +709,8 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                                 throw FluoriteException("Expected array, got ${item}".toFluoriteString())
                             }
                         }
-                    } else if (table is FluoriteArray) {
-                        arrays.add(table.values.toList())
                     } else {
-                        throw FluoriteException("Expected stream of arrays or array, got ${table}".toFluoriteString())
+                        throw FluoriteException("Expected stream of arrays, got ${table}".toFluoriteString())
                     }
                     
                     if (arrays.isEmpty()) {
@@ -735,7 +733,8 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                                 if (i < array.size) {
                                     array[i]
                                 } else {
-                                    fillValue ?: FluoriteNull
+                                    // fillValue must be non-null here because we already checked above
+                                    fillValue!!
                                 }
                             }
                             emit(column.toFluoriteArray())
