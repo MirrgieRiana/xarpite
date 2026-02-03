@@ -25,6 +25,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFlow
@@ -692,34 +693,19 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     
                     val streams = arguments.toList()
                     
+                    // Convert all arguments to lists
+                    val lists = streams.map { stream ->
+                        stream.consumeToMutableList()
+                    }
+                    
+                    // Find the minimum length
+                    val minLength = lists.minOfOrNull { it.size } ?: 0
+                    
+                    // Create stream of tuples
                     FluoriteStream {
-                        // Convert all arguments to flows
-                        val flows = streams.map { stream ->
-                            if (stream is FluoriteStream) {
-                                stream.toFlow()
-                            } else {
-                                flow { emit(stream) }
-                            }
-                        }
-                        
-                        // Produce channels from all flows
-                        val channels = flows.map { f ->
-                            f.produceIn(this + EmptyCoroutineContext)
-                        }
-                        
-                        try {
-                            // Iterate until any channel is closed
-                            while (true) {
-                                val items = mutableListOf<FluoriteValue>()
-                                for (channel in channels) {
-                                    val item = channel.receiveCatching().getOrNull() ?: return@FluoriteStream
-                                    items.add(item)
-                                }
-                                emit(items.toFluoriteArray())
-                            }
-                        } finally {
-                            // Cancel all channels
-                            channels.forEach { it.cancel() }
+                        for (i in 0 until minLength) {
+                            val items = lists.map { it[i] }
+                            emit(items.toFluoriteArray())
                         }
                     }
                 }
