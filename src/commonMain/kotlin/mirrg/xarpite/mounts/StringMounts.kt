@@ -5,11 +5,13 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
+import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
+import okio.Path.Companion.toPath
 
 context(context: RuntimeContext)
 fun createStringMounts(): List<Map<String, Mount>> {
@@ -49,7 +51,6 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
-
         *run {
             fun create(signature: String): FluoriteFunction {
                 return FluoriteFunction { arguments ->
@@ -76,5 +77,23 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
-    ).let { listOf(it) }
+
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 2) usage(signature)
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val file = arguments[1].toFluoriteString(null).value
+                    dir.toPath().resolve(file).normalized().toString().toFluoriteString()
+                }
+            }
+            arrayOf(
+                "RESOLVE" define create("RESOLVE(dir: STRING; file: STRING): STRING"),
+                "::RESOLVE" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
+                ),
+            )
+        },
+
+        ).let { listOf(it) }
 }
