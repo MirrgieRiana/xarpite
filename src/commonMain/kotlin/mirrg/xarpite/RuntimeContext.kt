@@ -33,7 +33,7 @@ class RuntimeContext(
         if (position == null) return "UNKNOWN"
         val pwdPath = io.getPwd().toPath()
         val locationPath = position.location.toPath()
-        val location = if (locationPath in pwdPath) {
+        val location = if (pwdPath.isAncestorOf(locationPath)) {
             locationPath.relativeTo(pwdPath).toString()
         } else {
             position.location
