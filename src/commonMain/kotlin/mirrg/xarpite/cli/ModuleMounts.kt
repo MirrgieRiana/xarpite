@@ -8,7 +8,6 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
-import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -27,13 +26,13 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     return mapOf(
         "LOCATION" define LazyMount { location.toFluoriteString() },
         "USE" define run {
-            val moduleCache = mutableMapOf<Path, FluoriteValue>()
+            val moduleCache = mutableMapOf<String, FluoriteValue>()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
                 val baseDir = location.toPath().parent!!.toString()
                 val moduleLocation = resolveModuleFile(context.inc, baseDir, reference)
-                moduleCache.getOrPut(moduleLocation.toPath()) {
+                moduleCache.getOrPut(moduleLocation) {
                     val src = context.getModuleSrc(moduleLocation)
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(moduleLocation))
