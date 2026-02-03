@@ -41,8 +41,10 @@ $ xarpite -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -84,8 +86,10 @@ $ xa -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -245,6 +249,15 @@ $ {
   xa -f script.xa1
   rm script.xa1
 }
+# 123
+```
+
+---
+
+When `scriptfile` is specified as `-`, it loads the script from standard input.
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
 # 123
 ```
 
