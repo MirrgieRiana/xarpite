@@ -149,7 +149,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        val location = options.scriptFile?.let { ioContext.getPwd().toPath().resolve(it).normalized().toString() } ?: "-"
+        val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         evaluator.defineMounts(mountsFactory(location))
         try {
             withStackTrace(Position(location, 0)) {
