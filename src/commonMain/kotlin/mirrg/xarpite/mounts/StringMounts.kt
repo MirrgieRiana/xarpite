@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
+import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
@@ -77,20 +78,24 @@ fun createStringMounts(): List<Map<String, Mount>> {
         },
 
         *run {
-            FluoriteFunction { arguments ->
-                if (arguments.size != 2) usage("RESOLVE(dir: STRING; file: STRING): STRING")
-                val dir = arguments[0].toFluoriteString(null).value
-                val file = arguments[1].toFluoriteString(null).value
-                val resolved = dir.toPath().resolve(file).normalized()
-                resolved.toString().toFluoriteString()
-            }.let {
-                arrayOf(
-                    "RESOLVE" define it,
-                    "::RESOLVE" define fluoriteArrayOf(
-                        FluoriteString.fluoriteClass colon it,
-                    ),
-                )
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size == 2) {
+                        val dir = arguments[0].toFluoriteString(null).value
+                        val file = arguments[1].toFluoriteString(null).value
+                        val resolved = dir.toPath().resolve(file).normalized()
+                        resolved.toString().toFluoriteString()
+                    } else {
+                        usage(signature)
+                    }
+                }
             }
+            arrayOf(
+                "RESOLVE" define create("RESOLVE(dir: STRING; file: STRING): STRING"),
+                "::RESOLVE" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
+                ),
+            )
         },
     ).let { listOf(it) }
 }
