@@ -316,3 +316,12 @@ fun Iterable<FluoriteValue>.partitionIfEntry(): Pair<MutableMap<String, Fluorite
 }
 
 inline fun Path.map(mapper: (String) -> String) = mapper(this.toString()).toPath()
+
+operator fun Path.contains(other: Path): Boolean {
+    if (this == other) return false
+    var path = other
+    while (true) {
+        path = path.parent ?: return false
+        if (this == path) return true
+    }
+}
