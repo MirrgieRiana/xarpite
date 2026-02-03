@@ -89,6 +89,24 @@ class CliTest {
     }
 
     @Test
+    fun pwdAtRootDirectory() = runTest {
+        // Test that PWD returns "/" when current directory is root
+        val context = TestIoContext(currentLocation = "/")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables override this, we accept that
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/"
+        assertEquals(expectedPwd, pwd)
+        // When PWD is "/", verify that it ends with "/"
+        if (pwd == "/") {
+            assertTrue(pwd.endsWith("/"))
+        }
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名

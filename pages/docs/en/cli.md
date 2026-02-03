@@ -340,6 +340,22 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+---
+
+**Warning: Trailing Slash at Root Directory**
+
+When the current directory is the root directory `/`, the value of `PWD` is `/`.
+
+Therefore, constructing a file path like `"$PWD/a.txt"` will produce an abnormal file path string `//a.txt`.
+
+Most file system APIs interpret `//` as `/`, so this usually doesn't cause problems, but it may cause unexpected behavior in some environments.
+
+To avoid this issue, use one of the following methods:
+
+- Use a relative path: `"./a.txt"`
+- Use relative path specification with the `USE` function: `USE("./module.xa1")`
+- Use a library or function for path joining (if available)
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
