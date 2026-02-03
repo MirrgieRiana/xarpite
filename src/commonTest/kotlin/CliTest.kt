@@ -703,7 +703,7 @@ class CliTest {
         }
 
         // -f オプションでファイルを指定して引数を解析
-        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"), null)
+        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("1 + 2", options.src)
@@ -729,7 +729,7 @@ class CliTest {
         }
 
         // -q と -f オプションを組み合わせる
-        val options = parseArguments(listOf("-q", "-f", file.toString()), null)
+        val options = parseArguments(listOf("-q", "-f", file.toString()), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("OUT << 'Hello'", options.src)
@@ -753,7 +753,7 @@ class CliTest {
         }
 
         // -f と -- を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--"), null)
+        val options = parseArguments(listOf("-f", file.toString(), "--"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -777,7 +777,7 @@ class CliTest {
         }
 
         // -f と -- と引数を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"), null)
+        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -802,7 +802,7 @@ class CliTest {
 
         // -f を重複して指定するとエラー
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()), null)
+            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()), TestIoContext())
         }
 
         // クリーンアップ
@@ -817,14 +817,14 @@ class CliTest {
 
         // 存在しないファイルを指定するとエラー
         assertFailsWith<Exception> {
-            parseArguments(listOf("-f", file.toString()), null)
+            parseArguments(listOf("-f", file.toString()), TestIoContext())
         }
     }
 
     @Test
     fun eOptionEvaluatesCode() = runTest {
         // -e オプションを指定すると、直接コードを評価する
-        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"), null)
+        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"), TestIoContext())
 
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
@@ -844,11 +844,11 @@ class CliTest {
 
         // -e と -f は排他的
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-e", "1", "-f", file.toString()), null)
+            parseArguments(listOf("-e", "1", "-f", file.toString()), TestIoContext())
         }
 
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file.toString(), "-e", "1"), null)
+            parseArguments(listOf("-f", file.toString(), "-e", "1"), TestIoContext())
         }
 
         fileSystem.delete(file)
@@ -919,7 +919,7 @@ class CliTest {
     fun versionOptionThrowsShowVersion() = runTest {
         // -v オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("-v"), null)
+            parseArguments(listOf("-v"), TestIoContext())
         }
     }
 
@@ -927,7 +927,7 @@ class CliTest {
     fun versionLongOptionThrowsShowVersion() = runTest {
         // --version オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("--version"), null)
+            parseArguments(listOf("--version"), TestIoContext())
         }
     }
 

@@ -23,7 +23,7 @@ class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
 
-suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext?): Options {
+suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Options {
     val list = args.toMutableList()
     val arguments = mutableListOf<String>()
     var quiet = false
@@ -106,7 +106,6 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext?): Optio
     if (scriptFile != null) {
         if (scriptFile == "-") {
             // -f - の場合は標準入力から読み込む
-            if (ioContext == null) throw IllegalStateException("ioContext is required for reading from stdin")
             script = loadScriptFromStdin(ioContext)
         } else {
             val fileSystem = getFileSystem().getOrThrow()
@@ -119,7 +118,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext?): Optio
     return Options(script ?: throw ShowUsage, arguments, quiet)
 }
 
-suspend fun loadScriptFromStdin(ioContext: IoContext): String {
+private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
     val lines = mutableListOf<String>()
     while (true) {
         val line = ioContext.readLineFromStdin() ?: break

@@ -33,7 +33,7 @@ The runtime has different implementations on multiple platforms, which are calle
 The `xarpite` command is the most basic command for executing Xarpite.
 
 ```shell
-$ xarpite -h
+$ xarpite -h | tail -n +2
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -78,7 +78,7 @@ $ {
 The `xa` command is a shortcut for the `xarpite` command.
 
 ```shell
-$ xa -h
+$ xa -h | tail -n +2
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
