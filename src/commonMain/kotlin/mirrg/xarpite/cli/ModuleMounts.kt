@@ -30,8 +30,8 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val baseDir = location.toPath().parent!!.toString()
-                val moduleLocation = resolveModuleFile(context.inc, baseDir, reference)
+                val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot resolve module location '$reference' from '$location'".toFluoriteString())
+                val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
                 moduleCache.getOrPut(moduleLocation) {
                     val src = context.getModuleSrc(moduleLocation)
                     val evaluator = Evaluator()
@@ -45,7 +45,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private suspend fun resolveModuleFile(inc: FluoriteArray, baseDir: String, reference: String): String {
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
     fun Path.tryToLoad(): Boolean {
