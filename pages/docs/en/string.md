@@ -505,32 +505,31 @@ $ xa '"Ab"::LC()'
 
 `RESOLVE(dir: STRING; file: STRING): STRING`
 
-Stringifies the two arguments, joins the paths, and normalizes them.
+`STRING::RESOLVE(file: STRING): STRING`
 
-The first argument is the directory path, and the second argument is a file path or a relative path.
-
-This function normalizes redundant paths (paths containing `.` or `..`).
-However, it does not resolve symbolic links.
-
-It correctly joins paths regardless of whether the directory path ends with a slash `/`.
-This is especially important when PWD is the root directory `/`.
+Resolves the path to `file` starting from `dir`.
 
 ```shell
-$ xa 'RESOLVE("/home/user"; "file.txt")'
-# /home/user/file.txt
-
-$ xa 'RESOLVE("/"; "file.txt")'
-# /file.txt
-
-$ xa 'RESOLVE("/home/user"; "../other/file.txt")'
-# /home/other/file.txt
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
 ```
 
 ---
 
-There is also an extension function version that can be called with `string::RESOLVE(file)`.
+The output path is automatically normalized (flattening `.` and `..`).
+
+Symbolic links are not resolved.
 
 ```shell
-$ xa '"/home/user"::RESOLVE("file.txt")'
-# /home/user/file.txt
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
 ```
+
+---
+
+Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
+
+Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.

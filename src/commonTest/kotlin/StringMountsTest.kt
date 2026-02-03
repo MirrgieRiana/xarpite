@@ -81,13 +81,13 @@ class StringMountsTest {
     @Test
     fun resolve() = runTest {
         // 基本的なパス結合
-        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user'; 'file.txt')").string)
+        assertEquals("/home/apple/Apple.txt", eval("RESOLVE('/home/apple'; 'Apple.txt')").string)
         
         // ルートディレクトリとの結合
-        assertEquals("/file.txt", eval("RESOLVE('/'; 'file.txt')").string)
+        assertEquals("/Banana.txt", eval("RESOLVE('/'; 'Banana.txt')").string)
         
-        // 相対パスの解決
-        assertEquals("/home/other/file.txt", eval("RESOLVE('/home/user'; '../other/file.txt')").string)
+        // 拡張関数版と相対パスの解決
+        assertEquals("/home/cherry/Cherry.txt", eval("'/home/apple/'::RESOLVE('../cherry/./Cherry.txt')").string)
         
         // . を含むパスの正規化
         assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user'; './file.txt')").string)
