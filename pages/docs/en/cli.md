@@ -350,11 +350,11 @@ This path is normalized (it does not contain `.` or `..` segments) and is an abs
 
 ---
 
-If the code is not loaded from a file (such as direct evaluation with the `-e` option), `-` (a dummy filename) is returned.
+If the code is not loaded from a file (such as direct evaluation with the `-e` option), the absolute path of the current directory combined with `-` (a dummy filename) is returned.
 
 ```shell
 $ xa -e 'LOCATION'
-# -
+# /home/runner/work/xarpite/xarpite/build/docShellTests/-
 ```
 
 ---

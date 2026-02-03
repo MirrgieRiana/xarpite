@@ -30,7 +30,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val baseDir = if (location == "-") context.io.getPwd() else location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
+                val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
                 val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
                 moduleCache.getOrPut(moduleLocation) {
                     val src = context.getModuleSrc(moduleLocation)
