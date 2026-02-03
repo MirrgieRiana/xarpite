@@ -857,7 +857,7 @@ class CliTest {
     @Test
     fun fileOptionWithStdinReadsFromStdin() = runTest {
         // -f - オプションで標準入力から読み込む
-        val context = TestIoContext(stdinLines = listOf("1 + 2"))
+        val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
 
         // スクリプトが標準入力から読み込まれている
@@ -871,7 +871,7 @@ class CliTest {
     @Test
     fun fileOptionWithStdinAndArguments() = runTest {
         // -f - オプションで標準入力から読み込む場合も引数を受け取れる
-        val context = TestIoContext(stdinLines = listOf("ARGS"))
+        val context = TestIoContext(stdinBytes = "ARGS".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-", "arg1", "arg2"), context)
 
         // スクリプトが標準入力から読み込まれている
@@ -883,7 +883,7 @@ class CliTest {
     @Test
     fun fileOptionWithStdinAndQuiet() = runTest {
         // -f - と -q を組み合わせる
-        val context = TestIoContext(stdinLines = listOf("OUT << 'Hello'"))
+        val context = TestIoContext(stdinBytes = "OUT << 'Hello'".encodeToByteArray())
         val options = parseArguments(listOf("-q", "-f", "-"), context)
 
         // スクリプトが標準入力から読み込まれている
@@ -895,7 +895,7 @@ class CliTest {
     @Test
     fun stdinScriptEvaluation() = runTest {
         // -f - オプションで標準入力からスクリプトを読み込んで実行
-        val context = TestIoContext(stdinLines = listOf("1 + 2"))
+        val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
         
         val result = cliEval(context, options.src, *options.arguments.toTypedArray())
@@ -905,7 +905,7 @@ class CliTest {
     @Test
     fun stdinScriptMultiLine() = runTest {
         // 複数行のスクリプトを標準入力から読み込む
-        val context = TestIoContext(stdinLines = listOf("a := 10", "b := 20", "a + b"))
+        val context = TestIoContext(stdinBytes = "a := 10\nb := 20\na + b".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
         
         val result = cliEval(context, options.src, *options.arguments.toTypedArray())
