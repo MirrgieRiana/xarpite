@@ -24,55 +24,57 @@ fun createStringMounts(): List<Map<String, Mount>> {
         "BOM" define "\uFEFF".toFluoriteString(),
 
         *run {
-            FluoriteFunction { arguments ->
-                if (arguments.size == 1) {
-                    val argument = arguments[0]
-                    if (argument is FluoriteStream) {
-                        FluoriteStream {
-                            argument.collect { item ->
-                                emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
+            fun create(signature: String): FluoriteFunction {
+                FluoriteFunction { arguments ->
+                    if (arguments.size == 1) {
+                        val argument = arguments[0]
+                        if (argument is FluoriteStream) {
+                            FluoriteStream {
+                                argument.collect { item ->
+                                    emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
+                                }
                             }
+                        } else {
+                            argument.toFluoriteString(null).value.uppercase().toFluoriteString()
                         }
                     } else {
-                        argument.toFluoriteString(null).value.uppercase().toFluoriteString()
+                        usage(signature)
                     }
-                } else {
-                    usage("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>")
                 }
-            }.let {
-                arrayOf(
-                    "UC" define it,
-                    "::UC" define fluoriteArrayOf(
-                        FluoriteString.fluoriteClass colon it,
-                    ),
-                )
             }
+            arrayOf(
+                "UC" define create("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>"),
+                "::UC" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::UC(): STRING"),
+                ),
+            )
         },
 
         *run {
-            FluoriteFunction { arguments ->
-                if (arguments.size == 1) {
-                    val argument = arguments[0]
-                    if (argument is FluoriteStream) {
-                        FluoriteStream {
-                            argument.collect { item ->
-                                emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
+            fun create(signature: String): FluoriteFunction {
+                FluoriteFunction { arguments ->
+                    if (arguments.size == 1) {
+                        val argument = arguments[0]
+                        if (argument is FluoriteStream) {
+                            FluoriteStream {
+                                argument.collect { item ->
+                                    emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
+                                }
                             }
+                        } else {
+                            argument.toFluoriteString(null).value.lowercase().toFluoriteString()
                         }
                     } else {
-                        argument.toFluoriteString(null).value.lowercase().toFluoriteString()
+                        usage(signature)
                     }
-                } else {
-                    usage("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>")
                 }
-            }.let {
-                arrayOf(
-                    "LC" define it,
-                    "::LC" define fluoriteArrayOf(
-                        FluoriteString.fluoriteClass colon it,
-                    ),
-                )
             }
+            arrayOf(
+                "LC" define create("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>"),
+                "::LC" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::LC(): STRING"),
+                ),
+            )
         },
     ).let { listOf(it) }
 }
