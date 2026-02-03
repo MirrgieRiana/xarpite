@@ -50,7 +50,6 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 )
             }
         },
-
         *run {
             FluoriteFunction { arguments ->
                 if (arguments.size == 1) {
@@ -80,14 +79,10 @@ fun createStringMounts(): List<Map<String, Mount>> {
         *run {
             fun create(signature: String): FluoriteValue {
                 return FluoriteFunction { arguments ->
-                    if (arguments.size == 2) {
-                        val dir = arguments[0].toFluoriteString(null).value
-                        val file = arguments[1].toFluoriteString(null).value
-                        val resolved = dir.toPath().resolve(file).normalized()
-                        resolved.toString().toFluoriteString()
-                    } else {
-                        usage(signature)
-                    }
+                    if (arguments.size != 2) usage(signature)
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val file = arguments[1].toFluoriteString(null).value
+                    dir.toPath().resolve(file).normalized().toString().toFluoriteString()
                 }
             }
             arrayOf(
@@ -97,5 +92,6 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
-    ).let { listOf(it) }
+
+        ).let { listOf(it) }
 }
