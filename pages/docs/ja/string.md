@@ -500,3 +500,37 @@ $ xa '"Ab", "Cd" >> LC'
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` パス解決
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+2つの引数を文字列化したうえで、パスを結合して正規化します。
+
+第1引数はディレクトリパス、第2引数はファイルパスまたは相対パスです。
+
+この関数は、冗長なパス（`.` や `..` を含むパス）を正規化します。
+ただし、シンボリックリンクは解決しません。
+
+ディレクトリパスの末尾がスラッシュ `/` で終わるかどうかに関わらず、正しくパスを結合します。
+これは、PWDがルートディレクトリ `/` の場合に特に重要です。
+
+```shell
+$ xa 'RESOLVE("/home/user"; "file.txt")'
+# /home/user/file.txt
+
+$ xa 'RESOLVE("/"; "file.txt")'
+# /file.txt
+
+$ xa 'RESOLVE("/home/user"; "../other/file.txt")'
+# /home/other/file.txt
+```
+
+---
+
+`dir::RESOLVE(file)` で呼び出すことができる拡張関数版もあります。
+
+```shell
+$ xa '"/home/user"::RESOLVE("file.txt")'
+# /home/user/file.txt
+```

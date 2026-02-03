@@ -77,4 +77,31 @@ class StringMountsTest {
         // 空行を含む場合
         assertEquals("a,,b", eval("LINES(\"a\\n\\nb\")").stream())
     }
+
+    @Test
+    fun resolve() = runTest {
+        // 基本的なパス結合
+        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user'; 'file.txt')").string)
+        
+        // ルートディレクトリとの結合
+        assertEquals("/file.txt", eval("RESOLVE('/'; 'file.txt')").string)
+        
+        // 相対パスの解決
+        assertEquals("/home/other/file.txt", eval("RESOLVE('/home/user'; '../other/file.txt')").string)
+        
+        // . を含むパスの正規化
+        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user'; './file.txt')").string)
+        
+        // 複数の .. を含むパス
+        assertEquals("/file.txt", eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string)
+        
+        // 拡張関数版
+        assertEquals("/home/user/file.txt", eval("'/home/user'::RESOLVE('file.txt')").string)
+        
+        // 末尾にスラッシュがあるディレクトリパス
+        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user/'; 'file.txt')").string)
+        
+        // 2段階の .. を含むパス
+        assertEquals("/home/file.txt", eval("RESOLVE('/home/user/dir'; '../../file.txt')").string)
+    }
 }

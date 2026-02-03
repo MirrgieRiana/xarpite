@@ -500,3 +500,37 @@ There is also an extension function version that can be called with `string::LC(
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` Path Resolution
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+Stringifies the two arguments, joins the paths, and normalizes them.
+
+The first argument is the directory path, and the second argument is a file path or a relative path.
+
+This function normalizes redundant paths (paths containing `.` or `..`).
+However, it does not resolve symbolic links.
+
+It correctly joins paths regardless of whether the directory path ends with a slash `/`.
+This is especially important when PWD is the root directory `/`.
+
+```shell
+$ xa 'RESOLVE("/home/user"; "file.txt")'
+# /home/user/file.txt
+
+$ xa 'RESOLVE("/"; "file.txt")'
+# /file.txt
+
+$ xa 'RESOLVE("/home/user"; "../other/file.txt")'
+# /home/other/file.txt
+```
+
+---
+
+There is also an extension function version that can be called with `dir::RESOLVE(file)`.
+
+```shell
+$ xa '"/home/user"::RESOLVE("file.txt")'
+# /home/user/file.txt
+```
