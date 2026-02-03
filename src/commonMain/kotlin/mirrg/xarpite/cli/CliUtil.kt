@@ -18,12 +18,12 @@ import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
 import okio.Path.Companion.toPath
 
-data class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val isStdinScript: Boolean = false)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
 
-fun parseArguments(args: Iterable<String>): Options {
+suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext?): Options {
     val list = args.toMutableList()
     val arguments = mutableListOf<String>()
     var quiet = false
@@ -103,12 +103,11 @@ fun parseArguments(args: Iterable<String>): Options {
     }
 
     // -f オプションが指定された場合、ファイルからスクリプトを読み込む
-    var isStdinScript = false
     if (scriptFile != null) {
         if (scriptFile == "-") {
-            // -f - の場合は標準入力から読み込むためのマーカーを設定
-            isStdinScript = true
-            script = "" // 空文字列をプレースホルダーとして設定
+            // -f - の場合は標準入力から読み込む
+            if (ioContext == null) throw IllegalStateException("ioContext is required for reading from stdin")
+            script = loadScriptFromStdin(ioContext)
         } else {
             val fileSystem = getFileSystem().getOrThrow()
             script = fileSystem.read(scriptFile.toPath()) {
@@ -117,7 +116,7 @@ fun parseArguments(args: Iterable<String>): Options {
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, isStdinScript)
+    return Options(script ?: throw ShowUsage, arguments, quiet)
 }
 
 suspend fun loadScriptFromStdin(ioContext: IoContext): String {

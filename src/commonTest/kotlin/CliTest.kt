@@ -13,7 +13,6 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
-import mirrg.xarpite.cli.loadScriptFromStdin
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -704,7 +703,7 @@ class CliTest {
         }
 
         // -f オプションでファイルを指定して引数を解析
-        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"))
+        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"), null)
 
         // ソースコードがファイルから読み込まれている
         assertEquals("1 + 2", options.src)
@@ -730,7 +729,7 @@ class CliTest {
         }
 
         // -q と -f オプションを組み合わせる
-        val options = parseArguments(listOf("-q", "-f", file.toString()))
+        val options = parseArguments(listOf("-q", "-f", file.toString()), null)
 
         // ソースコードがファイルから読み込まれている
         assertEquals("OUT << 'Hello'", options.src)
@@ -754,7 +753,7 @@ class CliTest {
         }
 
         // -f と -- を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--"))
+        val options = parseArguments(listOf("-f", file.toString(), "--"), null)
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -778,7 +777,7 @@ class CliTest {
         }
 
         // -f と -- と引数を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"))
+        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"), null)
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -803,7 +802,7 @@ class CliTest {
 
         // -f を重複して指定するとエラー
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()))
+            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()), null)
         }
 
         // クリーンアップ
@@ -818,14 +817,14 @@ class CliTest {
 
         // 存在しないファイルを指定するとエラー
         assertFailsWith<Exception> {
-            parseArguments(listOf("-f", file.toString()))
+            parseArguments(listOf("-f", file.toString()), null)
         }
     }
 
     @Test
     fun eOptionEvaluatesCode() = runTest {
         // -e オプションを指定すると、直接コードを評価する
-        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"))
+        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"), null)
 
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
@@ -845,11 +844,11 @@ class CliTest {
 
         // -e と -f は排他的
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-e", "1", "-f", file.toString()))
+            parseArguments(listOf("-e", "1", "-f", file.toString()), null)
         }
 
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file.toString(), "-e", "1"))
+            parseArguments(listOf("-f", file.toString(), "-e", "1"), null)
         }
 
         fileSystem.delete(file)
@@ -857,11 +856,12 @@ class CliTest {
 
     @Test
     fun fileOptionWithStdinReadsFromStdin() = runTest {
-        // -f - オプションで標準入力から読み込むフラグが設定される
-        val options = parseArguments(listOf("-f", "-"))
+        // -f - オプションで標準入力から読み込む
+        val context = TestIoContext(stdinLines = listOf("1 + 2"))
+        val options = parseArguments(listOf("-f", "-"), context)
 
-        // isStdinScript が true である
-        assertEquals(true, options.isStdinScript)
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("1 + 2", options.src)
         // 引数は空
         assertEquals(emptyList(), options.arguments)
         // quiet フラグが false である
@@ -871,10 +871,11 @@ class CliTest {
     @Test
     fun fileOptionWithStdinAndArguments() = runTest {
         // -f - オプションで標準入力から読み込む場合も引数を受け取れる
-        val options = parseArguments(listOf("-f", "-", "arg1", "arg2"))
+        val context = TestIoContext(stdinLines = listOf("ARGS"))
+        val options = parseArguments(listOf("-f", "-", "arg1", "arg2"), context)
 
-        // isStdinScript が true である
-        assertEquals(true, options.isStdinScript)
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("ARGS", options.src)
         // 引数が正しく設定されている
         assertEquals(listOf("arg1", "arg2"), options.arguments)
     }
@@ -882,10 +883,11 @@ class CliTest {
     @Test
     fun fileOptionWithStdinAndQuiet() = runTest {
         // -f - と -q を組み合わせる
-        val options = parseArguments(listOf("-q", "-f", "-"))
+        val context = TestIoContext(stdinLines = listOf("OUT << 'Hello'"))
+        val options = parseArguments(listOf("-q", "-f", "-"), context)
 
-        // isStdinScript が true である
-        assertEquals(true, options.isStdinScript)
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("OUT << 'Hello'", options.src)
         // quiet フラグが true である
         assertEquals(true, options.quiet)
     }
@@ -894,13 +896,9 @@ class CliTest {
     fun stdinScriptEvaluation() = runTest {
         // -f - オプションで標準入力からスクリプトを読み込んで実行
         val context = TestIoContext(stdinLines = listOf("1 + 2"))
-        val options = parseArguments(listOf("-f", "-"))
+        val options = parseArguments(listOf("-f", "-"), context)
         
-        // 標準入力から読み込む
-        val src = loadScriptFromStdin(context)
-        val finalOptions = options.copy(src = src, isStdinScript = false)
-        
-        val result = cliEval(context, finalOptions.src, *finalOptions.arguments.toTypedArray())
+        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
         assertEquals("3", result.toFluoriteString(null).value)
     }
 
@@ -908,13 +906,9 @@ class CliTest {
     fun stdinScriptMultiLine() = runTest {
         // 複数行のスクリプトを標準入力から読み込む
         val context = TestIoContext(stdinLines = listOf("a := 10", "b := 20", "a + b"))
-        val options = parseArguments(listOf("-f", "-"))
+        val options = parseArguments(listOf("-f", "-"), context)
         
-        // 標準入力から読み込む
-        val src = loadScriptFromStdin(context)
-        val finalOptions = options.copy(src = src, isStdinScript = false)
-        
-        val result = cliEval(context, finalOptions.src, *finalOptions.arguments.toTypedArray())
+        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
         assertEquals("30", result.toFluoriteString(null).value)
     }
 
@@ -925,7 +919,7 @@ class CliTest {
     fun versionOptionThrowsShowVersion() = runTest {
         // -v オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("-v"))
+            parseArguments(listOf("-v"), null)
         }
     }
 
@@ -933,7 +927,7 @@ class CliTest {
     fun versionLongOptionThrowsShowVersion() = runTest {
         // --version オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("--version"))
+            parseArguments(listOf("--version"), null)
         }
     }
 
