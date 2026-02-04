@@ -3,6 +3,7 @@ package mirrg.xarpite.cli
 import mirrg.kotlin.helium.join
 import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
@@ -23,21 +24,19 @@ private const val MODULE_EXTENSION = ".xa1"
 context(context: RuntimeContext)
 fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
+        "LOCATION" define LazyMount { location.toFluoriteString() },
         "USE" define run {
-            val moduleCache = mutableMapOf<Path, FluoriteValue>()
-            val baseDir by lazy {
-                val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                context.io.getPwd().toPath().resolve(parentPath).normalized()
-            }
+            val moduleCache = mutableMapOf<String, FluoriteValue>()
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(context.inc, baseDir, reference)
-                moduleCache.getOrPut(modulePath) {
-                    val src = context.getModuleSrc(modulePath.toString())
+                val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
+                val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
+                moduleCache.getOrPut(moduleLocation) {
+                    val src = context.getModuleSrc(moduleLocation)
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(modulePath.toString()))
-                    evaluator.get(modulePath.toString(), src).cache()
+                    evaluator.defineMounts(mountsFactory(moduleLocation))
+                    evaluator.get(moduleLocation, src).cache()
                 }
             }
         },
@@ -46,7 +45,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, reference: String): Path {
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
     fun Path.tryToLoad(): Boolean {
@@ -68,9 +67,9 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
 
     // ファイルパス
     if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val path = baseDir.resolve(reference.toPath()).normalized()
-        path.let { if (it.tryToLoad()) return it }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it }
+        val path = baseDir.toPath().resolve(reference.toPath()).normalized()
+        path.let { if (it.tryToLoad()) return it.toString() }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -85,7 +84,7 @@ private suspend fun resolveModulePath(inc: FluoriteArray, baseDir: Path, referen
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
-            path.let { if (it.tryToLoad()) return it }
+            path.let { if (it.tryToLoad()) return it.toString() }
         }
         fail("Maven artifact not found: $reference")
     }

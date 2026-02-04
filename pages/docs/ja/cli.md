@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -88,6 +89,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -262,6 +264,15 @@ $ {
 
 ---
 
+`scriptfile` に `-` を指定すると、標準入力からスクリプトを読み込みます。
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
+# 123
+```
+
+---
+
 `-f` オプションが指定された場合、第1引数はスクリプトに渡す引数の一部として解釈されます。
 
 ```shell
@@ -367,6 +378,23 @@ Windows上でJVM版ランタイムを起動した場合は3に該当しますが
 - 相対パスを使用する: `"./a.txt"`
 - `USE` 関数で相対パス指定を使用する: `USE("./module.xa1")`
 - パス結合を行うライブラリや関数を使用する（利用可能な場合）
+
+### `LOCATION`: 実行中のスクリプトのパスを取得
+
+`LOCATION: STRING`
+
+現在実行中のXarpiteスクリプトのパスです。
+
+`LOCATION` は正規化（ `.` や `..` である階層の除去）済みの絶対パスであり、ファイルパスもしくはURLを表します。
+
+---
+
+ファイル名に相当する末尾の部分が `-` である場合、 `-e` コマンドラインオプションなどの手段によって動的に与えられたスクリプトであることを示します。
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
 
 ### `ENV`: 環境変数を取得
 

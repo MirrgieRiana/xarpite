@@ -78,15 +78,6 @@ suspend fun main() {
         }
     }
 
-    val options = try {
-        parseArguments(process.argv.drop(2))
-    } catch (_: ShowUsage) {
-        showUsage()
-        return
-    } catch (_: ShowVersion) {
-        showVersion()
-        return
-    }
     coroutineScope {
         val ioContext = object : IoContext {
             override fun getPlatformPwd(): String = process.cwd()
@@ -97,6 +88,15 @@ suspend fun main() {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+        }
+        val options = try {
+            parseArguments(process.argv.drop(2), ioContext)
+        } catch (_: ShowUsage) {
+            showUsage()
+            return@coroutineScope
+        } catch (_: ShowVersion) {
+            showVersion()
+            return@coroutineScope
         }
         cliEval(ioContext, options) {
             createJsMounts()

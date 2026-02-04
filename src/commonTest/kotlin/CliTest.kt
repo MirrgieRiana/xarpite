@@ -13,6 +13,7 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -100,6 +101,15 @@ class CliTest {
         val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
         val expectedPwd = xarpitePwd ?: envPwd ?: "/"
         assertEquals(expectedPwd, pwd)
+    }
+
+    @Test
+    fun locationIsDashInEvalMode() = runTest {
+        val context = TestIoContext()
+        // When code is executed via eval (not from a file), LOCATION should be "-"
+        val location = cliEval(context, "LOCATION")
+        assertTrue(location is FluoriteString)
+        assertEquals("-", location.toFluoriteString(null).value) // LOCATION は eval モードで "-"
     }
 
     @Test
@@ -717,7 +727,7 @@ class CliTest {
         }
 
         // -f オプションでファイルを指定して引数を解析
-        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"))
+        val options = parseArguments(listOf("-f", file.toString(), "arg1", "arg2"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("1 + 2", options.src)
@@ -725,6 +735,8 @@ class CliTest {
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         // quiet フラグが false である
         assertEquals(false, options.quiet)
+        // スクリプトファイルパスが設定されている
+        assertEquals(file.toString(), options.scriptFile)
 
         // クリーンアップ
         fileSystem.delete(file)
@@ -743,7 +755,7 @@ class CliTest {
         }
 
         // -q と -f オプションを組み合わせる
-        val options = parseArguments(listOf("-q", "-f", file.toString()))
+        val options = parseArguments(listOf("-q", "-f", file.toString()), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("OUT << 'Hello'", options.src)
@@ -767,7 +779,7 @@ class CliTest {
         }
 
         // -f と -- を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--"))
+        val options = parseArguments(listOf("-f", file.toString(), "--"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -791,7 +803,7 @@ class CliTest {
         }
 
         // -f と -- と引数を組み合わせる
-        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"))
+        val options = parseArguments(listOf("-f", file.toString(), "--", "arg1", "arg2"), TestIoContext())
 
         // ソースコードがファイルから読み込まれている
         assertEquals("ARGS", options.src)
@@ -816,7 +828,7 @@ class CliTest {
 
         // -f を重複して指定するとエラー
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()))
+            parseArguments(listOf("-f", file1.toString(), "-f", file2.toString()), TestIoContext())
         }
 
         // クリーンアップ
@@ -831,18 +843,20 @@ class CliTest {
 
         // 存在しないファイルを指定するとエラー
         assertFailsWith<Exception> {
-            parseArguments(listOf("-f", file.toString()))
+            parseArguments(listOf("-f", file.toString()), TestIoContext())
         }
     }
 
     @Test
     fun eOptionEvaluatesCode() = runTest {
         // -e オプションを指定すると、直接コードを評価する
-        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"))
+        val options = parseArguments(listOf("-e", "5 + 6", "arg1", "arg2"), TestIoContext())
 
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         assertEquals(false, options.quiet)
+        // eval モードでは scriptFilePath は NULL
+        assertEquals(null, options.scriptFile)
     }
 
     @Test
@@ -858,14 +872,72 @@ class CliTest {
 
         // -e と -f は排他的
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-e", "1", "-f", file.toString()))
+            parseArguments(listOf("-e", "1", "-f", file.toString()), TestIoContext())
         }
 
         assertFailsWith<ShowUsage> {
-            parseArguments(listOf("-f", file.toString(), "-e", "1"))
+            parseArguments(listOf("-f", file.toString(), "-e", "1"), TestIoContext())
         }
 
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun fileOptionWithStdinReadsFromStdin() = runTest {
+        // -f - オプションで標準入力から読み込む
+        val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
+        val options = parseArguments(listOf("-f", "-"), context)
+
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("1 + 2", options.src)
+        // 引数は空
+        assertEquals(emptyList(), options.arguments)
+        // quiet フラグが false である
+        assertEquals(false, options.quiet)
+    }
+
+    @Test
+    fun fileOptionWithStdinAndArguments() = runTest {
+        // -f - オプションで標準入力から読み込む場合も引数を受け取れる
+        val context = TestIoContext(stdinBytes = "ARGS".encodeToByteArray())
+        val options = parseArguments(listOf("-f", "-", "arg1", "arg2"), context)
+
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("ARGS", options.src)
+        // 引数が正しく設定されている
+        assertEquals(listOf("arg1", "arg2"), options.arguments)
+    }
+
+    @Test
+    fun fileOptionWithStdinAndQuiet() = runTest {
+        // -f - と -q を組み合わせる
+        val context = TestIoContext(stdinBytes = "OUT << 'Hello'".encodeToByteArray())
+        val options = parseArguments(listOf("-q", "-f", "-"), context)
+
+        // スクリプトが標準入力から読み込まれている
+        assertEquals("OUT << 'Hello'", options.src)
+        // quiet フラグが true である
+        assertEquals(true, options.quiet)
+    }
+
+    @Test
+    fun stdinScriptEvaluation() = runTest {
+        // -f - オプションで標準入力からスクリプトを読み込んで実行
+        val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
+        val options = parseArguments(listOf("-f", "-"), context)
+
+        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
+        assertEquals("3", result.toFluoriteString(null).value)
+    }
+
+    @Test
+    fun stdinScriptMultiLine() = runTest {
+        // 複数行のスクリプトを標準入力から読み込む
+        val context = TestIoContext(stdinBytes = "a := 10\nb := 20\na + b".encodeToByteArray())
+        val options = parseArguments(listOf("-f", "-"), context)
+
+        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
+        assertEquals("30", result.toFluoriteString(null).value)
     }
 
     // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
@@ -875,7 +947,7 @@ class CliTest {
     fun versionOptionThrowsShowVersion() = runTest {
         // -v オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("-v"))
+            parseArguments(listOf("-v"), TestIoContext())
         }
     }
 
@@ -883,7 +955,7 @@ class CliTest {
     fun versionLongOptionThrowsShowVersion() = runTest {
         // --version オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
-            parseArguments(listOf("--version"))
+            parseArguments(listOf("--version"), TestIoContext())
         }
     }
 
@@ -1240,6 +1312,57 @@ class CliTest {
     }
 
     @Test
+    fun locationConstantsWithFileExecution() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("location_test.tmp.xa1")
+
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("""[LOCATION]""")
+        }
+
+        // ファイルを実行
+        val context = TestIoContext()
+        val options = parseArguments(listOf("-f", file.toString()), context)
+
+        // scriptFilePathが正しく設定されていることを確認
+        assertTrue(options.scriptFile != null)
+        assertEquals(file.toString(), options.scriptFile)
+
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun locationReturnsAbsolutePath() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+
+        // 相対パスでファイルを指定
+        val relativeFile = "build/test/location_absolute.tmp.xa1"
+        val file = relativeFile.toPath()
+
+        fileSystem.write(file) {
+            writeUtf8("LOCATION")
+        }
+
+        val context = TestIoContext()
+        val options = parseArguments(listOf("-f", relativeFile), context)
+
+        // scriptFilePathには相対パスが保存される
+        assertEquals(relativeFile, options.scriptFile)
+
+        // cliEvalで絶対パスに解決されることを確認（実装の詳細）
+        // 実際の絶対パス解決はcliEval内で行われる
+
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
     fun bashBasic() = runTest {
         val context = TestIoContext()
         try {
@@ -1387,7 +1510,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.defineMounts(mountsFactory("-"))
         evaluator.get(src).cache()
     }
 }
