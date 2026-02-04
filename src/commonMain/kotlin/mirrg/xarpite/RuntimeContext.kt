@@ -54,6 +54,7 @@ class RuntimeContext(
 
 
     val inc = FluoriteArray()
+    val moduleResult = mutableMapOf<String, FluoriteValue>()
 
 }
 
