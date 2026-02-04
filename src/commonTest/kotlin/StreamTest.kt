@@ -45,16 +45,16 @@ class StreamTest {
         assertEquals(6, eval("$#([1; 2; 3], [4; 5; 6])").int) // 配列のストリームの長さ
         assertEquals(7, eval("$#({a: 1; b: 2}, {c: 3}, {d: 4; e: 5; f: 6; g: 7})").int) // オブジェクトのストリームの長さ
         assertEquals(9, eval("(\"abc\", \"def\", \"ghi\")::`$#_`()").int) // メソッド形式での長さの取得
-        
+
         // ネストしたストリームの長さ
         assertEquals(6, eval("$#((\"ab\", \"cd\"), (\"ef\",))").int) // ネストしたストリームは平坦化される
-        
+
         // BLOB を含むストリームの長さ
         assertEquals(6, eval("$#(BLOB.of([1; 2; 3]), BLOB.of([4; 5; 6]))").int) // BLOB のストリームの長さ
-        
+
         // 混合型ストリームの長さ
         assertEquals(9, eval("$#(\"abc\", [1; 2; 3], {a: 1; b: 2; c: 3})").int) // 異なる型の要素を持つストリームの長さ
-        
+
         // カスタム長さメソッドを持つオブジェクトのストリーム
         """
           Obj := {
@@ -62,7 +62,7 @@ class StreamTest {
           }
           $#(Obj{value: 5}, Obj{value: 3}, Obj{value: 2})
         """.let { assertEquals(10, eval(it).int) } // カスタム長さメソッドを持つオブジェクトのストリームの長さ
-        
+
         // 小数の長さを持つストリームの長さ
         """
           Line := {
@@ -82,13 +82,13 @@ class StreamTest {
         assertEquals("z,y,x", eval("\"z\" .. \"x\"").stream()) // 降順の文字範囲
         assertEquals("あ,ぃ,い,ぅ,う", eval("\"あ\" .. \"う\"").stream()) // ひらがなの範囲（文字コード順）
         assertEquals("ん,を", eval("\"ん\" .. \"を\"").stream()) // ひらがなの降順範囲（ん U+3093 > を U+3092）
-        
+
         // 半開区間演算子 ~ で1文字文字列の範囲
         assertEquals("a,b,c", eval("\"a\" ~ \"d\"").stream()) // ラテン文字の半開区間（ドキュメントの例）
         assertEquals("α,β,γ", eval("\"α\" ~ \"δ\"").stream()) // ギリシャ文字の半開区間（ドキュメントの例）
         assertEquals("", eval("\"d\" ~ \"a\"").stream()) // 降順の半開区間は空ストリーム
         assertEquals("あ,ぃ,い,ぅ", eval("\"あ\" ~ \"う\"").stream()) // ひらがなの半開区間（文字コード順）
-        
+
         // 1文字でない場合はエラー
         try {
             eval("\"ab\" .. \"cd\"").stream()
@@ -96,7 +96,7 @@ class StreamTest {
         } catch (e: FluoriteException) {
             // 期待通り
         }
-        
+
         try {
             eval("\"a\" .. \"bc\"").stream()
             throw AssertionError("Should throw IllegalArgumentException")

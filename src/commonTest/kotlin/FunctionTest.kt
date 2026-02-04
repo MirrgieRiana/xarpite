@@ -64,7 +64,7 @@ class FunctionTest {
             // _::_ でフォールバックメソッドを定義する
             """
                 register := listener -> listener(23)
-    
+
                 Obj := {
                     register: this, listener -> listener(this.x + 3)
                 }

@@ -31,7 +31,7 @@ module Xarpite
         # アンカーリンクボタンを作成
         # IDはKramdownによって生成されるため、すでに安全
         anchor_link = %(<a href="##{CGI.escapeHTML(id)}" class="heading-anchor-link" aria-label="Link to this section">#</a>)
-        
+
         # 見出しタグを再構築（アンカーリンクを末尾に追加）
         %(<#{tag} #{attrs}>#{content}#{anchor_link}</#{tag}>)
       end

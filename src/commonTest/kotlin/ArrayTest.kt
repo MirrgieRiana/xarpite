@@ -114,7 +114,7 @@ class ArrayTest {
         assertEquals("[3;1;2]", eval("a := [1, 2]; a::unshift(3); a").array())
         assertEquals("[3;4;1;2]", eval("a := [1, 2]; a::unshift(3, 4); a").array())
         assertEquals("[2]", eval("a := [1, 2]; a::shift(); a").array())
-        
+
         // popとshiftは削除した要素を返す
         assertEquals(2, eval("a := [1, 2]; a::pop()").int)
         assertEquals(1, eval("a := [1, 2]; a::shift()").int)

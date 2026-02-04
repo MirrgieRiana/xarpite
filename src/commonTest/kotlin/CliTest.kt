@@ -222,22 +222,22 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("write.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
-        
+
         // 基本的な文字列書き込み
         cliEval(context, """WRITE(ARGS.0; "Hello World")""", file.toString())
         val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("Hello World", content)
-        
+
         // 改行が自動で付与されないことを確認
         cliEval(context, """WRITE(ARGS.0; "test")""", file.toString())
         val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("test", content2)
-        
+
         // UTF-8エンコードの確認（日本語）
         cliEval(context, """WRITE(ARGS.0; "こんにちは")""", file.toString())
         val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("こんにちは", content3)
-        
+
         // 空文字列の書き込み
         cliEval(context, """WRITE(ARGS.0; "")""", file.toString())
         val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
@@ -250,22 +250,22 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("writel.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
-        
+
         // 複数行の書き込み（ストリームを使用）
         cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", file.toString())
         val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("line1\nline2\nline3\n", content)
-        
+
         // 単一行の書き込みでも末尾改行が付く
         cliEval(context, """WRITEL(ARGS.0; ["single"]())""", file.toString())
         val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("single\n", content2)
-        
+
         // 空ストリームの場合は空ファイル
         cliEval(context, """WRITEL(ARGS.0; []())""", file.toString())
         val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("", content3)
-        
+
         // 数値ストリームからの書き込み
         cliEval(context, """WRITEL(ARGS.0; 1 .. 3)""", file.toString())
         val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
@@ -278,28 +278,28 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("writeb.test_file.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
-        
+
         // BLOBの書き込み
         cliEval(context, """WRITEB(ARGS.0; BLOB.of([65, 66, 67]))""", file.toString())
         val content = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(65, 66, 67), content)
-        
+
         // STREAM<BLOB>の書き込み
         cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", file.toString())
         val content2 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(1, 2, 3, 4), content2)
-        
+
         // ARRAY<NUMBER>の書き込み
         cliEval(context, """WRITEB(ARGS.0; [72, 101, 108, 108, 111])""", file.toString())
         val content3 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(72, 101, 108, 108, 111), content3)
         assertEquals("Hello", content3.decodeToString())
-        
+
         // 空のBLOBの書き込み
         cliEval(context, """WRITEB(ARGS.0; BLOB.of([]))""", file.toString())
         val content4 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(), content4)
-        
+
         // NULLバイトを含むデータ
         cliEval(context, """WRITEB(ARGS.0; [0, 1, 0, 2, 0])""", file.toString())
         val content5 = getFileSystem().getOrThrow().read(file) { readByteArray() }
@@ -631,22 +631,22 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
-        
+
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
         val moduleDir = customIncDir.resolve("com/example/custom/mylib/1.0.0")
         fileSystem.createDirectories(moduleDir)
         val moduleFile = moduleDir.resolve("mylib-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
-        
+
         // INCにカスタムパスを追加してモジュールをロード
         val result = cliEval(context, """
             INC::push("build/test/custom-inc")
             USE("com.example.custom:mylib:1.0.0")
         """.trimIndent()).toFluoriteString(null).value
-        
+
         assertEquals("CustomModule", result)
-        
+
         // クリーンアップ
         fileSystem.delete(moduleFile)
         fileSystem.delete(moduleDir)
@@ -911,7 +911,7 @@ class CliTest {
         // -f - オプションで標準入力からスクリプトを読み込んで実行
         val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
-        
+
         val result = cliEval(context, options.src, *options.arguments.toTypedArray())
         assertEquals("3", result.toFluoriteString(null).value)
     }
@@ -921,7 +921,7 @@ class CliTest {
         // 複数行のスクリプトを標準入力から読み込む
         val context = TestIoContext(stdinBytes = "a := 10\nb := 20\na + b".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
-        
+
         val result = cliEval(context, options.src, *options.arguments.toTypedArray())
         assertEquals("30", result.toFluoriteString(null).value)
     }
@@ -1303,20 +1303,20 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("location_test.tmp.xa1")
-        
+
         // テスト用のスクリプトファイルを作成
         fileSystem.write(file) {
             writeUtf8("""[LOCATION]""")
         }
-        
+
         // ファイルを実行
         val context = TestIoContext()
         val options = parseArguments(listOf("-f", file.toString()), context)
-        
+
         // scriptFilePathが正しく設定されていることを確認
         assertTrue(options.scriptFile != null)
         assertEquals(file.toString(), options.scriptFile)
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
@@ -1326,24 +1326,24 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
-        
+
         // 相対パスでファイルを指定
         val relativeFile = "build/test/location_absolute.tmp.xa1"
         val file = relativeFile.toPath()
-        
+
         fileSystem.write(file) {
             writeUtf8("LOCATION")
         }
-        
+
         val context = TestIoContext()
         val options = parseArguments(listOf("-f", relativeFile), context)
-        
+
         // scriptFilePathには相対パスが保存される
         assertEquals(relativeFile, options.scriptFile)
-        
+
         // cliEvalで絶対パスに解決されることを確認（実装の詳細）
         // 実際の絶対パス解決はcliEval内で行われる
-        
+
         // クリーンアップ
         fileSystem.delete(file)
     }
