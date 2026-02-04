@@ -80,6 +80,7 @@ suspend fun main() {
 
     coroutineScope {
         val ioContext = object : IoContext {
+            override fun getEnv(): Map<String, String> = mirrg.xarpite.getEnv()
             override fun getPlatformPwd(): String = process.cwd()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
@@ -92,10 +93,10 @@ suspend fun main() {
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)
         } catch (_: ShowUsage) {
-            showUsage()
+            showUsage(ioContext)
             return@coroutineScope
         } catch (_: ShowVersion) {
-            showVersion()
+            showVersion(ioContext)
             return@coroutineScope
         }
         cliEval(ioContext, options) {

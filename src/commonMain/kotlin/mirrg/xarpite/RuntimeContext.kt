@@ -59,6 +59,7 @@ class RuntimeContext(
 }
 
 interface IoContext {
+    fun getEnv(): Map<String, String>
     fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
@@ -70,6 +71,7 @@ interface IoContext {
 }
 
 open class UnsupportedIoContext : IoContext {
+    override fun getEnv() = throw UnsupportedOperationException()
     override fun getPlatformPwd() = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()

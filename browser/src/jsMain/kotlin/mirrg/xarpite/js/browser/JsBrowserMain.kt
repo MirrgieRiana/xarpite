@@ -22,6 +22,7 @@ import kotlin.js.Promise
 @JsExport
 fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Promise<dynamic> = scope.promise {
     withEvaluator(object : IoContext {
+        override fun getEnv() = throw UnsupportedOperationException()
         override fun getPlatformPwd() = window.location.href
         override suspend fun out(value: FluoriteValue) = out(value).await()
         override suspend fun err(value: FluoriteValue) = out(value).await()

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
@@ -1610,6 +1611,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+
+    override fun getEnv(): Map<String, String> = throw UnsupportedOperationException()
 
     override fun getPlatformPwd(): String = currentLocation
 
