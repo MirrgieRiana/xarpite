@@ -412,6 +412,73 @@ class CliTest {
     }
 
     @Test
+    fun useCachesByPathAcrossDifferentFiles() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.cache.across.files.tmp")
+        fileSystem.createDirectory(dir)
+        
+        // 共有モジュール: 変更可能な状態を持つ
+        val sharedModule = dir.resolve("shared.xa1")
+        fileSystem.write(sharedModule) {
+            writeUtf8(
+                """
+                {
+                  state: {
+                    value: "initial"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        
+        // ファイル1: shared.xa1をUSEして状態を変更
+        val file1 = dir.resolve("file1.xa1")
+        fileSystem.write(file1) {
+            writeUtf8(
+                """
+                module := USE("./shared.xa1")
+                module.state.value = "modified"
+                module
+                """.trimIndent()
+            )
+        }
+        
+        // ファイル2: shared.xa1をUSEして状態を読み取る
+        val file2 = dir.resolve("file2.xa1")
+        fileSystem.write(file2) {
+            writeUtf8(
+                """
+                module := USE("./shared.xa1")
+                module.state.value
+                """.trimIndent()
+            )
+        }
+        
+        // 同じRuntimeContextで両方のファイルを評価
+        // file1でsharedモジュールを読み込んで状態を変更し、
+        // その後file2でも同じsharedモジュールを読み込む
+        // キャッシュが正しく機能していれば、file1で変更した値がfile2でも取得できる
+        val result = cliEval(
+            context,
+            """
+            USE("./$file1")
+            USE("./$file2")
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        
+        assertEquals("modified", result)
+        
+        // クリーンアップ
+        fileSystem.delete(file1)
+        fileSystem.delete(file2)
+        fileSystem.delete(sharedModule)
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useRejectsInvalidModulePath() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
