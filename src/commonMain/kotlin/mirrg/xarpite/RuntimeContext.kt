@@ -70,12 +70,12 @@ interface IoContext {
 }
 
 open class UnsupportedIoContext : IoContext {
-    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
+    override fun getPlatformPwd() = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
     override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
 }
