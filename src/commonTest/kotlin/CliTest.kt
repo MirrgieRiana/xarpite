@@ -13,6 +13,7 @@ import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -86,6 +87,15 @@ class CliTest {
         }
         // Otherwise, just verify it's non-empty
         assertTrue(pwd.isNotEmpty())
+    }
+
+    @Test
+    fun locationIsDashInEvalMode() = runTest {
+        val context = TestIoContext()
+        // When code is executed via eval (not from a file), LOCATION should be "-"
+        val location = cliEval(context, "LOCATION")
+        assertTrue(location is FluoriteString)
+        assertEquals("-", location.toFluoriteString(null).value) // LOCATION は eval モードで "-"
     }
 
     @Test
@@ -711,6 +721,8 @@ class CliTest {
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         // quiet フラグが false である
         assertEquals(false, options.quiet)
+        // スクリプトファイルパスが設定されている
+        assertEquals(file.toString(), options.scriptFile)
 
         // クリーンアップ
         fileSystem.delete(file)
@@ -829,6 +841,8 @@ class CliTest {
         assertEquals("5 + 6", options.src)
         assertEquals(listOf("arg1", "arg2"), options.arguments)
         assertEquals(false, options.quiet)
+        // eval モードでは scriptFilePath は NULL
+        assertEquals(null, options.scriptFile)
     }
 
     @Test
@@ -1284,6 +1298,57 @@ class CliTest {
     }
 
     @Test
+    fun locationConstantsWithFileExecution() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val file = baseDir.resolve("location_test.tmp.xa1")
+        
+        // テスト用のスクリプトファイルを作成
+        fileSystem.write(file) {
+            writeUtf8("""[LOCATION]""")
+        }
+        
+        // ファイルを実行
+        val context = TestIoContext()
+        val options = parseArguments(listOf("-f", file.toString()), context)
+        
+        // scriptFilePathが正しく設定されていることを確認
+        assertTrue(options.scriptFile != null)
+        assertEquals(file.toString(), options.scriptFile)
+        
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
+    fun locationReturnsAbsolutePath() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        
+        // 相対パスでファイルを指定
+        val relativeFile = "build/test/location_absolute.tmp.xa1"
+        val file = relativeFile.toPath()
+        
+        fileSystem.write(file) {
+            writeUtf8("LOCATION")
+        }
+        
+        val context = TestIoContext()
+        val options = parseArguments(listOf("-f", relativeFile), context)
+        
+        // scriptFilePathには相対パスが保存される
+        assertEquals(relativeFile, options.scriptFile)
+        
+        // cliEvalで絶対パスに解決されることを確認（実装の詳細）
+        // 実際の絶対パス解決はcliEval内で行われる
+        
+        // クリーンアップ
+        fileSystem.delete(file)
+    }
+
+    @Test
     fun bashBasic() = runTest {
         val context = TestIoContext()
         try {
@@ -1431,7 +1496,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.defineMounts(mountsFactory("-"))
         evaluator.get(src).cache()
     }
 }

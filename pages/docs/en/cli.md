@@ -353,6 +353,23 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+### `LOCATION`: Get Path of Currently Executing Script
+
+`LOCATION: STRING`
+
+The path of the currently executing Xarpite script.
+
+`LOCATION` is a normalized (with `.` and `..` path segments removed) absolute path, representing either a file path or a URL.
+
+---
+
+When the trailing part corresponding to the filename is `-`, it indicates a script that was dynamically provided through means such as the `-e` command-line option.
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.

@@ -18,7 +18,7 @@ import mirrg.xarpite.withEvaluator
 import mirrg.xarpite.withStackTrace
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -115,7 +115,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet)
+    return Options(script ?: throw ShowUsage, arguments, quiet, scriptFile)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
@@ -165,19 +165,20 @@ fun showVersion() {
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
-        context.setSrc("-", options.src)
+        val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
+        context.setSrc(location, options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
-        evaluator.defineMounts(mountsFactory("./-"))
+        evaluator.defineMounts(mountsFactory(location))
         try {
-            withStackTrace(Position("-", 0)) {
+            withStackTrace(Position(location, 0)) {
                 if (options.quiet) {
-                    evaluator.run("-", options.src)
+                    evaluator.run(location, options.src)
                 } else {
-                    val result = evaluator.get("-", options.src)
+                    val result = evaluator.get(location, options.src)
                     if (result is FluoriteStream) {
                         result.collect {
                             println(it.toFluoriteString(null))

@@ -3,6 +3,7 @@ package mirrg.xarpite
 import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
@@ -30,6 +31,13 @@ class RuntimeContext(
 
     fun renderPosition(position: Position?): String {
         if (position == null) return "UNKNOWN"
+        val pwdPath = io.getPwd().toPath()
+        val locationPath = position.location.toPath()
+        val location = if (pwdPath.isAncestorOf(locationPath)) {
+            locationPath.relativeTo(pwdPath).toString()
+        } else {
+            position.location
+        }
         val src = srcs[position.location] ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
@@ -41,7 +49,7 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        return "${position.location}:$row:$column  $startEllipsis$snippet$endEllipsis"
+        return "$location:$row:$column  $startEllipsis$snippet$endEllipsis"
     }
 
 

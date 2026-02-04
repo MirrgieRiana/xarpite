@@ -3,6 +3,7 @@ package mirrg.xarpite.cli
 import mirrg.kotlin.helium.join
 import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
@@ -23,21 +24,19 @@ private const val MODULE_EXTENSION = ".xa1"
 context(context: RuntimeContext)
 fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
+        "LOCATION" define LazyMount { location.toFluoriteString() },
         "USE" define run {
             val moduleCache = mutableMapOf<String, FluoriteValue>()
-            val baseDir by lazy {
-                val parentPath = location.toPath().parent ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-                context.io.getPwd().toPath().resolve(parentPath).normalized().toString()
-            }
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val moduleFile = resolveModuleFile(context.inc, baseDir, reference)
-                moduleCache.getOrPut(moduleFile) {
-                    val src = context.getModuleSrc(moduleFile)
+                val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
+                val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
+                moduleCache.getOrPut(moduleLocation) {
+                    val src = context.getModuleSrc(moduleLocation)
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(moduleFile))
-                    evaluator.get(moduleFile, src).cache()
+                    evaluator.defineMounts(mountsFactory(moduleLocation))
+                    evaluator.get(moduleLocation, src).cache()
                 }
             }
         },
@@ -46,7 +45,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
 
-private suspend fun resolveModuleFile(inc: FluoriteArray, baseDir: String, reference: String): String {
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
     fun Path.tryToLoad(): Boolean {
