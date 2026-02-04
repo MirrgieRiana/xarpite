@@ -1612,7 +1612,7 @@ internal class TestIoContext(
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
 
-    override fun getEnv(): Map<String, String> = throw UnsupportedOperationException()
+    override fun getEnv(): Map<String, String> = emptyMap()
 
     override fun getPlatformPwd(): String = currentLocation
 
