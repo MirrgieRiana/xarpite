@@ -858,6 +858,50 @@ $ {
 # Apple
 ```
 
+#### INC相対パスによる指定
+
+`reference` が絶対パスでも `./` 始まりでもMaven座標形式でもない場合、 `INC` に登録されたディレクトリから相対パスとして検索します。
+
+拡張子の `.xa1` は省略可能です。
+
+各 `INC` ディレクトリに対して順番に `reference` を相対パスとして解決し、最初に見つかったファイルを読み込みます。
+
+```shell
+$ {
+  mkdir -p modules
+
+  echo ' "Banana" ' > modules/banana.xa1
+
+  xa '
+    INC::push("modules")
+    USE("banana")
+  '
+
+  rm -r modules
+}
+# Banana
+```
+
+---
+
+以下はサブディレクトリを含むパスの例です。
+
+```shell
+$ {
+  mkdir -p lib/fruit
+
+  echo ' "Cherry" ' > lib/fruit/cherry.xa1
+
+  xa '
+    INC::push("lib")
+    USE("fruit/cherry")
+  '
+
+  rm -r lib
+}
+# Cherry
+```
+
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`

@@ -852,6 +852,50 @@ $ {
 # Apple
 ```
 
+#### Specification by INC Relative Path
+
+If `reference` is not an absolute path, does not start with `./`, and is not in Maven coordinate format, it is searched as a relative path from directories registered in `INC`.
+
+The `.xa1` extension is optional.
+
+For each `INC` directory, `reference` is resolved as a relative path in order, and the first file found is loaded.
+
+```shell
+$ {
+  mkdir -p modules
+
+  echo ' "Banana" ' > modules/banana.xa1
+
+  xa '
+    INC::push("modules")
+    USE("banana")
+  '
+
+  rm -r modules
+}
+# Banana
+```
+
+---
+
+Here is an example of a path including subdirectories.
+
+```shell
+$ {
+  mkdir -p lib/fruit
+
+  echo ' "Cherry" ' > lib/fruit/cherry.xa1
+
+  xa '
+    INC::push("lib")
+    USE("fruit/cherry")
+  '
+
+  rm -r lib
+}
+# Cherry
+```
+
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`

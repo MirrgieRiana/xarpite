@@ -89,5 +89,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         fail("Maven artifact not found: $reference")
     }
 
-    fail("Invalid module reference format: $reference")
+    // INC相対パス
+    run {
+        inc.values.forEach { value ->
+            val incPath = value.toFluoriteString(null).value.toPath()
+            val path = incPath.resolve(reference.toPath()).normalized()
+            path.let { if (it.tryToLoad()) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+        }
+        fail("Module not found in INC paths: $reference")
+    }
 }
