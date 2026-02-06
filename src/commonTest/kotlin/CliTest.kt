@@ -1077,12 +1077,20 @@ class CliTest {
 
     @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
+            }
         )
         try {
             val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString(null).value)
+            
+            // executeProcessHandlerが正しく呼ばれたことを確認
+            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+            assertEquals("bash", capturedCommands[0].first)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1638,14 +1646,22 @@ class CliTest {
 
     @Test
     fun bashWithUnicode() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, _ -> "こんにちは世界" }
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "こんにちは世界"
+            }
         )
         try {
             // Unicode文字を含む
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
             val output = result.toFluoriteString(null).value
             assertEquals("こんにちは世界", output)
+            
+            // executeProcessHandlerが正しく呼ばれたことを確認
+            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+            assertEquals("bash", capturedCommands[0].first)
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
