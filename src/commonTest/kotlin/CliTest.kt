@@ -1673,8 +1673,8 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = 
-        executeProcessHandler?.invoke(process, args, env) ?: mirrg.xarpite.executeProcess(process, args, env)
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
+        executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 
