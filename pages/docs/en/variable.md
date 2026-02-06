@@ -113,10 +113,6 @@ There is an overridable method for compound assignment.
 
 The `_+=_` method is called exactly once each time `a += b` is executed.
 
-The return value of this method is ignored.
-
-However, if the return value is a stream, it is resolved and the result is ignored.
-
 The same applies to other compound assignment methods besides `_+=_`.
 
 ```shell
@@ -132,6 +128,83 @@ $ xa -q '
 '
 # [apple]
 # [apple;banana]
+```
+
+---
+
+Override methods take an `accessor` function as an argument in addition to the object itself. This function performs get and set operations on the expression.
+
+Calling `accessor` with 0 arguments performs a value get operation on the expression.
+
+Calling `accessor` with 1 argument performs a value set operation on the expression.
+
+Compound assignment behavior can be defined either as an object mutation operation or as an immutable operation with assignment.
+
+```shell
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
+    `_+=_`: this, amount, accessor -> (
+      this.value += amount
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new += 10
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 10
+# New: 10
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_+=_`: this, amount, accessor -> (
+      accessor(new(this.value + amount))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new += 10
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 10
+```
+
+---
+
+The operator's return value is the return value of the override method.
+
+```shell
+$ xa -q '
+  Object := {
+    `_+=_`: this, amount, accessor -> "result"
+  }
+
+  object := Object{}
+
+  OUT << object += 10
+'
+# result
 ```
 
 ## List of Compound Assignment Operators
@@ -185,6 +258,27 @@ $ xa -q '
 # Update!
 # Old: [apple;banana]
 # New: [apple;banana]
+```
+
+## Compound Assignment on Non-Assignable Expressions
+
+When an expression doesn't support assignment, only the override method check is performed.
+
+The `accessor` supports get operations only.
+
+Typically, this behavior is defined as a mutation operation on mutable values.
+
+```shell
+$ xa '
+  MutableCounter := {
+    `_+=_`: this, amount, accessor -> (
+      this.value += amount
+      this.value
+    )
+  }
+  MutableCounter{value: 100} += 23
+'
+# 123
 ```
 
 ## Increment/Decrement

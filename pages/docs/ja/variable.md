@@ -113,10 +113,6 @@ $ xa -q '
 
 `_+=_` メソッドは `a += b` が実行されるごとに丁度1回だけ呼び出されます。
 
-当該メソッドの戻り値は無視されます。
-
-ただし、戻り値がストリームであった場合は解決され、その結果は無視されます。
-
 `_+=_` 以外の演算代入メソッドも同様です。
 
 ```shell
@@ -132,6 +128,83 @@ $ xa -q '
 '
 # [apple]
 # [apple;banana]
+```
+
+---
+
+オーバーライドメソッドはオブジェクト自身の他に、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
+
+`accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
+
+`accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
+
+演算代入の動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+
+```shell
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
+    `_+=_`: this, amount, accessor -> (
+      this.value += amount
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new += 10
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 10
+# New: 10
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_+=_`: this, amount, accessor -> (
+      accessor(new(this.value + amount))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new += 10
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 10
+```
+
+---
+
+演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+```shell
+$ xa -q '
+  Object := {
+    `_+=_`: this, amount, accessor -> "result"
+  }
+
+  object := Object{}
+
+  OUT << object += 10
+'
+# result
 ```
 
 ## 演算代入演算子の一覧
@@ -185,6 +258,27 @@ $ xa -q '
 # Update!
 # Old: [apple;banana]
 # New: [apple;banana]
+```
+
+## 代入不可能な式に対する演算代入
+
+式が代入をサポートしない場合、オーバーライドメソッドの判定のみが行われます。
+
+`accessor` は取得操作のみをサポートします。
+
+通常、この動作はミュータブルな値の改変操作として定義されます。
+
+```shell
+$ xa '
+  MutableCounter := {
+    `_+=_`: this, amount, accessor -> (
+      this.value += amount
+      this.value
+    )
+  }
+  MutableCounter{value: 100} += 23
+'
+# 123
 ```
 
 ## インクリメント・デクリメント

@@ -496,14 +496,14 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
 
         is InfixPlusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left).getOrThrow()
+            val leftSetter = compileToSetter(node.left).getOrNull()
             val getter = compileToGetter(node.right)
             PlusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }
 
         is InfixMinusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left).getOrThrow()
+            val leftSetter = compileToSetter(node.left).getOrNull()
             val getter = compileToGetter(node.right)
             MinusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }
