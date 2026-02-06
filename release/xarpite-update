@@ -27,7 +27,26 @@ cleanup() {
     rm -rf "$tmpdir"
   fi
 }
-trap cleanup EXIT INT TERM
+
+on_exit() {
+  exit_code=$?
+  cleanup
+  exit "$exit_code"
+}
+
+on_int() {
+  cleanup
+  exit 130  # 128 + SIGINT
+}
+
+on_term() {
+  cleanup
+  exit 143  # 128 + SIGTERM
+}
+
+trap on_exit EXIT
+trap on_int INT
+trap on_term TERM
 
 
 # Determine the downloading version
