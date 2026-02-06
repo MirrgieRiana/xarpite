@@ -231,22 +231,24 @@ class IncrementDecrementTest {
 
     @Test
     fun incrementWithoutSetterRequiresMethodTest() = runTest {
-        // setter無しでオーバーライドメソッドが必要
+        // 代入不可能な式でオーバーライドメソッドが必要
         assertFailsWith<Exception> {
             eval("10++")
         }
     }
 
     @Test
-    fun incrementWithoutSetterWithMethodTest() = runTest {
-        // setter無しでもオーバーライドメソッドがあれば動作する
-        assertEquals(100, eval("""
-            Object := {
+    fun incrementOnNonAssignableExpressionTest() = runTest {
+        // 代入不可能な式でもオーバーライドメソッドがあれば動作する
+        // ミュータブルな値の改変操作として定義される
+        assertEquals(101, eval("""
+            MutableCounter := {
                 `_++`: this, accessor -> (
-                    this.value * 2
+                    this.value++
+                    this.value
                 )
             }
-            Object{value: 50}++
+            MutableCounter{value: 100}++
         """).int)
     }
 

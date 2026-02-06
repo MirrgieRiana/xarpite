@@ -368,48 +368,25 @@ $ xa -q '
 # prefix
 ```
 
-### Increment/Decrement Without Setter
+### Increment/Decrement on Non-Assignable Expressions
 
-Even if an expression doesn't support assignment, increment and decrement operators can be used if an override method is defined.
+When an expression doesn't support assignment, only the override method check is performed.
 
-```shell
-$ xa '
-  Object := {
-    `_++`: this, accessor -> (
-      this.value * 2
-    )
-  }
-  Object{value: 50}++
-'
-# 100
-```
+The `accessor` supports get operations only.
 
----
-
-However, when an expression doesn't support assignment, the `accessor` function only supports get operations.
-
-Calling `accessor` with 1 argument will result in an error.
+Typically, this behavior is defined as a mutation operation on mutable values.
 
 ```shell
 $ xa '
-  Object := {
+  MutableCounter := {
     `_++`: this, accessor -> (
-      accessor().value
+      this.value++
+      this.value
     )
   }
-  Object{value: 100}++
+  MutableCounter{value: 100}++
 '
-# 100
-```
-
----
-
-If an expression doesn't support assignment and no override method is defined, an error will occur.
-
-```shell
-$ xa '10++'
-# ERROR: Usage: No method `_++` found
-#   at -:1:1  10++
+# 101
 ```
 
 # Variables
