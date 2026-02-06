@@ -1263,6 +1263,25 @@ class CliTest {
     }
 
     @Test
+    fun execRedirectsStderrToTestIoContext() = runTest {
+        val context = TestIoContext()
+        try {
+            // stderrに出力するコマンドを実行
+            val result = cliEval(context, getExecSrcWrappingHexForShell("echo 'Error message' >&2; echo 'Output'"))
+            val output = result.toFluoriteString(null).value
+
+            // 標準出力は正しく取得される
+            assertEquals("Output", output)
+
+            // 標準エラー出力がTestIoContextのstderrBytesにキャプチャされている
+            val stderrContent = context.stderrBytes.toUtf8String()
+            assertTrue(stderrContent.contains("Error message"), "stderr should contain 'Error message', but was: $stderrContent")
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
