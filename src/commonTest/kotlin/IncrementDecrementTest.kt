@@ -4,6 +4,7 @@ import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class IncrementDecrementTest {
@@ -231,11 +232,8 @@ class IncrementDecrementTest {
     @Test
     fun incrementWithoutSetterRequiresMethodTest() = runTest {
         // setter無しでオーバーライドメソッドが必要
-        try {
+        assertFailsWith<Exception> {
             eval("10++")
-            throw AssertionError("Expected exception")
-        } catch (e: Exception) {
-            // エラーが発生することを期待
         }
     }
 
@@ -268,7 +266,7 @@ class IncrementDecrementTest {
     @Test
     fun accessorWithoutSetterCannotSetTest() = runTest {
         // setter無しの場合、アクセサは代入不可
-        try {
+        assertFailsWith<Exception> {
             eval("""
                 Object := {
                     `_++`: this, accessor -> (
@@ -277,9 +275,6 @@ class IncrementDecrementTest {
                 }
                 Object{value: 100}++
             """)
-            throw AssertionError("Expected exception")
-        } catch (e: Exception) {
-            // エラーが発生することを期待
         }
     }
 }

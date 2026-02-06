@@ -408,7 +408,8 @@ $ xa '
 
 ```shell
 $ xa '10++'
-# Error: No method `_++` found
+# ERROR: Usage: No method `_++` found
+#   at -:1:1  10++
 ```
 
 # 変数
