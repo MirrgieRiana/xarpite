@@ -355,19 +355,19 @@ When the JVM runtime is launched on Windows, it corresponds to case 3, but it ha
 
 ---
 
-**Warning: Trailing Slash at Root Directory**
+Note that at the root directory it becomes `/`.
 
-When the current directory is the root directory `/`, the value of `PWD` is `/`.
+For example, performing string concatenation like the following will produce an abnormal path string.
 
-Therefore, constructing a file path like `"$PWD/a.txt"` will produce an abnormal file path string `//a.txt`.
+The `RESOLVE` function can be used to solve this problem.
 
-Most file system APIs interpret `//` as `/`, so this usually doesn't cause problems, but it may cause unexpected behavior in some environments.
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
 
-To avoid this issue, use one of the following methods:
-
-- Use a relative path: `"./a.txt"`
-- Use relative path specification with the `USE` function: `USE("./module.xa1")`
-- Use a library or function for path joining (if available)
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
 
 ### `LOCATION`: Get Path of Currently Executing Script
 
