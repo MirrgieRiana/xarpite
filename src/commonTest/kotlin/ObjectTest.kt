@@ -40,7 +40,7 @@ class ObjectTest {
     fun keysValues() = runTest {
         assertEquals("a,b,c", eval("KEYS({a: 1; b: 2; c: 3})").stream()) // KEYS でオブジェクトのキーを得る
         assertEquals("1,2,3", eval("VALUES({a: 1; b: 2; c: 3})").stream()) // VALUES でオブジェクトの値を得る
-        
+
         // KEYS のストリーム版
         assertEquals("a,b,c,d", eval("KEYS({a: 1; b: 2}, {c: 3; d: 4})").stream()) // KEYS でストリームのオブジェクトのキーを平坦化する
         assertEquals("x", eval("KEYS({x: 10})").stream()) // KEYS で単一のオブジェクトも動作する
@@ -51,10 +51,10 @@ class ObjectTest {
     fun invert() = runTest {
         // 基本的な反転
         assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)
-        
+
         // 数値も文字列化される
         assertEquals("{1:a;2:b;3:c}", eval("INVERT({a: 1; b: 2; c: 3})").obj)
-        
+
         // カスタムオブジェクトの文字列化
         assertEquals("{Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}", eval("""
             Fruit := {
@@ -67,7 +67,7 @@ class ObjectTest {
                 c: Fruit.new("cherry")
             })
         """).obj)
-        
+
         // 値が重複している場合はいずれかのキーがマッピングされる
         val invertedKey = eval("""
             object   := {a: "apple"; b: "banana"; c: "apple"}
@@ -76,7 +76,7 @@ class ObjectTest {
         """).toString()
         // inverted.appleの結果は "a" または "c" のいずれか
         assertTrue(invertedKey == "a" || invertedKey == "c")
-        
+
         // そのキーをobjectで引くと元の値"apple"が返る
         val finalResult = eval("""
             object   := {a: "apple"; b: "banana"; c: "apple"}

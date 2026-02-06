@@ -73,7 +73,7 @@ actual=$(xa 'PWD')
 actual=$(XARPITE_ENGINE=native xa 'PWD')
 [ "$actual" = "$current_dir" ] || fail "$current_dir (native)" "$actual"
 
-# JVM engine  
+# JVM engine
 actual=$(XARPITE_ENGINE=jvm xa 'PWD')
 [ "$actual" = "$current_dir" ] || fail "$current_dir (jvm)" "$actual"
 

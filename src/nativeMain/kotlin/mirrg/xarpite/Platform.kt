@@ -29,7 +29,7 @@ import kotlin.experimental.ExperimentalNativeApi
 actual fun getProgramName(): String? = Platform.programName
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun getEnv(): Map<String, String> {
+fun getEnv(): Map<String, String> {
     val result = mutableMapOf<String, String>()
     var index = 0
     while (true) {
@@ -48,10 +48,10 @@ actual fun getEnv(): Map<String, String> {
 
 actual fun hasFreeze() = true
 
-actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
+suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
+suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
         set_posix_errno(0)
@@ -67,7 +67,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stdout)
@@ -89,7 +89,7 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stderr)

@@ -16,16 +16,11 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.envGetter
 import mirrg.xarpite.fileSystemGetter
 import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
-import mirrg.xarpite.readBytesFromStdinImpl
-import mirrg.xarpite.readLineFromStdinImpl
-import mirrg.xarpite.writeBytesToStderrImpl
-import mirrg.xarpite.writeBytesToStdoutImpl
 import okio.NodeJsFileSystem
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -33,15 +28,15 @@ import kotlin.js.Promise
 import kotlin.math.min
 
 suspend fun main() {
-    envGetter = {
+    val envGetter: () -> Map<String, String> = {
         val env = process.env
         Object_keys(env).associateWith { env[it].unsafeCast<String>() }
     }
     fileSystemGetter = { NodeJsFileSystem }
     isWindowsImpl = { process.platform === "win32" }
-    readLineFromStdinImpl = { readLineFromStdinIterator.receiveCatching().getOrNull() }
-    readBytesFromStdinImpl = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
-    writeBytesToStdoutImpl = { bytes ->
+    val readLineFromStdinImpl: suspend () -> String? = { readLineFromStdinIterator.receiveCatching().getOrNull() }
+    val readBytesFromStdinImpl: suspend () -> ByteArray? = { readBytesFromStdinIterator.receiveCatching().getOrNull() }
+    val writeBytesToStdoutImpl: suspend (ByteArray) -> Unit = { bytes ->
         val uint8Array = js("new Uint8Array(bytes.length)")
         var i = 0
         while (i < bytes.size) {
@@ -59,7 +54,7 @@ suspend fun main() {
             }
         }
     }
-    writeBytesToStderrImpl = { bytes ->
+    val writeBytesToStderrImpl: suspend (ByteArray) -> Unit = { bytes ->
         val uint8Array = js("new Uint8Array(bytes.length)")
         var i = 0
         while (i < bytes.size) {
@@ -80,22 +75,23 @@ suspend fun main() {
 
     coroutineScope {
         val ioContext = object : IoContext {
+            override fun getEnv(): Map<String, String> = envGetter()
             override fun getPlatformPwd(): String = process.cwd()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
-            override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
-            override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
-            override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
-            override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
+            override suspend fun readLineFromStdin() = readLineFromStdinImpl()
+            override suspend fun readBytesFromStdin() = readBytesFromStdinImpl()
+            override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
+            override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)
         } catch (_: ShowUsage) {
-            showUsage()
+            showUsage(ioContext)
             return@coroutineScope
         } catch (_: ShowVersion) {
-            showVersion()
+            showVersion(ioContext)
             return@coroutineScope
         }
         cliEval(ioContext, options) {

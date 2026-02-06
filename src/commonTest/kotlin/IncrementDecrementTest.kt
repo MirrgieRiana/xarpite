@@ -95,7 +95,7 @@ class IncrementDecrementTest {
             new++
             old.value
         """).int)
-        
+
         // 同じオブジェクトを参照しているため、oldもnewも同じ値
         assertEquals(1, eval("""
             MutableCounter := {
@@ -126,7 +126,7 @@ class IncrementDecrementTest {
             new++
             old.value
         """).int)
-        
+
         // 新しいオブジェクトが代入されるため、oldとnewは異なる値
         assertEquals(1, eval("""
             ImmutableCounter := {
@@ -153,7 +153,7 @@ class IncrementDecrementTest {
             obj := Object{value: 0}
             obj++
         """).toString())
-        
+
         assertEquals("prefix", eval("""
             Object := {
                 `_++`: this, accessor -> "suffix"
@@ -179,7 +179,7 @@ class IncrementDecrementTest {
             obj := Object{value: 100}
             obj++
         """).int)
-        
+
         // 変数が更新されている
         assertEquals(200, eval("""
             Object := {
@@ -211,7 +211,7 @@ class IncrementDecrementTest {
             obj := Object{value: 100}
             obj--
         """).int)
-        
+
         // 変数が更新されている
         assertEquals(50, eval("""
             Object := {

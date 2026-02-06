@@ -9,7 +9,6 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
@@ -29,7 +28,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     var quiet = false
     var scriptFile: String? = null
     var script: String? = null
-    val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
+    val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
     // オプションセクションのパース
     run {
@@ -134,11 +133,11 @@ private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
     return result.decodeToString()
 }
 
-fun showUsage() {
-    val programName = getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
-    val engine = getEnv()["XARPITE_ENGINE"] ?: "native"
-    val version = getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
-    val isShortCommand = !getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
+fun showUsage(ioContext: IoContext) {
+    val programName = ioContext.getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
+    val engine = ioContext.getEnv()["XARPITE_ENGINE"] ?: "native"
+    val version = ioContext.getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
+    val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "script" else "scriptfile"
     println("Xarpite (xa) $version $engine")
     println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
@@ -157,8 +156,8 @@ fun showUsage() {
     println("                           Omit [$firstArgName]")
 }
 
-fun showVersion() {
-    val version = getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
+fun showVersion(ioContext: IoContext) {
+    val version = ioContext.getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
     println(version)
 }
 
