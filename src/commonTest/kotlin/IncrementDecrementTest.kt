@@ -227,4 +227,59 @@ class IncrementDecrementTest {
             obj.value
         """).int)
     }
+
+    @Test
+    fun incrementWithoutSetterRequiresMethodTest() = runTest {
+        // setter無しでオーバーライドメソッドが必要
+        try {
+            eval("10++")
+            throw AssertionError("Expected exception")
+        } catch (e: Exception) {
+            // エラーが発生することを期待
+        }
+    }
+
+    @Test
+    fun incrementWithoutSetterWithMethodTest() = runTest {
+        // setter無しでもオーバーライドメソッドがあれば動作する
+        assertEquals(100, eval("""
+            Object := {
+                `_++`: this, accessor -> (
+                    this.value * 2
+                )
+            }
+            Object{value: 50}++
+        """).int)
+    }
+
+    @Test
+    fun accessorWithoutSetterCanOnlyGetTest() = runTest {
+        // setter無しの場合、アクセサは取得のみ可能
+        assertEquals(100, eval("""
+            Object := {
+                `_++`: this, accessor -> (
+                    accessor().value
+                )
+            }
+            Object{value: 100}++
+        """).int)
+    }
+
+    @Test
+    fun accessorWithoutSetterCannotSetTest() = runTest {
+        // setter無しの場合、アクセサは代入不可
+        try {
+            eval("""
+                Object := {
+                    `_++`: this, accessor -> (
+                        accessor({value: 200})
+                    )
+                }
+                Object{value: 100}++
+            """)
+            throw AssertionError("Expected exception")
+        } catch (e: Exception) {
+            // エラーが発生することを期待
+        }
+    }
 }

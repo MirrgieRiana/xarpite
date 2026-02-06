@@ -340,7 +340,7 @@ private fun Frame.compileUnaryMinusToGetter(main: Node, position: Position): Get
 }
 
 private fun Frame.compileIncrementToGetter(node: Node, isIncrement: Boolean, isSuffix: Boolean, position: Position): Getter {
-    val setter = compileToSetter(node)
+    val setter = compileToSetter(node).getOrNull()
     val getter = compileToGetter(node)
     return IncrementGetter(getter, setter, isIncrement, isSuffix, position)
 }
@@ -475,7 +475,7 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         }
 
         is InfixEqualNode -> {
-            val setter = compileToSetter(node.left)
+            val setter = compileToSetter(node.left).getOrThrow()
             val getter = compileToGetter(node.right)
             AssignmentGetter(setter, getter)
         }
@@ -496,14 +496,14 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
 
         is InfixPlusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left)
+            val leftSetter = compileToSetter(node.left).getOrThrow()
             val getter = compileToGetter(node.right)
             PlusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }
 
         is InfixMinusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left)
+            val leftSetter = compileToSetter(node.left).getOrThrow()
             val getter = compileToGetter(node.right)
             MinusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }
