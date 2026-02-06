@@ -114,6 +114,20 @@ class CliTest {
     }
 
     @Test
+    fun pwdAtRootDirectory() = runTest {
+        // Test that PWD returns "/" when current directory is root
+        val context = TestIoContext(currentLocation = "/")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables override this, we accept that
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/"
+        assertEquals(expectedPwd, pwd)
+    }
+
+    @Test
     fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
         // When code is executed via eval (not from a file), LOCATION should be "-"
