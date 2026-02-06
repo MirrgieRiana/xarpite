@@ -1366,6 +1366,32 @@ class CliTest {
     }
 
     @Test
+    fun executeProcessWithCustomHandler() = runTest {
+        // カスタムexecuteProcessハンドラを使用するテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "custom output"
+            }
+        )
+        
+        try {
+            // カスタムハンドラが呼ばれることを確認
+            val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("custom output", output)
+            
+            // カスタムハンドラが正しい引数で呼ばれたことを確認
+            assertTrue(capturedCommands.isNotEmpty(), "Custom handler should have been called")
+            val (process, _, _) = capturedCommands.first()
+            assertEquals("bash", process)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
