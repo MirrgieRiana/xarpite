@@ -132,7 +132,9 @@ $ xa -q '
 
 ---
 
-Override methods take an `accessor` function as an argument in addition to the object itself. This function performs get and set operations on the expression.
+Override methods take an `accessor` function as an additional argument after their existing parameters, in addition to the object itself. This function performs get and set operations on the expression.
+
+For example, increment/decrement override methods (such as `_++` or `_--`) take `this, accessor` as arguments, while compound assignment override methods (such as `_+=_`) receive the `accessor` after the right-hand value parameter, resulting in a signature like `this, amount, accessor`.
 
 Calling `accessor` with 0 arguments performs a value get operation on the expression.
 
