@@ -22,7 +22,7 @@ cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 # Setup temporary directory with cleanup trap
 TMPDIR=""
 cleanup() {
-  if [ -n "$TMPDIR" ] && [ -e "$TMPDIR" ]; then
+  if [ -n "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
     echo "Removing temporary files" >&2
     rm -rf "$TMPDIR"
   fi
@@ -60,6 +60,7 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
 TMPDIR=$(mktemp -d)
+TMPDIR_BASENAME=$(basename "$TMPDIR")
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
@@ -75,7 +76,7 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete --exclude=/"$(basename "$TMPDIR")"/ "$TMPDIR"/ ./
+rsync -n --itemize-changes -ac --delete --exclude=/"$TMPDIR_BASENAME"/ "$TMPDIR"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -88,7 +89,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -ac --delete --exclude=/"$(basename "$TMPDIR")"/ "$TMPDIR"/ ./
+rsync -ac --delete --exclude=/"$TMPDIR_BASENAME"/ "$TMPDIR"/ ./
 
 echo
 
