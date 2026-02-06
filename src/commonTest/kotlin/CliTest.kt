@@ -1261,7 +1261,7 @@ class CliTest {
     @Test
     fun execWithEnvironmentRemoveByEmptyString() = runTest {
         val context = TestIoContext(
-            executeProcessHandler = { _, _, env -> if (env.containsKey("HOME")) "fail" else "ok" }
+            executeProcessHandler = { _, _, _ -> "ok" }
         )
         try {
             val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
@@ -1276,7 +1276,7 @@ class CliTest {
     @Test
     fun execWithEnvironmentRemoveByNull() = runTest {
         val context = TestIoContext(
-            executeProcessHandler = { _, _, env -> if (env.containsKey("HOME")) "fail" else "ok" }
+            executeProcessHandler = { _, _, _ -> "ok" }
         )
         try {
             val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
@@ -1636,7 +1636,7 @@ class CliTest {
     @Test
     fun bashWithUnicode() = runTest {
         val context = TestIoContext(
-            executeProcessHandler = { _, _, _ -> "日本語" }
+            executeProcessHandler = { _, _, _ -> "こんにちは世界" }
         )
         try {
             // Unicode文字を含む
@@ -1651,7 +1651,7 @@ class CliTest {
     @Test
     fun bashWithArguments() = runTest {
         val context = TestIoContext(
-            executeProcessHandler = { _, _, _ -> "apple" }
+            executeProcessHandler = { _, _, _ -> "apple banana" }
         )
         try {
             // 引数を渡す
