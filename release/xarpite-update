@@ -24,7 +24,7 @@ tmpdir=""
 cleanup() {
   if [ -n "$tmpdir" ] && [ -d "$tmpdir" ]; then
     echo "Cleaning up temporary files" >&2
-    rm -rf "$tmpdir"
+    rm -rf "$tmpdir" || true
   fi
 }
 
@@ -78,7 +78,7 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 [ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
-tmpdir=$(mktemp -d)
+tmpdir=$(mktemp -d) || error "Error: Failed to create temporary directory."
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
