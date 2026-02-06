@@ -1,5 +1,6 @@
 package mirrg.xarpite.js.node
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope

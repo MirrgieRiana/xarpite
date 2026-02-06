@@ -65,6 +65,7 @@ class CliJvmTest {
 private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String): FluoriteValue {
     return withEvaluator(object : UnsupportedIoContext() {
         override fun getPlatformPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
+        override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
         override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) = 
             mirrg.xarpite.executeProcess(this, coroutineScope, process, args, env)
     }) { context, evaluator ->
@@ -81,6 +82,7 @@ private suspend fun CoroutineScope.cliEvalJvm(src: String, vararg args: String):
 private suspend fun CoroutineScope.cliEvalJvmWithLocation(src: String, scriptPath: String?, vararg args: String): FluoriteValue {
     return withEvaluator(object : UnsupportedIoContext() {
         override fun getPlatformPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
+        override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
         override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) = 
             mirrg.xarpite.executeProcess(this, coroutineScope, process, args, env)
     }) { context, evaluator ->
