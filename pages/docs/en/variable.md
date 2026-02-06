@@ -368,6 +368,27 @@ $ xa -q '
 # prefix
 ```
 
+### Increment/Decrement on Non-Assignable Expressions
+
+When an expression doesn't support assignment, only the override method check is performed.
+
+The `accessor` supports get operations only.
+
+Typically, this behavior is defined as a mutation operation on mutable values.
+
+```shell
+$ xa '
+  MutableCounter := {
+    `_++`: this, accessor -> (
+      this.value++
+      this.value
+    )
+  }
+  MutableCounter{value: 100}++
+'
+# 101
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.
