@@ -23,7 +23,7 @@ cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 TMPDIR=""
 cleanup() {
   if [ -n "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
-    echo "Removing temporary files" >&2
+    echo "Cleaning up temporary files" >&2
     rm -rf "$TMPDIR"
   fi
 }
