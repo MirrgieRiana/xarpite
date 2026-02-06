@@ -379,20 +379,14 @@ $ xa -q '
 ```shell
 $ xa '
   MutableCounter := {
-    new := value -> MutableCounter{value: value}
     `_++`: this, accessor -> (
       this.value++
+      this.value
     )
-    `&_`: this -> this.value.&
   }
-
-  @{
-    counter: MutableCounter.new(0)
-  }
-  counter++
-  "$counter"
+  MutableCounter{value: 100}++
 '
-# 1
+# 101
 ```
 
 # 変数
