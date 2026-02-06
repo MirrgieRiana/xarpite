@@ -13,6 +13,7 @@ import mirrg.xarpite.getPwdImpl
 fun main(args: Array<String>) {
     runBlocking {
         val ioContext = object : IoContext {
+            override fun getEnv(): Map<String, String> = mirrg.xarpite.getEnv()
             override fun getPlatformPwd() = getPwdImpl()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
@@ -25,10 +26,10 @@ fun main(args: Array<String>) {
         val options = try {
             parseArguments(args.asIterable(), ioContext)
         } catch (_: ShowUsage) {
-            showUsage()
+            showUsage(ioContext)
             return@runBlocking
         } catch (_: ShowVersion) {
-            showVersion()
+            showVersion(ioContext)
             return@runBlocking
         }
         cliEval(ioContext, options)

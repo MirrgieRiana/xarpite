@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
@@ -52,21 +53,16 @@ class CliTest {
 
     @Test
     fun pwd() = runTest {
-        val context = TestIoContext(currentLocation = "/test/location")
-        // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPwd()
+        val context = TestIoContext(currentLocation = "/test/location", env = emptyMap())
+        // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPlatformPwd()
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
-        // Test accepts either the test location or environment variables if they are set
-        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
-        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
-        val envPwdValue = cliEval(context, "ENV.PWD")
-        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
-        val expectedPwd = xarpitePwd ?: envPwd ?: "/test/location"
-        assertEquals(expectedPwd, pwd) // PWD で現在位置が得られる
+        // With no environment variables, should get the test location
+        assertEquals("/test/location", pwd)
     }
 
     @Test
     fun pwdReturnsAbsolutePath() = runTest {
-        val context = TestIoContext(currentLocation = "/absolute/path/test")
+        val context = TestIoContext(currentLocation = "/absolute/path/test", env = emptyMap())
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
         // PWD should return an absolute path (starts with /)
         assertTrue(pwd.startsWith("/") || pwd.contains("://")) // Absolute path or URL
@@ -74,19 +70,47 @@ class CliTest {
 
     @Test
     fun pwdFallbackToPlatformSpecific() = runTest {
-        // When no environment variables are set, PWD falls back to context.io.getPwd()
-        val context = TestIoContext(currentLocation = "/platform/specific/path")
+        // When no environment variables are set, PWD falls back to context.io.getPlatformPwd()
+        val context = TestIoContext(currentLocation = "/platform/specific/path", env = emptyMap())
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
-        // If environment variables are not set, should get the test location
-        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
-        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
-        val envPwdValue = cliEval(context, "ENV.PWD")
-        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
-        if (xarpitePwd == null && envPwd == null) {
-            assertEquals("/platform/specific/path", pwd)
-        }
-        // Otherwise, just verify it's non-empty
-        assertTrue(pwd.isNotEmpty())
+        // With no environment variables, should get the platform-specific path
+        assertEquals("/platform/specific/path", pwd)
+    }
+
+    @Test
+    fun pwdUsesXarpitePwdEnvVariable() = runTest {
+        // XARPITE_PWD environment variable takes precedence
+        val context = TestIoContext(
+            currentLocation = "/platform/specific/path",
+            env = mapOf("XARPITE_PWD" to "/env/xarpite/path")
+        )
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        assertEquals("/env/xarpite/path", pwd)
+    }
+
+    @Test
+    fun pwdUsesPwdEnvVariableWhenXarpitePwdNotSet() = runTest {
+        // PWD environment variable is used when XARPITE_PWD is not set
+        val context = TestIoContext(
+            currentLocation = "/platform/specific/path",
+            env = mapOf("PWD" to "/env/pwd/path")
+        )
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        assertEquals("/env/pwd/path", pwd)
+    }
+
+    @Test
+    fun pwdPrefersXarpitePwdOverPwdEnvVariable() = runTest {
+        // XARPITE_PWD takes precedence over PWD
+        val context = TestIoContext(
+            currentLocation = "/platform/specific/path",
+            env = mapOf(
+                "XARPITE_PWD" to "/env/xarpite/path",
+                "PWD" to "/env/pwd/path"
+            )
+        )
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        assertEquals("/env/xarpite/path", pwd)
     }
 
     @Test
@@ -409,6 +433,73 @@ class CliTest {
         ).toFluoriteString(null).value
         assertEquals("banana", result)
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun useCachesByPathAcrossDifferentFiles() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.cache.across.files.tmp")
+        fileSystem.createDirectory(dir)
+        
+        // 共有モジュール: 変更可能な状態を持つ
+        val sharedModule = dir.resolve("shared.xa1")
+        fileSystem.write(sharedModule) {
+            writeUtf8(
+                """
+                {
+                  state: {
+                    value: "initial"
+                  }
+                }
+                """.trimIndent()
+            )
+        }
+        
+        // ファイル1: shared.xa1をUSEして状態を変更
+        val file1 = dir.resolve("file1.xa1")
+        fileSystem.write(file1) {
+            writeUtf8(
+                """
+                module := USE("./shared.xa1")
+                module.state.value = "modified"
+                module
+                """.trimIndent()
+            )
+        }
+        
+        // ファイル2: shared.xa1をUSEして状態を読み取る
+        val file2 = dir.resolve("file2.xa1")
+        fileSystem.write(file2) {
+            writeUtf8(
+                """
+                module := USE("./shared.xa1")
+                module.state.value
+                """.trimIndent()
+            )
+        }
+        
+        // 同じRuntimeContextで両方のファイルを評価
+        // file1でsharedモジュールを読み込んで状態を変更し、
+        // その後file2でも同じsharedモジュールを読み込む
+        // キャッシュが正しく機能していれば、file1で変更した値がfile2でも取得できる
+        val result = cliEval(
+            context,
+            """
+            USE("./$file1")
+            USE("./$file2")
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        
+        assertEquals("modified", result)
+        
+        // クリーンアップ
+        fileSystem.delete(file1)
+        fileSystem.delete(file2)
+        fileSystem.delete(sharedModule)
+        fileSystem.delete(dir)
     }
 
     @Test
@@ -1693,7 +1784,8 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
 internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
     private val stdinBytes: ByteArray = byteArrayOf(),
-    private val currentLocation: String = "/test/location"
+    private val currentLocation: String = "/test/location",
+    private val env: Map<String, String> = emptyMap()
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -1732,6 +1824,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+
+    override fun getEnv(): Map<String, String> = env
 
     override fun getPlatformPwd(): String = currentLocation
 

@@ -11,7 +11,7 @@ import okio.FileSystem
 import java.io.BufferedReader
 
 actual fun getProgramName(): String? = null
-actual fun getEnv(): Map<String, String> = System.getenv()
+fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
 
@@ -20,21 +20,21 @@ actual fun isWindows(): Boolean {
     return os != null && os.lowercase().startsWith("windows")
 }
 
-actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
+suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
+suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     val byteArray = ByteArray(INB_MAX_BUFFER_SIZE)
     val readSize = System.`in`.read(byteArray)
     if (readSize == -1) return@withContext null
     if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
 }
 
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.out.write(bytes)
     System.out.flush()
 }
 
-actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.write(bytes)
     System.err.flush()
 }
