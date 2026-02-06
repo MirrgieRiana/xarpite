@@ -368,48 +368,31 @@ $ xa -q '
 # prefix
 ```
 
-### setter無しでのインクリメント・デクリメント
+### 代入不可能な式に対するインクリメント・デクリメント
 
-式が代入をサポートしない場合でも、オーバーライドメソッドが定義されていれば、インクリメント・デクリメント演算子を使用できます。
+式が代入をサポートしない場合、オーバーライドメソッドの判定のみが行われます。
 
-```shell
-$ xa '
-  Object := {
-    `_++`: this, accessor -> (
-      this.value * 2
-    )
-  }
-  Object{value: 50}++
-'
-# 100
-```
+`accessor` は取得操作のみをサポートします。
 
----
-
-ただし、式が代入をサポートしない場合、 `accessor` 関数は取得操作のみをサポートします。
-
-`accessor` に対して1個の引数で呼び出すとエラーになります。
+通常、この動作はミュータブルな値の改変操作として定義されます。
 
 ```shell
 $ xa '
-  Object := {
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
     `_++`: this, accessor -> (
-      accessor().value
+      this.value++
     )
+    `&_`: this -> this.value.&
   }
-  Object{value: 100}++
+
+  @{
+    counter: MutableCounter.new(0)
+  }
+  counter++
+  "$counter"
 '
-# 100
-```
-
----
-
-式が代入をサポートせず、かつオーバーライドメソッドも定義されていない場合、エラーになります。
-
-```shell
-$ xa '10++'
-# ERROR: Usage: No method `_++` found
-#   at -:1:1  10++
+# 1
 ```
 
 # 変数
