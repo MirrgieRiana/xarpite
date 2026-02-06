@@ -718,13 +718,32 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ---
 
-The result of the `USE` function for the same absolute file path is cached and reused by the same call.
+The result of the `USE` function for the same absolute file path is reused.
 
-Therefore, the returned instance is always the same, and the side effects at load time also occur only once.
+The returned instance is always the same, and the side effects at load time also occur only once.
 
 If the script result is a stream, that stream is resolved.
 
 Even if the file entity is the same, if it exists on a different absolute path due to symbolic links etc., it is considered a different file.
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
 
 ---
 
@@ -732,7 +751,7 @@ By mounting the return value of the `USE` function, you can achieve a directive-
 
 #### Specification by Relative Path
 
-If `reference` is a relative path, it is resolved as a relative path from the file that called the `USE` function.
+If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the file that called the `USE` function.
 
 In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
 
@@ -806,29 +825,6 @@ $ {
 # Apple
 ```
 
----
-
-Even if a file represented by the same absolute path is loaded multiple times with different specification methods, the first loaded result is cached and reused.
-
-```shell
-$ {
-  echo 'IN' > input.xa1
-
-  xa '1 .. 3' | xa -q '
-    OUT << USE("./input.xa1") >> TO_ARRAY
-    OUT << USE("./input") >> TO_ARRAY
-    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
-    OUT << USE("$PWD/input") >> TO_ARRAY
-  '
-
-  rm input.xa1
-}
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-```
-
 #### Specification by Maven Coordinates
 
 If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
@@ -852,48 +848,30 @@ $ {
 # Apple
 ```
 
-#### Specification by INC Relative Path
+#### Specification by Relative Path from `INC`
 
-If `reference` is not an absolute path, does not start with `./`, and is not in Maven coordinate format, it is searched as a relative path from directories registered in `INC`.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+
+Modules in paths closer to the beginning of the `INC` array are given priority.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
 
 The `.xa1` extension is optional.
-
-For each `INC` directory, `reference` is resolved as a relative path in order, and the first file found is loaded.
 
 ```shell
 $ {
   mkdir -p modules
 
-  echo ' "Banana" ' > modules/banana.xa1
+  echo ' "Apple" ' > modules/fruit.xa1
 
   xa '
-    INC::push("modules")
-    USE("banana")
+    INC += "modules"
+    USE("fruit")
   '
 
   rm -r modules
 }
-# Banana
-```
-
----
-
-Here is an example of a path including subdirectories.
-
-```shell
-$ {
-  mkdir -p lib/fruit
-
-  echo ' "Cherry" ' > lib/fruit/cherry.xa1
-
-  xa '
-    INC::push("lib")
-    USE("fruit/cherry")
-  '
-
-  rm -r lib
-}
-# Cherry
+# Apple
 ```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]

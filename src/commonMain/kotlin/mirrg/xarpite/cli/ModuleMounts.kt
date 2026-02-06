@@ -64,7 +64,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     }
 
     // ファイルパス
-    if (reference.toPath().isAbsolute || reference.toPath().segments.firstOrNull() == "." || reference.toPath().segments.firstOrNull() == "..") {
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         val path = baseDir.toPath().resolve(reference).normalized()
         path.let { if (it.tryToLoad()) return it.toString() }
         path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
