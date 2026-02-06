@@ -1059,19 +1059,15 @@ class CliTest {
                 "hello"
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
-            val lines = result.stream()
-            assertEquals("hello", lines)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
+        val lines = result.stream()
+        assertEquals("hello", lines)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1083,19 +1079,15 @@ class CliTest {
                 "3\n13\n23\n30"
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
-            val lines = result.stream()
-            assertEquals("3,13,23,30", lines)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1107,18 +1099,14 @@ class CliTest {
                 throw FluoriteException("exit 1".toFluoriteString())
             }
         )
-        try {
-            val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
-            assertEquals("ERROR", result.toFluoriteString(null).value)
+        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
+        assertEquals("ERROR", result.toFluoriteString(null).value)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1130,19 +1118,15 @@ class CliTest {
                 "hello world test"
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
-            val output = result.toFluoriteString(null).value.trim()
-            assertEquals("hello world test", output)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
+        val output = result.toFluoriteString(null).value.trim()
+        assertEquals("hello world test", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1154,19 +1138,15 @@ class CliTest {
                 ""
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell(""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("", output)
+        val result = cliEval(context, getExecSrcWrappingHexForShell(""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1178,20 +1158,16 @@ class CliTest {
                 "hello;world test|pipe"
             }
         )
-        try {
-            // 特殊文字を含む引数（シングルクォート、セミコロンなど）
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("hello;world test|pipe", output)
+        // 特殊文字を含む引数（シングルクォート、セミコロンなど）
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("hello;world test|pipe", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1203,25 +1179,21 @@ class CliTest {
                 throw FluoriteException("exit 1".toFluoriteString())
             }
         )
+        // 存在しないコマンドは例外をスロー
+        var exceptionThrown = false
         try {
-            // 存在しないコマンドは例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
-            } catch (e: Exception) {
-                // FluoriteExceptionまたはその他の例外が期待される
-                exceptionThrown = true
-            }
-            assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
-
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
+        } catch (e: Exception) {
+            // FluoriteExceptionまたはその他の例外が期待される
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
+
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1233,20 +1205,16 @@ class CliTest {
                 "test"
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
-            val output = result.toFluoriteString(null).value
-            // printfは末尾に改行を追加しない
-            assertEquals("test", output)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
+        val output = result.toFluoriteString(null).value
+        // printfは末尾に改行を追加しない
+        assertEquals("test", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1255,28 +1223,30 @@ class CliTest {
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
-                throw FluoriteException("exit 1".toFluoriteString())
+                // argsからexit codeを抽出してそれに応じた例外を投げる
+                val exitCodeMatch = args.joinToString(" ").let { Regex("exit (\\d+)").find(it) }
+                val exitCode = exitCodeMatch?.groupValues?.get(1) ?: "1"
+                throw FluoriteException("exit $exitCode".toFluoriteString())
             }
         )
+        // 終了コード2でテスト
+        var exceptionThrown = false
+        var exceptionMessage = ""
         try {
-            // 終了コード2でテスト
-            var exceptionThrown = false
-            try {
-                cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
-            } catch (e: FluoriteException) {
-                // FluoriteExceptionが期待される
-                exceptionThrown = true
-            }
-            assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
-
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
+        } catch (e: FluoriteException) {
+            // FluoriteExceptionが期待される
+            exceptionThrown = true
+            exceptionMessage = e.message ?: ""
         }
+        assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
+        assertTrue(exceptionMessage.contains("exit 2"), "Exception message should contain 'exit 2'")
+
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1288,20 +1258,16 @@ class CliTest {
                 "done"
             }
         )
-        try {
-            // 少し時間がかかるコマンド
-            val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("done", output)
+        // 少し時間がかかるコマンド
+        val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("done", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1313,20 +1279,16 @@ class CliTest {
                 "b"
             }
         )
-        try {
-            // パイプを使用するコマンド
-            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
-            val output = result.toFluoriteString(null).value.trim()
-            assertEquals("b", output)
+        // パイプを使用するコマンド
+        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
+        val output = result.toFluoriteString(null).value.trim()
+        assertEquals("b", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1338,20 +1300,16 @@ class CliTest {
                 "ok"
             }
         )
-        try {
-            // 環境変数PATHは常に設定されている
-            val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
+        // EXECがbash/-cを通じてコマンドを実行することを確認する（環境変数を渡せる設定で）
+        val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1363,19 +1321,15 @@ class CliTest {
                 env["FOO"] ?: "not_set"
             }
         )
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("BAR", output)
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("BAR", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1387,20 +1341,16 @@ class CliTest {
                 env["HOME"] ?: "not_set"
             }
         )
-        try {
-            // 既存環境変数の上書き
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("OVERRIDE", output)
+        // 既存環境変数の上書き
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("OVERRIDE", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1409,23 +1359,22 @@ class CliTest {
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
-                "ok"
+                // 空文字が渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
+                if (env["HOME"] == "") "ok" else "fail"
             }
         )
-        try {
-            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
+        val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        // envの検証: HOMEが空文字であることを確認
+        assertEquals("", capturedCommands[0].third["HOME"])
     }
 
     @Test
@@ -1434,23 +1383,22 @@ class CliTest {
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
-                "ok"
+                // nullが渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
+                if (env["HOME"] == null) "ok" else "fail"
             }
         )
-        try {
-            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
+        val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        // envの検証: HOMEがnullであることを確認
+        assertEquals(null, capturedCommands[0].third["HOME"])
     }
 
     @Test
@@ -1462,19 +1410,15 @@ class CliTest {
                 throw FluoriteException("exit 1".toFluoriteString())
             }
         )
+        // 空の引数リストは例外をスロー
+        var exceptionThrown = false
         try {
-            // 空の引数リストは例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, """EXEC([])""")
-            } catch (e: Exception) {
-                // FluoriteExceptionまたはその他の例外が期待される
-                exceptionThrown = true
-            }
-            assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            cliEval(context, """EXEC([])""")
+        } catch (e: Exception) {
+            // FluoriteExceptionまたはその他の例外が期待される
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
     }
 
     @Test
@@ -1486,21 +1430,17 @@ class CliTest {
                 "a".repeat(500)
             }
         )
-        try {
-            // 長い引数
-            val longString = "a".repeat(500)
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals(longString, output)
+        // 長い引数
+        val longString = "a".repeat(500)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals(longString, output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1512,20 +1452,16 @@ class CliTest {
                 "こんにちは世界"
             }
         )
-        try {
-            // Unicode文字を含む引数
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("こんにちは世界", output)
+        // Unicode文字を含む引数
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("こんにちは世界", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1537,20 +1473,16 @@ class CliTest {
                 "abc"
             }
         )
-        try {
-            // 複数のコマンドを&&で繋ぐ
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("abc", output)
+        // 複数のコマンドを&&で繋ぐ
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("abc", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1562,20 +1494,16 @@ class CliTest {
                 "ok"
             }
         )
-        try {
-            // リダイレクションを使用
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
+        // リダイレクションを使用
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1587,20 +1515,16 @@ class CliTest {
                 "a\\b"
             }
         )
-        try {
-            // バックスラッシュを含む引数
-            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
-            val output = result.toFluoriteString(null).value
-            assertTrue(output.contains("a"))
+        // バックスラッシュを含む引数
+        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
+        val output = result.toFluoriteString(null).value
+        assertTrue(output.contains("a"))
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1617,32 +1541,28 @@ class CliTest {
                 "test$i"
             }
         )
-        try {
-            // 16並列でEXECを実行してデッドロックが発生しないことを確認
-            coroutineScope {
-                val jobs = (1..16).map { i ->
-                    async {
-                        cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
-                    }
-                }
-                val results = jobs.map { it.await() }
-                // すべての結果が返されたことを確認（順序は非決定的）
-                assertEquals(16, results.size)
-                val outputs = results.map { it.toFluoriteString(null).value }.toSet()
-                // test1 から test16 までの値がすべて含まれていることを確認（重複なし）
-                assertEquals(16, outputs.size)
-                (1..16).forEach { i ->
-                    assertTrue(outputs.contains("test$i"), "outputs should contain 'test$i'")
-                }
-                // executeProcessHandlerが正しく呼ばれたことを確認
-                assertEquals(16, capturedCommands.size)
-                capturedCommands.forEach { (process, args, _) ->
-                    assertEquals("bash", process)
-                    assertTrue(args.contains("-c"), "args should contain '-c'")
+        // 16並列でEXECを実行してデッドロックが発生しないことを確認
+        coroutineScope {
+            val jobs = (1..16).map { i ->
+                async {
+                    cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
                 }
             }
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            val results = jobs.map { it.await() }
+            // すべての結果が返されたことを確認（順序は非決定的）
+            assertEquals(16, results.size)
+            val outputs = results.map { it.toFluoriteString(null).value }.toSet()
+            // test1 から test16 までの値がすべて含まれていることを確認（重複なし）
+            assertEquals(16, outputs.size)
+            (1..16).forEach { i ->
+                assertTrue(outputs.contains("test$i"), "outputs should contain 'test$i'")
+            }
+            // executeProcessHandlerが正しく呼ばれたことを確認
+            assertEquals(16, capturedCommands.size)
+            capturedCommands.forEach { (process, args, _) ->
+                assertEquals("bash", process)
+                assertTrue(args.contains("-c"), "args should contain '-c'")
+            }
         }
     }
 
@@ -1657,19 +1577,15 @@ class CliTest {
             }
         )
 
-        try {
-            // カスタムハンドラが呼ばれることを確認
-            val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("custom output", output)
+        // カスタムハンドラが呼ばれることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("custom output", output)
 
-            // カスタムハンドラが正しい引数で呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "Custom handler should have been called")
-            val (process, _, _) = capturedCommands.first()
-            assertEquals("bash", process)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // カスタムハンドラが正しい引数で呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "Custom handler should have been called")
+        val (process, _, _) = capturedCommands.first()
+        assertEquals("bash", process)
     }
 
     @Test
@@ -1767,20 +1683,16 @@ class CliTest {
                 "Hello"
             }
         )
-        try {
-            // 基本的な動作確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("Hello", output)
+        // 基本的な動作確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("Hello", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1792,20 +1704,16 @@ class CliTest {
                 "test\n"
             }
         )
-        try {
-            // 末尾の改行が除去されることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test", output)
+        // 末尾の改行が除去されることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1817,20 +1725,16 @@ class CliTest {
                 "test\n\n\n"
             }
         )
-        try {
-            // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test\n\n", output)
+        // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n\n", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1842,20 +1746,16 @@ class CliTest {
                 "test"
             }
         )
-        try {
-            // 末尾改行がない場合
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test", output)
+        // 末尾改行がない場合
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1867,20 +1767,16 @@ class CliTest {
                 "line1\nline2\nline3\n"
             }
         )
-        try {
-            // 複数行の出力
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("line1\nline2\nline3", output)
+        // 複数行の出力
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("line1\nline2\nline3", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1892,19 +1788,15 @@ class CliTest {
                 "abc"
             }
         )
-        try {
-            // 戻り値が文字列であることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
-            assertTrue(result is FluoriteString)
+        // 戻り値が文字列であることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
+        assertTrue(result is FluoriteString)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1916,24 +1808,20 @@ class CliTest {
                 throw FluoriteException("exit 1".toFluoriteString())
             }
         )
+        // 0以外の終了コードで例外をスロー
+        var exceptionThrown = false
         try {
-            // 0以外の終了コードで例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
-            } catch (e: Exception) {
-                exceptionThrown = true
-            }
-            assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
-
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
+        } catch (e: Exception) {
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
+
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1945,20 +1833,16 @@ class CliTest {
                 "こんにちは世界"
             }
         )
-        try {
-            // Unicode文字を含む
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("こんにちは世界", output)
+        // Unicode文字を含む
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("こんにちは世界", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1970,20 +1854,16 @@ class CliTest {
                 "apple banana"
             }
         )
-        try {
-            // 引数を渡す
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("apple banana", output)
+        // 引数を渡す
+        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("apple banana", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
     @Test
@@ -1995,20 +1875,16 @@ class CliTest {
                 "The fruit is:\napple"
             }
         )
-        try {
-            // 引数を渡して複数行出力
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("The fruit is:\napple", output)
+        // 引数を渡して複数行出力
+        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("The fruit is:\napple", output)
 
-            // executeProcessHandlerが正しく呼ばれたことを確認
-            assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-            assertEquals("bash", capturedCommands[0].first)
-            // argsの検証: 最低限 "-c" が含まれていることを確認
-            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        // executeProcessHandlerが正しく呼ばれたことを確認
+        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
+        assertEquals("bash", capturedCommands[0].first)
+        // argsの検証: 最低限 "-c" が含まれていることを確認
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
     }
 
 }
