@@ -1061,7 +1061,9 @@ class CliTest {
 
     @Test
     fun execRunsComplexCommand() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "3\n13\n23\n30" }
+        )
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
             val lines = result.stream()
@@ -1073,7 +1075,9 @@ class CliTest {
 
     @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+        )
         try {
             val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString(null).value)
@@ -1084,7 +1088,9 @@ class CliTest {
 
     @Test
     fun execWithMultipleArguments() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "hello world test" }
+        )
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
             val output = result.toFluoriteString(null).value.trim()
@@ -1096,7 +1102,9 @@ class CliTest {
 
     @Test
     fun execWithEmptyOutput() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "" }
+        )
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell(""))
             val output = result.toFluoriteString(null).value
@@ -1108,7 +1116,9 @@ class CliTest {
 
     @Test
     fun execWithSpecialCharactersInArguments() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "hello;world test|pipe" }
+        )
         try {
             // 特殊文字を含む引数（シングルクォート、セミコロンなど）
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
@@ -1121,7 +1131,9 @@ class CliTest {
 
     @Test
     fun execThrowsOnCommandNotFound() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+        )
         try {
             // 存在しないコマンドは例外をスロー
             var exceptionThrown = false
@@ -1139,7 +1151,9 @@ class CliTest {
 
     @Test
     fun execWithNoTrailingNewline() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "test" }
+        )
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
             val output = result.toFluoriteString(null).value
@@ -1152,7 +1166,9 @@ class CliTest {
 
     @Test
     fun execWithDifferentExitCodes() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+        )
         try {
             // 終了コード2でテスト
             var exceptionThrown = false
@@ -1170,7 +1186,9 @@ class CliTest {
 
     @Test
     fun execWithLongRunningCommand() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "done" }
+        )
         try {
             // 少し時間がかかるコマンド
             val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
@@ -1183,7 +1201,9 @@ class CliTest {
 
     @Test
     fun execWithPipeInCommand() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "b" }
+        )
         try {
             // パイプを使用するコマンド
             val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
@@ -1196,7 +1216,9 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentVariables() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "ok" }
+        )
         try {
             // 環境変数PATHは常に設定されている
             val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
@@ -1209,7 +1231,9 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentOverrides() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, env -> env["FOO"] ?: "not_set" }
+        )
         try {
             val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
             val output = result.toFluoriteString(null).value
@@ -1221,7 +1245,9 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentOverridesExistingVariable() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, env -> env["HOME"] ?: "not_set" }
+        )
         try {
             // 既存環境変数の上書き
             val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
@@ -1234,7 +1260,9 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentRemoveByEmptyString() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, env -> if (env.containsKey("HOME")) "fail" else "ok" }
+        )
         try {
             val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
             val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
@@ -1247,7 +1275,9 @@ class CliTest {
 
     @Test
     fun execWithEnvironmentRemoveByNull() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, env -> if (env.containsKey("HOME")) "fail" else "ok" }
+        )
         try {
             val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
             val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
@@ -1260,7 +1290,9 @@ class CliTest {
 
     @Test
     fun execWithEmptyArgumentList() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+        )
         try {
             // 空の引数リストは例外をスロー
             var exceptionThrown = false
@@ -1278,7 +1310,9 @@ class CliTest {
 
     @Test
     fun execWithVeryLongArgument() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "a".repeat(500) }
+        )
         try {
             // 長い引数
             val longString = "a".repeat(500)
@@ -1292,7 +1326,9 @@ class CliTest {
 
     @Test
     fun execWithUnicodeCharacters() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "こんにちは世界" }
+        )
         try {
             // Unicode文字を含む引数
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
@@ -1305,7 +1341,9 @@ class CliTest {
 
     @Test
     fun execWithMultipleCommandsInStream() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "abc" }
+        )
         try {
             // 複数のコマンドを&&で繋ぐ
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
@@ -1318,7 +1356,9 @@ class CliTest {
 
     @Test
     fun execWithRedirection() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "ok" }
+        )
         try {
             // リダイレクションを使用
             val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
@@ -1331,7 +1371,9 @@ class CliTest {
 
     @Test
     fun execWithBackslashInArgument() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "a\\b" }
+        )
         try {
             // バックスラッシュを含む引数
             val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
@@ -1344,7 +1386,13 @@ class CliTest {
 
     @Test
     fun execParallelExecution() = runTest {
-        val context = TestIoContext()
+        var counter = 0
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> 
+                val i = ++counter
+                "test$i"
+            }
+        )
         try {
             // 16並列でEXECを実行してデッドロックが発生しないことを確認
             coroutineScope {
@@ -1479,7 +1527,9 @@ class CliTest {
 
     @Test
     fun bashBasic() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "Hello" }
+        )
         try {
             // 基本的な動作確認
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
@@ -1492,7 +1542,9 @@ class CliTest {
 
     @Test
     fun bashRemovesTrailingNewline() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "test\n" }
+        )
         try {
             // 末尾の改行が除去されることを確認
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
@@ -1505,7 +1557,9 @@ class CliTest {
 
     @Test
     fun bashRemovesOnlyOneTrailingNewline() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "test\n\n\n" }
+        )
         try {
             // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
@@ -1518,7 +1572,9 @@ class CliTest {
 
     @Test
     fun bashNoTrailingNewline() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "test" }
+        )
         try {
             // 末尾改行がない場合
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
@@ -1531,7 +1587,9 @@ class CliTest {
 
     @Test
     fun bashWithMultipleLines() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "line1\nline2\nline3\n" }
+        )
         try {
             // 複数行の出力
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
@@ -1544,7 +1602,9 @@ class CliTest {
 
     @Test
     fun bashReturnsString() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "abc" }
+        )
         try {
             // 戻り値が文字列であることを確認
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
@@ -1556,7 +1616,9 @@ class CliTest {
 
     @Test
     fun bashThrowsOnNonZeroExit() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> throw FluoriteException("exit 1".toFluoriteString()) }
+        )
         try {
             // 0以外の終了コードで例外をスロー
             var exceptionThrown = false
@@ -1573,7 +1635,9 @@ class CliTest {
 
     @Test
     fun bashWithUnicode() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "日本語" }
+        )
         try {
             // Unicode文字を含む
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
@@ -1586,7 +1650,9 @@ class CliTest {
 
     @Test
     fun bashWithArguments() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "apple" }
+        )
         try {
             // 引数を渡す
             val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
@@ -1599,7 +1665,9 @@ class CliTest {
 
     @Test
     fun bashWithArgumentsMultipleLines() = runTest {
-        val context = TestIoContext()
+        val context = TestIoContext(
+            executeProcessHandler = { _, _, _ -> "The fruit is:\napple" }
+        )
         try {
             // 引数を渡して複数行出力
             val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
