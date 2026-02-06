@@ -23,13 +23,13 @@ class CompoundAssignmentTest {
 
     @Test
     fun plusAssignmentReturnValueTest() = runTest {
-        // += は右辺値を返す
+        // += はオーバーライドメソッドがない場合、右辺値を返す
         assertEquals(23, eval("a := 100; a += 23").int)
     }
 
     @Test
     fun minusAssignmentReturnValueTest() = runTest {
-        // -= は右辺値を返す
+        // -= はオーバーライドメソッドがない場合、右辺値を返す
         assertEquals(23, eval("a := 100; a -= 23").int)
     }
 
