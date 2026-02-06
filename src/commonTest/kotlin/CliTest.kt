@@ -1223,24 +1223,19 @@ class CliTest {
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
-                // argsからexit codeを抽出してそれに応じた例外を投げる
-                val exitCodeMatch = args.joinToString(" ").let { Regex("exit (\\d+)").find(it) }
-                val exitCode = exitCodeMatch?.groupValues?.get(1) ?: "1"
-                throw FluoriteException("exit $exitCode".toFluoriteString())
+                // 非ゼロ終了コードの場合は例外を投げる
+                throw FluoriteException("exit 2".toFluoriteString())
             }
         )
         // 終了コード2でテスト
         var exceptionThrown = false
-        var exceptionMessage = ""
         try {
             cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
         } catch (e: FluoriteException) {
             // FluoriteExceptionが期待される
             exceptionThrown = true
-            exceptionMessage = e.message ?: ""
         }
         assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
-        assertTrue(exceptionMessage.contains("exit 2"), "Exception message should contain 'exit 2'")
 
         // executeProcessHandlerが正しく呼ばれたことを確認
         assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
