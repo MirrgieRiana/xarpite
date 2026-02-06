@@ -20,11 +20,11 @@ check readlink
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
 # Setup temporary directory with cleanup trap
-TMPDIR=""
+tmpdir=""
 cleanup() {
-  if [ -n "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
+  if [ -n "$tmpdir" ] && [ -d "$tmpdir" ]; then
     echo "Cleaning up temporary files" >&2
-    rm -rf "$TMPDIR"
+    rm -rf "$tmpdir"
   fi
 }
 trap cleanup EXIT INT TERM
@@ -59,14 +59,13 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 [ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
-TMPDIR=$(mktemp -d)
-TMPDIR_BASENAME=$(basename "$TMPDIR")
+tmpdir=$(mktemp -d)
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-curl -L -o - "$url" | tar -xzf - -C "$TMPDIR"
-echo "Successfully downloaded and extracted to: $TMPDIR"
+curl -L -o - "$url" | tar -xzf - -C "$tmpdir"
+echo "Successfully downloaded and extracted to: $tmpdir"
 
 echo
 
@@ -76,7 +75,7 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete --exclude=/"$TMPDIR_BASENAME"/ "$TMPDIR"/ ./
+rsync -n --itemize-changes -ac --delete "$tmpdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -89,7 +88,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -ac --delete --exclude=/"$TMPDIR_BASENAME"/ "$TMPDIR"/ ./
+rsync -ac --delete "$tmpdir"/ ./
 
 echo
 
