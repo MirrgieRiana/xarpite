@@ -724,13 +724,32 @@ $ {
 
 ---
 
-同一絶対ファイルパスに対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
+同一絶対ファイルパスに対する `USE` 関数の結果は再利用されます。
 
-そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。
+返されるインスタンスは常に同一となり、読み込み時の副作用も1度だけ生じます。
 
 スクリプトの結果がストリームである場合、そのストリームは解決されます。
 
-ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。
+ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合は別のファイルとみなされます。
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
 
 ---
 
@@ -738,7 +757,7 @@ $ {
 
 #### 相対パスによる指定
 
-`reference` が相対パスである場合、 `USE` 関数の呼び出しを行ったファイルからの相対パスとして解決されます。
+`reference` が `.` の階層で始まる相対パスである場合、 `USE` 関数の呼び出しを行ったファイルからの相対パスとして解決されます。
 
 `-e` コマンドラインオプションによって起動されたコンテキストでは、カレントディレクトリからの相対パスとして解決されます。
 
@@ -812,27 +831,28 @@ $ {
 # Apple
 ```
 
----
+#### `INC` を起点とした相対パスによる指定
 
-同一の絶対パスで表されるファイルを異なる指定方法で複数回ロードしても、最初に読み込まれた結果がキャッシュされ、再利用されます。
+`reference` が `.` の階層で始まらない相対パスである場合、対応するモジュールファイルを `INC` に登録されたディレクトリから検索します。
+
+ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
+
+拡張子の `.xa1` は省略可能です。
 
 ```shell
 $ {
-  echo 'IN' > input.xa1
+  mkdir -p modules
 
-  xa '1 .. 3' | xa -q '
-    OUT << USE("./input.xa1") >> TO_ARRAY
-    OUT << USE("./input") >> TO_ARRAY
-    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
-    OUT << USE("$PWD/input") >> TO_ARRAY
+  echo ' "Apple" ' > modules/fruit.xa1
+
+  xa '
+    INC += "modules"
+    USE("fruit")
   '
 
-  rm input.xa1
+  rm -r modules
 }
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
+# Apple
 ```
 
 #### Maven座標による指定
@@ -856,50 +876,6 @@ $ {
   rm -r .xarpite
 }
 # Apple
-```
-
-#### INC相対パスによる指定
-
-`reference` が絶対パスでも `./` 始まりでもMaven座標形式でもない場合、 `INC` に登録されたディレクトリから相対パスとして検索します。
-
-拡張子の `.xa1` は省略可能です。
-
-各 `INC` ディレクトリに対して順番に `reference` を相対パスとして解決し、最初に見つかったファイルを読み込みます。
-
-```shell
-$ {
-  mkdir -p modules
-
-  echo ' "Banana" ' > modules/banana.xa1
-
-  xa '
-    INC::push("modules")
-    USE("banana")
-  '
-
-  rm -r modules
-}
-# Banana
-```
-
----
-
-以下はサブディレクトリを含むパスの例です。
-
-```shell
-$ {
-  mkdir -p lib/fruit
-
-  echo ' "Cherry" ' > lib/fruit/cherry.xa1
-
-  xa '
-    INC::push("lib")
-    USE("fruit/cherry")
-  '
-
-  rm -r lib
-}
-# Cherry
 ```
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
