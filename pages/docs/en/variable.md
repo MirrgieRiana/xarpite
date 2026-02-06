@@ -368,6 +368,49 @@ $ xa -q '
 # prefix
 ```
 
+### Increment/Decrement Without Setter
+
+Even if an expression doesn't support assignment, increment and decrement operators can be used if an override method is defined.
+
+```shell
+$ xa '
+  Object := {
+    `_++`: this, accessor -> (
+      this.value * 2
+    )
+  }
+  Object{value: 50}++
+'
+# 100
+```
+
+---
+
+However, when an expression doesn't support assignment, the `accessor` function only supports get operations.
+
+Calling `accessor` with 1 argument will result in an error.
+
+```shell
+$ xa '
+  Object := {
+    `_++`: this, accessor -> (
+      accessor().value
+    )
+  }
+  Object{value: 100}++
+'
+# 100
+```
+
+---
+
+If an expression doesn't support assignment and no override method is defined, an error will occur.
+
+```shell
+$ xa '10++'
+# Error: No method `_++` found
+```
+
 # Variables
 
 Variables are a mechanism for storing and referencing values by naming them with identifiers.
