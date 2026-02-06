@@ -1608,7 +1608,8 @@ internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
     private val stdinBytes: ByteArray = byteArrayOf(),
     private val currentLocation: String = "/test/location",
-    private val env: Map<String, String> = emptyMap()
+    private val env: Map<String, String> = emptyMap(),
+    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -1646,7 +1647,8 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = 
+        executeProcessHandler?.invoke(process, args, env) ?: mirrg.xarpite.executeProcess(process, args, env)
 
     override fun getEnv(): Map<String, String> = env
 
