@@ -457,7 +457,7 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.cache.across.files.tmp")
         fileSystem.createDirectory(dir)
-        
+
         // 共有モジュール: 変更可能な状態を持つ
         val sharedModule = dir.resolve("shared.xa1")
         fileSystem.write(sharedModule) {
@@ -471,7 +471,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // ファイル1: shared.xa1をUSEして状態を変更
         val file1 = dir.resolve("file1.xa1")
         fileSystem.write(file1) {
@@ -483,7 +483,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // ファイル2: shared.xa1をUSEして状態を読み取る
         val file2 = dir.resolve("file2.xa1")
         fileSystem.write(file2) {
@@ -494,7 +494,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // 同じRuntimeContextで両方のファイルを評価
         // file1でsharedモジュールを読み込んで状態を変更し、
         // その後file2でも同じsharedモジュールを読み込む
@@ -506,9 +506,9 @@ class CliTest {
             USE("./$file2")
             """.trimIndent()
         ).toFluoriteString(null).value
-        
+
         assertEquals("modified", result)
-        
+
         // クリーンアップ
         fileSystem.delete(file1)
         fileSystem.delete(file2)
@@ -1050,6 +1050,7 @@ class CliTest {
         }
     }
 
+    @Test
     fun execRunsSimpleCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
@@ -1062,7 +1063,7 @@ class CliTest {
             val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
             val lines = result.stream()
             assertEquals("hello", lines)
-            
+
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
@@ -1109,7 +1110,7 @@ class CliTest {
         try {
             val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
             assertEquals("ERROR", result.toFluoriteString(null).value)
-            
+
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
@@ -1606,8 +1607,12 @@ class CliTest {
     fun execParallelExecution() = runTest {
         var counter = 0
         val mutex = Mutex()
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, _ -> 
+            executeProcessHandler = { process, args, env ->
+                mutex.withLock {
+                    capturedCommands.add(Triple(process, args, env))
+                }
                 val i = mutex.withLock { ++counter }
                 "test$i"
             }
@@ -1621,10 +1626,19 @@ class CliTest {
                     }
                 }
                 val results = jobs.map { it.await() }
-                // すべての結果が正しいことを確認
-                results.forEachIndexed { index, result ->
-                    val output = result.toFluoriteString(null).value
-                    assertEquals("test${index + 1}", output)
+                // すべての結果が返されたことを確認（順序は非決定的）
+                assertEquals(16, results.size)
+                val outputs = results.map { it.toFluoriteString(null).value }.toSet()
+                // test1 から test16 までの値がすべて含まれていることを確認（重複なし）
+                assertEquals(16, outputs.size)
+                (1..16).forEach { i ->
+                    assertTrue(outputs.contains("test$i"), "outputs should contain 'test$i'")
+                }
+                // executeProcessHandlerが正しく呼ばれたことを確認
+                assertEquals(16, capturedCommands.size)
+                capturedCommands.forEach { (process, args, _) ->
+                    assertEquals("bash", process)
+                    assertTrue(args.contains("-c"), "args should contain '-c'")
                 }
             }
         } catch (e: WorkInProgressError) {
@@ -1642,13 +1656,13 @@ class CliTest {
                 "custom output"
             }
         )
-        
+
         try {
             // カスタムハンドラが呼ばれることを確認
             val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
             val output = result.toFluoriteString(null).value
             assertEquals("custom output", output)
-            
+
             // カスタムハンドラが正しい引数で呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "Custom handler should have been called")
             val (process, _, _) = capturedCommands.first()
@@ -1936,7 +1950,7 @@ class CliTest {
             val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
             val output = result.toFluoriteString(null).value
             assertEquals("こんにちは世界", output)
-            
+
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
