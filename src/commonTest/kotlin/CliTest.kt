@@ -1090,8 +1090,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1113,8 +1113,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1137,8 +1137,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1161,8 +1161,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1186,8 +1186,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1216,8 +1216,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1241,8 +1241,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1271,8 +1271,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1296,8 +1296,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1321,8 +1321,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1346,8 +1346,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1370,8 +1370,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1395,8 +1395,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1420,8 +1420,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1445,8 +1445,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1495,8 +1495,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1520,8 +1520,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1545,8 +1545,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1570,8 +1570,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1595,8 +1595,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1762,8 +1762,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1787,8 +1787,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1812,8 +1812,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1837,8 +1837,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1862,8 +1862,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1886,8 +1886,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1915,8 +1915,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1940,8 +1940,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1965,8 +1965,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
@@ -1990,8 +1990,8 @@ class CliTest {
             // executeProcessHandlerが正しく呼ばれたことを確認
             assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
             assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+            // argsの検証: 最低限 "-c" が含まれていることを確認
+            assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
         } catch (e: WorkInProgressError) {
             // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
         }
