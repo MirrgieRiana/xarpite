@@ -5,6 +5,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.WorkInProgressError
@@ -1387,9 +1389,10 @@ class CliTest {
     @Test
     fun execParallelExecution() = runTest {
         var counter = 0
+        val mutex = Mutex()
         val context = TestIoContext(
             executeProcessHandler = { _, _, _ -> 
-                val i = ++counter
+                val i = mutex.withLock { ++counter }
                 "test$i"
             }
         )
