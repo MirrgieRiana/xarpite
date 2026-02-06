@@ -1,5 +1,6 @@
 package mirrg.xarpite
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -39,7 +40,7 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.flush()
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
+actual suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>): String = kotlinx.coroutines.coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
@@ -55,17 +56,17 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
 
         try {
             // 標準出力を非同期で読み取る
-            val outputDeferred = async {
+            val outputDeferred = coroutineScope.async {
                 BufferedReader(processInstance.inputStream.reader()).use { reader ->
                     reader.readText()
                 }
             }
 
-            // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
-            val errorDeferred = async {
+            // 標準エラー出力を非同期で読み取り、ioContextを経由してstderrに転送
+            val errorDeferred = coroutineScope.async {
                 BufferedReader(processInstance.errorStream.reader()).use { reader ->
                     reader.forEachLine { line ->
-                        System.err.println(line)
+                        ioContext.writeBytesToStderr((line + "\n").encodeToByteArray())
                     }
                 }
             }

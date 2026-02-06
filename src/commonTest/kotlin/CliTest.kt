@@ -1648,7 +1648,8 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+    override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) = 
+        mirrg.xarpite.executeProcess(this, coroutineScope, process, args, env)
 
     override fun getEnv(): Map<String, String> = env
 

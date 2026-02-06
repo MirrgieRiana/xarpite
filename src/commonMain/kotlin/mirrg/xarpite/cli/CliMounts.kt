@@ -183,7 +183,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
 
             val process = commandList[0]
             val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, env)
+            val output = context.io.executeProcess(context.coroutineScope, process, processArgs, env)
 
             val lines = output.lines()
             val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
@@ -209,7 +209,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
 
             // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
             // ダミーの$0として"bash"を挿入
-            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
+            val output = context.io.executeProcess(context.coroutineScope, "bash", listOf("-c", script, "bash", *args), emptyMap())
 
             val result = when {
                 output.endsWith("\r\n") -> output.dropLast(2)

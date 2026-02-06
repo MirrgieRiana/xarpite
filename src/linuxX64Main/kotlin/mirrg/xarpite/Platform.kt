@@ -14,6 +14,7 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -101,7 +102,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+actual suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
@@ -418,21 +419,12 @@ actual suspend fun executeProcess(process: String, args: List<String>, env: Map<
                     }
                 }
 
-                // 子プロセスが正常終了した後、バッファリングしたstderrを出力
+                // 子プロセスが正常終了した後、バッファリングしたstderrをioContextを経由して出力
                 // デッドロック回避のため、子プロセス終了後にまとめて出力する
                 // chunk単位で出力することでO(n^2)の全量連結とtempBufferコピーを回避
                 for (chunk in stderrChunks) {
                     if (chunk.isNotEmpty()) {
-                        // 部分書き込みとEINTRを考慮してSTDERR_FILENOに書き込む
-                        var totalWritten = 0
-                        while (totalWritten < chunk.size) {
-                            val written = write(STDERR_FILENO, chunk.refTo(totalWritten), (chunk.size - totalWritten).toULong())
-                            when {
-                                written > 0 -> totalWritten += written.toInt()
-                                written == -1L && errno == EINTR -> continue  // シグナル中断は再試行
-                                else -> break  // その他のエラーは諦める（デバッグ情報のため）
-                            }
-                        }
+                        ioContext.writeBytesToStderr(chunk)
                     }
                 }
 
