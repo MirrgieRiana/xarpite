@@ -52,4 +52,3 @@ class IncrementGetter(
 
     override val code get() = "IncrementGetter[${getter.code};${setter?.code};$isIncrement;$isSuffix]"
 }
-
