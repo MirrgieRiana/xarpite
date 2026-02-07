@@ -9,7 +9,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
-import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -1050,24 +1049,49 @@ class CliTest {
         }
     }
 
+    // EXEC/BASHテスト用のヘルパー関数
+    private fun createTestContextWithCapture(
+        returnValue: String,
+        capturedCommands: MutableList<Triple<String, List<String>, Map<String, String?>>>
+    ): TestIoContext {
+        return TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                returnValue
+            }
+        )
+    }
+
+    private fun createTestContextWithCaptureAndException(
+        exception: Exception,
+        capturedCommands: MutableList<Triple<String, List<String>, Map<String, String?>>>
+    ): TestIoContext {
+        return TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw exception
+            }
+        )
+    }
+
+    private fun assertExecuteProcessHandlerCalled(
+        capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
+        message: String = "executeProcessHandler should have been called"
+    ) {
+        assertTrue(capturedCommands.isNotEmpty(), message)
+        assertEquals("bash", capturedCommands[0].first, "process should be 'bash'")
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+    }
+
     @Test
     fun execRunsSimpleCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
-        val context = TestIoContext(
-            executeProcessHandler = { process, args, env ->
-                capturedCommands.add(Triple(process, args, env))
-                "hello"
-            }
-        )
+        val context = createTestContextWithCapture("hello", capturedCommands)
         val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
         val lines = result.stream()
         assertEquals("hello", lines)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
