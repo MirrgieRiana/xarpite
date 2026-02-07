@@ -1062,18 +1062,6 @@ class CliTest {
         )
     }
 
-    private fun createTestContextWithCaptureAndException(
-        exception: Exception,
-        capturedCommands: MutableList<Triple<String, List<String>, Map<String, String?>>>
-    ): TestIoContext {
-        return TestIoContext(
-            executeProcessHandler = { process, args, env ->
-                capturedCommands.add(Triple(process, args, env))
-                throw exception
-            }
-        )
-    }
-
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
         message: String = "executeProcessHandler should have been called"
@@ -1107,11 +1095,7 @@ class CliTest {
         val lines = result.stream()
         assertEquals("3,13,23,30", lines)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1126,11 +1110,7 @@ class CliTest {
         val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
         assertEquals("ERROR", result.toFluoriteString(null).value)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1146,11 +1126,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value.trim()
         assertEquals("hello world test", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1166,11 +1142,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1187,11 +1159,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("hello;world test|pipe", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1213,11 +1181,7 @@ class CliTest {
         }
         assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1234,11 +1198,7 @@ class CliTest {
         // printfは末尾に改行を追加しない
         assertEquals("test", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1261,11 +1221,7 @@ class CliTest {
         }
         assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1282,11 +1238,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("done", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1303,11 +1255,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value.trim()
         assertEquals("b", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1324,11 +1272,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1344,11 +1288,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("BAR", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1365,11 +1305,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("OVERRIDE", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1387,11 +1323,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
         // envの検証: HOMEが空文字であることを確認
         assertEquals("", capturedCommands[0].third["HOME"])
     }
@@ -1411,12 +1343,9 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
-        // envの検証: HOMEがnullであることを確認
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        // envの検証: HOMEキーが存在し、値がnullであることを確認
+        assertTrue(capturedCommands[0].third.containsKey("HOME"), "HOME key should be present in env")
         assertEquals(null, capturedCommands[0].third["HOME"])
     }
 
@@ -1455,11 +1384,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals(longString, output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1476,11 +1401,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("こんにちは世界", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1497,11 +1418,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("abc", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1518,11 +1435,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1539,11 +1452,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertTrue(output.contains("a"))
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1602,9 +1511,7 @@ class CliTest {
         assertEquals("custom output", output)
 
         // カスタムハンドラが正しい引数で呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "Custom handler should have been called")
-        val (process, _, _) = capturedCommands.first()
-        assertEquals("bash", process)
+        assertExecuteProcessHandlerCalled(capturedCommands, "Custom handler should have been called")
     }
 
     @Test
@@ -1707,11 +1614,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("Hello", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1728,11 +1631,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("test", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1749,11 +1648,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("test\n\n", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1770,11 +1665,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("test", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1791,11 +1682,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("line1\nline2\nline3", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1811,11 +1698,7 @@ class CliTest {
         val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
         assertTrue(result is FluoriteString)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1836,11 +1719,7 @@ class CliTest {
         }
         assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1857,11 +1736,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("こんにちは世界", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1878,11 +1753,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("apple banana", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
@@ -1899,11 +1770,7 @@ class CliTest {
         val output = result.toFluoriteString(null).value
         assertEquals("The fruit is:\napple", output)
 
-        // executeProcessHandlerが正しく呼ばれたことを確認
-        assertTrue(capturedCommands.isNotEmpty(), "executeProcessHandler should have been called")
-        assertEquals("bash", capturedCommands[0].first)
-        // argsの検証: 最低限 "-c" が含まれていることを確認
-        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
 }
