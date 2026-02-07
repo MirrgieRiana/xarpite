@@ -1273,6 +1273,8 @@ class CliTest {
         assertEquals("ok", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
+        // 環境変数のオーバーライドを渡していないことを確認
+        assertTrue(capturedCommands[0].third.isEmpty(), "No environment variable overrides should be passed")
     }
 
     @Test
@@ -1458,18 +1460,29 @@ class CliTest {
     @Test
     fun execParallelExecution() = runTest {
         var counter = 0
+        var maxConcurrent = 0
+        var currentConcurrent = 0
         val mutex = Mutex()
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
                 mutex.withLock {
                     capturedCommands.add(Triple(process, args, env))
+                    currentConcurrent++
+                    if (currentConcurrent > maxConcurrent) {
+                        maxConcurrent = currentConcurrent
+                    }
                 }
-                val i = mutex.withLock { ++counter }
+                // 意図的にサスペンドして並列実行の重なりを発生させる
+                kotlinx.coroutines.delay(10)
+                val i = mutex.withLock { 
+                    currentConcurrent--
+                    ++counter
+                }
                 "test$i"
             }
         )
-        // 16並列でEXECを実行してデッドロックが発生しないことを確認
+        // 16並列でEXECを実行してデッドロックが発生しないこと、および実際に並列実行されることを確認
         coroutineScope {
             val jobs = (1..16).map { i ->
                 async {
@@ -1491,6 +1504,8 @@ class CliTest {
                 assertEquals("bash", process)
                 assertTrue(args.contains("-c"), "args should contain '-c'")
             }
+            // 実際に並列実行された（複数のタスクが同時に実行された）ことを確認
+            assertTrue(maxConcurrent > 1, "At least 2 tasks should have been running concurrently, but maxConcurrent was $maxConcurrent")
         }
     }
 
