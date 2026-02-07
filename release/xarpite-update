@@ -16,6 +16,7 @@ check perl
 check sort
 check rsync
 check readlink
+check mktemp
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
@@ -78,7 +79,7 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 [ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
-tmpdir=$(mktemp -d) || error "Error: Failed to create temporary directory."
+tmpdir=$(mktemp -d "/tmp/xarpite-update.XXXXXX") || error "Error: Failed to create temporary directory."
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
