@@ -17,7 +17,7 @@ fun Frame.compileToSetter(node: Node): Result<Setter> {
     return when (node) {
         is IdentifierNode -> {
             val name = node.string
-            val (frameIndex, variableIndex) = getVariable(name) ?: throw IllegalArgumentException("No such variable: $name")
+            val (frameIndex, variableIndex) = getVariable(name) ?: return Result.failure(IllegalArgumentException("No such variable: $name"))
             Result.success(VariableSetter(frameIndex, variableIndex))
         }
 

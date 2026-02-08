@@ -516,21 +516,6 @@ class CliTest {
     }
 
     @Test
-    fun useRejectsInvalidModulePath() = runTest {
-        val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
-        val fileSystem = getFileSystem().getOrThrow()
-        fileSystem.createDirectories(baseDir)
-        val file = baseDir.resolve("use.prefix.tmp.xa1")
-        fileSystem.write(file) { writeUtf8("1") }
-        // Error when neither relative/absolute path prefix nor colon (Maven coordinate) is present
-        assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("use.prefix.tmp.xa1")""")
-        }
-        fileSystem.delete(file)
-    }
-
-    @Test
     fun useSupportsAbsolutePath() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -674,10 +659,6 @@ class CliTest {
     fun useRejectsInvalidMavenCoordinate() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
-        // Reject strings without prefix that don't contain colon (not Maven coordinate)
-        assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("invalid_module_name")""")
-        }
         // Reject Maven coordinates with wrong number of parts
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("group:artifact")""")
@@ -709,6 +690,214 @@ class CliTest {
         val context = TestIoContext()
         // INC はアクセス可能で配列である
         assertTrue(cliEval(context, "INC ?= ARRAY").boolean)
+    }
+
+    @Test
+    fun useIncRelativePath() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにモジュールを配置
+        val incDir = "build/test/use.inc.relative.tmp".toPath()
+        fileSystem.createDirectories(incDir)
+        val moduleFile = incDir.resolve("banana.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Banana\"") }
+
+        // INCにカスタムパスを追加してINC相対パスでモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.relative.tmp")
+            USE("banana")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Banana", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(incDir)
+    }
+
+    @Test
+    fun useIncRelativePathWithExtension() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにモジュールを配置
+        val incDir = "build/test/use.inc.relative.ext.tmp".toPath()
+        fileSystem.createDirectories(incDir)
+        val moduleFile = incDir.resolve("cherry.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Cherry\"") }
+
+        // .xa1拡張子を省略せずに指定
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.relative.ext.tmp")
+            USE("cherry.xa1")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Cherry", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(incDir)
+    }
+
+    @Test
+    fun useIncRelativePathWithSubdirectory() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにサブディレクトリを含むモジュールを配置
+        val incDir = "build/test/use.inc.relative.sub.tmp".toPath()
+        val subDir = incDir.resolve("fruit")
+        fileSystem.createDirectories(subDir)
+        val moduleFile = subDir.resolve("grape.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Grape\"") }
+
+        // サブディレクトリを含むINC相対パスでモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.relative.sub.tmp")
+            USE("fruit/grape")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Grape", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(subDir)
+        fileSystem.delete(incDir)
+    }
+
+    @Test
+    fun useIncRelativePathSearchesMultipleIncPaths() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // 複数のINCディレクトリを作成
+        val incDir1 = "build/test/use.inc.multiple.1.tmp".toPath()
+        val incDir2 = "build/test/use.inc.multiple.2.tmp".toPath()
+        fileSystem.createDirectories(incDir1)
+        fileSystem.createDirectories(incDir2)
+
+        // 2つ目のINCディレクトリにのみモジュールを配置
+        val moduleFile = incDir2.resolve("orange.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Orange\"") }
+
+        // 複数のINCパスを追加し、2つ目のパスからモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.multiple.1.tmp")
+            INC::push("build/test/use.inc.multiple.2.tmp")
+            USE("orange")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Orange", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(incDir1)
+        fileSystem.delete(incDir2)
+    }
+
+    @Test
+    fun useIncRelativePathNotFoundThrowsError() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+
+        // 存在しないINC相対パスはエラー
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                INC::push("build/test/nonexistent")
+                USE("nonexistent_module")
+            """.trimIndent())
+        }
+    }
+
+    @Test
+    fun useIncRelativePathPriority() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // 複数のINCディレクトリに同名のモジュールを配置
+        val incDir1 = "build/test/use.inc.priority.1.tmp".toPath()
+        val incDir2 = "build/test/use.inc.priority.2.tmp".toPath()
+        fileSystem.createDirectories(incDir1)
+        fileSystem.createDirectories(incDir2)
+
+        val moduleFile1 = incDir1.resolve("same.xa1")
+        val moduleFile2 = incDir2.resolve("same.xa1")
+        fileSystem.write(moduleFile1) { writeUtf8("\"First\"") }
+        fileSystem.write(moduleFile2) { writeUtf8("\"Second\"") }
+
+        // INC配列内で先頭に近いパスが優先される
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.priority.1.tmp")
+            INC::push("build/test/use.inc.priority.2.tmp")
+            USE("same")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("First", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile1)
+        fileSystem.delete(moduleFile2)
+        fileSystem.delete(incDir1)
+        fileSystem.delete(incDir2)
+    }
+
+    @Test
+    fun useDotRelativePathResolvedFromCaller() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // . で始まるパスは呼び出し元からの相対パスとして解決される
+        val dir = "build/test/use.dot.relative.tmp".toPath()
+        fileSystem.createDirectories(dir)
+        val moduleFile = dir.resolve("module.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"DotRelative\"") }
+
+        val result = cliEval(context, """
+            USE("./build/test/use.dot.relative.tmp/module")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("DotRelative", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useDotDotRelativePathResolvedFromCaller() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // .. で始まるパスは呼び出し元からの相対パスとして解決される
+        val dir1 = "build/test/use.dotdot.tmp".toPath()
+        val dir2 = dir1.resolve("subdir")
+        fileSystem.createDirectories(dir2)
+        
+        val callerFile = dir2.resolve("caller.xa1")
+        val moduleFile = dir1.resolve("module.xa1")
+        
+        fileSystem.write(moduleFile) { writeUtf8("\"DotDotRelative\"") }
+        fileSystem.write(callerFile) { writeUtf8("""USE("../module")""") }
+
+        val result = cliEval(context, """
+            USE("./build/test/use.dotdot.tmp/subdir/caller")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("DotDotRelative", result)
+
+        // クリーンアップ
+        fileSystem.delete(callerFile)
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir2)
+        fileSystem.delete(dir1)
     }
 
     @Test
