@@ -118,7 +118,7 @@ The same applies to other compound assignment methods besides `_+=_`.
 ```shell
 $ xa -q '
   Array := {
-    `_+=_`: this, item -> this.value::push(item)
+    `_+=_`: this, item, accessor -> this.value::push(item)
   }
   array := Array{value: ["apple"]}
 

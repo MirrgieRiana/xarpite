@@ -118,7 +118,7 @@ $ xa -q '
 ```shell
 $ xa -q '
   Array := {
-    `_+=_`: this, item -> this.value::push(item)
+    `_+=_`: this, item, accessor -> this.value::push(item)
   }
   array := Array{value: ["apple"]}
 
