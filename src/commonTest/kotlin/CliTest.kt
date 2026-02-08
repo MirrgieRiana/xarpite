@@ -1050,18 +1050,6 @@ class CliTest {
     }
 
     // EXEC/BASHテスト用のヘルパー関数
-    private fun createTestContextWithCapture(
-        returnValue: String,
-        capturedCommands: MutableList<Triple<String, List<String>, Map<String, String?>>>
-    ): TestIoContext {
-        return TestIoContext(
-            executeProcessHandler = { process, args, env ->
-                capturedCommands.add(Triple(process, args, env))
-                returnValue
-            }
-        )
-    }
-
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
         message: String = "executeProcessHandler should have been called"
@@ -1074,7 +1062,12 @@ class CliTest {
     @Test
     fun execRunsSimpleCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
-        val context = createTestContextWithCapture("hello", capturedCommands)
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello"
+            }
+        )
         val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
         val lines = result.stream()
         assertEquals("hello", lines)
@@ -1475,7 +1468,7 @@ class CliTest {
                 }
                 // 意図的にサスペンドして並列実行の重なりを発生させる
                 kotlinx.coroutines.delay(10)
-                val i = mutex.withLock { 
+                val i = mutex.withLock {
                     currentConcurrent--
                     ++counter
                 }
