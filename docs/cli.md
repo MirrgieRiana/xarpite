@@ -353,6 +353,22 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+---
+
+Note that at the root directory it becomes `/`.
+
+For example, performing string concatenation like the following will produce an abnormal path string.
+
+The `RESOLVE` function can be used to solve this problem.
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
 ### `LOCATION`: Get Path of Currently Executing Script
 
 `LOCATION: STRING`
@@ -718,13 +734,32 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ---
 
-The result of the `USE` function for the same absolute file path is cached and reused by the same call.
+The result of the `USE` function for the same absolute file path is reused.
 
-Therefore, the returned instance is always the same, and the side effects at load time also occur only once.
+The returned instance is always the same, and the side effects at load time also occur only once.
 
 If the script result is a stream, that stream is resolved.
 
 Even if the file entity is the same, if it exists on a different absolute path due to symbolic links etc., it is considered a different file.
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
 
 ---
 
@@ -732,7 +767,7 @@ By mounting the return value of the `USE` function, you can achieve a directive-
 
 #### Specification by Relative Path
 
-If `reference` is a relative path, it is resolved as a relative path from the file that called the `USE` function.
+If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the file that called the `USE` function.
 
 In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
 
@@ -806,29 +841,6 @@ $ {
 # Apple
 ```
 
----
-
-Even if a file represented by the same absolute path is loaded multiple times with different specification methods, the first loaded result is cached and reused.
-
-```shell
-$ {
-  echo 'IN' > input.xa1
-
-  xa '1 .. 3' | xa -q '
-    OUT << USE("./input.xa1") >> TO_ARRAY
-    OUT << USE("./input") >> TO_ARRAY
-    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
-    OUT << USE("$PWD/input") >> TO_ARRAY
-  '
-
-  rm input.xa1
-}
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-```
-
 #### Specification by Maven Coordinates
 
 If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
@@ -848,6 +860,32 @@ $ {
   xa 'USE("com.example.fruit:apple:1.0.0")'
 
   rm -r .xarpite
+}
+# Apple
+```
+
+#### Specification by Relative Path from `INC`
+
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+
+Modules in paths closer to the beginning of the `INC` array are given priority.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` extension is optional.
+
+```shell
+$ {
+  mkdir -p modules
+
+  echo ' "Apple" ' > modules/fruit.xa1
+
+  xa '
+    INC += "modules"
+    USE("fruit")
+  '
+
+  rm -r modules
 }
 # Apple
 ```
