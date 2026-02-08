@@ -92,9 +92,9 @@ $ xa '
 
 ## 演算代入演算子
 
-Xarpiteには `+=` 演算子などの演算と代入を同時に行う演算代入演算子が存在します。
+Xarpiteには `variable += value` などの、演算と代入を同時に行う演算代入演算子が存在します。
 
-`a += b` は、多くの場合 `a = a + b` と等価です。
+原則として、 `variable += value` は `variable = variable + value` と等価な働きをします。
 
 ```shell
 $ xa -q '
@@ -107,159 +107,93 @@ $ xa -q '
 # 123
 ```
 
-## 演算代入のオーバーライド
+---
 
-演算代入のためのオーバーライド可能なメソッドが存在します。
+以下はXarpiteで利用可能な演算代入演算子の一覧です。
 
-`_+=_` メソッドは `a += b` が実行されるごとに丁度1回だけ呼び出されます。
+| 演算子     | 記法                  | オーバーライドメソッド |
+|---------|---------------------|-------------|
+| 加算代入演算子 | `variable += value` | `_+=_`      |
+| 減算代入演算子 | `variable -= value` | `_-=_`      |
 
-`_+=_` 以外の演算代入メソッドも同様です。
+## 演算代入演算子のオーバーライド
 
-```shell
-$ xa -q '
-  Array := {
-    `_+=_`: this, item, accessor -> this.value::push(item)
-  }
-  array := Array{value: ["apple"]}
-
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
-'
-# [apple]
-# [apple;banana]
-```
+演算代入演算子の左辺がオーバーライドメソッドを実装している場合、通常の演算代入の代わりにそちらが呼び出されます。
 
 ---
 
-オーバーライドメソッドはオブジェクト自身に加えて、式に対する取得・代入を行う関数 `accessor` を追加の引数として取ります。
-
-例えばインクリメント/デクリメント用メソッド（`_++` や `_--` など）は `this, accessor` を引数に取り、演算代入用メソッド（`_+=_` など）は右辺値用の引数（ここでは `amount`）に続けて `accessor` を受け取るため、`this, amount, accessor` のような形になります。
+各オーバーライドメソッドは、左辺のオブジェクトおよび右辺の値のほかに、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
 
 `accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
 
 `accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
 
-演算代入の動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+演算代入演算子の動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+
+---
+
+演算代入演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+---
+
+以下の例はオブジェクト自体の改変操作として定義した例です。
+
+`+=` 演算子をオーバーライドした `Fruits` オブジェクトのインスタンスを2個生成し、両方に対して `+=` 演算子を連鎖的に適用しています。
 
 ```shell
 $ xa -q '
-  MutableCounter := {
-    new := value -> MutableCounter{value: value}
-    `_+=_`: this, amount, accessor -> (
-      this.value += amount
+  Fruits := {
+    new: () -> Fruits{array: []}
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      fruit
     )
-    `&_`: this -> this.value.&
   }
 
-  old := MutableCounter.new(0)
-  new := old
+  fruits1 := Fruits.new()
+  fruits2 := Fruits.new()
 
-  OUT << "Old: $old"
-  OUT << "New: $new"
-  new += 10
-  OUT << "Old: $old"
-  OUT << "New: $new"
+  OUT << "fruits1: $fruits1.array"
+  OUT << "fruits2: $fruits2.array"
+  fruits1 += fruits2 += "apple"
+  OUT << "fruits1: $fruits1.array"
+  OUT << "fruits2: $fruits2.array"
 '
-# Old: 0
-# New: 0
-# Old: 10
-# New: 10
-```
-
-```shell
-$ xa -q '
-  ImmutableCounter := {
-    new := value -> ImmutableCounter{value: value}
-    `_+=_`: this, amount, accessor -> (
-      accessor(new(this.value + amount))
-    )
-    `&_`: this -> this.value.&
-  }
-
-  old := ImmutableCounter.new(0)
-  new := old
-
-  OUT << "Old: $old"
-  OUT << "New: $new"
-  new += 10
-  OUT << "Old: $old"
-  OUT << "New: $new"
-'
-# Old: 0
-# New: 0
-# Old: 0
-# New: 10
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: [apple]
 ```
 
 ---
 
-演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+以下の例は代入動作として定義した例です。
+
+`fruits1` に演算代入を行っても、異なる変数である `fruits2` には影響しないことが確認できます。
 
 ```shell
 $ xa -q '
-  Object := {
-    `_+=_`: this, amount, accessor -> "result"
+  Fruits := {
+    new: array -> Fruits{array: array}
+    `_+=_`: this, fruit, accessor -> (
+      accessor(Fruits.new(this.array + [fruit]))
+      fruit
+    )
   }
 
-  object := Object{}
+  fruits1 := Fruits.new()
+  fruits2 := fruits1
 
-  OUT << object += 10
+  OUT << "fruits1: $fruits1.array"
+  OUT << "fruits2: $fruits2.array"
+  fruits1 += "apple"
+  OUT << "fruits1: $fruits1.array"
+  OUT << "fruits2: $fruits2.array"
 '
-# result
-```
-
-## 演算代入演算子の一覧
-
-以下はXarpiteで利用可能な演算代入演算子の一覧です。
-
-| 演算子  | 意味     |
-|------|--------|
-| `+=` | 加算して代入 |
-| `-=` | 減算して代入 |
-
-## 演算代入のフォールバック
-
-演算代入のオーバーライドメソッドが存在しない場合、通常の演算と代入が行われます。
-
-```shell
-$ xa -q '
-  Array := {
-    `_+_`: this, item -> Array{value: this.value + [item]}
-  }
-  array := Array{value: ["apple"]}
-
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
-'
-# [apple]
-# [apple;banana]
-```
-
----
-
-このとき、変数自体の内容が更新されていることに注意してください。
-
-```shell
-$ xa -q '
-  array := ["apple"]
-  oldArray := array
-
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
-
-  OUT << "Update!"
-  array += "banana"
-
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
-'
-# Old: [apple]
-# New: [apple]
-# Update!
-# Old: [apple;banana]
-# New: [apple;banana]
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: []
 ```
 
 ## 代入不可能な式に対する演算代入
@@ -272,15 +206,16 @@ $ xa -q '
 
 ```shell
 $ xa '
-  MutableCounter := {
-    `_+=_`: this, amount, accessor -> (
-      this.value += amount
-      this.value
+  Fruits := {
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      this.array
     )
   }
-  MutableCounter{value: 100} += 23
+
+  Fruits{array: []} += "apple"
 '
-# 123
+# [apple]
 ```
 
 ## インクリメント・デクリメント
