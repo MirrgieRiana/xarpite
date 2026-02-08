@@ -379,7 +379,7 @@ class CliTest {
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString(null).value)
+        assertEquals("877", cliEval(context, """USE(ARGS.0)""", "./$file").toFluoriteString(null).value)
         fileSystem.delete(file)
         fileSystem.delete(dir)
     }
@@ -540,7 +540,7 @@ class CliTest {
         fileSystem.write(file) { writeUtf8("999") }
         // Get absolute path using FileSystem.canonicalize
         val absolutePath = getAbsolutePath(file)
-        assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
+        assertEquals("999", cliEval(context, """USE(ARGS.0)""", absolutePath).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
@@ -556,7 +556,7 @@ class CliTest {
         val absolutePath = getAbsolutePath(file)
         // Absolute path without extension
         val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
-        assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
+        assertEquals("888", cliEval(context, """USE(ARGS.0)""", absolutePathWithoutExt).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
