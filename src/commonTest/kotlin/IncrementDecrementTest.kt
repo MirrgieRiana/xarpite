@@ -4,6 +4,7 @@ import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class IncrementDecrementTest {
@@ -226,5 +227,56 @@ class IncrementDecrementTest {
             obj--
             obj.value
         """).int)
+    }
+
+    @Test
+    fun incrementWithoutSetterRequiresMethodTest() = runTest {
+        // 代入不可能な式でオーバーライドメソッドが必要
+        assertFailsWith<Exception> {
+            eval("10++")
+        }
+    }
+
+    @Test
+    fun incrementOnNonAssignableExpressionTest() = runTest {
+        // 代入不可能な式でもオーバーライドメソッドがあれば動作する
+        // ミュータブルな値の改変操作として定義される
+        assertEquals(101, eval("""
+            MutableCounter := {
+                `_++`: this, accessor -> (
+                    this.value++
+                    this.value
+                )
+            }
+            MutableCounter{value: 100}++
+        """).int)
+    }
+
+    @Test
+    fun accessorWithoutSetterCanOnlyGetTest() = runTest {
+        // setter無しの場合、アクセサは取得のみ可能
+        assertEquals(100, eval("""
+            Object := {
+                `_++`: this, accessor -> (
+                    accessor().value
+                )
+            }
+            Object{value: 100}++
+        """).int)
+    }
+
+    @Test
+    fun accessorWithoutSetterCannotSetTest() = runTest {
+        // setter無しの場合、アクセサは代入不可
+        assertFailsWith<Exception> {
+            eval("""
+                Object := {
+                    `_++`: this, accessor -> (
+                        accessor({value: 200})
+                    )
+                }
+                Object{value: 100}++
+            """)
+        }
     }
 }

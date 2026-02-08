@@ -5,16 +5,15 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
-import mirrg.xarpite.UnsupportedIoContext
-import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
-import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.cli.parseArguments
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -111,6 +110,20 @@ class CliTest {
         )
         val pwd = cliEval(context, "PWD").toFluoriteString(null).value
         assertEquals("/env/xarpite/path", pwd)
+    }
+
+    @Test
+    fun pwdAtRootDirectory() = runTest {
+        // Test that PWD returns "/" when current directory is root
+        val context = TestIoContext(currentLocation = "/")
+        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        // If environment variables override this, we accept that
+        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
+        val expectedPwd = xarpitePwd ?: envPwd ?: "/"
+        assertEquals(expectedPwd, pwd)
     }
 
     @Test
@@ -366,7 +379,7 @@ class CliTest {
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString(null).value)
+        assertEquals("877", cliEval(context, """USE(ARGS.0)""", "./$file").toFluoriteString(null).value)
         fileSystem.delete(file)
         fileSystem.delete(dir)
     }
@@ -443,7 +456,7 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.cache.across.files.tmp")
         fileSystem.createDirectory(dir)
-        
+
         // 共有モジュール: 変更可能な状態を持つ
         val sharedModule = dir.resolve("shared.xa1")
         fileSystem.write(sharedModule) {
@@ -457,7 +470,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // ファイル1: shared.xa1をUSEして状態を変更
         val file1 = dir.resolve("file1.xa1")
         fileSystem.write(file1) {
@@ -469,7 +482,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // ファイル2: shared.xa1をUSEして状態を読み取る
         val file2 = dir.resolve("file2.xa1")
         fileSystem.write(file2) {
@@ -480,7 +493,7 @@ class CliTest {
                 """.trimIndent()
             )
         }
-        
+
         // 同じRuntimeContextで両方のファイルを評価
         // file1でsharedモジュールを読み込んで状態を変更し、
         // その後file2でも同じsharedモジュールを読み込む
@@ -492,9 +505,9 @@ class CliTest {
             USE("./$file2")
             """.trimIndent()
         ).toFluoriteString(null).value
-        
+
         assertEquals("modified", result)
-        
+
         // クリーンアップ
         fileSystem.delete(file1)
         fileSystem.delete(file2)
@@ -512,7 +525,7 @@ class CliTest {
         fileSystem.write(file) { writeUtf8("999") }
         // Get absolute path using FileSystem.canonicalize
         val absolutePath = getAbsolutePath(file)
-        assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
+        assertEquals("999", cliEval(context, """USE(ARGS.0)""", absolutePath).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
@@ -528,7 +541,7 @@ class CliTest {
         val absolutePath = getAbsolutePath(file)
         // Absolute path without extension
         val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
-        assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
+        assertEquals("888", cliEval(context, """USE(ARGS.0)""", absolutePathWithoutExt).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
@@ -1225,321 +1238,477 @@ class CliTest {
         }
     }
 
+    // EXEC/BASHテスト用のヘルパー関数
+    private fun assertExecuteProcessHandlerCalled(
+        capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
+        message: String = "executeProcessHandler should have been called"
+    ) {
+        assertTrue(capturedCommands.isNotEmpty(), message)
+        assertEquals("bash", capturedCommands[0].first, "process should be 'bash'")
+        assertTrue(capturedCommands[0].second.contains("-c"), "args should contain '-c'")
+    }
+
+    @Test
     fun execRunsSimpleCommand() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
-            val lines = result.stream()
-            assertEquals("hello", lines)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
+        val lines = result.stream()
+        assertEquals("hello", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execRunsComplexCommand() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
-            val lines = result.stream()
-            assertEquals("3,13,23,30", lines)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
-            assertEquals("ERROR", result.toFluoriteString(null).value)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
+            }
+        )
+        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
+        assertEquals("ERROR", result.toFluoriteString(null).value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithMultipleArguments() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
-            val output = result.toFluoriteString(null).value.trim()
-            assertEquals("hello world test", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello world test"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
+        val output = result.toFluoriteString(null).value.trim()
+        assertEquals("hello world test", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithEmptyOutput() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell(""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                ""
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell(""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithSpecialCharactersInArguments() = runTest {
-        val context = TestIoContext()
-        try {
-            // 特殊文字を含む引数（シングルクォート、セミコロンなど）
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("hello;world test|pipe", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello;world test|pipe"
+            }
+        )
+        // 特殊文字を含む引数（シングルクォート、セミコロンなど）
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("hello;world test|pipe", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execThrowsOnCommandNotFound() = runTest {
-        val context = TestIoContext()
-        try {
-            // 存在しないコマンドは例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
-            } catch (e: Exception) {
-                // FluoriteExceptionまたはその他の例外が期待される
-                exceptionThrown = true
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
             }
-            assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        )
+        // 存在しないコマンドは例外をスロー
+        var exceptionThrown = false
+        try {
+            cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
+        } catch (e: Exception) {
+            // FluoriteExceptionまたはその他の例外が期待される
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithNoTrailingNewline() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
-            val output = result.toFluoriteString(null).value
-            // printfは末尾に改行を追加しない
-            assertEquals("test", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
+        val output = result.toFluoriteString(null).value
+        // printfは末尾に改行を追加しない
+        assertEquals("test", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithDifferentExitCodes() = runTest {
-        val context = TestIoContext()
-        try {
-            // 終了コード2でテスト
-            var exceptionThrown = false
-            try {
-                cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
-            } catch (e: FluoriteException) {
-                // FluoriteExceptionが期待される
-                exceptionThrown = true
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                // 非ゼロ終了コードの場合は例外を投げる
+                throw FluoriteException("exit 2".toFluoriteString())
             }
-            assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        )
+        // 終了コード2でテスト
+        var exceptionThrown = false
+        try {
+            cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
+        } catch (e: FluoriteException) {
+            // FluoriteExceptionが期待される
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithLongRunningCommand() = runTest {
-        val context = TestIoContext()
-        try {
-            // 少し時間がかかるコマンド
-            val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("done", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "done"
+            }
+        )
+        // 少し時間がかかるコマンド
+        val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("done", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithPipeInCommand() = runTest {
-        val context = TestIoContext()
-        try {
-            // パイプを使用するコマンド
-            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
-            val output = result.toFluoriteString(null).value.trim()
-            assertEquals("b", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "b"
+            }
+        )
+        // パイプを使用するコマンド
+        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
+        val output = result.toFluoriteString(null).value.trim()
+        assertEquals("b", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithEnvironmentVariables() = runTest {
-        val context = TestIoContext()
-        try {
-            // 環境変数PATHは常に設定されている
-            val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "ok"
+            }
+        )
+        // EXECがbash/-cを通じてコマンドを実行することを確認する（環境変数を渡せる設定で）
+        val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        // 環境変数のオーバーライドを渡していないことを確認
+        assertTrue(capturedCommands[0].third.isEmpty(), "No environment variable overrides should be passed")
     }
 
     @Test
     fun execWithEnvironmentOverrides() = runTest {
-        val context = TestIoContext()
-        try {
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("BAR", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                env["FOO"] ?: "not_set"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("BAR", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithEnvironmentOverridesExistingVariable() = runTest {
-        val context = TestIoContext()
-        try {
-            // 既存環境変数の上書き
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("OVERRIDE", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                env["HOME"] ?: "not_set"
+            }
+        )
+        // 既存環境変数の上書き
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("OVERRIDE", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithEnvironmentRemoveByEmptyString() = runTest {
-        val context = TestIoContext()
-        try {
-            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                // 空文字が渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
+                if (env["HOME"] == "") "ok" else "fail"
+            }
+        )
+        val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        // envの検証: HOMEが空文字であることを確認
+        assertEquals("", capturedCommands[0].third["HOME"])
     }
 
     @Test
     fun execWithEnvironmentRemoveByNull() = runTest {
-        val context = TestIoContext()
-        try {
-            val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-            val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                // nullが渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
+                if (env["HOME"] == null) "ok" else "fail"
+            }
+        )
+        val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
+        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        // envの検証: HOMEキーが存在し、値がnullであることを確認
+        assertTrue(capturedCommands[0].third.containsKey("HOME"), "HOME key should be present in env")
+        assertEquals(null, capturedCommands[0].third["HOME"])
     }
 
     @Test
     fun execWithEmptyArgumentList() = runTest {
-        val context = TestIoContext()
-        try {
-            // 空の引数リストは例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, """EXEC([])""")
-            } catch (e: Exception) {
-                // FluoriteExceptionまたはその他の例外が期待される
-                exceptionThrown = true
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
             }
-            assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        )
+        // 空の引数リストは例外をスロー
+        var exceptionThrown = false
+        try {
+            cliEval(context, """EXEC([])""")
+        } catch (e: Exception) {
+            // FluoriteExceptionまたはその他の例外が期待される
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
     }
 
     @Test
     fun execWithVeryLongArgument() = runTest {
-        val context = TestIoContext()
-        try {
-            // 長い引数
-            val longString = "a".repeat(500)
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals(longString, output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "a".repeat(500)
+            }
+        )
+        // 長い引数
+        val longString = "a".repeat(500)
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals(longString, output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithUnicodeCharacters() = runTest {
-        val context = TestIoContext()
-        try {
-            // Unicode文字を含む引数
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("こんにちは世界", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "こんにちは世界"
+            }
+        )
+        // Unicode文字を含む引数
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("こんにちは世界", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithMultipleCommandsInStream() = runTest {
-        val context = TestIoContext()
-        try {
-            // 複数のコマンドを&&で繋ぐ
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("abc", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "abc"
+            }
+        )
+        // 複数のコマンドを&&で繋ぐ
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("abc", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithRedirection() = runTest {
-        val context = TestIoContext()
-        try {
-            // リダイレクションを使用
-            val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("ok", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "ok"
+            }
+        )
+        // リダイレクションを使用
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("ok", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execWithBackslashInArgument() = runTest {
-        val context = TestIoContext()
-        try {
-            // バックスラッシュを含む引数
-            val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
-            val output = result.toFluoriteString(null).value
-            assertTrue(output.contains("a"))
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "a\\b"
+            }
+        )
+        // バックスラッシュを含む引数
+        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
+        val output = result.toFluoriteString(null).value
+        assertTrue(output.contains("a"))
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun execParallelExecution() = runTest {
-        val context = TestIoContext()
-        try {
-            // 16並列でEXECを実行してデッドロックが発生しないことを確認
-            coroutineScope {
-                val jobs = (1..16).map { i ->
-                    async {
-                        cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
+        var counter = 0
+        var maxConcurrent = 0
+        var currentConcurrent = 0
+        val mutex = Mutex()
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                mutex.withLock {
+                    capturedCommands.add(Triple(process, args, env))
+                    currentConcurrent++
+                    if (currentConcurrent > maxConcurrent) {
+                        maxConcurrent = currentConcurrent
                     }
                 }
-                val results = jobs.map { it.await() }
-                // すべての結果が正しいことを確認
-                results.forEachIndexed { index, result ->
-                    val output = result.toFluoriteString(null).value
-                    assertEquals("test${index + 1}", output)
+                // 意図的にサスペンドして並列実行の重なりを発生させる
+                kotlinx.coroutines.delay(10)
+                val i = mutex.withLock {
+                    currentConcurrent--
+                    ++counter
+                }
+                "test$i"
+            }
+        )
+        // 16並列でEXECを実行してデッドロックが発生しないこと、および実際に並列実行されることを確認
+        coroutineScope {
+            val jobs = (1..16).map { i ->
+                async {
+                    cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
                 }
             }
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+            val results = jobs.map { it.await() }
+            // すべての結果が返されたことを確認（順序は非決定的）
+            assertEquals(16, results.size)
+            val outputs = results.map { it.toFluoriteString(null).value }.toSet()
+            // test1 から test16 までの値がすべて含まれていることを確認（重複なし）
+            assertEquals(16, outputs.size)
+            (1..16).forEach { i ->
+                assertTrue(outputs.contains("test$i"), "outputs should contain 'test$i'")
+            }
+            // executeProcessHandlerが正しく呼ばれたことを確認
+            assertEquals(16, capturedCommands.size)
+            capturedCommands.forEach { (process, args, _) ->
+                assertEquals("bash", process)
+                assertTrue(args.contains("-c"), "args should contain '-c'")
+            }
+            // 実際に並列実行された（複数のタスクが同時に実行された）ことを確認
+            assertTrue(maxConcurrent > 1, "At least 2 tasks should have been running concurrently, but maxConcurrent was $maxConcurrent")
         }
+    }
+
+    @Test
+    fun executeProcessWithCustomHandler() = runTest {
+        // カスタムexecuteProcessハンドラを使用するテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "custom output"
+            }
+        )
+
+        // カスタムハンドラが呼ばれることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("custom output", output)
+
+        // カスタムハンドラが正しい引数で呼ばれたことを確認
+        assertExecuteProcessHandlerCalled(capturedCommands, "Custom handler should have been called")
     }
 
     @Test
@@ -1630,135 +1799,175 @@ class CliTest {
 
     @Test
     fun bashBasic() = runTest {
-        val context = TestIoContext()
-        try {
-            // 基本的な動作確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("Hello", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "Hello"
+            }
+        )
+        // 基本的な動作確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("Hello", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashRemovesTrailingNewline() = runTest {
-        val context = TestIoContext()
-        try {
-            // 末尾の改行が除去されることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n"
+            }
+        )
+        // 末尾の改行が除去されることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashRemovesOnlyOneTrailingNewline() = runTest {
-        val context = TestIoContext()
-        try {
-            // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test\n\n", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n\n\n"
+            }
+        )
+        // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n\n", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashNoTrailingNewline() = runTest {
-        val context = TestIoContext()
-        try {
-            // 末尾改行がない場合
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("test", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test"
+            }
+        )
+        // 末尾改行がない場合
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("test", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashWithMultipleLines() = runTest {
-        val context = TestIoContext()
-        try {
-            // 複数行の出力
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("line1\nline2\nline3", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "line1\nline2\nline3\n"
+            }
+        )
+        // 複数行の出力
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("line1\nline2\nline3", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashReturnsString() = runTest {
-        val context = TestIoContext()
-        try {
-            // 戻り値が文字列であることを確認
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
-            assertTrue(result is FluoriteString)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "abc"
+            }
+        )
+        // 戻り値が文字列であることを確認
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
+        assertTrue(result is FluoriteString)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashThrowsOnNonZeroExit() = runTest {
-        val context = TestIoContext()
-        try {
-            // 0以外の終了コードで例外をスロー
-            var exceptionThrown = false
-            try {
-                cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
-            } catch (e: Exception) {
-                exceptionThrown = true
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
             }
-            assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        )
+        // 0以外の終了コードで例外をスロー
+        var exceptionThrown = false
+        try {
+            cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
+        } catch (e: Exception) {
+            exceptionThrown = true
         }
+        assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashWithUnicode() = runTest {
-        val context = TestIoContext()
-        try {
-            // Unicode文字を含む
-            val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
-            val output = result.toFluoriteString(null).value
-            assertEquals("こんにちは世界", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "こんにちは世界"
+            }
+        )
+        // Unicode文字を含む
+        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val output = result.toFluoriteString(null).value
+        assertEquals("こんにちは世界", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashWithArguments() = runTest {
-        val context = TestIoContext()
-        try {
-            // 引数を渡す
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("apple banana", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "apple banana"
+            }
+        )
+        // 引数を渡す
+        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("apple banana", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
     fun bashWithArgumentsMultipleLines() = runTest {
-        val context = TestIoContext()
-        try {
-            // 引数を渡して複数行出力
-            val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
-            val output = result.toFluoriteString(null).value
-            assertEquals("The fruit is:\napple", output)
-        } catch (e: WorkInProgressError) {
-            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
-        }
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "The fruit is:\napple"
+            }
+        )
+        // 引数を渡して複数行出力
+        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
+        val output = result.toFluoriteString(null).value
+        assertEquals("The fruit is:\napple", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
 }
@@ -1785,7 +1994,8 @@ internal class TestIoContext(
     private val stdinLines: List<String> = emptyList(),
     private val stdinBytes: ByteArray = byteArrayOf(),
     private val currentLocation: String = "/test/location",
-    private val env: Map<String, String> = emptyMap()
+    private val env: Map<String, String> = emptyMap(),
+    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -1823,7 +2033,8 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
+        executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 

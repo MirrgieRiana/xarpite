@@ -353,6 +353,22 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+---
+
+Note that at the root directory it becomes `/`.
+
+For example, performing string concatenation like the following will produce an abnormal path string.
+
+The `RESOLVE` function can be used to solve this problem.
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
 ### `LOCATION`: Get Path of Currently Executing Script
 
 `LOCATION: STRING`
