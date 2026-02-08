@@ -143,7 +143,7 @@ Two instances of a `Fruits` object with an overridden `+=` operator are created,
 ```shell
 $ xa -q '
   Fruits := {
-    new: () -> Fruits{array: []}
+    new := () -> Fruits{array: []}
     `_+=_`: this, fruit, accessor -> (
       this.array += fruit
       fruit
@@ -153,11 +153,11 @@ $ xa -q '
   fruits1 := Fruits.new()
   fruits2 := Fruits.new()
 
-  OUT << "fruits1: $fruits1.array"
-  OUT << "fruits2: $fruits2.array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
   fruits1 += fruits2 += "apple"
-  OUT << "fruits1: $fruits1.array"
-  OUT << "fruits2: $fruits2.array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
 # fruits1: []
 # fruits2: []
@@ -174,21 +174,21 @@ You can see that performing a compound assignment on `fruits1` does not affect `
 ```shell
 $ xa -q '
   Fruits := {
-    new: array -> Fruits{array: array}
+    new := array -> Fruits{array: array}
     `_+=_`: this, fruit, accessor -> (
-      accessor(Fruits.new(this.array + [fruit]))
+      accessor(new(this.array + [fruit]))
       fruit
     )
   }
 
-  fruits1 := Fruits.new()
+  fruits1 := Fruits.new([])
   fruits2 := fruits1
 
-  OUT << "fruits1: $fruits1.array"
-  OUT << "fruits2: $fruits2.array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
   fruits1 += "apple"
-  OUT << "fruits1: $fruits1.array"
-  OUT << "fruits2: $fruits2.array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
 # fruits1: []
 # fruits2: []
