@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.createCliMounts
@@ -1789,9 +1790,10 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 }
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    val options = Options(src, args.toList(), quiet = false, scriptFile = null)
     return withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
-        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
