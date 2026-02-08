@@ -46,16 +46,16 @@ class CliTest {
     @Test
     fun args() = runTest {
         val context = TestIoContext()
-        assertEquals("[1]", cliEval(context, "ARGS", "1").array()) // ARGS でコマンドライン引数が得られる
-        assertEquals("[]", cliEval(context, "ARGS").array()) // 空の場合
-        assertEquals("[1;2;3]", cliEval(context, "ARGS", "1", "2", "3").array()) // 複数の場合
+        assertEquals("[1]", cliEval(context, Options("ARGS", listOf("1"), quiet = false, scriptFile = null)).array()) // ARGS でコマンドライン引数が得られる
+        assertEquals("[]", cliEval(context, Options("ARGS", emptyList(), quiet = false, scriptFile = null)).array()) // 空の場合
+        assertEquals("[1;2;3]", cliEval(context, Options("ARGS", listOf("1", "2", "3"), quiet = false, scriptFile = null)).array()) // 複数の場合
     }
 
     @Test
     fun pwd() = runTest {
         val context = TestIoContext(currentLocation = "/test/location", env = emptyMap())
         // PWD checks environment variables first (XARPITE_PWD, then PWD), then falls back to context.io.getPlatformPwd()
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         // With no environment variables, should get the test location
         assertEquals("/test/location", pwd)
     }
@@ -63,7 +63,7 @@ class CliTest {
     @Test
     fun pwdReturnsAbsolutePath() = runTest {
         val context = TestIoContext(currentLocation = "/absolute/path/test", env = emptyMap())
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         // PWD should return an absolute path (starts with /)
         assertTrue(pwd.startsWith("/") || pwd.contains("://")) // Absolute path or URL
     }
@@ -72,7 +72,7 @@ class CliTest {
     fun pwdFallbackToPlatformSpecific() = runTest {
         // When no environment variables are set, PWD falls back to context.io.getPlatformPwd()
         val context = TestIoContext(currentLocation = "/platform/specific/path", env = emptyMap())
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         // With no environment variables, should get the platform-specific path
         assertEquals("/platform/specific/path", pwd)
     }
@@ -84,7 +84,7 @@ class CliTest {
             currentLocation = "/platform/specific/path",
             env = mapOf("XARPITE_PWD" to "/env/xarpite/path")
         )
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         assertEquals("/env/xarpite/path", pwd)
     }
 
@@ -95,7 +95,7 @@ class CliTest {
             currentLocation = "/platform/specific/path",
             env = mapOf("PWD" to "/env/pwd/path")
         )
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         assertEquals("/env/pwd/path", pwd)
     }
 
@@ -109,7 +109,7 @@ class CliTest {
                 "PWD" to "/env/pwd/path"
             )
         )
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         assertEquals("/env/xarpite/path", pwd)
     }
 
@@ -117,11 +117,11 @@ class CliTest {
     fun pwdAtRootDirectory() = runTest {
         // Test that PWD returns "/" when current directory is root
         val context = TestIoContext(currentLocation = "/")
-        val pwd = cliEval(context, "PWD").toFluoriteString(null).value
+        val pwd = cliEval(context, Options("PWD", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
         // If environment variables override this, we accept that
-        val xarpitePwdValue = cliEval(context, "ENV.XARPITE_PWD")
+        val xarpitePwdValue = cliEval(context, Options("ENV.XARPITE_PWD", emptyList(), quiet = false, scriptFile = null))
         val xarpitePwd = if (xarpitePwdValue is FluoriteNull) null else xarpitePwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
-        val envPwdValue = cliEval(context, "ENV.PWD")
+        val envPwdValue = cliEval(context, Options("ENV.PWD", emptyList(), quiet = false, scriptFile = null))
         val envPwd = if (envPwdValue is FluoriteNull) null else envPwdValue.toFluoriteString(null).value.takeIf { it.isNotBlank() }
         val expectedPwd = xarpitePwd ?: envPwd ?: "/"
         assertEquals(expectedPwd, pwd)
@@ -131,7 +131,7 @@ class CliTest {
     fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
         // When code is executed via eval (not from a file), LOCATION should be "-"
-        val location = cliEval(context, "LOCATION")
+        val location = cliEval(context, Options("LOCATION", emptyList(), quiet = false, scriptFile = null))
         assertTrue(location is FluoriteString)
         assertEquals("-", location.toFluoriteString(null).value) // LOCATION は eval モードで "-"
     }
@@ -139,13 +139,13 @@ class CliTest {
     @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+        assertEquals("abc,def", cliEval(context, Options("I", emptyList(), quiet = false, scriptFile = null)).stream()) // I は IN の別名
     }
 
     @Test
     fun oAlias() = runTest {
         val context = TestIoContext()
-        cliEval(context, """O("test")""")
+        cliEval(context, Options("""O("test")""", emptyList(), quiet = false, scriptFile = null))
         assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
     }
 
@@ -159,7 +159,7 @@ class CliTest {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
+        assertEquals("123,456", cliEval(context, Options("READ(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).stream())
     }
 
     @Test
@@ -171,7 +171,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             write(byteArrayOf(65, 66, 67))
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(1, blobs.size)
         assertContentEquals(ubyteArrayOf(65u, 66u, 67u), blobs[0].value)
     }
@@ -186,7 +186,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             write(data)
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(2, blobs.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertEquals(1, blobs[1].value.size)
@@ -203,7 +203,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             // 空ファイル
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(0, blobs.size)
     }
 
@@ -217,7 +217,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             write(data)
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(1, blobs.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertContentEquals(data.map { it.toUByte() }.toUByteArray(), blobs[0].value)
@@ -232,7 +232,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             write(byteArrayOf(0, 1, 0, 2, 0))
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(1, blobs.size)
         assertContentEquals(ubyteArrayOf(0u, 1u, 0u, 2u, 0u), blobs[0].value)
     }
@@ -247,7 +247,7 @@ class CliTest {
         getFileSystem().getOrThrow().write(file) {
             write(data)
         }
-        val blobs = cliEval(context, "READB(ARGS.0)", file.toString()).collectBlobs()
+        val blobs = cliEval(context, Options("READB(ARGS.0)", listOf(file.toString()), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(3, blobs.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[1].value.size)
@@ -262,22 +262,22 @@ class CliTest {
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
         // 基本的な文字列書き込み
-        cliEval(context, """WRITE(ARGS.0; "Hello World")""", file.toString())
+        cliEval(context, Options("""WRITE(ARGS.0; "Hello World")""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("Hello World", content)
 
         // 改行が自動で付与されないことを確認
-        cliEval(context, """WRITE(ARGS.0; "test")""", file.toString())
+        cliEval(context, Options("""WRITE(ARGS.0; "test")""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("test", content2)
 
         // UTF-8エンコードの確認（日本語）
-        cliEval(context, """WRITE(ARGS.0; "こんにちは")""", file.toString())
+        cliEval(context, Options("""WRITE(ARGS.0; "こんにちは")""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("こんにちは", content3)
 
         // 空文字列の書き込み
-        cliEval(context, """WRITE(ARGS.0; "")""", file.toString())
+        cliEval(context, Options("""WRITE(ARGS.0; "")""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("", content4)
     }
@@ -290,22 +290,22 @@ class CliTest {
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
         // 複数行の書き込み（ストリームを使用）
-        cliEval(context, """WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", file.toString())
+        cliEval(context, Options("""WRITEL(ARGS.0; ["line1", "line2", "line3"]())""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("line1\nline2\nline3\n", content)
 
         // 単一行の書き込みでも末尾改行が付く
-        cliEval(context, """WRITEL(ARGS.0; ["single"]())""", file.toString())
+        cliEval(context, Options("""WRITEL(ARGS.0; ["single"]())""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content2 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("single\n", content2)
 
         // 空ストリームの場合は空ファイル
-        cliEval(context, """WRITEL(ARGS.0; []())""", file.toString())
+        cliEval(context, Options("""WRITEL(ARGS.0; []())""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content3 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("", content3)
 
         // 数値ストリームからの書き込み
-        cliEval(context, """WRITEL(ARGS.0; 1 .. 3)""", file.toString())
+        cliEval(context, Options("""WRITEL(ARGS.0; 1 .. 3)""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content4 = getFileSystem().getOrThrow().read(file) { readUtf8() }
         assertEquals("1\n2\n3\n", content4)
     }
@@ -318,28 +318,28 @@ class CliTest {
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
         // BLOBの書き込み
-        cliEval(context, """WRITEB(ARGS.0; BLOB.of([65, 66, 67]))""", file.toString())
+        cliEval(context, Options("""WRITEB(ARGS.0; BLOB.of([65, 66, 67]))""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(65, 66, 67), content)
 
         // STREAM<BLOB>の書き込み
-        cliEval(context, """WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", file.toString())
+        cliEval(context, Options("""WRITEB(ARGS.0; [BLOB.of([1, 2]), BLOB.of([3, 4])]())""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content2 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(1, 2, 3, 4), content2)
 
         // ARRAY<NUMBER>の書き込み
-        cliEval(context, """WRITEB(ARGS.0; [72, 101, 108, 108, 111])""", file.toString())
+        cliEval(context, Options("""WRITEB(ARGS.0; [72, 101, 108, 108, 111])""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content3 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(72, 101, 108, 108, 111), content3)
         assertEquals("Hello", content3.decodeToString())
 
         // 空のBLOBの書き込み
-        cliEval(context, """WRITEB(ARGS.0; BLOB.of([]))""", file.toString())
+        cliEval(context, Options("""WRITEB(ARGS.0; BLOB.of([]))""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content4 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(), content4)
 
         // NULLバイトを含むデータ
-        cliEval(context, """WRITEB(ARGS.0; [0, 1, 0, 2, 0])""", file.toString())
+        cliEval(context, Options("""WRITEB(ARGS.0; [0, 1, 0, 2, 0])""", listOf(file.toString()), quiet = false, scriptFile = null))
         val content5 = getFileSystem().getOrThrow().read(file) { readByteArray() }
         assertContentEquals(byteArrayOf(0, 1, 0, 2, 0), content5)
     }
@@ -358,7 +358,7 @@ class CliTest {
         fileSystem.createDirectory(dir.resolve("banana"))
 
         // FILES 関数でファイル一覧を取得
-        val result = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+        val result = cliEval(context, Options("FILES(ARGS.0)", listOf(dir.toString()), quiet = false, scriptFile = null)).stream()
 
         // アルファベット順にソートされ、ファイル名のみが返される
         assertEquals("apple.txt,banana,zebra.txt", result)
@@ -380,7 +380,7 @@ class CliTest {
         if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./$file")""").toFluoriteString(null).value)
+        assertEquals("877", cliEval(context, Options("""USE("./$file")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(file)
         fileSystem.delete(dir)
     }
@@ -397,7 +397,7 @@ class CliTest {
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
         fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
-        assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString(null).value)
+        assertEquals("877", cliEval(context, Options("""USE("./build/test/use.relative.tmp/apple.xa1")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(apple)
         fileSystem.delete(banana)
         fileSystem.delete(dir)
@@ -413,7 +413,7 @@ class CliTest {
         fileSystem.createDirectory(dir)
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
-        assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString(null).value)
+        assertEquals("877", cliEval(context, Options("""USE("./build/test/use.extension.tmp/banana")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(module)
         fileSystem.delete(dir)
     }
@@ -438,12 +438,17 @@ class CliTest {
         }
         val result = cliEval(
             context,
-            """
-            a := USE("./$file")
-            b := USE("./$file")
-            a.variables.fruit = "banana"
-            b.variables.fruit
-            """.trimIndent()
+            Options(
+                """
+                a := USE("./$file")
+                b := USE("./$file")
+                a.variables.fruit = "banana"
+                b.variables.fruit
+                """.trimIndent(),
+                emptyList(),
+                quiet = false,
+                scriptFile = null
+            )
         ).toFluoriteString(null).value
         assertEquals("banana", result)
         fileSystem.delete(file)
@@ -501,10 +506,15 @@ class CliTest {
         // キャッシュが正しく機能していれば、file1で変更した値がfile2でも取得できる
         val result = cliEval(
             context,
-            """
-            USE("./$file1")
-            USE("./$file2")
-            """.trimIndent()
+            Options(
+                """
+                USE("./$file1")
+                USE("./$file2")
+                """.trimIndent(),
+                emptyList(),
+                quiet = false,
+                scriptFile = null
+            )
         ).toFluoriteString(null).value
 
         assertEquals("modified", result)
@@ -526,7 +536,7 @@ class CliTest {
         fileSystem.write(file) { writeUtf8("1") }
         // Error when neither relative/absolute path prefix nor colon (Maven coordinate) is present
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("use.prefix.tmp.xa1")""")
+            cliEval(context, Options("""USE("use.prefix.tmp.xa1")""", emptyList(), quiet = false, scriptFile = null))
         }
         fileSystem.delete(file)
     }
@@ -541,7 +551,7 @@ class CliTest {
         fileSystem.write(file) { writeUtf8("999") }
         // Get absolute path using FileSystem.canonicalize
         val absolutePath = getAbsolutePath(file)
-        assertEquals("999", cliEval(context, """USE("$absolutePath")""").toFluoriteString(null).value)
+        assertEquals("999", cliEval(context, Options("""USE("$absolutePath")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
@@ -557,7 +567,7 @@ class CliTest {
         val absolutePath = getAbsolutePath(file)
         // Absolute path without extension
         val absolutePathWithoutExt = absolutePath.removeSuffix(".xa1")
-        assertEquals("888", cliEval(context, """USE("$absolutePathWithoutExt")""").toFluoriteString(null).value)
+        assertEquals("888", cliEval(context, Options("""USE("$absolutePathWithoutExt")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(file)
     }
 
@@ -583,12 +593,17 @@ class CliTest {
         val absolutePath = getAbsolutePath(file)
         val result = cliEval(
             context,
-            """
-            a := USE("$absolutePath")
-            b := USE("$absolutePath")
-            a.variables.fruit = "orange"
-            b.variables.fruit
-            """.trimIndent()
+            Options(
+                """
+                a := USE("$absolutePath")
+                b := USE("$absolutePath")
+                a.variables.fruit = "orange"
+                b.variables.fruit
+                """.trimIndent(),
+                emptyList(),
+                quiet = false,
+                scriptFile = null
+            )
         ).toFluoriteString(null).value
         assertEquals("orange", result)
         fileSystem.delete(file)
@@ -603,7 +618,7 @@ class CliTest {
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
-        assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
+        assertEquals("999", cliEval(context, Options("""USE("com.example:utils:1.0.0")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
         fileSystem.delete(".xarpite/maven/com/example/utils".toPath())
@@ -622,7 +637,7 @@ class CliTest {
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
-        assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
+        assertEquals("777", cliEval(context, Options("""USE("org.jetbrains.kotlin:lib:2.0.0")""", emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value)
         fileSystem.delete(moduleFile)
         fileSystem.delete(xarpiteDir)
         fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin/lib".toPath())
@@ -654,12 +669,17 @@ class CliTest {
         }
         val result = cliEval(
             context,
-            """
-            a := USE("com.test:module:1.0.0")
-            b := USE("com.test:module:1.0.0")
-            a.variables.value = "changed"
-            b.variables.value
-            """.trimIndent()
+            Options(
+                """
+                a := USE("com.test:module:1.0.0")
+                b := USE("com.test:module:1.0.0")
+                a.variables.value = "changed"
+                b.variables.value
+                """.trimIndent(),
+                emptyList(),
+                quiet = false,
+                scriptFile = null
+            )
         ).toFluoriteString(null).value
         assertEquals("changed", result)
         fileSystem.delete(moduleFile)
@@ -677,31 +697,31 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         // Reject strings without prefix that don't contain colon (not Maven coordinate)
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("invalid_module_name")""")
+            cliEval(context, Options("""USE("invalid_module_name")""", emptyList(), quiet = false, scriptFile = null))
         }
         // Reject Maven coordinates with wrong number of parts
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group:artifact")""")
+            cliEval(context, Options("""USE("group:artifact")""", emptyList(), quiet = false, scriptFile = null))
         }
         // Reject Maven coordinates with empty parts
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE(":artifact:version")""")
+            cliEval(context, Options("""USE(":artifact:version")""", emptyList(), quiet = false, scriptFile = null))
         }
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group::version")""")
+            cliEval(context, Options("""USE("group::version")""", emptyList(), quiet = false, scriptFile = null))
         }
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group:artifact:")""")
+            cliEval(context, Options("""USE("group:artifact:")""", emptyList(), quiet = false, scriptFile = null))
         }
         // Reject Maven coordinates with blank parts (whitespace only)
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE(" :artifact:version")""")
+            cliEval(context, Options("""USE(" :artifact:version")""", emptyList(), quiet = false, scriptFile = null))
         }
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group: :version")""")
+            cliEval(context, Options("""USE("group: :version")""", emptyList(), quiet = false, scriptFile = null))
         }
         assertFailsWith<FluoriteException> {
-            cliEval(context, """USE("group:artifact: ")""")
+            cliEval(context, Options("""USE("group:artifact: ")""", emptyList(), quiet = false, scriptFile = null))
         }
     }
 
@@ -709,24 +729,24 @@ class CliTest {
     fun incIsAccessible() = runTest {
         val context = TestIoContext()
         // INC はアクセス可能で配列である
-        assertTrue(cliEval(context, "INC ?= ARRAY").boolean)
+        assertTrue(cliEval(context, Options("INC ?= ARRAY", emptyList(), quiet = false, scriptFile = null)).boolean)
     }
 
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
         // デフォルトで ./.xarpite/maven が含まれている
-        val incArray = cliEval(context, "INC").array()
+        val incArray = cliEval(context, Options("INC", emptyList(), quiet = false, scriptFile = null)).array()
         assertTrue("./.xarpite/maven" in incArray)
     }
     @Test
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
         // INC に値を追加できる
-        val result = cliEval(context, """
+        val result = cliEval(context, Options("""
             INC::push("/custom/path")
             INC
-        """.trimIndent())
+        """.trimIndent(), emptyList(), quiet = false, scriptFile = null))
         val arrayStr = result.array()
         assertTrue("/custom/path" in arrayStr)
     }
@@ -745,10 +765,10 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
 
         // INCにカスタムパスを追加してモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(context, Options("""
             INC::push("build/test/custom-inc")
             USE("com.example.custom:mylib:1.0.0")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent(), emptyList(), quiet = false, scriptFile = null)).toFluoriteString(null).value
 
         assertEquals("CustomModule", result)
 
@@ -767,14 +787,14 @@ class CliTest {
     fun inb() = runTest {
         val context = TestIoContext()
         // INB はストリームとして存在することを確認
-        assertTrue(cliEval(context, "INB ?= STREAM").boolean)
+        assertTrue(cliEval(context, Options("INB ?= STREAM", emptyList(), quiet = false, scriptFile = null)).boolean)
     }
 
     @Test
     fun inbReadsBinaryStream() = runTest {
         val testData = byteArrayOf(97, 98, 99)
         val context = TestIoContext(stdinBytes = testData)
-        val blobs = cliEval(context, "INB").collectBlobs()
+        val blobs = cliEval(context, Options("INB", emptyList(), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(1, blobs.size)
         assertContentEquals(ubyteArrayOf(97u, 98u, 99u), blobs.first().value)
     }
@@ -783,7 +803,7 @@ class CliTest {
     fun inbSplitsByBufferSize() = runTest {
         val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
         val context = TestIoContext(stdinBytes = data)
-        val blobs = cliEval(context, "INB").collectBlobs()
+        val blobs = cliEval(context, Options("INB", emptyList(), quiet = false, scriptFile = null)).collectBlobs()
         assertEquals(2, blobs.size)
         assertEquals(INB_MAX_BUFFER_SIZE, blobs[0].value.size)
         assertEquals(1, blobs[1].value.size)
@@ -794,14 +814,14 @@ class CliTest {
     @Test
     fun outbWritesBinaryStream() = runTest {
         val context = TestIoContext()
-        cliEval(context, "OUTB(BLOB.of([65, 66, 67]))")
+        cliEval(context, Options("OUTB(BLOB.of([65, 66, 67]))", emptyList(), quiet = false, scriptFile = null))
         assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
     }
 
     @Test
     fun outbWritesStreamAggregated() = runTest {
         val context = TestIoContext()
-        cliEval(context, "OUTB(65 .. 67)")
+        cliEval(context, Options("OUTB(65 .. 67)", emptyList(), quiet = false, scriptFile = null))
         assertContentEquals(byteArrayOf(65, 66, 67), context.stdoutBytes.toByteArray())
     }
 
@@ -1017,7 +1037,7 @@ class CliTest {
         val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
 
-        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
+        val result = cliEval(context, Options(options.src, listOf(*options.arguments.toTypedArray()), quiet = false, scriptFile = null))
         assertEquals("3", result.toFluoriteString(null).value)
     }
 
@@ -1027,7 +1047,7 @@ class CliTest {
         val context = TestIoContext(stdinBytes = "a := 10\nb := 20\na + b".encodeToByteArray())
         val options = parseArguments(listOf("-f", "-"), context)
 
-        val result = cliEval(context, options.src, *options.arguments.toTypedArray())
+        val result = cliEval(context, Options(options.src, listOf(*options.arguments.toTypedArray()), quiet = false, scriptFile = null))
         assertEquals("30", result.toFluoriteString(null).value)
     }
 
@@ -1069,7 +1089,7 @@ class CliTest {
                 "hello"
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("echo hello"), emptyList(), quiet = false, scriptFile = null))
         val lines = result.stream()
         assertEquals("hello", lines)
 
@@ -1085,7 +1105,7 @@ class CliTest {
                 "3\n13\n23\n30"
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("seq 1 30 | grep 3"), emptyList(), quiet = false, scriptFile = null))
         val lines = result.stream()
         assertEquals("3,13,23,30", lines)
 
@@ -1101,7 +1121,7 @@ class CliTest {
                 throw FluoriteException("exit 1".toFluoriteString())
             }
         )
-        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""")
+        val result = cliEval(context, Options("""${getExecSrcWrappingHexForShell("exit 1")} !? "ERROR"""", emptyList(), quiet = false, scriptFile = null))
         assertEquals("ERROR", result.toFluoriteString(null).value)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
@@ -1116,7 +1136,7 @@ class CliTest {
                 "hello world test"
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello world test"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("echo hello world test"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value.trim()
         assertEquals("hello world test", output)
 
@@ -1132,7 +1152,7 @@ class CliTest {
                 ""
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShell(""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell(""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("", output)
 
@@ -1149,7 +1169,7 @@ class CliTest {
             }
         )
         // 特殊文字を含む引数（シングルクォート、セミコロンなど）
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf '%s %s' 'hello;world' 'test|pipe'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("hello;world test|pipe", output)
 
@@ -1168,7 +1188,7 @@ class CliTest {
         // 存在しないコマンドは例外をスロー
         var exceptionThrown = false
         try {
-            cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
+            cliEval(context, Options(getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"), emptyList(), quiet = false, scriptFile = null))
         } catch (e: Exception) {
             // FluoriteExceptionまたはその他の例外が期待される
             exceptionThrown = true
@@ -1187,7 +1207,7 @@ class CliTest {
                 "test"
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test'"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf 'test'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         // printfは末尾に改行を追加しない
         assertEquals("test", output)
@@ -1208,7 +1228,7 @@ class CliTest {
         // 終了コード2でテスト
         var exceptionThrown = false
         try {
-            cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
+            cliEval(context, Options(getExecSrcWrappingHexForShell("exit 2"), emptyList(), quiet = false, scriptFile = null))
         } catch (e: FluoriteException) {
             // FluoriteExceptionが期待される
             exceptionThrown = true
@@ -1228,7 +1248,7 @@ class CliTest {
             }
         )
         // 少し時間がかかるコマンド
-        val result = cliEval(context, getExecSrcWrappingHexForShell("sleep 0.1 && printf done"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("sleep 0.1 && printf done"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("done", output)
 
@@ -1245,7 +1265,7 @@ class CliTest {
             }
         )
         // パイプを使用するコマンド
-        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("""printf 'a\nb\nc' | grep b"""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value.trim()
         assertEquals("b", output)
 
@@ -1262,7 +1282,7 @@ class CliTest {
             }
         )
         // EXECがbash/-cを通じてコマンドを実行することを確認する（環境変数を渡せる設定で）
-        val result = cliEval(context, getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell($$"""test -n "$PATH" && printf ok"""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
@@ -1280,7 +1300,7 @@ class CliTest {
                 env["FOO"] ?: "not_set"
             }
         )
-        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}"""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("BAR", output)
 
@@ -1297,7 +1317,7 @@ class CliTest {
             }
         )
         // 既存環境変数の上書き
-        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShellWithEnv("printenv HOME", """{HOME: "OVERRIDE"}"""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("OVERRIDE", output)
 
@@ -1315,7 +1335,7 @@ class CliTest {
             }
         )
         val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShellWithEnv(script, "{HOME: \"\"}"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
@@ -1335,7 +1355,7 @@ class CliTest {
             }
         )
         val script = "if printenv HOME >/dev/null; then printf fail; else printf ok; fi"
-        val result = cliEval(context, getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShellWithEnv(script, "{HOME: NULL}"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
@@ -1357,7 +1377,7 @@ class CliTest {
         // 空の引数リストは例外をスロー
         var exceptionThrown = false
         try {
-            cliEval(context, """EXEC([])""")
+            cliEval(context, Options("""EXEC([])""", emptyList(), quiet = false, scriptFile = null))
         } catch (e: Exception) {
             // FluoriteExceptionまたはその他の例外が期待される
             exceptionThrown = true
@@ -1376,7 +1396,7 @@ class CliTest {
         )
         // 長い引数
         val longString = "a".repeat(500)
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf '%s' '$longString'"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf '%s' '$longString'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals(longString, output)
 
@@ -1393,7 +1413,7 @@ class CliTest {
             }
         )
         // Unicode文字を含む引数
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf 'こんにちは世界'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("こんにちは世界", output)
 
@@ -1410,7 +1430,7 @@ class CliTest {
             }
         )
         // 複数のコマンドを&&で繋ぐ
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf a && printf b && printf c"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf a && printf b && printf c"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("abc", output)
 
@@ -1427,7 +1447,7 @@ class CliTest {
             }
         )
         // リダイレクションを使用
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("printf test > /dev/null && printf ok"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("ok", output)
 
@@ -1444,7 +1464,7 @@ class CliTest {
             }
         )
         // バックスラッシュを含む引数
-        val result = cliEval(context, getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("""printf '%s' 'a\\b'"""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertTrue(output.contains("a"))
 
@@ -1480,7 +1500,7 @@ class CliTest {
         coroutineScope {
             val jobs = (1..16).map { i ->
                 async {
-                    cliEval(context, getExecSrcWrappingHexForShell("printf 'test$i'"))
+                    cliEval(context, Options(getExecSrcWrappingHexForShell("printf 'test$i'"), emptyList(), quiet = false, scriptFile = null))
                 }
             }
             val results = jobs.map { it.await() }
@@ -1515,7 +1535,7 @@ class CliTest {
         )
 
         // カスタムハンドラが呼ばれることを確認
-        val result = cliEval(context, getExecSrcWrappingHexForShell("echo test"))
+        val result = cliEval(context, Options(getExecSrcWrappingHexForShell("echo test"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("custom output", output)
 
@@ -1527,18 +1547,18 @@ class CliTest {
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
-        val result = cliEval(context, "ERR(123)")
+        val result = cliEval(context, Options("ERR(123)", emptyList(), quiet = false, scriptFile = null))
         assertEquals("NULL", result.toFluoriteString(null).value)
         assertEquals("123\n", context.stderrBytes.toUtf8String())
 
         // 複数の引数を渡せる
         context.clear()
-        cliEval(context, """ERR("abc", "def")""")
+        cliEval(context, Options("""ERR("abc", "def")""", emptyList(), quiet = false, scriptFile = null))
         assertEquals("abc\ndef\n", context.stderrBytes.toUtf8String())
 
         // ストリームを渡すと各要素が出力される
         context.clear()
-        cliEval(context, "ERR(1 .. 3)")
+        cliEval(context, Options("ERR(1 .. 3)", emptyList(), quiet = false, scriptFile = null))
         assertEquals("1\n2\n3\n", context.stderrBytes.toUtf8String())
     }
 
@@ -1546,7 +1566,7 @@ class CliTest {
     fun errb() = runTest {
         val context = TestIoContext()
         // ERRB がNULLを返すことを確認
-        val result = cliEval(context, "ERRB(BLOB.of([65, 66, 67]))")
+        val result = cliEval(context, Options("ERRB(BLOB.of([65, 66, 67]))", emptyList(), quiet = false, scriptFile = null))
         assertEquals("NULL", result.toFluoriteString(null).value)
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
@@ -1554,7 +1574,7 @@ class CliTest {
     @Test
     fun errbWritesStreamAggregated() = runTest {
         val context = TestIoContext()
-        cliEval(context, "ERRB(65 .. 67)")
+        cliEval(context, Options("ERRB(65 .. 67)", emptyList(), quiet = false, scriptFile = null))
         assertContentEquals(byteArrayOf(65, 66, 67), context.stderrBytes.toByteArray())
     }
 
@@ -1619,7 +1639,7 @@ class CliTest {
             }
         )
         // 基本的な動作確認
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf Hello"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf Hello"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("Hello", output)
 
@@ -1636,7 +1656,7 @@ class CliTest {
             }
         )
         // 末尾の改行が除去されることを確認
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n'"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf 'test\\n'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("test", output)
 
@@ -1653,7 +1673,7 @@ class CliTest {
             }
         )
         // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("test\n\n", output)
 
@@ -1670,7 +1690,7 @@ class CliTest {
             }
         )
         // 末尾改行がない場合
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf test"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf test"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("test", output)
 
@@ -1687,7 +1707,7 @@ class CliTest {
             }
         )
         // 複数行の出力
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf 'line1\\nline2\\nline3\\n'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("line1\nline2\nline3", output)
 
@@ -1704,7 +1724,7 @@ class CliTest {
             }
         )
         // 戻り値が文字列であることを確認
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf abc"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf abc"), emptyList(), quiet = false, scriptFile = null))
         assertTrue(result is FluoriteString)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
@@ -1722,7 +1742,7 @@ class CliTest {
         // 0以外の終了コードで例外をスロー
         var exceptionThrown = false
         try {
-            cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
+            cliEval(context, Options(getBashSrcWrappingHexForShell("exit 1"), emptyList(), quiet = false, scriptFile = null))
         } catch (e: Exception) {
             exceptionThrown = true
         }
@@ -1741,7 +1761,7 @@ class CliTest {
             }
         )
         // Unicode文字を含む
-        val result = cliEval(context, getBashSrcWrappingHexForShell("printf 'こんにちは世界'"))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShell("printf 'こんにちは世界'"), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("こんにちは世界", output)
 
@@ -1758,7 +1778,7 @@ class CliTest {
             }
         )
         // 引数を渡す
-        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShellWithArgs("printf '%s %s' \"$1\" \"$2\"", """"apple", "banana""""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("apple banana", output)
 
@@ -1775,7 +1795,7 @@ class CliTest {
             }
         )
         // 引数を渡して複数行出力
-        val result = cliEval(context, getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""))
+        val result = cliEval(context, Options(getBashSrcWrappingHexForShellWithArgs("printf '%s\\n%s\\n' \"$1\" \"$2\"", """"The fruit is:", "apple""""), emptyList(), quiet = false, scriptFile = null))
         val output = result.toFluoriteString(null).value
         assertEquals("The fruit is:\napple", output)
 
@@ -1789,8 +1809,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
-    val options = Options(src, args.toList(), quiet = false, scriptFile = null)
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) }
@@ -1799,7 +1818,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
-        evaluator.get(src).cache()
+        evaluator.get(options.src).cache()
     }
 }
 
