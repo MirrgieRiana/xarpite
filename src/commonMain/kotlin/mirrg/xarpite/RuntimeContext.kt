@@ -49,7 +49,8 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        return "$location:$row:$column  $startEllipsis$snippet$endEllipsis"
+        val leftMargin = if (startColumnIndex == 0) " ".repeat(column - 1) else ""
+        return "$location:$row:$column  $startEllipsis$leftMargin$snippet$endEllipsis"
     }
 
 
