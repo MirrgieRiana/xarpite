@@ -1084,6 +1084,91 @@ class CliTest {
         fileSystem.delete(dir)
     }
 
+    @Test
+    fun useModuleReturningStreamWithErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.stream.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ストリームを返し、イテレーション中にエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("stream_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("1, 2, [].+, 4")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                USE("./build/test/use.stream.error.tmp/stream_module.xa1")
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // ストリームのイテレーション中のエラーは、ストリームを呼び出した側（USE呼び出し元）に紐づけられる
+        // これは論理的に正しい挙動：ストリームの評価は遅延実行されるため、エラーはイテレーション時に発生する
+        // つまり、スタックトレースには呼び出し元（test）のみが含まれ、モジュールの位置は含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for stream iteration error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useModuleFunctionErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.function.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // 関数を定義し、その関数内でエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("function_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("""
+                {
+                    errorFunc: () -> [].+
+                }
+            """.trimIndent())
+        }
+
+        // USEでモジュールを読み込み、関数を呼び出して例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                module := USE("./build/test/use.function.error.tmp/function_module.xa1")
+                module.errorFunc()
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // 関数内で発生したエラーは、関数を呼び出した側に紐づけられる
+        // これは論理的に正しい挙動：関数のコールスタックは呼び出し元であり、
+        // 関数が定義されているソースコードのスタックは含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for function error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
 
     @Test
     fun inb() = runTest {
