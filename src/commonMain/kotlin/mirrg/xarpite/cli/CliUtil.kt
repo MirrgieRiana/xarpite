@@ -163,6 +163,7 @@ fun showVersion(ioContext: IoContext) {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        context.inc.values += "./.xarpite/lib".toFluoriteString()
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)

@@ -903,10 +903,37 @@ class CliTest {
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
-        // デフォルトで ./.xarpite/maven が含まれている
+        // デフォルトで ./.xarpite/lib と ./.xarpite/maven が含まれている
         val incArray = cliEval(context, "INC").array()
+        assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
     }
+
+    @Test
+    fun useLoadsModuleFromXarpiteLib() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ./.xarpite/lib にモジュールを配置
+        val libDir = ".xarpite/lib".toPath()
+        fileSystem.createDirectories(libDir)
+        val moduleFile = libDir.resolve("mymodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LibModule\"") }
+
+        // ./.xarpite/lib からモジュールをロード
+        val result = cliEval(context, """
+            USE("mymodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LibModule", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(libDir)
+        fileSystem.delete(".xarpite".toPath())
+    }
+
     @Test
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
@@ -1979,6 +2006,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
+        context.inc.values += "./.xarpite/lib".toFluoriteString()
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
