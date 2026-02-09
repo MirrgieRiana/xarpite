@@ -240,7 +240,7 @@ class IncrementDecrementTest {
 
     @Test
     fun incrementErrorPositionTest() = runTest {
-        // ++ のエラーポジションが正しく報告されることを確認
+        // ++ のエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( 1++ )")
         }
@@ -251,7 +251,7 @@ class IncrementDecrementTest {
 
     @Test
     fun decrementErrorPositionTest() = runTest {
-        // -- のエラーポジションが正しく報告されることを確認
+        // -- のエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( 1-- )")
         }
@@ -262,7 +262,7 @@ class IncrementDecrementTest {
 
     @Test
     fun prefixIncrementErrorPositionTest() = runTest {
-        // 前置 ++ のエラーポジションが正しく報告されることを確認
+        // 前置 ++ のエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( ++1 )")
         }

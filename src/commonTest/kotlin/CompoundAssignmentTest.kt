@@ -217,23 +217,23 @@ class CompoundAssignmentTest {
 
     @Test
     fun plusAssignmentErrorPositionTest() = runTest {
-        // += のエラーポジションが正しく報告されることを確認
+        // += のエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( 1 += 2 )")
         }
         val message = exception.message
-        // エラーメッセージに += の位置 (index 4 = 1行目5列目) が含まれることを確認
+        // エラーメッセージに演算代入が定義されていないことが含まれることを確認
         assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
     }
 
     @Test
     fun minusAssignmentErrorPositionTest() = runTest {
-        // -= のエラーポジションが正しく報告されることを確認
+        // -= のエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( 1 -= 2 )")
         }
         val message = exception.message
-        // エラーメッセージに -= の位置が含まれることを確認
+        // エラーメッセージに演算代入が定義されていないことが含まれることを確認
         assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
     }
 
