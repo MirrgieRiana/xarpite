@@ -35,6 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 val baseDir = "build/test".toPath()
@@ -948,6 +949,91 @@ class CliTest {
         fileSystem.delete(customIncDir.resolve("com/example"))
         fileSystem.delete(customIncDir.resolve("com"))
         fileSystem.delete(customIncDir)
+    }
+
+    @Test
+    fun useTopLevelErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.top.level.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // エラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("!!\"Test error from module\"")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.top.level.error.tmp/error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("error_module") == true
+        }
+        assertTrue(hasModuleLocation, "Stack trace should include the module location where the error occurred, but got: ${stackTrace.map { it?.location }}")
+        
+        // スタックトレースの最初の要素（エラー発生箇所）がモジュール内であることを確認
+        val firstPosition = stackTrace.firstOrNull()
+        assertNotNull(firstPosition, "Stack trace should have at least one position")
+        assertTrue(
+            firstPosition.location.contains("error_module"),
+            "First position in stack trace should be in the error module, but was: ${firstPosition.location}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useNestedErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.nested.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ネストした呼び出しでエラーを発生させるモジュールを作成
+        val innerModule = dir.resolve("inner.xa1")
+        fileSystem.write(innerModule) {
+            writeUtf8("!!\"Error from inner module\"")
+        }
+
+        val outerModule = dir.resolve("outer.xa1")
+        fileSystem.write(outerModule) {
+            writeUtf8("""USE("./inner.xa1")""")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.nested.error.tmp/outer.xa1")""")
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // スタックトレースには inner.xa1 が含まれるべき
+        val hasInnerLocation = stackTrace.any { position ->
+            position?.location?.contains("inner") == true
+        }
+        assertTrue(hasInnerLocation, "Stack trace should include inner module location, but got: ${stackTrace.map { it?.location }}")
+
+        // クリーンアップ
+        fileSystem.delete(innerModule)
+        fileSystem.delete(outerModule)
+        fileSystem.delete(dir)
     }
 
 
