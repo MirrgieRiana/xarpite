@@ -10,8 +10,11 @@ import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
+import mirrg.xarpite.cli.addDefaultIncPaths
+import mirrg.xarpite.cli.cliEval as cliEvalImpl
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -35,6 +38,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 val baseDir = "build/test".toPath()
@@ -907,6 +911,22 @@ class CliTest {
         val incArray = cliEval(context, "INC").array()
         assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
+    }
+
+    @Test
+    fun cliEvalAddsDefaultIncPaths() = runTest {
+        val context = TestIoContext()
+        // 実装側の cliEval が INC にデフォルトパスを追加することを検証
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, scriptFile = null)
+        var capturedInc: List<FluoriteValue>? = null
+        cliEvalImpl(context, options) { 
+            capturedInc = inc.values.toList()
+            emptyList()
+        }
+        assertNotNull(capturedInc)
+        val incStrings = capturedInc!!.map { it.toFluoriteString(null).value }
+        assertTrue("./.xarpite/lib" in incStrings)
+        assertTrue("./.xarpite/maven" in incStrings)
     }
 
     @Test
@@ -2006,8 +2026,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
-        context.inc.values += "./.xarpite/lib".toFluoriteString()
-        context.inc.values += "./.xarpite/maven".toFluoriteString()
+        context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->

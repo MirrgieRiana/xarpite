@@ -161,10 +161,14 @@ fun showVersion(ioContext: IoContext) {
     println(version)
 }
 
+fun RuntimeContext.addDefaultIncPaths() {
+    inc.values += "./.xarpite/lib".toFluoriteString()
+    inc.values += "./.xarpite/maven".toFluoriteString()
+}
+
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-        context.inc.values += "./.xarpite/lib".toFluoriteString()
-        context.inc.values += "./.xarpite/maven".toFluoriteString()
+        context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
