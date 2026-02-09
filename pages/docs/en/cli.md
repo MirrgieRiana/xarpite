@@ -775,6 +775,8 @@ The directory separator character `/` can be used regardless of the OS on which 
 
 The `.xa1` extension is optional.
 
+When the extension is omitted, both `$path.xa1` and `$path/main.xa1` patterns are searched.
+
 ---
 
 Here is an example of calling a file directly under the current directory.
@@ -822,6 +824,24 @@ $ {
 # Apple
 ```
 
+---
+
+Here is an example of organizing a module in directory format.
+
+When the extension is omitted, if a file named `main.xa1` exists in the directory, it will be loaded.
+
+```shell
+$ {
+  mkdir fruit
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
+# Apple
+```
+
 #### Specification by Absolute Path
 
 If `reference` is an absolute path, that file is called.
@@ -829,6 +849,8 @@ If `reference` is an absolute path, that file is called.
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
 The `.xa1` extension is optional.
+
+When the extension is omitted, both `$path.xa1` and `$path/main.xa1` patterns are searched.
 
 ```shell
 $ {
@@ -873,6 +895,8 @@ Modules in paths closer to the beginning of the `INC` array are given priority.
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
 The `.xa1` extension is optional.
+
+When the extension is omitted, both `$path.xa1` and `$path/main.xa1` patterns are searched.
 
 ```shell
 $ {
