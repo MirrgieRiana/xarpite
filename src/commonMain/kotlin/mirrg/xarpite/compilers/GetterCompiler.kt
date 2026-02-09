@@ -181,7 +181,7 @@ fun Frame.compileToGetter(node: Node): Getter {
                     mountCounts += frame.mountCount
                     frame = frame.parent ?: break
                 }
-                MountGetter(mountCounts.reversed().toIntArray(), name, null)
+                MountGetter(mountCounts.reversed().toIntArray(), name)
             }
         }
 

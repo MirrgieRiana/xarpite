@@ -293,26 +293,4 @@ class CompoundAssignmentTest {
             """)
         }
     }
-
-    @Test
-    fun methodNotFoundErrorMessageTest() = runTest {
-        // 存在しないメソッドのエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
-            eval("1:m()")
-        }
-        val message = exception.message
-        // エラーメッセージにメソッドまたはマウントが見つからないことが含まれることを確認
-        assertTrue(message != null && (message.contains("Method not found") || message.contains("No such mount entry")), "Error message should mention method or mount not found")
-    }
-
-    @Test
-    fun methodNotFoundInParenthesisErrorMessageTest() = runTest {
-        // 括弧付きの存在しないメソッドのエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
-            eval("( 1:m() )")
-        }
-        val message = exception.message
-        // エラーメッセージにメソッドまたはマウントが見つからないことが含まれることを確認
-        assertTrue(message != null && (message.contains("Method not found") || message.contains("No such mount entry")), "Error message should mention method or mount not found")
-    }
 }

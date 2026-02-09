@@ -58,14 +58,12 @@ class VariableGetter(private val frameIndex: Int, private val variableIndex: Int
     override val code get() = "VariableGetter[$frameIndex;$variableIndex]"
 }
 
-class MountGetter(private val mountCounts: IntArray, private val name: String, private val position: Position?) : Getter {
+class MountGetter(private val mountCounts: IntArray, private val name: String) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         env.getMounts(name, mountCounts).forEach {
             return it.get()
         }
-        withStackTrace(position) {
-            throw FluoriteException("No such mount entry: $name".toFluoriteString())
-        }
+        throw IllegalArgumentException("No such mount entry: $name")
     }
 
     override val code get() = "MountGetter[${mountCounts.joinToString(",") { "$it" }};$name]"
@@ -230,9 +228,7 @@ class MethodAccessGetter(
             if (result != null) return result
         }
 
-        withStackTrace(position) {
-            throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
-        }
+        throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
     }
 
     override val code get() = "MethodAccessGetter[${receiverGetter.code};$variable;${mountCounts.joinToString { "$it" }};${name.escapeJsonString()};${argumentGetters.code};$isBinding,$isNullSafe]"
@@ -274,9 +270,7 @@ class FunctionalMethodAccessGetter(
 
 class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val function = withStackTrace(position) {
-            functionGetter.evaluate(env)
-        }
+        val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
         return function.invoke(position, arguments)
     }
