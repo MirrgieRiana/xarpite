@@ -428,3 +428,29 @@ $ xa '
 '
 # [apple;banana]
 ```
+
+## `array -= item`: 配列からの要素の削除
+
+減算代入演算子を使って配列 `array` から要素 `item` を削除できます。
+
+`array` 変数自体には代入操作は行われず、配列 `array` 自体が改変されます。
+
+該当する要素が複数ある場合、最も先頭に近いものが削除されます。
+
+該当する要素が存在しない場合は何も起こりません。
+
+`item` がストリームの場合、その各要素について削除操作が行われます。
+
+```shell
+$ xa -q '
+  array := ["apple", "banana", "cherry", "banana"]
+  OUT << array
+  array -= "banana"
+  OUT << array
+  array -= "apple", "banana", "durian"
+  OUT << array
+'
+# [apple;banana;cherry;banana]
+# [apple;cherry;banana]
+# [cherry]
+```
