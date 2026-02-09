@@ -14,3 +14,4 @@
 **Fixes:**
 
 - Fixed `xarpite-update` to properly clean up temporary files when interrupted with Ctrl-C.
+- Fixed error position reporting for compound assignment operators (`+=`, `-=`), increment/decrement operators (`++`, `--`), and method access operator (`::`).

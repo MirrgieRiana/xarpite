@@ -1,1 +1,1 @@
-?Fixed error position reporting for compound assignment operators (`+=`, `-=`) and increment/decrement operators (`++`, `--`).
+?Fixed error position reporting for compound assignment operators (`+=`, `-=`), increment/decrement operators (`++`, `--`), and method access operator (`::`).
