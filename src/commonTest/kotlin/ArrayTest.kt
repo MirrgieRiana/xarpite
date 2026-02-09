@@ -131,6 +131,7 @@ class ArrayTest {
         assertEquals("[1;3]", eval("a := [1, 2, 3]; a -= 2; a").array())
         assertEquals("[1;2;3]", eval("a := [1, 2, 3]; a -= 4; a").array()) // 存在しない要素を削除しても変化しない
         assertEquals("[1;3;2]", eval("a := [1, 2, 3, 2]; a -= 2; a").array()) // 最初の一致する要素のみ削除される
+        assertEquals("[3]", eval("a := [1, 2, 3, 2]; a -= 1, 2, 2; a").array()) // ストリームによる複数削除
     }
 
 }
