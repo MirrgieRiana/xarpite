@@ -92,9 +92,9 @@ $ xa '
 
 ## Compound Assignment Operators
 
-Xarpite has compound assignment operators such as the `+=` operator that perform both operation and assignment simultaneously.
+Xarpite has compound assignment operators such as `variable += value` that perform both operation and assignment simultaneously.
 
-`a += b` is equivalent to `a = a + b` in most cases.
+In principle, `variable += value` works equivalently to `variable = variable + value`.
 
 ```shell
 $ xa -q '
@@ -107,84 +107,115 @@ $ xa -q '
 # 123
 ```
 
-## Overriding Compound Assignment
-
-There is an overridable method for compound assignment.
-
-The `_+=_` method is called exactly once each time `a += b` is executed.
-
-The return value of this method is ignored.
-
-However, if the return value is a stream, it is resolved and the result is ignored.
-
-The same applies to other compound assignment methods besides `_+=_`.
-
-```shell
-$ xa -q '
-  Array := {
-    `_+=_`: this, item -> this.value::push(item)
-  }
-  array := Array{value: ["apple"]}
-
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
-'
-# [apple]
-# [apple;banana]
-```
-
-## List of Compound Assignment Operators
+---
 
 The following is a list of compound assignment operators available in Xarpite.
 
-| Operator | Meaning                  |
-|----------|--------------------------|
-| `+=`     | Add and assign           |
-| `-=`     | Subtract and assign      |
+| Operator | Notation | Override Method |
+|----------|----------|-----------------|
+| Addition assignment operator | `variable += value` | `_+=_` |
+| Subtraction assignment operator | `variable -= value` | `_-=_` |
 
-## Compound Assignment Fallback
+## Overriding Compound Assignment Operators
 
-If the override method for compound assignment does not exist, normal operation and assignment are performed.
+If the left-hand side of a compound assignment operator implements an override method, that method is called instead of the normal compound assignment.
+
+---
+
+Each override method takes the left-hand object and the right-hand value, as well as an `accessor` function that performs get and set operations on the expression, as arguments.
+
+Calling `accessor` with 0 arguments performs a value get operation on the expression.
+
+Calling `accessor` with 1 argument performs a value set operation on the expression.
+
+Compound assignment operator behavior can be defined either as an object mutation operation or as an immutable operation with assignment.
+
+---
+
+The return value of a compound assignment operator is the return value of the override method.
+
+---
+
+The following example defines it as an object mutation operation.
+
+Two instances of a `Fruits` object with an overridden `+=` operator are created, and the `+=` operator is applied to both in a chained manner.
 
 ```shell
 $ xa -q '
-  Array := {
-    `_+_`: this, item -> Array{value: this.value + [item]}
+  Fruits := {
+    new := () -> Fruits{array: []}
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      fruit
+    )
   }
-  array := Array{value: ["apple"]}
 
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
+  fruits1 := Fruits.new()
+  fruits2 := Fruits.new()
+
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
+  fruits1 += fruits2 += "apple"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
-# [apple]
-# [apple;banana]
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: [apple]
 ```
 
 ---
 
-Note that at this time, the variable itself is being updated.
+The following example defines it as an assignment operation.
+
+You can see that performing a compound assignment on `fruits1` does not affect `fruits2`, which is a different variable.
 
 ```shell
 $ xa -q '
-  array := ["apple"]
-  oldArray := array
+  Fruits := {
+    new := array -> Fruits{array: array}
+    `_+=_`: this, fruit, accessor -> (
+      accessor(new(this.array + [fruit]))
+      fruit
+    )
+  }
 
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
+  fruits1 := Fruits.new([])
+  fruits2 := fruits1
 
-  OUT << "Update!"
-  array += "banana"
-
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
+  fruits1 += "apple"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
-# Old: [apple]
-# New: [apple]
-# Update!
-# Old: [apple;banana]
-# New: [apple;banana]
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: []
+```
+
+## Compound Assignment on Non-Assignable Expressions
+
+When an expression doesn't support assignment, only the override method check is performed.
+
+The `accessor` supports get operations only.
+
+Typically, this behavior is defined as a mutation operation on mutable values.
+
+```shell
+$ xa '
+  Fruits := {
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      this.array
+    )
+  }
+
+  Fruits{array: []} += "apple"
+'
+# [apple]
 ```
 
 ## Increment/Decrement
@@ -366,6 +397,27 @@ $ xa -q '
 '
 # suffix
 # prefix
+```
+
+### Increment/Decrement on Non-Assignable Expressions
+
+When an expression doesn't support assignment, only the override method check is performed.
+
+The `accessor` supports get operations only.
+
+Typically, this behavior is defined as a mutation operation on mutable values.
+
+```shell
+$ xa '
+  MutableCounter := {
+    `_++`: this, accessor -> (
+      this.value++
+      this.value
+    )
+  }
+  MutableCounter{value: 100}++
+'
+# 101
 ```
 
 # Variables

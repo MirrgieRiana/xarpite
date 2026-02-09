@@ -41,8 +41,6 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
-private val WINDOWS_ABSOLUTE_PATH_REGEX = """^[a-zA-Z]:\\""".toRegex()
-
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
@@ -64,8 +62,8 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     }
 
     // ファイルパス
-    if (reference.startsWith("./") || reference.startsWith(".\\") || reference.startsWith("/") || WINDOWS_ABSOLUTE_PATH_REGEX in reference) {
-        val path = baseDir.toPath().resolve(reference.toPath()).normalized()
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        val path = baseDir.toPath().resolve(reference).normalized()
         path.let { if (it.tryToLoad()) return it.toString() }
         path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
         fail("Module file not found: $reference")
@@ -87,5 +85,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         fail("Maven artifact not found: $reference")
     }
 
-    fail("Invalid module reference format: $reference")
+    // INCを起点とした相対パス
+    run {
+        inc.values.forEach { value ->
+            val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
+            path.let { if (it.tryToLoad()) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+        }
+        fail("Module file not found in INC paths: $reference")
+    }
+
 }

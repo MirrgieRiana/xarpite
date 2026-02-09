@@ -20,6 +20,6 @@ actual fun getFileSystem(): Result<FileSystem> {
 var isWindowsImpl: (() -> Boolean)? = null
 actual fun isWindows(): Boolean = isWindowsImpl!!()
 
-actual suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>): String {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
     throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
