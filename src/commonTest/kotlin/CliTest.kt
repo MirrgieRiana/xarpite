@@ -997,6 +997,53 @@ class CliTest {
     }
 
     @Test
+    fun useModuleMethodErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.method.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // メソッド呼び出しエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("method_error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("[].+")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.method.error.tmp/method_error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("method_error_module") == true
+        }
+        assertTrue(
+            hasModuleLocation, 
+            "Stack trace should include the module location where the method error occurred, but got: ${stackTrace.map { it?.location }}"
+        )
+        
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
+        assertTrue(
+            lastPosition.location.contains("method_error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useNestedErrorShowsCorrectStackTrace() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
