@@ -85,7 +85,7 @@ suspend fun main() {
             override suspend fun readBytesFromStdin() = readBytesFromStdinImpl()
             override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
-            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+            override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)
