@@ -428,3 +428,22 @@ $ xa '
 '
 # [apple;banana]
 ```
+
+## `array -= item`: Removing Elements from an Array
+
+You can remove elements from an array using the subtraction assignment operator.
+
+No assignment operation is performed on the left-hand variable itself; the array itself is modified.
+
+The first element found that is equal to the specified value is removed.
+
+If no matching element exists, nothing happens.
+
+```shell
+$ xa '
+  array := ["apple", "banana", "cherry"]
+  array -= "banana"
+  array
+'
+# [apple;cherry]
+```

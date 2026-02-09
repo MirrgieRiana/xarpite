@@ -121,6 +121,16 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                        val array = arguments[0] as FluoriteArray
+                        val value = arguments[1]
+                        // TODO: EQUALSメソッドの使用
+                        val index = array.values.indexOf(value)
+                        if (index >= 0) {
+                            array.values.removeAt(index)
+                        }
+                        FluoriteNull
+                    },
                     "push" to FluoriteFunction { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
