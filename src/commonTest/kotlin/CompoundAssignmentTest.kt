@@ -295,7 +295,7 @@ class CompoundAssignmentTest {
     }
 
     @Test
-    fun methodNotFoundErrorPositionTest() = runTest {
+    fun methodNotFoundErrorMessageTest() = runTest {
         // 存在しないメソッドのエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("1:m()")
@@ -306,7 +306,7 @@ class CompoundAssignmentTest {
     }
 
     @Test
-    fun methodNotFoundInParenthesisErrorPositionTest() = runTest {
+    fun methodNotFoundInParenthesisErrorMessageTest() = runTest {
         // 括弧付きの存在しないメソッドのエラーが正しく報告されることを確認
         val exception = assertFailsWith<Exception> {
             eval("( 1:m() )")

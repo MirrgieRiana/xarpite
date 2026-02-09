@@ -58,12 +58,14 @@ class VariableGetter(private val frameIndex: Int, private val variableIndex: Int
     override val code get() = "VariableGetter[$frameIndex;$variableIndex]"
 }
 
-class MountGetter(private val mountCounts: IntArray, private val name: String) : Getter {
+class MountGetter(private val mountCounts: IntArray, private val name: String, private val position: Position?) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         env.getMounts(name, mountCounts).forEach {
             return it.get()
         }
-        throw FluoriteException("No such mount entry: $name".toFluoriteString())
+        withStackTrace(position) {
+            throw FluoriteException("No such mount entry: $name".toFluoriteString())
+        }
     }
 
     override val code get() = "MountGetter[${mountCounts.joinToString(",") { "$it" }};$name]"
