@@ -405,7 +405,7 @@ An array of directory paths that are searched when using `USE` with Maven coordi
 
 When a relative path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/maven` is included.
+By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 ---
 
