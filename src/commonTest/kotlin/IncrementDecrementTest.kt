@@ -5,6 +5,7 @@ import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class IncrementDecrementTest {
@@ -235,6 +236,39 @@ class IncrementDecrementTest {
         assertFailsWith<Exception> {
             eval("10++")
         }
+    }
+
+    @Test
+    fun incrementErrorPositionTest() = runTest {
+        // ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<Exception> {
+            eval("( 1++ )")
+        }
+        val message = exception.message
+        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
+        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
+    }
+
+    @Test
+    fun decrementErrorPositionTest() = runTest {
+        // -- のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<Exception> {
+            eval("( 1-- )")
+        }
+        val message = exception.message
+        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
+        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
+    }
+
+    @Test
+    fun prefixIncrementErrorPositionTest() = runTest {
+        // 前置 ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<Exception> {
+            eval("( ++1 )")
+        }
+        val message = exception.message
+        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
+        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
     }
 
     @Test

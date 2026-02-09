@@ -5,6 +5,7 @@ import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompoundAssignmentTest {
@@ -212,6 +213,28 @@ class CompoundAssignmentTest {
         assertFailsWith<Exception> {
             eval("10 += 5")
         }
+    }
+
+    @Test
+    fun plusAssignmentErrorPositionTest() = runTest {
+        // += のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<Exception> {
+            eval("( 1 += 2 )")
+        }
+        val message = exception.message
+        // エラーメッセージに += の位置 (index 4 = 1行目5列目) が含まれることを確認
+        assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
+    }
+
+    @Test
+    fun minusAssignmentErrorPositionTest() = runTest {
+        // -= のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<Exception> {
+            eval("( 1 -= 2 )")
+        }
+        val message = exception.message
+        // エラーメッセージに -= の位置が含まれることを確認
+        assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
     }
 
     @Test
