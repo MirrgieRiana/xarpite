@@ -982,12 +982,13 @@ class CliTest {
         }
         assertTrue(hasModuleLocation, "Stack trace should include the module location where the error occurred, but got: ${stackTrace.map { it?.location }}")
         
-        // スタックトレースの最初の要素（エラー発生箇所）がモジュール内であることを確認
-        val firstPosition = stackTrace.firstOrNull()
-        assertNotNull(firstPosition, "Stack trace should have at least one position")
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        // スタックトレースは [呼び出し元, ..., エラー発生箇所] の順
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
         assertTrue(
-            firstPosition.location.contains("error_module"),
-            "First position in stack trace should be in the error module, but was: ${firstPosition.location}"
+            lastPosition.location.contains("error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
         )
 
         // クリーンアップ
