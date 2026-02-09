@@ -1,1 +1,1 @@
-Added left margin to stack trace when error position is near the beginning of a line.
+Added consistent left margin to stack trace to align error positions regardless of column number.

@@ -49,8 +49,12 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        val leftMargin = if (startColumnIndex == 0) " ".repeat(column - 1) else ""
-        return "$location:$row:$column  $startEllipsis$leftMargin$snippet$endEllipsis"
+        val errorPositionInSnippet = column - 1 - startColumnIndex
+        val leftMargin = " ".repeat(10 - errorPositionInSnippet)
+        val rowDigits = row.toString().length
+        val columnDigits = column.toString().length
+        val positionPadding = " ".repeat((3 - rowDigits) + (3 - columnDigits))
+        return "$location:$row:$column$positionPadding  $startEllipsis$leftMargin$snippet$endEllipsis"
     }
 
 

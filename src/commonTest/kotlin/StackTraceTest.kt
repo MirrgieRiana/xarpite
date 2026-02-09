@@ -23,30 +23,34 @@ class StackTraceTest {
         // 1行目3列目（行の先頭に近い）
         val position1 = Position("test.xpr", 2) // "c" の位置
         val result1 = context.renderPosition(position1)
-        // startColumnIndex = (3 - 1) - 10 atLeast 0 = 0
-        // leftMargin = " ".repeat(3 - 1) = "  " (2つの空白)
-        assertEquals("test.xpr:1:3    abc def ghi", result1)
+        // startColumnIndex = 0, errorPositionInSnippet = 2, leftMargin = 8
+        // positionPadding = 4, 固定2空白
+        // 4 + 2 + 8 = 14個の空白
+        assertEquals("test.xpr:1:3              abc def ghi", result1)
 
         // 1行目1列目（行の先頭）
         val position2 = Position("test.xpr", 0) // "a" の位置
         val result2 = context.renderPosition(position2)
-        // startColumnIndex = 0
-        // leftMargin = "" (0個の空白)
-        assertEquals("test.xpr:1:1  abc def ghi", result2)
+        // startColumnIndex = 0, errorPositionInSnippet = 0, leftMargin = 10
+        // positionPadding = 4, 固定2空白
+        // 4 + 2 + 10 = 16個の空白
+        assertEquals("test.xpr:1:1                abc def ghi", result2)
 
         // 1行目10列目（まだ先頭に近い）
         val position3 = Position("test.xpr", 9) // "g" の位置
         val result3 = context.renderPosition(position3)
-        // startColumnIndex = 0
-        // leftMargin = " ".repeat(9) = "         " (9つの空白)
-        assertEquals("test.xpr:1:10           abc def ghi", result3)
+        // startColumnIndex = 0, errorPositionInSnippet = 9, leftMargin = 1
+        // positionPadding = 3, 固定2空白
+        // 3 + 2 + 1 = 6個の空白
+        assertEquals("test.xpr:1:10      abc def ghi", result3)
 
         // 1行目11列目（ちょうど境界）
         val position4 = Position("test.xpr", 10) // "h" の位置
         val result4 = context.renderPosition(position4)
-        // startColumnIndex = (11 - 1) - 10 atLeast 0 = 0
-        // leftMargin = " ".repeat(10) = "          " (10個の空白)
-        assertEquals("test.xpr:1:11            abc def ghi", result4)
+        // startColumnIndex = 0, errorPositionInSnippet = 10, leftMargin = 0
+        // positionPadding = 3, 固定2空白
+        // 3 + 2 + 0 = 5個の空白
+        assertEquals("test.xpr:1:11     abc def ghi", result4)
     }
 
     @Test
