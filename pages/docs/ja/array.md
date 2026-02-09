@@ -431,19 +431,26 @@ $ xa '
 
 ## `array -= item`: 配列からの要素の削除
 
-減算代入演算子を使って配列から要素を削除することができます。
+減算代入演算子を使って配列 `array` から要素 `item` を削除できます。
 
-左辺の変数自体には代入操作は行われず、配列自体が変化します。
+`array` 変数自体には代入操作は行われず、配列 `array` 自体が改変されます。
 
-最初に見つかった指定した値と等しい要素が配列から削除されます。
+該当する要素が複数ある場合、最も先頭に近いものが削除されます。
 
 該当する要素が存在しない場合は何も起こりません。
 
+`item` がストリームの場合、その各要素について削除操作が行われます。
+
 ```shell
-$ xa '
-  array := ["apple", "banana", "cherry"]
+$ xa -q '
+  array := ["apple", "banana", "cherry", "banana"]
+  OUT << array
   array -= "banana"
-  array
+  OUT << array
+  array -= "apple", "banana", "durian"
+  OUT << array
 '
-# [apple;cherry]
+# [apple;banana;cherry;banana]
+# [apple;cherry;banana]
+# [cherry]
 ```
