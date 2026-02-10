@@ -1,25 +1,23 @@
 ---
-title: "I/O"
+title: "IO"
 ---
 
 <!-- toc -->
 
-# I/O
+# IO
 
-Provides I/O-related functionality.
+Provides I/O-related functionality for data exchange with external programs.
 
-## `FETCH`: Fetch Text Content from URL
+## Built-in Functions
+
+### `FETCH`: Fetch Text Content from URL
 
 `FETCH(url: STRING): STRING`
 
-Fetches text content from the URL specified by `url` via HTTP request.
+Fetches UTF-8 text content from `url` via GET request.
 
-Decodes the response body as UTF-8 and returns it as a string.
-
-## `FETCHB`: Fetch Binary Content from URL
+### `FETCHB`: Fetch Binary Content from URL
 
 `FETCHB(url: STRING): BLOB`
 
-Fetches binary content from the URL specified by `url` via HTTP request.
-
-Returns the response body as a BLOB.
+Fetches binary content from `url` via GET request.
