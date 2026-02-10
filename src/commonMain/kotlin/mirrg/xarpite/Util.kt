@@ -334,12 +334,8 @@ fun Path.isAncestorOf(other: Path): Boolean {
 
 // I/O utilities
 
-private val client by lazy { HttpClient() }
+private val sharedHttpClient by lazy { HttpClient() }
 
 suspend fun fetch(url: String): ByteArray {
-    try {
-        return client.get(url).readRawBytes()
-    } finally {
-        client.close()
-    }
+    return sharedHttpClient.get(url).readRawBytes()
 }
