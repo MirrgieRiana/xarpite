@@ -334,6 +334,4 @@ fun Path.isAncestorOf(other: Path): Boolean {
 
 // I/O utilities
 
-suspend fun RuntimeContext.fetch(url: String): ByteArray {
-    return io.fetch(this, url)
-}
+suspend fun RuntimeContext.fetch(url: String) = io.fetch(this, url)

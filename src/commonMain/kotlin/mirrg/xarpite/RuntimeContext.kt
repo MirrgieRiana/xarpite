@@ -15,6 +15,7 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+
     val httpClient by lazy {
         val client = HttpClient()
         daemonScope.coroutineContext[Job]?.invokeOnCompletion {
@@ -22,6 +23,7 @@ class RuntimeContext(
         }
         client
     }
+
 
     private val srcs = mutableMapOf<String, String>()
 
