@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.compilers.compileToGetter
@@ -31,12 +32,9 @@ fun parse(src: String): String {
 
 suspend fun CoroutineScope.eval(
     src: String,
-    fetchHandler: (suspend (url: String) -> ByteArray)? = null
+    ioContext: IoContext = UnsupportedIoContext()
 ): FluoriteValue {
-    return withEvaluator(object : UnsupportedIoContext() {
-        override suspend fun fetch(url: String): ByteArray =
-            fetchHandler?.invoke(url) ?: throw UnsupportedOperationException("fetchHandler is not set")
-    }) { context, evaluator ->
+    return withEvaluator(ioContext) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }

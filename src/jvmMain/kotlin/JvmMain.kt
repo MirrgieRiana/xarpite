@@ -8,7 +8,6 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.io.fetch
 
 import java.nio.file.Path
 
@@ -24,7 +23,7 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
-            override suspend fun fetch(url: String): ByteArray = fetch(url)
+            override suspend fun fetch(url: String): ByteArray = mirrg.xarpite.io.fetch(url)
         }
         val options = try {
             parseArguments(args.asIterable(), ioContext)

@@ -6,8 +6,8 @@ import io.ktor.client.statement.readRawBytes
 
 suspend fun fetch(url: String): ByteArray {
     val client = HttpClient()
-    return try {
-        client.get(url).readRawBytes()
+    try {
+        return client.get(url).readRawBytes()
     } finally {
         client.close()
     }

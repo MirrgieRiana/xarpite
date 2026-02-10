@@ -1,9 +1,9 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -17,9 +17,11 @@ class IoMountsTest {
         
         val result = eval(
             """FETCH("https://example.com/test")""",
-            fetchHandler = { url ->
-                capturedUrl = url
-                mockResponse
+            ioContext = object : UnsupportedIoContext() {
+                override suspend fun fetch(url: String): ByteArray {
+                    capturedUrl = url
+                    return mockResponse
+                }
             }
         )
         
@@ -36,9 +38,11 @@ class IoMountsTest {
         
         val result = eval(
             """FETCHB("https://example.com/data") >> TO_STRING""",
-            fetchHandler = { url ->
-                capturedUrl = url
-                mockResponse
+            ioContext = object : UnsupportedIoContext() {
+                override suspend fun fetch(url: String): ByteArray {
+                    capturedUrl = url
+                    return mockResponse
+                }
             }
         )
         
@@ -53,7 +57,9 @@ class IoMountsTest {
         val content = "Test content with special chars: こんにちは"
         val result = eval(
             """FETCH("https://example.com/utf8")""",
-            fetchHandler = { content.encodeToByteArray() }
+            ioContext = object : UnsupportedIoContext() {
+                override suspend fun fetch(url: String): ByteArray = content.encodeToByteArray()
+            }
         )
         assertEquals(content, result.string)
     }
@@ -64,7 +70,9 @@ class IoMountsTest {
         val bytes = byteArrayOf(0x01, 0x02, 0x03, 0xFF.toByte())
         val result = eval(
             """FETCHB("https://example.com/binary") >> TO_STRING""",
-            fetchHandler = { bytes }
+            ioContext = object : UnsupportedIoContext() {
+                override suspend fun fetch(url: String): ByteArray = bytes
+            }
         )
         assertEquals("BLOB.of([1;2;3;255])", result.string)
     }

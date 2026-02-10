@@ -9,7 +9,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.io.fetch
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
 import mirrg.xarpite.mounts.createCommonMounts
@@ -30,7 +29,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
-        override suspend fun fetch(url: String): ByteArray = fetch(url)
+        override suspend fun fetch(url: String): ByteArray = mirrg.xarpite.io.fetch(url)
     }) { context, evaluator ->
         context.setSrc("-", src)
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
