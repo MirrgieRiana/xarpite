@@ -893,17 +893,21 @@ The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ```shell
 $ {
-  mkdir -p modules
+  mkdir -p modules/fruit
 
-  echo ' "Apple" ' > modules/fruit.xa1
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  xa '
+  xa -q '
     INC += "modules"
-    USE("fruit")
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
   '
 
   rm -r modules
 }
+# Apple
+# Apple
 # Apple
 ```
 
