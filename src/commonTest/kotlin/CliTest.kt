@@ -1252,7 +1252,7 @@ class CliTest {
     fun execRunsSimpleCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "hello"
             }
@@ -1268,7 +1268,7 @@ class CliTest {
     fun execRunsComplexCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "3\n13\n23\n30"
             }
@@ -1284,7 +1284,7 @@ class CliTest {
     fun execThrowsOnNonZeroExitCode() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 throw FluoriteException("exit 1".toFluoriteString())
             }
@@ -1299,7 +1299,7 @@ class CliTest {
     fun execWithMultipleArguments() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "hello world test"
             }
@@ -1315,7 +1315,7 @@ class CliTest {
     fun execWithEmptyOutput() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 ""
             }
@@ -1331,7 +1331,7 @@ class CliTest {
     fun execWithSpecialCharactersInArguments() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "hello;world test|pipe"
             }
@@ -1348,7 +1348,7 @@ class CliTest {
     fun execThrowsOnCommandNotFound() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 throw FluoriteException("exit 1".toFluoriteString())
             }
@@ -1370,7 +1370,7 @@ class CliTest {
     fun execWithNoTrailingNewline() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "test"
             }
@@ -1387,7 +1387,7 @@ class CliTest {
     fun execWithDifferentExitCodes() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 // 非ゼロ終了コードの場合は例外を投げる
                 throw FluoriteException("exit 2".toFluoriteString())
@@ -1410,7 +1410,7 @@ class CliTest {
     fun execWithLongRunningCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "done"
             }
@@ -1427,7 +1427,7 @@ class CliTest {
     fun execWithPipeInCommand() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "b"
             }
@@ -1444,7 +1444,7 @@ class CliTest {
     fun execWithEnvironmentVariables() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "ok"
             }
@@ -1463,7 +1463,7 @@ class CliTest {
     fun execWithEnvironmentOverrides() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 env["FOO"] ?: "not_set"
             }
@@ -1479,7 +1479,7 @@ class CliTest {
     fun execWithEnvironmentOverridesExistingVariable() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 env["HOME"] ?: "not_set"
             }
@@ -1496,7 +1496,7 @@ class CliTest {
     fun execWithEnvironmentRemoveByEmptyString() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 // 空文字が渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
                 if (env["HOME"] == "") "ok" else "fail"
@@ -1516,7 +1516,7 @@ class CliTest {
     fun execWithEnvironmentRemoveByNull() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 // nullが渡された場合は削除扱いとなるので、HOMEが存在しない状態をシミュレート
                 if (env["HOME"] == null) "ok" else "fail"
@@ -1537,7 +1537,7 @@ class CliTest {
     fun execWithEmptyArgumentList() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 throw FluoriteException("exit 1".toFluoriteString())
             }
@@ -1557,7 +1557,7 @@ class CliTest {
     fun execWithVeryLongArgument() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "a".repeat(500)
             }
@@ -1575,7 +1575,7 @@ class CliTest {
     fun execWithUnicodeCharacters() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "こんにちは世界"
             }
@@ -1592,7 +1592,7 @@ class CliTest {
     fun execWithMultipleCommandsInStream() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "abc"
             }
@@ -1609,7 +1609,7 @@ class CliTest {
     fun execWithRedirection() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "ok"
             }
@@ -1626,7 +1626,7 @@ class CliTest {
     fun execWithBackslashInArgument() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "a\\b"
             }
@@ -1647,7 +1647,7 @@ class CliTest {
         val mutex = Mutex()
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 mutex.withLock {
                     capturedCommands.add(Triple(process, args, env))
                     currentConcurrent++
@@ -1696,7 +1696,7 @@ class CliTest {
         // カスタムexecuteProcessハンドラを使用するテスト
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "custom output"
             }
@@ -1801,7 +1801,7 @@ class CliTest {
     fun bashBasic() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "Hello"
             }
@@ -1818,7 +1818,7 @@ class CliTest {
     fun bashRemovesTrailingNewline() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "test\n"
             }
@@ -1835,7 +1835,7 @@ class CliTest {
     fun bashRemovesOnlyOneTrailingNewline() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "test\n\n\n"
             }
@@ -1852,7 +1852,7 @@ class CliTest {
     fun bashNoTrailingNewline() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "test"
             }
@@ -1869,7 +1869,7 @@ class CliTest {
     fun bashWithMultipleLines() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "line1\nline2\nline3\n"
             }
@@ -1886,7 +1886,7 @@ class CliTest {
     fun bashReturnsString() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "abc"
             }
@@ -1902,7 +1902,7 @@ class CliTest {
     fun bashThrowsOnNonZeroExit() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 throw FluoriteException("exit 1".toFluoriteString())
             }
@@ -1923,7 +1923,7 @@ class CliTest {
     fun bashWithUnicode() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "こんにちは世界"
             }
@@ -1940,7 +1940,7 @@ class CliTest {
     fun bashWithArguments() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "apple banana"
             }
@@ -1957,7 +1957,7 @@ class CliTest {
     fun bashWithArgumentsMultipleLines() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
-            executeProcessHandler = { _, _, process, args, env ->
+            executeProcessHandler = { _, process, args, env ->
                 capturedCommands.add(Triple(process, args, env))
                 "The fruit is:\napple"
             }
@@ -1995,7 +1995,7 @@ internal class TestIoContext(
     private val stdinBytes: ByteArray = byteArrayOf(),
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
-    private val executeProcessHandler: (suspend (ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
+    private val executeProcessHandler: (suspend (ioContext: IoContext, process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -2033,8 +2033,8 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) =
-        executeProcessHandler?.invoke(this, coroutineScope, process, args, env)?: throw UnsupportedOperationException("executeProcessHandler is not set")
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
+        executeProcessHandler?.invoke(this, process, args, env)?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 

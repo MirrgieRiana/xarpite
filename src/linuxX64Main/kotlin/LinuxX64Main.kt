@@ -1,4 +1,3 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.cli.ShowUsage
@@ -22,8 +21,8 @@ fun main(args: Array<String>) {
             override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
-            override suspend fun executeProcess(coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>) = 
-                mirrg.xarpite.executeProcess(this, coroutineScope, process, args, env)
+            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = 
+                mirrg.xarpite.executeProcess(this, process, args, env)
         }
         val options = try {
             parseArguments(args.asIterable(), ioContext)

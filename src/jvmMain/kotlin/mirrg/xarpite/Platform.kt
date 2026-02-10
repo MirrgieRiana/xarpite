@@ -1,8 +1,8 @@
 package mirrg.xarpite
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -39,8 +39,8 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.flush()
 }
 
-suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>): String {
-    return withContext(Dispatchers.IO) {
+suspend fun executeProcess(ioContext: IoContext, process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
+    withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
         val environment = processBuilder.environment()
@@ -55,14 +55,14 @@ suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope,
 
         try {
             // 標準出力を非同期で読み取る
-            val outputDeferred = coroutineScope.async(Dispatchers.IO) {
+            val outputDeferred = async(Dispatchers.IO) {
                 BufferedReader(processInstance.inputStream.reader()).use { reader ->
                     reader.readText()
                 }
             }
 
             // 標準エラー出力を非同期で読み取り、ioContextを経由してstderrに転送
-            val errorDeferred = coroutineScope.async(Dispatchers.IO) {
+            val errorDeferred = async(Dispatchers.IO) {
                 BufferedReader(processInstance.errorStream.reader()).use { reader ->
                     while (true) {
                         val line = reader.readLine() ?: break

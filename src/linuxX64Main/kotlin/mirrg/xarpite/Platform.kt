@@ -14,7 +14,6 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -102,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun executeProcess(ioContext: IoContext, coroutineScope: CoroutineScope, process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+suspend fun executeProcess(ioContext: IoContext, process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
