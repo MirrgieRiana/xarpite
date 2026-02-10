@@ -47,6 +47,7 @@ kotlin {
         jsMain {
             dependencies {
                 implementation(rootProject)
+                implementation("io.ktor:ktor-client-js:3.0.3")
             }
         }
         jsTest {

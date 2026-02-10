@@ -1,6 +1,8 @@
 package mirrg.xarpite
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
@@ -13,6 +15,14 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+    
+    val httpClient by lazy {
+        val client = HttpClient()
+        daemonScope.coroutineContext[Job]?.invokeOnCompletion {
+            client.close()
+        }
+        client
+    }
 
     private val srcs = mutableMapOf<String, String>()
 
@@ -73,7 +83,7 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
-    suspend fun fetch(url: String): ByteArray
+    suspend fun fetch(context: RuntimeContext, url: String): ByteArray
 }
 
 open class UnsupportedIoContext : IoContext {
@@ -86,5 +96,5 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
-    override suspend fun fetch(url: String): ByteArray = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
 }

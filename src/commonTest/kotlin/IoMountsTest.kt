@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
@@ -18,7 +19,7 @@ class IoMountsTest {
         val result = eval(
             """FETCH("https://example.com/test")""",
             ioContext = object : UnsupportedIoContext() {
-                override suspend fun fetch(url: String): ByteArray {
+                override suspend fun fetch(context: RuntimeContext, url: String): ByteArray {
                     capturedUrl = url
                     return mockResponse
                 }
@@ -39,7 +40,7 @@ class IoMountsTest {
         val result = eval(
             """FETCHB("https://example.com/data") >> TO_STRING""",
             ioContext = object : UnsupportedIoContext() {
-                override suspend fun fetch(url: String): ByteArray {
+                override suspend fun fetch(context: RuntimeContext, url: String): ByteArray {
                     capturedUrl = url
                     return mockResponse
                 }
@@ -58,7 +59,7 @@ class IoMountsTest {
         val result = eval(
             """FETCH("https://example.com/utf8")""",
             ioContext = object : UnsupportedIoContext() {
-                override suspend fun fetch(url: String): ByteArray = content.encodeToByteArray()
+                override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = content.encodeToByteArray()
             }
         )
         assertEquals(content, result.string)
@@ -71,7 +72,7 @@ class IoMountsTest {
         val result = eval(
             """FETCHB("https://example.com/binary") >> TO_STRING""",
             ioContext = object : UnsupportedIoContext() {
-                override suspend fun fetch(url: String): ByteArray = bytes
+                override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = bytes
             }
         )
         assertEquals("BLOB.of([1;2;3;255])", result.string)

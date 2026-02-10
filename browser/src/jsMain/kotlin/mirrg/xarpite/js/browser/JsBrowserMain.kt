@@ -1,9 +1,12 @@
 package mirrg.xarpite.js.browser
 
+import io.ktor.client.request.get
+import io.ktor.client.statement.readRawBytes
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
@@ -29,7 +32,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
-        override suspend fun fetch(url: String): ByteArray = mirrg.xarpite.fetch(url)
+        override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
     }) { context, evaluator ->
         context.setSrc("-", src)
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })

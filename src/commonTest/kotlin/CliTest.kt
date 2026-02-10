@@ -9,6 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
@@ -2261,7 +2262,7 @@ internal class TestIoContext(
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
     private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
-    private val fetchHandler: (suspend (url: String) -> ByteArray)? = null
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -2302,8 +2303,8 @@ internal class TestIoContext(
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
         executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
-    override suspend fun fetch(url: String): ByteArray =
-        fetchHandler?.invoke(url) ?: throw UnsupportedOperationException("fetchHandler is not set")
+    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray =
+        fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 
