@@ -927,10 +927,10 @@ class CliTest {
         val dir1 = "build/test/use.dotdot.tmp".toPath()
         val dir2 = dir1.resolve("subdir")
         fileSystem.createDirectories(dir2)
-        
+
         val callerFile = dir2.resolve("caller.xa1")
         val moduleFile = dir1.resolve("module.xa1")
-        
+
         fileSystem.write(moduleFile) { writeUtf8("\"DotDotRelative\"") }
         fileSystem.write(callerFile) { writeUtf8("""USE("../module")""") }
 
@@ -2342,7 +2342,7 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
-        executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
+        executeProcessHandler?.invoke(process, args, env)?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 
