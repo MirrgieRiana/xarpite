@@ -1,5 +1,6 @@
 package mirrg.xarpite
 
+import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
 import kotlinx.serialization.json.Json
@@ -334,7 +335,7 @@ fun Path.isAncestorOf(other: Path): Boolean {
 // I/O utilities
 
 suspend fun fetch(url: String): ByteArray {
-    val client = io.ktor.client.HttpClient()
+    val client = HttpClient()
     try {
         return client.get(url).readRawBytes()
     } finally {
