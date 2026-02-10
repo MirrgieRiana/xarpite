@@ -44,9 +44,10 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
-    fun Path.tryToLoad(): Boolean {
+    fun Path.tryToLoadFile(): Boolean {
         paths += this
-        val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
+        val fileSystem = getFileSystem().getOrThrow()
+        val metadata = fileSystem.metadataOrNull(this) ?: return false
         return metadata.isRegularFile
     }
 
@@ -65,11 +66,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         val path = baseDir.toPath().resolve(reference).normalized()
-        path.let { if (it.tryToLoad()) return it.toString() }
-        if (!reference.endsWith(MODULE_EXTENSION)) {
-            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-        }
+        path.let { if (it.tryToLoadFile()) return it.toString() }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoadFile()) return it.toString() }
+        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoadFile()) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -84,7 +83,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
+            path.let { if (it.tryToLoadFile()) return it.toString() }
         }
         fail("Maven artifact not found: $reference")
     }
@@ -93,11 +92,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     run {
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
-            if (!reference.endsWith(MODULE_EXTENSION)) {
-                path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-                path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-            }
+            path.let { if (it.tryToLoadFile()) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoadFile()) return it.toString() }
+            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoadFile()) return it.toString() }
         }
         fail("Module file not found in INC paths: $reference")
     }
