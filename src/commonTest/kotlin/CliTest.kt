@@ -1,4 +1,3 @@
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -1977,8 +1976,8 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
-    return withEvaluator(ioContext) { context, evaluator ->
+private suspend fun cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue = coroutineScope {
+    withEvaluator(ioContext) { context, evaluator ->
         context.inc.values += "./.xarpite/maven".toFluoriteString()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
@@ -2033,8 +2032,7 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
-        executeProcessHandler?.invoke(process, args, env)?: throw UnsupportedOperationException("executeProcessHandler is not set")
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 

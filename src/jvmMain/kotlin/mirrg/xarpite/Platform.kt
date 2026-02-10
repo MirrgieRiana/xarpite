@@ -55,14 +55,14 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
 
         try {
             // 標準出力を非同期で読み取る
-            val outputDeferred = async(Dispatchers.IO) {
+            val outputDeferred = async {
                 BufferedReader(processInstance.inputStream.reader()).use { reader ->
                     reader.readText()
                 }
             }
 
             // 標準エラー出力を非同期で読み取り、writeBytesToStderrを経由してstderrに転送
-            val errorDeferred = async(Dispatchers.IO) {
+            val errorDeferred = async {
                 BufferedReader(processInstance.errorStream.reader()).use { reader ->
                     while (true) {
                         val line = reader.readLine() ?: break
