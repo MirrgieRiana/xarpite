@@ -15,7 +15,6 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
-    
     val httpClient by lazy {
         val client = HttpClient()
         daemonScope.coroutineContext[Job]?.invokeOnCompletion {
