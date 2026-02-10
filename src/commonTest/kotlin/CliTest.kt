@@ -422,6 +422,22 @@ class CliTest {
     }
 
     @Test
+    fun useResolvesMainXa1WhenExtensionOmitted() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val dir = baseDir.resolve("use.main.tmp")
+        val moduleDir = dir.resolve("banana")
+        fileSystem.createDirectories(moduleDir)
+        val module = moduleDir.resolve("main.xa1")
+        fileSystem.write(module) { writeUtf8("877") }
+        assertEquals("877", cliEval(context, """USE("./build/test/use.main.tmp/banana")""").toFluoriteString(null).value)
+        fileSystem.delete(module)
+        fileSystem.delete(moduleDir)
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useCachesByPath() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -770,6 +786,33 @@ class CliTest {
         // クリーンアップ
         fileSystem.delete(moduleFile)
         fileSystem.delete(subDir)
+        fileSystem.delete(incDir)
+    }
+
+    @Test
+    fun useIncRelativePathResolvesMainXa1() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにディレクトリ形式のモジュールを配置
+        val incDir = "build/test/use.inc.main.tmp".toPath()
+        val moduleDir = incDir.resolve("lemon")
+        fileSystem.createDirectories(moduleDir)
+        val moduleFile = moduleDir.resolve("main.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Lemon\"") }
+
+        // ディレクトリ名でモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.main.tmp")
+            USE("lemon")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Lemon", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(moduleDir)
         fileSystem.delete(incDir)
     }
 

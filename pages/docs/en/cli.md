@@ -773,7 +773,7 @@ In contexts launched by the `-e` command-line option, it is resolved as a relati
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ---
 
@@ -789,6 +789,23 @@ $ {
   rm fruit.xa1
 }
 # Apple
+# Apple
+```
+
+---
+
+Here is an example of calling a directory with a `main.xa1` file.
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
 # Apple
 ```
 
@@ -828,7 +845,7 @@ If `reference` is an absolute path, that file is called.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ```shell
 $ {
@@ -872,21 +889,25 @@ Modules in paths closer to the beginning of the `INC` array are given priority.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ```shell
 $ {
-  mkdir -p modules
+  mkdir -p modules/fruit
 
-  echo ' "Apple" ' > modules/fruit.xa1
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  xa '
+  xa -q '
     INC += "modules"
-    USE("fruit")
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
   '
 
   rm -r modules
 }
+# Apple
+# Apple
 # Apple
 ```
 

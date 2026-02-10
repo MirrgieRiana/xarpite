@@ -779,7 +779,7 @@ $ {
 
 ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
 
-拡張子の `.xa1` は省略可能です。
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
 
 ---
 
@@ -795,6 +795,23 @@ $ {
   rm fruit.xa1
 }
 # Apple
+# Apple
+```
+
+---
+
+以下は、 `main.xa1` ファイルを持つディレクトリを呼び出す例です。
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
 # Apple
 ```
 
@@ -834,7 +851,7 @@ $ {
 
 ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
 
-拡張子の `.xa1` は省略可能です。
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
 
 ```shell
 $ {
@@ -855,21 +872,25 @@ $ {
 
 ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
 
-拡張子の `.xa1` は省略可能です。
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
 
 ```shell
 $ {
-  mkdir -p modules
+  mkdir -p modules/fruit
 
-  echo ' "Apple" ' > modules/fruit.xa1
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  xa '
+  xa -q '
     INC += "modules"
-    USE("fruit")
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
   '
 
   rm -r modules
 }
+# Apple
+# Apple
 # Apple
 ```
 

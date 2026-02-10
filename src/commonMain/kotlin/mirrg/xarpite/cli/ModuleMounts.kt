@@ -46,7 +46,8 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     fun Path.tryToLoad(): Boolean {
         paths += this
-        return getFileSystem().getOrThrow().exists(this)
+        val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
+        return metadata.isRegularFile
     }
 
     fun fail(message: String): Nothing {
@@ -66,6 +67,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         val path = baseDir.toPath().resolve(reference).normalized()
         path.let { if (it.tryToLoad()) return it.toString() }
         path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -91,6 +93,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
             path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         }
         fail("Module file not found in INC paths: $reference")
     }
