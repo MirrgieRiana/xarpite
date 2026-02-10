@@ -1,8 +1,8 @@
 package mirrg.xarpite
 
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
@@ -21,7 +21,7 @@ class RuntimeContext(
         val httpClient = HttpClient()
         daemonScope.launch {
             try {
-                CompletableDeferred<Unit>().await()
+                awaitCancellation()
             } finally {
                 httpClient.close()
             }
