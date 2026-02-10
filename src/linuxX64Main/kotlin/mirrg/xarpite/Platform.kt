@@ -101,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun executeProcess(ioContext: IoContext, process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
@@ -418,12 +418,12 @@ suspend fun executeProcess(ioContext: IoContext, process: String, args: List<Str
                     }
                 }
 
-                // 子プロセスが正常終了した後、バッファリングしたstderrをioContextを経由して出力
+                // 子プロセスが正常終了した後、バッファリングしたstderrをwriteBytesToStderrを経由して出力
                 // デッドロック回避のため、子プロセス終了後にまとめて出力する
                 // chunk単位で出力することでO(n^2)の全量連結とtempBufferコピーを回避
                 for (chunk in stderrChunks) {
                     if (chunk.isNotEmpty()) {
-                        ioContext.writeBytesToStderr(chunk)
+                        writeBytesToStderr(chunk)
                     }
                 }
 
