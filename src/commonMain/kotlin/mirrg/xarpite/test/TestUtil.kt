@@ -29,8 +29,14 @@ fun parse(src: String): String {
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String): FluoriteValue {
-    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+suspend fun CoroutineScope.eval(
+    src: String,
+    fetchHandler: (suspend (url: String) -> ByteArray)? = null
+): FluoriteValue {
+    return withEvaluator(object : UnsupportedIoContext() {
+        override suspend fun fetch(url: String): ByteArray =
+            fetchHandler?.invoke(url) ?: throw UnsupportedOperationException("fetchHandler is not set")
+    }) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }
