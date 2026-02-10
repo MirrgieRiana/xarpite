@@ -1,8 +1,9 @@
 package mirrg.xarpite
 
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
@@ -17,11 +18,15 @@ class RuntimeContext(
 ) {
 
     val httpClient by lazy {
-        val client = HttpClient()
-        daemonScope.coroutineContext[Job]?.invokeOnCompletion {
-            client.close()
+        val httpClient = HttpClient()
+        daemonScope.launch {
+            try {
+                CompletableDeferred<Unit>().await()
+            } finally {
+                httpClient.close()
+            }
         }
-        client
+        httpClient
     }
 
 
