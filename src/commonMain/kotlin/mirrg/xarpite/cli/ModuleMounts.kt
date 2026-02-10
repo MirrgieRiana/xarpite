@@ -66,10 +66,8 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         val path = baseDir.toPath().resolve(reference).normalized()
         path.let { if (it.tryToLoad()) return it.toString() }
-        if (!reference.endsWith(MODULE_EXTENSION)) {
-            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-        }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -94,10 +92,8 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         inc.values.forEach { value ->
             val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
-            if (!reference.endsWith(MODULE_EXTENSION)) {
-                path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-                path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-            }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         }
         fail("Module file not found in INC paths: $reference")
     }
