@@ -30,10 +30,7 @@ fun parse(src: String): String {
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(
-    src: String,
-    ioContext: IoContext = UnsupportedIoContext()
-): FluoriteValue {
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()

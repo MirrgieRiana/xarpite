@@ -85,7 +85,7 @@ suspend fun main() {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
-            override suspend fun fetch(url: String): ByteArray = mirrg.xarpite.io.fetch(url)
+            override suspend fun fetch(url: String): ByteArray = mirrg.xarpite.fetch(url)
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)

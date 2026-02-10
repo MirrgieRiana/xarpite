@@ -722,31 +722,6 @@ $ {
 # apple
 ```
 
-### `FETCH`: URLからテキストコンテンツを取得
-
-`FETCH(url: STRING): STRING`
-
-`url` で指定されたURLからHTTPリクエストでテキストコンテンツを取得します。
-
-レスポンスボディをUTF-8としてデコードして文字列として返します。
-
-```shell
-$ xa 'FETCH("https://example.com/data.txt")'
-```
-
-### `FETCHB`: URLからバイナリコンテンツを取得
-
-`FETCHB(url: STRING): BLOB`
-
-`url` で指定されたURLからHTTPリクエストでバイナリコンテンツを取得します。
-
-レスポンスボディをBLOBとして返します。
-
-```shell
-$ xa 'FETCHB("https://example.com/data.bin") >> TO_STRING'
-# BLOB.of([...])
-```
-
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
 `USE(reference: STRING): VALUE`

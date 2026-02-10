@@ -716,31 +716,6 @@ $ {
 # apple
 ```
 
-### `FETCH`: Fetch Text Content from URL
-
-`FETCH(url: STRING): STRING`
-
-Fetches text content from the URL specified by `url` via HTTP request.
-
-Decodes the response body as UTF-8 and returns it as a string.
-
-```shell
-$ xa 'FETCH("https://example.com/data.txt")'
-```
-
-### `FETCHB`: Fetch Binary Content from URL
-
-`FETCHB(url: STRING): BLOB`
-
-Fetches binary content from the URL specified by `url` via HTTP request.
-
-Returns the response body as a BLOB.
-
-```shell
-$ xa 'FETCHB("https://example.com/data.bin") >> TO_STRING'
-# BLOB.of([...])
-```
-
 ### `USE`: Get Result of External Xarpite File
 
 `USE(reference: STRING): VALUE`
