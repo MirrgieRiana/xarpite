@@ -42,7 +42,11 @@ class IncrementGetter(
                 callable.call(arrayOf(accessor)).cache()
             }
         } else {
-            if (setter == null) throw FluoriteException("Increment/decrement operation is not defined.".toFluoriteString())
+            if (setter == null) {
+                withStackTrace(position) {
+                    throw FluoriteException("Increment/decrement operation is not defined.".toFluoriteString())
+                }
+            }
             val setterFunction = setter.evaluate(env)
             val new = if (isIncrement) old.plus(position, FluoriteInt.ONE) else old.minus(position, FluoriteInt.ONE)
             setterFunction(new)

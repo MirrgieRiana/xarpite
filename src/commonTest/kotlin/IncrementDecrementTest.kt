@@ -1,10 +1,13 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class IncrementDecrementTest {
@@ -235,6 +238,57 @@ class IncrementDecrementTest {
         assertFailsWith<Exception> {
             eval("10++")
         }
+    }
+
+    @Test
+    fun incrementErrorPositionTest() = runTest {
+        // ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( 1++ )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションが ++ 演算子の位置（index 3）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(3, lastPosition.index, "Error should point to ++ operator at index 3")
+    }
+
+    @Test
+    fun decrementErrorPositionTest() = runTest {
+        // -- のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( 1-- )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションが -- 演算子の位置（index 3）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(3, lastPosition.index, "Error should point to -- operator at index 3")
+    }
+
+    @Test
+    fun prefixIncrementErrorPositionTest() = runTest {
+        // 前置 ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( ++1 )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションが ++ 演算子の位置（index 2）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(2, lastPosition.index, "Error should point to ++ operator at index 2")
     }
 
     @Test

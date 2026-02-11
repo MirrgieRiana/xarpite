@@ -1,10 +1,13 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompoundAssignmentTest {
@@ -215,6 +218,40 @@ class CompoundAssignmentTest {
     }
 
     @Test
+    fun plusAssignmentErrorPositionTest() = runTest {
+        // += のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( 1 += 2 )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションが += 演算子の位置（index 4）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to += operator at index 4")
+    }
+
+    @Test
+    fun minusAssignmentErrorPositionTest() = runTest {
+        // -= のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( 1 -= 2 )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションが -= 演算子の位置（index 4）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to -= operator at index 4")
+    }
+
+    @Test
     fun plusAssignmentOnNonAssignableExpressionTest() = runTest {
         // 代入不可能な式でもオーバーライドメソッドがあれば動作する
         // ミュータブルな値の改変操作として定義される
@@ -269,5 +306,39 @@ class CompoundAssignmentTest {
                 Object{value: 100} += 23
             """)
         }
+    }
+
+    @Test
+    fun methodNotFoundErrorPositionTest() = runTest {
+        // 1::m() でメソッドが見つからないエラーが発生した場合のエラーポジション確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("1::m()")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションは関数呼び出しの開始位置（index 4, `(` の位置）を指す
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to function invocation at index 4")
+    }
+
+    @Test
+    fun methodNotFoundInParenthesisErrorPositionTest() = runTest {
+        // ( 1::m() ) でメソッドが見つからないエラーが発生した場合のエラーポジション確認
+        val exception = assertFailsWith<FluoriteException> {
+            eval("( 1::m() )")
+        }
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最後のポジションは関数呼び出しの開始位置（index 6, `(` の位置）を指す
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(6, lastPosition.index, "Error should point to function invocation at index 6")
     }
 }
