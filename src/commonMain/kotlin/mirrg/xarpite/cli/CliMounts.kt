@@ -165,46 +165,38 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relative: String, isRoot: Boolean = false) {
+                        suspend fun walkDirectory(relative: String) {
                             val relativePath = relative.toPath()
                             val fullPath = dir.resolve(relativePath)
 
-                            try {
-                                val metadata = fileSystem.metadata(fullPath)
+                            val metadata = fileSystem.metadata(fullPath)
 
-                                if (metadata.isDirectory) {
-                                    if (includeDirectories && relative.isNotEmpty()) {
-                                        emit(relative.toFluoriteString())
-                                    }
-
-                                    val children = fileSystem.list(fullPath)
-                                        .map { it.name }
-                                        .sorted()
-
-                                    for (child in children) {
-                                        val childRelative = if (relative.isEmpty()) {
-                                            child
-                                        } else {
-                                            relativePath.resolve(child).toString()
-                                        }
-                                        walkDirectory(childRelative)
-                                    }
-                                } else {
-                                    // ファイル
-                                    if (relative.isNotEmpty()) {
-                                        emit(relative.toFluoriteString())
-                                    }
+                            if (metadata.isDirectory) {
+                                if (includeDirectories && relative.isNotEmpty()) {
+                                    emit(relative.toFluoriteString())
                                 }
-                            } catch (e: Exception) {
-                                // ルートディレクトリのエラーは伝播させる
-                                if (isRoot) throw e
-                                // CancellationExceptionは常に再スロー
-                                if (e is kotlinx.coroutines.CancellationException) throw e
-                                // 子要素のアクセスエラーはスキップ
+
+                                val children = fileSystem.list(fullPath)
+                                    .map { it.name }
+                                    .sorted()
+
+                                for (child in children) {
+                                    val childRelative = if (relative.isEmpty()) {
+                                        child
+                                    } else {
+                                        relativePath.resolve(child).toString()
+                                    }
+                                    walkDirectory(childRelative)
+                                }
+                            } else {
+                                // ファイル
+                                if (relative.isNotEmpty()) {
+                                    emit(relative.toFluoriteString())
+                                }
                             }
                         }
 
-                        walkDirectory("", isRoot = true)
+                        walkDirectory("")
                     }
                 }
             }
