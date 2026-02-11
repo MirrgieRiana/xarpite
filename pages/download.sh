@@ -18,9 +18,9 @@ check sort
 
 # Determine the downloading version
 
-if [ "$#" -ge 1 ]
+if [ -n "${VERSION:-}" ]
 then
-  version="$1"
+  version="$VERSION"
   echo "Using specified version: $version"
 else
   echo "Fetching metadata"

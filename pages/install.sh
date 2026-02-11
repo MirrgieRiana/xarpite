@@ -15,9 +15,9 @@ check tar
 check perl
 check sort
 
-if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]
+if [ "$#" -ne 2 ]
 then
-  error "Usage: $0 <install_dir> <bin_dir> [version]"
+  error "Usage: $0 <install_dir> <bin_dir>"
 fi
 
 install_dir="$1"
@@ -26,9 +26,9 @@ bin_dir="$2"
 
 # Determine the downloading version
 
-if [ "$#" -ge 3 ]
+if [ -n "${VERSION:-}" ]
 then
-  version="$3"
+  version="$VERSION"
   echo "Using specified version: $version"
 else
   echo "Fetching metadata"
