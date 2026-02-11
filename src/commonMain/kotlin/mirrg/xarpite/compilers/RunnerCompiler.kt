@@ -12,7 +12,6 @@ import mirrg.xarpite.Node
 import mirrg.xarpite.SemicolonsNode
 import mirrg.xarpite.UnaryAtNode
 import mirrg.xarpite.UnaryBackslashNode
-import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
 import mirrg.xarpite.mount
 import mirrg.xarpite.operations.AssignmentRunner

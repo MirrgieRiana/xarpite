@@ -90,9 +90,7 @@ import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
-import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
-import mirrg.xarpite.getLabel
 import mirrg.xarpite.getMountCounts
 import mirrg.xarpite.getVariable
 import mirrg.xarpite.operations.AndGetter
