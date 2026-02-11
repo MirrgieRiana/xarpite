@@ -372,7 +372,9 @@ class Returner : Throwable() {
 
 class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val labelToken = env.labelTable[Pair(frameIndex, labelIndex)]
+        val key = Pair(frameIndex, labelIndex)
+        val stack = env.labelTable[key]
+        val labelToken = stack?.lastOrNull() // スタックの最上位のトークンを取得
         throw Returner.allocate(frameIndex, labelIndex, labelToken, getter.evaluate(env))
     }
     override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
@@ -861,9 +863,11 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
 class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val labelToken = Any() // 識別用トークンを生成
+        val key = Pair(frameIndex, labelIndex)
+        val stack = env.labelTable.getOrPut(key) { mutableListOf() }
+        stack.add(labelToken) // トークンをスタックにプッシュ
         try {
             val newEnv = Environment(env, 0, 0)
-            newEnv.labelTable[Pair(frameIndex, labelIndex)] = labelToken // トークンを登録
             return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
             if (returner.labelToken === labelToken) {
@@ -873,6 +877,8 @@ class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, priv
             } else {
                 throw returner
             }
+        } finally {
+            stack.removeAt(stack.size - 1) // トークンをスタックからポップ
         }
     }
 

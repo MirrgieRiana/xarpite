@@ -27,7 +27,7 @@ class Environment(val parent: Environment?, variableCount: Int, mountCount: Int)
     } else {
         arrayOf(Array(mountCount) { mapOf() })
     }
-    val labelTable: MutableMap<Pair<Int, Int>, Any?> = parent?.labelTable ?: mutableMapOf()
+    val labelTable: MutableMap<Pair<Int, Int>, MutableList<Any>> = parent?.labelTable ?: mutableMapOf()
 }
 
 
@@ -124,18 +124,19 @@ fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> 
     }
 }
 
+private var nextGlobalLabelId = 0
+
 fun Frame.defineLabel(name: String): Int {
-    val labelIndex = nextLabelIndex
-    labelIndexTable[name] = labelIndex
-    nextLabelIndex++
-    return labelIndex
+    val labelId = nextGlobalLabelId++
+    labelIndexTable[name] = labelId
+    return labelId
 }
 
 fun Frame.getLabel(name: String): Pair<Int, Int>? {
     var currentFrame = this
     while (true) {
-        val labelIndex = currentFrame.labelIndexTable[name]
-        if (labelIndex != null) return Pair(currentFrame.frameIndex, labelIndex)
+        val labelId = currentFrame.labelIndexTable[name]
+        if (labelId != null) return Pair(currentFrame.frameIndex, labelId)
         currentFrame = currentFrame.parent ?: return null
     }
 }

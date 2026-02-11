@@ -1,6 +1,7 @@
 package mirrg.xarpite
 
 import io.github.mirrgieriana.xarpeg.parseAllOrThrow
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -8,7 +9,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.operations.Returner
 
 class Evaluator {
 
@@ -35,8 +39,16 @@ class Evaluator {
         val getter = frame.compileToGetter(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        return withStackTrace(Position(location, 0)) {
-            getter.evaluate(env)
+        return try {
+            withStackTrace(Position(location, 0)) {
+                getter.evaluate(env)
+            }
+        } catch (e: Returner) {
+            // 宛先のないリターンをエラーとして扱う
+            val stackTrace = coroutineContext[StackTrace.Key]
+            val exception = FluoriteException(FluoriteString("Unmatched return"))
+            exception.stackTrace = stackTrace?.positions?.toList()
+            throw exception
         }
     }
 

@@ -62,9 +62,11 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val rightRun
 class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         val labelToken = Any() // 識別用トークンを生成
+        val key = Pair(frameIndex, labelIndex)
+        val stack = env.labelTable.getOrPut(key) { mutableListOf() }
+        stack.add(labelToken) // トークンをスタックにプッシュ
         try {
             val newEnv = Environment(env, 0, 0)
-            newEnv.labelTable[Pair(frameIndex, labelIndex)] = labelToken // トークンを登録
             runners.forEach {
                 it.evaluate(newEnv)
             }
@@ -76,6 +78,8 @@ class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, priv
             } else {
                 throw returner
             }
+        } finally {
+            stack.removeAt(stack.size - 1) // トークンをスタックからポップ
         }
     }
 
