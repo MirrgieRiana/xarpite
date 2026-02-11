@@ -431,7 +431,7 @@ class CliTest {
         // FILE_TREE 関数でファイルのみの一覧を取得
         val result = cliEval(context, "FILE_TREE(ARGS.0)", dir.toString()).stream()
 
-        // ファイルのみ、ディレクトリとその内容が連続して返される（深さ優先順）
+        // ディレクトリを含まず、ファイルのみが深さ優先順で返される
         assertEquals("a/b/file2.txt,a/file1.txt", result)
 
         // クリーンアップ

@@ -165,7 +165,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relative: String) {
+                        suspend fun walkDirectory(relative: String, isRoot: Boolean = false) {
                             val relativePath = relative.toPath()
                             val fullPath = dir.resolve(relativePath)
 
@@ -195,12 +195,16 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                                         emit(relative.toFluoriteString())
                                     }
                                 }
-                            } catch (_: Exception) {
-                                // ファイルにアクセスできない場合はスキップ
+                            } catch (e: Exception) {
+                                // ルートディレクトリのエラーは伝播させる
+                                if (isRoot) throw e
+                                // CancellationExceptionは常に再スロー
+                                if (e is kotlinx.coroutines.CancellationException) throw e
+                                // 子要素のアクセスエラーはスキップ
                             }
                         }
 
-                        walkDirectory("")
+                        walkDirectory("", isRoot = true)
                     }
                 }
             }
