@@ -151,11 +151,19 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "FILES" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
-            val dir = arguments[0].toFluoriteString(null).value
-            val fileSystem = getFileSystem().getOrThrow()
-            fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+                }
+            }
+            arrayOf(
+                "FILES" define create("FILES"),
+                "FILE_NAMES" define create("FILE_NAMES"),
+            )
         },
         "EXEC" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")

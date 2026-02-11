@@ -593,11 +593,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ABC
 ```
 
-### `FILES`: Get List of Files in Directory
+### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
+
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
 Filenames do not include directory paths.
 
