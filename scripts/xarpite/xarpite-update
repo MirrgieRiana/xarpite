@@ -72,10 +72,21 @@ VERSION_FILE="$(pwd)/version"
 [ -f "$VERSION_FILE" ] || error "Error: version file not found: $VERSION_FILE"
 current_version="$(cat "$VERSION_FILE")"
 [ -z "$current_version" ] && error "Error: Failed to determine current version."
+
+# Validate version format (basic semver check)
+if ! echo "$current_version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+  error "Error: Invalid version format in version file: $current_version"
+fi
+
 echo "Current version: $current_version"
 
+# Helper function to extract major version
+get_major_version() {
+  echo "$1" | cut -d. -f1
+}
+
 # Extract current major version
-current_major=$(echo "$current_version" | cut -d. -f1)
+current_major=$(get_major_version "$current_version")
 
 echo "Fetching metadata"
 
@@ -94,8 +105,8 @@ all_versions=$(
 
 # Filter versions based on -f flag
 if [ "$FORCE_MAJOR" = false ]; then
-  # Only consider versions with same major version
-  filtered_versions=$(echo "$all_versions" | grep "^$current_major\." || true)
+  # Only consider versions with same major version (precise matching)
+  filtered_versions=$(echo "$all_versions" | grep -E "^$current_major\.[0-9]+" || true)
   
   # Check if no matching versions found
   if [ -z "$filtered_versions" ]; then
@@ -107,7 +118,7 @@ if [ "$FORCE_MAJOR" = false ]; then
   
   # Check if there are major updates available
   latest_overall=$(echo "$all_versions" | head -n 1)
-  latest_overall_major=$(echo "$latest_overall" | cut -d. -f1)
+  latest_overall_major=$(get_major_version "$latest_overall")
   
   if [ "$latest_overall_major" != "$current_major" ]; then
     echo "Note: Major version update available: $latest_overall" >&2
