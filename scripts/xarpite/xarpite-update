@@ -2,24 +2,18 @@
 
 set -euo pipefail
 
-# Version regex pattern (used for validation and matching)
-# MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens, underscores)
-VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+(\+[A-Za-z0-9._-]+)?$'
-
 # Parse command-line options
-FORCE_MAJOR=false
-while getopts "f" opt; do
-  case "$opt" in
-    f)
-      FORCE_MAJOR=true
-      ;;
-    *)
-      echo "Usage: xarpite-update [-f]" >&2
-      echo "  -f  Allow major version updates" >&2
-      exit 1
-      ;;
-  esac
-done
+force_major=false
+if [ "${1:-}" = "-f" ]; then
+  force_major=true
+  shift
+fi
+
+if [ $# -gt 0 ]; then
+  echo "Usage: xarpite-update [-f]" >&2
+  echo "  -f  Allow major version updates" >&2
+  exit 1
+fi
 
 error() {
   echo "$1" >&2
@@ -71,74 +65,56 @@ trap on_term TERM
 
 # Determine the downloading version
 
-# Get current version
-VERSION_FILE="$(pwd)/version"
-[ -f "$VERSION_FILE" ] || error "Error: version file not found: $VERSION_FILE"
-current_version="$(cat "$VERSION_FILE")"
-[ -z "$current_version" ] && error "Error: Failed to determine current version."
-
-# Validate version format (basic semver check)
-# Allow MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens, underscores)
-if ! echo "$current_version" | grep -qE "$VERSION_PATTERN"; then
-  error "Error: Invalid version format in version file: $current_version"
-fi
-
-echo "Current version: $current_version"
-
-# Extract current major version (everything before first dot)
+current_version="$(cat "$(pwd)/version")"
 current_major="${current_version%%.*}"
 
+echo "Current version: $current_version"
 echo "Fetching metadata"
 
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
-# Get all available versions
-all_versions=$(
+# Filter function: pass through all versions or only same major version
+filter_versions() {
+  if [ "$force_major" = true ]; then
+    cat
+  else
+    grep "^$current_major\." || true
+  fi
+}
+
+version=$(
   perl -E '
     $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
     my $versions = $1;
     while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
         say $1;
     }
-  ' | sort -Vr
+  ' | sort -Vr | filter_versions | head -n 1
 )
-
-# Check if metadata parsing succeeded
-if [ -z "$all_versions" ]; then
-  error "Error: Failed to retrieve or parse version metadata. Please check your internet connection and try again."
-fi
-
-# Filter versions based on -f flag
-if [ "$FORCE_MAJOR" = false ]; then
-  # Only consider versions that start with current major version
-  filtered_versions=$(echo "$all_versions" | grep "^$current_major\." || true)
-  
-  # Check if no matching versions found
-  if [ -z "$filtered_versions" ]; then
-    echo "Warning: No versions available for major version $current_major" >&2
-    echo "         All available versions have a different major version" >&2
-    echo "         Use -f flag to allow updating to a different major version" >&2
-    error "Error: No suitable version found."
-  fi
-  
-  # Check if there are major updates available
-  latest_overall=$(echo "$all_versions" | head -n 1)
-  if ! echo "$latest_overall" | grep -q "^$current_major\."; then
-    echo "Note: Major version update available: $latest_overall" >&2
-    echo "      Use -f flag to update to major versions" >&2
-    echo >&2
-  fi
-else
-  filtered_versions="$all_versions"
-fi
-
-version=$(echo "$filtered_versions" | head -n 1)
-[ -z "$version" ] && error "Error: No suitable version found."
+[ -z "$version" ] && error "Error: Failed to determine latest version."
 
 # Check if already up-to-date
 if [ "$version" = "$current_version" ]; then
   echo "Already up-to-date: $version"
   exit 0
+fi
+
+# Notify about major version updates if -f not specified
+if [ "$force_major" = false ]; then
+  latest_version=$(
+    perl -E '
+      $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+      my $versions = $1;
+      while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+          say $1;
+      }
+    ' | sort -Vr | head -n 1
+  )
+  if ! echo "$latest_version" | grep -q "^$current_major\."; then
+    echo "Note: Major version update available: $latest_version" >&2
+    echo "      Use -f flag to update to major versions" >&2
+    echo >&2
+  fi
 fi
 
 echo "Target version: $version"
