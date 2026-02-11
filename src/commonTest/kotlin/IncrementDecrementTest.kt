@@ -1,7 +1,5 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.Position
-import mirrg.xarpite.StackTrace
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -253,10 +251,10 @@ class IncrementDecrementTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが ++ 演算子の位置（index 3）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(3, firstPosition.index, "Error should point to ++ operator at index 3")
+        // 最後のポジションが ++ 演算子の位置（index 3）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(3, lastPosition.index, "Error should point to ++ operator at index 3")
     }
 
     @Test
@@ -270,10 +268,10 @@ class IncrementDecrementTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが -- 演算子の位置（index 3）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(3, firstPosition.index, "Error should point to -- operator at index 3")
+        // 最後のポジションが -- 演算子の位置（index 3）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(3, lastPosition.index, "Error should point to -- operator at index 3")
     }
 
     @Test
@@ -287,10 +285,10 @@ class IncrementDecrementTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが ++ 演算子の位置（index 2）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(2, firstPosition.index, "Error should point to ++ operator at index 2")
+        // 最後のポジションが ++ 演算子の位置（index 2）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(2, lastPosition.index, "Error should point to ++ operator at index 2")
     }
 
     @Test

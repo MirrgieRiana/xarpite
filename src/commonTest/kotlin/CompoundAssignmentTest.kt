@@ -1,7 +1,5 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.Position
-import mirrg.xarpite.StackTrace
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -230,10 +228,10 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが += 演算子の位置（index 4）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(4, firstPosition.index, "Error should point to += operator at index 4")
+        // 最後のポジションが += 演算子の位置（index 4）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to += operator at index 4")
     }
 
     @Test
@@ -247,10 +245,10 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが -= 演算子の位置（index 4）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(4, firstPosition.index, "Error should point to -= operator at index 4")
+        // 最後のポジションが -= 演算子の位置（index 4）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to -= operator at index 4")
     }
 
     @Test
@@ -321,10 +319,10 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが :: 演算子の位置（index 1）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(1, firstPosition.index, "Error should point to :: operator at index 1")
+        // 最後のポジションがメソッドアクセスの位置（index 4）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(4, lastPosition.index, "Error should point to method access at index 4")
     }
 
     @Test
@@ -338,9 +336,9 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最初のポジションが :: 演算子の位置（index 3）を指していることを確認
-        val firstPosition = stackTrace.first()
-        assertNotNull(firstPosition, "First position should not be null")
-        assertEquals(3, firstPosition.index, "Error should point to :: operator at index 3")
+        // 最後のポジションがメソッドアクセスの位置（index 6）を指していることを確認
+        val lastPosition = stackTrace.last()
+        assertNotNull(lastPosition, "Last position should not be null")
+        assertEquals(6, lastPosition.index, "Error should point to method access at index 6")
     }
 }
