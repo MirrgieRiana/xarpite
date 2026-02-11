@@ -531,7 +531,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-第1引数のストリームの唯一の要素を返します。ストリームが空か複数要素を持つ場合は例外をスローします。
+第1引数のストリームの唯一の要素を返します。ストリームが空か複数要素を持つ場合はエラーをスローします。
 
 非ストリームを渡した場合は、その値をそのまま返します。
 
@@ -604,6 +604,19 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 ```shell
 $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
+```
+
+## `INDEXED` インデックス付きのストリームに変換
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+`stream` の各要素に対して0から始まるインデックスを付与した2要素配列のストリームを返します。
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
 ```
 
 ## `GROUP` ストリームをキーでグループ化
@@ -710,11 +723,13 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` ストリームを条件で抽出
+## `FILTER` / `GREP` ストリームを条件で抽出
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 `stream` の各要素に `predicate` を適用し、真となった要素のみを含むストリームを返します。
+
+`GREP` は `FILTER` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
@@ -727,10 +742,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` ストリームを条件で抽出
-
-`FILTER` のエイリアスです。
 
 ## `REDUCE` ストリームの要素を累積する
 
@@ -904,7 +915,7 @@ $ xa '
 ```shell
 $ xa '
   variable := ""
-  "apple"::ALSO ( s => 
+  "apple"::ALSO ( s =>
     variable = variable & s
   )
   variable

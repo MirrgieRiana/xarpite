@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -88,6 +89,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -262,6 +264,15 @@ $ {
 
 ---
 
+`scriptfile` に `-` を指定すると、標準入力からスクリプトを読み込みます。
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
+# 123
+```
+
+---
+
 `-f` オプションが指定された場合、第1引数はスクリプトに渡す引数の一部として解釈されます。
 
 ```shell
@@ -352,6 +363,39 @@ $ xa 'ARGS' 1 2 3
 
 Windows上でJVM版ランタイムを起動した場合は3に該当しますが、ジャンクションの解決は行われないことが判明しています。
 
+---
+
+ルートディレクトリでは `/` になることに注意してください。
+
+例えば、次のような文字列結合を行うと異常なパス文字列が生成されます。
+
+この問題の解決として `RESOLVE` 関数が利用できます。
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
+### `LOCATION`: 実行中のスクリプトのパスを取得
+
+`LOCATION: STRING`
+
+現在実行中のXarpiteスクリプトのパスです。
+
+`LOCATION` は正規化（ `.` や `..` である階層の除去）済みの絶対パスであり、ファイルパスもしくはURLを表します。
+
+---
+
+ファイル名に相当する末尾の部分が `-` である場合、 `-e` コマンドラインオプションなどの手段によって動的に与えられたスクリプトであることを示します。
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
+
 ### `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
@@ -363,11 +407,39 @@ $ FOO=bar xa 'ENV.FOO'
 
 存在しない変数にアクセスした場合は `NULL` が返ります。
 
+### `INC`: モジュール検索パスの配列
+
+`INC: ARRAY<STRING>`
+
+Maven座標形式でモジュールを `USE` する際に検索されるディレクトリパスの配列です。
+
+相対パスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+
+デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
+
+---
+
+`INC` に値を追加することで、カスタムのモジュール検索パスを追加できます。
+
+```shell
+$ {
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa '
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
+  '
+
+  rm -r maven-fruit
+}
+# Apple
+```
+
 ### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
-
-`I: STREAM<STRING>`
 
 標準入力から文字列を1行ずつ読み取るストリームです。
 
@@ -435,8 +507,6 @@ $ echo -n "abc" | xa 'INB'
 ### `OUT`, `O`: 標準出力に出力
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 標準出力に出力します。
 
@@ -620,11 +690,13 @@ $ {
 # a/file1.txt
 ```
 
-### `READ`: テキストファイルから読み込み
+### `READ` / `READL`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
 `file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
+
+`READL` は `READ` の別名であり、同一の動作を持ちます。
 
 改行コードは除去されます。
 
@@ -713,119 +785,198 @@ $ {
 
 ### `USE`: 外部Xarpiteファイルの結果を取得
 
-`USE(file: STRING): VALUE`
+`USE(reference: STRING): VALUE`
 
-指定されたXarpiteスクリプトを評価した結果を返します。
+`reference` で指定されたXarpiteスクリプトを評価した結果を返します。
 
-```shell
-$ {
-  echo ' "Hello, World!" ' > hello.xa1
-  xa 'USE("./hello")'
-  rm hello.xa1
-}
-# Hello, World!
-```
+`reference` にはいくつかの指定方法があります。
 
 ---
 
-`file` は `./` または `/` で始まる必要があります。
+`USE` されることを前提として記述されたXarpite スクリプトファイルをモジュールと呼びます。
 
-`./` で始まる場合、 `USE` 関数を呼び出したファイルからの相対パスとして解釈されます。
+モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開しますが、そうでない場合もあります。
 
-例えば、 `fruit/apple.xa1` 内で `USE("./banana")` と記述した場合、 `fruit/banana.xa1` が読み込まれます。
+モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。
 
-コードがコマンドライン上で直接指定された場合、相対パスはカレントディレクトリを起点としてファイルを解決します。
+---
 
-`/` で始まる場合、絶対パスとして解釈されます。
+同一絶対ファイルパスに対する `USE` 関数の結果は再利用されます。
 
-`file` では拡張子の `.xa1` は省略可能です。 `USE("./banana")` と記述した場合、 `./banana` が存在すればそれ、そうでなければ `./banana.xa1` が読み込まれます。
+返されるインスタンスは常に同一となり、読み込み時の副作用も1度だけ生じます。
 
-ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用します。
+スクリプトの結果がストリームである場合、そのストリームは解決されます。
+
+ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合は別のファイルとみなされます。
 
 ```shell
 $ {
-  mkdir modules
-  echo '
-    {
-      getBananaImpl: () -> "Banana"
-    }
-  ' > modules/banana.xa1
-  echo '
-    @USE("./banana")
-    {
-      getBanana: () -> getBananaImpl()
-    }
-  ' > modules/fruit.xa1
-  xa '
-    @USE("./modules/fruit")
-    getBanana()
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
   '
-  rm modules/banana.xa1
-  rm modules/fruit.xa1
-  rmdir modules
+
+  rm input.xa1
 }
-# Banana
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
 ```
 
 ---
 
 `USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感を実現できます。
 
+#### 相対パスによる指定
+
+`reference` が `.` または `..` の階層で始まる相対パスである場合、 `USE` 関数の呼び出しを行ったファイルからの相対パスとして解決されます。
+
+`-e` コマンドラインオプションによって起動されたコンテキストでは、カレントディレクトリからの相対パスとして解決されます。
+
+ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
+
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
+
+---
+
+以下はカレントディレクトリ直下にあるファイルを呼び出す例です。
+
 ```shell
 $ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("./fruit.xa1")'
+  xa 'USE("./fruit")'
+
+  rm fruit.xa1
+}
+# Apple
+# Apple
+```
+
+---
+
+以下は、 `main.xa1` ファイルを持つディレクトリを呼び出す例です。
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
+# Apple
+```
+
+---
+
+以下は `modules` サブディレクトリ内にあるファイルを呼び出し、更にそこから同階層の別のファイルを呼び出す例です。
+
+```shell
+$ {
+  mkdir modules
+
   echo '
     {
-      FRUIT: 877
+      getApple: () -> "Apple"
     }
-  ' > banana.xa1
+  ' > modules/apple.xa1
+  echo '
+    @USE("./apple.xa1")
+    {
+      getFruit: () -> getApple()
+    }
+  ' > modules/fruit.xa1
+
   xa '
-    @USE("./banana")
-    FRUIT
+    @USE("./modules/fruit.xa1")
+    getFruit()
   '
-  rm banana.xa1
+
+  rm -r modules
 }
-# 877
+# Apple
 ```
 
----
+#### 絶対パスによる指定
 
-同一絶対ファイルパスに対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
+`reference` が絶対パスである場合、そのファイルを呼び出します。
 
-そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。
+ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
 
-スクリプトの結果がストリームである場合、そのストリームは解決されます。
-
-ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
 
 ```shell
 $ {
-  echo '
-    {
-      variables: {
-        fruit: "apple"
-      }
-    }
-  ' > tmp.xa1
-  xa -q '
-    a := USE("./tmp")
-    b := USE("./tmp")
-    OUT << b.variables.fruit
-    a.variables.fruit = "banana"
-    OUT << b.variables.fruit
-  '
-  rm tmp.xa1
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("$PWD/fruit.xa1")'
+
+  rm fruit.xa1
 }
-# apple
-# banana
+# Apple
 ```
 
----
+#### `INC` を起点とした相対パスによる指定
 
-`USE` されることを前提として記述されたファイルをモジュールと呼びます。
+`reference` が `.` または `..` の階層で始まらない相対パスである場合、対応するモジュールファイルを `INC` に登録されたディレクトリから検索します。
 
-モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開しますが、そうでない場合もあります。
+`INC` 配列内で先頭に近いパスに属するモジュールファイルが優先されます。
 
-モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。
+ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
+
+パスの末尾の `.xa1` もしくは `/main.xa1` は省略可能です。
+
+```shell
+$ {
+  mkdir -p modules/fruit
+
+  echo ' "Apple" ' > modules/fruit/main.xa1
+
+  xa -q '
+    INC += "modules"
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
+  '
+
+  rm -r modules
+}
+# Apple
+# Apple
+# Apple
+```
+
+#### Maven座標による指定
+
+`reference` がMaven座標形式である場合、対応するモジュールファイルを `INC` に登録されたディレクトリから検索します。
+
+Maven座標形式は `group:artifact:version` の形式で指定します。
+
+拡張子には `.xa1` が自動的に付与されます。
+
+例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` を解決して検索します。
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
+# Apple
+```
 
 ### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
@@ -881,7 +1032,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。
+呼び出したプロセスが0以外の終了コードで終了した場合、エラーをスローします。
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
@@ -907,4 +1058,48 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
-**また、この関数は現状JVM版とNative版で提供されます。**
+**また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `BASH`: Bashスクリプトを実行
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+`script` をBashスクリプトとして実行し、その標準出力をUTF-8としてデコードし、文字列として返します。
+
+出力の末尾の改行は取り除かれます。
+
+これはBashの `"$(...)"` の動作と似ています。
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+`args` 引数を指定すると、Bashスクリプトに引数を渡せます。
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+この関数は内部的に `bash` コマンドを実行します。
+
+`bash` コマンドが利用できない環境ではエラーが発生します。
+
+---
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。

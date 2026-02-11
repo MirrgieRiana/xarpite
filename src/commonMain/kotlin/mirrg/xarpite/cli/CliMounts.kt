@@ -1,6 +1,5 @@
 package mirrg.xarpite.cli
 
-import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -13,6 +12,7 @@ import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteBlob
 import mirrg.xarpite.compilers.objects.collect
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -20,10 +20,10 @@ import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.define
-import mirrg.xarpite.getEnv
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -32,11 +32,9 @@ context(context: RuntimeContext)
 fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
     return mapOf(
         "ARGS" define LazyMount { args.map { it.toFluoriteString() }.toFluoriteArray() },
-        "PWD" define LazyMount {
-            val env = getEnv()
-            (env["XARPITE_PWD"]?.notBlankOrNull ?: env["PWD"]?.notBlankOrNull ?: context.io.getPwd()).toFluoriteString()
-        },
-        "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
+        "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
+        "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
+        "INC" define context.inc,
         *run {
             val inStream = FluoriteStream {
                 while (true) {
@@ -81,18 +79,26 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "READ" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
-            val file = arguments[0].toFluoriteString(null).value
-            val fileSystem = getFileSystem().getOrThrow()
-            FluoriteStream {
-                fileSystem.read(file.toPath()) { // TODO charset
-                    while (true) {
-                        val line = readUtf8Line() ?: break
-                        emit(line.toFluoriteString())
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    FluoriteStream {
+                        fileSystem.read(file.toPath()) { // TODO charset
+                            while (true) {
+                                val line = readUtf8Line() ?: break
+                                emit(line.toFluoriteString())
+                            }
+                        }
                     }
                 }
             }
+            arrayOf(
+                "READ" define create("READ"),
+                "READL" define create("READL"),
+            )
         },
         "READB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
@@ -246,6 +252,32 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 lines
             }
             nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+        },
+        "BASH" define FluoriteFunction { arguments ->
+            fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")
+            val arguments2 = arguments.toMutableList()
+
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            suspend fun FluoriteValue.parseArgs() = this.consumeToMutableList().map { it.toFluoriteString(null).value }.toTypedArray()
+            val args = arguments3.removeFirstOrNull()?.parseArgs() ?: emptyArray()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
+            // ダミーの$0として"bash"を挿入
+            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
+
+            val result = when {
+                output.endsWith("\r\n") -> output.dropLast(2)
+                output.endsWith("\r") -> output.dropLast(1)
+                output.endsWith("\n") -> output.dropLast(1)
+                else -> output
+            }
+            result.toFluoriteString()
         },
     ).let { listOf(it) }
 }

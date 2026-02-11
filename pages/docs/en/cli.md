@@ -33,7 +33,7 @@ The runtime has different implementations on multiple platforms, which are calle
 The `xarpite` command is the most basic command for executing Xarpite.
 
 ```shell
-$ xarpite -h
+$ xarpite -h | tail -n +2
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -41,8 +41,10 @@ $ xarpite -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -76,7 +78,7 @@ $ {
 The `xa` command is a shortcut for the `xarpite` command.
 
 ```shell
-$ xa -h
+$ xa -h | tail -n +2
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -84,8 +86,10 @@ $ xa -h
 #   --node                   Use the Node.js engine
 # Runtime Options:
 #   -h, --help               Show this help
+#   -v, --version            Show version
 #   -q                       Run script as a runner
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -250,6 +254,15 @@ $ {
 
 ---
 
+When `scriptfile` is specified as `-`, it loads the script from standard input.
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
+# 123
+```
+
+---
+
 When the `-f` option is specified, the first argument is interpreted as part of the arguments passed to the script.
 
 ```shell
@@ -340,6 +353,39 @@ This constant determines its value based on the following priority:
 
 When the JVM runtime is launched on Windows, it corresponds to case 3, but it has been found that junctions are not resolved.
 
+---
+
+Note that at the root directory it becomes `/`.
+
+For example, performing string concatenation like the following will produce an abnormal path string.
+
+The `RESOLVE` function can be used to solve this problem.
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
+### `LOCATION`: Get Path of Currently Executing Script
+
+`LOCATION: STRING`
+
+The path of the currently executing Xarpite script.
+
+`LOCATION` is a normalized (with `.` and `..` path segments removed) absolute path, representing either a file path or a URL.
+
+---
+
+When the trailing part corresponding to the filename is `-`, it indicates a script that was dynamically provided through means such as the `-e` command-line option.
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
+
 ### `ENV`: Get Environment Variables
 
 Environment variables are stored as an object.
@@ -351,11 +397,39 @@ $ FOO=bar xa 'ENV.FOO'
 
 If a non-existent variable is accessed, `NULL` is returned.
 
+### `INC`: Array of Module Search Paths
+
+`INC: ARRAY<STRING>`
+
+An array of directory paths that are searched when using `USE` with Maven coordinate format.
+
+When a relative path is specified, it is resolved based on `PWD`.
+
+By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
+
+---
+
+You can add custom module search paths by adding values to `INC`.
+
+```shell
+$ {
+  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa '
+    INC::push("maven-fruit")
+    USE("com.example.fruit:apple:1.0.0")
+  '
+
+  rm -r maven-fruit
+}
+# Apple
+```
+
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
-
-`I: STREAM<STRING>`
 
 A stream that reads strings line by line from standard input.
 
@@ -423,8 +497,6 @@ If `INB` is used even once, `IN` cannot be used.
 ### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 Outputs to standard output.
 
@@ -610,11 +682,13 @@ $ {
 # a/file1.txt
 ```
 
-### `READ`: Read from Text File
+### `READ` / `READL`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
 Reads the contents of the text file specified by `file` line by line as strings.
+
+`READL` is an alias of `READ` and has the same behavior.
 
 Newline codes are removed.
 
@@ -705,85 +779,25 @@ $ {
 
 ### `USE`: Get Result of External Xarpite File
 
-`USE(file: STRING): VALUE`
+`USE(reference: STRING): VALUE`
 
-Returns the result of evaluating the specified Xarpite script.
+Returns the result of evaluating the Xarpite script specified by `reference`.
 
-```shell
-$ {
-  echo ' "Hello, World!" ' > hello.xa1
-  xa 'USE("./hello")'
-  rm hello.xa1
-}
-# Hello, World!
-```
+There are several ways to specify `reference`.
 
 ---
 
-`file` must start with `./` or `/`.
+Xarpite script files written on the premise of being `USE`d are called modules.
 
-If it starts with `./`, it is interpreted as a relative path from the file that called the `USE` function.
+Modules often expose APIs by returning objects for mounting, but not always.
 
-For example, if you write `USE("./banana")` in `fruit/apple.xa1`, `fruit/banana.xa1` is loaded.
-
-If the code is specified directly on the command line, relative paths are resolved from the current directory.
-
-If it starts with `/`, it is interpreted as an absolute path.
-
-In `file`, the extension `.xa1` is optional. If you write `USE("./banana")`, if `./banana` exists it is loaded, otherwise `./banana.xa1` is loaded.
-
-The directory separator character is `/` regardless of the OS on which it is executed.
-
-```shell
-$ {
-  mkdir modules
-  echo '
-    {
-      getBananaImpl: () -> "Banana"
-    }
-  ' > modules/banana.xa1
-  echo '
-    @USE("./banana")
-    {
-      getBanana: () -> getBananaImpl()
-    }
-  ' > modules/fruit.xa1
-  xa '
-    @USE("./modules/fruit")
-    getBanana()
-  '
-  rm modules/banana.xa1
-  rm modules/fruit.xa1
-  rmdir modules
-}
-# Banana
-```
+APIs provided by modules may be written in uppercase like built-in mounts, or they may not.
 
 ---
 
-By mounting the return value of the `USE` function, you can achieve a directive-like usage.
+The result of the `USE` function for the same absolute file path is reused.
 
-```shell
-$ {
-  echo '
-    {
-      FRUIT: 877
-    }
-  ' > banana.xa1
-  xa '
-    @USE("./banana")
-    FRUIT
-  '
-  rm banana.xa1
-}
-# 877
-```
-
----
-
-The result of the `USE` function for the same absolute file path is cached and reused by the same call.
-
-Therefore, the returned instance is always the same, and the side effects at load time also occur only once.
+The returned instance is always the same, and the side effects at load time also occur only once.
 
 If the script result is a stream, that stream is resolved.
 
@@ -791,33 +805,172 @@ Even if the file entity is the same, if it exists on a different absolute path d
 
 ```shell
 $ {
-  echo '
-    {
-      variables: {
-        fruit: "apple"
-      }
-    }
-  ' > tmp.xa1
-  xa -q '
-    a := USE("./tmp")
-    b := USE("./tmp")
-    OUT << b.variables.fruit
-    a.variables.fruit = "banana"
-    OUT << b.variables.fruit
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
   '
-  rm tmp.xa1
+
+  rm input.xa1
 }
-# apple
-# banana
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
 ```
 
 ---
 
-Files written on the premise of being `USE`d are called modules.
+By mounting the return value of the `USE` function, you can achieve a directive-like usage.
 
-Modules often expose APIs by returning objects for mounting, but not always.
+#### Specification by Relative Path
 
-APIs provided by modules may be written in uppercase like built-in mounts, or they may not.
+If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the file that called the `USE` function.
+
+In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+
+---
+
+Here is an example of calling a file directly under the current directory.
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("./fruit.xa1")'
+  xa 'USE("./fruit")'
+
+  rm fruit.xa1
+}
+# Apple
+# Apple
+```
+
+---
+
+Here is an example of calling a directory with a `main.xa1` file.
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
+# Apple
+```
+
+---
+
+Here is an example of calling a file in the `modules` subdirectory, which then calls another file in the same directory.
+
+```shell
+$ {
+  mkdir modules
+
+  echo '
+    {
+      getApple: () -> "Apple"
+    }
+  ' > modules/apple.xa1
+  echo '
+    @USE("./apple.xa1")
+    {
+      getFruit: () -> getApple()
+    }
+  ' > modules/fruit.xa1
+
+  xa '
+    @USE("./modules/fruit.xa1")
+    getFruit()
+  '
+
+  rm -r modules
+}
+# Apple
+```
+
+#### Specification by Absolute Path
+
+If `reference` is an absolute path, that file is called.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("$PWD/fruit.xa1")'
+
+  rm fruit.xa1
+}
+# Apple
+```
+
+#### Specification by Maven Coordinates
+
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+
+Maven coordinate format is specified as `group:artifact:version`.
+
+The `.xa1` extension is automatically appended.
+
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
+# Apple
+```
+
+#### Specification by Relative Path from `INC`
+
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+
+Modules in paths closer to the beginning of the `INC` array are given priority.
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+
+```shell
+$ {
+  mkdir -p modules/fruit
+
+  echo ' "Apple" ' > modules/fruit/main.xa1
+
+  xa -q '
+    INC += "modules"
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
+  '
+
+  rm -r modules
+}
+# Apple
+# Apple
+# Apple
+```
 
 ### `EXEC`: Execute External Command [EXPERIMENTAL]
 
@@ -873,7 +1026,7 @@ $ A=APPLE B=ANNA xa '
 
 ---
 
-If the called process exits with a non-zero exit code, an exception is thrown.
+If the called process exits with a non-zero exit code, an error is thrown.
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
@@ -900,3 +1053,51 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM version.**
+
+### `BASH`: Execute Bash scripts
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+Executes `script` as a Bash script, decodes its standard output as UTF-8, and returns it as a string.
+
+Trailing newlines in the output are removed.
+
+This behavior is similar to Bash's `"$(...)"`.
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+If the `args` argument is specified, you can pass arguments to the Bash script.
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+This function internally executes the `bash` command.
+
+An error will occur in environments where the `bash` command is not available.
+
+---
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+---
+
+**This function is currently only provided in the JVM and Native versions.**

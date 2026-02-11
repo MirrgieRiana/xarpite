@@ -150,6 +150,15 @@ class StreamMountsTest {
     }
 
     @Test
+    fun indexed() = runTest {
+        assertEquals("[0;a],[1;b],[2;c]", eval("\"a\", \"b\", \"c\" >> INDEXED").stream()) // INDEXED でストリームの各要素にインデックスを付与する
+        assertEquals("[0;10],[1;20],[2;30]", eval("10, 20, 30 >> INDEXED").stream()) // 数値のストリームでも動作する
+        assertEquals("[0;1]", eval("1 >> INDEXED").stream()) // 非ストリームの場合、インデックス0の1要素ストリームになる
+        assertEquals("", eval(", >> INDEXED").stream()) // 空ストリームの場合、空ストリームになる
+        assertEquals("[0;a],[1;b],[2;c]", eval("\"a\", \"b\", \"c\" | i, v => [i; v]").stream()) // パイプ演算子の i, v => と同様の効果を持つ
+    }
+
+    @Test
     fun group() = runTest {
         assertEquals("[1;[14]],[2;[25]]", eval("14, 25 >> GROUP[by: _ -> _.&.0]").stream()) // GROUPでグループのストリームになる
         assertEquals("[1;[14]]", eval("14 >> GROUP[by: _ -> _.&.0]").stream()) // 要素が1個でもよい
@@ -157,11 +166,11 @@ class StreamMountsTest {
         assertEquals("[1;[14;15]]", eval("14, 15 >> GROUP[by: _ -> _.&.0]").stream()) // すべてが同じグループになってもよい
         assertEquals("[1;[14]],[2;[25]],[3;[36]]", eval("14, 25, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 3要素でもよい
         assertEquals("[1;[14;15]],[3;[36]]", eval("14, 15, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 部分的にグループ化されてもよい
-        
+
         assertEquals("[1;[1;1]],[2;[2;2]],[3;[3]]", eval("1, 2, 1, 3, 2 >> GROUP").stream()) // byを省略した場合、要素自身がキーになる
         assertEquals("[1;[1]]", eval("1 >> GROUP").stream()) // 要素が1個でもよい
         assertEquals("", eval(", >> GROUP").stream()) // 要素が0個でもよい
-        
+
         assertEquals("[apple;[apple;apple]],[cherry;[cherry]],[banana;[banana;banana]]", eval(""""apple", "cherry","banana", "banana", "apple" >> GROUP""").stream()) // 文字列のグループ化
     }
 
@@ -182,7 +191,7 @@ class StreamMountsTest {
             TAKE(3; pipe)
             FIRST(pipe)
         """).int)
-        
+
         // 副作用は1度だけ発生
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -194,7 +203,7 @@ class StreamMountsTest {
             pipe
             array
         """).array())
-        
+
         // 未消費時は副作用なし
         assertEquals("[]", eval("""
             array := []
@@ -204,13 +213,13 @@ class StreamMountsTest {
             ))
             array
         """).array())
-        
+
         // 空ストリーム
         assertEquals("", eval("""
             pipe := PIPE(,)
             pipe
         """).stream())
-        
+
         // 非ストリーム
         assertEquals(42, eval("""
             pipe := PIPE(42)
@@ -231,16 +240,16 @@ class StreamMountsTest {
             VOID(stream)
             array
         """).array())
-        
+
         // VOIDの戻り値はNULLで、元のストリームとは無関係
         assertEquals(FluoriteNull, eval("""
             null := VOID(1 .. 3)
             null
         """))
-        
+
         // 非ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(42)"))
-        
+
         // 空ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(,)"))
     }
@@ -259,7 +268,7 @@ class StreamMountsTest {
             CACHE(stream)
             array
         """).array())
-        
+
         // CACHEの戻り値のストリームは何度評価しても副作用が発生しない
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -271,10 +280,10 @@ class StreamMountsTest {
             cached
             array
         """).array())
-        
+
         // 非ストリームでもそのまま返す
         assertEquals(42, eval("CACHE(42)").int)
-        
+
         // 空ストリームも正しくキャッシュする
         assertEquals("", eval("CACHE(,)").stream())
     }

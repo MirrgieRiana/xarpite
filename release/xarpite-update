@@ -16,8 +16,38 @@ check perl
 check sort
 check rsync
 check readlink
+check mktemp
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
+
+# Setup temporary directory with cleanup trap
+tmpdir=""
+cleanup() {
+  if [ -n "$tmpdir" ] && [ -d "$tmpdir" ]; then
+    echo "Cleaning up temporary files" >&2
+    rm -rf "$tmpdir" || true
+  fi
+}
+
+on_exit() {
+  exit_code=$?
+  cleanup
+  exit "$exit_code"
+}
+
+on_int() {
+  cleanup
+  exit 130  # 128 + SIGINT
+}
+
+on_term() {
+  cleanup
+  exit 143  # 128 + SIGTERM
+}
+
+trap on_exit EXIT
+trap on_int INT
+trap on_term TERM
 
 
 # Determine the downloading version
@@ -49,15 +79,13 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 [ -z "$CLASSIFIER" ] && error "Error: Failed to determine classifier."
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
-dir=".tmp"
+tmpdir=$(mktemp -d "/tmp/xarpite-update.XXXXXX") || error "Error: Failed to create temporary directory."
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-[ -e "$dir" ] && error "Error: Already exists: $dir"
-mkdir "$dir"
-curl -L -o - "$url" | tar -xzf - -C "$dir"
-echo "Successfully downloaded and extracted to: $dir"
+curl -L -o - "$url" | tar -xzf - -C "$tmpdir"
+echo "Successfully downloaded and extracted to: $tmpdir"
 
 echo
 
@@ -67,20 +95,20 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
+rsync -n --itemize-changes -ac --delete "$tmpdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
-read -r -n 1 answer
+read -r answer
 echo
-[ "$answer" = "y" ] || [ "$answer" = "Y" ] || {
-  rm -rf "$dir"
-  error "Cancelled."
-}
+case "$answer" in
+  [Yy]*)
+    ;;
+  *)
+    error "Cancelled."
+    ;;
+esac
 echo "Syncing"
-rsync -ac --delete --exclude=/"$dir"/ ./"$dir"/ ./
-
-echo "Removing temporary files"
-rm -rf "$dir"
+rsync -ac --delete "$tmpdir"/ ./
 
 echo
 

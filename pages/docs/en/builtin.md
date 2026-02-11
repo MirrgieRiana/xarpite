@@ -671,7 +671,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-Returns the only element of the first argument stream. Throws an exception if the stream is empty or has multiple elements.
+Returns the only element of the first argument stream. Throws an error if the stream is empty or has multiple elements.
 
 If a non-stream is passed, returns that value as-is.
 
@@ -744,6 +744,19 @@ Except that the sort is in descending order, it is the same as the `SORT` functi
 ```shell
 $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
+```
+
+## `INDEXED` Convert to Stream with Indices
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
 ```
 
 ## `GROUP` Group Stream by Key
@@ -850,11 +863,13 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+## `FILTER` / `GREP` Filter Stream by Condition
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
@@ -867,10 +882,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` Filter Stream by Condition
-
-An alias for `FILTER`.
 
 ## `REDUCE` Accumulate Stream Elements
 
@@ -1063,7 +1074,7 @@ Useful for using or modifying values in the middle of method chains.
 ```shell
 $ xa '
   variable := ""
-  "apple"::ALSO ( s => 
+  "apple"::ALSO ( s =>
     variable = variable & s
   )
   variable

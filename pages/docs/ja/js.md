@@ -26,7 +26,7 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 | `ARRAY`        | `Array`           |
 | `NULL`         | `null`            |
 | `FUNCTION`     | `Function`        |
-| それ以外           | 非対応による例外          |
+| それ以外           | 非対応によるエラー         |
 
 | 変換元<br>JavaScript | 変換先<br>Xarpite |
 |-------------------|----------------|

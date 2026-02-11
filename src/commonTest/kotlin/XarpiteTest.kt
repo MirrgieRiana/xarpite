@@ -919,12 +919,12 @@ class XarpiteTest {
         assertEquals("a,b,c", eval(""" SPLIT("|"; limit: 10; "a|b|c") """).stream()) // limitが要素数以上の場合は通常通り分割される
         assertEquals("a|b|c", eval(""" SPLIT("|"; limit: 1; "a|b|c") """).string) // limit: 1の場合は元の文字列が素のSTRINGとして返される
         assertEquals("a,bc", eval(""" SPLIT(""; limit: 2; "abc") """).stream()) // 空セパレータでもlimitを使用できる
-        
+
         // SPLIT with by: prefix
         assertEquals("a,b,c", eval(""" SPLIT(by: "|"; "a|b|c") """).stream()) // by:プレフィックスでセパレータを指定できる
         assertEquals("a,b|c|d", eval(""" SPLIT(by: "|"; limit: 2; "a|b|c|d") """).stream()) // by:とlimitを併用できる
         assertEquals("test", eval(""" SPLIT(by: "|"; limit: 1; "test") """).string) // by:とlimit: 1を併用すると素のSTRINGが返される
-        
+
         // SPLIT limit parameter error cases
         try {
             eval(""" SPLIT(limit: 2; limit: 3; "|"; "a|b|c") """) // limitパラメータを2回指定するとエラー
@@ -932,14 +932,14 @@ class XarpiteTest {
         } catch (e: FluoriteException) {
             assertEquals("Duplicate key: limit", e.value.string)
         }
-        
+
         try {
             eval(""" SPLIT("|"; limit: 0; "a|b|c") """) // limit: 0はエラー
             fail()
         } catch (e: FluoriteException) {
             assertEquals("Limit must be positive or NULL", e.value.string)
         }
-        
+
         try {
             eval(""" SPLIT("|"; limit: -1; "a|b|c") """) // limit: -1はエラー
             fail()

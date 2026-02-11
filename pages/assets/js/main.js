@@ -8,7 +8,7 @@
     SUCCESS: 'Copied!',
     FAILURE: 'Failed'
   };
-  
+
   const FEEDBACK_DISPLAY_DURATION = 2000; // milliseconds
 
   /**
@@ -24,9 +24,9 @@
   function pathsMatch(currentPath, linkPath) {
     const normalizedCurrent = normalizePath(currentPath);
     const normalizedLink = normalizePath(linkPath);
-    
-    return normalizedCurrent === normalizedLink || 
-           normalizedCurrent === normalizedLink + '.html' || 
+
+    return normalizedCurrent === normalizedLink ||
+           normalizedCurrent === normalizedLink + '.html' ||
            normalizedCurrent.replace('.html', '') === normalizedLink;
   }
 
@@ -36,7 +36,7 @@
   function highlightCurrentNav() {
     const currentPath = normalizePath(window.location.pathname);
     const navLinks = document.querySelectorAll('.doc-nav a');
-    
+
     navLinks.forEach(link => {
       const href = link.getAttribute('href');
       if (href && pathsMatch(currentPath, href)) {
@@ -93,12 +93,12 @@
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     textarea.select();
-    
+
     try {
       const successful = document.execCommand('copy');
       const cssClass = successful ? 'copied' : null;
       setButtonState(
-        button, 
+        button,
         successful ? COPY_BUTTON_TEXT.SUCCESS : COPY_BUTTON_TEXT.FAILURE,
         cssClass
       );
@@ -146,22 +146,22 @@
    */
   function wrapCodeBlock(preElement) {
     // Skip if already wrapped or if element has no parent
-    if (!preElement.parentElement || 
+    if (!preElement.parentElement ||
         preElement.parentElement.classList.contains('code-block-wrapper')) {
       return;
     }
 
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block-wrapper';
-    
+
     const copyButton = createCopyButton();
-    
+
     copyButton.addEventListener('click', () => {
       const code = preElement.querySelector('code') || preElement;
       const textToCopy = code.textContent;
       copyToClipboard(textToCopy, copyButton);
     });
-    
+
     preElement.parentElement.insertBefore(wrapper, preElement);
     wrapper.appendChild(preElement);
     wrapper.appendChild(copyButton);

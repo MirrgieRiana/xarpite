@@ -59,7 +59,23 @@ kotlin {
                 implementation("com.squareup.okio:okio:3.10.2")
                 implementation("com.ionspin.kotlin:bignum:0.3.10")
                 implementation("mirrg.kotlin:mirrg.kotlin.helium-kotlin-2-2:4.4.0")
-                implementation("io.github.mirrgieriana:xarpeg:5.0.0")
+                implementation("io.github.mirrgieriana:xarpeg:5.1.0")
+                implementation("io.ktor:ktor-client-core:3.0.3")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-cio:3.0.3")
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-js:3.0.3")
+            }
+        }
+        nativeMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-cio:3.0.3")
             }
         }
         commonTest {

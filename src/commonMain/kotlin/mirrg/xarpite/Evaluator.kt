@@ -35,7 +35,9 @@ class Evaluator {
         val getter = frame.compileToGetter(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        return getter.evaluate(env)
+        return withStackTrace(Position(location, 0)) {
+            getter.evaluate(env)
+        }
     }
 
     suspend fun run(location: String, src: String) {
@@ -45,8 +47,10 @@ class Evaluator {
         val runners = frame.compileToRunner(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        runners.forEach {
-            it.evaluate(env)
+        withStackTrace(Position(location, 0)) {
+            runners.forEach {
+                it.evaluate(env)
+            }
         }
     }
 

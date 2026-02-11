@@ -92,9 +92,9 @@ $ xa '
 
 ## 演算代入演算子
 
-Xarpiteには `+=` 演算子などの演算と代入を同時に行う演算代入演算子が存在します。
+Xarpiteには `variable += value` などの、演算と代入を同時に行う演算代入演算子が存在します。
 
-`a += b` は、多くの場合 `a = a + b` と等価です。
+原則として、 `variable += value` は `variable = variable + value` と等価な働きをします。
 
 ```shell
 $ xa -q '
@@ -107,84 +107,115 @@ $ xa -q '
 # 123
 ```
 
-## 演算代入のオーバーライド
-
-演算代入のためのオーバーライド可能なメソッドが存在します。
-
-`_+=_` メソッドは `a += b` が実行されるごとに丁度1回だけ呼び出されます。
-
-当該メソッドの戻り値は無視されます。
-
-ただし、戻り値がストリームであった場合は解決され、その結果は無視されます。
-
-`_+=_` 以外の演算代入メソッドも同様です。
-
-```shell
-$ xa -q '
-  Array := {
-    `_+=_`: this, item -> this.value::push(item)
-  }
-  array := Array{value: ["apple"]}
-
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
-'
-# [apple]
-# [apple;banana]
-```
-
-## 演算代入演算子の一覧
+---
 
 以下はXarpiteで利用可能な演算代入演算子の一覧です。
 
-| 演算子  | 意味     |
-|------|--------|
-| `+=` | 加算して代入 |
-| `-=` | 減算して代入 |
+| 演算子     | 記法                  | オーバーライドメソッド |
+|---------|---------------------|-------------|
+| 加算代入演算子 | `variable += value` | `_+=_`      |
+| 減算代入演算子 | `variable -= value` | `_-=_`      |
 
-## 演算代入のフォールバック
+## 演算代入演算子のオーバーライド
 
-演算代入のオーバーライドメソッドが存在しない場合、通常の演算と代入が行われます。
+演算代入演算子の左辺がオーバーライドメソッドを実装している場合、通常の演算代入の代わりにそちらが呼び出されます。
+
+---
+
+各オーバーライドメソッドは、左辺のオブジェクトおよび右辺の値のほかに、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
+
+`accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
+
+`accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
+
+演算代入演算子の動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+
+---
+
+演算代入演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+---
+
+以下の例はオブジェクト自体の改変操作として定義した例です。
+
+`+=` 演算子をオーバーライドした `Fruits` オブジェクトのインスタンスを2個生成し、両方に対して `+=` 演算子を連鎖的に適用しています。
 
 ```shell
 $ xa -q '
-  Array := {
-    `_+_`: this, item -> Array{value: this.value + [item]}
+  Fruits := {
+    new := () -> Fruits{array: []}
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      fruit
+    )
   }
-  array := Array{value: ["apple"]}
 
-  OUT << array.value
-  array += "banana"
-  OUT << array.value
+  fruits1 := Fruits.new()
+  fruits2 := Fruits.new()
+
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
+  fruits1 += fruits2 += "apple"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
-# [apple]
-# [apple;banana]
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: [apple]
 ```
 
 ---
 
-このとき、変数自体の内容が更新されていることに注意してください。
+以下の例は代入動作として定義した例です。
+
+`fruits1` に演算代入を行っても、異なる変数である `fruits2` には影響しないことが確認できます。
 
 ```shell
 $ xa -q '
-  array := ["apple"]
-  oldArray := array
+  Fruits := {
+    new := array -> Fruits{array: array}
+    `_+=_`: this, fruit, accessor -> (
+      accessor(new(this.array + [fruit]))
+      fruit
+    )
+  }
 
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
+  fruits1 := Fruits.new([])
+  fruits2 := fruits1
 
-  OUT << "Update!"
-  array += "banana"
-
-  OUT << "Old: $oldArray"
-  OUT << "New: $array"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
+  fruits1 += "apple"
+  OUT << "fruits1: $(fruits1.array)"
+  OUT << "fruits2: $(fruits2.array)"
 '
-# Old: [apple]
-# New: [apple]
-# Update!
-# Old: [apple;banana]
-# New: [apple;banana]
+# fruits1: []
+# fruits2: []
+# fruits1: [apple]
+# fruits2: []
+```
+
+## 代入不可能な式に対する演算代入
+
+式が代入をサポートしない場合、オーバーライドメソッドの判定のみが行われます。
+
+`accessor` は取得操作のみをサポートします。
+
+通常、この動作はミュータブルな値の改変操作として定義されます。
+
+```shell
+$ xa '
+  Fruits := {
+    `_+=_`: this, fruit, accessor -> (
+      this.array += fruit
+      this.array
+    )
+  }
+
+  Fruits{array: []} += "apple"
+'
+# [apple]
 ```
 
 ## インクリメント・デクリメント
@@ -254,15 +285,15 @@ $ xa '
 `formula++` の挙動は概ね以下の疑似コードと同じです。
 
 ```
-old = get(formula)
-new = plus(old, 1)
-set(formula, new)
-return old
+old := formula
+new := old + 1
+formula = new
+old
 ```
 
 ---
 
-実は `formula` が代入をサポートし、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
+実は `formula` が代入をサポートする式であり、かつ整数 `1` との加減算が定義されていれば、数値以外の型でもインクリメント・デクリメントが可能です。
 
 ```shell
 $ xa '
@@ -271,6 +302,122 @@ $ xa '
   s
 '
 # abc1
+```
+
+### インクリメント・デクリメントのオーバーライド
+
+インクリメント・デクリメント演算子は専用のメソッドでオーバーライドできます。
+
+| 演算子         | メソッド名 | 説明        |
+|-------------|-------|-----------|
+| `formula++` | `_++` | 後置インクリメント |
+| `++formula` | `++_` | 前置インクリメント |
+| `formula--` | `_--` | 後置デクリメント  |
+| `--formula` | `--_` | 前置デクリメント  |
+
+これらのメソッドをオーバーライドすることで、インクリメント・デクリメントの動作をカスタマイズできます。
+
+---
+
+オーバーライドメソッドはオブジェクト自身の他に、式に対する取得・代入を行う関数 `accessor` を引数として取ります。
+
+`accessor` に対して0個の引数で呼び出すと、式に対して値の取得操作が行われます。
+
+`accessor` に対して1個の引数で呼び出すと、式に対して値の代入操作が行われます。
+
+インクリメント・デクリメントの動作はオブジェクト自体の改変操作として定義することも、オブジェクト自体は不変で、代入動作として定義することもできます。
+
+```shell
+$ xa -q '
+  MutableCounter := {
+    new := value -> MutableCounter{value: value}
+    `_++`: this, accessor -> (
+      this.value++
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := MutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 1
+# New: 1
+```
+
+```shell
+$ xa -q '
+  ImmutableCounter := {
+    new := value -> ImmutableCounter{value: value}
+    `_++`: this, accessor -> (
+      accessor(new(this.value + 1))
+    )
+    `&_`: this -> this.value.&
+  }
+
+  old := ImmutableCounter.new(0)
+  new := old
+
+  OUT << "Old: $old"
+  OUT << "New: $new"
+  new++
+  OUT << "Old: $old"
+  OUT << "New: $new"
+'
+# Old: 0
+# New: 0
+# Old: 0
+# New: 1
+```
+
+---
+
+演算子の戻り値にはオーバーライドメソッドの戻り値が返されます。
+
+この性質上、前置版と後置版は互いに独立の操作として定義されており、片方がもう片方にフォールバックされることはありません。
+
+```shell
+$ xa -q '
+  Object := {
+    `_++`: this, accessor -> "suffix"
+    `++_`: this, accessor -> "prefix"
+  }
+
+  object := Object{}
+
+  OUT << object++
+  OUT << ++object
+'
+# suffix
+# prefix
+```
+
+### 代入不可能な式に対するインクリメント・デクリメント
+
+式が代入をサポートしない場合、オーバーライドメソッドの判定のみが行われます。
+
+`accessor` は取得操作のみをサポートします。
+
+通常、この動作はミュータブルな値の改変操作として定義されます。
+
+```shell
+$ xa '
+  MutableCounter := {
+    `_++`: this, accessor -> (
+      this.value++
+      this.value
+    )
+  }
+  MutableCounter{value: 100}++
+'
+# 101
 ```
 
 # 変数

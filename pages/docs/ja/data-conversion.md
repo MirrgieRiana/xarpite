@@ -191,7 +191,7 @@ $ xa ' "こんにちは" >> URL '
 | 文字                                | エンコード方法                     |
 |-----------------------------------|-----------------------------|
 | `A-Z` `a-z` `0-9` `-` `_` `.` `~` | その文字自体                      |
-| 半角スペース                            | `+`                         | 
+| 半角スペース                            | `+`                         |
 | 上記を除く文字                           | `%XX` 形式の16進数表記によるUTF-8バイト列 |
 
 ## `URLD` URLエンコードされた文字列をデコード
@@ -264,12 +264,33 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 ## `JSON` 値をJSON文字列に変換
 
-`JSON(["indent": indent: STRING; ]value: VALUE): STRING`
+`JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`
 
 `value` をJSON形式の文字列に変換します。
 
 ```shell
+$ xa '{a: 1; b: 2} >> JSON'
+# {"a":1,"b":2}
+```
+
+---
+
+`indent` に文字列を指定した場合、その文字列がインデントとして使用されます。
+
+```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
+# {
+#   "a": 1,
+#   "b": 2
+# }
+```
+
+---
+
+`indent` に数値を指定した場合、その個数の半角空白がインデントとして使用されます。
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: 2]'
 # {
 #   "a": 1,
 #   "b": 2
@@ -287,11 +308,13 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` 値のストリームをJSON文字列のストリームに変換
+## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
 
-`JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
+
+`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -299,11 +322,15 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONSD` JSON文字列のストリームを値のストリームに変換
+`indent` に関する仕様は `JSON` 関数と同様です。
+
+## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
 `jsons` の各要素を対応する値に変換するストリームを返します。
+
+`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '

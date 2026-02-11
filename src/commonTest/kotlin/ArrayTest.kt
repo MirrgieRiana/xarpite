@@ -114,10 +114,24 @@ class ArrayTest {
         assertEquals("[3;1;2]", eval("a := [1, 2]; a::unshift(3); a").array())
         assertEquals("[3;4;1;2]", eval("a := [1, 2]; a::unshift(3, 4); a").array())
         assertEquals("[2]", eval("a := [1, 2]; a::shift(); a").array())
-        
+
         // popとshiftは削除した要素を返す
         assertEquals(2, eval("a := [1, 2]; a::pop()").int)
         assertEquals(1, eval("a := [1, 2]; a::shift()").int)
+    }
+
+    @Test
+    fun plusAssign() = runTest {
+        assertEquals("[1;2;3]", eval("a := [1, 2]; a += 3; a").array())
+        assertEquals("[1;2;3;4]", eval("a := [1, 2]; a += 3, 4; a").array())
+    }
+
+    @Test
+    fun minusAssign() = runTest {
+        assertEquals("[1;3]", eval("a := [1, 2, 3]; a -= 2; a").array())
+        assertEquals("[1;2;3]", eval("a := [1, 2, 3]; a -= 4; a").array()) // 存在しない要素を削除しても変化しない
+        assertEquals("[1;3;2]", eval("a := [1, 2, 3, 2]; a -= 2; a").array()) // 最初の一致する要素のみ削除される
+        assertEquals("[3]", eval("a := [1, 2, 3, 2]; a -= 1, 2, 2; a").array()) // ストリームによる複数削除
     }
 
 }

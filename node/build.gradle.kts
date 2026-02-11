@@ -50,6 +50,7 @@ kotlin {
             dependencies {
                 implementation(rootProject)
                 implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
+                implementation("io.ktor:ktor-client-js:3.0.3")
             }
         }
         jsTest {

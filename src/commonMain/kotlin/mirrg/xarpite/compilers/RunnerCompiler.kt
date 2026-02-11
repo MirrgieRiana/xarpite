@@ -31,7 +31,7 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
         is EmptyNode -> listOf()
 
         is InfixEqualNode -> { // 代入文
-            val setter = compileToSetter(node.left)
+            val setter = compileToSetter(node.left).getOrThrow()
             val getter = compileToGetter(node.right)
             listOf(AssignmentRunner(setter, getter))
         }

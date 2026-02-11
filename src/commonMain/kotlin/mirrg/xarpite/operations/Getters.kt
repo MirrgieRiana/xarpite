@@ -228,7 +228,9 @@ class MethodAccessGetter(
             if (result != null) return result
         }
 
-        throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        withStackTrace(position) {
+            throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        }
     }
 
     override val code get() = "MethodAccessGetter[${receiverGetter.code};$variable;${mountCounts.joinToString { "$it" }};${name.escapeJsonString()};${argumentGetters.code};$isBinding,$isNullSafe]"
@@ -818,7 +820,7 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = setter.evaluate(env)
         val right = getter.evaluate(env)
-        left.invoke(right)
+        left(right)
         return right
     }
 

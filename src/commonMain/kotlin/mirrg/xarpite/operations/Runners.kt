@@ -19,7 +19,7 @@ class AssignmentRunner(private val setter: Setter, private val getter: Getter) :
     override suspend fun evaluate(env: Environment) {
         val left = setter.evaluate(env)
         val right = getter.evaluate(env)
-        left.invoke(right)
+        left(right)
     }
 
     override val code get() = "AssignmentRunner[${setter.code};${getter.code}]"

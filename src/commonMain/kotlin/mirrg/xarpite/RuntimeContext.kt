@@ -1,8 +1,13 @@
 package mirrg.xarpite
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.xarpite.cli.getPwd
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -11,6 +16,19 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+
+    val httpClient by lazy {
+        val httpClient = HttpClient()
+        daemonScope.launch {
+            try {
+                awaitCancellation()
+            } finally {
+                httpClient.close()
+            }
+        }
+        httpClient
+    }
+
 
     private val srcs = mutableMapOf<String, String>()
 
@@ -29,6 +47,13 @@ class RuntimeContext(
 
     fun renderPosition(position: Position?): String {
         if (position == null) return "UNKNOWN"
+        val pwdPath = io.getPwd().toPath()
+        val locationPath = position.location.toPath()
+        val location = if (pwdPath.isAncestorOf(locationPath)) {
+            locationPath.relativeTo(pwdPath).toString()
+        } else {
+            position.location
+        }
         val src = srcs[position.location] ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
@@ -40,13 +65,23 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        return "${position.location}:$row:$column  $startEllipsis$snippet$endEllipsis"
+        val errorPositionInSnippet = column - 1 - startColumnIndex
+        val leftMargin = " ".repeat(10 - errorPositionInSnippet)
+        val rowDigits = row.toString().length
+        val columnDigits = column.toString().length
+        val positionPadding = " ".repeat((3 - rowDigits) + (3 - columnDigits))
+        return "$location:$row:$column$positionPadding  $startEllipsis$leftMargin$snippet$endEllipsis"
     }
+
+
+    val inc = FluoriteArray()
+    val moduleResult = mutableMapOf<String, FluoriteValue>()
 
 }
 
 interface IoContext {
-    fun getPwd(): String
+    fun getEnv(): Map<String, String>
+    fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -54,15 +89,18 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
+    suspend fun fetch(context: RuntimeContext, url: String): ByteArray
 }
 
 open class UnsupportedIoContext : IoContext {
-    override fun getPwd(): String = throw UnsupportedOperationException()
-    override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
-    override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
+    override fun getEnv(): Map<String, String> = throw UnsupportedOperationException()
+    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
+    override suspend fun out(value: FluoriteValue): Unit = throw UnsupportedOperationException()
+    override suspend fun err(value: FluoriteValue): Unit = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
-    override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
-    override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
+    override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
+    override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
 }
