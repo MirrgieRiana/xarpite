@@ -324,10 +324,6 @@ If a new version with a different major version is available, you will be notifi
 
 When the `-f` option is specified, updates including major version changes will be applied.
 
-```
-xarpite-update -f
-```
-
 ## CLI-Exclusive Built-in Constants and Functions
 
 ### `ARGS`: Get Command-Line Arguments
