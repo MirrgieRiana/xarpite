@@ -16,6 +16,18 @@ check perl
 check sort
 
 
+script=$0
+usage() {
+  echo "Usage: $script" >&2
+  echo "    Set VERSION environment variable to specify a version (e.g., VERSION=4.102.0)" >&2
+  exit 1
+}
+
+(($# == 0)) || usage
+
+install_dir="xarpite"
+
+
 # Determine the downloading version
 
 if [ -n "${VERSION:-}" ]
@@ -46,7 +58,6 @@ echo
 # Download and extract
 
 file="xarpite-bin-$version-all.tar.gz"
-install_dir="xarpite"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
