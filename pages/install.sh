@@ -15,9 +15,9 @@ check tar
 check perl
 check sort
 
-if [ "$#" -ne 2 ]
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]
 then
-  error "Usage: $0 <install_dir> <bin_dir>"
+  error "Usage: $0 <install_dir> <bin_dir> [version]"
 fi
 
 install_dir="$1"
@@ -26,21 +26,27 @@ bin_dir="$2"
 
 # Determine the downloading version
 
-echo "Fetching metadata"
+if [ "$#" -ge 3 ]
+then
+  version="$3"
+  echo "Using specified version: $version"
+else
+  echo "Fetching metadata"
 
-export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
+  export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
-version=$(
-  perl -E '
-    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
-    my $versions = $1;
-    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
-        say $1;
-    }
-  ' | sort -Vr | head -n 1
-)
-[ -z "$version" ] && error "Error: Failed to determine latest version."
-echo "Latest version: $version"
+  version=$(
+    perl -E '
+      $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+      my $versions = $1;
+      while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+          say $1;
+      }
+    ' | sort -Vr | head -n 1
+  )
+  [ -z "$version" ] && error "Error: Failed to determine latest version."
+  echo "Latest version: $version"
+fi
 
 echo
 
