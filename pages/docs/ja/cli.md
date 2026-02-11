@@ -631,6 +631,34 @@ $ {
 # file
 ```
 
+### `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
+
+`FILE_NAMES(dir: STRING): STREAM<STRING>`
+
+`FILE_NAMES` は `FILES` の別名です。
+
+`dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+ファイル名にはディレクトリのパスは含まれません。
+
+返されるファイルには `.` や `..` は含まれず、ディレクトリやその他の特殊なファイルは含まれます。
+
+返されるファイル名は辞書順にソートされます。
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp/file
+  mkdir tmp/dir
+  xa 'FILE_NAMES("tmp")'
+  rm tmp/file
+  rmdir tmp/dir
+  rmdir tmp
+}
+# dir
+# file
+```
+
 ### `READ`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
