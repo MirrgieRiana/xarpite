@@ -17,7 +17,8 @@ check sort
 
 if [ "$#" -ne 2 ]
 then
-  error "Usage: $0 <install_dir> <bin_dir>"
+  error "Usage: $0 <install_dir> <bin_dir>
+       Set VERSION environment variable to specify a version (e.g., VERSION=4.102.0)"
 fi
 
 install_dir="$1"
