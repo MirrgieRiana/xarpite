@@ -375,6 +375,32 @@ class CliTest {
     }
 
     @Test
+    fun fileNames() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("file_names.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリとファイルを準備
+        fileSystem.createDirectory(dir)
+        fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("banana"))
+
+        // FILE_NAMES 関数でファイル一覧を取得
+        val result = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
+
+        // アルファベット順にソートされ、ファイル名のみが返される
+        assertEquals("apple.txt,banana,zebra.txt", result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("zebra.txt"))
+        fileSystem.delete(dir.resolve("apple.txt"))
+        fileSystem.delete(dir.resolve("banana"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useEvaluatesFile() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
