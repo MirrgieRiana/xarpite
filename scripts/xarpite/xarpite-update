@@ -73,6 +73,17 @@ echo "Fetching metadata"
 
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
+# Parse versions from metadata
+parse_versions() {
+  perl -E '
+    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+    my $versions = $1;
+    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+        say $1;
+    }
+  ' | sort -Vr
+}
+
 # Filter function: pass through all versions or only same major version
 filter_versions() {
   if [ "$force_major" = true ]; then
@@ -82,15 +93,7 @@ filter_versions() {
   fi
 }
 
-version=$(
-  perl -E '
-    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
-    my $versions = $1;
-    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
-        say $1;
-    }
-  ' | sort -Vr | filter_versions | head -n 1
-)
+version=$(parse_versions | filter_versions | head -n 1)
 [ -z "$version" ] && error "Error: Failed to determine latest version."
 
 # Check if already up-to-date
@@ -101,15 +104,7 @@ fi
 
 # Notify about major version updates if -f not specified
 if [ "$force_major" = false ]; then
-  latest_version=$(
-    perl -E '
-      $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
-      my $versions = $1;
-      while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
-          say $1;
-      }
-    ' | sort -Vr | head -n 1
-  )
+  latest_version=$(parse_versions | head -n 1)
   if ! echo "$latest_version" | grep -q "^$current_major\."; then
     echo "Note: Major version update available: $latest_version" >&2
     echo "      Use -f flag to update to major versions" >&2
