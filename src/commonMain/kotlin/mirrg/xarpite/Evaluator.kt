@@ -39,16 +39,15 @@ class Evaluator {
         val getter = frame.compileToGetter(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        return try {
-            withStackTrace(Position(location, 0)) {
+        return withStackTrace(Position(location, 0)) {
+            try {
                 getter.evaluate(env)
+            } catch (e: Returner) {
+                // 宛先のないリターンをエラーとして扱う
+                val exception = FluoriteException(FluoriteString("Unmatched return"))
+                exception.stackTrace = coroutineContext[StackTrace.Key]?.positions?.toList()
+                throw exception
             }
-        } catch (e: Returner) {
-            // 宛先のないリターンをエラーとして扱う
-            val stackTrace = coroutineContext[StackTrace.Key]
-            val exception = FluoriteException(FluoriteString("Unmatched return"))
-            exception.stackTrace = stackTrace?.positions?.toList()
-            throw exception
         }
     }
 
@@ -59,18 +58,17 @@ class Evaluator {
         val runners = frame.compileToRunner(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        try {
-            withStackTrace(Position(location, 0)) {
+        withStackTrace(Position(location, 0)) {
+            try {
                 runners.forEach {
                     it.evaluate(env)
                 }
+            } catch (e: Returner) {
+                // 宛先のないリターンをエラーとして扱う
+                val exception = FluoriteException(FluoriteString("Unmatched return"))
+                exception.stackTrace = coroutineContext[StackTrace.Key]?.positions?.toList()
+                throw exception
             }
-        } catch (e: Returner) {
-            // 宛先のないリターンをエラーとして扱う
-            val stackTrace = coroutineContext[StackTrace.Key]
-            val exception = FluoriteException(FluoriteString("Unmatched return"))
-            exception.stackTrace = stackTrace?.positions?.toList()
-            throw exception
         }
     }
 
