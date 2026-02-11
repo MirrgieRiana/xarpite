@@ -310,7 +310,7 @@ class CompoundAssignmentTest {
 
     @Test
     fun methodNotFoundErrorPositionTest() = runTest {
-        // 1::m() のエラーポジションが正しく報告されることを確認
+        // 1::m() でメソッドが見つからないエラーが発生した場合のエラーポジション確認
         val exception = assertFailsWith<FluoriteException> {
             eval("1::m()")
         }
@@ -319,15 +319,15 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最後のポジションがメソッドアクセスの位置（index 4）を指していることを確認
+        // 最後のポジションは関数呼び出しの開始位置（index 4, `(` の位置）を指す
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
-        assertEquals(4, lastPosition.index, "Error should point to method access at index 4")
+        assertEquals(4, lastPosition.index, "Error should point to function invocation at index 4")
     }
 
     @Test
     fun methodNotFoundInParenthesisErrorPositionTest() = runTest {
-        // ( 1::m() ) のエラーポジションが正しく報告されることを確認
+        // ( 1::m() ) でメソッドが見つからないエラーが発生した場合のエラーポジション確認
         val exception = assertFailsWith<FluoriteException> {
             eval("( 1::m() )")
         }
@@ -336,9 +336,9 @@ class CompoundAssignmentTest {
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
         
-        // 最後のポジションがメソッドアクセスの位置（index 6）を指していることを確認
+        // 最後のポジションは関数呼び出しの開始位置（index 6, `(` の位置）を指す
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
-        assertEquals(6, lastPosition.index, "Error should point to method access at index 6")
+        assertEquals(6, lastPosition.index, "Error should point to function invocation at index 6")
     }
 }
