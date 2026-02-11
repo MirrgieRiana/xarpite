@@ -167,6 +167,19 @@ class CliTest {
     }
 
     @Test
+    fun readl() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val file = baseDir.resolve("readl.test_file.tmp.txt")
+        getFileSystem().getOrThrow().createDirectory(file.parent!!)
+        getFileSystem().getOrThrow().write(file) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456" + "\n")
+        }
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", file.toString()).stream()) // READL は READ の別名
+    }
+
+    @Test
     fun readb() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

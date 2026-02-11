@@ -619,11 +619,13 @@ $ {
 # file
 ```
 
-### `READ`: Read from Text File
+### `READ` / `READL`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
 Reads the contents of the text file specified by `file` line by line as strings.
+
+`READL` is an alias of `READ` and has the same behavior.
 
 Newline codes are removed.
 

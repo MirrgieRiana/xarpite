@@ -79,18 +79,26 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "READ" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
-            val file = arguments[0].toFluoriteString(null).value
-            val fileSystem = getFileSystem().getOrThrow()
-            FluoriteStream {
-                fileSystem.read(file.toPath()) { // TODO charset
-                    while (true) {
-                        val line = readUtf8Line() ?: break
-                        emit(line.toFluoriteString())
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    FluoriteStream {
+                        fileSystem.read(file.toPath()) { // TODO charset
+                            while (true) {
+                                val line = readUtf8Line() ?: break
+                                emit(line.toFluoriteString())
+                            }
+                        }
                     }
                 }
             }
+            arrayOf(
+                "READ" define create("READ"),
+                "READL" define create("READL"),
+            )
         },
         "READB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
