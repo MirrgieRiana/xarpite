@@ -348,10 +348,11 @@ class Returner : Throwable() {
     companion object {
         private val unused = mutableListOf<Returner>()
 
-        fun allocate(frameIndex: Int, labelIndex: Int, value: FluoriteValue): Returner {
+        fun allocate(frameIndex: Int, labelIndex: Int, labelToken: Any?, value: FluoriteValue): Returner {
             val returner = if (hasFreeze()) Returner() else unused.removeLastOrNull() ?: Returner()
             returner.frameIndex = frameIndex
             returner.labelIndex = labelIndex
+            returner.labelToken = labelToken
             returner.value = value
             return returner
         }
@@ -365,11 +366,15 @@ class Returner : Throwable() {
 
     var frameIndex: Int = 0
     var labelIndex: Int = 0
+    var labelToken: Any? = null
     var value: FluoriteValue = FluoriteNull
 }
 
 class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = throw Returner.allocate(frameIndex, labelIndex, getter.evaluate(env))
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val labelToken = env.labelTable[Pair(frameIndex, labelIndex)]
+        throw Returner.allocate(frameIndex, labelIndex, labelToken, getter.evaluate(env))
+    }
     override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
 }
 
@@ -855,11 +860,13 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
 
 class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
+        val labelToken = Any() // 識別用トークンを生成
         try {
             val newEnv = Environment(env, 0, 0)
+            newEnv.labelTable[Pair(frameIndex, labelIndex)] = labelToken // トークンを登録
             return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
-            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+            if (returner.labelToken === labelToken) {
                 val value = returner.value
                 Returner.recycle(returner)
                 return value

@@ -27,6 +27,7 @@ class Environment(val parent: Environment?, variableCount: Int, mountCount: Int)
     } else {
         arrayOf(Array(mountCount) { mapOf() })
     }
+    val labelTable: MutableMap<Pair<Int, Int>, Any?> = parent?.labelTable ?: mutableMapOf()
 }
 
 

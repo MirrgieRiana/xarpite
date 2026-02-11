@@ -1423,6 +1423,26 @@ class XarpiteTest {
             result
         """.let { assertEquals("default", eval(it).string) }
 
+        // リターン文を含むラムダを別の場所で起動しても誤ったラベルにキャッチされない
+        // 別所で定義されたリターンが誤ったラベルにキャッチされるバグのテストケース
+        """
+            getFruit := (
+                () -> (
+                    vehicle!! "car"
+                    "apple"
+                )
+            ) !: vehicle
+            fruit := getFruit() !: fruit
+            "Fruit is: " + fruit
+        """.let {
+            try {
+                val result = eval(it)
+                fail("Expected FluoriteException but got: $result")
+            } catch (e: FluoriteException) {
+                // 正しい動作: 宛先のないリターンとしてエラーになる
+            }
+        }
+
     }
 
 }
