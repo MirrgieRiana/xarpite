@@ -441,8 +441,6 @@ $ {
 
 `IN: STREAM<STRING>`
 
-`I: STREAM<STRING>`
-
 標準入力から文字列を1行ずつ読み取るストリームです。
 
 `I` は `IN` の別名です。
@@ -509,8 +507,6 @@ $ echo -n "abc" | xa 'INB'
 ### `OUT`, `O`: 標準出力に出力
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 標準出力に出力します。
 

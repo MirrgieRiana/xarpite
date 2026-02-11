@@ -431,8 +431,6 @@ $ {
 
 `IN: STREAM<STRING>`
 
-`I: STREAM<STRING>`
-
 A stream that reads strings line by line from standard input.
 
 `I` is an alias for `IN`.
@@ -499,8 +497,6 @@ If `INB` is used even once, `IN` cannot be used.
 ### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 Outputs to standard output.
 
