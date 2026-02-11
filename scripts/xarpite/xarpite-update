@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Version regex pattern (used for validation and matching)
-# MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens only)
+# MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens, underscores)
 VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+(\+[A-Za-z0-9._-]+)?$'
 
 # Parse command-line options
@@ -78,7 +78,7 @@ current_version="$(cat "$VERSION_FILE")"
 [ -z "$current_version" ] && error "Error: Failed to determine current version."
 
 # Validate version format (basic semver check)
-# Allow MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens only)
+# Allow MAJOR.MINOR.PATCH with optional +metadata (alphanumerics, dots, hyphens, underscores)
 if ! echo "$current_version" | grep -qE "$VERSION_PATTERN"; then
   error "Error: Invalid version format in version file: $current_version"
 fi
