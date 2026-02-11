@@ -15,10 +15,15 @@ check tar
 check perl
 check sort
 
-if [ "$#" -ne 2 ]
-then
-  error "Usage: $0 <install_dir> <bin_dir>"
-fi
+
+script=$0
+usage() {
+  echo "Usage: $script <install_dir> <bin_dir>" >&2
+  echo "    Set VERSION environment variable to specify a version (e.g., VERSION=4.102.0)" >&2
+  exit 1
+}
+
+(($# == 2)) || usage
 
 install_dir="$1"
 bin_dir="$2"
@@ -26,21 +31,27 @@ bin_dir="$2"
 
 # Determine the downloading version
 
-echo "Fetching metadata"
+if [ -n "${VERSION:-}" ]
+then
+  version="$VERSION"
+  echo "Using specified version: $version"
+else
+  echo "Fetching metadata"
 
-export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
+  export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
-version=$(
-  perl -E '
-    $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
-    my $versions = $1;
-    while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
-        say $1;
-    }
-  ' | sort -Vr | head -n 1
-)
-[ -z "$version" ] && error "Error: Failed to determine latest version."
-echo "Latest version: $version"
+  version=$(
+    perl -E '
+      $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
+      my $versions = $1;
+      while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
+          say $1;
+      }
+    ' | sort -Vr | head -n 1
+  )
+  [ -z "$version" ] && error "Error: Failed to determine latest version."
+  echo "Latest version: $version"
+fi
 
 echo
 
