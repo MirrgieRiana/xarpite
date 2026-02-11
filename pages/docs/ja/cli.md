@@ -334,8 +334,8 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 `-f` オプションを指定すると、メジャーバージョンが異なる更新も含めて最新版に更新します。
 
-```shell
-$ xarpite-update -f
+```
+xarpite-update -f
 ```
 
 ## CLI版限定組み込み定数・関数
