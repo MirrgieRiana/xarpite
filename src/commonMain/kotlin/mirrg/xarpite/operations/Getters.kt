@@ -878,7 +878,9 @@ class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, priv
                 throw returner
             }
         } finally {
-            stack.removeAt(stack.size - 1) // トークンをスタックからポップ
+            if (stack.isNotEmpty()) {
+                stack.removeAt(stack.size - 1) // トークンをスタックからポップ
+            }
         }
     }
 

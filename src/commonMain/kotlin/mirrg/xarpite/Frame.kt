@@ -124,6 +124,7 @@ fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> 
     }
 }
 
+// Note: This counter is not thread-safe. Label definitions should occur in a single-threaded context.
 private var nextGlobalLabelId = 0
 
 fun Frame.defineLabel(name: String): Int {
