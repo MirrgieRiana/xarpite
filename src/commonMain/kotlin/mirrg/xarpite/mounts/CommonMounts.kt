@@ -26,5 +26,6 @@ fun createCommonMounts(): List<Map<String, Mount>> {
         createStreamMounts(),
         createDataConversionMounts(),
         createStringMounts(),
+        createIoMounts(),
     ).flatten()
 }

@@ -428,3 +428,29 @@ $ xa '
 '
 # [apple;banana]
 ```
+
+## `array -= item`: Removing Elements from an Array
+
+You can remove element `item` from array `array` using the subtraction assignment operator.
+
+No assignment operation is performed on the `array` variable itself; the array `array` itself is modified.
+
+If there are multiple matching elements, the one closest to the beginning is removed.
+
+If no matching element exists, nothing happens.
+
+If `item` is a stream, the removal operation is performed for each element of the stream.
+
+```shell
+$ xa -q '
+  array := ["apple", "banana", "cherry", "banana"]
+  OUT << array
+  array -= "banana"
+  OUT << array
+  array -= "apple", "banana", "durian"
+  OUT << array
+'
+# [apple;banana;cherry;banana]
+# [apple;cherry;banana]
+# [cherry]
+```

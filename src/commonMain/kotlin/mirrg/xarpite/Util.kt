@@ -327,3 +327,8 @@ fun Path.isAncestorOf(other: Path): Boolean {
         if (this == path) return true
     }
 }
+
+
+// I/O utilities
+
+suspend fun RuntimeContext.fetch(url: String) = io.fetch(this, url)

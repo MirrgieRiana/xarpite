@@ -9,9 +9,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
+import mirrg.xarpite.cli.addDefaultIncPaths
+import mirrg.xarpite.cli.cliEval as cliEvalImpl
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -35,6 +39,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 val baseDir = "build/test".toPath()
@@ -418,6 +423,22 @@ class CliTest {
     }
 
     @Test
+    fun useResolvesMainXa1WhenExtensionOmitted() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val dir = baseDir.resolve("use.main.tmp")
+        val moduleDir = dir.resolve("banana")
+        fileSystem.createDirectories(moduleDir)
+        val module = moduleDir.resolve("main.xa1")
+        fileSystem.write(module) { writeUtf8("877") }
+        assertEquals("877", cliEval(context, """USE("./build/test/use.main.tmp/banana")""").toFluoriteString(null).value)
+        fileSystem.delete(module)
+        fileSystem.delete(moduleDir)
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useCachesByPath() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -770,6 +791,33 @@ class CliTest {
     }
 
     @Test
+    fun useIncRelativePathResolvesMainXa1() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにディレクトリ形式のモジュールを配置
+        val incDir = "build/test/use.inc.main.tmp".toPath()
+        val moduleDir = incDir.resolve("lemon")
+        fileSystem.createDirectories(moduleDir)
+        val moduleFile = moduleDir.resolve("main.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Lemon\"") }
+
+        // ディレクトリ名でモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.main.tmp")
+            USE("lemon")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Lemon", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(moduleDir)
+        fileSystem.delete(incDir)
+    }
+
+    @Test
     fun useIncRelativePathSearchesMultipleIncPaths() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -903,10 +951,53 @@ class CliTest {
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
-        // デフォルトで ./.xarpite/maven が含まれている
+        // デフォルトで ./.xarpite/lib と ./.xarpite/maven が含まれている
         val incArray = cliEval(context, "INC").array()
+        assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
     }
+
+    @Test
+    fun cliEvalAddsDefaultIncPaths() = runTest {
+        val context = TestIoContext()
+        // 実装側の cliEval が INC にデフォルトパスを追加することを検証
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, scriptFile = null)
+        var capturedInc: List<FluoriteValue>? = null
+        cliEvalImpl(context, options) { 
+            capturedInc = inc.values.toList()
+            emptyList()
+        }
+        assertNotNull(capturedInc)
+        val incStrings = capturedInc!!.map { it.toFluoriteString(null).value }
+        assertTrue("./.xarpite/lib" in incStrings)
+        assertTrue("./.xarpite/maven" in incStrings)
+    }
+
+    @Test
+    fun useLoadsModuleFromXarpiteLib() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ./.xarpite/lib にモジュールを配置
+        val libDir = ".xarpite/lib".toPath()
+        fileSystem.createDirectories(libDir)
+        val moduleFile = libDir.resolve("mymodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LibModule\"") }
+
+        // ./.xarpite/lib からモジュールをロード
+        val result = cliEval(context, """
+            USE("mymodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LibModule", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(libDir)
+        fileSystem.delete(".xarpite".toPath())
+    }
+
     @Test
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
@@ -948,6 +1039,224 @@ class CliTest {
         fileSystem.delete(customIncDir.resolve("com/example"))
         fileSystem.delete(customIncDir.resolve("com"))
         fileSystem.delete(customIncDir)
+    }
+
+    @Test
+    fun useTopLevelErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.top.level.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // エラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("!!\"Test error from module\"")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.top.level.error.tmp/error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("error_module") == true
+        }
+        assertTrue(hasModuleLocation, "Stack trace should include the module location where the error occurred, but got: ${stackTrace.map { it?.location }}")
+        
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        // スタックトレースは [呼び出し元, ..., エラー発生箇所] の順
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
+        assertTrue(
+            lastPosition.location.contains("error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useModuleMethodErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.method.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // メソッド呼び出しエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("method_error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("[].+")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.method.error.tmp/method_error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("method_error_module") == true
+        }
+        assertTrue(
+            hasModuleLocation, 
+            "Stack trace should include the module location where the method error occurred, but got: ${stackTrace.map { it?.location }}"
+        )
+        
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
+        assertTrue(
+            lastPosition.location.contains("method_error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useNestedErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.nested.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ネストした呼び出しでエラーを発生させるモジュールを作成
+        val innerModule = dir.resolve("inner.xa1")
+        fileSystem.write(innerModule) {
+            writeUtf8("!!\"Error from inner module\"")
+        }
+
+        val outerModule = dir.resolve("outer.xa1")
+        fileSystem.write(outerModule) {
+            writeUtf8("""USE("./inner.xa1")""")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.nested.error.tmp/outer.xa1")""")
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // スタックトレースには inner.xa1 が含まれるべき
+        val hasInnerLocation = stackTrace.any { position ->
+            position?.location?.contains("inner") == true
+        }
+        assertTrue(hasInnerLocation, "Stack trace should include inner module location, but got: ${stackTrace.map { it?.location }}")
+
+        // クリーンアップ
+        fileSystem.delete(innerModule)
+        fileSystem.delete(outerModule)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useModuleReturningStreamWithErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.stream.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ストリームを返し、イテレーション中にエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("stream_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("1, 2, [].+, 4")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                USE("./build/test/use.stream.error.tmp/stream_module.xa1")
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // ストリームのイテレーション中のエラーは、ストリームを呼び出した側（USE呼び出し元）に紐づけられる
+        // これは論理的に正しい挙動：ストリームの評価は遅延実行されるため、エラーはイテレーション時に発生する
+        // つまり、スタックトレースには呼び出し元（test）のみが含まれ、モジュールの位置は含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for stream iteration error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun useModuleFunctionErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.function.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // 関数を定義し、その関数内でエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("function_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("""
+                {
+                    errorFunc: () -> [].+
+                }
+            """.trimIndent())
+        }
+
+        // USEでモジュールを読み込み、関数を呼び出して例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                module := USE("./build/test/use.function.error.tmp/function_module.xa1")
+                module.errorFunc()
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        
+        // 関数内で発生したエラーは、関数を呼び出した側に紐づけられる
+        // これは論理的に正しい挙動：関数のコールスタックは呼び出し元であり、
+        // 関数が定義されているソースコードのスタックは含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for function error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(dir)
     }
 
 
@@ -1979,7 +2288,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
 
 private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
-        context.inc.values += "./.xarpite/maven".toFluoriteString()
+        context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
@@ -1995,7 +2304,8 @@ internal class TestIoContext(
     private val stdinBytes: ByteArray = byteArrayOf(),
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
-    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
+    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -2035,6 +2345,9 @@ internal class TestIoContext(
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
         executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
+
+    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray =
+        fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
 

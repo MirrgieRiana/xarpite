@@ -1,6 +1,9 @@
 package mirrg.xarpite
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
@@ -13,6 +16,19 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+
+    val httpClient by lazy {
+        val httpClient = HttpClient()
+        daemonScope.launch {
+            try {
+                awaitCancellation()
+            } finally {
+                httpClient.close()
+            }
+        }
+        httpClient
+    }
+
 
     private val srcs = mutableMapOf<String, String>()
 
@@ -49,7 +65,12 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        return "$location:$row:$column  $startEllipsis$snippet$endEllipsis"
+        val errorPositionInSnippet = column - 1 - startColumnIndex
+        val leftMargin = " ".repeat(10 - errorPositionInSnippet)
+        val rowDigits = row.toString().length
+        val columnDigits = column.toString().length
+        val positionPadding = " ".repeat((3 - rowDigits) + (3 - columnDigits))
+        return "$location:$row:$column$positionPadding  $startEllipsis$leftMargin$snippet$endEllipsis"
     }
 
 
@@ -68,6 +89,7 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
+    suspend fun fetch(context: RuntimeContext, url: String): ByteArray
 }
 
 open class UnsupportedIoContext : IoContext {
@@ -80,4 +102,5 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
 }

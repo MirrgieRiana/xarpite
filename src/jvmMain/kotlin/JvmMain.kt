@@ -1,5 +1,8 @@
+import io.ktor.client.request.get
+import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.cliEval
@@ -23,6 +26,7 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
+            override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
         }
         val options = try {
             parseArguments(args.asIterable(), ioContext)

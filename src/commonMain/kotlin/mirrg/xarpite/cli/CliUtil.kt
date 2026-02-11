@@ -4,7 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
-import mirrg.xarpite.Position
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.collect
@@ -14,7 +13,6 @@ import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
-import mirrg.xarpite.withStackTrace
 import okio.Path.Companion.toPath
 
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFile: String?)
@@ -161,9 +159,14 @@ fun showVersion(ioContext: IoContext) {
     println(version)
 }
 
+fun RuntimeContext.addDefaultIncPaths() {
+    inc.values += "./.xarpite/lib".toFluoriteString()
+    inc.values += "./.xarpite/maven".toFluoriteString()
+}
+
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
-        context.inc.values += "./.xarpite/maven".toFluoriteString()
+        context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
@@ -173,18 +176,16 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
-            withStackTrace(Position(location, 0)) {
-                if (options.quiet) {
-                    evaluator.run(location, options.src)
-                } else {
-                    val result = evaluator.get(location, options.src)
-                    if (result is FluoriteStream) {
-                        result.collect {
-                            println(it.toFluoriteString(null))
-                        }
-                    } else {
-                        println(result.toFluoriteString(null))
+            if (options.quiet) {
+                evaluator.run(location, options.src)
+            } else {
+                val result = evaluator.get(location, options.src)
+                if (result is FluoriteStream) {
+                    result.collect {
+                        println(it.toFluoriteString(null))
                     }
+                } else {
+                    println(result.toFluoriteString(null))
                 }
             }
         } catch (e: FluoriteException) {

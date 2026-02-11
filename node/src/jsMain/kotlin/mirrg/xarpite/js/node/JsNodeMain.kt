@@ -1,5 +1,7 @@
 package mirrg.xarpite.js.node
 
+import io.ktor.client.request.get
+import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
@@ -7,6 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowUsage
@@ -85,6 +88,7 @@ suspend fun main() {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
+            override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)
