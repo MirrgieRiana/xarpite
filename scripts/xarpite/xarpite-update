@@ -2,6 +2,21 @@
 
 set -euo pipefail
 
+# Parse command-line options
+FORCE_MAJOR=false
+while getopts "f" opt; do
+  case "$opt" in
+    f)
+      FORCE_MAJOR=true
+      ;;
+    *)
+      echo "Usage: xarpite-update [-f]" >&2
+      echo "  -f  Allow major version updates" >&2
+      exit 1
+      ;;
+  esac
+done
+
 error() {
   echo "$1" >&2
   exit 1
@@ -52,21 +67,52 @@ trap on_term TERM
 
 # Determine the downloading version
 
+# Get current version
+VERSION_FILE="$(pwd)/version"
+[ -f "$VERSION_FILE" ] || error "Error: version file not found: $VERSION_FILE"
+current_version="$(cat "$VERSION_FILE")"
+[ -z "$current_version" ] && error "Error: Failed to determine current version."
+echo "Current version: $current_version"
+
+# Extract current major version
+current_major=$(echo "$current_version" | cut -d. -f1)
+
 echo "Fetching metadata"
 
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
-version=$(
+# Get all available versions
+all_versions=$(
   perl -E '
     $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
     my $versions = $1;
     while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
         say $1;
     }
-  ' | sort -Vr | head -n 1
+  ' | sort -Vr
 )
-[ -z "$version" ] && error "Error: Failed to determine latest version."
-echo "Latest version: $version"
+
+# Filter versions based on -f flag
+if [ "$FORCE_MAJOR" = false ]; then
+  # Only consider versions with same major version
+  filtered_versions=$(echo "$all_versions" | grep "^$current_major\.")
+  
+  # Check if there are major updates available
+  latest_overall=$(echo "$all_versions" | head -n 1)
+  latest_overall_major=$(echo "$latest_overall" | cut -d. -f1)
+  
+  if [ "$latest_overall_major" != "$current_major" ]; then
+    echo "Note: Major version update available: $latest_overall" >&2
+    echo "      Use -f flag to update to major versions" >&2
+    echo >&2
+  fi
+else
+  filtered_versions="$all_versions"
+fi
+
+version=$(echo "$filtered_versions" | head -n 1)
+[ -z "$version" ] && error "Error: No suitable version found."
+echo "Target version: $version"
 
 echo
 
