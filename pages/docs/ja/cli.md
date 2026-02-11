@@ -605,11 +605,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
-### `FILES`: ディレクトリ内のファイルの一覧を取得
+### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 `dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+`FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
 
 ファイル名にはディレクトリのパスは含まれません。
 
@@ -623,34 +625,6 @@ $ {
   touch tmp/file
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
-}
-# dir
-# file
-```
-
-### `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
-
-`FILE_NAMES(dir: STRING): STREAM<STRING>`
-
-`FILE_NAMES` は `FILES` の別名です。
-
-`dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
-
-ファイル名にはディレクトリのパスは含まれません。
-
-返されるファイルには `.` や `..` は含まれず、ディレクトリやその他の特殊なファイルは含まれます。
-
-返されるファイル名は辞書順にソートされます。
-
-```shell
-$ {
-  mkdir tmp
-  touch tmp/file
-  mkdir tmp/dir
-  xa 'FILE_NAMES("tmp")'
   rm tmp/file
   rmdir tmp/dir
   rmdir tmp

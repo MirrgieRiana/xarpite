@@ -597,11 +597,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ABC
 ```
 
-### `FILES`: Get List of Files in Directory
+### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
+
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
 Filenames do not include directory paths.
 
@@ -615,34 +617,6 @@ $ {
   touch tmp/file
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
-}
-# dir
-# file
-```
-
-### `FILE_NAMES`: Get List of Files in Directory
-
-`FILE_NAMES(dir: STRING): STREAM<STRING>`
-
-`FILE_NAMES` is an alias for `FILES`.
-
-Gets a stream of filenames directly under the directory specified by `dir`.
-
-Filenames do not include directory paths.
-
-Returned files do not include `.` or `..`, but do include directories and other special files.
-
-Returned filenames are sorted in lexicographic order.
-
-```shell
-$ {
-  mkdir tmp
-  touch tmp/file
-  mkdir tmp/dir
-  xa 'FILE_NAMES("tmp")'
   rm tmp/file
   rmdir tmp/dir
   rmdir tmp
