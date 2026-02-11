@@ -59,33 +59,28 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val rightRun
     override val code get() = "TryCatchRunner[${leftRunners.code};${rightRunners.code}]"
 }
 
-class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
+class LabelRunner(private val frameIndex: Int, private val variableIndex: Int, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
-        val labelToken = Any() // 識別用トークンを生成
-        val key = Pair(frameIndex, labelIndex)
-        val stack = env.labelTable.getOrPut(key) { mutableListOf() }
-        stack.add(labelToken) // トークンをスタックにプッシュ
+        val labelObject = FluoriteObject(null, mutableMapOf())
+        val variable = LocalVariable(labelObject)
         try {
-            val newEnv = Environment(env, 0, 0)
+            val newEnv = Environment(env, 1, 0)
+            newEnv.variableTable[frameIndex][variableIndex] = variable
             runners.forEach {
                 it.evaluate(newEnv)
             }
         } catch (returner: Returner) {
-            if (returner.labelToken === labelToken) {
+            if (returner.labelObject === labelObject) {
                 val value = returner.value
                 Returner.recycle(returner)
                 value.consume()
             } else {
                 throw returner
             }
-        } finally {
-            if (stack.isNotEmpty()) {
-                stack.removeAt(stack.size - 1) // トークンをスタックからポップ
-            }
         }
     }
 
-    override val code get() = "LabelRunner[$frameIndex;$labelIndex;${runners.code}]"
+    override val code get() = "LabelRunner[$frameIndex;$variableIndex;${runners.code}]"
 }
 
 class MountRunner(private val frameIndex: Int, private val mountIndex: Int, private val getter: Getter) : Runner {

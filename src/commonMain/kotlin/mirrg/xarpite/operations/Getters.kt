@@ -348,11 +348,9 @@ class Returner : Throwable() {
     companion object {
         private val unused = mutableListOf<Returner>()
 
-        fun allocate(frameIndex: Int, labelIndex: Int, labelToken: Any?, value: FluoriteValue): Returner {
+        fun allocate(labelObject: FluoriteValue?, value: FluoriteValue): Returner {
             val returner = if (hasFreeze()) Returner() else unused.removeLastOrNull() ?: Returner()
-            returner.frameIndex = frameIndex
-            returner.labelIndex = labelIndex
-            returner.labelToken = labelToken
+            returner.labelObject = labelObject
             returner.value = value
             return returner
         }
@@ -364,18 +362,14 @@ class Returner : Throwable() {
         }
     }
 
-    var frameIndex: Int = 0
-    var labelIndex: Int = 0
-    var labelToken: Any? = null
+    var labelObject: FluoriteValue? = null
     var value: FluoriteValue = FluoriteNull
 }
 
 class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val key = Pair(frameIndex, labelIndex)
-        val stack = env.labelTable[key]
-        val labelToken = stack?.lastOrNull() // スタックの最上位のトークンを取得
-        throw Returner.allocate(frameIndex, labelIndex, labelToken, getter.evaluate(env))
+        val labelObject = env.variableTable[frameIndex][labelIndex]?.get()
+        throw Returner.allocate(labelObject, getter.evaluate(env))
     }
     override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
 }
@@ -860,31 +854,26 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override val code get() = "TryCatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
+class LabelGetter(private val frameIndex: Int, private val variableIndex: Int, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val labelToken = Any() // 識別用トークンを生成
-        val key = Pair(frameIndex, labelIndex)
-        val stack = env.labelTable.getOrPut(key) { mutableListOf() }
-        stack.add(labelToken) // トークンをスタックにプッシュ
+        val labelObject = FluoriteObject(null, mutableMapOf())
+        val variable = LocalVariable(labelObject)
         try {
-            val newEnv = Environment(env, 0, 0)
+            val newEnv = Environment(env, 1, 0)
+            newEnv.variableTable[frameIndex][variableIndex] = variable
             return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
-            if (returner.labelToken === labelToken) {
+            if (returner.labelObject === labelObject) {
                 val value = returner.value
                 Returner.recycle(returner)
                 return value
             } else {
                 throw returner
             }
-        } finally {
-            if (stack.isNotEmpty()) {
-                stack.removeAt(stack.size - 1) // トークンをスタックからポップ
-            }
         }
     }
 
-    override val code get() = "LabelGetter[$frameIndex;$labelIndex;${getter.code}]"
+    override val code get() = "LabelGetter[$frameIndex;$variableIndex;${getter.code}]"
 }
 
 class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: Int, private val indexVariableIndex: Int?, private val valueVariableIndex: Int, private val contentGetter: Getter) : Getter {

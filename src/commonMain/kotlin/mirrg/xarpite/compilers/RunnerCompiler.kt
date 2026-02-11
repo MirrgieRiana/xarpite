@@ -57,8 +57,8 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
         is InfixExclamationColonNode -> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
-            val labelIndex = newFrame.defineLabel(node.right.string)
-            listOf(LabelRunner(newFrame.frameIndex, labelIndex, newFrame.compileToRunner(node.left)))
+            val variableIndex = newFrame.defineVariable("!:${node.right.string}")
+            listOf(LabelRunner(newFrame.frameIndex, variableIndex, newFrame.compileToRunner(node.left)))
         }
 
         is UnaryAtNode -> {

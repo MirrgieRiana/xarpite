@@ -266,8 +266,8 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is ReturnNode -> {
             require(node.left is IdentifierNode)
-            val label = getLabel(node.left.string) ?: throw IllegalArgumentException("No such label: ${node.left.string}")
-            ReturnGetter(label.first, label.second, compileToGetter(node.right))
+            val variable = getVariable("!:${node.left.string}") ?: throw IllegalArgumentException("No such label: ${node.left.string}")
+            ReturnGetter(variable.first, variable.second, compileToGetter(node.right))
         }
 
         is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters, node.position)
@@ -462,8 +462,8 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixExclamationColonNode -> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
-            val labelIndex = newFrame.defineLabel(node.right.string)
-            LabelGetter(newFrame.frameIndex, labelIndex, newFrame.compileToGetter(node.left))
+            val variableIndex = newFrame.defineVariable("!:${node.right.string}")
+            LabelGetter(newFrame.frameIndex, variableIndex, newFrame.compileToGetter(node.left))
         }
 
         is InfixColonNode -> {

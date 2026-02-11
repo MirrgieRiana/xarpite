@@ -59,10 +59,18 @@ class Evaluator {
         val runners = frame.compileToRunner(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        withStackTrace(Position(location, 0)) {
-            runners.forEach {
-                it.evaluate(env)
+        try {
+            withStackTrace(Position(location, 0)) {
+                runners.forEach {
+                    it.evaluate(env)
+                }
             }
+        } catch (e: Returner) {
+            // 宛先のないリターンをエラーとして扱う
+            val stackTrace = coroutineContext[StackTrace.Key]
+            val exception = FluoriteException(FluoriteString("Unmatched return"))
+            exception.stackTrace = stackTrace?.positions?.toList()
+            throw exception
         }
     }
 
