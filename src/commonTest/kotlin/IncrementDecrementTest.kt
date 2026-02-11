@@ -1,10 +1,14 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.Position
+import mirrg.xarpite.StackTrace
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -240,35 +244,53 @@ class IncrementDecrementTest {
 
     @Test
     fun incrementErrorPositionTest() = runTest {
-        // ++ のエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+        // ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( 1++ )")
         }
-        val message = exception.message
-        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
-        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが ++ 演算子の位置（index 3）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(3, firstPosition.index, "Error should point to ++ operator at index 3")
     }
 
     @Test
     fun decrementErrorPositionTest() = runTest {
-        // -- のエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+        // -- のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( 1-- )")
         }
-        val message = exception.message
-        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
-        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが -- 演算子の位置（index 3）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(3, firstPosition.index, "Error should point to -- operator at index 3")
     }
 
     @Test
     fun prefixIncrementErrorPositionTest() = runTest {
-        // 前置 ++ のエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+        // 前置 ++ のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( ++1 )")
         }
-        val message = exception.message
-        // エラーメッセージにインクリメント操作が定義されていないことが含まれることを確認
-        assertTrue(message != null && message.contains("Increment/decrement operation is not defined"), "Error message should mention increment/decrement")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが ++ 演算子の位置（index 2）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(2, firstPosition.index, "Error should point to ++ operator at index 2")
     }
 
     @Test

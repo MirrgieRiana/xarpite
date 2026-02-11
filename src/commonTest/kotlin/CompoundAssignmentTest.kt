@@ -1,10 +1,14 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.Position
+import mirrg.xarpite.StackTrace
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -217,24 +221,36 @@ class CompoundAssignmentTest {
 
     @Test
     fun plusAssignmentErrorPositionTest() = runTest {
-        // += のエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+        // += のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( 1 += 2 )")
         }
-        val message = exception.message
-        // エラーメッセージに演算代入が定義されていないことが含まれることを確認
-        assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが += 演算子の位置（index 4）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(4, firstPosition.index, "Error should point to += operator at index 4")
     }
 
     @Test
     fun minusAssignmentErrorPositionTest() = runTest {
-        // -= のエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+        // -= のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( 1 -= 2 )")
         }
-        val message = exception.message
-        // エラーメッセージに演算代入が定義されていないことが含まれることを確認
-        assertTrue(message != null && message.contains("Cannot perform compound assignment"), "Error message should mention compound assignment")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが -= 演算子の位置（index 4）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(4, firstPosition.index, "Error should point to -= operator at index 4")
     }
 
     @Test
@@ -295,24 +311,36 @@ class CompoundAssignmentTest {
     }
 
     @Test
-    fun methodNotFoundErrorMessageTest() = runTest {
-        // 存在しないメソッドのエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+    fun methodNotFoundErrorPositionTest() = runTest {
+        // 1::m() のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("1::m()")
         }
-        val message = exception.message
-        // エラーメッセージにメソッドが見つからないことが含まれることを確認
-        assertTrue(message != null && message.contains("Method not found"), "Error message should mention method not found")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが :: 演算子の位置（index 1）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(1, firstPosition.index, "Error should point to :: operator at index 1")
     }
 
     @Test
-    fun methodNotFoundInParenthesisErrorMessageTest() = runTest {
-        // 括弧付きの存在しないメソッドのエラーが正しく報告されることを確認
-        val exception = assertFailsWith<Exception> {
+    fun methodNotFoundInParenthesisErrorPositionTest() = runTest {
+        // ( 1::m() ) のエラーポジションが正しく報告されることを確認
+        val exception = assertFailsWith<FluoriteException> {
             eval("( 1::m() )")
         }
-        val message = exception.message
-        // エラーメッセージにメソッドが見つからないことが含まれることを確認
-        assertTrue(message != null && message.contains("Method not found"), "Error message should mention method not found")
+        // スタックトレースが設定されていることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Stack trace should be set")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        
+        // 最初のポジションが :: 演算子の位置（index 3）を指していることを確認
+        val firstPosition = stackTrace.first()
+        assertNotNull(firstPosition, "First position should not be null")
+        assertEquals(3, firstPosition.index, "Error should point to :: operator at index 3")
     }
 }
