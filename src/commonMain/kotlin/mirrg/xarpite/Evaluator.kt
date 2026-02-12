@@ -42,8 +42,9 @@ class Evaluator {
             try {
                 getter.evaluate(env)
             } catch (returner: Returner) {
+                val name = returner.label!!.name
                 Returner.recycle(returner)
-                throw FluoriteException(FluoriteString("Unmatched return: ${returner.label.name}"))
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
             }
         }
     }
@@ -61,8 +62,9 @@ class Evaluator {
                     it.evaluate(env)
                 }
             } catch (returner: Returner) {
+                val name = returner.label!!.name
                 Returner.recycle(returner)
-                throw FluoriteException(FluoriteString("Unmatched return: ${returner.label.name}"))
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
             }
         }
     }
