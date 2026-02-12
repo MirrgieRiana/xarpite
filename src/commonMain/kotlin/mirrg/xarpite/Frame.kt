@@ -12,8 +12,6 @@ class Frame(val parent: Frame? = null) {
     val variableIndexTable = mutableMapOf<String, Int>()
     var nextVariableIndex = 0
     var mountCount = 0
-    val labelIndexTable = mutableMapOf<String, Int>()
-    var nextLabelIndex = 0
 }
 
 class Environment(val parent: Environment?, variableCount: Int, mountCount: Int) {

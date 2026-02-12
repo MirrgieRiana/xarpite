@@ -358,6 +358,8 @@ class Returner : Throwable() {
 
         fun recycle(returner: Returner) {
             if (hasFreeze()) return
+            returner.label = null
+            returner.value = FluoriteNull
             if (unused.size >= 100) return
             unused += returner
         }
@@ -367,13 +369,13 @@ class Returner : Throwable() {
     var value: FluoriteValue = FluoriteNull
 }
 
-class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val name: String, private val getter: Getter) : Getter {
+class ReturnGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        val label = env.variableTable[frameIndex][labelIndex] as? Label ?: throw IllegalStateException("Unexpected non-label variable at ReturnGetter: $name")
+        val label = env.variableTable[frameIndex][variableIndex] as? Label ?: throw IllegalStateException("Unexpected non-label variable at ReturnGetter: $name")
         throw Returner.allocate(label, getter.evaluate(env))
     }
 
-    override val code get() = "ReturnGetter[$frameIndex;$labelIndex;$name;${getter.code}]"
+    override val code get() = "ReturnGetter[$frameIndex;$variableIndex;$name;${getter.code}]"
 }
 
 class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter: Getter, private val isNullSafe: Boolean, private val position: Position) : Getter {
