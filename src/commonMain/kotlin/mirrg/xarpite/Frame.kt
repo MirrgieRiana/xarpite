@@ -66,6 +66,11 @@ class DelegatedVariable(val function: FluoriteValue, val position: Position) : V
     }
 }
 
+class Label(val name: String) : Variable {
+    override suspend fun get() = throw UnsupportedOperationException()
+    override suspend fun set(value: FluoriteValue) = throw UnsupportedOperationException()
+}
+
 
 fun Frame.defineVariable(name: String): Int {
     val variableIndex = nextVariableIndex

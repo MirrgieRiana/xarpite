@@ -57,7 +57,7 @@ fun Frame.compileToRunner(node: Node): List<Runner> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
             val variableIndex = newFrame.defineVariable("!:${node.right.string}")
-            listOf(LabelRunner(newFrame.frameIndex, variableIndex, newFrame.compileToRunner(node.left)))
+            listOf(LabelRunner(newFrame.frameIndex, variableIndex, node.right.string, newFrame.compileToRunner(node.left)))
         }
 
         is UnaryAtNode -> {

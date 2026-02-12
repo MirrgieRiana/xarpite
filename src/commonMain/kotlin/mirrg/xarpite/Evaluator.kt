@@ -41,8 +41,9 @@ class Evaluator {
         return withStackTrace(Position(location, 0)) {
             try {
                 getter.evaluate(env)
-            } catch (e: Returner) {
-                throw FluoriteException(FluoriteString("Unmatched return"))
+            } catch (returner: Returner) {
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: ${returner.label.name}"))
             }
         }
     }
@@ -59,8 +60,9 @@ class Evaluator {
                 runners.forEach {
                     it.evaluate(env)
                 }
-            } catch (e: Returner) {
-                throw FluoriteException(FluoriteString("Unmatched return"))
+            } catch (returner: Returner) {
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: ${returner.label.name}"))
             }
         }
     }
