@@ -127,19 +127,3 @@ fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> 
         }
     }
 }
-
-fun Frame.defineLabel(name: String): Int {
-    val labelIndex = nextLabelIndex
-    labelIndexTable[name] = labelIndex
-    nextLabelIndex++
-    return labelIndex
-}
-
-fun Frame.getLabel(name: String): Pair<Int, Int>? {
-    var currentFrame = this
-    while (true) {
-        val labelIndex = currentFrame.labelIndexTable[name]
-        if (labelIndex != null) return Pair(currentFrame.frameIndex, labelIndex)
-        currentFrame = currentFrame.parent ?: return null
-    }
-}
