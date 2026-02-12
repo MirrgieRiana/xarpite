@@ -90,9 +90,7 @@ import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
-import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
-import mirrg.xarpite.getLabel
 import mirrg.xarpite.getMountCounts
 import mirrg.xarpite.getVariable
 import mirrg.xarpite.operations.AndGetter
@@ -266,8 +264,8 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is ReturnNode -> {
             require(node.left is IdentifierNode)
-            val label = getLabel(node.left.string) ?: throw IllegalArgumentException("No such label: ${node.left.string}")
-            ReturnGetter(label.first, label.second, compileToGetter(node.right))
+            val variable = getVariable("!:${node.left.string}") ?: throw IllegalArgumentException("No such label: ${node.left.string}")
+            ReturnGetter(variable.first, variable.second, node.left.string, compileToGetter(node.right))
         }
 
         is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters, node.position)
@@ -462,8 +460,8 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixExclamationColonNode -> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
-            val labelIndex = newFrame.defineLabel(node.right.string)
-            LabelGetter(newFrame.frameIndex, labelIndex, newFrame.compileToGetter(node.left))
+            val variableIndex = newFrame.defineVariable("!:${node.right.string}")
+            LabelGetter(newFrame.frameIndex, variableIndex, node.right.string, newFrame.compileToGetter(node.left))
         }
 
         is InfixColonNode -> {

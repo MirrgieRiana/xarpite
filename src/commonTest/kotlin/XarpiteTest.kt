@@ -2,6 +2,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -18,6 +19,7 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -1422,6 +1424,31 @@ class XarpiteTest {
             result := value ?: (!! "error") !? "default"
             result
         """.let { assertEquals("default", eval(it).string) }
+
+        // リターン文を含むラムダを別の場所で起動しても誤ったラベルにキャッチされない
+        // 別所で定義されたリターンが誤ったラベルにキャッチされるバグのテストケース
+        """
+            getFruit := (
+                () -> (
+                    vehicle!! "car"
+                    "apple"
+                )
+            ) !: vehicle
+            fruit := getFruit() !: fruit
+            "Fruit is: " + fruit
+        """.let {
+            try {
+                val result = eval(it)
+                fail("Expected FluoriteException but got: $result")
+            } catch (e: FluoriteException) {
+                // 正しい動作: 宛先のないリターンとしてエラーになる
+                // エラーメッセージにラベル名が含まれていることを確認
+                assertTrue(e.value is FluoriteString)
+                val message = (e.value as FluoriteString).string
+                assertTrue(message.contains("Unmatched return"), "Expected 'Unmatched return' in error message but got: $message")
+                assertTrue(message.contains("vehicle"), "Expected 'vehicle' in error message but got: $message")
+            }
+        }
 
     }
 

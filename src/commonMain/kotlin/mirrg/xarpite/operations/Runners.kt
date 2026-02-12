@@ -2,6 +2,7 @@ package mirrg.xarpite.operations
 
 import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.Environment
+import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.Mount
 import mirrg.xarpite.compilers.objects.FluoriteObject
@@ -59,15 +60,17 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val rightRun
     override val code get() = "TryCatchRunner[${leftRunners.code};${rightRunners.code}]"
 }
 
-class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
+class LabelRunner(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
+        val label = Label(name)
+        val newEnv = Environment(env, 1, 0)
+        newEnv.variableTable[frameIndex][variableIndex] = label
         try {
-            val newEnv = Environment(env, 0, 0)
             runners.forEach {
                 it.evaluate(newEnv)
             }
         } catch (returner: Returner) {
-            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+            if (returner.label === label) {
                 val value = returner.value
                 Returner.recycle(returner)
                 value.consume()
@@ -77,7 +80,7 @@ class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, priv
         }
     }
 
-    override val code get() = "LabelRunner[$frameIndex;$labelIndex;${runners.code}]"
+    override val code get() = "LabelRunner[$frameIndex;$variableIndex;$name;${runners.code}]"
 }
 
 class MountRunner(private val frameIndex: Int, private val mountIndex: Int, private val getter: Getter) : Runner {
