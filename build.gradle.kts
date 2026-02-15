@@ -138,19 +138,6 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
         classifierFile.writeText("all\n")
         val defaultEngineFile = destinationDir.resolve("default_engine")
         defaultEngineFile.writeText("native\n")
-        // Create .xarpite/lib and .xarpite/maven directories with 755 permissions
-        val xarpiteLibDir = destinationDir.resolve(".xarpite/lib")
-        xarpiteLibDir.mkdirs()
-        val xarpiteMavenDir = destinationDir.resolve(".xarpite/maven")
-        xarpiteMavenDir.mkdirs()
-        // Set permissions to 755 (rwxr-xr-x) for .xarpite and subdirectories on Unix-like systems
-        val osName = System.getProperty("os.name").lowercase()
-        if (!osName.contains("windows")) {
-            val xarpiteDir = destinationDir.resolve(".xarpite")
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteDir.absolutePath)).waitFor()
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteLibDir.absolutePath)).waitFor()
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteMavenDir.absolutePath)).waitFor()
-        }
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
@@ -171,19 +158,6 @@ val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") 
         classifierFile.writeText("linux-x86_64\n")
         val defaultEngineFile = destinationDir.resolve("default_engine")
         defaultEngineFile.writeText("native\n")
-        // Create .xarpite/lib and .xarpite/maven directories with 755 permissions
-        val xarpiteLibDir = destinationDir.resolve(".xarpite/lib")
-        xarpiteLibDir.mkdirs()
-        val xarpiteMavenDir = destinationDir.resolve(".xarpite/maven")
-        xarpiteMavenDir.mkdirs()
-        // Set permissions to 755 (rwxr-xr-x) for .xarpite and subdirectories on Unix-like systems
-        val osName = System.getProperty("os.name").lowercase()
-        if (!osName.contains("windows")) {
-            val xarpiteDir = destinationDir.resolve(".xarpite")
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteDir.absolutePath)).waitFor()
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteLibDir.absolutePath)).waitFor()
-            Runtime.getRuntime().exec(arrayOf("chmod", "755", xarpiteMavenDir.absolutePath)).waitFor()
-        }
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinLinuxX64) }
