@@ -1,1 +1,1 @@
-?Fixed `.xarpite/lib` and `.xarpite/maven` directory permissions in distributed packages to be `755` instead of `700`.
+?Fixed `xarpite-update` to preserve installation directory permissions by setting temporary directory to `755` before rsync.
