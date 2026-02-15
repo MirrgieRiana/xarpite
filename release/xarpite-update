@@ -84,7 +84,7 @@ url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/
 
 echo "Downloading from: $url"
 
-curl -L -o - "$url" | tar -xzpf - -C "$tmpdir"
+curl -L -o - "$url" | tar -xzf - -C "$tmpdir"
 echo "Successfully downloaded and extracted to: $tmpdir"
 
 echo
