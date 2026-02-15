@@ -24,6 +24,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
+import okio.Path
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -166,15 +167,15 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relative: String) {
-                            val relativePath = relative.toPath()
+                        suspend fun walkDirectory(relativePath: Path) {
                             val fullPath = dirPath.resolve(relativePath)
 
                             val metadata = fileSystem.metadata(fullPath)
 
                             if (metadata.isDirectory) {
-                                if (includeDirectories && relative.isNotEmpty()) {
-                                    val result = if (dir.isEmpty()) relative else "$dir/$relative"
+                                val relativeString = relativePath.toString()
+                                if (includeDirectories && relativeString.isNotEmpty() && relativeString != ".") {
+                                    val result = dirPath.resolve(relativePath).toString()
                                     emit(result.toFluoriteString())
                                 }
 
@@ -182,24 +183,20 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                                     .map { it.name }
                                     .sorted()
 
-                                for (child in children) {
-                                    val childRelative = if (relative.isEmpty()) {
-                                        child
-                                    } else {
-                                        relativePath.resolve(child).toString()
-                                    }
+                                children.forEach { child ->
+                                    val childRelative = relativePath.resolve(child)
                                     walkDirectory(childRelative)
                                 }
                             } else {
-                                // ファイル
-                                if (relative.isNotEmpty()) {
-                                    val result = if (dir.isEmpty()) relative else "$dir/$relative"
+                                val relativeString = relativePath.toString()
+                                if (relativeString.isNotEmpty() && relativeString != ".") {
+                                    val result = dirPath.resolve(relativePath).toString()
                                     emit(result.toFluoriteString())
                                 }
                             }
                         }
 
-                        walkDirectory("")
+                        walkDirectory("".toPath())
                     }
                 }
             }

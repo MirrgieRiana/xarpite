@@ -608,15 +608,13 @@ Returned filenames are sorted in lexicographic order.
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
 ### `TREE`: Get All Files and Directories Under Directory
