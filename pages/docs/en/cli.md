@@ -623,63 +623,63 @@ $ {
 
 `TREE(dir: STRING): STREAM<STRING>`
 
-Returns a stream of all file and directory paths under the directory specified by `dir`.
+Returns a stream that recursively searches for all directories and files under `dir`.
 
-Returned paths are relative to `dir`.
+Returned path strings include `dir` at the beginning.
 
-Empty directories are included in the result.
+The returned paths do not include `dir` itself.
 
-Files and subdirectories within each directory are reported immediately after that directory. Within each directory, entries are sorted by name.
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
 
 ```shell
 $ {
-  mkdir -p tmp/a/b
-  touch tmp/a/file1.txt
-  touch tmp/a/b/file2.txt
-  mkdir tmp/c
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
   xa 'TREE("tmp")'
-  rm tmp/a/b/file2.txt
-  rm tmp/a/file1.txt
-  rmdir tmp/a/b
-  rmdir tmp/a
-  rmdir tmp/c
-  rmdir tmp
+  rm -r tmp
 }
-# a
-# a/b
-# a/b/file2.txt
-# a/file1.txt
-# c
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
 ```
 
 ### `FILE_TREE`: Get All Files Under Directory
 
 `FILE_TREE(dir: STRING): STREAM<STRING>`
 
-Returns a stream of all file paths under the directory specified by `dir`.
+Returns a stream that recursively searches for all files under `dir`.
 
-Directories are not included in the result.
+Directory paths are not reported.
 
-Returned paths are relative to `dir`.
+Returned path strings include `dir` at the beginning.
 
-Files and subdirectories within each directory are reported immediately after that directory. Within each directory, entries are sorted by name.
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
 
 ```shell
 $ {
-  mkdir -p tmp/a/b
-  touch tmp/a/file1.txt
-  touch tmp/a/b/file2.txt
-  mkdir tmp/c
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
   xa 'FILE_TREE("tmp")'
-  rm tmp/a/b/file2.txt
-  rm tmp/a/file1.txt
-  rmdir tmp/a/b
-  rmdir tmp/a
-  rmdir tmp/c
-  rmdir tmp
+  rm -r tmp
 }
-# a/b/file2.txt
-# a/file1.txt
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
 ```
 
 ### `READ` / `READL`: Read from Text File

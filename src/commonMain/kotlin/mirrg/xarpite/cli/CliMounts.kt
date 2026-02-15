@@ -161,19 +161,21 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
-                    val dir = arguments[0].toFluoriteString(null).value.toPath()
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val dirPath = dir.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
                         suspend fun walkDirectory(relative: String) {
                             val relativePath = relative.toPath()
-                            val fullPath = dir.resolve(relativePath)
+                            val fullPath = dirPath.resolve(relativePath)
 
                             val metadata = fileSystem.metadata(fullPath)
 
                             if (metadata.isDirectory) {
                                 if (includeDirectories && relative.isNotEmpty()) {
-                                    emit(relative.toFluoriteString())
+                                    val result = if (dir.isEmpty()) relative else "$dir/$relative"
+                                    emit(result.toFluoriteString())
                                 }
 
                                 val children = fileSystem.list(fullPath)
@@ -191,7 +193,8 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                             } else {
                                 // ファイル
                                 if (relative.isNotEmpty()) {
-                                    emit(relative.toFluoriteString())
+                                    val result = if (dir.isEmpty()) relative else "$dir/$relative"
+                                    emit(result.toFluoriteString())
                                 }
                             }
                         }
