@@ -616,78 +616,76 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
 ### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
 
 `TREE(dir: STRING): STREAM<STRING>`
 
-`dir` で指定されたディレクトリの配下にあるすべてのファイルとディレクトリのパスをストリームとして返します。
+`dir` の配下にあるすべてのディレクトリとファイルのパスを再帰的に検索するストリームを返します。
 
-返されるパスは `dir` からの相対パスです。
+返されるパス文字列の先頭には `dir` が含まれます。
 
-空のディレクトリも結果に含まれます。
+返されるパスには `dir` 自身は含まれません。
 
-ディレクトリ内のファイルやサブディレクトリは、各ディレクトリの直後に報告されます。各ディレクトリ内では名前順にソートされます。
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
 
 ```shell
 $ {
-  mkdir -p tmp/a/b
-  touch tmp/a/file1.txt
-  touch tmp/a/b/file2.txt
-  mkdir tmp/c
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
   xa 'TREE("tmp")'
-  rm tmp/a/b/file2.txt
-  rm tmp/a/file1.txt
-  rmdir tmp/a/b
-  rmdir tmp/a
-  rmdir tmp/c
-  rmdir tmp
+  rm -r tmp
 }
-# a
-# a/b
-# a/b/file2.txt
-# a/file1.txt
-# c
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
 ```
 
 ### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
 
 `FILE_TREE(dir: STRING): STREAM<STRING>`
 
-`dir` で指定されたディレクトリの配下にあるすべてのファイルのパスをストリームとして返します。
+`dir` の配下にあるすべてのファイルのパスを再帰的に検索するストリームを返します。
 
-ディレクトリは結果に含まれません。
+ディレクトリのパスは報告されません。
 
-返されるパスは `dir` からの相対パスです。
+返されるパス文字列の先頭には `dir` が含まれます。
 
-ディレクトリ内のファイルやサブディレクトリは、各ディレクトリの直後に報告されます。各ディレクトリ内では名前順にソートされます。
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
 
 ```shell
 $ {
-  mkdir -p tmp/a/b
-  touch tmp/a/file1.txt
-  touch tmp/a/b/file2.txt
-  mkdir tmp/c
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
   xa 'FILE_TREE("tmp")'
-  rm tmp/a/b/file2.txt
-  rm tmp/a/file1.txt
-  rmdir tmp/a/b
-  rmdir tmp/a
-  rmdir tmp/c
-  rmdir tmp
+  rm -r tmp
 }
-# a/b/file2.txt
-# a/file1.txt
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
 ```
 
 ### `READ` / `READL`: テキストファイルから読み込み
