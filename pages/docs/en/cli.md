@@ -911,11 +911,13 @@ $ {
 # Apple
 ```
 
-### `EXEC`: Execute External Command [EXPERIMENTAL]
+### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
+
+`EXECL` is an alias of `EXEC` and has the same behavior.
 
 In `command`, specify the process and its arguments one element at a time.
 

@@ -917,11 +917,13 @@ $ {
 # Apple
 ```
 
-### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
+### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
+
+`EXECL` は `EXEC` の別名であり、同一の動作を持ちます。
 
 `command` にはプロセスおよびその引数を1要素ずつ指定します。
 
