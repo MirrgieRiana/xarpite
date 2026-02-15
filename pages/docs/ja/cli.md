@@ -618,15 +618,76 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
+```
+
+### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのディレクトリとファイルのパスを再帰的に検索するストリームを返します。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのファイルのパスを再帰的に検索するストリームを返します。
+
+ディレクトリのパスは報告されません。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
 ```
 
 ### `READ` / `READL`: テキストファイルから読み込み

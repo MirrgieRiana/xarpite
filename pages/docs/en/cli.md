@@ -610,15 +610,76 @@ Returned filenames are sorted in lexicographic order.
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
+```
+
+### `TREE`: Get All Files and Directories Under Directory
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all directories and files under `dir`.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: Get All Files Under Directory
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all files under `dir`.
+
+Directory paths are not reported.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
 ```
 
 ### `READ` / `READL`: Read from Text File
