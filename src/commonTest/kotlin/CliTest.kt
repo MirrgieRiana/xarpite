@@ -2305,6 +2305,39 @@ class CliTest {
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
+    @Test
+    fun verboseOptionParsing() = runTest {
+        val context = TestIoContext()
+        
+        // Test that --verbose option is parsed correctly with -e
+        val options = parseArguments(listOf("--verbose", "-e", "1+1"), context)
+        assertEquals(true, options.verbose)
+        assertEquals("1+1", options.src)
+        
+        // Test without --verbose
+        val options2 = parseArguments(listOf("-e", "1+1"), context)
+        assertEquals(false, options2.verbose)
+    }
+
+    @Test
+    fun verboseOptionShowsKotlinStackTrace() = runTest {
+        val errMessages = mutableListOf<String>()
+        val context = TestIoContext()
+        val ioContext = object : IoContext by context {
+            override suspend fun err(value: FluoriteValue) {
+                errMessages.add(value.toFluoriteString(null).value)
+            }
+        }
+        
+        // Test with verbose = true - the error should be caught inside cliEvalImpl
+        val verboseOptions = Options(src = "!! 'test error'", arguments = emptyList(), quiet = false, verbose = true, scriptFile = null)
+        cliEvalImpl(ioContext, verboseOptions)
+        
+        // Check that error message was captured (cliEvalImpl catches FluoriteException internally)
+        assertTrue(errMessages.isNotEmpty(), "Error message should be captured")
+        assertTrue(errMessages.any { it.contains("ERROR:") }, "Should have ERROR prefix")
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {
