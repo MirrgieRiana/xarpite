@@ -68,3 +68,8 @@ AIエージェントであるあなたは `/pages/docs` 以下にあるドキュ
 記述例は既存の `CHANGELOG.md` を参照してください。
 
 行には変更 `!Changed ...` 、改善 `Added ...` 、修正 `?Fixed ...` の区別があり、それぞれ異なるprefixで始まります。
+
+```
+いい例: ?Fixed an error when passing an absolute path to the `READ` function.
+悪い例: I created AbsolutePathReader and refactored the read function to use it, because ArrayIndexOutOfBoundsException occurs due to a bug in parsing absolute paths in the read function.
+```
