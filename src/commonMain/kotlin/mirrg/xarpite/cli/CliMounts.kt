@@ -162,41 +162,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
                 return FluoriteFunction { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
-                    val dir = arguments[0].toFluoriteString(null).value
-                    val dirPath = dir.toPath()
+                    val dirPath = arguments[0].toFluoriteString(null).value.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
-                        suspend fun walkDirectory(relativePath: Path) {
+                        suspend fun walkDirectory(relativePath: Path, depth: Int) {
                             val fullPath = dirPath.resolve(relativePath)
-
                             val metadata = fileSystem.metadata(fullPath)
-
+                            if (!metadata.isDirectory || includeDirectories && depth > 0) {
+                                emit(dirPath.resolve(relativePath).toString().toFluoriteString())
+                            }
                             if (metadata.isDirectory) {
-                                val relativeString = relativePath.toString()
-                                if (includeDirectories && relativeString.isNotEmpty() && relativeString != ".") {
-                                    val result = dirPath.resolve(relativePath).toString()
-                                    emit(result.toFluoriteString())
-                                }
-
-                                val children = fileSystem.list(fullPath)
-                                    .map { it.name }
-                                    .sorted()
-
-                                children.forEach { child ->
-                                    val childRelative = relativePath.resolve(child)
-                                    walkDirectory(childRelative)
-                                }
-                            } else {
-                                val relativeString = relativePath.toString()
-                                if (relativeString.isNotEmpty() && relativeString != ".") {
-                                    val result = dirPath.resolve(relativePath).toString()
-                                    emit(result.toFluoriteString())
+                                fileSystem.list(fullPath).map { it.name }.sorted().forEach { childFileName ->
+                                    val childRelativePath = relativePath.resolve(childFileName)
+                                    walkDirectory(childRelativePath, depth + 1)
                                 }
                             }
                         }
 
-                        walkDirectory("".toPath())
+                        walkDirectory("".toPath(), 0)
                     }
                 }
             }
