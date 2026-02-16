@@ -194,7 +194,8 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         array.values.forEach { emit(it) }
                     }
                 } else {
-                    if (arrays !is FluoriteArray) throw FluoriteException("Second argument must be a stream of arrays or an array".toFluoriteString())
+                    // If not a stream, treat as a single array and emit its elements
+                    if (arrays !is FluoriteArray) throw FluoriteException("Second argument must be a stream of arrays or a single array".toFluoriteString())
                     arrays.values.forEach { emit(it) }
                 }
             }
