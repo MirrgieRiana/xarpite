@@ -401,6 +401,95 @@ class CliTest {
     }
 
     @Test
+    fun tree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("dir1/dir2"))
+        fileSystem.write(dir.resolve("dir1/dir2/file2.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("dir1/file1.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("empty-dir"))
+
+        // TREE 関数でファイルとディレクトリの一覧を取得
+        val result = cliEval(context, "TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリとその内容が連続して返される（深さ優先順）
+        // パスには dir が含まれる
+        val expected = "${dir}/dir1,${dir}/dir1/dir2,${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt,${dir}/empty-dir"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("dir1/dir2/file2.txt"))
+        fileSystem.delete(dir.resolve("dir1/file1.txt"))
+        fileSystem.delete(dir.resolve("dir1/dir2"))
+        fileSystem.delete(dir.resolve("dir1"))
+        fileSystem.delete(dir.resolve("empty-dir"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun fileTree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("file_tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("dir1/dir2"))
+        fileSystem.write(dir.resolve("dir1/dir2/file2.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("dir1/file1.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("empty-dir"))
+
+        // FILE_TREE 関数でファイルのみの一覧を取得
+        val result = cliEval(context, "FILE_TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリを含まず、ファイルのみが深さ優先順で返される
+        // パスには dir が含まれる
+        val expected = "${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("dir1/dir2/file2.txt"))
+        fileSystem.delete(dir.resolve("dir1/file1.txt"))
+        fileSystem.delete(dir.resolve("dir1/dir2"))
+        fileSystem.delete(dir.resolve("dir1"))
+        fileSystem.delete(dir.resolve("empty-dir"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
+    fun treeDepthFirstOrder() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("tree.depth_first.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ内のファイルがディレクトリの直後に報告されることを確認
+        fileSystem.createDirectory(dir)
+        fileSystem.createDirectory(dir.resolve("a"))
+        fileSystem.write(dir.resolve("a/z")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("a-file")) { writeUtf8("") }
+
+        // TREE 関数でファイルとディレクトリの一覧を取得
+        val result = cliEval(context, "TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリ "a" とその内容 "a/z" が連続し、その後に "a-file" が来る
+        // （単純な辞書順だと "a", "a-file", "a/z" になるが、深さ優先なので "a", "a/z", "a-file"）
+        // パスには dir が含まれる
+        val expected = "${dir}/a,${dir}/a/z,${dir}/a-file"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.delete(dir.resolve("a/z"))
+        fileSystem.delete(dir.resolve("a-file"))
+        fileSystem.delete(dir.resolve("a"))
+        fileSystem.delete(dir)
+    }
+
+    @Test
     fun useEvaluatesFile() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

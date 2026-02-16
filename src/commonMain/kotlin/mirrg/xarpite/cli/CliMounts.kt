@@ -24,6 +24,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
+import okio.Path
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -163,6 +164,37 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             arrayOf(
                 "FILES" define create("FILES"),
                 "FILE_NAMES" define create("FILE_NAMES"),
+            )
+        },
+        *run {
+            fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dirPath = arguments[0].toFluoriteString(null).value.toPath()
+                    val fileSystem = getFileSystem().getOrThrow()
+
+                    FluoriteStream {
+                        suspend fun walkDirectory(relativePath: Path, depth: Int) {
+                            val fullPath = dirPath.resolve(relativePath)
+                            val metadata = fileSystem.metadata(fullPath)
+                            if (!metadata.isDirectory || includeDirectories && depth > 0) {
+                                emit(dirPath.resolve(relativePath).toString().toFluoriteString())
+                            }
+                            if (metadata.isDirectory) {
+                                fileSystem.list(fullPath).map { it.name }.sorted().forEach { childFileName ->
+                                    val childRelativePath = relativePath.resolve(childFileName)
+                                    walkDirectory(childRelativePath, depth + 1)
+                                }
+                            }
+                        }
+
+                        walkDirectory("".toPath(), 0)
+                    }
+                }
+            }
+            arrayOf(
+                "TREE" define create("TREE", true),
+                "FILE_TREE" define create("FILE_TREE", false),
             )
         },
         *run {
