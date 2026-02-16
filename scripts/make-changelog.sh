@@ -22,9 +22,9 @@ find ../changelog.d -type f | sort | ./xarpite/xa -q '
   ]() >> JOIN["\n"]
   table.$# > 0 && (
     WRITE["../CHANGELOG.md"] << READB("../CHANGELOG.md")::(UTF8D)()::replace(
-      "<!-- INSRTION POINT -->"
+      "<!-- INSERTION POINT -->"
       [
-        "<!-- INSRTION POINT -->"
+        "<!-- INSERTION POINT -->"
         "## $(ENV.version)"
         "!" @ table ? renderSection("**Changes:**"     ; table."!") : E
         "+" @ table ? renderSection("**Improvements:**"; table."+") : E

@@ -1,6 +1,6 @@
 # Changelog
 
-<!-- INSRTION POINT -->
+<!-- INSERTION POINT -->
 
 ## 4.103.0
 

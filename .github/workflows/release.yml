@@ -78,6 +78,30 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
         working-directory: build-dir
 
+      - name: CHANGELOG.mdの編纂
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          ./scripts/make-changelog.sh "${{ env.APP_VERSION }}" || {
+            echo "CHANGELOG.mdの編纂に失敗しました" >&2
+            exit 1
+          }
+
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "CHANGELOG.mdに変更がありません"
+          else
+            echo "CHANGELOG.mdを更新します"
+            git add CHANGELOG.md
+            git add -u changelog.d/
+            git commit -m "Update CHANGELOG.md for v${{ env.APP_VERSION }}"
+            git push origin HEAD:main || {
+              echo "CHANGELOG.mdのpushに失敗しました" >&2
+              exit 1
+            }
+          fi
+        working-directory: build-dir
+
       - name: リポジトリのチェックアウト（リリース用）
         uses: actions/checkout@v4
         with:
