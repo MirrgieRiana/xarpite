@@ -203,7 +203,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
                 context.io.err("  at ${context.renderPosition(position)}".toFluoriteString())
             }
             if (options.verbose) {
-                e.printStackTrace()
+                context.io.err(e.stackTraceToString().toFluoriteString())
             }
         }
     }

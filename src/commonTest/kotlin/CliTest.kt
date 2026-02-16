@@ -2321,21 +2321,61 @@ class CliTest {
 
     @Test
     fun verboseOptionShowsKotlinStackTrace() = runTest {
-        val errMessages = mutableListOf<String>()
-        val context = TestIoContext()
-        val ioContext = object : IoContext by context {
+        // Test with verbose = true
+        val errMessagesVerbose = mutableListOf<String>()
+        val verboseContext = TestIoContext()
+        val ioContextVerbose = object : IoContext by verboseContext {
             override suspend fun err(value: FluoriteValue) {
-                errMessages.add(value.toFluoriteString(null).value)
+                errMessagesVerbose.add(value.toFluoriteString(null).value)
             }
         }
         
-        // Test with verbose = true - the error should be caught inside cliEvalImpl
-        val verboseOptions = Options(src = "!! 'test error'", arguments = emptyList(), quiet = false, verbose = true, scriptFile = null)
-        cliEvalImpl(ioContext, verboseOptions)
+        val verboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = true,
+            scriptFile = null,
+        )
+        cliEvalImpl(ioContextVerbose, verboseOptions)
         
-        // Check that error message was captured (cliEvalImpl catches FluoriteException internally)
-        assertTrue(errMessages.isNotEmpty(), "Error message should be captured")
-        assertTrue(errMessages.any { it.contains("ERROR:") }, "Should have ERROR prefix")
+        val verboseOutput = errMessagesVerbose.joinToString("\n")
+        assertTrue(verboseOutput.isNotEmpty(), "Error message should be captured when verbose=true")
+        assertTrue(verboseOutput.contains("ERROR:"), "Verbose error output should have ERROR prefix")
+        // When verbose=true, a Kotlin stack trace should be included.
+        // Check for FluoriteException in the output (appears in stackTraceToString)
+        assertTrue(
+            verboseOutput.contains("FluoriteException"),
+            "Verbose error output should contain Kotlin stack trace with exception class name",
+        )
+        
+        // Test with verbose = false
+        val errMessagesNonVerbose = mutableListOf<String>()
+        val nonVerboseContext = TestIoContext()
+        val ioContextNonVerbose = object : IoContext by nonVerboseContext {
+            override suspend fun err(value: FluoriteValue) {
+                errMessagesNonVerbose.add(value.toFluoriteString(null).value)
+            }
+        }
+        
+        val nonVerboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            scriptFile = null,
+        )
+        cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
+        
+        val nonVerboseOutput = errMessagesNonVerbose.joinToString("\n")
+        assertTrue(nonVerboseOutput.isNotEmpty(), "Error message should be captured when verbose=false")
+        assertTrue(nonVerboseOutput.contains("ERROR:"), "Non-verbose error output should have ERROR prefix")
+        // When verbose=false, the detailed exception class name should not be in the output
+        // (only the user-friendly error message and Xarpite stack trace)
+        assertTrue(
+            !nonVerboseOutput.contains("FluoriteException"),
+            "Non-verbose error output should not contain Kotlin exception class name",
+        )
     }
 
 }
