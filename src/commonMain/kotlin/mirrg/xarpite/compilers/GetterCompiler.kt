@@ -404,12 +404,21 @@ fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBin
 private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
     return when (node) {
         is InfixPeriodNode -> {
-            val receiverGetter = compileToGetter(node.left)
-            val nameGetter = when (node.right) {
-                is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
-                else -> compileToGetter(node.right)
+            when {
+                // stream.[] 配列化演算子
+                node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> {
+                    val streamGetter = compileToGetter(node.left)
+                    ArrayCreationGetter(listOf(streamGetter))
+                }
+                else -> {
+                    val receiverGetter = compileToGetter(node.left)
+                    val nameGetter = when (node.right) {
+                        is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
+                        else -> compileToGetter(node.right)
+                    }
+                    ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
+                }
             }
-            ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
         }
 
         is InfixQuestionPeriodNode -> {
