@@ -365,26 +365,39 @@ class CliTest {
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
-        val dir = baseDir.resolve("files.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("files.test_dir.tmp")
 
-        // ディレクトリとファイルを準備
-        fileSystem.createDirectory(dir)
-        fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
-        fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
-        fileSystem.createDirectory(dir.resolve("banana"))
+        try {
+            // 既存のディレクトリとファイルをクリーンアップ
+            runCatching { fileSystem.delete(dir.resolve("zebra.txt")) }
+            runCatching { fileSystem.delete(dir.resolve("apple.txt")) }
+            runCatching { fileSystem.delete(dir.resolve("banana")) }
+            runCatching { fileSystem.delete(dir) }
 
-        // FILES 関数でファイル一覧を取得
-        val result = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+            // ディレクトリとファイルを準備
+            fileSystem.createDirectory(dir)
+            fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
+            fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
+            fileSystem.createDirectory(dir.resolve("banana"))
 
-        // アルファベット順にソートされ、ファイル名のみが返される
-        assertEquals("apple.txt,banana,zebra.txt", result)
+            // FILES 関数でファイル一覧を取得
+            val filesResult = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
 
-        // クリーンアップ
-        fileSystem.delete(dir.resolve("zebra.txt"))
-        fileSystem.delete(dir.resolve("apple.txt"))
-        fileSystem.delete(dir.resolve("banana"))
-        fileSystem.delete(dir)
+            // アルファベット順にソートされ、ファイル名のみが返される
+            assertEquals("apple.txt,banana,zebra.txt", filesResult)
+
+            // FILE_NAMES 関数でも同じ結果が得られることを確認（エイリアスの配線を検証）
+            val fileNamesResult = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
+            assertEquals(filesResult, fileNamesResult)
+        } finally {
+            // クリーンアップ
+            runCatching { fileSystem.delete(dir.resolve("zebra.txt")) }
+            runCatching { fileSystem.delete(dir.resolve("apple.txt")) }
+            runCatching { fileSystem.delete(dir.resolve("banana")) }
+            runCatching { fileSystem.delete(dir) }
+        }
     }
 
     @Test
@@ -2123,6 +2136,40 @@ class CliTest {
     }
 
     @Test
+    fun execlRunsSimpleCommand() = runTest {
+        // EXECL は EXEC の別名であることをテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello from execl"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello", functionName = "EXECL"))
+        val lines = result.stream()
+        assertEquals("hello from execl", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlRunsComplexCommand() = runTest {
+        // EXECL が EXEC と同じ動作を持つことをテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
@@ -2489,15 +2536,15 @@ private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
-private fun getExecSrcWrappingHexForShell(script: String): String {
+private fun getExecSrcWrappingHexForShell(script: String, functionName: String = "EXEC"): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
+    return """$functionName("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
-private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
+private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String, functionName: String = "EXEC"): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
+    return """$functionName("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */

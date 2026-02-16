@@ -97,6 +97,12 @@ The following command installs it system-wide.
 curl -s https://mirrgieriana.github.io/xarpite/install.sh | sudo bash -s /usr/local/lib/xarpite /usr/local/bin
 ```
 
+## Download from Maven Central Repository
+
+You can also download Xarpite binaries directly from Maven Central Repository.
+
+[https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/](https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/)
+
 # DOCUMENTATION
 
 - [Japanese](https://mirrgieriana.github.io/xarpite/docs/ja/)

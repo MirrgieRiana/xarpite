@@ -152,11 +152,19 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "FILES" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
-            val dir = arguments[0].toFluoriteString(null).value
-            val fileSystem = getFileSystem().getOrThrow()
-            fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+                }
+            }
+            arrayOf(
+                "FILES" define create("FILES"),
+                "FILE_NAMES" define create("FILE_NAMES"),
+            )
         },
         *run {
             fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
@@ -189,49 +197,57 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 "FILE_TREE" define create("FILE_TREE", false),
             )
         },
-        "EXEC" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
-            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
-                val envEntry = argument as? FluoriteArray ?: usage()
-                if (envEntry.values.size != 2) usage()
-                val envKey = envEntry.values[0] as? FluoriteString ?: usage()
-                if (envKey.value != "env") usage()
-                val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
-                return envObject.map.mapValues { entry ->
-                    val value = entry.value
-                    if (value is FluoriteNull) {
-                        null
-                    } else {
-                        value.toFluoriteString(null).value
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
+                    suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
+                        val envEntry = argument as? FluoriteArray ?: usage()
+                        if (envEntry.values.size != 2) usage()
+                        val envKey = envEntry.values[0] as? FluoriteString ?: usage()
+                        if (envKey.value != "env") usage()
+                        val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
+                        return envObject.map.mapValues { entry ->
+                            val value = entry.value
+                            if (value is FluoriteNull) {
+                                null
+                            } else {
+                                value.toFluoriteString(null).value
+                            }
+                        }
                     }
+                    val (commandArg, env) = when (arguments.size) {
+                        1 -> Pair(arguments[0], emptyMap())
+                        2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
+                        else -> usage()
+                    }
+                    val commandList = if (commandArg is FluoriteStream) {
+                        commandArg.toMutableList().map { it.toFluoriteString(null).value }
+                    } else {
+                        listOf(commandArg.toFluoriteString(null).value)
+                    }
+
+                    if (commandList.isEmpty()) {
+                        throw FluoriteException("$name requires at least one argument (the command to execute)".toFluoriteString())
+                    }
+
+                    val process = commandList[0]
+                    val processArgs = commandList.drop(1)
+                    val output = context.io.executeProcess(process, processArgs, env)
+
+                    val lines = output.lines()
+                    val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
+                        lines.dropLast(1)
+                    } else {
+                        lines
+                    }
+                    nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
                 }
             }
-            val (commandArg, env) = when (arguments.size) {
-                1 -> Pair(arguments[0], emptyMap())
-                2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
-                else -> usage()
-            }
-            val commandList = if (commandArg is FluoriteStream) {
-                commandArg.toMutableList().map { it.toFluoriteString(null).value }
-            } else {
-                listOf(commandArg.toFluoriteString(null).value)
-            }
-
-            if (commandList.isEmpty()) {
-                throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
-            }
-
-            val process = commandList[0]
-            val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, env)
-
-            val lines = output.lines()
-            val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
-                lines.dropLast(1)
-            } else {
-                lines
-            }
-            nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+            arrayOf(
+                "EXEC" define create("EXEC"),
+                "EXECL" define create("EXECL"),
+            )
         },
         "BASH" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")

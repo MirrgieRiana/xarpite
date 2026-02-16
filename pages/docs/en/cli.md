@@ -593,11 +593,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ABC
 ```
 
-### `FILES`: Get List of Files in Directory
+### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
+
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
 Filenames do not include directory paths.
 
@@ -970,11 +972,13 @@ $ {
 # Apple
 ```
 
-### `EXEC`: Execute External Command [EXPERIMENTAL]
+### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
+
+`EXECL` is an alias of `EXEC` and has the same behavior.
 
 In `command`, specify the process and its arguments one element at a time.
 

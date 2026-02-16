@@ -601,11 +601,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
-### `FILES`: ディレクトリ内のファイルの一覧を取得
+### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 `dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+`FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
 
 ファイル名にはディレクトリのパスは含まれません。
 
@@ -976,11 +978,13 @@ $ {
 # Apple
 ```
 
-### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
+### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
+
+`EXECL` は `EXEC` の別名であり、同一の動作を持ちます。
 
 `command` にはプロセスおよびその引数を1要素ずつ指定します。
 
