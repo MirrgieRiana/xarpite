@@ -87,7 +87,8 @@ class StreamMountsTest {
     @Test
     fun intercalate() = runTest {
         assertEquals("a|b|c", eval("INTERCALATE(\"|\"; \"a\", \"b\", \"c\")").string) // INTERCALATE でストリームを文字列に連結する
-        assertEquals("1,2,3", eval("INTERCALATE(1, 2, 3)").string) // デフォルトセパレータは `,`
+        assertEquals("a,b,c", eval("INTERCALATE(\"a\", \"b\", \"c\")").string) // デフォルトセパレータは `,`
+        assertEquals("1,2,3", eval("INTERCALATE(1, 2, 3)").string) // 数値のストリームも文字列化して連結できる
         assertEquals("1 2 3", eval("INTERCALATE(\" \"; 1, 2, 3)").string) // 任意の型のストリームを受け取れる
         assertEquals("10b0c", eval("INTERCALATE(0; 1, \"b\", {`&_`: _ -> \"c\"}{})").string) // すべての要素は文字列化される
         assertEquals("10|20|30", eval("1 .. 3 | _ * 10 >> INTERCALATE[\"|\"]").string) // 部分適用とパイプチェーンで使える
