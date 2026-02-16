@@ -82,9 +82,9 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           ./scripts/make-changelog.sh "${{ env.APP_VERSION }}"
-          
+
           if git diff --quiet && git diff --cached --quiet; then
             echo "CHANGELOG.mdに変更がありません"
           else
