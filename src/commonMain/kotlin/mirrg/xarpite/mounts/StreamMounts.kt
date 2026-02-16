@@ -176,36 +176,27 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "INTERCALATE" define FluoriteFunction { arguments ->
-            val separator: String
-            val stream: FluoriteValue
-            when (arguments.size) {
-                2 -> {
-                    separator = arguments[0].toFluoriteString(null).value
-                    stream = arguments[1]
-                }
-
-                1 -> {
-                    separator = ","
-                    stream = arguments[0]
-                }
-
-                else -> usage("<T> INTERCALATE([separator: STRING; ]stream: STREAM<T>): STRING")
-            }
-
-            if (stream is FluoriteStream) {
-                val sb = StringBuilder()
+            if (arguments.size != 2) usage("<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): STREAM<T>")
+            val separator = arguments[0]
+            if (separator !is FluoriteArray) throw FluoriteException("First argument must be an array".toFluoriteString())
+            val arrays = arguments[1]
+            
+            FluoriteStream {
                 var isFirst = true
-                stream.collect { value ->
-                    if (isFirst) {
-                        isFirst = false
-                    } else {
-                        sb.append(separator)
+                if (arrays is FluoriteStream) {
+                    arrays.collect { array ->
+                        if (array !is FluoriteArray) throw FluoriteException("Stream elements must be arrays".toFluoriteString())
+                        if (isFirst) {
+                            isFirst = false
+                        } else {
+                            separator.values.forEach { emit(it) }
+                        }
+                        array.values.forEach { emit(it) }
                     }
-                    sb.append(value.toFluoriteString(null).value)
+                } else {
+                    if (arrays !is FluoriteArray) throw FluoriteException("Second argument must be a stream of arrays or an array".toFluoriteString())
+                    arrays.values.forEach { emit(it) }
                 }
-                sb.toString().toFluoriteString()
-            } else {
-                stream.toFluoriteString(null)
             }
         },
         "SPLIT" define FluoriteFunction { arguments ->

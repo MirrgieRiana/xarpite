@@ -283,32 +283,45 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 # 10|20|30
 ```
 
-## `INTERCALATE` Concatenate Stream of Any Type into String
+## `INTERCALATE` Concatenate Stream of Arrays into Stream
 
-`<T> INTERCALATE([separator: STRING; ]stream: STREAM<T>): STRING`
+`<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): STREAM<T>`
 
-Returns a string with each element of the second argument stream concatenated with the first argument separator. If the first argument is omitted, `,` is used.
+Returns a stream with each array of the second argument stream concatenated with the first argument separator array.
 
-The separator is inserted between elements, but not at the beginning or end.
+The separator array is inserted between arrays, but not at the beginning or end.
+
+The result is output sequentially as a stream and is never collected into an array.
 
 ```shell
-$ xa 'INTERCALATE("|"; "a", "b", "c")'
-# a|b|c
+$ xa 'INTERCALATE([0]; [1; 2], [3; 4], [5; 6])'
+# 1
+# 2
+# 0
+# 3
+# 4
+# 0
+# 5
+# 6
 
-$ xa 'INTERCALATE(1, 2, 3)'
-# 1,2,3
+$ xa 'INTERCALATE(["|"]; ["a"; "b"], ["c"; "d"])'
+# a
+# b
+# |
+# c
+# d
 ```
 
 ---
 
-The separator and each element of the stream are stringified.
+When the separator array is empty, it simply concatenates the arrays.
 
 ```shell
-$ xa 'INTERCALATE(" "; 1, 2, 3)'
-# 1 2 3
-
-$ xa 'INTERCALATE(0; 1, "b", {`&_`: _ -> "c"}{})'
-# 10b0c
+$ xa 'INTERCALATE([]; [1; 2], [3; 4])'
+# 1
+# 2
+# 3
+# 4
 ```
 
 ---
@@ -316,13 +329,20 @@ $ xa 'INTERCALATE(0; 1, "b", {`&_`: _ -> "c"}{})'
 When used with partial application, it becomes easier to incorporate into pipe chains.
 
 ```shell
-$ xa '1 .. 3 | _ * 10 >> INTERCALATE["|"]'
-# 10|20|30
+$ xa '[1; 2], [3; 4], [5; 6] >> INTERCALATE[[0]]'
+# 1
+# 2
+# 0
+# 3
+# 4
+# 0
+# 5
+# 6
 ```
 
 ---
 
-`INTERCALATE` has similar behavior to `JOIN`, but accepts a stream of any type by having the type parameter `<T>`.
+`INTERCALATE` is the array version of `JOIN`, handling arrays instead of strings. The result is returned sequentially as a stream.
 
 ## `SPLIT` Split String into Stream
 

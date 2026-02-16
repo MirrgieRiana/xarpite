@@ -86,14 +86,12 @@ class StreamMountsTest {
 
     @Test
     fun intercalate() = runTest {
-        assertEquals("a|b|c", eval("INTERCALATE(\"|\"; \"a\", \"b\", \"c\")").string) // INTERCALATE でストリームを文字列に連結する
-        assertEquals("a,b,c", eval("INTERCALATE(\"a\", \"b\", \"c\")").string) // デフォルトセパレータは `,`
-        assertEquals("1,2,3", eval("INTERCALATE(1, 2, 3)").string) // 数値のストリームも文字列化して連結できる
-        assertEquals("1 2 3", eval("INTERCALATE(\" \"; 1, 2, 3)").string) // 任意の型のストリームを受け取れる
-        assertEquals("10b0c", eval("INTERCALATE(0; 1, \"b\", {`&_`: _ -> \"c\"}{})").string) // すべての要素は文字列化される
-        assertEquals("10|20|30", eval("1 .. 3 | _ * 10 >> INTERCALATE[\"|\"]").string) // 部分適用とパイプチェーンで使える
-        assertEquals("1", eval("INTERCALATE(1)").string) // 非ストリームの場合、その値を文字列化して返す
-        assertEquals("", eval("INTERCALATE(,)").string) // 空ストリームの場合、空文字列を返す
+        assertEquals("1,2,0,3,4,0,5,6", eval("INTERCALATE([0]; [1; 2], [3; 4], [5; 6])").stream()) // INTERCALATE で配列のストリームをストリームに連結する
+        assertEquals("a,b,|,c,d", eval("""INTERCALATE(["|"]; ["a"; "b"], ["c"; "d"])""").stream()) // 文字列配列でも動作する
+        assertEquals("1,2,3,4", eval("INTERCALATE([]; [1; 2], [3; 4])").stream()) // セパレータが空配列の場合は単純に連結
+        assertEquals("1,2", eval("INTERCALATE([0]; [1; 2])").stream()) // 配列が1つの場合はそのまま返す
+        assertEquals("", eval("INTERCALATE([0]; ,)").stream()) // 空ストリームの場合は空ストリームを返す
+        assertEquals("1,2,9,9,3,4,5,9,9,6", eval("INTERCALATE([9; 9]; [1; 2], [3; 4; 5], [6])").stream()) // セパレータが複数要素でもよい
     }
 
     @Test
