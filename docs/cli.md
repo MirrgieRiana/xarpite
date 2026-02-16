@@ -405,7 +405,7 @@ An array of directory paths that are searched when using `USE` with Maven coordi
 
 When a relative path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/maven` is included.
+By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 ---
 
@@ -430,8 +430,6 @@ $ {
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
-
-`I: STREAM<STRING>`
 
 A stream that reads strings line by line from standard input.
 
@@ -499,8 +497,6 @@ If `INB` is used even once, `IN` cannot be used.
 ### `OUT`, `O`: Output to Console
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 Outputs to standard output.
 
@@ -597,11 +593,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ABC
 ```
 
-### `FILES`: Get List of Files in Directory
+### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
+
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
 Filenames do not include directory paths.
 
@@ -612,22 +610,85 @@ Returned filenames are sorted in lexicographic order.
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
-### `READ`: Read from Text File
+### `TREE`: Get All Files and Directories Under Directory
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all directories and files under `dir`.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: Get All Files Under Directory
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all files under `dir`.
+
+Directory paths are not reported.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+```
+
+### `READ` / `READL`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
 Reads the contents of the text file specified by `file` line by line as strings.
+
+`READL` is an alias of `READ` and has the same behavior.
 
 Newline codes are removed.
 
@@ -773,7 +834,7 @@ In contexts launched by the `-e` command-line option, it is resolved as a relati
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ---
 
@@ -789,6 +850,23 @@ $ {
   rm fruit.xa1
 }
 # Apple
+# Apple
+```
+
+---
+
+Here is an example of calling a directory with a `main.xa1` file.
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
 # Apple
 ```
 
@@ -828,7 +906,7 @@ If `reference` is an absolute path, that file is called.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ```shell
 $ {
@@ -872,29 +950,35 @@ Modules in paths closer to the beginning of the `INC` array are given priority.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` extension is optional.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
 
 ```shell
 $ {
-  mkdir -p modules
+  mkdir -p modules/fruit
 
-  echo ' "Apple" ' > modules/fruit.xa1
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  xa '
+  xa -q '
     INC += "modules"
-    USE("fruit")
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
   '
 
   rm -r modules
 }
 # Apple
+# Apple
+# Apple
 ```
 
-### `EXEC`: Execute External Command [EXPERIMENTAL]
+### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
+
+`EXECL` is an alias of `EXEC` and has the same behavior.
 
 In `command`, specify the process and its arguments one element at a time.
 

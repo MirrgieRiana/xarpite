@@ -5,7 +5,10 @@
   "devDependencies": {
     "source-map-support": "0.5.21"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ws": "8.18.0",
+    "format-util": "^1.0.5"
+  },
   "peerDependencies": {},
   "optionalDependencies": {},
   "bundledDependencies": []

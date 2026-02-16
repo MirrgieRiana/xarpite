@@ -44,72 +44,72 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSink(fd) {
-  this.g8i_1 = fd;
-  this.h8i_1 = false;
+  this.zaj_1 = fd;
+  this.aak_1 = false;
 }
-protoOf(FileSink).r1j = function (source, byteCount) {
+protoOf(FileSink).l1m = function (source, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.require' call
-  if (!(compare(source.x1i_1, byteCount) >= 0)) {
-    var message_0 = 'source.size=' + source.x1i_1.toString() + ' < byteCount=' + byteCount.toString();
+  if (!(compare(source.r1l_1, byteCount) >= 0)) {
+    var message_0 = 'source.size=' + source.r1l_1.toString() + ' < byteCount=' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.h8i_1) {
+  if (!!this.aak_1) {
     var message_1 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_1));
   }
-  var data = source.h1l(byteCount);
-  var writtenByteCount = writeSync(this.g8i_1, data);
+  var data = source.b1o(byteCount);
+  var writtenByteCount = writeSync(this.zaj_1, data);
   if (!equalsLong(numberToLong(writtenByteCount), byteCount)) {
     throw IOException_init_$Create$('expected ' + byteCount.toString() + ' but was ' + writtenByteCount);
   }
 };
-protoOf(FileSink).i1k = function () {
-  if (this.h8i_1)
+protoOf(FileSink).c1n = function () {
+  if (this.aak_1)
     return Unit_instance;
-  this.h8i_1 = true;
-  closeSync(this.g8i_1);
+  this.aak_1 = true;
+  closeSync(this.zaj_1);
 };
 function FileSource(fd) {
-  this.i8i_1 = fd;
-  this.j8i_1 = new Long(0, 0);
-  this.k8i_1 = false;
+  this.bak_1 = fd;
+  this.cak_1 = new Long(0, 0);
+  this.dak_1 = false;
 }
-protoOf(FileSource).w1l = function (sink, byteCount) {
+protoOf(FileSource).q1o = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.k8i_1) {
+  if (!!this.dak_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.i8i_1;
+  var tmp0_fd = this.bak_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.j8i_1);
+  var tmp2_position = toNumber(this.cak_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.j8i_1;
-  tmp.j8i_1 = add(this_0, fromInt(readByteCount));
-  sink.b1j(data, 0, readByteCount);
+  var this_0 = this.cak_1;
+  tmp.cak_1 = add(this_0, fromInt(readByteCount));
+  sink.v1l(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
-protoOf(FileSource).i1k = function () {
-  if (this.k8i_1)
+protoOf(FileSource).c1n = function () {
+  if (this.dak_1)
     return Unit_instance;
-  this.k8i_1 = true;
-  closeSync(this.i8i_1);
+  this.dak_1 = true;
+  closeSync(this.bak_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -131,8 +131,8 @@ function list($this, dir, throwOnFailure) {
         }
         var dirent = tmp;
         // Inline function 'kotlin.collections.plusAssign' call
-        var element = dir.h1m(dirent.name);
-        result.j(element);
+        var element = dir.b1p(dirent.name);
+        result.g(element);
       }
       sort(result);
       return result;
@@ -170,12 +170,12 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.l8i_1 = 61440;
-  this.m8i_1 = 32768;
-  this.n8i_1 = 16384;
-  this.o8i_1 = 40960;
+  this.eak_1 = 61440;
+  this.fak_1 = 32768;
+  this.gak_1 = 16384;
+  this.hak_1 = 40960;
 }
-protoOf(NodeJsFileSystem).c1j = function (path) {
+protoOf(NodeJsFileSystem).w1l = function (path) {
   var pathString = path.toString();
   var tmp;
   try {
@@ -193,9 +193,9 @@ protoOf(NodeJsFileSystem).c1j = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.l8i_1) === this.o8i_1) {
+  if ((numberToInt(stat.mode) & this.eak_1) === this.hak_1) {
     try {
-      symlinkTarget = Companion_getInstance().d1k(readlinkSync(pathString));
+      symlinkTarget = Companion_getInstance().x1m(readlinkSync(pathString));
     } catch ($p) {
       if ($p instanceof Error) {
         var e_0 = $p;
@@ -205,16 +205,16 @@ protoOf(NodeJsFileSystem).c1j = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.l8i_1) === this.m8i_1, (numberToInt(stat.mode) & this.l8i_1) === this.n8i_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.eak_1) === this.fak_1, (numberToInt(stat.mode) & this.eak_1) === this.gak_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
-protoOf(NodeJsFileSystem).f1k = function (dir) {
+protoOf(NodeJsFileSystem).z1m = function (dir) {
   return ensureNotNull(list(this, dir, true));
 };
-protoOf(NodeJsFileSystem).g1k = function (file) {
+protoOf(NodeJsFileSystem).a1n = function (file) {
   var fd = openFd(this, file, 'r');
   return new FileSource(fd);
 };
-protoOf(NodeJsFileSystem).h1k = function (file, mustCreate) {
+protoOf(NodeJsFileSystem).b1n = function (file, mustCreate) {
   var fd = openFd(this, file, mustCreate ? 'wx' : 'w');
   return new FileSink(fd);
 };
