@@ -59,6 +59,33 @@ $ xa '
 # [10;20;30;400;500;600]
 ```
 
+## `stream.[]`: Array Conversion Operator
+
+The array conversion operator `.[]` converts a stream to an array.
+
+```shell
+$ xa '(1, 2, 3).[]'
+# [1;2;3]
+```
+
+---
+
+This operator is convenient when converting the result of stream processing with pipe operators and other operations into an array.
+
+```shell
+$ xa '(1 .. 3 | _ * 10).[]'
+# [10;20;30]
+```
+
+---
+
+It can also be used on single values that are not streams, in which case it creates a one-element array.
+
+```shell
+$ xa '100.[]'
+# [100]
+```
+
 # Referencing Array Elements
 
 In Xarpite, there are two main ways to access array elements:
