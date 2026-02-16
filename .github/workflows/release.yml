@@ -83,7 +83,10 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          ./scripts/make-changelog.sh "${{ env.APP_VERSION }}"
+          ./scripts/make-changelog.sh "${{ env.APP_VERSION }}" || {
+            echo "CHANGELOG.mdの編纂に失敗しました" >&2
+            exit 1
+          }
 
           if git diff --quiet && git diff --cached --quiet; then
             echo "CHANGELOG.mdに変更がありません"
