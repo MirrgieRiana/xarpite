@@ -283,6 +283,47 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 # 10|20|30
 ```
 
+## `INTERCALATE` Concatenate Stream of Any Type into String
+
+`<T> INTERCALATE([separator: STRING; ]stream: STREAM<T>): STRING`
+
+Returns a string with each element of the second argument stream concatenated with the first argument separator. If the first argument is omitted, `,` is used.
+
+The separator is inserted between elements, but not at the beginning or end.
+
+```shell
+$ xa 'INTERCALATE("|"; "a", "b", "c")'
+# a|b|c
+
+$ xa 'INTERCALATE(1, 2, 3)'
+# 1,2,3
+```
+
+---
+
+The separator and each element of the stream are stringified.
+
+```shell
+$ xa 'INTERCALATE(" "; 1, 2, 3)'
+# 1 2 3
+
+$ xa 'INTERCALATE(0; 1, "b", {`&_`: _ -> "c"}{})'
+# 10b0c
+```
+
+---
+
+When used with partial application, it becomes easier to incorporate into pipe chains.
+
+```shell
+$ xa '1 .. 3 | _ * 10 >> INTERCALATE["|"]'
+# 10|20|30
+```
+
+---
+
+`INTERCALATE` has similar behavior to `JOIN`, but accepts a stream of any type by having the type parameter `<T>`.
+
 ## `SPLIT` Split String into Stream
 
 `SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`

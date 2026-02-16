@@ -143,6 +143,47 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 # 10|20|30
 ```
 
+## `INTERCALATE` 任意の型のストリームを文字列に連結
+
+`<T> INTERCALATE([separator: STRING; ]stream: STREAM<T>): STRING`
+
+第2引数のストリームの各要素を第1引数のセパレータで連結した文字列を返します。第1引数を省略した場合は `,` が使用されます。
+
+各要素の間にセパレータが挿入されますが、先頭や末尾にはセパレータは付きません。
+
+```shell
+$ xa 'INTERCALATE("|"; "a", "b", "c")'
+# a|b|c
+
+$ xa 'INTERCALATE(1, 2, 3)'
+# 1,2,3
+```
+
+---
+
+セパレータやストリームの各要素は文字列化されます。
+
+```shell
+$ xa 'INTERCALATE(" "; 1, 2, 3)'
+# 1 2 3
+
+$ xa 'INTERCALATE(0; 1, "b", {`&_`: _ -> "c"}{})'
+# 10b0c
+```
+
+---
+
+部分適用とともに用いることで、パイプチェーンに組み込みやすくなります。
+
+```shell
+$ xa '1 .. 3 | _ * 10 >> INTERCALATE["|"]'
+# 10|20|30
+```
+
+---
+
+`INTERCALATE` は `JOIN` と同様の動作をしますが、型パラメータ `<T>` を持つことで任意の型のストリームを受け取ることができます。
+
 ## `SPLIT` 文字列をストリームに分割
 
 `SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>`

@@ -85,6 +85,17 @@ class StreamMountsTest {
     }
 
     @Test
+    fun intercalate() = runTest {
+        assertEquals("a|b|c", eval("INTERCALATE(\"|\"; \"a\", \"b\", \"c\")").string) // INTERCALATE でストリームを文字列に連結する
+        assertEquals("1,2,3", eval("INTERCALATE(1, 2, 3)").string) // デフォルトセパレータは `,`
+        assertEquals("1 2 3", eval("INTERCALATE(\" \"; 1, 2, 3)").string) // 任意の型のストリームを受け取れる
+        assertEquals("10b0c", eval("INTERCALATE(0; 1, \"b\", {`&_`: _ -> \"c\"}{})").string) // すべての要素は文字列化される
+        assertEquals("10|20|30", eval("1 .. 3 | _ * 10 >> INTERCALATE[\"|\"]").string) // 部分適用とパイプチェーンで使える
+        assertEquals("1", eval("INTERCALATE(1)").string) // 非ストリームの場合、その値を文字列化して返す
+        assertEquals("", eval("INTERCALATE(,)").string) // 空ストリームの場合、空文字列を返す
+    }
+
+    @Test
     fun distinct() = runTest {
         assertEquals("1,2,3,0", eval("1, 2, 3, 3, 3, 2, 1, 0 >> DISTINCT").stream()) // DISTINCT で重複を除去する
         assertEquals(1, eval("1 >> DISTINCT").int) // 非ストリームの場合、それがそのまま出てくる

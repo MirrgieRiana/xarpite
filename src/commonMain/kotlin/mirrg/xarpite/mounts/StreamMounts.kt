@@ -175,6 +175,39 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 stream.toFluoriteString(null)
             }
         },
+        "INTERCALATE" define FluoriteFunction { arguments ->
+            val separator: String
+            val stream: FluoriteValue
+            when (arguments.size) {
+                2 -> {
+                    separator = arguments[0].toFluoriteString(null).value
+                    stream = arguments[1]
+                }
+
+                1 -> {
+                    separator = ","
+                    stream = arguments[0]
+                }
+
+                else -> usage("<T> INTERCALATE([separator: STRING; ]stream: STREAM<T>): STRING")
+            }
+
+            if (stream is FluoriteStream) {
+                val sb = StringBuilder()
+                var isFirst = true
+                stream.collect { value ->
+                    if (isFirst) {
+                        isFirst = false
+                    } else {
+                        sb.append(separator)
+                    }
+                    sb.append(value.toFluoriteString(null).value)
+                }
+                sb.toString().toFluoriteString()
+            } else {
+                stream.toFluoriteString(null)
+            }
+        },
         "SPLIT" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>")
             val arguments2 = arguments.toMutableList()
