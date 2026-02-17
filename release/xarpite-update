@@ -97,8 +97,12 @@ echo
 
 echo "Updating"
 
+# Save current directory metadata
+dest_mode=$(stat -c "%a" .)
+dest_mtime=$(stat -c "%Y" .)
+
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./ | grep -v '^\S\+ \.\/$'
+rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -112,6 +116,10 @@ case "$answer" in
 esac
 echo "Syncing"
 rsync -rlpgoDc --delete "$workdir"/ ./
+
+# Restore directory metadata
+chmod "$dest_mode" .
+touch -d "@$dest_mtime" .
 
 echo
 
