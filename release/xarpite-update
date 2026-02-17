@@ -97,9 +97,8 @@ echo
 
 echo "Updating"
 
-# Save current directory metadata
-dest_mode=$(stat -c "%a" .)
-dest_mtime=$(stat -c "%Y" .)
+# Match workdir permissions to current directory to avoid spurious diffs
+chmod --reference=. "$workdir"
 
 echo "--- Dry run (no changes) ---"
 rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./
@@ -116,10 +115,6 @@ case "$answer" in
 esac
 echo "Syncing"
 rsync -rlpgoDc --delete "$workdir"/ ./
-
-# Restore directory metadata
-chmod "$dest_mode" .
-touch -d "@$dest_mtime" .
 
 echo
 
