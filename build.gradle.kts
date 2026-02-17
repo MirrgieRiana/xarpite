@@ -78,6 +78,11 @@ kotlin {
                 implementation("io.ktor:ktor-client-cio:3.0.3")
             }
         }
+        linuxX64Main {
+            dependencies {
+                implementation("io.ktor:ktor-client-curl:3.0.3")
+            }
+        }
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
