@@ -80,15 +80,12 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
 tmpdir=$(mktemp -d "/tmp/xarpite-update.XXXXXX") || error "Error: Failed to create temporary directory."
-# Create a subdirectory to avoid permission issues with the temporary directory itself
-workdir="$tmpdir/work"
-mkdir -p "$workdir"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-curl -L -o - "$url" | tar -xzf - -C "$workdir"
-echo "Successfully downloaded and extracted to: $workdir"
+curl -L -o - "$url" | tar -xzf - -C "$tmpdir"
+echo "Successfully downloaded and extracted to: $tmpdir"
 
 echo
 
@@ -98,7 +95,7 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete "$workdir"/ ./
+rsync -n --itemize-changes -ac --delete "$tmpdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -111,7 +108,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -ac --delete "$workdir"/ ./
+rsync -ac --delete "$tmpdir"/ ./
 
 echo
 
