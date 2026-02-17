@@ -46,6 +46,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             arrayOf(
                 "IN" define inStream,
                 "I" define inStream,
+                "STREAM" define inStream,
             )
         },
         "INB" define FluoriteStream {
