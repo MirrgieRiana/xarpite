@@ -1,1 +1,1 @@
-?Fixed spurious directory metadata diff in `xarpite-update`.
+?Fixed spurious directory and timestamp diffs in `xarpite-update`.

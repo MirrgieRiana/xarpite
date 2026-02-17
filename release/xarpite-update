@@ -98,7 +98,7 @@ echo
 echo "Updating"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete --omit-dir-times "$workdir"/ ./
+rsync -n --itemize-changes -rc --delete "$workdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -111,7 +111,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -ac --delete --omit-dir-times "$workdir"/ ./
+rsync -rc --delete "$workdir"/ ./
 
 echo
 
