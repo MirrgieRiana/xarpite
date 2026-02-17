@@ -97,11 +97,8 @@ echo
 
 echo "Updating"
 
-# Match workdir permissions to current directory to avoid spurious diffs
-chmod --reference=. "$workdir"
-
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./
+rsync -n --itemize-changes -rlpgoDc --delete --exclude=/ "$workdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -114,7 +111,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -rlpgoDc --delete "$workdir"/ ./
+rsync -rlpgoDc --delete --exclude=/ "$workdir"/ ./
 
 echo
 
