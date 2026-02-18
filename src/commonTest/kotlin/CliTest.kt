@@ -1126,6 +1126,22 @@ class CliTest {
     }
 
     @Test
+    fun incSupportsUrlFormats() = runTest {
+        val context = TestIoContext()
+        // INC に URL 形式のパスを追加できる
+        val result = cliEval(context, """
+            INC::push("file:///custom/path")
+            INC::push("http://example.com/modules")
+            INC::push("https://example.com/secure")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("file:///custom/path" in arrayStr)
+        assertTrue("http://example.com/modules" in arrayStr)
+        assertTrue("https://example.com/secure" in arrayStr)
+    }
+
+    @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
