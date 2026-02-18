@@ -82,18 +82,21 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         inc.values.forEach { value ->
             val incPath = value.toFluoriteString(null).value
-            val path = if (isUrlFormat(incPath)) {
-                // URL形式の場合、そのまま子パスとして解決
-                "$incPath/$suffix"
+            if (isUrlFormat(incPath)) {
+                // URL形式の場合、子パスとして解決
+                val urlPath = "$incPath/$suffix"
+                // file:// の場合はファイルパスに変換してチェック
+                if (incPath.startsWith("file://")) {
+                    val filePath = urlPath.substring("file://".length).toPath()
+                    if (filePath.tryToLoad()) return filePath.toString()
+                } else {
+                    // http:// や https:// の場合は常に成功とみなす
+                    paths += urlPath.toPath()
+                    return urlPath
+                }
             } else {
-                incPath.toPath().resolve(suffix).normalized().toString()
-            }
-            if (isUrlFormat(path)) {
-                // URL形式の場合、そのパス自体を返す（ファイルシステムのチェックは不要）
-                paths += path.toPath()
-                return path
-            } else {
-                path.toPath().let { if (it.tryToLoad()) return it.toString() }
+                val path = incPath.toPath().resolve(suffix).normalized()
+                path.let { if (it.tryToLoad()) return it.toString() }
             }
         }
         fail("Maven artifact not found: $reference")
@@ -104,18 +107,32 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         inc.values.forEach { value ->
             val incPath = value.toFluoriteString(null).value
             if (isUrlFormat(incPath)) {
-                // URL形式の場合、直接子パスを構築
-                val basePath = "$incPath/$reference"
-                paths += basePath.toPath()
-                
-                // 拡張子なし
-                if (canLoadUrl(basePath)) return basePath
-                // 拡張子あり
-                val pathWithExt = "$basePath$MODULE_EXTENSION"
-                if (canLoadUrl(pathWithExt)) return pathWithExt
-                // main.xa1
-                val pathWithMain = "$basePath/main$MODULE_EXTENSION"
-                if (canLoadUrl(pathWithMain)) return pathWithMain
+                // URL形式の場合、子パスを構築
+                if (incPath.startsWith("file://")) {
+                    // file:// の場合はファイルパスに変換してチェック
+                    val fileBasePath = incPath.substring("file://".length).toPath()
+                    
+                    // 拡張子なし
+                    val path1 = fileBasePath.resolve(reference).normalized()
+                    if (path1.tryToLoad()) return path1.toString()
+                    
+                    // 拡張子あり
+                    val path2 = fileBasePath.resolve("$reference$MODULE_EXTENSION").normalized()
+                    if (path2.tryToLoad()) return path2.toString()
+                    
+                    // main.xa1
+                    val path3 = fileBasePath.resolve("$reference/main$MODULE_EXTENSION").normalized()
+                    if (path3.tryToLoad()) return path3.toString()
+                } else {
+                    // http:// や https:// の場合は常に成功とみなす
+                    val basePath = "$incPath/$reference"
+                    paths += basePath.toPath()
+                    
+                    // 拡張子なし
+                    val pathWithExt = "$basePath$MODULE_EXTENSION"
+                    paths += pathWithExt.toPath()
+                    return pathWithExt
+                }
             } else {
                 // 通常のファイルパスとして処理
                 val path = incPath.toPath().resolve(reference).normalized()
@@ -131,9 +148,4 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
 private fun isUrlFormat(path: String): Boolean {
     return path.startsWith("file://") || path.startsWith("http://") || path.startsWith("https://")
-}
-
-private fun canLoadUrl(url: String): Boolean {
-    // URL形式のパスは常にロード可能とみなす（実際のロードは後で行う）
-    return true
 }
