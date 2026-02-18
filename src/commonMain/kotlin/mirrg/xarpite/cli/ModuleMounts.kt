@@ -85,15 +85,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             if (isUrlFormat(incPath)) {
                 // URL形式の場合、子パスとして解決
                 val urlPath = "$incPath/$suffix"
-                // file:// の場合はファイルパスに変換してチェック
-                if (incPath.startsWith("file://")) {
-                    val filePath = urlPath.substring("file://".length).toPath()
-                    if (filePath.tryToLoad()) return filePath.toString()
-                } else {
-                    // http:// や https:// の場合は常に成功とみなす
-                    paths += urlPath.toPath()
-                    return urlPath
-                }
+                // http:// や https:// の場合は常に成功とみなす
+                paths += urlPath.toPath()
+                return urlPath
             } else {
                 val path = incPath.toPath().resolve(suffix).normalized()
                 path.let { if (it.tryToLoad()) return it.toString() }
@@ -108,31 +102,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             val incPath = value.toFluoriteString(null).value
             if (isUrlFormat(incPath)) {
                 // URL形式の場合、子パスを構築
-                if (incPath.startsWith("file://")) {
-                    // file:// の場合はファイルパスに変換してチェック
-                    val fileBasePath = incPath.substring("file://".length).toPath()
-                    
-                    // 拡張子なし
-                    val path1 = fileBasePath.resolve(reference).normalized()
-                    if (path1.tryToLoad()) return path1.toString()
-                    
-                    // 拡張子あり
-                    val path2 = fileBasePath.resolve("$reference$MODULE_EXTENSION").normalized()
-                    if (path2.tryToLoad()) return path2.toString()
-                    
-                    // main.xa1
-                    val path3 = fileBasePath.resolve("$reference/main$MODULE_EXTENSION").normalized()
-                    if (path3.tryToLoad()) return path3.toString()
-                } else {
-                    // http:// や https:// の場合は常に成功とみなす
-                    val basePath = "$incPath/$reference"
-                    paths += basePath.toPath()
-                    
-                    // 拡張子なし
-                    val pathWithExt = "$basePath$MODULE_EXTENSION"
-                    paths += pathWithExt.toPath()
-                    return pathWithExt
-                }
+                // http:// や https:// の場合は常に成功とみなす
+                val basePath = "$incPath/$reference"
+                paths += basePath.toPath()
+                
+                // 拡張子なし
+                val pathWithExt = "$basePath$MODULE_EXTENSION"
+                paths += pathWithExt.toPath()
+                return pathWithExt
             } else {
                 // 通常のファイルパスとして処理
                 val path = incPath.toPath().resolve(reference).normalized()
@@ -147,5 +124,5 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 }
 
 private fun isUrlFormat(path: String): Boolean {
-    return path.startsWith("file://") || path.startsWith("http://") || path.startsWith("https://")
+    return path.startsWith("http://") || path.startsWith("https://")
 }

@@ -411,7 +411,7 @@ By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 You can add custom module search paths by adding values to `INC`.
 
-In addition to normal file paths, search paths can also be specified in URL format such as `file://`, `http://`, or `https://`.
+In addition to normal file paths, search paths can also be specified in URL format such as `http://` or `https://`.
 
 When specified in URL format, modules are searched by looking for child paths under that URL.
 
