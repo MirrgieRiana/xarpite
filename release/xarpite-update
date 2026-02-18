@@ -97,8 +97,11 @@ echo
 
 echo "Updating"
 
+# Match destination directory permissions to avoid spurious ./ diffs
+chmod --reference=. "$workdir"
+
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete "$workdir"/ ./
+rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./
 echo
 printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
@@ -111,7 +114,7 @@ case "$answer" in
     ;;
 esac
 echo "Syncing"
-rsync -ac --delete "$workdir"/ ./
+rsync --itemize-changes -rlpgoDc --delete "$workdir"/ ./
 
 echo
 
