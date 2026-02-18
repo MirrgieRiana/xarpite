@@ -109,3 +109,8 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
         fflush(stderr)
     }
 }
+
+@OptIn(ExperimentalForeignApi::class)
+fun exit(code: Int): Nothing {
+    platform.posix.exit(code)
+}

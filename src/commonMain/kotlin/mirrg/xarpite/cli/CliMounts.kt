@@ -275,5 +275,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             result.toFluoriteString()
         },
+        "EXIT" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
+            val code = arguments[0].toFluoriteString(null).value.toIntOrNull()
+                ?: throw FluoriteException("EXIT requires an integer exit code".toFluoriteString())
+            context.io.exit(code)
+        },
     ).let { listOf(it) }
 }
