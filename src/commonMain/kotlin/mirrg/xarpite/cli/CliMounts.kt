@@ -5,6 +5,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -277,8 +278,10 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         "EXIT" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
-            val code = arguments[0].toFluoriteString(null).value.toIntOrNull()
-                ?: throw FluoriteException("EXIT requires an integer exit code".toFluoriteString())
+            val code = when (val arg = arguments[0]) {
+                is FluoriteInt -> arg.value
+                else -> throw FluoriteException("EXIT requires an integer exit code".toFluoriteString())
+            }
             context.io.exit(code)
         },
     ).let { listOf(it) }

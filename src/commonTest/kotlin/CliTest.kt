@@ -2218,6 +2218,9 @@ class CliTest {
         assertFailsWith<FluoriteException> {
             cliEval(context, """EXIT("not a number")""")
         }
+        assertFailsWith<FluoriteException> {
+            cliEval(context, """EXIT(3.14)""")
+        }
     }
 
     @Test
