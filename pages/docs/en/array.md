@@ -1,50 +1,57 @@
 ---
-title: "Array Overview"
+title: "Arrays"
 ---
 
 <!-- toc -->
 
-# Array Overview
+# Arrays
 
-Arrays are data structures that handle multiple elements organized by order.
+Arrays are data structures that handle zero or more ordered elements.
 
 Arrays in Xarpite are mutable, allowing element assignment and length modification.
 
 Array indices start from 0.
 
-# Creating Arrays
+## Creating Arrays
 
-Arrays are created using array literals `[value; ...]`.
+### `[value; ...]`: Array Literals
 
-Within square brackets, you can write zero or more values separated by `;`.
+Array literals are the most basic way to create arrays.
+
+Within `[ ]`, you can write zero or more expressions separated by `;`.
 
 ```shell
 $ xa '[1; 2; 3]'
 # [1;2;3]
 ```
 
-## Array Literal Separators
+---
 
-The notation of `;` in array literals is flexible.
-
-Extra `;` before, after, or between items is not a problem.
-
-Also, newlines can substitute for `;`.
+In Xarpite, `;` can be substituted with newlines, so you can omit `;` by writing one element per line.
 
 ```shell
 $ xa '
   [
     1
     2
-    ; ; ; 3; ; ;
+    3
   ]
 '
 # [1;2;3]
 ```
 
-## Creating Arrays from Streams
+---
 
-When items separated by `;` are streams, each element of the stream is stored in the array, not the stream itself.
+Also, you can write as many extra `;` as you want.
+
+```shell
+$ xa '[; ; ; 1; ; ; 2; 3; ; ]'
+# [1;2;3]
+```
+
+#### Stream Elements in Array Literals
+
+When an array literal element is a stream, each element of the stream is stored in the array, not the stream itself.
 
 ```shell
 $ xa '[1 .. 3; 4, 5, 6]'
@@ -59,43 +66,34 @@ $ xa '
 # [10;20;30;400;500;600]
 ```
 
-## `stream.[]`: Array Conversion Operator
+### `stream.[]`: Array Conversion Operator
 
-The array conversion operator `.[]` converts a stream to an array.
+The array conversion operator converts a stream to an array.
 
 ```shell
-$ xa '(1, 2, 3).[]'
+$ xa '(1 .. 3).[]'
 # [1;2;3]
 ```
 
 ---
 
-This operator is convenient when converting the result of stream processing with pipe operators and other operations into an array.
+The array conversion operator is convenient for converting streams returned from variables or function calls to arrays with the shortest notation.
 
 ```shell
-$ xa '(1 .. 3 | _ * 10).[]'
-# [10;20;30]
+$ seq 1 3 | xa 'I.[]'
+# [1;2;3]
 ```
 
----
-
-It can also be used on single values that are not streams, in which case it creates a one-element array.
-
-```shell
-$ xa '100.[]'
-# [100]
-```
-
-# Referencing Array Elements
+## Accessing Array Elements
 
 In Xarpite, there are two main ways to access array elements:
 
 - Array invocation
 - Property access to array elements
 
-## Array Invocation
+### `array(index)`: Array Invocation
 
-Arrays can be treated as a function `array(index)` that receives an index and returns an element.
+Arrays can be treated as a function that receives an index and returns an element.
 
 ```shell
 $ xa '
@@ -108,7 +106,7 @@ $ xa '
 
 For this reason, Xarpite uses parentheses `( )` instead of square brackets `[ ]` to get array elements.
 
-### Out-of-Range Indices
+#### Out-of-Range Indices
 
 If an out-of-range index is specified, `NULL` is returned.
 
@@ -121,7 +119,7 @@ $ xa '
 # NULL
 ```
 
-### Negative Indices
+#### Negative Indices
 
 If the index is negative, it is interpreted as a relative position from the end of the array.
 
@@ -134,11 +132,11 @@ $ xa '
 # four
 ```
 
-### Index Streams
+#### Stream Indices
 
 The index can be a stream.
 
-In that case, a stream of array elements corresponding to the indices of each element of the stream is returned.
+In that case, a stream of array elements corresponding to each index element of the stream is returned.
 
 ```shell
 $ xa '
@@ -166,7 +164,7 @@ $ xa '
 # one
 ```
 
-### Index Evaluation Method
+#### Integer Conversion of Indices
 
 Indices are converted to numbers and then rounded.
 
@@ -181,7 +179,7 @@ $ xa '
 
 ---
 
-This property makes it easy to use calculation results of decimals that are integers in calculation.
+This property makes it easy to use calculation results of decimals that become integers in calculation.
 
 ```shell
 $ xa '
@@ -192,7 +190,7 @@ $ xa '
 # one
 ```
 
-### Streaming Arrays
+### `array()`: Array Streaming
 
 `array()` generates a stream that iterates over all elements of the array in order.
 
@@ -209,7 +207,7 @@ $ xa '
 # four
 ```
 
-### Getting Subarrays
+### `array[indices]` Getting Subarrays
 
 `array[indices]` allows you to get a subarray of the array.
 
@@ -250,7 +248,7 @@ $ xa '
 
 This property is similar to the relationship between function calls and partial application of functions.
 
-### Copying Arrays
+### `array[]`: Array Duplication
 
 `array[]` creates a shallow copy of the array.
 
@@ -270,9 +268,9 @@ $ xa -q '
 # [zero;one;99999;three;four]
 ```
 
-In other words, copying an array is the same as getting a subarray with all elements of the original.
+In other words, duplicating an array is the same as getting a subarray with all elements of the original.
 
-### Assignment to Array Invocation
+### `array(index) = value`: Assignment to Array Invocation
 
 `array(index) = value` assigns a value to an array element.
 
@@ -287,7 +285,7 @@ $ xa '
 # [zero;one;99999;three;four]
 ```
 
-## Property Access to Array Elements
+### `array.index`: Property Access to Array Elements
 
 Property access to array elements `array.index` provides low-layer access to array elements.
 
@@ -300,35 +298,7 @@ $ xa '
 # two
 ```
 
-### Assignment via Property Access
-
-`array.index = value` assigns a value to an array element.
-
-```shell
-$ xa '
-  array := ["zero", "one", "two", "three", "four"]
-
-  array.2 = 99999
-
-  array
-'
-# [zero;one;99999;three;four]
-```
-
-### Property Access with Expressions
-
-By enclosing in parentheses like `array.(index)`, you can specify the index as an expression.
-
-```shell
-$ xa '
-  array := ["zero", "one", "two", "three", "four"]
-
-  array.(1 + 2)
-'
-# three
-```
-
-### Property Access Limitations
+#### Property Access Limitations
 
 Unlike array invocation, the following "smart" features are not provided:
 
@@ -351,7 +321,7 @@ $ xa '
 # [zero;one;123;three;four]
 ```
 
-### Chaining Property Access
+#### Chaining Property Access
 
 Multiple property accesses can be written consecutively.
 
@@ -364,13 +334,47 @@ $ xa '
 # two
 ```
 
-# Getting Array Length
+---
+
+This means that the `0.1` part in `array.0.1` is interpreted as a chain of property accesses, not as a decimal literal.
+
+### `array.index = value`: Assignment via Property Access to Array Elements
+
+`array.index = value` assigns a value to an array element.
+
+```shell
+$ xa '
+  array := ["zero", "one", "two", "three", "four"]
+
+  array.2 = 99999
+
+  array
+'
+# [zero;one;99999;three;four]
+```
+
+### `array.(index)`: Property Access to Array Elements with Expressions
+
+By enclosing in parentheses like `array.(index)`, you can specify the index as an expression.
+
+```shell
+$ xa '
+  array := ["zero", "one", "two", "three", "four"]
+
+  array.(1 + 2)
+'
+# three
+```
+
+## `$#array`: Getting Array Length
+
+## `$#array`: Getting Array Length
 
 `$#array` gets the number of elements in the array.
 
 See [Getting Length](./length.md) for details.
 
-# Array Concatenation
+## `array + array`: Array Concatenation
 
 Addition of arrays `array + array` creates and returns a new array concatenating the left and right arrays.
 
@@ -384,7 +388,7 @@ $ xa '
 # [zero;one;two;three]
 ```
 
-# Methods for Adding/Removing at Array Ends
+## `unshift` `shift` `push` `pop`: Methods for Adding/Removing at Array Ends
 
 The `unshift` `shift` `push` `pop` methods add/remove elements at the beginning/end of the array respectively.
 
@@ -421,7 +425,7 @@ $ xa -q '
 # [zero;one;two;three;four]
 ```
 
-## `unshift` `push` with Streams
+### `unshift` `push` with Streams
 
 If you pass a stream to the `unshift` `push` methods, each element of the stream is added to the array.
 
