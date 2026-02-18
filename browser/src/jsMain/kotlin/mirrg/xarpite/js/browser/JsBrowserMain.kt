@@ -33,6 +33,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
         override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
+        override fun exit(code: Int): Nothing = throw UnsupportedOperationException("EXIT is not supported in browser environment")
     }) { context, evaluator ->
         context.setSrc("-", src)
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
