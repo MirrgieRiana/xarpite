@@ -1103,3 +1103,40 @@ Other behavior generally follows the specifications of the `EXEC` function.
 ---
 
 **This function is currently only provided in the JVM and Native versions.**
+
+### `EXIT`: Exit the process with a specified exit code
+
+`EXIT(code: INT): NOTHING`
+
+Terminates the Xarpite process with the specified exit code.
+
+This function does not return.
+
+```shell
+$ xa 'EXIT(0)'
+$ echo $?
+# 0
+
+$ xa 'EXIT(1)'
+$ echo $?
+# 1
+
+$ xa 'EXIT(42)'
+$ echo $?
+# 42
+```
+
+---
+
+The exit code must be an integer.
+
+If a non-integer value is passed, an error is thrown.
+
+```shell
+$ xa 'EXIT("not a number")' 2>&1 | grep -o "EXIT requires an integer"
+# EXIT requires an integer
+```
+
+---
+
+This function is useful for returning specific exit codes from scripts, especially when integrating with shell scripts or CI/CD pipelines.

@@ -1105,3 +1105,40 @@ $ xa '
 ---
 
 これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+### `EXIT`: 指定した終了コードでプロセスを終了
+
+`EXIT(code: INT): NOTHING`
+
+指定した終了コードでXarpiteプロセスを終了します。
+
+この関数は戻りません。
+
+```shell
+$ xa 'EXIT(0)'
+$ echo $?
+# 0
+
+$ xa 'EXIT(1)'
+$ echo $?
+# 1
+
+$ xa 'EXIT(42)'
+$ echo $?
+# 42
+```
+
+---
+
+終了コードは整数でなければなりません。
+
+整数以外の値が渡された場合、エラーがスローされます。
+
+```shell
+$ xa 'EXIT("not a number")' 2>&1 | grep -o "EXIT requires an integer"
+# EXIT requires an integer
+```
+
+---
+
+この関数は、スクリプトから特定の終了コードを返すために有用です。特にシェルスクリプトやCI/CDパイプラインとの統合時に便利です。
