@@ -86,7 +86,6 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
                 // URL形式の場合、子パスとして解決
                 val urlPath = "$incPath/$suffix"
                 // http:// や https:// の場合は常に成功とみなす
-                paths += urlPath.toPath()
                 return urlPath
             } else {
                 val path = incPath.toPath().resolve(suffix).normalized()
@@ -104,11 +103,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
                 // URL形式の場合、子パスを構築
                 // http:// や https:// の場合は常に成功とみなす
                 val basePath = "$incPath/$reference"
-                paths += basePath.toPath()
                 
                 // 拡張子なし
                 val pathWithExt = "$basePath$MODULE_EXTENSION"
-                paths += pathWithExt.toPath()
                 return pathWithExt
             } else {
                 // 通常のファイルパスとして処理

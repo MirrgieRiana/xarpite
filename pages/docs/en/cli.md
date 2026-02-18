@@ -431,6 +431,18 @@ $ {
 # Apple
 ```
 
+---
+
+Example of URL format usage:
+
+```shell
+$ xa '
+  INC::push("https://example.com/xarpite/modules")
+  USE("com.example:mylib:1.0.0")
+'
+# Loads from https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1
+```
+
 ### `IN`, `I`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`

@@ -441,6 +441,18 @@ $ {
 # Apple
 ```
 
+---
+
+URL形式の使用例：
+
+```shell
+$ xa '
+  INC::push("https://example.com/xarpite/modules")
+  USE("com.example:mylib:1.0.0")
+'
+# https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 からロード
+```
+
 ### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
