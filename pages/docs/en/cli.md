@@ -427,13 +427,13 @@ $ {
 # Apple
 ```
 
-### `IN`, `I`, `STREAM`: Read Strings Line by Line from Console
+### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
 A stream that reads strings line by line from standard input.
 
-`I` and `STREAM` are aliases for `IN`.
+`I` and `INL` are aliases for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'

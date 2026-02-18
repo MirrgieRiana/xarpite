@@ -147,9 +147,9 @@ class CliTest {
     }
 
     @Test
-    fun streamAlias() = runTest {
+    fun inlAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "STREAM").stream()) // STREAM は IN の別名
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
     }
 
     @Test
