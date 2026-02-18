@@ -27,9 +27,6 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: libcurlのインストール
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-
       - name: Gradleキャッシュの設定
         uses: gradle/actions/setup-gradle@v4
         with:
