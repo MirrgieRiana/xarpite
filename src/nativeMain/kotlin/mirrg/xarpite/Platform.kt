@@ -113,4 +113,5 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
 @OptIn(ExperimentalForeignApi::class)
 fun exit(code: Int): Nothing {
     platform.posix.exit(code)
+    throw IllegalStateException("Unreachable")
 }

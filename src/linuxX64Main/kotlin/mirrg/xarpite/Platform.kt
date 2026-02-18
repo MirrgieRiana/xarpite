@@ -466,8 +466,3 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
         }
     }
 }
-
-@OptIn(ExperimentalForeignApi::class)
-fun exit(code: Int): Nothing {
-    platform.posix.exit(code)
-}
