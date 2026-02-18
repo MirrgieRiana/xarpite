@@ -73,9 +73,9 @@ kotlin {
                 implementation("io.ktor:ktor-client-js:3.0.3")
             }
         }
-        nativeMain {
+        linuxX64Main {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:3.0.3")
+                implementation("io.ktor:ktor-client-curl:3.0.3")
             }
         }
         commonTest {
