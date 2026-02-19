@@ -278,8 +278,8 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         "EXIT" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
-            val code = when (val arg = arguments[0]) {
-                is FluoriteInt -> arg.value
+            val code = when (arguments[0]) {
+                is FluoriteInt -> (arguments[0] as FluoriteInt).value
                 else -> throw FluoriteException("EXIT requires an integer exit code".toFluoriteString())
             }
             context.io.exit(code)
