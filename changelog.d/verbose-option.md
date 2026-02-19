@@ -1,0 +1,1 @@
+Added `--verbose` option to display Kotlin stack traces for debugging interpreter internals.

@@ -1076,7 +1076,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, scriptFile = null)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) { 
             capturedInc = inc.values.toList()
@@ -2426,6 +2426,79 @@ class CliTest {
         assertEquals("The fruit is:\napple", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun verboseOptionParsing() = runTest {
+        val context = TestIoContext()
+        
+        // Test that --verbose option is parsed correctly with -e
+        val options = parseArguments(listOf("--verbose", "-e", "1+1"), context)
+        assertEquals(true, options.verbose)
+        assertEquals("1+1", options.src)
+        
+        // Test without --verbose
+        val options2 = parseArguments(listOf("-e", "1+1"), context)
+        assertEquals(false, options2.verbose)
+    }
+
+    @Test
+    fun verboseOptionShowsKotlinStackTrace() = runTest {
+        // Test with verbose = true
+        val errMessagesVerbose = mutableListOf<String>()
+        val verboseContext = TestIoContext()
+        val ioContextVerbose = object : IoContext by verboseContext {
+            override suspend fun err(value: FluoriteValue) {
+                errMessagesVerbose.add(value.toFluoriteString(null).value)
+            }
+        }
+        
+        val verboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = true,
+            scriptFile = null,
+        )
+        cliEvalImpl(ioContextVerbose, verboseOptions)
+        
+        val verboseOutput = errMessagesVerbose.joinToString("\n")
+        assertTrue(verboseOutput.isNotEmpty(), "Error message should be captured when verbose=true")
+        assertTrue(verboseOutput.contains("ERROR:"), "Verbose error output should have ERROR prefix")
+        // When verbose=true, a Kotlin stack trace should be included.
+        // Check for FluoriteException in the output (appears in stackTraceToString)
+        assertTrue(
+            verboseOutput.contains("FluoriteException"),
+            "Verbose error output should contain Kotlin stack trace with exception class name",
+        )
+        
+        // Test with verbose = false
+        val errMessagesNonVerbose = mutableListOf<String>()
+        val nonVerboseContext = TestIoContext()
+        val ioContextNonVerbose = object : IoContext by nonVerboseContext {
+            override suspend fun err(value: FluoriteValue) {
+                errMessagesNonVerbose.add(value.toFluoriteString(null).value)
+            }
+        }
+        
+        val nonVerboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            scriptFile = null,
+        )
+        cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
+        
+        val nonVerboseOutput = errMessagesNonVerbose.joinToString("\n")
+        assertTrue(nonVerboseOutput.isNotEmpty(), "Error message should be captured when verbose=false")
+        assertTrue(nonVerboseOutput.contains("ERROR:"), "Non-verbose error output should have ERROR prefix")
+        // When verbose=false, the detailed exception class name should not be in the output
+        // (only the user-friendly error message and Xarpite stack trace)
+        assertTrue(
+            !nonVerboseOutput.contains("FluoriteException"),
+            "Non-verbose error output should not contain Kotlin exception class name",
+        )
     }
 
 }
