@@ -411,9 +411,9 @@ By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 You can add custom module search paths by adding values to `INC`.
 
-In addition to normal file paths, search paths can also be specified in URL format such as `http://` or `https://`.
+In addition to normal file paths, search paths can also be specified in URL format such as `http://` or `https://`, but **network-based module loading is not yet implemented** in the current version.
 
-When specified in URL format, modules are searched by looking for child paths under that URL.
+When specified in URL format, child paths are generated as search paths, but actual module loading only occurs from the local file system.
 
 ```shell
 $ {
@@ -433,12 +433,12 @@ $ {
 
 ---
 
-Example of URL format usage:
+Example of URL format specification (network loading not implemented):
 
 ```
 INC::push("https://example.com/xarpite/modules")
 USE("com.example:mylib:1.0.0")
-# Loads from https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1
+# Resolves to https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 as a search path
 ```
 
 ### `IN`, `I`: Read Strings Line by Line from Console
