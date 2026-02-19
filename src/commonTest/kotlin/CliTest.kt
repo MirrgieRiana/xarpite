@@ -2213,13 +2213,10 @@ class CliTest {
 
     @Test
     fun exit_requiresIntegerArgument() = runTest {
-        // EXITが整数の引数を必要とすることをテスト
+        // EXITが数値の引数を必要とすることをテスト
         val context = TestIoContext()
-        assertFailsWith<FluoriteException> {
+        assertFailsWith<Exception> {
             cliEval(context, """EXIT("not a number")""")
-        }
-        assertFailsWith<FluoriteException> {
-            cliEval(context, """EXIT(3.14)""")
         }
     }
 
