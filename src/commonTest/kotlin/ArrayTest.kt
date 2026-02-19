@@ -29,6 +29,9 @@ class ArrayTest {
         assertEquals("[1;2;3]", eval("TO_ARRAY(1, 2, 3)").array()) // ARRAY関数はストリームを配列にする
         assertEquals("[100]", eval("TO_ARRAY(100)").array()) // ストリームでなくてもよい
         assertEquals("[10;20;30]", eval("1 .. 3 | _ * 10 >> TO_ARRAY").array()) // ARRAY関数はパイプ演算子と組み合わせて使うと便利
+        assertEquals("[1;2;3]", eval("(1, 2, 3).[]").array()) // .[] 配列化演算子
+        assertEquals("[10;20;30]", eval("(1 .. 3 | _ * 10).[]").array()) // .[] 配列化演算子とパイプの組み合わせ
+        assertEquals("[100]", eval("100.[]").array()) // ストリームでなくてもよい
     }
 
     @Test
