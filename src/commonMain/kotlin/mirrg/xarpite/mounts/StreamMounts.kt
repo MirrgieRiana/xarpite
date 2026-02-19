@@ -683,6 +683,70 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
         },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("<T> $name([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>")
+                    val arguments2 = arguments.toMutableList()
+                    
+                    if (arguments2.isEmpty()) usage()
+                    val table = arguments2.removeLast()
+                    
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+                    
+                    val fillValue = entries.remove("fill") ?: arguments3.removeFirstOrNull()
+                    
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+                    
+                    // Collect all arrays from the stream
+                    val arrays = mutableListOf<List<FluoriteValue>>()
+                    if (table is FluoriteStream) {
+                        table.collect { item ->
+                            if (item is FluoriteArray) {
+                                arrays.add(item.values.toList())
+                            } else {
+                                throw FluoriteException("Expected array, got ${item}".toFluoriteString())
+                            }
+                        }
+                    } else {
+                        throw FluoriteException("Expected stream of arrays, got ${table}".toFluoriteString())
+                    }
+                    
+                    if (arrays.isEmpty()) {
+                        return@FluoriteFunction FluoriteStream.EMPTY
+                    }
+                    
+                    // Check if all arrays have the same length, or use fill value
+                    val maxLength = arrays.maxOf { it.size }
+                    if (fillValue == null) {
+                        val minLength = arrays.minOf { it.size }
+                        if (minLength != maxLength) {
+                            throw FluoriteException("Arrays have different lengths".toFluoriteString())
+                        }
+                    }
+                    
+                    // Transpose
+                    FluoriteStream {
+                        for (i in 0 until maxLength) {
+                            val column = arrays.map { array ->
+                                if (i < array.size) {
+                                    array[i]
+                                } else {
+                                    // fillValue must be non-null here because we already checked above
+                                    fillValue!!
+                                }
+                            }
+                            emit(column.toFluoriteArray())
+                        }
+                    }
+                }
+            }
+            arrayOf(
+                "TRANSPOSE" define create("TRANSPOSE"),
+                "ZIP" define create("ZIP"),
+            )
+        },
         "GROUP" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
             val arguments2 = arguments.toMutableList()
