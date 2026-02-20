@@ -43,10 +43,12 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
+    val fileSystemResult = getFileSystem()
 
     fun Path.tryToLoad(): Boolean {
+        if (fileSystemResult.isFailure) return false
         paths += this
-        val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
+        val metadata = fileSystemResult.getOrThrow().metadataOrNull(this) ?: return false
         return metadata.isRegularFile
     }
 
@@ -62,13 +64,15 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         throw FluoriteException(lines.join("\n").toFluoriteString())
     }
 
-    // ファイルパス
-    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-        val path = baseDir.toPath().resolve(reference).normalized()
-        path.let { if (it.tryToLoad()) return it.toString() }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-        fail("Module file not found: $reference")
+    // ファイルパス（ファイルシステムが利用可能な場合のみ）
+    if (fileSystemResult.isSuccess) {
+        if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+            val path = baseDir.toPath().resolve(reference).normalized()
+            path.let { if (it.tryToLoad()) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+            fail("Module file not found: $reference")
+        }
     }
 
     // Maven座標
@@ -80,22 +84,69 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         val version = segments[2].notBlankOrNull ?: return@run
 
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
+        
+        // URL候補を収集（ローカルパスを全て試した後に使用）
+        var firstUrlCandidate: String? = null
+        
         inc.values.forEach { value ->
-            val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
+            val incPath = value.toFluoriteString(null).value
+            if (isUrlFormat(incPath)) {
+                // URL形式の場合、候補として保存（最初のもののみ）
+                if (firstUrlCandidate == null) {
+                    val normalizedIncPath = incPath.trimEnd('/')
+                    firstUrlCandidate = "$normalizedIncPath/$suffix"
+                }
+            } else if (fileSystemResult.isSuccess) {
+                val path = incPath.toPath().resolve(suffix).normalized()
+                path.let { if (it.tryToLoad()) return it.toString() }
+            }
         }
+        
+        // ローカルパスで見つからなかった場合、URL候補があればそれを返す
+        firstUrlCandidate?.let { return it }
+        
         fail("Maven artifact not found: $reference")
     }
 
     // INCを起点とした相対パス
     run {
+        // URL候補を収集（ローカルパスを全て試した後に使用）
+        var firstUrlCandidate: String? = null
+        
         inc.values.forEach { value ->
-            val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
-            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+            val incPath = value.toFluoriteString(null).value
+            if (isUrlFormat(incPath)) {
+                // URL形式の場合、候補として保存（最初のもののみ）
+                if (firstUrlCandidate == null) {
+                    val normalizedIncPath = incPath.trimEnd('/')
+                    val basePath = "$normalizedIncPath/$reference"
+                    // 拡張子がなければ MODULE_EXTENSION を付与
+                    firstUrlCandidate = if (!basePath.endsWith(MODULE_EXTENSION)) {
+                        "$basePath$MODULE_EXTENSION"
+                    } else {
+                        basePath
+                    }
+                }
+            } else if (fileSystemResult.isSuccess) {
+                // 通常のファイルパスとして処理
+                val path = incPath.toPath().resolve(reference).normalized()
+                path.let { if (it.tryToLoad()) return it.toString() }
+                path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+                path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+            }
         }
+        
+        // ローカルパスで見つからなかった場合、URL候補があればそれを返す
+        firstUrlCandidate?.let { return it }
+        
         fail("Module file not found in INC paths: $reference")
     }
 
+}
+
+private fun isUrlFormat(path: String): Boolean {
+    // URLスキームは大文字小文字を区別しない (RFC 3986)
+    val trimmedPath = path.trim()
+    return trimmedPath.startsWith("http://", ignoreCase = true) || 
+           trimmedPath.startsWith("https://", ignoreCase = true)
 }
