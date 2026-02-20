@@ -89,10 +89,7 @@ suspend fun main() {
             override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
             override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
-            override fun exit(code: Int): Nothing {
-                process.exit(code)
-                throw IllegalStateException("Unreachable")
-            }
+            override fun exit(code: Int): Nothing = process.exit(code)
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)

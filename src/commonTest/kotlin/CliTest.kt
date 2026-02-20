@@ -2170,7 +2170,7 @@ class CliTest {
     }
 
     @Test
-    fun exit_terminatesWithCode0() = runTest {
+    fun exitTerminatesWithCode0() = runTest {
         // EXIT(0)で終了コード0で終了することをテスト
         val context = TestIoContext()
         val exception = assertFailsWith<ExitException> {
@@ -2180,7 +2180,7 @@ class CliTest {
     }
 
     @Test
-    fun exit_terminatesWithCode1() = runTest {
+    fun exitTerminatesWithCode1() = runTest {
         // EXIT(1)で終了コード1で終了することをテスト
         val context = TestIoContext()
         val exception = assertFailsWith<ExitException> {
@@ -2190,7 +2190,7 @@ class CliTest {
     }
 
     @Test
-    fun exit_terminatesWithCode42() = runTest {
+    fun exitTerminatesWithCode42() = runTest {
         // EXIT(42)で任意の終了コードで終了することをテスト
         val context = TestIoContext()
         val exception = assertFailsWith<ExitException> {
@@ -2200,7 +2200,7 @@ class CliTest {
     }
 
     @Test
-    fun exit_requiresOneArgument() = runTest {
+    fun exitRequiresOneArgument() = runTest {
         // EXITが引数1個を必要とすることをテスト
         val context = TestIoContext()
         assertFailsWith<Exception> {
@@ -2212,7 +2212,7 @@ class CliTest {
     }
 
     @Test
-    fun exit_requiresIntegerArgument() = runTest {
+    fun exitRequiresIntegerArgument() = runTest {
         // EXITが数値の引数を必要とすることをテスト
         val context = TestIoContext()
         assertFailsWith<Exception> {

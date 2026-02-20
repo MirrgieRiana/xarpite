@@ -1112,6 +1112,8 @@ Terminates the Xarpite process with the specified exit code.
 
 This function does not return.
 
+**This function is available in JVM, Native, and Node.js versions. It is not supported in the browser version.**
+
 ```shell
 $ xa 'EXIT(0)'
 $ echo $?
@@ -1128,13 +1130,13 @@ $ echo $?
 
 ---
 
-The exit code must be an integer.
+The exit code must be a number.
 
-If a non-integer value is passed, an error is thrown.
+If a non-numeric value is passed, an error is thrown.
 
 ```shell
-$ xa 'EXIT("not a number")' 2>&1 | grep -o "EXIT requires an integer"
-# EXIT requires an integer
+$ xa 'EXIT("not a number")' 2>&1
+# Error is thrown
 ```
 
 ---
