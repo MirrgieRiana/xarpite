@@ -90,6 +90,7 @@ interface IoContext {
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
     suspend fun fetch(context: RuntimeContext, url: String): ByteArray
+    fun exit(code: Int): Nothing
 }
 
 open class UnsupportedIoContext : IoContext {
@@ -103,4 +104,5 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
     override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
+    override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
 }

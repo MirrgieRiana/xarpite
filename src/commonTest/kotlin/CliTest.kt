@@ -2170,6 +2170,57 @@ class CliTest {
     }
 
     @Test
+    fun exitTerminatesWithCode0() = runTest {
+        // EXIT(0)で終了コード0で終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(0)")
+        }
+        assertEquals(0, exception.code)
+    }
+
+    @Test
+    fun exitTerminatesWithCode1() = runTest {
+        // EXIT(1)で終了コード1で終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(1)")
+        }
+        assertEquals(1, exception.code)
+    }
+
+    @Test
+    fun exitTerminatesWithCode42() = runTest {
+        // EXIT(42)で任意の終了コードで終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(42)")
+        }
+        assertEquals(42, exception.code)
+    }
+
+    @Test
+    fun exitRequiresOneArgument() = runTest {
+        // EXITが引数1個を必要とすることをテスト
+        val context = TestIoContext()
+        assertFailsWith<Exception> {
+            cliEval(context, "EXIT()")
+        }
+        assertFailsWith<Exception> {
+            cliEval(context, "EXIT(1, 2)")
+        }
+    }
+
+    @Test
+    fun exitRequiresIntegerArgument() = runTest {
+        // EXITが数値の引数を必要とすることをテスト
+        val context = TestIoContext()
+        assertFailsWith<Exception> {
+            cliEval(context, """EXIT("not a number")""")
+        }
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
@@ -2454,7 +2505,8 @@ internal class TestIoContext(
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
     private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
-    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null,
+    private val exitHandler: ((code: Int) -> Nothing)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
@@ -2502,6 +2554,14 @@ internal class TestIoContext(
 
     override fun getPlatformPwd(): String = currentLocation
 
+    override fun exit(code: Int): Nothing {
+        if (exitHandler != null) {
+            exitHandler.invoke(code)
+        } else {
+            throw ExitException(code)
+        }
+    }
+
     fun clear() {
         stdoutBytes.reset()
         stderrBytes.reset()
@@ -2509,6 +2569,9 @@ internal class TestIoContext(
         stdinBytesIndex = 0
     }
 }
+
+// EXIT関数のテスト用例外
+internal class ExitException(val code: Int) : Exception("Exit with code $code")
 
 internal class TestByteArrayOutputStream {
     private val buffer = mutableListOf<Byte>()
