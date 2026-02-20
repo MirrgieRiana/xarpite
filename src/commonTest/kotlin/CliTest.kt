@@ -1183,7 +1183,7 @@ class CliTest {
         }
         
         // エラーメッセージに二重スラッシュが含まれないことを確認
-        assertFalse(exception.message?.contains("//testmodule") ?: false)
+        assertTrue(!(exception.message?.contains("//testmodule") ?: false))
     }
 
     @Test
