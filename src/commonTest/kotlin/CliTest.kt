@@ -1186,6 +1186,212 @@ class CliTest {
     }
 
     @Test
+    fun useModuleFromHttpUrl() = runTest {
+        // モックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["http://example.com/modules/testmodule.xa1"] = "\"HttpModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // HTTP URLをINCに追加してモジュールをロード
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("HttpModule", result)
+    }
+
+    @Test
+    fun useModuleFromHttpsUrl() = runTest {
+        // モックHTTPSサーバーのシミュレーション
+        val mockHttpsContent = mutableMapOf<String, String>()
+        mockHttpsContent["https://secure.example.com/libs/securemodule.xa1"] = "\"SecureModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpsContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // HTTPS URLをINCに追加してモジュールをロード
+        val result = cliEval(context, """
+            INC::push("https://secure.example.com/libs")
+            USE("securemodule")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("SecureModule", result)
+    }
+
+    @Test
+    fun useModuleFromHttpUrlWithSubdirectory() = runTest {
+        // モックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["http://example.com/libs/utils/helper.xa1"] = "\"HelperModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // HTTP URLをINCに追加してサブディレクトリのモジュールをロード
+        val result = cliEval(context, """
+            INC::push("http://example.com/libs")
+            USE("utils/helper")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("HelperModule", result)
+    }
+
+    @Test
+    fun useMavenCoordinateFromHttpUrl() = runTest {
+        // モックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["http://example.com/maven/com/example/mylib/1.0.0/mylib-1.0.0.xa1"] = "\"MavenModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // HTTP URLをINCに追加してMaven座標でモジュールをロード
+        val result = cliEval(context, """
+            INC::push("http://example.com/maven")
+            USE("com.example:mylib:1.0.0")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("MavenModule", result)
+    }
+
+    @Test
+    fun httpUrlWithTrailingSlashNormalization() = runTest {
+        // モックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        // 末尾スラッシュが正規化されて、二重スラッシュにならないことを確認
+        mockHttpContent["http://example.com/modules/testmodule.xa1"] = "\"NormalizedModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // 末尾にスラッシュがあるHTTP URLでも正しく動作することを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules/")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("NormalizedModule", result)
+    }
+
+    @Test
+    fun httpUrlPrioritizesLocalPathsOverHttp() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        
+        // モックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["http://example.com/modules/priority.xa1"] = "\"HttpModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // ローカルファイルシステムにもモジュールを配置
+        val localDir = "build/test/inc.http.priority.tmp".toPath()
+        fileSystem.createDirectories(localDir)
+        val moduleFile = localDir.resolve("priority.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
+        
+        try {
+            // HTTP URLを先に追加し、ローカルパスを後に追加
+            // ローカルパスが優先されることを確認
+            val result = cliEval(context, """
+                INC::push("http://example.com/modules")
+                INC::push("build/test/inc.http.priority.tmp")
+                USE("priority")
+            """.trimIndent()).toFluoriteString(null).value
+            
+            assertEquals("LocalModule", result)
+        } finally {
+            // クリーンアップ
+            fileSystem.delete(moduleFile)
+            fileSystem.delete(localDir)
+        }
+    }
+
+    @Test
+    fun multipleHttpUrlsInInc() = runTest {
+        // 2つのモックHTTPサーバーのシミュレーション
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["http://server1.example.com/libs/module1.xa1"] = "\"Module1\""
+        mockHttpContent["http://server2.example.com/libs/module2.xa1"] = "\"Module2\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // 両方のHTTP URLをINCに追加して、それぞれからモジュールをロード
+        val result1 = cliEval(context, """
+            INC::push("http://server1.example.com/libs")
+            INC::push("http://server2.example.com/libs")
+            USE("module1")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("Module1", result1)
+        
+        val result2 = cliEval(context, """
+            INC::push("http://server1.example.com/libs")
+            INC::push("http://server2.example.com/libs")
+            USE("module2")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("Module2", result2)
+    }
+
+    @Test
+    fun httpUrlCaseInsensitiveScheme() = runTest {
+        // モックHTTPサーバーのシミュレーション（大文字小文字混在）
+        val mockHttpContent = mutableMapOf<String, String>()
+        mockHttpContent["HTTP://EXAMPLE.COM/modules/testmodule.xa1"] = "\"UppercaseModule\""
+        
+        val context = TestIoContext(
+            fetchHandler = { _, url ->
+                // 実際のfetch実装ではURLが正規化されるはずだが、
+                // ここではテストのため大文字のままマッチさせる
+                mockHttpContent[url]?.encodeToByteArray() 
+                    ?: throw Exception("Not Found: $url")
+            }
+        )
+        
+        // 大文字のHTTP URLもINCに追加できることを確認
+        val result = cliEval(context, """
+            INC::push("HTTP://EXAMPLE.COM/modules")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+        
+        assertEquals("UppercaseModule", result)
+    }
+
+    @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
