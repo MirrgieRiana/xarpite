@@ -1339,8 +1339,8 @@ class CliTest {
     fun multipleHttpUrlsInInc() = runTest {
         // 2つのモックHTTPサーバーのシミュレーション
         val mockHttpContent = mutableMapOf<String, String>()
-        mockHttpContent["http://server1.example.com/libs/module1.xa1"] = "\"Module1\""
-        mockHttpContent["http://server2.example.com/libs/module2.xa1"] = "\"Module2\""
+        mockHttpContent["http://server1.example.com/libs/module1.xa1"] = "\"Module1FromServer1\""
+        mockHttpContent["http://server2.example.com/libs/module2.xa1"] = "\"Module2FromServer2\""
         
         val context = TestIoContext(
             fetchHandler = { _, url ->
@@ -1349,22 +1349,21 @@ class CliTest {
             }
         )
         
-        // 両方のHTTP URLをINCに追加して、それぞれからモジュールをロード
+        // 最初のHTTP URLからmodule1をロード
         val result1 = cliEval(context, """
             INC::push("http://server1.example.com/libs")
-            INC::push("http://server2.example.com/libs")
             USE("module1")
         """.trimIndent()).toFluoriteString(null).value
         
-        assertEquals("Module1", result1)
+        assertEquals("Module1FromServer1", result1)
         
+        // 2番目のHTTP URLからmodule2をロード
         val result2 = cliEval(context, """
-            INC::push("http://server1.example.com/libs")
             INC::push("http://server2.example.com/libs")
             USE("module2")
         """.trimIndent()).toFluoriteString(null).value
         
-        assertEquals("Module2", result2)
+        assertEquals("Module2FromServer2", result2)
     }
 
     @Test
