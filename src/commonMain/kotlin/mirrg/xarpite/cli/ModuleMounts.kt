@@ -81,25 +81,18 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
         
-        // URL形式の候補を収集
-        val urlCandidates = mutableListOf<String>()
-        
         inc.values.forEach { value ->
             val incPath = value.toFluoriteString(null).value
             if (isUrlFormat(incPath)) {
                 // URL形式の場合、子パスとして解決（末尾の / を正規化）
                 val normalizedIncPath = incPath.trimEnd('/')
                 val urlPath = "$normalizedIncPath/$suffix"
-                urlCandidates.add(urlPath)
+                // 最初のURL候補を返す（ネットワークロードは未実装）
+                return urlPath
             } else {
                 val path = incPath.toPath().resolve(suffix).normalized()
                 path.let { if (it.tryToLoad()) return it.toString() }
             }
-        }
-        
-        // ローカルパスで見つからなかった場合、URL候補があればそれを返す
-        if (urlCandidates.isNotEmpty()) {
-            return urlCandidates.first()
         }
         
         fail("Maven artifact not found: $reference")
@@ -107,9 +100,6 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     // INCを起点とした相対パス
     run {
-        // URL形式の候補を収集
-        val urlCandidates = mutableListOf<String>()
-        
         inc.values.forEach { value ->
             val incPath = value.toFluoriteString(null).value
             if (isUrlFormat(incPath)) {
@@ -117,15 +107,15 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
                 val normalizedIncPath = incPath.trimEnd('/')
                 val basePath = "$normalizedIncPath/$reference"
                 
-                // ファイルパス分岐と同様に、以下の順で候補を生成する:
+                // ファイルパス分岐と同様に、INCエントリごとに順番に候補を試す:
                 // 1. 参照そのもの
                 // 2. 拡張子がなければ MODULE_EXTENSION を付与
                 // 3. ディレクトリ配下の main.xa1
-                urlCandidates.add(basePath)
-                if (!basePath.endsWith(MODULE_EXTENSION)) {
-                    urlCandidates.add("$basePath$MODULE_EXTENSION")
+                // ローカルパスで見つからず、最初のURL候補を返す
+                // (実際のネットワークロードは未実装のため、候補を返すのみ)
+                return basePath.let { 
+                    if (!it.endsWith(MODULE_EXTENSION)) "$it$MODULE_EXTENSION" else it
                 }
-                urlCandidates.add("$basePath/main$MODULE_EXTENSION")
             } else {
                 // 通常のファイルパスとして処理
                 val path = incPath.toPath().resolve(reference).normalized()
@@ -135,16 +125,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             }
         }
         
-        // ローカルパスで見つからなかった場合、URL候補があればそれを返す
-        if (urlCandidates.isNotEmpty()) {
-            return urlCandidates.first()
-        }
-        
         fail("Module file not found in INC paths: $reference")
     }
 
 }
 
 private fun isUrlFormat(path: String): Boolean {
-    return path.startsWith("http://") || path.startsWith("https://")
+    // URLスキームは大文字小文字を区別しない (RFC 3986)
+    val trimmedPath = path.trim()
+    return trimmedPath.startsWith("http://", ignoreCase = true) || 
+           trimmedPath.startsWith("https://", ignoreCase = true)
 }

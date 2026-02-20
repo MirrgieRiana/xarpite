@@ -413,7 +413,7 @@ You can add custom module search paths by adding values to `INC`.
 
 In addition to normal file paths, search paths can also be specified in URL format such as `http://` or `https://`, but **network-based module loading is not yet implemented** in the current version.
 
-When specified in URL format, child paths are generated as search paths, but actual module loading only occurs from the local file system.
+When specified in URL format, child paths are generated as search paths, but actual module loading only occurs from the local file system. Therefore, attempting to load a module using a URL format search path will result in a file not found error.
 
 ```shell
 $ {
@@ -433,12 +433,13 @@ $ {
 
 ---
 
-Example of URL format specification (network loading not implemented):
+Example of URL format specification (network loading not implemented - will cause error in actual use):
 
 ```
 INC::push("https://example.com/xarpite/modules")
 USE("com.example:mylib:1.0.0")
-# Resolves to https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 as a search path
+# Resolves to https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 as a search path,
+# but will fail when attempting to load because it tries to read from the local file system
 ```
 
 ### `IN`, `I`: Read Strings Line by Line from Console
