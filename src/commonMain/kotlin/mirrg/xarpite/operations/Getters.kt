@@ -122,7 +122,7 @@ class ObjectFromStreamGetter(private val getter: Getter) : Getter {
         val map = mutableMapOf<String, FluoriteValue>()
         val value = getter.evaluate(env)
         suspend fun addEntry(item: FluoriteValue) {
-            require(item is FluoriteArray && item.values.size == 2)
+            require(item is FluoriteArray && item.values.size == 2) { "Expected 2-element array for object conversion, got: $item" }
             map[item.values[0].toString()] = item.values[1]
         }
         if (value is FluoriteStream) {
