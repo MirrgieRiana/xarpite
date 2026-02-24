@@ -2512,6 +2512,8 @@ internal class TestIoContext(
     private var stdinBytesIndex = 0
     val stdoutBytes = TestByteArrayOutputStream()
     val stderrBytes = TestByteArrayOutputStream()
+    var exitCode: Int? = null
+        private set
 
     override suspend fun out(value: FluoriteValue) = writeBytesToStdout("${value.toFluoriteString(null).value}\n".encodeToByteArray())
 
@@ -2555,6 +2557,7 @@ internal class TestIoContext(
     override fun getPlatformPwd(): String = currentLocation
 
     override fun exit(code: Int): Nothing {
+        exitCode = code
         if (exitHandler != null) {
             exitHandler.invoke(code)
         } else {
@@ -2567,6 +2570,7 @@ internal class TestIoContext(
         stderrBytes.reset()
         stdinLineIndex = 0
         stdinBytesIndex = 0
+        exitCode = null
     }
 }
 
