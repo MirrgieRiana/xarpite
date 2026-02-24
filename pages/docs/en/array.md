@@ -368,8 +368,6 @@ $ xa '
 
 ## `$#array`: Getting Array Length
 
-## `$#array`: Getting Array Length
-
 `$#array` gets the number of elements in the array.
 
 See [Getting Length](./length.md) for details.
