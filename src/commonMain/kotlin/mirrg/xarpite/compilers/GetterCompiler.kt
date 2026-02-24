@@ -405,11 +405,11 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
     return when (node) {
         is InfixPeriodNode -> {
             when {
-                // stream.[] 配列化演算子
-                node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> {
+                node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> { // stream.[]
                     val streamGetter = compileToGetter(node.left)
                     ArrayCreationGetter(listOf(streamGetter))
                 }
+
                 else -> {
                     val receiverGetter = compileToGetter(node.left)
                     val nameGetter = when (node.right) {
