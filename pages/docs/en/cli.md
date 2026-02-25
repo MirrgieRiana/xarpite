@@ -1115,16 +1115,13 @@ This function does not return.
 **This function is available in JVM, Native, and Node.js versions. It is not supported in the browser version.**
 
 ```shell
-$ xa 'EXIT(0)'
-$ echo $?
+$ xa 'EXIT(0)'; echo $?
 # 0
 
-$ xa 'EXIT(1)'
-$ echo $?
+$ xa 'EXIT(1)'; echo $?
 # 1
 
-$ xa 'EXIT(42)'
-$ echo $?
+$ xa 'EXIT(42)'; echo $?
 # 42
 ```
 
