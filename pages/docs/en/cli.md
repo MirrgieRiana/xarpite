@@ -1110,10 +1110,6 @@ Other behavior generally follows the specifications of the `EXEC` function.
 
 Terminates the Xarpite process with the specified exit code.
 
-This function does not return.
-
-**This function is available in JVM, Native, and Node.js versions. It is not supported in the browser version.**
-
 ```shell
 $ xa 'EXIT(0)'; echo $?
 # 0
@@ -1124,18 +1120,3 @@ $ xa 'EXIT(1)'; echo $?
 $ xa 'EXIT(42)'; echo $?
 # 42
 ```
-
----
-
-The exit code must be a number.
-
-If a non-numeric value is passed, an error is thrown.
-
-```shell
-$ xa 'EXIT("not a number")' 2>&1
-# Error is thrown
-```
-
----
-
-This function is useful for returning specific exit codes from scripts, especially when integrating with shell scripts or CI/CD pipelines.
