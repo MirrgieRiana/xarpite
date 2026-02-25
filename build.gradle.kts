@@ -84,6 +84,13 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
+        jvmTest {
+            dependencies {
+                implementation("io.ktor:ktor-server-core:3.0.3")
+                implementation("io.ktor:ktor-server-cio:3.0.3")
+                implementation("io.ktor:ktor-server-test-host:3.0.3")
+            }
+        }
     }
 
 }
