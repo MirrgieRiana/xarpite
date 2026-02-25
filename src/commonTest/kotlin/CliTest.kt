@@ -2618,3 +2618,188 @@ private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String):
     // ブロック文字列リテラルを使用して、エスケープの問題を回避
     return """BASH(%>$script<%; $args)"""
 }
+
+    // ========== Ktorサーバーを使用したURL形式INCのテスト ==========
+
+    @Test
+    fun useModuleFromHttpUrlWithKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server ->
+            // サーバーにモジュールを配置
+            server.addRoute("/modules/mymodule.xa1", "\"Hello from HTTP Server!\"")
+            
+            val context = TestIoContext()
+            
+            // URL形式のINCパスを追加してモジュールをロード
+            val result = cliEval(
+                context,
+                """
+                    INC::push("${server.baseUrl}/modules")
+                    USE("mymodule")
+                """.trimIndent(),
+            ).toFluoriteString(null).value
+            
+            assertEquals("Hello from HTTP Server!", result)
+        }
+    }
+
+    @Test
+    fun useModuleFromHttpUrlWithSubdirectoryKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server ->
+            server.addRoute("/modules/utils/helpers.xa1", "\"Helper Functions from HTTP\"")
+            
+            val context = TestIoContext()
+            
+            val result = cliEval(
+                context,
+                """
+                    INC::push("${server.baseUrl}/modules")
+                    USE("utils/helpers")
+                """.trimIndent(),
+            ).toFluoriteString(null).value
+            
+            assertEquals("Helper Functions from HTTP", result)
+        }
+    }
+
+    @Test
+    fun useMavenCoordinateFromHttpUrlKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server ->
+            server.addRoute("/maven/com/example/mylib/1.0.0/mylib-1.0.0.xa1", "\"Maven Module from HTTP\"")
+            
+            val context = TestIoContext()
+            
+            val result = cliEval(
+                context,
+                """
+                    INC::push("${server.baseUrl}/maven")
+                    USE("com.example:mylib:1.0.0")
+                """.trimIndent(),
+            ).toFluoriteString(null).value
+            
+            assertEquals("Maven Module from HTTP", result)
+        }
+    }
+
+    @Test
+    fun httpUrlWithTrailingSlashNormalizationKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server ->
+            // 末尾スラッシュが正規化されて // にならないことを確認
+            server.addRoute("/modules/mymodule.xa1", "\"Normalized Path from HTTP\"")
+            
+            val context = TestIoContext()
+            
+            // 末尾スラッシュ付きでINCに追加
+            val result = cliEval(
+                context,
+                """
+                    INC::push("${server.baseUrl}/modules/")
+                    USE("mymodule")
+                """.trimIndent(),
+            ).toFluoriteString(null).value
+            
+            assertEquals("Normalized Path from HTTP", result)
+        }
+    }
+
+    @Test
+    fun httpUrlCaseInsensitiveSchemeKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server ->
+            server.addRoute("/modules/mymodule.xa1", "\"Case Insensitive from HTTP\"")
+            
+            val context = TestIoContext()
+            
+            // HTTPを大文字で指定
+            val httpUrl = server.baseUrl.replaceFirst("http://", "HTTP://")
+            val result = cliEval(
+                context,
+                """
+                    INC::push("$httpUrl/modules")
+                    USE("mymodule")
+                """.trimIndent(),
+            ).toFluoriteString(null).value
+            
+            assertEquals("Case Insensitive from HTTP", result)
+        }
+    }
+
+    @Test
+    fun multipleHttpUrlsInIncKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
+        withKtorServer { server1 ->
+            withKtorServer { server2 ->
+                // 2つのサーバーで異なるモジュールを提供
+                server1.addRoute("/modules/module1.xa1", "\"Module from Server 1\"")
+                server2.addRoute("/modules/module2.xa1", "\"Module from Server 2\"")
+                
+                val context = TestIoContext()
+                
+                // 最初のサーバーからモジュールをロード
+                val result1 = cliEval(
+                    context,
+                    """
+                        INC::push("${server1.baseUrl}/modules")
+                        USE("module1")
+                    """.trimIndent(),
+                ).toFluoriteString(null).value
+                
+                assertEquals("Module from Server 1", result1)
+                
+                // 2番目のサーバーからモジュールをロード
+                val result2 = cliEval(
+                    context,
+                    """
+                        INC::push("${server2.baseUrl}/modules")
+                        USE("module2")
+                    """.trimIndent(),
+                ).toFluoriteString(null).value
+                
+                assertEquals("Module from Server 2", result2)
+            }
+        }
+    }
+
+    @Test
+    fun httpUrlPrioritizesLocalPathsOverHttpKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        
+        withKtorServer { server ->
+            server.addRoute("/modules/priority.xa1", "\"HTTP Module\"")
+            
+            val context = TestIoContext()
+            
+            // ローカルファイルシステムにもモジュールを配置
+            val localDir = "build/test/inc.http.ktor.priority.tmp".toPath()
+            fileSystem.createDirectories(localDir)
+            val moduleFile = localDir.resolve("priority.xa1")
+            fileSystem.write(moduleFile) { writeUtf8("\"Local Module\"") }
+            
+            try {
+                // HTTP URLを先に追加し、ローカルパスを後に追加
+                // ローカルパスが優先されることを確認
+                val result = cliEval(context, """
+                    INC::push("${server.baseUrl}/modules")
+                    INC::push("build/test/inc.http.ktor.priority.tmp")
+                    USE("priority")
+                """.trimIndent()).toFluoriteString(null).value
+                
+                assertEquals("Local Module", result)
+            } finally {
+                // クリーンアップ
+                fileSystem.delete(moduleFile)
+                fileSystem.delete(localDir)
+            }
+        }
+    }
