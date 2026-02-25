@@ -12,7 +12,7 @@ import java.net.ServerSocket
 private class KtorServerControlImpl(
     private val port: Int
 ) : KtorServerControl {
-    private var server: ApplicationEngine? = null
+    private var server: EmbeddedServer<*, *>? = null
     private val routes = mutableMapOf<String, String>()
     
     override val baseUrl: String

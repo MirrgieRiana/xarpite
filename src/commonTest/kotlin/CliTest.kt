@@ -11,6 +11,7 @@ import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.KtorServerControl
 import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -18,7 +19,9 @@ import mirrg.xarpite.cli.addDefaultIncPaths
 import mirrg.xarpite.cli.cliEval as cliEvalImpl
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
+import mirrg.xarpite.cli.isKtorServerAvailable
 import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.withKtorServer
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
