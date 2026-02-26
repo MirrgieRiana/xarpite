@@ -1103,3 +1103,20 @@ Other behavior generally follows the specifications of the `EXEC` function.
 ---
 
 **This function is currently only provided in the JVM and Native versions.**
+
+### `EXIT`: Exit the process with a specified exit code
+
+`EXIT(code: INT): NOTHING`
+
+Terminates the Xarpite process with the specified exit code.
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

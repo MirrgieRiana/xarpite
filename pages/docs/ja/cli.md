@@ -1105,3 +1105,22 @@ $ xa '
 ---
 
 これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+**この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXIT`: 指定した終了コードでプロセスを終了
+
+`EXIT(code: INT): NOTHING`
+
+指定した終了コードでXarpiteプロセスを終了します。
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

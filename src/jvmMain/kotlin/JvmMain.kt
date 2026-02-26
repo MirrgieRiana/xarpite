@@ -27,6 +27,7 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
             override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
+            override fun exit(code: Int): Nothing = mirrg.xarpite.exit(code)
         }
         val options = try {
             parseArguments(args.asIterable(), ioContext)
