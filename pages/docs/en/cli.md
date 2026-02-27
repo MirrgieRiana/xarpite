@@ -442,13 +442,13 @@ USE("com.example:mylib:1.0.0")
 # but will fail when attempting to load because it tries to read from the local file system
 ```
 
-### `IN`, `I`: Read Strings Line by Line from Console
+### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
 A stream that reads strings line by line from standard input.
 
-`I` is an alias for `IN`.
+`I` and `INL` are aliases for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -1118,3 +1118,20 @@ Other behavior generally follows the specifications of the `EXEC` function.
 ---
 
 **This function is currently only provided in the JVM and Native versions.**
+
+### `EXIT`: Exit the process with a specified exit code
+
+`EXIT(code: INT): NOTHING`
+
+Terminates the Xarpite process with the specified exit code.
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

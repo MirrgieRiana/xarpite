@@ -16,6 +16,7 @@ import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
@@ -46,6 +47,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             arrayOf(
                 "IN" define inStream,
                 "I" define inStream,
+                "INL" define inStream,
             )
         },
         "INB" define FluoriteStream {
@@ -274,6 +276,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 else -> output
             }
             result.toFluoriteString()
+        },
+        "EXIT" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
+            val code = arguments[0].toFluoriteNumber(null).toInt()
+            context.io.exit(code)
         },
     ).let { listOf(it) }
 }

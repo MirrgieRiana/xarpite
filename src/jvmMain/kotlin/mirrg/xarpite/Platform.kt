@@ -88,3 +88,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
         }
     }
 }
+
+fun exit(code: Int): Nothing {
+    kotlin.system.exitProcess(code)
+}
