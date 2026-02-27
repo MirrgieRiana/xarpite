@@ -6,16 +6,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.TestScope
 import java.net.ServerSocket
-
-/**
- * Ktorサーバーの制御インターフェース。
- */
-interface KtorServerControl {
-    val baseUrl: String
-    fun addRoute(path: String, content: String)
-}
 
 private class KtorServerControlImpl(
     private val port: Int
@@ -30,14 +21,31 @@ private class KtorServerControlImpl(
         routes[path] = content
     }
     
-    suspend fun start() {
-        // ルートを登録してからサーバーを起動
-        val routesToRegister = routes.toMap()
+    override fun start() {
+        // 何もしない（startは自動的に呼ばれる）
+    }
+    
+    override fun stop() {
+        server?.stop(1000, 2000)
+        server = null
+    }
+    
+    fun getContent(path: String): String? {
+        return routes[path]
+    }
+    
+    suspend fun startServer() {
+        // 動的にルートを参照するサーバーを起動
         server = embeddedServer(CIO, port = port) {
             routing {
-                for ((path, content) in routesToRegister) {
-                    get(path) {
+                get("{...}") {
+                    val path = call.request.local.uri
+                    val content = getContent(path)
+                    if (content != null) {
                         call.respondText(content)
+                    } else {
+                        call.response.status(io.ktor.http.HttpStatusCode.NotFound)
+                        call.respondText("Not Found: $path")
                     }
                 }
             }
@@ -46,34 +54,18 @@ private class KtorServerControlImpl(
         // サーバーが起動するまで少し待つ
         delay(200)
     }
-    
-    fun stop() {
-        server?.stop(1000, 2000)
-        server = null
-    }
 }
 
-/**
- * Ktorサーバーを使用したテストのヘルパー関数。
- * JVMプラットフォーム専用。
- * 
- * setup: ルートを追加する関数
- * test: サーバー起動後にテストを実行する関数
- */
-suspend fun TestScope.withKtorServer(
-    port: Int? = null,
-    setup: (server: KtorServerControl) -> Unit,
-    test: suspend (server: KtorServerControl) -> Unit
-) {
-    val actualPort = port ?: ServerSocket(0).use { it.localPort }
-    val control = KtorServerControlImpl(actualPort)
+actual fun isKtorServerAvailable(): Boolean = true
+
+actual suspend fun withKtorServer(block: suspend (KtorServerControl) -> Unit) {
+    val port = ServerSocket(0).use { it.localPort }
+    val control = KtorServerControlImpl(port)
     try {
-        // ルートを追加
-        setup(control)
-        // サーバーを起動
-        control.start()
-        // テストを実行
-        test(control)
+        // サーバーを起動（ルートは動的に参照される）
+        control.startServer()
+        // ブロックを実行（ルート追加とテスト実行）
+        block(control)
     } finally {
         control.stop()
     }

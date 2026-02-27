@@ -1,16 +1,8 @@
 package mirrg.xarpite.cli
 
 import kotlinx.coroutines.test.runTest
-import mirrg.xarpite.TestIoContext
-import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.io.getHttpClient
 import kotlin.test.Test
 import kotlin.test.assertEquals
-
-// cliEvalImplのエイリアスを定義
-private suspend fun cliEval(context: TestIoContext, vararg args: String): FluoriteValue {
-    return cliEvalImpl(context, *args)
-}
 
 /**
  * Ktorサーバーを使用したURL形式INCの統合テスト
@@ -20,6 +12,9 @@ class IncUrlKtorTest {
 
     @Test
     fun useModuleFromHttpUrlWithKtorServer() = runTest {
+        // JVMプラットフォームでのみ実行
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             // サーバーにモジュールを配置
             server.addRoute("/modules/mymodule.xa1", "\"Hello from HTTP Server!\"")
@@ -27,7 +22,7 @@ class IncUrlKtorTest {
             // HTTPクライアントを使用したfetchHandlerを設定
             val context = TestIoContext(
                 fetchHandler = { url ->
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -46,13 +41,15 @@ class IncUrlKtorTest {
 
     @Test
     fun useModuleFromHttpUrlWithSubdirectoryKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             // サーバーにサブディレクトリ付きモジュールを配置
             server.addRoute("/base/utils/helper.xa1", "\"Helper Module\"")
 
             val context = TestIoContext(
                 fetchHandler = { url ->
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -70,13 +67,15 @@ class IncUrlKtorTest {
 
     @Test
     fun useMavenCoordinateFromHttpUrlKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             // Maven座標形式のパスでモジュールを配置
             server.addRoute("/repo/com/example/mylib/1.0.0/mylib-1.0.0.xa1", "\"Maven Module v1.0.0\"")
 
             val context = TestIoContext(
                 fetchHandler = { url ->
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -94,13 +93,15 @@ class IncUrlKtorTest {
 
     @Test
     fun httpUrlWithTrailingSlashNormalizationKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             // 末尾スラッシュを含むURL
             server.addRoute("/modules/testmodule.xa1", "\"Normalized Path\"")
 
             val context = TestIoContext(
                 fetchHandler = { url ->
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -119,13 +120,15 @@ class IncUrlKtorTest {
 
     @Test
     fun httpUrlCaseInsensitiveSchemeKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             server.addRoute("/modules/casetest.xa1", "\"Case Insensitive Scheme\"")
 
             val context = TestIoContext(
                 fetchHandler = { url ->
                     // URLは小文字に正規化されているはず
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -144,6 +147,8 @@ class IncUrlKtorTest {
 
     @Test
     fun multipleHttpUrlsInIncKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server1 ->
             withKtorServer { server2 ->
                 // 2つのサーバーにそれぞれモジュールを配置
@@ -152,7 +157,7 @@ class IncUrlKtorTest {
 
                 val context = TestIoContext(
                     fetchHandler = { url ->
-                        getHttpClient().get(url).readRawBytes().decodeToString()
+                        mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                     }
                 )
 
@@ -182,12 +187,14 @@ class IncUrlKtorTest {
 
     @Test
     fun httpUrlPrioritizesLocalPathsOverHttpKtorServer() = runTest {
+        if (!isKtorServerAvailable()) return@runTest
+        
         withKtorServer { server ->
             server.addRoute("/modules/priority.xa1", "\"HTTP Module\"")
 
             val context = TestIoContext(
                 fetchHandler = { url ->
-                    getHttpClient().get(url).readRawBytes().decodeToString()
+                    mirrg.xarpite.io.getHttpClient().get(url).readRawBytes().decodeToString()
                 }
             )
 
@@ -205,4 +212,5 @@ class IncUrlKtorTest {
             assertEquals("HTTP Module", result)
         }
     }
+}
 }
