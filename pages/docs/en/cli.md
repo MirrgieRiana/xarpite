@@ -433,13 +433,12 @@ $ {
 
 ---
 
-Example of URL format specification (network loading not implemented - will cause error in actual use):
+Example of URL format specification:
 
 ```
 INC::push("https://example.com/xarpite/modules")
 USE("com.example:mylib:1.0.0")
-# Resolves to https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 as a search path,
-# but will fail when attempting to load because it tries to read from the local file system
+# Loads the module from https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 via HTTP
 ```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console

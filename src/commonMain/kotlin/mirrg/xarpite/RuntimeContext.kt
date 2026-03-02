@@ -39,7 +39,9 @@ class RuntimeContext(
     suspend fun getModuleSrc(location: String): String {
         return srcs.getOrPut(location) {
             // URL形式の場合はfetchを使用
-            if (location.startsWith("http://", ignoreCase = true) || location.startsWith("https://", ignoreCase = true)) {
+            // Note: この判定ロジックはModuleMounts.ktのisUrlFormat()と一致させること
+            val trimmedLocation = location.trim()
+            if (trimmedLocation.startsWith("http://", ignoreCase = true) || trimmedLocation.startsWith("https://", ignoreCase = true)) {
                 val bytes = io.fetch(this, location)
                 bytes.decodeToString()
             } else {

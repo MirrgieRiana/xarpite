@@ -443,13 +443,12 @@ $ {
 
 ---
 
-URL形式の指定例（ネットワークロードは未実装のため、実際には使用できません）：
+URL形式の指定例：
 
 ```
 INC::push("https://example.com/xarpite/modules")
 USE("com.example:mylib:1.0.0")
-# https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 が検索パスとして解決されるが、
-# 実際のロード時にローカルファイルシステムから読み込もうとしてエラーになる
+# https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 からHTTP経由でモジュールをロードします
 ```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
