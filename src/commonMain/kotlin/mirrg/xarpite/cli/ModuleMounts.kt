@@ -15,6 +15,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.util.isUrlFormat
 import okio.Path
 import okio.Path.Companion.toPath
 
