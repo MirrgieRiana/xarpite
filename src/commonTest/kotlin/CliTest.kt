@@ -2545,9 +2545,6 @@ class CliTest {
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
-    // ========== Ktorサーバーを使用したURL形式INCのテスト ==========
-    // TODO: JVMプラットフォームでのみ実行されるKtorサーバーを使用したテストを追加
-
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {

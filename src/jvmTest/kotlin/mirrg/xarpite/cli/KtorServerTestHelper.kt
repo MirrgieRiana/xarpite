@@ -6,7 +6,15 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
-import java.net.ServerSocket
+
+/**
+ * Ktorサーバーのコントロールインターフェース
+ */
+interface KtorServerControl {
+    val baseUrl: String
+    fun addRoute(path: String, content: String)
+    fun stop()
+}
 
 private class KtorServerControlImpl(
     private val port: Int
@@ -21,10 +29,6 @@ private class KtorServerControlImpl(
         routes[path] = content
     }
     
-    override fun start() {
-        // 何もしない（startは自動的に呼ばれる）
-    }
-    
     override fun stop() {
         server?.stop(1000, 2000)
         server = null
@@ -35,7 +39,7 @@ private class KtorServerControlImpl(
     }
     
     suspend fun startServer() {
-        // 動的にルートを参照するサーバーを起動
+        // Ktor側でport = 0を使用して空きポートを自動割り当て
         server = embeddedServer(CIO, port = port) {
             routing {
                 get("{...}") {
@@ -51,15 +55,31 @@ private class KtorServerControlImpl(
             }
         }.start(wait = false)
         
-        // サーバーが起動するまで少し待つ
-        delay(200)
+        // サーバーが実際に応答できるまで待つ
+        var retries = 50
+        while (retries > 0) {
+            try {
+                // 簡易的な接続確認
+                java.net.Socket("localhost", port).use { }
+                break
+            } catch (e: Exception) {
+                delay(100)
+                retries--
+            }
+        }
+        if (retries == 0) {
+            throw IllegalStateException("Ktor server failed to start")
+        }
     }
 }
 
-actual fun isKtorServerAvailable(): Boolean = true
-
-actual suspend fun withKtorServer(block: suspend (KtorServerControl) -> Unit) {
-    val port = ServerSocket(0).use { it.localPort }
+/**
+ * Ktorサーバーを起動してテストを実行する
+ * JVMプラットフォーム専用
+ */
+suspend fun withKtorServer(block: suspend (KtorServerControl) -> Unit) {
+    // Ktor側でport = 0を指定して空きポートを自動割り当て
+    val port = 0
     val control = KtorServerControlImpl(port)
     try {
         // サーバーを起動（ルートは動的に参照される）

@@ -143,10 +143,3 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     }
 
 }
-
-private fun isUrlFormat(path: String): Boolean {
-    // URLスキームは大文字小文字を区別しない (RFC 3986)
-    val trimmedPath = path.trim()
-    return trimmedPath.startsWith("http://", ignoreCase = true) || 
-           trimmedPath.startsWith("https://", ignoreCase = true)
-}
