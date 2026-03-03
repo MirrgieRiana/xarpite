@@ -78,8 +78,8 @@ private class KtorServerControlImpl(
  * JVMプラットフォーム専用
  */
 suspend fun withKtorServer(block: suspend (KtorServerControl) -> Unit) {
-    // Ktor側でport = 0を指定して空きポートを自動割り当て
-    val port = 0
+    // ServerSocketで空きポートを取得
+    val port = java.net.ServerSocket(0).use { it.localPort }
     val control = KtorServerControlImpl(port)
     try {
         // サーバーを起動（ルートは動的に参照される）
