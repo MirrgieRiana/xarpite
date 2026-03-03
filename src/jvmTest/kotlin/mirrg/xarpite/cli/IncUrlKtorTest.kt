@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.test.get
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 import kotlin.test.Test
