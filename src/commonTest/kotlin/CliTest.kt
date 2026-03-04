@@ -2691,6 +2691,3 @@ private fun getBashSrcWrappingHexForShellWithArgs(script: String, args: String):
     // ブロック文字列リテラルを使用して、エスケープの問題を回避
     return """BASH(%>$script<%; $args)"""
 }
-
-    // ========== Ktorサーバーを使用したURL形式INCのテスト ==========
-    // これらのテストはJVMプラットフォーム専用で、src/jvmTest/kotlin/mirrg/xarpite/cli/IncUrlKtorTest.ktに実装済み
