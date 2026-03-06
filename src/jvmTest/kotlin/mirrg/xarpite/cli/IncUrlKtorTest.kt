@@ -84,7 +84,7 @@ class IncUrlKtorTest {
             
             val result = cliEval(io, """
                 INC::push("${server.baseUrl}/maven")
-                USE("com.example.mylib:mylib:1.0.0")
+                USE("com.example:mylib:1.0.0")
             """.trimIndent()).toFluoriteString(null).value
             
             assertEquals("Maven Module", result)
