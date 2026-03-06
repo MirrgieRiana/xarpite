@@ -316,6 +316,14 @@ Updates the currently running Xarpite to the latest version.
 
 This command requires permission to write to the installation directory.
 
+By default, only minor updates within the same major version are applied.
+
+If a new version with a different major version is available, you will be notified.
+
+#### `-f`: Allow Major Version Updates
+
+When the `-f` option is specified, updates including major version changes will be applied.
+
 ## CLI-Exclusive Built-in Constants and Functions
 
 ### `ARGS`: Get Command-Line Arguments
