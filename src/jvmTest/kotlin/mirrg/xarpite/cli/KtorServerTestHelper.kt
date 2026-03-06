@@ -39,7 +39,7 @@ private class KtorServerControlImpl(
     }
     
     suspend fun startServer() {
-        // Ktor側でport = 0を使用して空きポートを自動割り当て
+        // 事前にServerSocketで取得した空きポート番号を使用してKtorサーバーを起動
         server = embeddedServer(CIO, port = port) {
             routing {
                 get("{...}") {
