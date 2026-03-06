@@ -15,7 +15,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
-import mirrg.xarpite.util.isUrlFormat
+import mirrg.xarpite.isUrlFormat
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -45,8 +45,8 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
-    // ローカルパスを先に探索するため、URLか否かで安定ソート
-    val sortedIncPaths = inc.values.map { it.toFluoriteString(null).value }.sortedBy { isUrlFormat(it) }
+    // ローカルパスを先に探索するため、URLか否かでパーティション
+    val (localIncPaths, urlIncPaths) = inc.values.map { it.toFluoriteString(null).value }.partition { !isUrlFormat(it) }
 
     fun Path.tryToLoad(): Boolean {
         paths += this
@@ -85,14 +85,13 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
 
-        sortedIncPaths.forEach { incPath ->
-            if (isUrlFormat(incPath)) {
-                val normalizedIncPath = incPath.trimEnd('/')
-                return "$normalizedIncPath/$suffix"
-            } else {
-                val path = incPath.toPath().resolve(suffix).normalized()
-                path.let { if (it.tryToLoad()) return it.toString() }
-            }
+        localIncPaths.forEach { incPath ->
+            val path = incPath.toPath().resolve(suffix).normalized()
+            path.let { if (it.tryToLoad()) return it.toString() }
+        }
+        urlIncPaths.forEach { incPath ->
+            val normalizedIncPath = incPath.trimEnd('/')
+            return "$normalizedIncPath/$suffix"
         }
 
         fail("Maven artifact not found: $reference")
@@ -100,20 +99,19 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     // INCを起点とした相対パス
     run {
-        sortedIncPaths.forEach { incPath ->
-            if (isUrlFormat(incPath)) {
-                val normalizedIncPath = incPath.trimEnd('/')
-                val basePath = "$normalizedIncPath/$reference"
-                return if (!basePath.endsWith(MODULE_EXTENSION)) {
-                    "$basePath$MODULE_EXTENSION"
-                } else {
-                    basePath
-                }
+        localIncPaths.forEach { incPath ->
+            val path = incPath.toPath().resolve(reference).normalized()
+            path.let { if (it.tryToLoad()) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+        }
+        urlIncPaths.forEach { incPath ->
+            val normalizedIncPath = incPath.trimEnd('/')
+            val basePath = "$normalizedIncPath/$reference"
+            return if (!basePath.endsWith(MODULE_EXTENSION)) {
+                "$basePath$MODULE_EXTENSION"
             } else {
-                val path = incPath.toPath().resolve(reference).normalized()
-                path.let { if (it.tryToLoad()) return it.toString() }
-                path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-                path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+                basePath
             }
         }
 

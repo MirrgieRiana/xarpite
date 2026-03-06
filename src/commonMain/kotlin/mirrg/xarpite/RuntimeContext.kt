@@ -9,7 +9,6 @@ import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.util.isUrlFormat
 import okio.Path.Companion.toPath
 
 class RuntimeContext(
@@ -39,8 +38,6 @@ class RuntimeContext(
 
     suspend fun getModuleSrc(location: String): String {
         return srcs.getOrPut(location) {
-            // URL形式の場合はfetchを使用
-            // Note: isUrlFormat()関数を使用して判定（mirrg.xarpite.util.UrlFormat.kt）
             if (isUrlFormat(location)) {
                 val bytes = io.fetch(this, location)
                 bytes.decodeToString()
