@@ -44,15 +44,13 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
-    val fileSystemResult = getFileSystem()
 
     // ローカルパスを先に探索するため、URLか否かで安定ソート
     val sortedIncPaths = inc.values.map { it.toFluoriteString(null).value }.sortedBy { isUrlFormat(it) }
 
     fun Path.tryToLoad(): Boolean {
-        if (fileSystemResult.isFailure) return false
         paths += this
-        val metadata = fileSystemResult.getOrThrow().metadataOrNull(this) ?: return false
+        val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
         return metadata.isRegularFile
     }
 
@@ -68,15 +66,13 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         throw FluoriteException(lines.join("\n").toFluoriteString())
     }
 
-    // ファイルパス（ファイルシステムが利用可能な場合のみ）
-    if (fileSystemResult.isSuccess) {
-        if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-            val path = baseDir.toPath().resolve(reference).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
-            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
-            fail("Module file not found: $reference")
-        }
+    // ファイルパス
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        val path = baseDir.toPath().resolve(reference).normalized()
+        path.let { if (it.tryToLoad()) return it.toString() }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
+        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+        fail("Module file not found: $reference")
     }
 
     // Maven座標
@@ -93,7 +89,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             if (isUrlFormat(incPath)) {
                 val normalizedIncPath = incPath.trimEnd('/')
                 return "$normalizedIncPath/$suffix"
-            } else if (fileSystemResult.isSuccess) {
+            } else {
                 val path = incPath.toPath().resolve(suffix).normalized()
                 path.let { if (it.tryToLoad()) return it.toString() }
             }
@@ -113,7 +109,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
                 } else {
                     basePath
                 }
-            } else if (fileSystemResult.isSuccess) {
+            } else {
                 val path = incPath.toPath().resolve(reference).normalized()
                 path.let { if (it.tryToLoad()) return it.toString() }
                 path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
