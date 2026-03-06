@@ -139,6 +139,7 @@ import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
+import mirrg.xarpite.operations.ObjectFromStreamGetter
 import mirrg.xarpite.operations.ObjectInitializer
 import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
@@ -408,6 +409,11 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
                 node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> { // stream.[]
                     val streamGetter = compileToGetter(node.left)
                     ArrayCreationGetter(listOf(streamGetter))
+                }
+
+                node.right is BracketsLiteralSimpleCurlyNode && node.right.body is EmptyNode -> { // stream.{}
+                    val streamGetter = compileToGetter(node.left)
+                    ObjectFromStreamGetter(streamGetter)
                 }
 
                 else -> {
