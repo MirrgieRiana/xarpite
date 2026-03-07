@@ -38,9 +38,8 @@ class RuntimeContext(
 
     suspend fun getModuleSrc(location: String): String {
         return srcs.getOrPut(location) {
-            if (isUrlFormat(location)) {
-                val bytes = io.fetch(this, location)
-                bytes.decodeToString()
+            if (isUrl(location)) {
+                io.fetch(this, location).decodeToString()
             } else {
                 getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
             }

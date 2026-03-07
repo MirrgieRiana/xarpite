@@ -411,44 +411,32 @@ $ FOO=bar xa 'ENV.FOO'
 
 `INC: ARRAY<STRING>`
 
-Maven座標形式でモジュールを `USE` する際に検索されるディレクトリパスの配列です。
+モジュールを `USE` する際に検索されるディレクトリパスやURLの配列です。
 
-相対パスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+`http://` もしくは `https://`で始まる文字列はURLとして解釈されます。
+
+相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
 
 デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
 
 ---
 
-`INC` に値を追加することで、カスタムのモジュール検索パスを追加できます。
-
-検索パスには通常のファイルパスの他に、 `http://` 、 `https://` などのURL形式も指定できますが、現在の実装ではモジュールの検索パスとして解決されるのみで、実際にネットワーク経由でモジュールを取得する機能は未実装です。
-
-URL形式で指定された場合、そのURLの子パスを検索パスとして生成しますが、実際のモジュールロードはローカルファイルシステムからのみ行われるため、URL形式の検索パスでモジュールをロードしようとするとファイルが見つからずにエラーになります。
+この配列はプログラムから実行中に変更することで、モジュールの検索対象を動的に変更することができます。
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+  mkdir module-fruits
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+  echo ' "Apple" ' > module-fruits/apple.xa1
 
   xa '
-    INC::push("maven-fruit")
-    USE("com.example.fruit:apple:1.0.0")
+    INC += "module-fruits"
+    USE("apple")
   '
 
-  rm -r maven-fruit
+  rm -r module-fruits
 }
 # Apple
-```
-
----
-
-URL形式の指定例：
-
-```
-INC::push("https://example.com/xarpite/modules")
-USE("com.example:mylib:1.0.0")
-# https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 からHTTP経由でモジュールをロードします
 ```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る

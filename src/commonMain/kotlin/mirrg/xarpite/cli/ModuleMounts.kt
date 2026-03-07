@@ -12,10 +12,10 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.isUrl
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
-import mirrg.xarpite.isUrlFormat
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -45,8 +45,9 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
 
-    // ローカルパスを先に探索するため、URLか否かでパーティション
-    val (localIncPaths, urlIncPaths) = inc.values.map { it.toFluoriteString(null).value }.partition { !isUrlFormat(it) }
+    val (directoryPathInc, urlInc) = inc.values
+        .map { it.toFluoriteString(null).value }
+        .partition { !isUrl(it) }
 
     fun Path.tryToLoad(): Boolean {
         paths += this
@@ -85,12 +86,12 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
 
-        localIncPaths.forEach { incPath ->
-            val path = incPath.toPath().resolve(suffix).normalized()
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(suffix).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
         }
-        urlIncPaths.forEach { incPath ->
-            val normalizedIncPath = incPath.trimEnd('/')
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
             return "$normalizedIncPath/$suffix"
         }
 
@@ -99,14 +100,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     // INCを起点とした相対パス
     run {
-        localIncPaths.forEach { incPath ->
-            val path = incPath.toPath().resolve(reference).normalized()
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(reference).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
             path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
             path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         }
-        urlIncPaths.forEach { incPath ->
-            val normalizedIncPath = incPath.trimEnd('/')
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
             val basePath = "$normalizedIncPath/$reference"
             return if (!basePath.endsWith(MODULE_EXTENSION)) {
                 "$basePath$MODULE_EXTENSION"

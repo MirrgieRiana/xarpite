@@ -328,12 +328,7 @@ fun Path.isAncestorOf(other: Path): Boolean {
     }
 }
 
-
-fun isUrlFormat(path: String): Boolean {
-    val trimmedPath = path.trim()
-    return trimmedPath.startsWith("http://", ignoreCase = true) ||
-        trimmedPath.startsWith("https://", ignoreCase = true)
-}
+fun isUrl(location: String) = location.startsWith("http://", ignoreCase = true) || location.startsWith("https://", ignoreCase = true)
 
 
 // I/O utilities
