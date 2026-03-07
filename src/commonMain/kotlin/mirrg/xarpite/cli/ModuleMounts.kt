@@ -42,8 +42,10 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
+context(context: RuntimeContext)
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
+    val urls = mutableListOf<String>()
 
     val (directoryPathInc, urlInc) = inc.values
         .map { it.toFluoriteString(null).value }
@@ -55,12 +57,25 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         return metadata.isRegularFile
     }
 
+    suspend fun String.tryToFetch(): Boolean {
+        urls += this
+        return try {
+            context.getModuleSrc(this)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     fun fail(message: String): Nothing {
         val lines = mutableListOf<String>()
         lines += message
-        if (paths.isNotEmpty()) {
+        if (paths.isNotEmpty() || urls.isNotEmpty()) {
             lines += "Tried paths:"
             paths.forEach {
+                lines += "- $it"
+            }
+            urls.forEach {
                 lines += "- $it"
             }
         }
@@ -92,7 +107,8 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         }
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
-            return "$normalizedIncPath/$suffix"
+            val url = "$normalizedIncPath/$suffix"
+            if (url.tryToFetch()) return url
         }
 
         fail("Maven artifact not found: $reference")
@@ -109,11 +125,12 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
             val basePath = "$normalizedIncPath/$reference"
-            return if (!basePath.endsWith(MODULE_EXTENSION)) {
+            val url = if (!basePath.endsWith(MODULE_EXTENSION)) {
                 "$basePath$MODULE_EXTENSION"
             } else {
                 basePath
             }
+            if (url.tryToFetch()) return url
         }
 
         fail("Module file not found in INC paths: $reference")

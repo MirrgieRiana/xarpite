@@ -401,44 +401,32 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 `INC: ARRAY<STRING>`
 
-An array of directory paths that are searched when using `USE` with Maven coordinate format.
+An array of directory paths and URLs that are searched when loading modules with `USE`.
 
-When a relative path is specified, it is resolved based on `PWD`.
+Strings beginning with `http://` or `https://` are interpreted as URLs.
+
+When a relative directory path is specified, it is resolved based on `PWD`.
 
 By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 ---
 
-You can add custom module search paths by adding values to `INC`.
-
-In addition to normal file paths, search paths can also be specified in URL format such as `http://` or `https://`, but **network-based module loading is not yet implemented** in the current version.
-
-When specified in URL format, child paths are generated as search paths, but actual module loading only occurs from the local file system. Therefore, attempting to load a module using a URL format search path will result in a file not found error.
+You can dynamically change the module search targets by modifying this array at runtime.
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+  mkdir module-fruits
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+  echo ' "Apple" ' > module-fruits/apple.xa1
 
   xa '
-    INC::push("maven-fruit")
-    USE("com.example.fruit:apple:1.0.0")
+    INC += "module-fruits"
+    USE("apple")
   '
 
-  rm -r maven-fruit
+  rm -r module-fruits
 }
 # Apple
-```
-
----
-
-Example of URL format specification:
-
-```
-INC::push("https://example.com/xarpite/modules")
-USE("com.example:mylib:1.0.0")
-# Loads the module from https://example.com/xarpite/modules/com/example/mylib/1.0.0/mylib-1.0.0.xa1 via HTTP
 ```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
@@ -933,38 +921,18 @@ $ {
 # Apple
 ```
 
-#### Specification by Maven Coordinates
-
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
-
-Maven coordinate format is specified as `group:artifact:version`.
-
-The `.xa1` extension is automatically appended.
-
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
-
-```shell
-$ {
-  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
-
-  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
-
-  xa 'USE("com.example.fruit:apple:1.0.0")'
-
-  rm -r .xarpite
-}
-# Apple
-```
-
 #### Specification by Relative Path from `INC`
 
-If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories and URLs registered in `INC`.
 
 Modules in paths closer to the beginning of the `INC` array are given priority.
+
+Local path entries are searched before URL-format entries.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
 The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+However, the `/main.xa1` fallback is not performed for URL-format entries.
 
 ```shell
 $ {
@@ -983,6 +951,31 @@ $ {
 }
 # Apple
 # Apple
+# Apple
+```
+
+#### Specification by Maven Coordinates
+
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories and URLs registered in `INC`.
+
+Maven coordinate format is specified as `group:artifact:version`.
+
+The `.xa1` extension is automatically appended.
+
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+
+Local path entries are searched before URL-format entries.
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
 # Apple
 ```
 

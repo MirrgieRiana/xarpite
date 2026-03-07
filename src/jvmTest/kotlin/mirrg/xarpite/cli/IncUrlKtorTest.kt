@@ -132,6 +132,56 @@ class IncUrlKtorTest {
         }
     }
     
+    @Test
+    fun urlFallbackOnFetchError() = runTest {
+        withKtorServer { server ->
+            // 2番目のパスにのみモジュールを配置（1番目は404を返す）
+            server.addRoute("/server2/modules/fallback.xa1", "\"Fallback Works!\"")
+            
+            // expectSuccess = true で404時に例外を投げるfetchHandler
+            val io = createTestIoContext { _, url ->
+                HttpClient(CIO) {
+                    expectSuccess = true
+                }.use { client ->
+                    client.get(url).readRawBytes()
+                }
+            }
+            
+            // 1番目のURLは404、2番目のURLにモジュールが存在
+            val result = cliEval(io, """
+                INC::push("${server.baseUrl}/server1/modules")
+                INC::push("${server.baseUrl}/server2/modules")
+                USE("fallback")
+            """.trimIndent()).toFluoriteString(null).value
+            
+            assertEquals("Fallback Works!", result)
+        }
+    }
+    
+    @Test
+    fun urlFallbackMavenCoordinate() = runTest {
+        withKtorServer { server ->
+            // 2番目のURLにのみMavenモジュールを配置
+            server.addRoute("/repo2/com/example/lib/1.0.0/lib-1.0.0.xa1", "\"Maven Fallback\"")
+            
+            val io = createTestIoContext { _, url ->
+                HttpClient(CIO) {
+                    expectSuccess = true
+                }.use { client ->
+                    client.get(url).readRawBytes()
+                }
+            }
+            
+            val result = cliEval(io, """
+                INC::push("${server.baseUrl}/repo1")
+                INC::push("${server.baseUrl}/repo2")
+                USE("com.example:lib:1.0.0")
+            """.trimIndent()).toFluoriteString(null).value
+            
+            assertEquals("Maven Fallback", result)
+        }
+    }
+    
     // テスト用のIoContextを作成するヘルパー関数
     private fun createTestIoContext(
         fetchHandler: suspend (RuntimeContext, String) -> ByteArray
