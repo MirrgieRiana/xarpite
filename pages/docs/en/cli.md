@@ -923,13 +923,15 @@ $ {
 
 #### Specification by Relative Path from `INC`
 
-If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories and URLs registered in `INC`.
 
 Modules in paths closer to the beginning of the `INC` array are given priority.
 
+Local path entries are searched before URL-format entries.
+
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
-The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted. However, the `/main.xa1` fallback is not performed for URL-format entries.
 
 ```shell
 $ {
@@ -953,9 +955,11 @@ $ {
 
 #### Specification by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories and URLs registered in `INC`.
 
 Maven coordinate format is specified as `group:artifact:version`.
+
+Local path entries are searched before URL-format entries.
 
 The `.xa1` extension is automatically appended.
 
