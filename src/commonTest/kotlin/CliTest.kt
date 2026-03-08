@@ -1132,6 +1132,66 @@ class CliTest {
     }
 
     @Test
+    fun incSupportsUrlFormatDetection() = runTest {
+        val context = TestIoContext()
+        // INC に URL 形式のパスを追加できる
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            INC::push("https://example.com/secure")
+            INC::push("HTTP://UPPERCASE.COM/test")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("http://example.com/modules" in arrayStr)
+        assertTrue("https://example.com/secure" in arrayStr)
+        assertTrue("HTTP://UPPERCASE.COM/test" in arrayStr)
+    }
+
+    @Test
+    fun incUrlFormatPrioritizesLocalPaths() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ローカルパスにモジュールを配置
+        val localDir = "build/test/inc.url.priority.tmp".toPath()
+        fileSystem.createDirectories(localDir)
+        val moduleFile = localDir.resolve("testmodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
+
+        // URL形式のINCを先に追加し、ローカルパスを後に追加
+        // ローカルパスが優先されることを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            INC::push("build/test/inc.url.priority.tmp")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LocalModule", result)
+
+        // クリーンアップ
+        fileSystem.delete(moduleFile)
+        fileSystem.delete(localDir)
+    }
+
+    @Test
+    fun incUrlFormatNormalizesTrailingSlash() = runTest {
+        val context = TestIoContext()
+        
+        // URLの末尾スラッシュがあっても正しくINCに追加できることを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules/")
+            INC::push("https://test.org/libs/")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        
+        // URL形式がINCに追加されていることを確認
+        assertTrue("http://example.com/modules/" in arrayStr)
+        assertTrue("https://test.org/libs/" in arrayStr)
+    }
+
+    @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

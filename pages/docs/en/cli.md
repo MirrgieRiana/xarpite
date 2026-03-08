@@ -401,28 +401,30 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 `INC: ARRAY<STRING>`
 
-An array of directory paths that are searched when using `USE` with Maven coordinate format.
+An array of directory paths and URLs that are searched when loading modules with `USE`.
 
-When a relative path is specified, it is resolved based on `PWD`.
+Strings starting with `http://` or `https://` are interpreted as URLs.
+
+When a relative directory path is specified, it is resolved based on `PWD`.
 
 By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 ---
 
-You can add custom module search paths by adding values to `INC`.
+By modifying this array at runtime from a program, you can dynamically change the module search targets.
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+  mkdir module-fruits
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+  echo ' "Apple" ' > module-fruits/apple.xa1
 
   xa '
-    INC::push("maven-fruit")
-    USE("com.example.fruit:apple:1.0.0")
+    INC += "module-fruits"
+    USE("apple")
   '
 
-  rm -r maven-fruit
+  rm -r module-fruits
 }
 # Apple
 ```
@@ -919,29 +921,6 @@ $ {
 # Apple
 ```
 
-#### Specification by Maven Coordinates
-
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
-
-Maven coordinate format is specified as `group:artifact:version`.
-
-The `.xa1` extension is automatically appended.
-
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
-
-```shell
-$ {
-  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
-
-  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
-
-  xa 'USE("com.example.fruit:apple:1.0.0")'
-
-  rm -r .xarpite
-}
-# Apple
-```
-
 #### Specification by Relative Path from `INC`
 
 If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
@@ -969,6 +948,29 @@ $ {
 }
 # Apple
 # Apple
+# Apple
+```
+
+#### Specification by Maven Coordinates
+
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+
+Maven coordinate format is specified as `group:artifact:version`.
+
+The `.xa1` extension is automatically appended.
+
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
 # Apple
 ```
 

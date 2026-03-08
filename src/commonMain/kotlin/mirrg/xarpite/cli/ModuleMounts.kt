@@ -12,6 +12,7 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.isUrl
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
@@ -41,13 +42,30 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
+context(context: RuntimeContext)
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
     val paths = mutableListOf<Path>()
+    val urls = mutableListOf<String>()
+
+    val (directoryPathInc, urlInc) = inc.values
+        .map { it.toFluoriteString(null).value }
+        .partition { !isUrl(it) }
 
     fun Path.tryToLoad(): Boolean {
         paths += this
         val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
         return metadata.isRegularFile
+    }
+
+    suspend fun tryToFetch(url: String): Boolean {
+        urls += url
+        return try {
+            val content = context.io.fetch(context, url).decodeToString()
+            context.setSrc(url, content)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun fail(message: String): Nothing {
@@ -56,6 +74,12 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         if (paths.isNotEmpty()) {
             lines += "Tried paths:"
             paths.forEach {
+                lines += "- $it"
+            }
+        }
+        if (urls.isNotEmpty()) {
+            lines += "Tried URLs:"
+            urls.forEach {
                 lines += "- $it"
             }
         }
@@ -80,21 +104,39 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         val version = segments[2].notBlankOrNull ?: return@run
 
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
-        inc.values.forEach { value ->
-            val path = value.toFluoriteString(null).value.toPath().resolve(suffix).normalized()
+
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(suffix).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
         }
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
+            val url = "$normalizedIncPath/$suffix"
+            if (tryToFetch(url)) return url
+        }
+
         fail("Maven artifact not found: $reference")
     }
 
     // INCを起点とした相対パス
     run {
-        inc.values.forEach { value ->
-            val path = value.toFluoriteString(null).value.toPath().resolve(reference).normalized()
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(reference).normalized()
             path.let { if (it.tryToLoad()) return it.toString() }
             path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
             path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
         }
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
+            val basePath = "$normalizedIncPath/$reference"
+            val url = if (!basePath.endsWith(MODULE_EXTENSION)) {
+                "$basePath$MODULE_EXTENSION"
+            } else {
+                basePath
+            }
+            if (tryToFetch(url)) return url
+        }
+
         fail("Module file not found in INC paths: $reference")
     }
 

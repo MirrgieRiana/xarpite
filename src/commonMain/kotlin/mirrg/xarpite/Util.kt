@@ -328,6 +328,8 @@ fun Path.isAncestorOf(other: Path): Boolean {
     }
 }
 
+fun isUrl(location: String) = location.startsWith("http://", ignoreCase = true) || location.startsWith("https://", ignoreCase = true)
+
 
 // I/O utilities
 
