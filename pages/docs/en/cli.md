@@ -403,7 +403,7 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 An array of directory paths and URLs that are searched when loading modules with `USE`.
 
-Strings beginning with `http://` or `https://` are interpreted as URLs.
+Strings starting with `http://` or `https://` are interpreted as URLs.
 
 When a relative directory path is specified, it is resolved based on `PWD`.
 
@@ -411,7 +411,7 @@ By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
 
 ---
 
-You can dynamically change the module search targets by modifying this array at runtime.
+By modifying this array at runtime from a program, you can dynamically change the module search targets.
 
 ```shell
 $ {
@@ -923,16 +923,13 @@ $ {
 
 #### Specification by Relative Path from `INC`
 
-If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories and URLs registered in `INC`.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
 
 Modules in paths closer to the beginning of the `INC` array are given priority.
-
-Local path entries are searched before URL-format entries.
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
 
 The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
-However, the `/main.xa1` fallback is not performed for URL-format entries.
 
 ```shell
 $ {
@@ -956,15 +953,13 @@ $ {
 
 #### Specification by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories and URLs registered in `INC`.
+If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
 
 Maven coordinate format is specified as `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
 For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
-
-Local path entries are searched before URL-format entries.
 
 ```shell
 $ {

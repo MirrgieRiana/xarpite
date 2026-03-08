@@ -57,10 +57,11 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         return metadata.isRegularFile
     }
 
-    suspend fun String.tryToFetch(): Boolean {
-        urls += this
+    suspend fun tryToFetch(url: String): Boolean {
+        urls += url
         return try {
-            context.getModuleSrc(this)
+            val content = context.io.fetch(context, url).decodeToString()
+            context.setSrc(url, content)
             true
         } catch (_: Exception) {
             false
@@ -70,11 +71,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     fun fail(message: String): Nothing {
         val lines = mutableListOf<String>()
         lines += message
-        if (paths.isNotEmpty() || urls.isNotEmpty()) {
+        if (paths.isNotEmpty()) {
             lines += "Tried paths:"
             paths.forEach {
                 lines += "- $it"
             }
+        }
+        if (urls.isNotEmpty()) {
+            lines += "Tried URLs:"
             urls.forEach {
                 lines += "- $it"
             }
@@ -108,7 +112,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
             val url = "$normalizedIncPath/$suffix"
-            if (url.tryToFetch()) return url
+            if (tryToFetch(url)) return url
         }
 
         fail("Maven artifact not found: $reference")
@@ -130,7 +134,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
             } else {
                 basePath
             }
-            if (url.tryToFetch()) return url
+            if (tryToFetch(url)) return url
         }
 
         fail("Module file not found in INC paths: $reference")

@@ -135,47 +135,46 @@ class IncUrlKtorTest {
     @Test
     fun urlFallbackOnFetchError() = runTest {
         withKtorServer { server ->
-            // 2番目のパスにのみモジュールを配置（1番目は404を返す）
-            server.addRoute("/server2/modules/fallback.xa1", "\"Fallback Works!\"")
+            // 2番目のサーバーURLにのみモジュールを配置（1番目は存在しないURL）
+            server.addRoute("/modules2/mymodule.xa1", "\"Fallback Module\"")
             
-            // expectSuccess = true で404時に例外を投げるfetchHandler
             val io = createTestIoContext { _, url ->
-                HttpClient(CIO) {
-                    expectSuccess = true
-                }.use { client ->
-                    client.get(url).readRawBytes()
+                HttpClient(CIO).use { client ->
+                    val response = client.get(url)
+                    if (response.status.value != 200) throw RuntimeException("HTTP ${response.status.value}")
+                    response.readRawBytes()
                 }
             }
             
-            // 1番目のURLは404、2番目のURLにモジュールが存在
+            // 最初のURLでは見つからず、2番目のURLにフォールバック
             val result = cliEval(io, """
-                INC::push("${server.baseUrl}/server1/modules")
-                INC::push("${server.baseUrl}/server2/modules")
-                USE("fallback")
+                INC::push("http://localhost:1/nonexistent")
+                INC::push("${server.baseUrl}/modules2")
+                USE("mymodule")
             """.trimIndent()).toFluoriteString(null).value
             
-            assertEquals("Fallback Works!", result)
+            assertEquals("Fallback Module", result)
         }
     }
     
     @Test
-    fun urlFallbackMavenCoordinate() = runTest {
+    fun mavenCoordinateUrlFallback() = runTest {
         withKtorServer { server ->
-            // 2番目のURLにのみMavenモジュールを配置
-            server.addRoute("/repo2/com/example/lib/1.0.0/lib-1.0.0.xa1", "\"Maven Fallback\"")
+            // Maven座標形式でも2番目のURLにフォールバック
+            server.addRoute("/maven2/com/example/mylib/1.0.0/mylib-1.0.0.xa1", "\"Maven Fallback\"")
             
             val io = createTestIoContext { _, url ->
-                HttpClient(CIO) {
-                    expectSuccess = true
-                }.use { client ->
-                    client.get(url).readRawBytes()
+                HttpClient(CIO).use { client ->
+                    val response = client.get(url)
+                    if (response.status.value != 200) throw RuntimeException("HTTP ${response.status.value}")
+                    response.readRawBytes()
                 }
             }
             
             val result = cliEval(io, """
-                INC::push("${server.baseUrl}/repo1")
-                INC::push("${server.baseUrl}/repo2")
-                USE("com.example:lib:1.0.0")
+                INC::push("http://localhost:1/nonexistent")
+                INC::push("${server.baseUrl}/maven2")
+                USE("com.example:mylib:1.0.0")
             """.trimIndent()).toFluoriteString(null).value
             
             assertEquals("Maven Fallback", result)
