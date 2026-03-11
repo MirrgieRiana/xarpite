@@ -95,6 +95,11 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
         fail("Module file not found: $reference")
     }
 
+    // URL
+    if (isUrl(reference)) {
+        return reference
+    }
+
     // Maven座標
     run {
         val segments = reference.split(":")

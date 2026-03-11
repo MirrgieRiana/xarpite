@@ -120,6 +120,16 @@ On the other hand, the `xa` command is not intended for use described in files s
 
 For that purpose, use the `xarpite` command instead.
 
+## Help Options
+
+### `-h`, `--help`: Display Help
+
+Specifying the `-h` or `--help` option displays the help message.
+
+### `-v`, `--version`: Display Version Information
+
+Specifying the `-v` or `--version` option displays the Xarpite version.
+
 ## Specifying Xarpite Engine
 
 ### `XARPITE_ENGINE`: Environment Variable to Specify Xarpite Engine
@@ -468,13 +478,6 @@ $ {
 # 2: 456
 ```
 
-Because streams are sequential, even very large iterations can be performed with low memory consumption.
-
-```shell
-$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
-# 100000000
-```
-
 ---
 
 If `IN` is used even once, `INB` cannot be used.
@@ -556,7 +559,7 @@ Other parts generally follow the specification of the `OUT` function.
 
 **Note that Xarpite normally automatically outputs the return value of the entire program to standard output.**
 
-If you forget the `-q` option, garbage such as " `NULL` newline" will be attached at the beginning of the byte sequence.
+If you forget the `-q` option in the following cases, garbage such as " `NULL` newline" will be prepended to the byte sequence.
 
 ```shell
 $ xa -q '65, 66, 67, 10 >> OUTB'
@@ -566,8 +569,6 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # ABC
 # NULL
 ```
-
-When using `OUTB`, note that `OUTB` returns NULL, and remember to use the `-q` option.
 
 ### `ERR`: Output to Standard Error
 
@@ -579,7 +580,7 @@ This function operates similarly to the CLI version `OUT` function, but writes t
 
 ```shell
 $ xa -q 'ERR("Error!")' > /dev/null
-Error!
+# Error!
 ```
 
 ### `ERRB`: Output Byte Data to Standard Error
@@ -592,7 +593,7 @@ This function operates similarly to the `OUTB` function, but writes to standard 
 
 ```shell
 $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
-ABC
+# ABC
 ```
 
 ### `FILES` / `FILE_NAMES`: Get List of Files in Directory
@@ -766,8 +767,6 @@ $ {
 
 Writes `blobLike` to the file specified by `file`.
 
-`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM<BLOB>, or ARRAY<NUMBER>.
-
 If the file already exists, it will be overwritten.
 
 ```shell
@@ -779,17 +778,17 @@ $ {
 # apple
 ```
 
-### `USE`: Get Result of External Xarpite File
+### `USE`: Module Invocation
 
 `USE(reference: STRING): VALUE`
 
 Returns the result of evaluating the Xarpite script specified by `reference`.
 
-There are several ways to specify `reference`.
+Xarpite scripts that are `USE`d are called modules.
 
----
+There are several ways to specify `reference`: absolute local file path, URL, relative path, relative path from `INC`, and Maven coordinates.
 
-Xarpite script files written on the premise of being `USE`d are called modules.
+#### Cultural Positioning of Modules
 
 Modules often expose APIs by returning objects for mounting, but not always.
 
@@ -797,13 +796,39 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ---
 
-The result of the `USE` function for the same absolute file path is reused.
+By mounting the return value of the `USE` function directly with `@USE("fruit")`, you can achieve a directive-like usage.
 
-The returned instance is always the same, and the side effects at load time also occur only once.
+#### Location Resolution Based on `INC`
+
+`reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
+
+As a general rule, modules belonging to paths closer to the beginning of the `INC` array are given priority.
+
+However, `INC` entries that are local file paths are searched before entries that are URLs.
+
+---
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` or `/main.xa1` suffix at the end of local file paths can be omitted.
+
+In contexts launched by the `-e` command-line option, the location is treated as a file named `-` directly under `PWD`.
+
+---
+
+When the location is a URL, the script is fetched asynchronously via network communication, and execution is suspended during that time.
+
+When using many modules that are online, parallelization can be achieved by launching coroutines with the `LAUNCH` function or similar.
+
+#### Reuse of Scripts at the Same Location
+
+The result of the `USE` function for the same location is reused.
+
+The returned instance is always the same, and the side effects at load time occur only once.
 
 If the script result is a stream, that stream is resolved.
 
-Even if the file entity is the same, if it exists on a different absolute path due to symbolic links etc., it is considered a different file.
+If scripts are at different locations due to symbolic links or similar, each is evaluated separately even if the file content is the same.
 
 ```shell
 $ {
@@ -824,27 +849,30 @@ $ {
 # [1;2;3]
 ```
 
----
+#### Specifying `reference` by Absolute Local File Path
 
-By mounting the return value of the `USE` function, you can achieve a directive-like usage.
+If `reference` is an absolute local file path, that file is called.
 
----
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
 
-When the `INC` array contains URL-format entries, `USE` can also fetch modules via HTTP/HTTPS.
+  xa 'USE("$PWD/fruit.xa1")'
 
-Local path entries are searched before URL-format entries.
+  rm fruit.xa1
+}
+# Apple
+```
 
-The `/main.xa1` fallback is not performed for URL-format entries.
+#### Specifying `reference` by URL
 
-#### Specification by Relative Path
+If `reference` is a URL, the script is fetched from that URL and called.
 
-If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the file that called the `USE` function.
+A `reference` starting with `http://` or `https://` is interpreted as a URL.
 
-In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
+#### Specifying `reference` by Relative Path
 
-The directory separator character `/` can be used regardless of the OS on which it is executed.
-
-The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the location of the script that called the `USE` function.
 
 ---
 
@@ -910,34 +938,9 @@ $ {
 # Apple
 ```
 
-#### Specification by Absolute Path
+#### Specifying `reference` by Relative Path from `INC`
 
-If `reference` is an absolute path, that file is called.
-
-The directory separator character `/` can be used regardless of the OS on which it is executed.
-
-The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
-
-```shell
-$ {
-  echo ' "Apple" ' > fruit.xa1
-
-  xa 'USE("$PWD/fruit.xa1")'
-
-  rm fruit.xa1
-}
-# Apple
-```
-
-#### Specification by Relative Path from `INC`
-
-If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
-
-Modules in paths closer to the beginning of the `INC` array are given priority.
-
-The directory separator character `/` can be used regardless of the OS on which it is executed.
-
-The `.xa1` or `/main.xa1` suffix at the end of the path can be omitted.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module is searched for in `INC`.
 
 ```shell
 $ {
@@ -959,15 +962,15 @@ $ {
 # Apple
 ```
 
-#### Specification by Maven Coordinates
+#### Specifying `reference` by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+If `reference` is in Maven coordinate format, the corresponding module is searched for in `INC`.
 
-Maven coordinate format is specified as `group:artifact:version`.
+Maven coordinates are specified in the format `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, the subpath `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is searched for in each `INC` entry.
 
 ```shell
 $ {
@@ -1064,7 +1067,7 @@ This function is an experimental feature and its specification may change in the
 
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
-**Also, this function is currently only provided in the JVM version.**
+**Also, this function is currently only provided in the JVM and Native versions.**
 
 ### `BASH`: Execute Bash scripts
 
@@ -1109,8 +1112,6 @@ An error will occur in environments where the `bash` command is not available.
 ---
 
 Other behavior generally follows the specifications of the `EXEC` function.
-
----
 
 **This function is currently only provided in the JVM and Native versions.**
 

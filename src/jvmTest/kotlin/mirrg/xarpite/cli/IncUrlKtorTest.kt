@@ -181,6 +181,27 @@ class IncUrlKtorTest {
         }
     }
     
+    @Test
+    fun useModuleByDirectUrlReference() = runTest {
+        withKtorServer { server ->
+            // サーバーにモジュールを配置
+            server.addRoute("/direct/module.xa1", "\"Direct URL Module\"")
+            
+            val io = createTestIoContext { _, url ->
+                HttpClient(CIO).use { client ->
+                    client.get(url).readRawBytes()
+                }
+            }
+            
+            // referenceとして直接URLを指定
+            val result = cliEval(io, """
+                USE("${server.baseUrl}/direct/module.xa1")
+            """.trimIndent()).toFluoriteString(null).value
+            
+            assertEquals("Direct URL Module", result)
+        }
+    }
+    
     // テスト用のIoContextを作成するヘルパー関数
     private fun createTestIoContext(
         fetchHandler: suspend (RuntimeContext, String) -> ByteArray
