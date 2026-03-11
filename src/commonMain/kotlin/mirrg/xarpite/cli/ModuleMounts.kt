@@ -59,13 +59,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     suspend fun tryToFetch(url: String): Boolean {
         locations += url
-        return try {
-            val content = context.io.fetch(context, url).decodeToString()
-            context.setSrc(url, content)
-            true
-        } catch (_: Exception) {
-            false
-        }
+        val bytes = context.io.fetch(context, url).getOrNull() ?: return false
+        context.setSrc(url, bytes.decodeToString())
+        return true
     }
 
     fun fail(message: String): Nothing {

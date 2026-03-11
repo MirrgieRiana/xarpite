@@ -34,7 +34,8 @@ class IncUrlKtorTest {
             // HTTPクライアントを使用したテスト用IoContext
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url).readRawBytes()
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -56,7 +57,8 @@ class IncUrlKtorTest {
             
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url).readRawBytes()
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -77,7 +79,8 @@ class IncUrlKtorTest {
             
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url).readRawBytes()
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -98,7 +101,8 @@ class IncUrlKtorTest {
             
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url).readRawBytes()
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -119,7 +123,8 @@ class IncUrlKtorTest {
             
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url.replace("HTTP://", "http://", ignoreCase = true)).readRawBytes()
+                    val response = client.get(url.replace("HTTP://", "http://", ignoreCase = true))
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -139,10 +144,13 @@ class IncUrlKtorTest {
             server.addRoute("/modules2/mymodule.xa1", "\"Fallback Module\"")
             
             val io = createTestIoContext { _, url ->
-                HttpClient(CIO).use { client ->
-                    val response = client.get(url)
-                    if (response.status.value != 200) throw RuntimeException("HTTP ${response.status.value}")
-                    response.readRawBytes()
+                try {
+                    HttpClient(CIO).use { client ->
+                        val response = client.get(url)
+                        if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
+                    }
+                } catch (e: Exception) {
+                    Result.failure(e)
                 }
             }
             
@@ -164,10 +172,13 @@ class IncUrlKtorTest {
             server.addRoute("/maven2/com/example/mylib/1.0.0/mylib-1.0.0.xa1", "\"Maven Fallback\"")
             
             val io = createTestIoContext { _, url ->
-                HttpClient(CIO).use { client ->
-                    val response = client.get(url)
-                    if (response.status.value != 200) throw RuntimeException("HTTP ${response.status.value}")
-                    response.readRawBytes()
+                try {
+                    HttpClient(CIO).use { client ->
+                        val response = client.get(url)
+                        if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
+                    }
+                } catch (e: Exception) {
+                    Result.failure(e)
                 }
             }
             
@@ -189,7 +200,8 @@ class IncUrlKtorTest {
             
             val io = createTestIoContext { _, url ->
                 HttpClient(CIO).use { client ->
-                    client.get(url).readRawBytes()
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                 }
             }
             
@@ -204,7 +216,7 @@ class IncUrlKtorTest {
     
     // テスト用のIoContextを作成するヘルパー関数
     private fun createTestIoContext(
-        fetchHandler: suspend (RuntimeContext, String) -> ByteArray
+        fetchHandler: suspend (RuntimeContext, String) -> Result<ByteArray>
     ): IoContext {
         return object : IoContext {
             override fun getEnv(): Map<String, String> = emptyMap()
@@ -218,7 +230,7 @@ class IncUrlKtorTest {
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
                 throw UnsupportedOperationException("executeProcess is not supported in test")
             }
-            override suspend fun fetch(context: RuntimeContext, url: String): ByteArray {
+            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
                 return fetchHandler(context, url)
             }
             override fun exit(code: Int): Nothing {

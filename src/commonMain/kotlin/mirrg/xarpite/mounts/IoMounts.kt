@@ -14,13 +14,13 @@ fun createIoMounts(): List<Map<String, Mount>> {
         "FETCH" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FETCH(url: STRING): STRING")
             val url = arguments[0].toFluoriteString(null).value
-            val bytes = context.fetch(url)
+            val bytes = context.fetch(url).getOrThrow()
             bytes.decodeToString().toFluoriteString()
         },
         "FETCHB" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("FETCHB(url: STRING): BLOB")
             val url = arguments[0].toFluoriteString(null).value
-            val bytes = context.fetch(url)
+            val bytes = context.fetch(url).getOrThrow()
             bytes.asFluoriteBlob()
         },
     ).let { listOf(it) }

@@ -26,7 +26,16 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
-            override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
+
+            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+                val response = context.httpClient.get(url)
+                return if (response.status.value in 200..299) {
+                    Result.success(response.readRawBytes())
+                } else {
+                    Result.failure(RuntimeException("HTTP ${response.status.value}"))
+                }
+            }
+
             override fun exit(code: Int): Nothing = mirrg.xarpite.exit(code)
         }
         val options = try {

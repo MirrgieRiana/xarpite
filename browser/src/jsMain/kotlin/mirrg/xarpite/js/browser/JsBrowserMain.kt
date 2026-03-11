@@ -32,7 +32,16 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
-        override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
+
+        override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+            val response = context.httpClient.get(url)
+            return if (response.status.value in 200..299) {
+                Result.success(response.readRawBytes())
+            } else {
+                Result.failure(RuntimeException("HTTP ${response.status.value}"))
+            }
+        }
+
         override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
     }) { context, evaluator ->
         context.setSrc("-", src)

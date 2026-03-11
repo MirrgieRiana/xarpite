@@ -39,7 +39,7 @@ class RuntimeContext(
     suspend fun getModuleSrc(location: String): String {
         return srcs.getOrPut(location) {
             if (isUrl(location)) {
-                io.fetch(this, location).decodeToString()
+                io.fetch(this, location).getOrThrow().decodeToString()
             } else {
                 getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
             }
@@ -93,7 +93,7 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
-    suspend fun fetch(context: RuntimeContext, url: String): ByteArray
+    suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray>
     fun exit(code: Int): Nothing
 }
 
@@ -107,6 +107,6 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
-    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
     override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
 }

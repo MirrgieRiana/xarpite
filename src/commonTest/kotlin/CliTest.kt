@@ -2571,7 +2571,7 @@ internal class TestIoContext(
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
     private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
-    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null,
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> Result<ByteArray>)? = null,
     private val exitHandler: ((code: Int) -> Nothing)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
@@ -2615,7 +2615,7 @@ internal class TestIoContext(
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
         executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
-    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray =
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
         fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
 
     override fun getEnv(): Map<String, String> = env
