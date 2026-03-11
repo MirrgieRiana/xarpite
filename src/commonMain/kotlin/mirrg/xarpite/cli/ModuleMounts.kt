@@ -20,6 +20,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
+private const val MODULE_DEFAULT_FILE_NAME = "main$MODULE_EXTENSION"
 
 context(context: RuntimeContext)
 fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
@@ -44,21 +45,20 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
 context(context: RuntimeContext)
 private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
-    val paths = mutableListOf<Path>()
-    val urls = mutableListOf<String>()
+    val locations = mutableListOf<String>()
 
     val (directoryPathInc, urlInc) = inc.values
         .map { it.toFluoriteString(null).value }
         .partition { !isUrl(it) }
 
-    fun Path.tryToLoad(): Boolean {
-        paths += this
-        val metadata = getFileSystem().getOrThrow().metadataOrNull(this) ?: return false
+    fun tryToLoad(path: Path): Boolean {
+        locations += path.toString()
+        val metadata = getFileSystem().getOrThrow().metadataOrNull(path) ?: return false
         return metadata.isRegularFile
     }
 
     suspend fun tryToFetch(url: String): Boolean {
-        urls += url
+        locations += url
         return try {
             val content = context.io.fetch(context, url).decodeToString()
             context.setSrc(url, content)
@@ -71,15 +71,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     fun fail(message: String): Nothing {
         val lines = mutableListOf<String>()
         lines += message
-        if (paths.isNotEmpty()) {
-            lines += "Tried paths:"
-            paths.forEach {
-                lines += "- $it"
-            }
-        }
-        if (urls.isNotEmpty()) {
-            lines += "Tried URLs:"
-            urls.forEach {
+        if (locations.isNotEmpty()) {
+            lines += "Tried locations:"
+            locations.forEach {
                 lines += "- $it"
             }
         }
@@ -89,9 +83,9 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         val path = baseDir.toPath().resolve(reference).normalized()
-        path.let { if (it.tryToLoad()) return it.toString() }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-        path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+        path.let { if (tryToLoad(it)) return it.toString() }
+        path.map { "$it$MODULE_EXTENSION" }.let { if (tryToLoad(it)) return it.toString() }
+        path.resolve(MODULE_DEFAULT_FILE_NAME).let { if (tryToLoad(it)) return it.toString() }
         fail("Module file not found: $reference")
     }
 
@@ -112,7 +106,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
         directoryPathInc.forEach { string ->
             val path = string.toPath().resolve(suffix).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
+            path.let { if (tryToLoad(it)) return it.toString() }
         }
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
@@ -127,18 +121,13 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     run {
         directoryPathInc.forEach { string ->
             val path = string.toPath().resolve(reference).normalized()
-            path.let { if (it.tryToLoad()) return it.toString() }
-            path.map { "$it$MODULE_EXTENSION" }.let { if (it.tryToLoad()) return it.toString() }
-            path.resolve("main$MODULE_EXTENSION").let { if (it.tryToLoad()) return it.toString() }
+            path.let { if (tryToLoad(it)) return it.toString() }
+            path.map { "$it$MODULE_EXTENSION" }.let { if (tryToLoad(it)) return it.toString() }
+            path.resolve(MODULE_DEFAULT_FILE_NAME).let { if (tryToLoad(it)) return it.toString() }
         }
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
-            val basePath = "$normalizedIncPath/$reference"
-            val url = if (!basePath.endsWith(MODULE_EXTENSION)) {
-                "$basePath$MODULE_EXTENSION"
-            } else {
-                basePath
-            }
+            val url = "$normalizedIncPath/$reference"
             if (tryToFetch(url)) return url
         }
 

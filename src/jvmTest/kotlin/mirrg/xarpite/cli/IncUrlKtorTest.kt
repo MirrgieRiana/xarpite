@@ -41,9 +41,9 @@ class IncUrlKtorTest {
             // URL形式のINCパスを追加してモジュールをロード
             val result = cliEval(io, """
                 INC::push("${server.baseUrl}/modules")
-                USE("mymodule")
+                USE("mymodule.xa1")
             """.trimIndent()).toFluoriteString(null).value
-            
+
             assertEquals("Hello from HTTP Server!", result)
         }
     }
@@ -62,9 +62,9 @@ class IncUrlKtorTest {
             
             val result = cliEval(io, """
                 INC::push("${server.baseUrl}/base")
-                USE("utils/helper")
+                USE("utils/helper.xa1")
             """.trimIndent()).toFluoriteString(null).value
-            
+
             assertEquals("Helper Module", result)
         }
     }
@@ -104,9 +104,9 @@ class IncUrlKtorTest {
             
             val result = cliEval(io, """
                 INC::push("${server.baseUrl}/api/modules/")
-                USE("test")
+                USE("test.xa1")
             """.trimIndent()).toFluoriteString(null).value
-            
+
             assertEquals("Normalized Path", result)
         }
     }
@@ -125,9 +125,9 @@ class IncUrlKtorTest {
             
             val result = cliEval(io, """
                 INC::push("HTTP://${server.baseUrl.removePrefix("http://")}/modules")
-                USE("test")
+                USE("test.xa1")
             """.trimIndent()).toFluoriteString(null).value
-            
+
             assertEquals("Case Insensitive", result)
         }
     }
@@ -150,9 +150,9 @@ class IncUrlKtorTest {
             val result = cliEval(io, """
                 INC::push("http://localhost:1/nonexistent")
                 INC::push("${server.baseUrl}/modules2")
-                USE("mymodule")
+                USE("mymodule.xa1")
             """.trimIndent()).toFluoriteString(null).value
-            
+
             assertEquals("Fallback Module", result)
         }
     }
