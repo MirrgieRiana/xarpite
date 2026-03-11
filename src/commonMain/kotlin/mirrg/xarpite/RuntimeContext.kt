@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
+import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
@@ -30,20 +31,25 @@ class RuntimeContext(
     }
 
 
-    private val srcs = mutableMapOf<String, String>()
+    private val srcs = mutableMapOf<String, Single<String?>>()
 
-    fun setSrc(location: String, src: String) {
-        srcs[location] = src
+    fun setSrc(location: String, src: String?) {
+        srcs[location] = Single(src)
     }
 
-    suspend fun getModuleSrc(location: String): String {
+    suspend fun getModuleSrc(location: String): String? {
         return srcs.getOrPut(location) {
             if (isUrl(location)) {
-                io.fetch(this, location).getOrThrow().decodeToString()
+                Single(io.fetch(this, location).getOrNull()?.decodeToString())
             } else {
-                getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
+                val fileSystem = getFileSystem().getOrThrow()
+                if (fileSystem.metadataOrNull(location.toPath())?.isRegularFile ?: false) {
+                    Single(fileSystem.read(location.toPath()) { readUtf8() })
+                } else {
+                    Single(null)
+                }
             }
-        }
+        }.first
     }
 
 
