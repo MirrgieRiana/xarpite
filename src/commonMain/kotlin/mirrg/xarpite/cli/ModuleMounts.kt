@@ -32,7 +32,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 val reference = arguments[0].toFluoriteString(null).value
                 val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
                 val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
-                context.moduleResult.getOrPut(moduleLocation) {
+                context.moduleResults.getOrPut(moduleLocation) {
                     val src = context.getModuleSrc(moduleLocation)
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(moduleLocation))
