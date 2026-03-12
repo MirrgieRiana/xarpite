@@ -1,12 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Edit(src/*Test/*)",
-      "Write(src/*Test/*)",
-      "Edit(browser/src/*Test/*)",
-      "Write(browser/src/*Test/*)",
-      "Edit(node/src/*Test/*)",
-      "Write(node/src/*Test/*)"
+      "Edit(src/*Test/**)",
+      "Write(src/*Test/**)",
+      "Edit(browser/src/*Test/**)",
+      "Write(browser/src/*Test/**)",
+      "Edit(node/src/*Test/**)",
+      "Write(node/src/*Test/**)"
     ]
   }
 }
