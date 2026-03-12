@@ -725,6 +725,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/example/utils/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
@@ -744,6 +745,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib/2.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
@@ -764,6 +766,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/test/module/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
@@ -1099,6 +1102,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
 
         // ./.xarpite/lib にモジュールを配置
         val libDir = ".xarpite/lib".toPath()
@@ -1196,6 +1200,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively("build/test/custom-inc".toPath(), mustExist = false)
 
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
