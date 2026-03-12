@@ -731,13 +731,7 @@ class CliTest {
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/example/utils".toPath())
-        fileSystem.delete(".xarpite/maven/com/example".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -751,14 +745,7 @@ class CliTest {
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin/lib".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains".toPath())
-        fileSystem.delete(".xarpite/maven/org".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -791,13 +778,7 @@ class CliTest {
             """.trimIndent()
         ).toFluoriteString(null).value
         assertEquals("changed", result)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/test/module".toPath())
-        fileSystem.delete(".xarpite/maven/com/test".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -1118,9 +1099,7 @@ class CliTest {
         assertEquals("LibModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(libDir)
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -1174,8 +1153,7 @@ class CliTest {
         assertEquals("LocalModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(localDir)
+        fileSystem.deleteRecursively(localDir)
     }
 
     @Test
@@ -1218,13 +1196,7 @@ class CliTest {
         assertEquals("CustomModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(customIncDir.resolve("com/example/custom/mylib"))
-        fileSystem.delete(customIncDir.resolve("com/example/custom"))
-        fileSystem.delete(customIncDir.resolve("com/example"))
-        fileSystem.delete(customIncDir.resolve("com"))
-        fileSystem.delete(customIncDir)
+        fileSystem.deleteRecursively(customIncDir)
     }
 
     @Test
