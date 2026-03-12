@@ -34,11 +34,15 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
 
         override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
-            val response = context.httpClient.get(url)
-            return if (response.status.value in 200..299) {
-                Result.success(response.readRawBytes())
-            } else {
-                Result.failure(RuntimeException("HTTP ${response.status.value}"))
+            return try {
+                val response = context.httpClient.get(url)
+                if (response.status.value in 200..299) {
+                    Result.success(response.readRawBytes())
+                } else {
+                    Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
+                }
+            } catch (e: Exception) {
+                Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
             }
         }
 

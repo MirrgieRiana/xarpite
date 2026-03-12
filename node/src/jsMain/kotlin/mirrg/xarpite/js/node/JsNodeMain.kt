@@ -25,6 +25,7 @@ import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
+import mirrg.xarpite.operations.FluoriteException
 import okio.NodeJsFileSystem
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -90,11 +91,15 @@ suspend fun main() {
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 
             override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
-                val response = context.httpClient.get(url)
-                return if (response.status.value in 200..299) {
-                    Result.success(response.readRawBytes())
-                } else {
-                    Result.failure(RuntimeException("HTTP ${response.status.value}"))
+                return try {
+                    val response = context.httpClient.get(url)
+                    if (response.status.value in 200..299) {
+                        Result.success(response.readRawBytes())
+                    } else {
+                        Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
+                    }
+                } catch (e: Exception) {
+                    Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
                 }
             }
 
