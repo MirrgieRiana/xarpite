@@ -64,7 +64,7 @@ class RuntimeContext(
         } else {
             position.location
         }
-        val src = srcs[position.location] ?: return position.location
+        val src = srcs[position.location]?.first ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
         }
