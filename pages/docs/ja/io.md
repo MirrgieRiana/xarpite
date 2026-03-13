@@ -15,9 +15,11 @@ title: "IO"
 `FETCH(url: STRING): STRING`
 
 `url` からGETリクエストによってUTF-8テキストコンテンツを取得します。
+HTTPステータスコードが2xx以外の場合、エラーが発生します。
 
 ### `FETCHB`: URLからバイナリコンテンツを取得
 
 `FETCHB(url: STRING): BLOB`
 
 `url` からGETリクエストによってバイナリコンテンツを取得します。
+HTTPステータスコードが2xx以外の場合、エラーが発生します。
