@@ -11,9 +11,9 @@ import {
   Long2qws0ah9gnpki as Long,
   compare2uud5j30pw5xc as compare,
   toString1pkumu07cwy4m as toString,
-  IllegalArgumentException_init_$Create$3ewkh27kzt8z8 as IllegalArgumentException_init_$Create$,
-  Unit_instance1fbcbse1fwigr as Unit_instance,
-  IllegalStateException_init_$Create$2w9444nebyjns as IllegalStateException_init_$Create$,
+  IllegalArgumentException_init_$Create$1j1aj36nbo0wg as IllegalArgumentException_init_$Create$,
+  Unit_instance28fytmsmm6r23 as Unit_instance,
+  IllegalStateException_init_$Create$2429fvs1h56dm as IllegalStateException_init_$Create$,
   numberToLong345n6tb1n1i71 as numberToLong,
   equalsLong28bsrfhwvd686 as equalsLong,
   protoOf180f3jzyo7rfj as protoOf,
@@ -23,17 +23,17 @@ import {
   numberToInt1ygmcfwhs2fkq as numberToInt,
   fromInt1lka3ktyu79a4 as fromInt,
   add85si75olwt6n as add,
-  ArrayList_init_$Create$149jv2ovkkvnt as ArrayList_init_$Create$,
+  ArrayList_init_$Create$1jemgvhi5v0js as ArrayList_init_$Create$,
   sort15ai02l4kxbfa as sort,
   ensureNotNull1e947j3ixpazm as ensureNotNull,
   initMetadataForObject1cxne3s9w65el as initMetadataForObject,
   VOID3gxj6tk5isa35 as VOID,
 } from './kotlin-kotlin-stdlib.mjs';
 import {
-  IOException_init_$Create$1nlsccrpovv0q as IOException_init_$Create$,
+  IOException_init_$Create$3lq24yhaoeo2a as IOException_init_$Create$,
   FileNotFoundException1m3q2rg4pj77g as FileNotFoundException,
   FileSystem239k0lkpj719u as FileSystem,
-  Companion_getInstance2khnd3aviw7kz as Companion_getInstance,
+  Companion_getInstancedyont9mf9bbm as Companion_getInstance,
   FileMetadata2eik8eoxvypn8 as FileMetadata,
 } from './okio-parent-okio.mjs';
 //region block: imports
@@ -44,72 +44,72 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSink(fd) {
-  this.zaj_1 = fd;
-  this.aak_1 = false;
+  this.dbc_1 = fd;
+  this.ebc_1 = false;
 }
-protoOf(FileSink).l1m = function (source, byteCount) {
+protoOf(FileSink).f1m = function (source, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.require' call
-  if (!(compare(source.r1l_1, byteCount) >= 0)) {
-    var message_0 = 'source.size=' + source.r1l_1.toString() + ' < byteCount=' + byteCount.toString();
+  if (!(compare(source.l1l_1, byteCount) >= 0)) {
+    var message_0 = 'source.size=' + source.l1l_1.toString() + ' < byteCount=' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.aak_1) {
+  if (!!this.ebc_1) {
     var message_1 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_1));
   }
-  var data = source.b1o(byteCount);
-  var writtenByteCount = writeSync(this.zaj_1, data);
+  var data = source.u1n(byteCount);
+  var writtenByteCount = writeSync(this.dbc_1, data);
   if (!equalsLong(numberToLong(writtenByteCount), byteCount)) {
     throw IOException_init_$Create$('expected ' + byteCount.toString() + ' but was ' + writtenByteCount);
   }
 };
-protoOf(FileSink).c1n = function () {
-  if (this.aak_1)
+protoOf(FileSink).g4 = function () {
+  if (this.ebc_1)
     return Unit_instance;
-  this.aak_1 = true;
-  closeSync(this.zaj_1);
+  this.ebc_1 = true;
+  closeSync(this.dbc_1);
 };
 function FileSource(fd) {
-  this.bak_1 = fd;
-  this.cak_1 = new Long(0, 0);
-  this.dak_1 = false;
+  this.fbc_1 = fd;
+  this.gbc_1 = new Long(0, 0);
+  this.hbc_1 = false;
 }
-protoOf(FileSource).q1o = function (sink, byteCount) {
+protoOf(FileSource).j1o = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount < 0: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.dak_1) {
+  if (!!this.hbc_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.bak_1;
+  var tmp0_fd = this.fbc_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.cak_1);
+  var tmp2_position = toNumber(this.gbc_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.cak_1;
-  tmp.cak_1 = add(this_0, fromInt(readByteCount));
-  sink.v1l(data, 0, readByteCount);
+  var this_0 = this.gbc_1;
+  tmp.gbc_1 = add(this_0, fromInt(readByteCount));
+  sink.p1l(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
-protoOf(FileSource).c1n = function () {
-  if (this.dak_1)
+protoOf(FileSource).g4 = function () {
+  if (this.hbc_1)
     return Unit_instance;
-  this.dak_1 = true;
-  closeSync(this.bak_1);
+  this.hbc_1 = true;
+  closeSync(this.fbc_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -131,8 +131,8 @@ function list($this, dir, throwOnFailure) {
         }
         var dirent = tmp;
         // Inline function 'kotlin.collections.plusAssign' call
-        var element = dir.b1p(dirent.name);
-        result.g(element);
+        var element = dir.t1o(dirent.name);
+        result.b1(element);
       }
       sort(result);
       return result;
@@ -170,12 +170,12 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.eak_1 = 61440;
-  this.fak_1 = 32768;
-  this.gak_1 = 16384;
-  this.hak_1 = 40960;
+  this.ibc_1 = 61440;
+  this.jbc_1 = 32768;
+  this.kbc_1 = 16384;
+  this.lbc_1 = 40960;
 }
-protoOf(NodeJsFileSystem).w1l = function (path) {
+protoOf(NodeJsFileSystem).q1l = function (path) {
   var pathString = path.toString();
   var tmp;
   try {
@@ -193,9 +193,9 @@ protoOf(NodeJsFileSystem).w1l = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.eak_1) === this.hak_1) {
+  if ((numberToInt(stat.mode) & this.ibc_1) === this.lbc_1) {
     try {
-      symlinkTarget = Companion_getInstance().x1m(readlinkSync(pathString));
+      symlinkTarget = Companion_getInstance().r1m(readlinkSync(pathString));
     } catch ($p) {
       if ($p instanceof Error) {
         var e_0 = $p;
@@ -205,16 +205,16 @@ protoOf(NodeJsFileSystem).w1l = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.eak_1) === this.fak_1, (numberToInt(stat.mode) & this.eak_1) === this.gak_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.ibc_1) === this.jbc_1, (numberToInt(stat.mode) & this.ibc_1) === this.kbc_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
-protoOf(NodeJsFileSystem).z1m = function (dir) {
+protoOf(NodeJsFileSystem).t1m = function (dir) {
   return ensureNotNull(list(this, dir, true));
 };
-protoOf(NodeJsFileSystem).a1n = function (file) {
+protoOf(NodeJsFileSystem).u1m = function (file) {
   var fd = openFd(this, file, 'r');
   return new FileSource(fd);
 };
-protoOf(NodeJsFileSystem).b1n = function (file, mustCreate) {
+protoOf(NodeJsFileSystem).v1m = function (file, mustCreate) {
   var fd = openFd(this, file, mustCreate ? 'wx' : 'w');
   return new FileSink(fd);
 };
@@ -229,7 +229,7 @@ function NodeJsFileSystem_getInstance() {
 }
 //region block: exports
 export {
-  NodeJsFileSystem_getInstance as NodeJsFileSystem_getInstance3ojwnh341fjb5,
+  NodeJsFileSystem_getInstance as NodeJsFileSystem_getInstance2enwwoe01r80m,
 };
 //endregion
 

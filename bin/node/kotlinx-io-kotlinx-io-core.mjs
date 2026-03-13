@@ -1,63 +1,65 @@
 import {
-  IndexOutOfBoundsException_init_$Create$2w5dv25cjssuw as IndexOutOfBoundsException_init_$Create$,
+  IndexOutOfBoundsException_init_$Create$1rd2xj3xtaoo6 as IndexOutOfBoundsException_init_$Create$,
   Long2qws0ah9gnpki as Long,
   compare2uud5j30pw5xc as compare,
-  IllegalArgumentException_init_$Create$3ewkh27kzt8z8 as IllegalArgumentException_init_$Create$,
+  IllegalArgumentException_init_$Create$1j1aj36nbo0wg as IllegalArgumentException_init_$Create$,
   subtract16cg4lfi29fq9 as subtract,
-  _Char___init__impl__6a9atx2js6krycynjoo as _Char___init__impl__6a9atx,
+  _Char___init__impl__6a9atx1csff5kwtduxl as _Char___init__impl__6a9atx,
   charArrayOf27f4r3dozbrk1 as charArrayOf,
   protoOf180f3jzyo7rfj as protoOf,
   equalsLong28bsrfhwvd686 as equalsLong,
   toString1pkumu07cwy4m as toString,
-  Unit_instance1fbcbse1fwigr as Unit_instance,
+  Unit_instance28fytmsmm6r23 as Unit_instance,
   toShort36kaw0zjdq3ex as toShort,
   add85si75olwt6n as add,
   ensureNotNull1e947j3ixpazm as ensureNotNull,
   fromInt1lka3ktyu79a4 as fromInt,
   convertToIntofdoxh9bstof as convertToInt,
-  StringBuilder_init_$Create$2ujvu6cqvzuyn as StringBuilder_init_$Create$,
+  StringBuilder_init_$Create$39ouzl6b47q8d as StringBuilder_init_$Create$,
   initMetadataForClassbxx6q50dy2s7 as initMetadataForClass,
   VOID3gxj6tk5isa35 as VOID,
-  IllegalStateException_init_$Create$2w9444nebyjns as IllegalStateException_init_$Create$,
+  IllegalStateException_init_$Create$2429fvs1h56dm as IllegalStateException_init_$Create$,
+  AutoCloseable1l5p57f9lp7kv as AutoCloseable,
   objectCreate1ve4bgxiu4x98 as objectCreate,
   initMetadataForCompanion1wyw17z38v6ac as initMetadataForCompanion,
   arrayCopytctsywo3h7gj as arrayCopy,
   toByte4i43936u611k as toByte,
-  IllegalArgumentException_init_$Create$3vjwoodhlckbo as IllegalArgumentException_init_$Create$_0,
+  IllegalArgumentException_init_$Create$nai51bbwz5t9 as IllegalArgumentException_init_$Create$_0,
   initMetadataForObject1cxne3s9w65el as initMetadataForObject,
   initMetadataForInterface1egvbzx539z91 as initMetadataForInterface,
   multiply18i3gv3wlmcjg as multiply,
   charCodeAt1yspne1d8erbm as charCodeAt,
-  Char__toInt_impl_vasixd1agw9q2fuvclj as Char__toInt_impl_vasixd,
+  Char__toInt_impl_vasixd3jl92hthlhyn7 as Char__toInt_impl_vasixd,
   charArray2ujmm1qusno00 as charArray,
   numberToChar93r9buh19yek as numberToChar,
   concatToString3cxf0c1gqonpo as concatToString,
-  Exception_init_$Init$7nmtst2tre47 as Exception_init_$Init$,
+  Exception_init_$Init$22vtgic9oqkxe as Exception_init_$Init$,
   captureStack1fzi4aczwc4hg as captureStack,
-  Exception_init_$Init$33ewqhqmjrfx6 as Exception_init_$Init$_0,
-  Exception_init_$Init$393utbttlf2x4 as Exception_init_$Init$_1,
+  Exception_init_$Init$2jymvyiuv5u42 as Exception_init_$Init$_0,
+  Exception_init_$Init$gwg5c35cbjjd as Exception_init_$Init$_1,
   Exceptiondt2hlxn7j7vw as Exception,
 } from './kotlin-kotlin-stdlib.mjs';
+import { UnsafeByteStringOperations_instance35zx8xrp4hu2p as UnsafeByteStringOperations_instance } from './kotlinx-io-kotlinx-io-bytestring.mjs';
 //region block: imports
 var imul = Math.imul;
 //endregion
 //region block: pre-declaration
-initMetadataForInterface(Source, 'Source');
+initMetadataForInterface(Source, 'Source', VOID, VOID, [AutoCloseable]);
 function write$default(source, startIndex, endIndex, $super) {
   startIndex = startIndex === VOID ? 0 : startIndex;
   endIndex = endIndex === VOID ? source.length : endIndex;
   var tmp;
   if ($super === VOID) {
-    this.v2h(source, startIndex, endIndex);
+    this.n2j(source, startIndex, endIndex);
     tmp = Unit_instance;
   } else {
-    tmp = $super.v2h.call(this, source, startIndex, endIndex);
+    tmp = $super.n2j.call(this, source, startIndex, endIndex);
   }
   return tmp;
 }
-initMetadataForInterface(Sink, 'Sink');
+initMetadataForInterface(Sink, 'Sink', VOID, VOID, [AutoCloseable]);
 initMetadataForClass(Buffer, 'Buffer', Buffer, VOID, [Source, Sink]);
-initMetadataForClass(PeekSource, 'PeekSource');
+initMetadataForClass(PeekSource, 'PeekSource', VOID, VOID, [AutoCloseable]);
 initMetadataForClass(RealSource, 'RealSource', VOID, VOID, [Source]);
 initMetadataForCompanion(Companion);
 initMetadataForClass(Segment, 'Segment');
@@ -100,42 +102,42 @@ function _init_properties__Util_kt__g8tcl9() {
   }
 }
 function throwEof($this, byteCount) {
-  throw EOFException_init_$Create$_0("Buffer doesn't contain required number of bytes (size: " + $this.u().toString() + ', required: ' + byteCount.toString() + ')');
+  throw EOFException_init_$Create$_0("Buffer doesn't contain required number of bytes (size: " + $this.l1().toString() + ', required: ' + byteCount.toString() + ')');
 }
 function Buffer() {
-  this.p2g_1 = null;
-  this.q2g_1 = null;
-  this.r2g_1 = new Long(0, 0);
+  this.h2i_1 = null;
+  this.i2i_1 = null;
+  this.j2i_1 = new Long(0, 0);
 }
-protoOf(Buffer).u = function () {
-  return this.r2g_1;
+protoOf(Buffer).l1 = function () {
+  return this.j2i_1;
 };
-protoOf(Buffer).s2g = function () {
+protoOf(Buffer).k2i = function () {
   return this;
 };
-protoOf(Buffer).m1m = function () {
-  return equalsLong(this.u(), new Long(0, 0));
+protoOf(Buffer).g1m = function () {
+  return equalsLong(this.l1(), new Long(0, 0));
 };
-protoOf(Buffer).q1p = function (byteCount) {
+protoOf(Buffer).i1p = function (byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  if (compare(this.u(), byteCount) < 0) {
-    throw EOFException_init_$Create$_0("Buffer doesn't contain required number of bytes (size: " + this.u().toString() + ', required: ' + byteCount.toString() + ')');
+  if (compare(this.l1(), byteCount) < 0) {
+    throw EOFException_init_$Create$_0("Buffer doesn't contain required number of bytes (size: " + this.l1().toString() + ', required: ' + byteCount.toString() + ')');
   }
 };
-protoOf(Buffer).r1p = function (byteCount) {
+protoOf(Buffer).j1p = function (byteCount) {
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount: ' + byteCount.toString() + ' < 0';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  return compare(this.u(), byteCount) >= 0;
+  return compare(this.l1(), byteCount) >= 0;
 };
-protoOf(Buffer).j1m = function () {
-  var tmp0_elvis_lhs = this.p2g_1;
+protoOf(Buffer).d1m = function () {
+  var tmp0_elvis_lhs = this.h2i_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     throwEof(this, new Long(1, 0));
@@ -143,20 +145,20 @@ protoOf(Buffer).j1m = function () {
     tmp = tmp0_elvis_lhs;
   }
   var segment = tmp;
-  var segmentSize = segment.a2h();
+  var segmentSize = segment.l1();
   if (segmentSize === 0) {
-    this.b2h();
-    return this.j1m();
+    this.s2i();
+    return this.d1m();
   }
-  var v = segment.c2h();
-  this.r2g_1 = subtract(this.r2g_1, new Long(1, 0));
+  var v = segment.t2i();
+  this.j2i_1 = subtract(this.j2i_1, new Long(1, 0));
   if (segmentSize === 1) {
-    this.b2h();
+    this.s2i();
   }
   return v;
 };
-protoOf(Buffer).d2h = function () {
-  var tmp0_elvis_lhs = this.p2g_1;
+protoOf(Buffer).u2i = function () {
+  var tmp0_elvis_lhs = this.h2i_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     throwEof(this, new Long(2, 0));
@@ -164,80 +166,122 @@ protoOf(Buffer).d2h = function () {
     tmp = tmp0_elvis_lhs;
   }
   var segment = tmp;
-  var segmentSize = segment.a2h();
+  var segmentSize = segment.l1();
   if (segmentSize < 2) {
-    this.q1p(new Long(2, 0));
+    this.i1p(new Long(2, 0));
     if (segmentSize === 0) {
-      this.b2h();
-      return this.d2h();
+      this.s2i();
+      return this.u2i();
     }
     // Inline function 'kotlinx.io.and' call
-    var tmp_0 = (this.j1m() & 255) << 8;
+    var tmp_0 = (this.d1m() & 255) << 8;
     // Inline function 'kotlinx.io.and' call
-    var tmp$ret$1 = this.j1m() & 255;
+    var tmp$ret$1 = this.d1m() & 255;
     return toShort(tmp_0 | tmp$ret$1);
   }
-  var v = segment.e2h();
-  this.r2g_1 = subtract(this.r2g_1, new Long(2, 0));
+  var v = segment.v2i();
+  this.j2i_1 = subtract(this.j2i_1, new Long(2, 0));
   if (segmentSize === 2) {
-    this.b2h();
+    this.s2i();
   }
   return v;
 };
-protoOf(Buffer).f2h = function () {
+protoOf(Buffer).w2i = function () {
   return Unit_instance;
 };
-protoOf(Buffer).g2h = function (out, startIndex, endIndex) {
-  checkBounds(this.u(), startIndex, endIndex);
+protoOf(Buffer).x2i = function (out, startIndex, endIndex) {
+  checkBounds(this.l1(), startIndex, endIndex);
   if (equalsLong(startIndex, endIndex))
     return Unit_instance;
   var currentOffset = startIndex;
   var remainingByteCount = subtract(endIndex, startIndex);
-  out.r2g_1 = add(out.r2g_1, remainingByteCount);
-  var s = this.p2g_1;
-  while (compare(currentOffset, fromInt(ensureNotNull(s).v2g_1 - s.u2g_1 | 0)) >= 0) {
-    currentOffset = subtract(currentOffset, fromInt(s.v2g_1 - s.u2g_1 | 0));
-    s = s.y2g_1;
+  out.j2i_1 = add(out.j2i_1, remainingByteCount);
+  var s = this.h2i_1;
+  while (compare(currentOffset, fromInt(ensureNotNull(s).n2i_1 - s.m2i_1 | 0)) >= 0) {
+    currentOffset = subtract(currentOffset, fromInt(s.n2i_1 - s.m2i_1 | 0));
+    s = s.q2i_1;
   }
   while (compare(remainingByteCount, new Long(0, 0)) > 0) {
-    var copy = ensureNotNull(s).h2h();
-    copy.u2g_1 = copy.u2g_1 + convertToInt(currentOffset) | 0;
+    var copy = ensureNotNull(s).y2i();
+    copy.m2i_1 = copy.m2i_1 + convertToInt(currentOffset) | 0;
     var tmp = copy;
-    var tmp0 = copy.u2g_1 + convertToInt(remainingByteCount) | 0;
+    var tmp0 = copy.m2i_1 + convertToInt(remainingByteCount) | 0;
     // Inline function 'kotlin.comparisons.minOf' call
-    var b = copy.v2g_1;
-    tmp.v2g_1 = Math.min(tmp0, b);
+    var b = copy.n2i_1;
+    tmp.n2i_1 = Math.min(tmp0, b);
     // Inline function 'kotlinx.io.Buffer.pushSegment' call
-    if (out.p2g_1 == null) {
-      out.p2g_1 = copy;
-      out.q2g_1 = copy;
+    if (out.h2i_1 == null) {
+      out.h2i_1 = copy;
+      out.i2i_1 = copy;
     } else if (false) {
-      out.q2g_1 = ensureNotNull(out.q2g_1).i2h(copy).j2h();
-      if (ensureNotNull(out.q2g_1).z2g_1 == null) {
-        out.p2g_1 = out.q2g_1;
+      out.i2i_1 = ensureNotNull(out.i2i_1).z2i(copy).a2j();
+      if (ensureNotNull(out.i2i_1).r2i_1 == null) {
+        out.h2i_1 = out.i2i_1;
       }
     } else {
-      out.q2g_1 = ensureNotNull(out.q2g_1).i2h(copy);
+      out.i2i_1 = ensureNotNull(out.i2i_1).z2i(copy);
     }
-    remainingByteCount = subtract(remainingByteCount, fromInt(copy.v2g_1 - copy.u2g_1 | 0));
+    remainingByteCount = subtract(remainingByteCount, fromInt(copy.n2i_1 - copy.m2i_1 | 0));
     currentOffset = new Long(0, 0);
-    s = s.y2g_1;
+    s = s.q2i_1;
   }
 };
-protoOf(Buffer).k2h = function () {
-  var result = this.u();
+protoOf(Buffer).b2j = function () {
+  var result = this.l1();
   if (equalsLong(result, new Long(0, 0)))
     return new Long(0, 0);
-  var tail = ensureNotNull(this.q2g_1);
-  if (tail.v2g_1 < 8192 && tail.x2g_1) {
-    result = subtract(result, fromInt(tail.v2g_1 - tail.u2g_1 | 0));
+  var tail = ensureNotNull(this.i2i_1);
+  if (tail.n2i_1 < 8192 && tail.p2i_1) {
+    result = subtract(result, fromInt(tail.n2i_1 - tail.m2i_1 | 0));
   }
   return result;
 };
-protoOf(Buffer).i2 = function () {
-  return this.u1l(this.u());
+protoOf(Buffer).m1l = function (position) {
+  if (compare(position, new Long(0, 0)) < 0 || compare(position, this.l1()) >= 0) {
+    throw IndexOutOfBoundsException_init_$Create$('position (' + position.toString() + ') is not within the range [0..size(' + this.l1().toString() + '))');
+  }
+  if (equalsLong(position, new Long(0, 0))) {
+    return ensureNotNull(this.h2i_1).c2j(0);
+  }
+  // Inline function 'kotlinx.io.seek' call
+  if (this.h2i_1 == null) {
+    var offset = new Long(-1, -1);
+    return ensureNotNull(null).c2j(convertToInt(subtract(position, offset)));
+  }
+  if (compare(subtract(this.l1(), position), position) < 0) {
+    var s = this.i2i_1;
+    var offset_0 = this.l1();
+    $l$loop: while (!(s == null) && compare(offset_0, position) > 0) {
+      offset_0 = subtract(offset_0, fromInt(s.n2i_1 - s.m2i_1 | 0));
+      if (compare(offset_0, position) <= 0)
+        break $l$loop;
+      s = s.r2i_1;
+    }
+    var tmp0 = s;
+    var offset_1 = offset_0;
+    return ensureNotNull(tmp0).c2j(convertToInt(subtract(position, offset_1)));
+  } else {
+    var s_0 = this.h2i_1;
+    var offset_2 = new Long(0, 0);
+    $l$loop_0: while (!(s_0 == null)) {
+      var tmp0_0 = offset_2;
+      // Inline function 'kotlin.Long.plus' call
+      var other = s_0.n2i_1 - s_0.m2i_1 | 0;
+      var nextOffset = add(tmp0_0, fromInt(other));
+      if (compare(nextOffset, position) > 0)
+        break $l$loop_0;
+      s_0 = s_0.q2i_1;
+      offset_2 = nextOffset;
+    }
+    var tmp0_1 = s_0;
+    var offset_3 = offset_2;
+    return ensureNotNull(tmp0_1).c2j(convertToInt(subtract(position, offset_3)));
+  }
 };
-protoOf(Buffer).u1l = function (byteCount) {
+protoOf(Buffer).y2 = function () {
+  return this.o1l(this.l1());
+};
+protoOf(Buffer).o1l = function (byteCount) {
   // Inline function 'kotlinx.io.checkByteCount' call
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
@@ -246,7 +290,7 @@ protoOf(Buffer).u1l = function (byteCount) {
   }
   var remainingByteCount = byteCount;
   while (compare(remainingByteCount, new Long(0, 0)) > 0) {
-    var tmp0_elvis_lhs = this.p2g_1;
+    var tmp0_elvis_lhs = this.h2i_1;
     var tmp;
     if (tmp0_elvis_lhs == null) {
       throw EOFException_init_$Create$_0('Buffer exhausted before skipping ' + byteCount.toString() + ' bytes.');
@@ -256,24 +300,24 @@ protoOf(Buffer).u1l = function (byteCount) {
     var head = tmp;
     var tmp0 = remainingByteCount;
     // Inline function 'kotlinx.io.minOf' call
-    var b = head.v2g_1 - head.u2g_1 | 0;
+    var b = head.n2i_1 - head.m2i_1 | 0;
     // Inline function 'kotlin.comparisons.minOf' call
     var b_0 = fromInt(b);
     var tmp$ret$4 = compare(tmp0, b_0) <= 0 ? tmp0 : b_0;
     var toSkip = convertToInt(tmp$ret$4);
-    this.r2g_1 = subtract(this.r2g_1, fromInt(toSkip));
+    this.j2i_1 = subtract(this.j2i_1, fromInt(toSkip));
     remainingByteCount = subtract(remainingByteCount, fromInt(toSkip));
-    head.u2g_1 = head.u2g_1 + toSkip | 0;
-    if (head.u2g_1 === head.v2g_1) {
-      this.b2h();
+    head.m2i_1 = head.m2i_1 + toSkip | 0;
+    if (head.m2i_1 === head.n2i_1) {
+      this.s2i();
     }
   }
 };
-protoOf(Buffer).l2h = function (sink, startIndex, endIndex) {
+protoOf(Buffer).d2j = function (sink, startIndex, endIndex) {
   // Inline function 'kotlinx.io.checkBounds' call
   var size = sink.length;
   checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
-  var tmp0_elvis_lhs = this.p2g_1;
+  var tmp0_elvis_lhs = this.h2i_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     return -1;
@@ -283,248 +327,385 @@ protoOf(Buffer).l2h = function (sink, startIndex, endIndex) {
   var s = tmp;
   var tmp0 = endIndex - startIndex | 0;
   // Inline function 'kotlin.comparisons.minOf' call
-  var b = s.a2h();
+  var b = s.l1();
   var toCopy = Math.min(tmp0, b);
-  s.m2h(sink, startIndex, startIndex + toCopy | 0);
-  this.r2g_1 = subtract(this.r2g_1, fromInt(toCopy));
+  s.e2j(sink, startIndex, startIndex + toCopy | 0);
+  this.j2i_1 = subtract(this.j2i_1, fromInt(toCopy));
   if (isEmpty(s)) {
-    this.b2h();
+    this.s2i();
   }
   return toCopy;
 };
-protoOf(Buffer).n2h = function (sink, byteCount) {
+protoOf(Buffer).f2j = function (sink, byteCount) {
   // Inline function 'kotlinx.io.checkByteCount' call
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount (' + byteCount.toString() + ') < 0';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  if (equalsLong(this.u(), new Long(0, 0)))
+  if (equalsLong(this.l1(), new Long(0, 0)))
     return new Long(-1, -1);
-  var bytesWritten = compare(byteCount, this.u()) > 0 ? this.u() : byteCount;
-  sink.o2h(this, bytesWritten);
+  var bytesWritten = compare(byteCount, this.l1()) > 0 ? this.l1() : byteCount;
+  sink.g2j(this, bytesWritten);
   return bytesWritten;
 };
-protoOf(Buffer).p2h = function (sink, byteCount) {
+protoOf(Buffer).h2j = function (sink, byteCount) {
   // Inline function 'kotlinx.io.checkByteCount' call
   // Inline function 'kotlin.require' call
   if (!(compare(byteCount, new Long(0, 0)) >= 0)) {
     var message = 'byteCount (' + byteCount.toString() + ') < 0';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  if (compare(this.u(), byteCount) < 0) {
-    sink.o2h(this, this.u());
-    throw EOFException_init_$Create$_0('Buffer exhausted before writing ' + byteCount.toString() + ' bytes. Only ' + this.u().toString() + ' bytes were written.');
+  if (compare(this.l1(), byteCount) < 0) {
+    sink.g2j(this, this.l1());
+    throw EOFException_init_$Create$_0('Buffer exhausted before writing ' + byteCount.toString() + ' bytes. Only ' + this.l1().toString() + ' bytes were written.');
   }
-  sink.o2h(this, byteCount);
+  sink.g2j(this, byteCount);
 };
-protoOf(Buffer).q2h = function (sink) {
-  var byteCount = this.u();
+protoOf(Buffer).i2j = function (sink) {
+  var byteCount = this.l1();
   if (compare(byteCount, new Long(0, 0)) > 0) {
-    sink.o2h(this, byteCount);
+    sink.g2j(this, byteCount);
   }
   return byteCount;
 };
-protoOf(Buffer).r2h = function () {
+protoOf(Buffer).j2j = function () {
   return buffered(new PeekSource(this));
 };
-protoOf(Buffer).s2h = function (minimumCapacity) {
+protoOf(Buffer).k2j = function (minimumCapacity) {
   // Inline function 'kotlin.require' call
   if (!(minimumCapacity >= 1 && minimumCapacity <= 8192)) {
-    var message = 'unexpected capacity';
+    var message = 'unexpected capacity (' + minimumCapacity + '), should be in range [1, 8192]';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  if (this.q2g_1 == null) {
-    var result = SegmentPool_instance.j1l();
-    this.p2g_1 = result;
-    this.q2g_1 = result;
+  if (this.i2i_1 == null) {
+    var result = SegmentPool_instance.d1l();
+    this.h2i_1 = result;
+    this.i2i_1 = result;
     return result;
   }
-  var t = ensureNotNull(this.q2g_1);
-  if ((t.v2g_1 + minimumCapacity | 0) > 8192 || !t.x2g_1) {
-    var newTail = t.i2h(SegmentPool_instance.j1l());
-    this.q2g_1 = newTail;
+  var t = ensureNotNull(this.i2i_1);
+  if ((t.n2i_1 + minimumCapacity | 0) > 8192 || !t.p2i_1) {
+    var newTail = t.z2i(SegmentPool_instance.d1l());
+    this.i2i_1 = newTail;
     return newTail;
   }
   return t;
 };
-protoOf(Buffer).v2h = function (source, startIndex, endIndex) {
+protoOf(Buffer).n2j = function (source, startIndex, endIndex) {
   // Inline function 'kotlinx.io.checkBounds' call
   var size = source.length;
   checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
   var currentOffset = startIndex;
   while (currentOffset < endIndex) {
-    var tail = this.s2h(1);
+    var tail = this.k2j(1);
     var tmp0 = endIndex - currentOffset | 0;
     // Inline function 'kotlin.comparisons.minOf' call
-    var b = tail.w2h();
+    var b = tail.o2j();
     var toCopy = Math.min(tmp0, b);
-    tail.x2h(source, currentOffset, currentOffset + toCopy | 0);
+    tail.p2j(source, currentOffset, currentOffset + toCopy | 0);
     currentOffset = currentOffset + toCopy | 0;
   }
   var tmp = this;
-  var tmp0_0 = this.r2g_1;
+  var tmp0_0 = this.j2i_1;
   // Inline function 'kotlin.Long.plus' call
   var other = endIndex - startIndex | 0;
-  tmp.r2g_1 = add(tmp0_0, fromInt(other));
+  tmp.j2i_1 = add(tmp0_0, fromInt(other));
 };
-protoOf(Buffer).o2h = function (source, byteCount) {
+protoOf(Buffer).g2j = function (source, byteCount) {
   // Inline function 'kotlin.require' call
   if (!!(source === this)) {
     var message = 'source == this';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  checkOffsetAndCount(source.r2g_1, new Long(0, 0), byteCount);
+  checkOffsetAndCount(source.j2i_1, new Long(0, 0), byteCount);
   var remainingByteCount = byteCount;
   while (compare(remainingByteCount, new Long(0, 0)) > 0) {
-    if (compare(remainingByteCount, fromInt(ensureNotNull(source.p2g_1).a2h())) < 0) {
-      var tail = this.q2g_1;
+    if (compare(remainingByteCount, fromInt(ensureNotNull(source.h2i_1).l1())) < 0) {
+      var tail = this.i2i_1;
       var tmp;
-      if (!(tail == null) && tail.x2g_1) {
+      if (!(tail == null) && tail.p2i_1) {
         var tmp0 = remainingByteCount;
         // Inline function 'kotlin.Long.plus' call
-        var other = tail.v2g_1;
+        var other = tail.n2i_1;
         var tmp0_0 = add(tmp0, fromInt(other));
         // Inline function 'kotlin.Long.minus' call
-        var other_0 = tail.z2h() ? 0 : tail.u2g_1;
+        var other_0 = tail.r2j() ? 0 : tail.m2i_1;
         var tmp$ret$3 = subtract(tmp0_0, fromInt(other_0));
         tmp = compare(tmp$ret$3, new Long(8192, 0)) <= 0;
       } else {
         tmp = false;
       }
       if (tmp) {
-        ensureNotNull(source.p2g_1).b2i(tail, convertToInt(remainingByteCount));
-        source.r2g_1 = subtract(source.r2g_1, remainingByteCount);
-        this.r2g_1 = add(this.r2g_1, remainingByteCount);
+        ensureNotNull(source.h2i_1).t2j(tail, convertToInt(remainingByteCount));
+        source.j2i_1 = subtract(source.j2i_1, remainingByteCount);
+        this.j2i_1 = add(this.j2i_1, remainingByteCount);
         return Unit_instance;
       } else {
-        source.p2g_1 = ensureNotNull(source.p2g_1).a2i(convertToInt(remainingByteCount));
+        source.h2i_1 = ensureNotNull(source.h2i_1).s2j(convertToInt(remainingByteCount));
       }
     }
-    var segmentToMove = ensureNotNull(source.p2g_1);
-    var movedByteCount = fromInt(segmentToMove.a2h());
-    source.p2g_1 = segmentToMove.c2i();
-    if (source.p2g_1 == null) {
-      source.q2g_1 = null;
+    var segmentToMove = ensureNotNull(source.h2i_1);
+    var movedByteCount = fromInt(segmentToMove.l1());
+    source.h2i_1 = segmentToMove.u2j();
+    if (source.h2i_1 == null) {
+      source.i2i_1 = null;
     }
     // Inline function 'kotlinx.io.Buffer.pushSegment' call
-    if (this.p2g_1 == null) {
-      this.p2g_1 = segmentToMove;
-      this.q2g_1 = segmentToMove;
+    if (this.h2i_1 == null) {
+      this.h2i_1 = segmentToMove;
+      this.i2i_1 = segmentToMove;
     } else if (true) {
-      this.q2g_1 = ensureNotNull(this.q2g_1).i2h(segmentToMove).j2h();
-      if (ensureNotNull(this.q2g_1).z2g_1 == null) {
-        this.p2g_1 = this.q2g_1;
+      this.i2i_1 = ensureNotNull(this.i2i_1).z2i(segmentToMove).a2j();
+      if (ensureNotNull(this.i2i_1).r2i_1 == null) {
+        this.h2i_1 = this.i2i_1;
       }
     } else {
-      this.q2g_1 = ensureNotNull(this.q2g_1).i2h(segmentToMove);
+      this.i2i_1 = ensureNotNull(this.i2i_1).z2i(segmentToMove);
     }
-    source.r2g_1 = subtract(source.r2g_1, movedByteCount);
-    this.r2g_1 = add(this.r2g_1, movedByteCount);
+    source.j2i_1 = subtract(source.j2i_1, movedByteCount);
+    this.j2i_1 = add(this.j2i_1, movedByteCount);
     remainingByteCount = subtract(remainingByteCount, movedByteCount);
   }
 };
-protoOf(Buffer).d2i = function (source) {
+protoOf(Buffer).v2j = function (source) {
   var totalBytesRead = new Long(0, 0);
   $l$loop: while (true) {
-    var readCount = source.n2h(this, new Long(8192, 0));
+    var readCount = source.f2j(this, new Long(8192, 0));
     if (equalsLong(readCount, new Long(-1, -1)))
       break $l$loop;
     totalBytesRead = add(totalBytesRead, readCount);
   }
   return totalBytesRead;
 };
-protoOf(Buffer).e2i = function (byte) {
-  this.s2h(1).f2i(byte);
-  this.r2g_1 = add(this.r2g_1, new Long(1, 0));
+protoOf(Buffer).w2j = function (byte) {
+  this.k2j(1).x2j(byte);
+  this.j2i_1 = add(this.j2i_1, new Long(1, 0));
 };
-protoOf(Buffer).g2i = function (short) {
-  this.s2h(2).h2i(short);
-  this.r2g_1 = add(this.r2g_1, new Long(2, 0));
+protoOf(Buffer).y2j = function (short) {
+  this.k2j(2).z2j(short);
+  this.j2i_1 = add(this.j2i_1, new Long(2, 0));
 };
-protoOf(Buffer).c1n = function () {
+protoOf(Buffer).g4 = function () {
   return Unit_instance;
 };
 protoOf(Buffer).toString = function () {
-  if (equalsLong(this.u(), new Long(0, 0)))
+  if (equalsLong(this.l1(), new Long(0, 0)))
     return 'Buffer(size=0)';
   var maxPrintableBytes = 64;
   // Inline function 'kotlinx.io.minOf' call
-  var b = this.u();
+  var b = this.l1();
   // Inline function 'kotlin.comparisons.minOf' call
   var a = fromInt(maxPrintableBytes);
   var tmp$ret$1 = compare(a, b) <= 0 ? a : b;
   var len = convertToInt(tmp$ret$1);
-  var builder = StringBuilder_init_$Create$(imul(len, 2) + (compare(this.u(), fromInt(maxPrintableBytes)) > 0 ? 1 : 0) | 0);
+  var builder = StringBuilder_init_$Create$(imul(len, 2) + (compare(this.l1(), fromInt(maxPrintableBytes)) > 0 ? 1 : 0) | 0);
   var bytesWritten = 0;
   // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.forEachSegment' call
-  var curr = this.p2g_1;
+  var curr = this.h2i_1;
   while (!(curr == null)) {
     var tmp0 = get_SegmentReadContextImpl();
     var segment = curr;
     var idx = 0;
-    while (bytesWritten < len && idx < segment.a2h()) {
+    while (bytesWritten < len && idx < segment.l1()) {
       var _unary__edvuaz = idx;
       idx = _unary__edvuaz + 1 | 0;
-      var b_0 = tmp0.i2i(segment, _unary__edvuaz);
+      var b_0 = tmp0.a2k(segment, _unary__edvuaz);
       bytesWritten = bytesWritten + 1 | 0;
       var tmp = get_HEX_DIGIT_CHARS();
       // Inline function 'kotlinx.io.shr' call
       var tmp$ret$2 = b_0 >> 4;
-      var tmp_0 = builder.t7(tmp[tmp$ret$2 & 15]);
+      var tmp_0 = builder.s(tmp[tmp$ret$2 & 15]);
       var tmp_1 = get_HEX_DIGIT_CHARS();
       // Inline function 'kotlinx.io.and' call
       var tmp$ret$3 = b_0 & 15;
-      tmp_0.t7(tmp_1[tmp$ret$3]);
+      tmp_0.s(tmp_1[tmp$ret$3]);
     }
-    curr = curr.y2g_1;
+    curr = curr.q2i_1;
   }
-  if (compare(this.u(), fromInt(maxPrintableBytes)) > 0) {
-    builder.t7(_Char___init__impl__6a9atx(8230));
+  if (compare(this.l1(), fromInt(maxPrintableBytes)) > 0) {
+    builder.s(_Char___init__impl__6a9atx(8230));
   }
-  return 'Buffer(size=' + this.u().toString() + ' hex=' + builder.toString() + ')';
+  return 'Buffer(size=' + this.l1().toString() + ' hex=' + builder.toString() + ')';
 };
-protoOf(Buffer).b2h = function () {
-  var oldHead = ensureNotNull(this.p2g_1);
-  var nextHead = oldHead.y2g_1;
-  this.p2g_1 = nextHead;
+protoOf(Buffer).s2i = function () {
+  var oldHead = ensureNotNull(this.h2i_1);
+  var nextHead = oldHead.q2i_1;
+  this.h2i_1 = nextHead;
   if (nextHead == null) {
-    this.q2g_1 = null;
+    this.i2i_1 = null;
   } else {
-    nextHead.z2g_1 = null;
+    nextHead.r2i_1 = null;
   }
-  oldHead.y2g_1 = null;
-  SegmentPool_instance.j2i(oldHead);
+  oldHead.q2i_1 = null;
+  SegmentPool_instance.b2k(oldHead);
 };
-protoOf(Buffer).k2i = function () {
-  var oldTail = ensureNotNull(this.q2g_1);
-  var newTail = oldTail.z2g_1;
-  this.q2g_1 = newTail;
+protoOf(Buffer).c2k = function () {
+  var oldTail = ensureNotNull(this.i2i_1);
+  var newTail = oldTail.r2i_1;
+  this.i2i_1 = newTail;
   if (newTail == null) {
-    this.p2g_1 = null;
+    this.h2i_1 = null;
   } else {
-    newTail.y2g_1 = null;
+    newTail.q2i_1 = null;
   }
-  oldTail.z2g_1 = null;
-  SegmentPool_instance.j2i(oldTail);
+  oldTail.r2i_1 = null;
+  SegmentPool_instance.b2k(oldTail);
 };
+function indexOf(_this__u8e3s4, byte, startIndex, endIndex) {
+  startIndex = startIndex === VOID ? new Long(0, 0) : startIndex;
+  endIndex = endIndex === VOID ? _this__u8e3s4.l1() : endIndex;
+  // Inline function 'kotlin.comparisons.minOf' call
+  var b = _this__u8e3s4.l1();
+  var endOffset = compare(endIndex, b) <= 0 ? endIndex : b;
+  checkBounds(_this__u8e3s4.l1(), startIndex, endOffset);
+  if (equalsLong(startIndex, endOffset))
+    return new Long(-1, -1);
+  // Inline function 'kotlinx.io.seek' call
+  if (_this__u8e3s4.h2i_1 == null) {
+    var o = new Long(-1, -1);
+    if (equalsLong(o, new Long(-1, -1))) {
+      return new Long(-1, -1);
+    }
+    var segment = null;
+    var offset = o;
+    do {
+      // Inline function 'kotlin.check' call
+      if (!(compare(endOffset, offset) > 0)) {
+        throw IllegalStateException_init_$Create$('Check failed.');
+      }
+      ensureNotNull(segment);
+      var tmp = segment;
+      // Inline function 'kotlin.comparisons.maxOf' call
+      var a = convertToInt(subtract(startIndex, offset));
+      var tmp_0 = Math.max(a, 0);
+      var tmp0 = segment.l1();
+      // Inline function 'kotlin.comparisons.minOf' call
+      var b_0 = convertToInt(subtract(endOffset, offset));
+      var tmp$ret$3 = Math.min(tmp0, b_0);
+      var idx = indexOf_0(tmp, byte, tmp_0, tmp$ret$3);
+      if (!(idx === -1)) {
+        return add(offset, fromInt(idx));
+      }
+      var tmp0_0 = offset;
+      // Inline function 'kotlin.Long.plus' call
+      var other = segment.l1();
+      offset = add(tmp0_0, fromInt(other));
+      segment = segment.q2i_1;
+    }
+     while (!(segment == null) && compare(offset, endOffset) < 0);
+    return new Long(-1, -1);
+  }
+  if (compare(subtract(_this__u8e3s4.l1(), startIndex), startIndex) < 0) {
+    var s = _this__u8e3s4.i2i_1;
+    var offset_0 = _this__u8e3s4.l1();
+    $l$loop: while (!(s == null) && compare(offset_0, startIndex) > 0) {
+      offset_0 = subtract(offset_0, fromInt(s.n2i_1 - s.m2i_1 | 0));
+      if (compare(offset_0, startIndex) <= 0)
+        break $l$loop;
+      s = s.r2i_1;
+    }
+    var tmp0_1 = s;
+    var o_0 = offset_0;
+    if (equalsLong(o_0, new Long(-1, -1))) {
+      return new Long(-1, -1);
+    }
+    var segment_0 = tmp0_1;
+    var offset_1 = o_0;
+    do {
+      // Inline function 'kotlin.check' call
+      if (!(compare(endOffset, offset_1) > 0)) {
+        throw IllegalStateException_init_$Create$('Check failed.');
+      }
+      ensureNotNull(segment_0);
+      var tmp_1 = segment_0;
+      // Inline function 'kotlin.comparisons.maxOf' call
+      var a_0 = convertToInt(subtract(startIndex, offset_1));
+      var tmp_2 = Math.max(a_0, 0);
+      var tmp0_2 = segment_0.l1();
+      // Inline function 'kotlin.comparisons.minOf' call
+      var b_1 = convertToInt(subtract(endOffset, offset_1));
+      var tmp$ret$8 = Math.min(tmp0_2, b_1);
+      var idx_0 = indexOf_0(tmp_1, byte, tmp_2, tmp$ret$8);
+      if (!(idx_0 === -1)) {
+        return add(offset_1, fromInt(idx_0));
+      }
+      var tmp0_3 = offset_1;
+      // Inline function 'kotlin.Long.plus' call
+      var other_0 = segment_0.l1();
+      offset_1 = add(tmp0_3, fromInt(other_0));
+      segment_0 = segment_0.q2i_1;
+    }
+     while (!(segment_0 == null) && compare(offset_1, endOffset) < 0);
+    return new Long(-1, -1);
+  } else {
+    var s_0 = _this__u8e3s4.h2i_1;
+    var offset_2 = new Long(0, 0);
+    $l$loop_0: while (!(s_0 == null)) {
+      var tmp0_4 = offset_2;
+      // Inline function 'kotlin.Long.plus' call
+      var other_1 = s_0.n2i_1 - s_0.m2i_1 | 0;
+      var nextOffset = add(tmp0_4, fromInt(other_1));
+      if (compare(nextOffset, startIndex) > 0)
+        break $l$loop_0;
+      s_0 = s_0.q2i_1;
+      offset_2 = nextOffset;
+    }
+    var tmp0_5 = s_0;
+    var o_1 = offset_2;
+    if (equalsLong(o_1, new Long(-1, -1))) {
+      return new Long(-1, -1);
+    }
+    var segment_1 = tmp0_5;
+    var offset_3 = o_1;
+    do {
+      // Inline function 'kotlin.check' call
+      if (!(compare(endOffset, offset_3) > 0)) {
+        throw IllegalStateException_init_$Create$('Check failed.');
+      }
+      ensureNotNull(segment_1);
+      var tmp_3 = segment_1;
+      // Inline function 'kotlin.comparisons.maxOf' call
+      var a_1 = convertToInt(subtract(startIndex, offset_3));
+      var tmp_4 = Math.max(a_1, 0);
+      var tmp0_6 = segment_1.l1();
+      // Inline function 'kotlin.comparisons.minOf' call
+      var b_2 = convertToInt(subtract(endOffset, offset_3));
+      var tmp$ret$13 = Math.min(tmp0_6, b_2);
+      var idx_1 = indexOf_0(tmp_3, byte, tmp_4, tmp$ret$13);
+      if (!(idx_1 === -1)) {
+        return add(offset_3, fromInt(idx_1));
+      }
+      var tmp0_7 = offset_3;
+      // Inline function 'kotlin.Long.plus' call
+      var other_2 = segment_1.l1();
+      offset_3 = add(tmp0_7, fromInt(other_2));
+      segment_1 = segment_1.q2i_1;
+    }
+     while (!(segment_1 == null) && compare(offset_3, endOffset) < 0);
+    return new Long(-1, -1);
+  }
+}
+function readByteString(_this__u8e3s4, byteCount) {
+  return UnsafeByteStringOperations_instance.g2i(readByteArray_0(_this__u8e3s4, byteCount));
+}
 function buffered(_this__u8e3s4) {
   return new RealSource(_this__u8e3s4);
 }
 function PeekSource(upstream) {
-  this.l2i_1 = upstream;
-  this.m2i_1 = this.l2i_1.s2g();
-  this.n2i_1 = this.m2i_1.p2g_1;
+  this.d2k_1 = upstream;
+  this.e2k_1 = this.d2k_1.k2i();
+  this.f2k_1 = this.e2k_1.h2i_1;
   var tmp = this;
-  var tmp0_safe_receiver = this.m2i_1.p2g_1;
-  var tmp0_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.u2g_1;
-  tmp.o2i_1 = tmp0_elvis_lhs == null ? -1 : tmp0_elvis_lhs;
-  this.p2i_1 = false;
-  this.q2i_1 = new Long(0, 0);
+  var tmp0_safe_receiver = this.e2k_1.h2i_1;
+  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.m2i_1;
+  tmp.g2k_1 = tmp1_elvis_lhs == null ? -1 : tmp1_elvis_lhs;
+  this.h2k_1 = false;
+  this.i2k_1 = new Long(0, 0);
 }
-protoOf(PeekSource).n2h = function (sink, byteCount) {
+protoOf(PeekSource).f2j = function (sink, byteCount) {
   // Inline function 'kotlin.check' call
-  if (!!this.p2i_1) {
+  if (!!this.h2k_1) {
     var message = 'Source is closed.';
     throw IllegalStateException_init_$Create$(toString(message));
   }
@@ -535,43 +716,43 @@ protoOf(PeekSource).n2h = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
   // Inline function 'kotlin.check' call
-  if (!(this.n2i_1 == null || (this.n2i_1 === this.m2i_1.p2g_1 && this.o2i_1 === ensureNotNull(this.m2i_1.p2g_1).u2g_1))) {
+  if (!(this.f2k_1 == null || (this.f2k_1 === this.e2k_1.h2i_1 && this.g2k_1 === ensureNotNull(this.e2k_1.h2i_1).m2i_1))) {
     var message_1 = 'Peek source is invalid because upstream source was used';
     throw IllegalStateException_init_$Create$(toString(message_1));
   }
   if (equalsLong(byteCount, new Long(0, 0)))
     return new Long(0, 0);
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.q2i_1;
+  var this_0 = this.i2k_1;
   var tmp$ret$7 = add(this_0, fromInt(1));
-  if (!this.l2i_1.r1p(tmp$ret$7))
+  if (!this.d2k_1.j1p(tmp$ret$7))
     return new Long(-1, -1);
-  if (this.n2i_1 == null && !(this.m2i_1.p2g_1 == null)) {
-    this.n2i_1 = this.m2i_1.p2g_1;
-    this.o2i_1 = ensureNotNull(this.m2i_1.p2g_1).u2g_1;
+  if (this.f2k_1 == null && !(this.e2k_1.h2i_1 == null)) {
+    this.f2k_1 = this.e2k_1.h2i_1;
+    this.g2k_1 = ensureNotNull(this.e2k_1.h2i_1).m2i_1;
   }
   // Inline function 'kotlin.comparisons.minOf' call
-  var b = subtract(this.m2i_1.u(), this.q2i_1);
+  var b = subtract(this.e2k_1.l1(), this.i2k_1);
   var toCopy = compare(byteCount, b) <= 0 ? byteCount : b;
-  this.m2i_1.g2h(sink, this.q2i_1, add(this.q2i_1, toCopy));
-  this.q2i_1 = add(this.q2i_1, toCopy);
+  this.e2k_1.x2i(sink, this.i2k_1, add(this.i2k_1, toCopy));
+  this.i2k_1 = add(this.i2k_1, toCopy);
   return toCopy;
 };
-protoOf(PeekSource).c1n = function () {
-  this.p2i_1 = true;
+protoOf(PeekSource).g4 = function () {
+  this.h2k_1 = true;
 };
 function RealSource(source) {
-  this.r2i_1 = source;
-  this.s2i_1 = false;
-  this.t2i_1 = new Buffer();
+  this.j2k_1 = source;
+  this.k2k_1 = false;
+  this.l2k_1 = new Buffer();
 }
-protoOf(RealSource).s2g = function () {
-  return this.t2i_1;
+protoOf(RealSource).k2i = function () {
+  return this.l2k_1;
 };
-protoOf(RealSource).n2h = function (sink, byteCount) {
+protoOf(RealSource).f2j = function (sink, byteCount) {
   // Inline function 'kotlinx.io.RealSource.checkNotClosed' call
   // Inline function 'kotlin.check' call
-  if (!!this.s2i_1) {
+  if (!!this.k2k_1) {
     var message = 'Source is closed.';
     throw IllegalStateException_init_$Create$(toString(message));
   }
@@ -580,33 +761,33 @@ protoOf(RealSource).n2h = function (sink, byteCount) {
     var message_0 = 'byteCount: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
-  if (equalsLong(this.t2i_1.u(), new Long(0, 0))) {
-    var read = this.r2i_1.n2h(this.t2i_1, new Long(8192, 0));
+  if (equalsLong(this.l2k_1.l1(), new Long(0, 0))) {
+    var read = this.j2k_1.f2j(this.l2k_1, new Long(8192, 0));
     if (equalsLong(read, new Long(-1, -1)))
       return new Long(-1, -1);
   }
   // Inline function 'kotlin.comparisons.minOf' call
-  var b = this.t2i_1.u();
+  var b = this.l2k_1.l1();
   var toRead = compare(byteCount, b) <= 0 ? byteCount : b;
-  return this.t2i_1.n2h(sink, toRead);
+  return this.l2k_1.f2j(sink, toRead);
 };
-protoOf(RealSource).m1m = function () {
+protoOf(RealSource).g1m = function () {
   // Inline function 'kotlinx.io.RealSource.checkNotClosed' call
   // Inline function 'kotlin.check' call
-  if (!!this.s2i_1) {
+  if (!!this.k2k_1) {
     var message = 'Source is closed.';
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  return this.t2i_1.m1m() && equalsLong(this.r2i_1.n2h(this.t2i_1, new Long(8192, 0)), new Long(-1, -1));
+  return this.l2k_1.g1m() && equalsLong(this.j2k_1.f2j(this.l2k_1, new Long(8192, 0)), new Long(-1, -1));
 };
-protoOf(RealSource).q1p = function (byteCount) {
-  if (!this.r1p(byteCount))
+protoOf(RealSource).i1p = function (byteCount) {
+  if (!this.j1p(byteCount))
     throw EOFException_init_$Create$_0("Source doesn't contain required number of bytes (" + byteCount.toString() + ').');
 };
-protoOf(RealSource).r1p = function (byteCount) {
+protoOf(RealSource).j1p = function (byteCount) {
   // Inline function 'kotlinx.io.RealSource.checkNotClosed' call
   // Inline function 'kotlin.check' call
-  if (!!this.s2i_1) {
+  if (!!this.k2k_1) {
     var message = 'Source is closed.';
     throw IllegalStateException_init_$Create$(toString(message));
   }
@@ -615,87 +796,91 @@ protoOf(RealSource).r1p = function (byteCount) {
     var message_0 = 'byteCount: ' + byteCount.toString();
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
-  while (compare(this.t2i_1.u(), byteCount) < 0) {
-    if (equalsLong(this.r2i_1.n2h(this.t2i_1, new Long(8192, 0)), new Long(-1, -1)))
+  while (compare(this.l2k_1.l1(), byteCount) < 0) {
+    if (equalsLong(this.j2k_1.f2j(this.l2k_1, new Long(8192, 0)), new Long(-1, -1)))
       return false;
   }
   return true;
 };
-protoOf(RealSource).l2h = function (sink, startIndex, endIndex) {
+protoOf(RealSource).d1m = function () {
+  this.i1p(new Long(1, 0));
+  return this.l2k_1.d1m();
+};
+protoOf(RealSource).d2j = function (sink, startIndex, endIndex) {
   // Inline function 'kotlinx.io.checkBounds' call
   var size = sink.length;
   checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
-  if (equalsLong(this.t2i_1.u(), new Long(0, 0))) {
-    var read = this.r2i_1.n2h(this.t2i_1, new Long(8192, 0));
+  if (equalsLong(this.l2k_1.l1(), new Long(0, 0))) {
+    var read = this.j2k_1.f2j(this.l2k_1, new Long(8192, 0));
     if (equalsLong(read, new Long(-1, -1)))
       return -1;
   }
   var tmp0 = endIndex - startIndex | 0;
   // Inline function 'kotlinx.io.minOf' call
-  var b = this.t2i_1.u();
+  var b = this.l2k_1.l1();
   // Inline function 'kotlin.comparisons.minOf' call
   var a = fromInt(tmp0);
   var tmp$ret$2 = compare(a, b) <= 0 ? a : b;
   var toRead = convertToInt(tmp$ret$2);
-  return this.t2i_1.l2h(sink, startIndex, startIndex + toRead | 0);
+  return this.l2k_1.d2j(sink, startIndex, startIndex + toRead | 0);
 };
-protoOf(RealSource).p2h = function (sink, byteCount) {
+protoOf(RealSource).h2j = function (sink, byteCount) {
   try {
-    this.q1p(byteCount);
+    this.i1p(byteCount);
   } catch ($p) {
     if ($p instanceof EOFException) {
       var e = $p;
-      sink.o2h(this.t2i_1, this.t2i_1.u());
+      sink.g2j(this.l2k_1, this.l2k_1.l1());
       throw e;
     } else {
       throw $p;
     }
   }
-  this.t2i_1.p2h(sink, byteCount);
+  this.l2k_1.h2j(sink, byteCount);
 };
-protoOf(RealSource).q2h = function (sink) {
+protoOf(RealSource).i2j = function (sink) {
   var totalBytesWritten = new Long(0, 0);
-  while (!equalsLong(this.r2i_1.n2h(this.t2i_1, new Long(8192, 0)), new Long(-1, -1))) {
-    var emitByteCount = this.t2i_1.k2h();
+  while (!equalsLong(this.j2k_1.f2j(this.l2k_1, new Long(8192, 0)), new Long(-1, -1))) {
+    var emitByteCount = this.l2k_1.b2j();
     if (compare(emitByteCount, new Long(0, 0)) > 0) {
       totalBytesWritten = add(totalBytesWritten, emitByteCount);
-      sink.o2h(this.t2i_1, emitByteCount);
+      sink.g2j(this.l2k_1, emitByteCount);
     }
   }
-  if (compare(this.t2i_1.u(), new Long(0, 0)) > 0) {
-    totalBytesWritten = add(totalBytesWritten, this.t2i_1.u());
-    sink.o2h(this.t2i_1, this.t2i_1.u());
+  if (compare(this.l2k_1.l1(), new Long(0, 0)) > 0) {
+    totalBytesWritten = add(totalBytesWritten, this.l2k_1.l1());
+    sink.g2j(this.l2k_1, this.l2k_1.l1());
   }
   return totalBytesWritten;
 };
-protoOf(RealSource).d2h = function () {
-  this.q1p(new Long(2, 0));
-  return this.t2i_1.d2h();
+protoOf(RealSource).u2i = function () {
+  this.i1p(new Long(2, 0));
+  return this.l2k_1.u2i();
 };
-protoOf(RealSource).r2h = function () {
+protoOf(RealSource).j2j = function () {
   // Inline function 'kotlinx.io.RealSource.checkNotClosed' call
   // Inline function 'kotlin.check' call
-  if (!!this.s2i_1) {
+  if (!!this.k2k_1) {
     var message = 'Source is closed.';
     throw IllegalStateException_init_$Create$(toString(message));
   }
   return buffered(new PeekSource(this));
 };
-protoOf(RealSource).c1n = function () {
-  if (this.s2i_1)
+protoOf(RealSource).g4 = function () {
+  if (this.k2k_1)
     return Unit_instance;
-  this.s2i_1 = true;
-  this.r2i_1.c1n();
-  this.t2i_1.i2();
+  this.k2k_1 = true;
+  this.j2k_1.g4();
+  this.l2k_1.y2();
 };
 protoOf(RealSource).toString = function () {
-  return 'buffered(' + toString(this.r2i_1) + ')';
+  return 'buffered(' + toString(this.j2k_1) + ')';
 };
 function Segment_init_$Init$($this) {
   Segment.call($this);
-  $this.t2g_1 = new Int8Array(8192);
-  $this.x2g_1 = true;
-  $this.w2g_1 = null;
+  $this.l2i_1 = new Int8Array(8192);
+  $this.p2i_1 = true;
+  $this.o2i_1 = null;
   return $this;
 }
 function Segment_init_$Create$() {
@@ -703,150 +888,150 @@ function Segment_init_$Create$() {
 }
 function Segment_init_$Init$_0(data, pos, limit, shareToken, owner, $this) {
   Segment.call($this);
-  $this.t2g_1 = data;
-  $this.u2g_1 = pos;
-  $this.v2g_1 = limit;
-  $this.w2g_1 = shareToken;
-  $this.x2g_1 = owner;
+  $this.l2i_1 = data;
+  $this.m2i_1 = pos;
+  $this.n2i_1 = limit;
+  $this.o2i_1 = shareToken;
+  $this.p2i_1 = owner;
   return $this;
 }
 function Segment_init_$Create$_0(data, pos, limit, shareToken, owner) {
   return Segment_init_$Init$_0(data, pos, limit, shareToken, owner, objectCreate(protoOf(Segment)));
 }
 function Companion() {
-  this.u2i_1 = 8192;
-  this.v2i_1 = 1024;
+  this.m2k_1 = 8192;
+  this.n2k_1 = 1024;
 }
-protoOf(Companion).w2i = function () {
+protoOf(Companion).o2k = function () {
   return Segment_init_$Create$();
 };
 var Companion_instance;
 function Companion_getInstance() {
   return Companion_instance;
 }
-protoOf(Segment).z2h = function () {
-  var tmp1_safe_receiver = this.w2g_1;
-  var tmp0_elvis_lhs = tmp1_safe_receiver == null ? null : tmp1_safe_receiver.x2i();
-  return tmp0_elvis_lhs == null ? false : tmp0_elvis_lhs;
+protoOf(Segment).r2j = function () {
+  var tmp0_safe_receiver = this.o2i_1;
+  var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : tmp0_safe_receiver.p2k();
+  return tmp1_elvis_lhs == null ? false : tmp1_elvis_lhs;
 };
-protoOf(Segment).h2h = function () {
-  var tmp0_elvis_lhs = this.w2g_1;
+protoOf(Segment).y2i = function () {
+  var tmp0_elvis_lhs = this.o2i_1;
   var tmp;
   if (tmp0_elvis_lhs == null) {
     // Inline function 'kotlin.also' call
-    var this_0 = SegmentPool_instance.y2i();
-    this.w2g_1 = this_0;
+    var this_0 = SegmentPool_instance.q2k();
+    this.o2i_1 = this_0;
     tmp = this_0;
   } else {
     tmp = tmp0_elvis_lhs;
   }
   var t = tmp;
-  var tmp_0 = this.u2g_1;
-  var tmp_1 = this.v2g_1;
+  var tmp_0 = this.m2i_1;
+  var tmp_1 = this.n2i_1;
   // Inline function 'kotlin.also' call
-  t.z2i();
-  return Segment_init_$Create$_0(this.t2g_1, tmp_0, tmp_1, t, false);
+  t.r2k();
+  return Segment_init_$Create$_0(this.l2i_1, tmp_0, tmp_1, t, false);
 };
-protoOf(Segment).c2i = function () {
-  var result = this.y2g_1;
-  if (!(this.z2g_1 == null)) {
-    ensureNotNull(this.z2g_1).y2g_1 = this.y2g_1;
+protoOf(Segment).u2j = function () {
+  var result = this.q2i_1;
+  if (!(this.r2i_1 == null)) {
+    ensureNotNull(this.r2i_1).q2i_1 = this.q2i_1;
   }
-  if (!(this.y2g_1 == null)) {
-    ensureNotNull(this.y2g_1).z2g_1 = this.z2g_1;
+  if (!(this.q2i_1 == null)) {
+    ensureNotNull(this.q2i_1).r2i_1 = this.r2i_1;
   }
-  this.y2g_1 = null;
-  this.z2g_1 = null;
+  this.q2i_1 = null;
+  this.r2i_1 = null;
   return result;
 };
-protoOf(Segment).i2h = function (segment) {
-  segment.z2g_1 = this;
-  segment.y2g_1 = this.y2g_1;
-  if (!(this.y2g_1 == null)) {
-    ensureNotNull(this.y2g_1).z2g_1 = segment;
+protoOf(Segment).z2i = function (segment) {
+  segment.r2i_1 = this;
+  segment.q2i_1 = this.q2i_1;
+  if (!(this.q2i_1 == null)) {
+    ensureNotNull(this.q2i_1).r2i_1 = segment;
   }
-  this.y2g_1 = segment;
+  this.q2i_1 = segment;
   return segment;
 };
-protoOf(Segment).a2i = function (byteCount) {
+protoOf(Segment).s2j = function (byteCount) {
   // Inline function 'kotlin.require' call
-  if (!(byteCount > 0 && byteCount <= (this.v2g_1 - this.u2g_1 | 0))) {
+  if (!(byteCount > 0 && byteCount <= (this.n2i_1 - this.m2i_1 | 0))) {
     var message = 'byteCount out of range';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   var prefix;
   if (byteCount >= 1024) {
-    prefix = this.h2h();
+    prefix = this.y2i();
   } else {
-    prefix = SegmentPool_instance.j1l();
-    var tmp0 = this.t2g_1;
-    var tmp2 = prefix.t2g_1;
-    var tmp4 = this.u2g_1;
+    prefix = SegmentPool_instance.d1l();
+    var tmp0 = this.l2i_1;
+    var tmp2 = prefix.l2i_1;
+    var tmp5 = this.m2i_1;
     // Inline function 'kotlin.collections.copyInto' call
-    var endIndex = this.u2g_1 + byteCount | 0;
+    var endIndex = this.m2i_1 + byteCount | 0;
     // Inline function 'kotlin.js.unsafeCast' call
     // Inline function 'kotlin.js.asDynamic' call
     var tmp = tmp0;
     // Inline function 'kotlin.js.unsafeCast' call
     // Inline function 'kotlin.js.asDynamic' call
-    arrayCopy(tmp, tmp2, 0, tmp4, endIndex);
+    arrayCopy(tmp, tmp2, 0, tmp5, endIndex);
   }
-  prefix.v2g_1 = prefix.u2g_1 + byteCount | 0;
-  this.u2g_1 = this.u2g_1 + byteCount | 0;
-  if (!(this.z2g_1 == null)) {
-    ensureNotNull(this.z2g_1).i2h(prefix);
+  prefix.n2i_1 = prefix.m2i_1 + byteCount | 0;
+  this.m2i_1 = this.m2i_1 + byteCount | 0;
+  if (!(this.r2i_1 == null)) {
+    ensureNotNull(this.r2i_1).z2i(prefix);
   } else {
-    prefix.y2g_1 = this;
-    this.z2g_1 = prefix;
+    prefix.q2i_1 = this;
+    this.r2i_1 = prefix;
   }
   return prefix;
 };
-protoOf(Segment).j2h = function () {
+protoOf(Segment).a2j = function () {
   // Inline function 'kotlin.check' call
-  if (!!(this.z2g_1 == null)) {
+  if (!!(this.r2i_1 == null)) {
     var message = 'cannot compact';
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  if (!ensureNotNull(this.z2g_1).x2g_1)
+  if (!ensureNotNull(this.r2i_1).p2i_1)
     return this;
-  var byteCount = this.v2g_1 - this.u2g_1 | 0;
-  var availableByteCount = (8192 - ensureNotNull(this.z2g_1).v2g_1 | 0) + (ensureNotNull(this.z2g_1).z2h() ? 0 : ensureNotNull(this.z2g_1).u2g_1) | 0;
+  var byteCount = this.n2i_1 - this.m2i_1 | 0;
+  var availableByteCount = (8192 - ensureNotNull(this.r2i_1).n2i_1 | 0) + (ensureNotNull(this.r2i_1).r2j() ? 0 : ensureNotNull(this.r2i_1).m2i_1) | 0;
   if (byteCount > availableByteCount)
     return this;
-  var predecessor = this.z2g_1;
-  this.b2i(ensureNotNull(predecessor), byteCount);
-  var successor = this.c2i();
+  var predecessor = this.r2i_1;
+  this.t2j(ensureNotNull(predecessor), byteCount);
+  var successor = this.u2j();
   // Inline function 'kotlin.check' call
   if (!(successor == null)) {
     throw IllegalStateException_init_$Create$('Check failed.');
   }
-  SegmentPool_instance.j2i(this);
+  SegmentPool_instance.b2k(this);
   return predecessor;
 };
-protoOf(Segment).f2i = function (byte) {
-  var _unary__edvuaz = this.v2g_1;
-  this.v2g_1 = _unary__edvuaz + 1 | 0;
-  this.t2g_1[_unary__edvuaz] = byte;
+protoOf(Segment).x2j = function (byte) {
+  var _unary__edvuaz = this.n2i_1;
+  this.n2i_1 = _unary__edvuaz + 1 | 0;
+  this.l2i_1[_unary__edvuaz] = byte;
 };
-protoOf(Segment).h2i = function (short) {
-  var data = this.t2g_1;
-  var limit = this.v2g_1;
+protoOf(Segment).z2j = function (short) {
+  var data = this.l2i_1;
+  var limit = this.n2i_1;
   var _unary__edvuaz = limit;
   limit = _unary__edvuaz + 1 | 0;
   data[_unary__edvuaz] = toByte((short >>> 8 | 0) & 255);
   var _unary__edvuaz_0 = limit;
   limit = _unary__edvuaz_0 + 1 | 0;
   data[_unary__edvuaz_0] = toByte(short & 255);
-  this.v2g_1 = limit;
+  this.n2i_1 = limit;
 };
-protoOf(Segment).c2h = function () {
-  var _unary__edvuaz = this.u2g_1;
-  this.u2g_1 = _unary__edvuaz + 1 | 0;
-  return this.t2g_1[_unary__edvuaz];
+protoOf(Segment).t2i = function () {
+  var _unary__edvuaz = this.m2i_1;
+  this.m2i_1 = _unary__edvuaz + 1 | 0;
+  return this.l2i_1[_unary__edvuaz];
 };
-protoOf(Segment).e2h = function () {
-  var data = this.t2g_1;
-  var pos = this.u2g_1;
+protoOf(Segment).v2i = function () {
+  var data = this.l2i_1;
+  var pos = this.m2i_1;
   var _unary__edvuaz = pos;
   pos = _unary__edvuaz + 1 | 0;
   // Inline function 'kotlinx.io.and' call
@@ -856,121 +1041,121 @@ protoOf(Segment).e2h = function () {
   // Inline function 'kotlinx.io.and' call
   var tmp$ret$1 = data[_unary__edvuaz_0] & 255;
   var s = toShort(tmp | tmp$ret$1);
-  this.u2g_1 = pos;
+  this.m2i_1 = pos;
   return s;
 };
-protoOf(Segment).b2i = function (sink, byteCount) {
+protoOf(Segment).t2j = function (sink, byteCount) {
   // Inline function 'kotlin.check' call
-  if (!sink.x2g_1) {
+  if (!sink.p2i_1) {
     var message = 'only owner can write';
     throw IllegalStateException_init_$Create$(toString(message));
   }
-  if ((sink.v2g_1 + byteCount | 0) > 8192) {
-    if (sink.z2h())
+  if ((sink.n2i_1 + byteCount | 0) > 8192) {
+    if (sink.r2j())
       throw IllegalArgumentException_init_$Create$_0();
-    if (((sink.v2g_1 + byteCount | 0) - sink.u2g_1 | 0) > 8192)
+    if (((sink.n2i_1 + byteCount | 0) - sink.m2i_1 | 0) > 8192)
       throw IllegalArgumentException_init_$Create$_0();
-    var tmp0 = sink.t2g_1;
-    var tmp2 = sink.t2g_1;
-    var tmp4 = sink.u2g_1;
+    var tmp0 = sink.l2i_1;
+    var tmp2 = sink.l2i_1;
+    var tmp5 = sink.m2i_1;
     // Inline function 'kotlin.collections.copyInto' call
-    var endIndex = sink.v2g_1;
+    var endIndex = sink.n2i_1;
     // Inline function 'kotlin.js.unsafeCast' call
     // Inline function 'kotlin.js.asDynamic' call
     var tmp = tmp0;
     // Inline function 'kotlin.js.unsafeCast' call
     // Inline function 'kotlin.js.asDynamic' call
-    arrayCopy(tmp, tmp2, 0, tmp4, endIndex);
-    sink.v2g_1 = sink.v2g_1 - sink.u2g_1 | 0;
-    sink.u2g_1 = 0;
+    arrayCopy(tmp, tmp2, 0, tmp5, endIndex);
+    sink.n2i_1 = sink.n2i_1 - sink.m2i_1 | 0;
+    sink.m2i_1 = 0;
   }
-  var tmp0_0 = this.t2g_1;
-  var tmp2_0 = sink.t2g_1;
-  var tmp4_0 = sink.v2g_1;
-  var tmp6 = this.u2g_1;
+  var tmp0_0 = this.l2i_1;
+  var tmp2_0 = sink.l2i_1;
+  var tmp4 = sink.n2i_1;
+  var tmp6 = this.m2i_1;
   // Inline function 'kotlin.collections.copyInto' call
-  var endIndex_0 = this.u2g_1 + byteCount | 0;
+  var endIndex_0 = this.m2i_1 + byteCount | 0;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
   var tmp_0 = tmp0_0;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
-  arrayCopy(tmp_0, tmp2_0, tmp4_0, tmp6, endIndex_0);
-  sink.v2g_1 = sink.v2g_1 + byteCount | 0;
-  this.u2g_1 = this.u2g_1 + byteCount | 0;
+  arrayCopy(tmp_0, tmp2_0, tmp4, tmp6, endIndex_0);
+  sink.n2i_1 = sink.n2i_1 + byteCount | 0;
+  this.m2i_1 = this.m2i_1 + byteCount | 0;
 };
-protoOf(Segment).m2h = function (dst, dstStartOffset, dstEndOffset) {
+protoOf(Segment).e2j = function (dst, dstStartOffset, dstEndOffset) {
   var len = dstEndOffset - dstStartOffset | 0;
-  var tmp0 = this.t2g_1;
-  var tmp6 = this.u2g_1;
+  var tmp0 = this.l2i_1;
+  var tmp6 = this.m2i_1;
   // Inline function 'kotlin.collections.copyInto' call
-  var endIndex = this.u2g_1 + len | 0;
+  var endIndex = this.m2i_1 + len | 0;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
   var tmp = tmp0;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
   arrayCopy(tmp, dst, dstStartOffset, tmp6, endIndex);
-  this.u2g_1 = this.u2g_1 + len | 0;
+  this.m2i_1 = this.m2i_1 + len | 0;
 };
-protoOf(Segment).x2h = function (src, srcStartOffset, srcEndOffset) {
-  var tmp2 = this.t2g_1;
+protoOf(Segment).p2j = function (src, srcStartOffset, srcEndOffset) {
+  var tmp2 = this.l2i_1;
   // Inline function 'kotlin.collections.copyInto' call
-  var destinationOffset = this.v2g_1;
+  var destinationOffset = this.n2i_1;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
   var tmp = src;
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
   arrayCopy(tmp, tmp2, destinationOffset, srcStartOffset, srcEndOffset);
-  this.v2g_1 = this.v2g_1 + (srcEndOffset - srcStartOffset | 0) | 0;
+  this.n2i_1 = this.n2i_1 + (srcEndOffset - srcStartOffset | 0) | 0;
 };
-protoOf(Segment).a2h = function () {
-  return this.v2g_1 - this.u2g_1 | 0;
+protoOf(Segment).l1 = function () {
+  return this.n2i_1 - this.m2i_1 | 0;
 };
-protoOf(Segment).w2h = function () {
-  return this.t2g_1.length - this.v2g_1 | 0;
+protoOf(Segment).o2j = function () {
+  return this.l2i_1.length - this.n2i_1 | 0;
 };
-protoOf(Segment).a2j = function (readOnly) {
-  return this.t2g_1;
+protoOf(Segment).s2k = function (readOnly) {
+  return this.l2i_1;
 };
-protoOf(Segment).b2j = function (index) {
-  return this.t2g_1[this.u2g_1 + index | 0];
+protoOf(Segment).c2j = function (index) {
+  return this.l2i_1[this.m2i_1 + index | 0];
 };
-protoOf(Segment).c2j = function (index, value) {
-  this.t2g_1[this.v2g_1 + index | 0] = value;
+protoOf(Segment).t2k = function (index, value) {
+  this.l2i_1[this.n2i_1 + index | 0] = value;
 };
-protoOf(Segment).d2j = function (index, b0, b1) {
-  var d = this.t2g_1;
-  var l = this.v2g_1;
+protoOf(Segment).u2k = function (index, b0, b1) {
+  var d = this.l2i_1;
+  var l = this.n2i_1;
   d[l + index | 0] = b0;
   d[(l + index | 0) + 1 | 0] = b1;
 };
-protoOf(Segment).e2j = function (index, b0, b1, b2) {
-  var d = this.t2g_1;
-  var l = this.v2g_1;
+protoOf(Segment).v2k = function (index, b0, b1, b2) {
+  var d = this.l2i_1;
+  var l = this.n2i_1;
   d[l + index | 0] = b0;
   d[(l + index | 0) + 1 | 0] = b1;
   d[(l + index | 0) + 2 | 0] = b2;
 };
-protoOf(Segment).f2j = function (index, b0, b1, b2, b3) {
-  var d = this.t2g_1;
-  var l = this.v2g_1;
+protoOf(Segment).w2k = function (index, b0, b1, b2, b3) {
+  var d = this.l2i_1;
+  var l = this.n2i_1;
   d[l + index | 0] = b0;
   d[(l + index | 0) + 1 | 0] = b1;
   d[(l + index | 0) + 2 | 0] = b2;
   d[(l + index | 0) + 3 | 0] = b3;
 };
 function Segment() {
-  this.u2g_1 = 0;
-  this.v2g_1 = 0;
-  this.w2g_1 = null;
-  this.x2g_1 = false;
-  this.y2g_1 = null;
-  this.z2g_1 = null;
+  this.m2i_1 = 0;
+  this.n2i_1 = 0;
+  this.o2i_1 = null;
+  this.p2i_1 = false;
+  this.q2i_1 = null;
+  this.r2i_1 = null;
 }
 function isEmpty(_this__u8e3s4) {
-  return _this__u8e3s4.a2h() === 0;
+  return _this__u8e3s4.l1() === 0;
 }
 function SegmentCopyTracker() {
 }
@@ -978,10 +1163,10 @@ function AlwaysSharedCopyTracker() {
   AlwaysSharedCopyTracker_instance = this;
   SegmentCopyTracker.call(this);
 }
-protoOf(AlwaysSharedCopyTracker).x2i = function () {
+protoOf(AlwaysSharedCopyTracker).p2k = function () {
   return true;
 };
-protoOf(AlwaysSharedCopyTracker).z2i = function () {
+protoOf(AlwaysSharedCopyTracker).r2k = function () {
   return Unit_instance;
 };
 var AlwaysSharedCopyTracker_instance;
@@ -990,27 +1175,37 @@ function AlwaysSharedCopyTracker_getInstance() {
     new AlwaysSharedCopyTracker();
   return AlwaysSharedCopyTracker_instance;
 }
+function indexOf_0(_this__u8e3s4, byte, startOffset, endOffset) {
+  // Inline function 'kotlin.require' call
+  if (!(0 <= startOffset ? startOffset < _this__u8e3s4.l1() : false)) {
+    var message = '' + startOffset;
+    throw IllegalArgumentException_init_$Create$(toString(message));
+  }
+  // Inline function 'kotlin.require' call
+  if (!(startOffset <= endOffset ? endOffset <= _this__u8e3s4.l1() : false)) {
+    var message_0 = '' + endOffset;
+    throw IllegalArgumentException_init_$Create$(toString(message_0));
+  }
+  var p = _this__u8e3s4.m2i_1;
+  var data = _this__u8e3s4.s2k(true);
+  var inductionVariable = startOffset;
+  if (inductionVariable < endOffset)
+    do {
+      var idx = inductionVariable;
+      inductionVariable = inductionVariable + 1 | 0;
+      if (data[p + idx | 0] === byte) {
+        return idx;
+      }
+    }
+     while (inductionVariable < endOffset);
+  return -1;
+}
 function Sink() {
 }
 function Source() {
 }
 function readByteArray(_this__u8e3s4) {
   return readByteArrayImpl(_this__u8e3s4, -1);
-}
-function readTo(_this__u8e3s4, sink, startIndex, endIndex) {
-  startIndex = startIndex === VOID ? 0 : startIndex;
-  endIndex = endIndex === VOID ? sink.length : endIndex;
-  // Inline function 'kotlinx.io.checkBounds' call
-  var size = sink.length;
-  checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
-  var offset = startIndex;
-  while (offset < endIndex) {
-    var bytesRead = _this__u8e3s4.l2h(sink, offset, endIndex);
-    if (bytesRead === -1) {
-      throw EOFException_init_$Create$_0('Source exhausted before reading ' + (endIndex - startIndex | 0) + ' bytes. ' + ('Only ' + bytesRead + ' bytes were read.'));
-    }
-    offset = offset + bytesRead | 0;
-  }
 }
 function readByteArray_0(_this__u8e3s4, byteCount) {
   // Inline function 'kotlinx.io.checkByteCount' call
@@ -1022,35 +1217,93 @@ function readByteArray_0(_this__u8e3s4, byteCount) {
   }
   return readByteArrayImpl(_this__u8e3s4, byteCount);
 }
+function indexOf_1(_this__u8e3s4, byte, startIndex, endIndex) {
+  startIndex = startIndex === VOID ? new Long(0, 0) : startIndex;
+  endIndex = endIndex === VOID ? new Long(-1, 2147483647) : endIndex;
+  // Inline function 'kotlin.require' call
+  if (!(compare(new Long(0, 0), startIndex) <= 0 ? compare(startIndex, endIndex) <= 0 : false)) {
+    var tmp;
+    if (compare(endIndex, new Long(0, 0)) < 0) {
+      tmp = 'startIndex (' + startIndex.toString() + ') and endIndex (' + endIndex.toString() + ') should be non negative';
+    } else {
+      tmp = 'startIndex (' + startIndex.toString() + ') is not within the range [0..endIndex(' + endIndex.toString() + '))';
+    }
+    var message = tmp;
+    throw IllegalArgumentException_init_$Create$(toString(message));
+  }
+  if (equalsLong(startIndex, endIndex))
+    return new Long(-1, -1);
+  var offset = startIndex;
+  $l$loop: while (true) {
+    var tmp_0;
+    if (compare(offset, endIndex) < 0) {
+      // Inline function 'kotlin.Long.plus' call
+      var this_0 = offset;
+      var tmp$ret$2 = add(this_0, fromInt(1));
+      tmp_0 = _this__u8e3s4.j1p(tmp$ret$2);
+    } else {
+      tmp_0 = false;
+    }
+    if (!tmp_0) {
+      break $l$loop;
+    }
+    var tmp_1 = _this__u8e3s4.k2i();
+    var tmp_2 = offset;
+    // Inline function 'kotlin.comparisons.minOf' call
+    var b = _this__u8e3s4.k2i().l1();
+    var tmp$ret$3 = compare(endIndex, b) <= 0 ? endIndex : b;
+    var idx = indexOf(tmp_1, byte, tmp_2, tmp$ret$3);
+    if (!equalsLong(idx, new Long(-1, -1))) {
+      return idx;
+    }
+    offset = _this__u8e3s4.k2i().l1();
+  }
+  return new Long(-1, -1);
+}
 function readByteArrayImpl(_this__u8e3s4, size) {
   var arraySize = size;
   if (size === -1) {
     var fetchSize = new Long(2147483647, 0);
-    while (compare(_this__u8e3s4.s2g().u(), new Long(2147483647, 0)) < 0 && _this__u8e3s4.r1p(fetchSize)) {
+    while (compare(_this__u8e3s4.k2i().l1(), new Long(2147483647, 0)) < 0 && _this__u8e3s4.j1p(fetchSize)) {
       // Inline function 'kotlin.Long.times' call
       var this_0 = fetchSize;
       fetchSize = multiply(this_0, fromInt(2));
     }
     // Inline function 'kotlin.check' call
-    if (!(compare(_this__u8e3s4.s2g().u(), new Long(2147483647, 0)) < 0)) {
-      var message = "Can't create an array of size " + _this__u8e3s4.s2g().u().toString();
+    if (!(compare(_this__u8e3s4.k2i().l1(), new Long(2147483647, 0)) < 0)) {
+      var message = "Can't create an array of size " + _this__u8e3s4.k2i().l1().toString();
       throw IllegalStateException_init_$Create$(toString(message));
     }
-    arraySize = convertToInt(_this__u8e3s4.s2g().u());
+    arraySize = convertToInt(_this__u8e3s4.k2i().l1());
   } else {
-    _this__u8e3s4.q1p(fromInt(size));
+    _this__u8e3s4.i1p(fromInt(size));
   }
   var array = new Int8Array(arraySize);
-  readTo(_this__u8e3s4.s2g(), array);
+  readTo(_this__u8e3s4.k2i(), array);
   return array;
 }
-function readString(_this__u8e3s4) {
-  _this__u8e3s4.r1p(new Long(-1, 2147483647));
-  return commonReadUtf8(_this__u8e3s4.s2g(), _this__u8e3s4.s2g().u());
+function readTo(_this__u8e3s4, sink, startIndex, endIndex) {
+  startIndex = startIndex === VOID ? 0 : startIndex;
+  endIndex = endIndex === VOID ? sink.length : endIndex;
+  // Inline function 'kotlinx.io.checkBounds' call
+  var size = sink.length;
+  checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
+  var offset = startIndex;
+  while (offset < endIndex) {
+    var bytesRead = _this__u8e3s4.d2j(sink, offset, endIndex);
+    if (bytesRead === -1) {
+      throw EOFException_init_$Create$_0('Source exhausted before reading ' + (endIndex - startIndex | 0) + ' bytes. ' + ('Only ' + bytesRead + ' bytes were read.'));
+    }
+    offset = offset + bytesRead | 0;
+  }
 }
-function readString_0(_this__u8e3s4, byteCount) {
-  _this__u8e3s4.q1p(byteCount);
-  return commonReadUtf8(_this__u8e3s4.s2g(), byteCount);
+function readString(_this__u8e3s4, byteCount) {
+  _this__u8e3s4.i1p(byteCount);
+  return commonReadUtf8(_this__u8e3s4.k2i(), byteCount);
+}
+function readString_0(_this__u8e3s4) {
+  _this__u8e3s4.j1p(new Long(-1, 2147483647));
+  return commonReadUtf8(_this__u8e3s4.k2i(), _this__u8e3s4.k2i().l1());
 }
 function writeString(_this__u8e3s4, string, startIndex, endIndex) {
   startIndex = startIndex === VOID ? 0 : startIndex;
@@ -1060,7 +1313,7 @@ function writeString(_this__u8e3s4, string, startIndex, endIndex) {
   checkBounds(fromInt(size), fromInt(startIndex), fromInt(endIndex));
   // Inline function 'kotlinx.io.writeToInternalBuffer' call
   // Inline function 'kotlinx.io.commonWriteUtf8' call
-  var this_0 = _this__u8e3s4.s2g();
+  var this_0 = _this__u8e3s4.k2i();
   var i = startIndex;
   while (i < endIndex) {
     var p0 = i;
@@ -1070,15 +1323,15 @@ function writeString(_this__u8e3s4, string, startIndex, endIndex) {
     if (c < 128) {
       $l$block_0: {
         // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.writeToTail' call
-        var tail = this_0.s2h(1);
+        var tail = this_0.k2j(1);
         var ctx = get_SegmentWriteContextImpl();
         var segmentOffset = -i | 0;
         // Inline function 'kotlin.comparisons.minOf' call
-        var b = i + tail.w2h() | 0;
+        var b = i + tail.o2j() | 0;
         var runLimit = Math.min(endIndex, b);
         var _unary__edvuaz = i;
         i = _unary__edvuaz + 1 | 0;
-        ctx.j2j(tail, segmentOffset + _unary__edvuaz | 0, toByte(c));
+        ctx.a2l(tail, segmentOffset + _unary__edvuaz | 0, toByte(c));
         $l$loop: while (i < runLimit) {
           var p0_0 = i;
           // Inline function 'kotlin.code' call
@@ -1088,95 +1341,95 @@ function writeString(_this__u8e3s4, string, startIndex, endIndex) {
             break $l$loop;
           var _unary__edvuaz_0 = i;
           i = _unary__edvuaz_0 + 1 | 0;
-          ctx.j2j(tail, segmentOffset + _unary__edvuaz_0 | 0, toByte(c));
+          ctx.a2l(tail, segmentOffset + _unary__edvuaz_0 | 0, toByte(c));
         }
         var bytesWritten = i + segmentOffset | 0;
         if (bytesWritten === 1) {
-          tail.v2g_1 = tail.v2g_1 + bytesWritten | 0;
+          tail.n2i_1 = tail.n2i_1 + bytesWritten | 0;
           var tmp = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_3 = this_0.r2g_1;
-          tmp.r2g_1 = add(this_3, fromInt(bytesWritten));
+          var this_3 = this_0.j2i_1;
+          tmp.j2i_1 = add(this_3, fromInt(bytesWritten));
           break $l$block_0;
         }
         // Inline function 'kotlin.check' call
-        if (!(0 <= bytesWritten ? bytesWritten <= tail.w2h() : false)) {
-          var message = 'Invalid number of bytes written: ' + bytesWritten + '. Should be in 0..' + tail.w2h();
+        if (!(0 <= bytesWritten ? bytesWritten <= tail.o2j() : false)) {
+          var message = 'Invalid number of bytes written: ' + bytesWritten + '. Should be in 0..' + tail.o2j();
           throw IllegalStateException_init_$Create$(toString(message));
         }
         if (!(bytesWritten === 0)) {
-          tail.v2g_1 = tail.v2g_1 + bytesWritten | 0;
+          tail.n2i_1 = tail.n2i_1 + bytesWritten | 0;
           var tmp_0 = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_4 = this_0.r2g_1;
-          tmp_0.r2g_1 = add(this_4, fromInt(bytesWritten));
+          var this_4 = this_0.j2i_1;
+          tmp_0.j2i_1 = add(this_4, fromInt(bytesWritten));
           break $l$block_0;
         }
         if (isEmpty(tail)) {
-          this_0.k2i();
+          this_0.c2k();
         }
       }
     } else if (c < 2048) {
       $l$block_2: {
         // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.writeToTail' call
-        var tail_0 = this_0.s2h(2);
-        get_SegmentWriteContextImpl().i2j(tail_0, 0, toByte(c >> 6 | 192), toByte(c & 63 | 128));
+        var tail_0 = this_0.k2j(2);
+        get_SegmentWriteContextImpl().z2k(tail_0, 0, toByte(c >> 6 | 192), toByte(c & 63 | 128));
         var bytesWritten_0 = 2;
         if (bytesWritten_0 === 2) {
-          tail_0.v2g_1 = tail_0.v2g_1 + bytesWritten_0 | 0;
+          tail_0.n2i_1 = tail_0.n2i_1 + bytesWritten_0 | 0;
           var tmp_1 = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_5 = this_0.r2g_1;
-          tmp_1.r2g_1 = add(this_5, fromInt(bytesWritten_0));
+          var this_5 = this_0.j2i_1;
+          tmp_1.j2i_1 = add(this_5, fromInt(bytesWritten_0));
           break $l$block_2;
         }
         // Inline function 'kotlin.check' call
-        if (!(0 <= bytesWritten_0 ? bytesWritten_0 <= tail_0.w2h() : false)) {
-          var message_0 = 'Invalid number of bytes written: ' + bytesWritten_0 + '. Should be in 0..' + tail_0.w2h();
+        if (!(0 <= bytesWritten_0 ? bytesWritten_0 <= tail_0.o2j() : false)) {
+          var message_0 = 'Invalid number of bytes written: ' + bytesWritten_0 + '. Should be in 0..' + tail_0.o2j();
           throw IllegalStateException_init_$Create$(toString(message_0));
         }
         if (!(bytesWritten_0 === 0)) {
-          tail_0.v2g_1 = tail_0.v2g_1 + bytesWritten_0 | 0;
+          tail_0.n2i_1 = tail_0.n2i_1 + bytesWritten_0 | 0;
           var tmp_2 = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_6 = this_0.r2g_1;
-          tmp_2.r2g_1 = add(this_6, fromInt(bytesWritten_0));
+          var this_6 = this_0.j2i_1;
+          tmp_2.j2i_1 = add(this_6, fromInt(bytesWritten_0));
           break $l$block_2;
         }
         if (isEmpty(tail_0)) {
-          this_0.k2i();
+          this_0.c2k();
         }
       }
       i = i + 1 | 0;
     } else if (c < 55296 || c > 57343) {
       $l$block_4: {
         // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.writeToTail' call
-        var tail_1 = this_0.s2h(3);
-        get_SegmentWriteContextImpl().h2j(tail_1, 0, toByte(c >> 12 | 224), toByte(c >> 6 & 63 | 128), toByte(c & 63 | 128));
+        var tail_1 = this_0.k2j(3);
+        get_SegmentWriteContextImpl().y2k(tail_1, 0, toByte(c >> 12 | 224), toByte(c >> 6 & 63 | 128), toByte(c & 63 | 128));
         var bytesWritten_1 = 3;
         if (bytesWritten_1 === 3) {
-          tail_1.v2g_1 = tail_1.v2g_1 + bytesWritten_1 | 0;
+          tail_1.n2i_1 = tail_1.n2i_1 + bytesWritten_1 | 0;
           var tmp_3 = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_7 = this_0.r2g_1;
-          tmp_3.r2g_1 = add(this_7, fromInt(bytesWritten_1));
+          var this_7 = this_0.j2i_1;
+          tmp_3.j2i_1 = add(this_7, fromInt(bytesWritten_1));
           break $l$block_4;
         }
         // Inline function 'kotlin.check' call
-        if (!(0 <= bytesWritten_1 ? bytesWritten_1 <= tail_1.w2h() : false)) {
-          var message_1 = 'Invalid number of bytes written: ' + bytesWritten_1 + '. Should be in 0..' + tail_1.w2h();
+        if (!(0 <= bytesWritten_1 ? bytesWritten_1 <= tail_1.o2j() : false)) {
+          var message_1 = 'Invalid number of bytes written: ' + bytesWritten_1 + '. Should be in 0..' + tail_1.o2j();
           throw IllegalStateException_init_$Create$(toString(message_1));
         }
         if (!(bytesWritten_1 === 0)) {
-          tail_1.v2g_1 = tail_1.v2g_1 + bytesWritten_1 | 0;
+          tail_1.n2i_1 = tail_1.n2i_1 + bytesWritten_1 | 0;
           var tmp_4 = this_0;
           // Inline function 'kotlin.Long.plus' call
-          var this_8 = this_0.r2g_1;
-          tmp_4.r2g_1 = add(this_8, fromInt(bytesWritten_1));
+          var this_8 = this_0.j2i_1;
+          tmp_4.j2i_1 = add(this_8, fromInt(bytesWritten_1));
           break $l$block_4;
         }
         if (isEmpty(tail_1)) {
-          this_0.k2i();
+          this_0.c2k();
         }
       }
       i = i + 1 | 0;
@@ -1195,64 +1448,64 @@ function writeString(_this__u8e3s4, string, startIndex, endIndex) {
         // Inline function 'kotlin.code' call
         var this_10 = _Char___init__impl__6a9atx(63);
         var tmp$ret$26 = Char__toInt_impl_vasixd(this_10);
-        this_0.e2i(toByte(tmp$ret$26));
+        this_0.w2j(toByte(tmp$ret$26));
         i = i + 1 | 0;
       } else {
         var codePoint = 65536 + ((c & 1023) << 10 | low & 1023) | 0;
         $l$block_6: {
           // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.writeToTail' call
-          var tail_2 = this_0.s2h(4);
-          get_SegmentWriteContextImpl().g2j(tail_2, 0, toByte(codePoint >> 18 | 240), toByte(codePoint >> 12 & 63 | 128), toByte(codePoint >> 6 & 63 | 128), toByte(codePoint & 63 | 128));
+          var tail_2 = this_0.k2j(4);
+          get_SegmentWriteContextImpl().x2k(tail_2, 0, toByte(codePoint >> 18 | 240), toByte(codePoint >> 12 & 63 | 128), toByte(codePoint >> 6 & 63 | 128), toByte(codePoint & 63 | 128));
           var bytesWritten_2 = 4;
           if (bytesWritten_2 === 4) {
-            tail_2.v2g_1 = tail_2.v2g_1 + bytesWritten_2 | 0;
+            tail_2.n2i_1 = tail_2.n2i_1 + bytesWritten_2 | 0;
             var tmp_6 = this_0;
             // Inline function 'kotlin.Long.plus' call
-            var this_11 = this_0.r2g_1;
-            tmp_6.r2g_1 = add(this_11, fromInt(bytesWritten_2));
+            var this_11 = this_0.j2i_1;
+            tmp_6.j2i_1 = add(this_11, fromInt(bytesWritten_2));
             break $l$block_6;
           }
           // Inline function 'kotlin.check' call
-          if (!(0 <= bytesWritten_2 ? bytesWritten_2 <= tail_2.w2h() : false)) {
-            var message_2 = 'Invalid number of bytes written: ' + bytesWritten_2 + '. Should be in 0..' + tail_2.w2h();
+          if (!(0 <= bytesWritten_2 ? bytesWritten_2 <= tail_2.o2j() : false)) {
+            var message_2 = 'Invalid number of bytes written: ' + bytesWritten_2 + '. Should be in 0..' + tail_2.o2j();
             throw IllegalStateException_init_$Create$(toString(message_2));
           }
           if (!(bytesWritten_2 === 0)) {
-            tail_2.v2g_1 = tail_2.v2g_1 + bytesWritten_2 | 0;
+            tail_2.n2i_1 = tail_2.n2i_1 + bytesWritten_2 | 0;
             var tmp_7 = this_0;
             // Inline function 'kotlin.Long.plus' call
-            var this_12 = this_0.r2g_1;
-            tmp_7.r2g_1 = add(this_12, fromInt(bytesWritten_2));
+            var this_12 = this_0.j2i_1;
+            tmp_7.j2i_1 = add(this_12, fromInt(bytesWritten_2));
             break $l$block_6;
           }
           if (isEmpty(tail_2)) {
-            this_0.k2i();
+            this_0.c2k();
           }
         }
         i = i + 2 | 0;
       }
     }
   }
-  _this__u8e3s4.f2h();
+  _this__u8e3s4.w2i();
 }
 function commonReadUtf8(_this__u8e3s4, byteCount) {
   if (equalsLong(byteCount, new Long(0, 0)))
     return '';
   // Inline function 'kotlinx.io.unsafe.UnsafeBufferOperations.forEachSegment' call
-  var curr = _this__u8e3s4.p2g_1;
+  var curr = _this__u8e3s4.h2i_1;
   while (!(curr == null)) {
     get_SegmentReadContextImpl();
-    if (compare(fromInt(curr.a2h()), byteCount) >= 0) {
+    if (compare(fromInt(curr.l1()), byteCount) >= 0) {
       var result = '';
       // Inline function 'kotlinx.io.unsafe.withData' call
-      var tmp0 = curr.a2j(true);
-      var tmp2 = curr.u2g_1;
-      var tmp0_0 = curr.v2g_1;
+      var tmp0 = curr.s2k(true);
+      var tmp2 = curr.m2i_1;
+      var tmp0_0 = curr.n2i_1;
       // Inline function 'kotlin.math.min' call
       var b = tmp2 + convertToInt(byteCount) | 0;
       var tmp$ret$0 = Math.min(tmp0_0, b);
       result = commonToUtf8String(tmp0, tmp2, tmp$ret$0);
-      _this__u8e3s4.u1l(byteCount);
+      _this__u8e3s4.o1l(byteCount);
       return result;
     }
     return commonToUtf8String(readByteArray_0(_this__u8e3s4, convertToInt(byteCount)));
@@ -1623,27 +1876,27 @@ function UnsafeBufferOperations_getInstance() {
 }
 function SegmentReadContextImpl$1() {
 }
-protoOf(SegmentReadContextImpl$1).i2i = function (segment, offset) {
-  return segment.b2j(offset);
+protoOf(SegmentReadContextImpl$1).a2k = function (segment, offset) {
+  return segment.c2j(offset);
 };
 function SegmentWriteContextImpl$1() {
 }
-protoOf(SegmentWriteContextImpl$1).j2j = function (segment, offset, value) {
-  segment.c2j(offset, value);
+protoOf(SegmentWriteContextImpl$1).a2l = function (segment, offset, value) {
+  segment.t2k(offset, value);
 };
-protoOf(SegmentWriteContextImpl$1).i2j = function (segment, offset, b0, b1) {
-  segment.d2j(offset, b0, b1);
+protoOf(SegmentWriteContextImpl$1).z2k = function (segment, offset, b0, b1) {
+  segment.u2k(offset, b0, b1);
 };
-protoOf(SegmentWriteContextImpl$1).h2j = function (segment, offset, b0, b1, b2) {
-  segment.e2j(offset, b0, b1, b2);
+protoOf(SegmentWriteContextImpl$1).y2k = function (segment, offset, b0, b1, b2) {
+  segment.v2k(offset, b0, b1, b2);
 };
-protoOf(SegmentWriteContextImpl$1).g2j = function (segment, offset, b0, b1, b2, b3) {
-  segment.f2j(offset, b0, b1, b2, b3);
+protoOf(SegmentWriteContextImpl$1).x2k = function (segment, offset, b0, b1, b2, b3) {
+  segment.w2k(offset, b0, b1, b2, b3);
 };
 function BufferIterationContextImpl$1() {
 }
-protoOf(BufferIterationContextImpl$1).i2i = function (segment, offset) {
-  return get_SegmentReadContextImpl().i2i(segment, offset);
+protoOf(BufferIterationContextImpl$1).a2k = function (segment, offset) {
+  return get_SegmentReadContextImpl().a2k(segment, offset);
 };
 var properties_initialized_UnsafeBufferOperations_kt_2xfgoc;
 function _init_properties_UnsafeBufferOperations_kt__xw75gy() {
@@ -1711,15 +1964,15 @@ function EOFException() {
   captureStack(this, EOFException);
 }
 function SegmentPool() {
-  this.t2h_1 = 0;
-  this.u2h_1 = 0;
+  this.l2j_1 = 0;
+  this.m2j_1 = 0;
 }
-protoOf(SegmentPool).j1l = function () {
-  return Companion_instance.w2i();
+protoOf(SegmentPool).d1l = function () {
+  return Companion_instance.o2k();
 };
-protoOf(SegmentPool).j2i = function (segment) {
+protoOf(SegmentPool).b2k = function (segment) {
 };
-protoOf(SegmentPool).y2i = function () {
+protoOf(SegmentPool).q2k = function () {
   return AlwaysSharedCopyTracker_getInstance();
 };
 var SegmentPool_instance;
@@ -1727,7 +1980,7 @@ function SegmentPool_getInstance() {
   return SegmentPool_instance;
 }
 //region block: post-declaration
-protoOf(Buffer).y2h = write$default;
+protoOf(Buffer).q2j = write$default;
 //endregion
 //region block: init
 Companion_instance = new Companion();
@@ -1736,17 +1989,20 @@ SegmentPool_instance = new SegmentPool();
 //endregion
 //region block: exports
 export {
-  EOFException_init_$Create$_0 as EOFException_init_$Create$2ki37nn86l2yt,
-  IOException_init_$Init$_0 as IOException_init_$Init$3tijvyh8jladu,
-  IOException_init_$Create$_0 as IOException_init_$Create$1wkk79fgwuoz2,
-  IOException_init_$Create$_1 as IOException_init_$Create$2jyze3554lamk,
+  EOFException_init_$Create$_0 as EOFException_init_$Create$35zn64u2vfdrf,
+  IOException_init_$Init$_0 as IOException_init_$Init$wyx5mfudk66d,
+  IOException_init_$Create$_0 as IOException_init_$Create$3s3kcdlhouh9j,
+  IOException_init_$Init$_1 as IOException_init_$Init$1najp4oty5euc,
+  IOException_init_$Create$_1 as IOException_init_$Create$3dh7c73wuug74,
   Buffer as Buffergs925ekssbch,
   IOException as IOException1wyutdmfe71nu,
   Source as Source1shr0ps16u4p4,
+  indexOf_1 as indexOf29nspdgx2e3ap,
   readByteArray_0 as readByteArray1fhzfwi2j014k,
   readByteArray as readByteArray1ri21h2rciakw,
-  readString as readString2nvggcfaijfhd,
-  readString_0 as readString3v6duspiz33tv,
+  readByteString as readByteString2hnsbql6t4ads,
+  readString_0 as readString2nvggcfaijfhd,
+  readString as readString3v6duspiz33tv,
   writeString as writeString33ca4btrgctw7,
 };
 //endregion

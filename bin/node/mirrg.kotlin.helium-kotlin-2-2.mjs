@@ -1,4 +1,9 @@
 import {
+  toString30pk9tzaqopn as toString,
+  protoOf180f3jzyo7rfj as protoOf,
+  hashCodeq5arwsb9dgti as hashCode,
+  equals2au1ep9vhcato as equals,
+  initMetadataForClassbxx6q50dy2s7 as initMetadataForClass,
   coerceAtLeast2bkz8m9ik7hep as coerceAtLeast,
   coerceAtMost322komnqp70ag as coerceAtMost,
   isBlank1dvkhjjvox3p0 as isBlank,
@@ -9,7 +14,26 @@ import {
 //region block: imports
 //endregion
 //region block: pre-declaration
+initMetadataForClass(Single, 'Single');
 //endregion
+function Single(first) {
+  this.y50_1 = first;
+}
+protoOf(Single).toString = function () {
+  return '(' + toString(this.y50_1) + ')';
+};
+protoOf(Single).hashCode = function () {
+  return this.y50_1 == null ? 0 : hashCode(this.y50_1);
+};
+protoOf(Single).equals = function (other) {
+  if (this === other)
+    return true;
+  if (!(other instanceof Single))
+    return false;
+  if (!equals(this.y50_1, other.y50_1))
+    return false;
+  return true;
+};
 function atLeast(_this__u8e3s4, other) {
   return coerceAtLeast(_this__u8e3s4, other);
 }
@@ -35,6 +59,7 @@ function truncate(_this__u8e3s4, max, suffix) {
 }
 //region block: exports
 export {
+  Single as Single2vibrqrhlicbl,
   atLeast as atLeast1wmir1plxesaz,
   atMost as atMost2me5b9kxozwcn,
   join as join306op6wwexm4l,
