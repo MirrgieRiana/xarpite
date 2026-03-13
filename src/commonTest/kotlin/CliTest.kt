@@ -375,35 +375,26 @@ class CliTest {
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("files.test_dir.tmp")
 
-        try {
-            // 既存のディレクトリとファイルをクリーンアップ
-            runCatching { fileSystem.delete(dir.resolve("zebra.txt")) }
-            runCatching { fileSystem.delete(dir.resolve("apple.txt")) }
-            runCatching { fileSystem.delete(dir.resolve("banana")) }
-            runCatching { fileSystem.delete(dir) }
+        fileSystem.deleteRecursively(dir, mustExist = false)
 
-            // ディレクトリとファイルを準備
-            fileSystem.createDirectory(dir)
-            fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
-            fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
-            fileSystem.createDirectory(dir.resolve("banana"))
+        // ディレクトリとファイルを準備
+        fileSystem.createDirectory(dir)
+        fileSystem.write(dir.resolve("zebra.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("banana"))
 
-            // FILES 関数でファイル一覧を取得
-            val filesResult = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+        // FILES 関数でファイル一覧を取得
+        val filesResult = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
 
-            // アルファベット順にソートされ、ファイル名のみが返される
-            assertEquals("apple.txt,banana,zebra.txt", filesResult)
+        // アルファベット順にソートされ、ファイル名のみが返される
+        assertEquals("apple.txt,banana,zebra.txt", filesResult)
 
-            // FILE_NAMES 関数でも同じ結果が得られることを確認（エイリアスの配線を検証）
-            val fileNamesResult = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
-            assertEquals(filesResult, fileNamesResult)
-        } finally {
-            // クリーンアップ
-            runCatching { fileSystem.delete(dir.resolve("zebra.txt")) }
-            runCatching { fileSystem.delete(dir.resolve("apple.txt")) }
-            runCatching { fileSystem.delete(dir.resolve("banana")) }
-            runCatching { fileSystem.delete(dir) }
-        }
+        // FILE_NAMES 関数でも同じ結果が得られることを確認（エイリアスの配線を検証）
+        val fileNamesResult = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
+        assertEquals(filesResult, fileNamesResult)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -428,12 +419,7 @@ class CliTest {
         assertEquals(expected, result)
 
         // クリーンアップ
-        fileSystem.delete(dir.resolve("dir1/dir2/file2.txt"))
-        fileSystem.delete(dir.resolve("dir1/file1.txt"))
-        fileSystem.delete(dir.resolve("dir1/dir2"))
-        fileSystem.delete(dir.resolve("dir1"))
-        fileSystem.delete(dir.resolve("empty-dir"))
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -458,12 +444,7 @@ class CliTest {
         assertEquals(expected, result)
 
         // クリーンアップ
-        fileSystem.delete(dir.resolve("dir1/dir2/file2.txt"))
-        fileSystem.delete(dir.resolve("dir1/file1.txt"))
-        fileSystem.delete(dir.resolve("dir1/dir2"))
-        fileSystem.delete(dir.resolve("dir1"))
-        fileSystem.delete(dir.resolve("empty-dir"))
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -489,10 +470,7 @@ class CliTest {
         assertEquals(expected, result)
 
         // クリーンアップ
-        fileSystem.delete(dir.resolve("a/z"))
-        fileSystem.delete(dir.resolve("a-file"))
-        fileSystem.delete(dir.resolve("a"))
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -502,12 +480,11 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.evaluate.tmp")
-        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        fileSystem.createDirectories(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
         assertEquals("877", cliEval(context, """USE(ARGS.0)""", "./$file").toFluoriteString(null).value)
-        fileSystem.delete(file)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -517,15 +494,13 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.relative.tmp")
-        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        fileSystem.createDirectories(dir)
         val banana = dir.resolve("banana.xa1")
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
         fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
         assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString(null).value)
-        fileSystem.delete(apple)
-        fileSystem.delete(banana)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -539,8 +514,7 @@ class CliTest {
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
         assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString(null).value)
-        fileSystem.delete(module)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -554,9 +528,7 @@ class CliTest {
         val module = moduleDir.resolve("main.xa1")
         fileSystem.write(module) { writeUtf8("877") }
         assertEquals("877", cliEval(context, """USE("./build/test/use.main.tmp/banana")""").toFluoriteString(null).value)
-        fileSystem.delete(module)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -651,10 +623,7 @@ class CliTest {
         assertEquals("modified", result)
 
         // クリーンアップ
-        fileSystem.delete(file1)
-        fileSystem.delete(file2)
-        fileSystem.delete(sharedModule)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -725,18 +694,13 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/example/utils/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/example/utils".toPath())
-        fileSystem.delete(".xarpite/maven/com/example".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -744,19 +708,13 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib/2.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin/lib".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains".toPath())
-        fileSystem.delete(".xarpite/maven/org".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -764,6 +722,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/test/module/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
@@ -788,13 +747,7 @@ class CliTest {
             """.trimIndent()
         ).toFluoriteString(null).value
         assertEquals("changed", result)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/test/module".toPath())
-        fileSystem.delete(".xarpite/maven/com/test".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -855,8 +808,7 @@ class CliTest {
         assertEquals("Banana", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -880,8 +832,7 @@ class CliTest {
         assertEquals("Cherry", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -906,9 +857,7 @@ class CliTest {
         assertEquals("Grape", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(subDir)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -933,9 +882,7 @@ class CliTest {
         assertEquals("Lemon", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -964,9 +911,8 @@ class CliTest {
         assertEquals("Orange", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir1)
-        fileSystem.delete(incDir2)
+        fileSystem.deleteRecursively(incDir1)
+        fileSystem.deleteRecursively(incDir2)
     }
 
     @Test
@@ -1010,10 +956,8 @@ class CliTest {
         assertEquals("First", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile1)
-        fileSystem.delete(moduleFile2)
-        fileSystem.delete(incDir1)
-        fileSystem.delete(incDir2)
+        fileSystem.deleteRecursively(incDir1)
+        fileSystem.deleteRecursively(incDir2)
     }
 
     @Test
@@ -1035,8 +979,7 @@ class CliTest {
         assertEquals("DotRelative", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -1063,10 +1006,7 @@ class CliTest {
         assertEquals("DotDotRelative", result)
 
         // クリーンアップ
-        fileSystem.delete(callerFile)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir2)
-        fileSystem.delete(dir1)
+        fileSystem.deleteRecursively(dir1)
     }
 
     @Test
@@ -1099,6 +1039,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
 
         // ./.xarpite/lib にモジュールを配置
         val libDir = ".xarpite/lib".toPath()
@@ -1114,9 +1055,7 @@ class CliTest {
         assertEquals("LibModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(libDir)
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -1132,10 +1071,70 @@ class CliTest {
     }
 
     @Test
+    fun incSupportsUrlFormatDetection() = runTest {
+        val context = TestIoContext()
+        // INC に URL 形式のパスを追加できる
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            INC::push("https://example.com/secure")
+            INC::push("HTTP://UPPERCASE.COM/test")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("http://example.com/modules" in arrayStr)
+        assertTrue("https://example.com/secure" in arrayStr)
+        assertTrue("HTTP://UPPERCASE.COM/test" in arrayStr)
+    }
+
+    @Test
+    fun incUrlFormatPrioritizesLocalPaths() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ローカルパスにモジュールを配置
+        val localDir = "build/test/inc.url.priority.tmp".toPath()
+        fileSystem.createDirectories(localDir)
+        val moduleFile = localDir.resolve("testmodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
+
+        // URL形式のINCを先に追加し、ローカルパスを後に追加
+        // ローカルパスが優先されることを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            INC::push("build/test/inc.url.priority.tmp")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LocalModule", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(localDir)
+    }
+
+    @Test
+    fun incUrlFormatWithTrailingSlash() = runTest {
+        val context = TestIoContext()
+        
+        // URLの末尾スラッシュがあっても正しくINCに追加できることを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules/")
+            INC::push("https://test.org/libs/")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        
+        // URL形式がINCに追加されていることを確認
+        assertTrue("http://example.com/modules/" in arrayStr)
+        assertTrue("https://test.org/libs/" in arrayStr)
+    }
+
+    @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively("build/test/custom-inc".toPath(), mustExist = false)
 
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
@@ -1153,13 +1152,7 @@ class CliTest {
         assertEquals("CustomModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(customIncDir.resolve("com/example/custom/mylib"))
-        fileSystem.delete(customIncDir.resolve("com/example/custom"))
-        fileSystem.delete(customIncDir.resolve("com/example"))
-        fileSystem.delete(customIncDir.resolve("com"))
-        fileSystem.delete(customIncDir)
+        fileSystem.deleteRecursively(customIncDir)
     }
 
     @Test
@@ -1203,8 +1196,7 @@ class CliTest {
         )
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -1250,8 +1242,7 @@ class CliTest {
         )
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -1290,9 +1281,7 @@ class CliTest {
         assertTrue(hasInnerLocation, "Stack trace should include inner module location, but got: ${stackTrace.map { it?.location }}")
 
         // クリーンアップ
-        fileSystem.delete(innerModule)
-        fileSystem.delete(outerModule)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -1331,8 +1320,7 @@ class CliTest {
         )
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -1376,10 +1364,8 @@ class CliTest {
         )
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
-
 
     @Test
     fun inb() = runTest {
@@ -1784,14 +1770,9 @@ class CliTest {
             }
         )
         // 存在しないコマンドは例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
-        } catch (e: Exception) {
-            // FluoriteExceptionまたはその他の例外が期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -1824,14 +1805,9 @@ class CliTest {
             }
         )
         // 終了コード2でテスト
-        var exceptionThrown = false
-        try {
+        assertFailsWith<FluoriteException> {
             cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
-        } catch (e: FluoriteException) {
-            // FluoriteExceptionが期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -1973,14 +1949,9 @@ class CliTest {
             }
         )
         // 空の引数リストは例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, """EXEC([])""")
-        } catch (e: Exception) {
-            // FluoriteExceptionまたはその他の例外が期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
     }
 
     @Test
@@ -2423,13 +2394,9 @@ class CliTest {
             }
         )
         // 0以外の終了コードで例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
-        } catch (e: Exception) {
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -2511,7 +2478,7 @@ internal class TestIoContext(
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
     private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
-    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> ByteArray)? = null,
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> Result<ByteArray>)? = null,
     private val exitHandler: ((code: Int) -> Nothing)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
@@ -2555,7 +2522,7 @@ internal class TestIoContext(
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
         executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
 
-    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray =
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
         fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
 
     override fun getEnv(): Map<String, String> = env

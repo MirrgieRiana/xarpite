@@ -1,5 +1,6 @@
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
@@ -11,6 +12,7 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.getPwdImpl
 
 fun main(args: Array<String>) {
@@ -25,7 +27,22 @@ fun main(args: Array<String>) {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = mirrg.xarpite.executeProcess(process, args, env)
-            override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = context.httpClient.get(url).readRawBytes()
+
+            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+                return try {
+                    val response = context.httpClient.get(url)
+                    if (response.status.value in 200..299) {
+                        Result.success(response.readRawBytes())
+                    } else {
+                        Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
+                }
+            }
+
             override fun exit(code: Int): Nothing = mirrg.xarpite.exit(code)
         }
         val options = try {
