@@ -5,7 +5,8 @@ import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Ktorサーバーのコントロールインターフェース
@@ -55,20 +56,21 @@ private class KtorServerControlImpl(
             }
         }.start(wait = false)
         
-        // サーバーが実際に応答できるまで待つ
-        var retries = 50
-        while (retries > 0) {
-            try {
-                // 簡易的な接続確認
-                java.net.Socket("localhost", port).use { }
-                break
-            } catch (e: Exception) {
-                delay(100)
-                retries--
+        // サーバーが実際に応答できるまで待つ（実時間で待機するためにDispatchers.IOを使用）
+        withContext(Dispatchers.IO) {
+            var retries = 50
+            while (retries > 0) {
+                try {
+                    java.net.Socket("localhost", port).use { }
+                    break
+                } catch (e: Exception) {
+                    Thread.sleep(100)
+                    retries--
+                }
             }
-        }
-        if (retries == 0) {
-            throw IllegalStateException("Ktor server failed to start")
+            if (retries == 0) {
+                throw IllegalStateException("Ktor server failed to start")
+            }
         }
     }
 }

@@ -1113,7 +1113,7 @@ class CliTest {
     }
 
     @Test
-    fun incUrlFormatNormalizesTrailingSlash() = runTest {
+    fun incUrlFormatWithTrailingSlash() = runTest {
         val context = TestIoContext()
         
         // URLの末尾スラッシュがあっても正しくINCに追加できることを確認

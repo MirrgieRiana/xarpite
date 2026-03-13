@@ -214,6 +214,32 @@ class IncUrlKtorTest {
         }
     }
     
+    @Test
+    fun useUrlModuleSameLocationReuse() = runTest {
+        withKtorServer { server ->
+            // サーバーにモジュールを配置
+            var fetchCount = 0
+            server.addRoute("/reuse/module.xa1", "\"Reuse Module\"")
+            
+            val io = createTestIoContext { _, url ->
+                fetchCount++
+                HttpClient(CIO).use { client ->
+                    val response = client.get(url)
+                    if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
+                }
+            }
+            
+            // 同一URLを2回USEしても結果が再利用される
+            val result = cliEval(io, """
+                a := USE("${server.baseUrl}/reuse/module.xa1")
+                b := USE("${server.baseUrl}/reuse/module.xa1")
+                a & "," & b
+            """.trimIndent()).toFluoriteString(null).value
+            
+            assertEquals("Reuse Module,Reuse Module", result)
+        }
+    }
+    
     // テスト用のIoContextを作成するヘルパー関数
     private fun createTestIoContext(
         fetchHandler: suspend (RuntimeContext, String) -> Result<ByteArray>
