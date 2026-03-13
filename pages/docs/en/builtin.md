@@ -759,6 +759,49 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
+## `TRANSPOSE` / `ZIP` Transpose Stream of Arrays
+
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
+
+Takes a stream of arrays and returns a stream of arrays with rows and columns swapped.
+
+`ZIP` is an alias of `TRANSPOSE` and has the same behavior.
+
+```shell
+$ xa 'TRANSPOSE([1, 2, 3], [4, 5, 6])'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+With the `fill` parameter, shorter arrays are padded with the specified value.
+
+Without the `fill` parameter, an error occurs if arrays have different lengths.
+
+```shell
+$ xa 'TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])'
+# [1;4]
+# [2;5]
+# [3;0]
+```
+
+---
+
+The following example creates an array of entries from two arrays called `keys` and `values`.
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys, values)
+'
+# [name;Alice]
+# [age;30]
+# [city;Tokyo]
+```
+
 ## `GROUP` Group Stream by Key
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
