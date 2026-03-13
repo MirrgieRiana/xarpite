@@ -1,5 +1,7 @@
 package mirrg.xarpite.cli
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.takeFrom
 import mirrg.kotlin.helium.join
 import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
@@ -28,8 +30,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             FluoriteFunction { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
-                val (moduleLocation, src) = resolveModuleLocation(context.inc, baseDir, reference)
+                val (moduleLocation, src) = resolveModuleLocation(context.inc, location, reference)
                 context.moduleResults.getOrPut(moduleLocation) {
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(moduleLocation))
@@ -48,7 +49,7 @@ private suspend inline fun tryToLoad(locations: MutableList<String>, location: S
 }
 
 context(context: RuntimeContext)
-private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): Pair<String, String> {
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: String, reference: String): Pair<String, String> {
     val locations = mutableListOf<String>()
 
     val (directoryPathInc, urlInc) = inc.values
@@ -69,11 +70,18 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-        val path = baseDir.toPath().resolve(reference).normalized()
-        tryToLoad(locations, path.toString()) { return it }
-        tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
-        tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
-        fail("Module file not found: $reference")
+        if (isUrl(baseLocation)) {
+            val url = URLBuilder(baseLocation).takeFrom(reference).buildString()
+            tryToLoad(locations, url) { return it }
+            fail("Module file not found: $reference")
+        } else {
+            val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+            val path = parentPath.resolve(reference).normalized()
+            tryToLoad(locations, path.toString()) { return it }
+            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
+            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
+            fail("Module file not found: $reference")
+        }
     }
 
     // URL
