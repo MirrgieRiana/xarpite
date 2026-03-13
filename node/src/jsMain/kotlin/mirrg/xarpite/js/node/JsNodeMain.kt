@@ -2,6 +2,7 @@ package mirrg.xarpite.js.node
 
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
@@ -98,6 +99,8 @@ suspend fun main() {
                     } else {
                         Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
                 }

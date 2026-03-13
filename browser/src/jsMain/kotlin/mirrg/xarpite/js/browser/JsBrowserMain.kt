@@ -2,6 +2,7 @@ package mirrg.xarpite.js.browser
 
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.promise
@@ -41,6 +42,8 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
                 } else {
                     Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
             }
