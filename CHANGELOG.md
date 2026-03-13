@@ -2,6 +2,21 @@
 
 <!-- INSERTION POINT -->
 
+## 4.105.0
+
+**Improvements:**
+
+- Added `EXIT` function to terminate the process with a specified exit code.
+- Added support for loading modules from `http://` and `https://` URLs via the `INC` module search path array.
+- Added `INL` as a synonym for `IN` to read strings line by line from console.
+- Added `stream.[]` syntax to convert a stream to an array.
+
+**Fixes:**
+
+- Fixed spurious diffs in `xarpite-update`.
+- Fixed an issue where the `FETCH` and `FETCHB` functions returned error page content instead of raising an error on non-2xx HTTP responses.
+- Fixed HTTPS requests failing in Linux x86_64 native engine.
+
 ## 4.104.0
 
 **Improvements:**
