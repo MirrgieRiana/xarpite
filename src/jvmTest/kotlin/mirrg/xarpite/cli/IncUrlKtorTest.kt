@@ -237,6 +237,8 @@ class IncUrlKtorTest {
             """.trimIndent()).toFluoriteString(null).value
             
             assertEquals("Reuse Module,Reuse Module", result)
+            // モジュール結果が再利用されるため、fetchは1回のみ
+            assertEquals(1, fetchCount)
         }
     }
     
