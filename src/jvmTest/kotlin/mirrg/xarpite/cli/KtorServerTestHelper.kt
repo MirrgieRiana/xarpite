@@ -20,7 +20,7 @@ private class KtorServerControlImpl(
     private val port: Int
 ) : KtorServerControl {
     private var server: EmbeddedServer<*, *>? = null
-    private val routes = mutableMapOf<String, String>()
+    private val routes = java.util.concurrent.ConcurrentHashMap<String, String>()
     
     override val baseUrl: String
         get() = "http://localhost:$port"
