@@ -45,6 +45,6 @@ export script_name="$0"
     )
   )
 
-' "$@" || exit 1
+  files() | EXEC("rm", "-f", _)
 
-rm -f ../changelog.d/*.md || exit 1
+' "$@" || exit 1
