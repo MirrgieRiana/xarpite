@@ -29,12 +29,8 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
                 val baseDir = location.toPath().parent?.toString() ?: throw FluoriteException("Cannot determine base directory of $location.".toFluoriteString())
-                val moduleLocation = resolveModuleLocation(context.inc, baseDir, reference)
+                val (moduleLocation, src) = resolveModuleLocation(context.inc, baseDir, reference)
                 context.moduleResults.getOrPut(moduleLocation) {
-                    val src = context.getModuleSrc(moduleLocation)
-                    if (src == null) {
-                        throw FluoriteException("Failed to load module: $moduleLocation".toFluoriteString())
-                    }
                     val evaluator = Evaluator()
                     evaluator.defineMounts(mountsFactory(moduleLocation))
                     evaluator.get(moduleLocation, src).cache()
@@ -45,17 +41,19 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 }
 
 context(context: RuntimeContext)
-private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): String {
+private suspend inline fun tryToLoad(locations: MutableList<String>, location: String, onFound: (Pair<String, String>) -> Unit) {
+    locations += location
+    val src = context.getModuleSrc(location)
+    if (src != null) onFound(Pair(location, src))
+}
+
+context(context: RuntimeContext)
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, reference: String): Pair<String, String> {
     val locations = mutableListOf<String>()
 
     val (directoryPathInc, urlInc) = inc.values
         .map { it.toFluoriteString(null).value }
         .partition { !isUrl(it) }
-
-    suspend fun tryToLoad(location: String): Boolean {
-        locations += location
-        return context.getModuleSrc(location) != null
-    }
 
     fun fail(message: String): Nothing {
         val lines = mutableListOf<String>()
@@ -72,15 +70,16 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         val path = baseDir.toPath().resolve(reference).normalized()
-        path.let { if (tryToLoad(it.toString())) return it.toString() }
-        path.map { "$it$MODULE_EXTENSION" }.let { if (tryToLoad(it.toString())) return it.toString() }
-        path.resolve(MODULE_DEFAULT_FILE_NAME).let { if (tryToLoad(it.toString())) return it.toString() }
+        tryToLoad(locations, path.toString()) { return it }
+        tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
+        tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
         fail("Module file not found: $reference")
     }
 
     // URL
     if (isUrl(reference)) {
-        return reference
+        tryToLoad(locations, reference) { return it }
+        fail("Failed to load module: $reference")
     }
 
     // Maven座標
@@ -95,12 +94,12 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
 
         directoryPathInc.forEach { string ->
             val path = string.toPath().resolve(suffix).normalized()
-            path.let { if (tryToLoad(it.toString())) return it.toString() }
+            tryToLoad(locations, path.toString()) { return it }
         }
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
             val url = "$normalizedIncPath/$suffix"
-            if (tryToLoad(url)) return url
+            tryToLoad(locations, url) { return it }
         }
 
         fail("Maven artifact not found: $reference")
@@ -110,14 +109,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseDir: String, r
     run {
         directoryPathInc.forEach { string ->
             val path = string.toPath().resolve(reference).normalized()
-            path.let { if (tryToLoad(it.toString())) return it.toString() }
-            path.map { "$it$MODULE_EXTENSION" }.let { if (tryToLoad(it.toString())) return it.toString() }
-            path.resolve(MODULE_DEFAULT_FILE_NAME).let { if (tryToLoad(it.toString())) return it.toString() }
+            tryToLoad(locations, path.toString()) { return it }
+            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
+            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
         }
         urlInc.forEach { string ->
             val normalizedIncPath = string.trimEnd('/')
             val url = "$normalizedIncPath/$reference"
-            if (tryToLoad(url)) return url
+            tryToLoad(locations, url) { return it }
         }
 
         fail("Module file not found in INC paths: $reference")
