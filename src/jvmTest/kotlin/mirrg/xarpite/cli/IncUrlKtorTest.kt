@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
@@ -149,11 +150,13 @@ class IncUrlKtorTest {
                         val response = client.get(url)
                         if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
             }
-            
+
             // 最初のURLでは見つからず、2番目のURLにフォールバック
             val result = cliEval(io, """
                 INC::push("http://localhost:1/nonexistent")
@@ -177,11 +180,13 @@ class IncUrlKtorTest {
                         val response = client.get(url)
                         if (response.status.value in 200..299) Result.success(response.readRawBytes()) else Result.failure(RuntimeException("HTTP ${response.status.value}"))
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
             }
-            
+
             val result = cliEval(io, """
                 INC::push("http://localhost:1/nonexistent")
                 INC::push("${server.baseUrl}/maven2")

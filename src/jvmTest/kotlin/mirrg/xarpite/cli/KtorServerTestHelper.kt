@@ -61,8 +61,11 @@ private class KtorServerControlImpl(
             var retries = 50
             while (retries > 0) {
                 try {
+                    // 簡易的な接続確認
                     java.net.Socket("localhost", port).use { }
                     break
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Thread.sleep(100)
                     retries--
