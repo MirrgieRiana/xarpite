@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -24,6 +24,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     val list = args.toMutableList()
     val arguments = mutableListOf<String>()
     var quiet = false
+    var verbose = false
     var scriptFile: String? = null
     var script: String? = null
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
@@ -52,6 +53,13 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     if (quiet) throw ShowUsage
                     list.removeFirst()
                     quiet = true
+                    continue
+                }
+
+                "--verbose" -> { // verboseモード
+                    if (verbose) throw ShowUsage
+                    list.removeFirst()
+                    verbose = true
                     continue
                 }
 
@@ -112,7 +120,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, scriptFile)
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
@@ -147,6 +155,7 @@ fun showUsage(ioContext: IoContext) {
     println("  -h, --help               Show this help")
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
+    println("  --verbose                Display Kotlin stack traces")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
@@ -192,6 +201,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
                 context.io.err("  at ${context.renderPosition(position)}".toFluoriteString())
+            }
+            if (options.verbose) {
+                context.io.err(e.stackTraceToString().toFluoriteString())
             }
         }
     }
