@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -415,6 +416,102 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             } else {
                 usage("FIRST(stream: STREAM<VALUE>): VALUE")
+            }
+        },
+        "GET" define FluoriteFunction { arguments ->
+            if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
+            val indices = arguments[0]
+            val stream = arguments[1]
+
+            if (indices is FluoriteStream) {
+                // Return a stream of elements at the specified indices
+                FluoriteStream {
+                    coroutineScope {
+                        val cache = mutableListOf<FluoriteValue>()
+                        val channel = stream.toFlow().produceIn(this)
+                        var streamEnded = false
+                        
+                        indices.collect { indexValue ->
+                            val index = indexValue.toFluoriteNumber(null).roundToInt()
+                            
+                            if (index < 0) {
+                                // Negative index: need to read entire stream to determine length
+                                if (!streamEnded) {
+                                    while (true) {
+                                        val result = channel.receiveCatching()
+                                        if (result.isSuccess) {
+                                            cache.add(result.getOrThrow())
+                                        } else {
+                                            streamEnded = true
+                                            break
+                                        }
+                                    }
+                                }
+                                
+                                // Calculate actual index from the end
+                                val actualIndex = cache.size + index
+                                if (actualIndex >= 0 && actualIndex < cache.size) {
+                                    emit(cache[actualIndex])
+                                } else {
+                                    emit(FluoriteNull)
+                                }
+                            } else {
+                                // Positive index: fetch elements until we have the requested index
+                                while (cache.size <= index && !streamEnded) {
+                                    val result = channel.receiveCatching()
+                                    if (result.isSuccess) {
+                                        cache.add(result.getOrThrow())
+                                    } else {
+                                        streamEnded = true
+                                        break
+                                    }
+                                }
+                                
+                                // Emit the cached element or NULL if out of bounds
+                                if (index < cache.size) {
+                                    emit(cache[index])
+                                } else {
+                                    emit(FluoriteNull)
+                                }
+                            }
+                        }
+                        
+                        channel.cancel()
+                    }
+                }
+            } else {
+                // Single index, return single value
+                val index = indices.toFluoriteNumber(null).roundToInt()
+                
+                if (index < 0) {
+                    // Negative index: need to read entire stream
+                    val cache = mutableListOf<FluoriteValue>()
+                    stream.toFlow().collect { item ->
+                        cache.add(item)
+                    }
+                    val actualIndex = cache.size + index
+                    if (actualIndex >= 0 && actualIndex < cache.size) {
+                        cache[actualIndex]
+                    } else {
+                        FluoriteNull
+                    }
+                } else {
+                    // Positive index: skip to the target element
+                    var currentIndex = 0
+                    var result: FluoriteValue? = null
+                    try {
+                        stream.toFlow().collect { item ->
+                            if (currentIndex == index) {
+                                result = item
+                                throw IterationAborted
+                            }
+                            currentIndex++
+                        }
+                    } catch (_: IterationAborted) {
+                        
+                    }
+                    result ?: FluoriteNull
+                }
             }
         },
         "LAST" define FluoriteFunction { arguments ->
