@@ -15,7 +15,7 @@ class VariableTest {
         """
             time := 0
             \now := () -> time
-            
+
             time = 100
             now
         """.let { assertEquals(100, eval(it).int) }
@@ -27,7 +27,7 @@ class VariableTest {
         """
             time := 0
             \now := _ -> time = _
-            
+
             now = 100
             time
         """.let { assertEquals(100, eval(it).int) }
@@ -39,15 +39,15 @@ class VariableTest {
         """
             time := 0
             \now := _ -> __.$# == 0 ? time : (time = _)
-            
+
             now = 100
             [time, now]
         """.let { assertEquals("[100;100]", eval(it).array()) }
-        
+
         """
             time := 0
             \now := _ -> __.$# == 0 ? time : (time = _)
-            
+
             now = 110
             [time, now]
         """.let { assertEquals("[110;110]", eval(it).array()) }
@@ -69,7 +69,7 @@ class VariableTest {
         """
             counter := 0
             \next := () -> (counter = counter + 1)
-            
+
             [next, next, next]
         """.let { assertEquals("[1;2;3]", eval(it).array()) }
     }
@@ -89,7 +89,7 @@ class VariableTest {
         """
             time := 0
             \now := LAZY ( => time )
-            
+
             time = 100
             [now, now]
         """.let { assertEquals("[100;100]", eval(it).array()) }
@@ -101,7 +101,7 @@ class VariableTest {
         """
             time := 0
             \now := LAZY ( => time )
-            
+
             time = 100
             first := now
             time = 110
@@ -116,7 +116,7 @@ class VariableTest {
         """
             counter := 0
             \increment := LAZY ( => (counter = counter + 1) )
-            
+
             [increment, increment, increment, counter]
         """.let { assertEquals("[1;1;1;1]", eval(it).array()) }
     }
@@ -130,7 +130,7 @@ class VariableTest {
                 counter = counter + 1
                 1 .. 3
             ) )
-            
+
             first := lazy() >> SUM
             second := lazy() >> SUM
             [first, second, counter]

@@ -101,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)

@@ -8,7 +8,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.operations.Returner
 
 class Evaluator {
 
@@ -35,7 +38,15 @@ class Evaluator {
         val getter = frame.compileToGetter(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        return getter.evaluate(env)
+        return withStackTrace(Position(location, 0)) {
+            try {
+                getter.evaluate(env)
+            } catch (returner: Returner) {
+                val name = returner.label!!.name
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
+            }
+        }
     }
 
     suspend fun run(location: String, src: String) {
@@ -45,8 +56,16 @@ class Evaluator {
         val runners = frame.compileToRunner(parseResult)
         val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
-        runners.forEach {
-            it.evaluate(env)
+        withStackTrace(Position(location, 0)) {
+            try {
+                runners.forEach {
+                    it.evaluate(env)
+                }
+            } catch (returner: Returner) {
+                val name = returner.label!!.name
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
+            }
         }
     }
 

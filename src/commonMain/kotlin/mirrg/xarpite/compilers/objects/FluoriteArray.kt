@@ -121,6 +121,20 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                        val array = arguments[0] as FluoriteArray
+                        val value = arguments[1]
+                        if (value is FluoriteStream) {
+                            value.collect { item ->
+                                val index = array.values.indexOf(item) // TODO EQUALSメソッドの使用
+                                if (index != -1) array.values.removeAt(index)
+                            }
+                        } else {
+                            val index = array.values.indexOf(value) // TODO EQUALSメソッドの使用
+                            if (index != -1) array.values.removeAt(index)
+                        }
+                        FluoriteNull
+                    },
                     "push" to FluoriteFunction { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
@@ -167,6 +181,8 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
     override fun toString() = "[${values.joinToString(";") { "$it" }}]"
     override val parent get() = fluoriteClass
 }
+
+fun FluoriteArray() = FluoriteArray(mutableListOf())
 
 fun MutableList<FluoriteValue>.asFluoriteArray() = FluoriteArray(this)
 
