@@ -90,7 +90,7 @@ class CoroutineTest {
                 (
                     trigger::await()
                     !!"Fail"
-                ) !? (e => e)
+                ) !? ( e => e)
             )
             SLEEP()
             trigger::fail("ERROR")
@@ -111,7 +111,7 @@ class CoroutineTest {
             (
                 job::await()
                 !!"Should not reach here"
-            ) !? (e => e)
+            ) !? ( e => e)
         """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
     }
@@ -202,7 +202,7 @@ class CoroutineTest {
                     (
                         job::await()
                         !!"Should not reach here"
-                    ) !? (e => e)
+                    ) !? ( e => e)
                 """
             ).cache()
 

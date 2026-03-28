@@ -435,7 +435,7 @@ class XarpiteTest {
 
         assertEquals("b", eval("(!!'a') !? 'b'").string) // !? で例外をキャッチできる
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
-        assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
+        assertEquals("a", eval("(!!'a') !? ( e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
 
         // !? は try 節のストリームを解決する（副作用が1度だけ生じる）
@@ -973,7 +973,7 @@ class XarpiteTest {
         // Runner で !? の右辺で例外オブジェクトを受け取れる（引数あり）
         """
             result := NULL
-            (!!'error_value') !? (e => result = e);
+            (!!'error_value') !? ( e => result = e);
             result
         """.let { assertEquals("error_value", eval(it).string) }
 

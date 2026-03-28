@@ -135,7 +135,7 @@ $ xa '
   promise := TRY ( =>
     !! "Error occurred"
   )
-  promise::await() !? (e => "Caught: $e")
+  promise::await() !? ( e => "Caught: $e")
 '
 # Caught: Error occurred
 ```

@@ -80,7 +80,7 @@ class ControlStructuresTest {
         """
             TRY ( =>
                 !! "Error occurred"
-            )::await() !? (e => "Caught: ${"$"}e")
+            )::await() !? ( e => "Caught: ${"$"}e")
         """.let { assertEquals("Caught: Error occurred", eval(it).string) }
 
         // TRY 内の例外はPROMISEに格納され、外部には漏れない
@@ -94,7 +94,7 @@ class ControlStructuresTest {
         """
             TRY ( =>
                 !! 12345
-            )::await() !? (e => e)
+            )::await() !? ( e => e)
         """.let { assertEquals(12345, eval(it).int) }
     }
 

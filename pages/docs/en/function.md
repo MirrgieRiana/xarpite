@@ -532,7 +532,7 @@ $ xa -q '
   OUT << obj::apple()
   OUT << obj::banana(1)
   OUT << obj::cherry(1; 2; 3)
-  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? (e => e)
+  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? ( e => e)
 '
 # apple[] called
 # banana[1] called

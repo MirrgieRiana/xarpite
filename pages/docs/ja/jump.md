@@ -260,7 +260,7 @@ $ xa '
 この場合、 `NULL` がスローされます。
 
 ```shell
-$ xa '(!!) !? (e => "Error: $e")'
+$ xa '(!!) !? ( e => "Error: $e")'
 # Error: NULL
 ```
 
@@ -280,7 +280,7 @@ $ xa '(!! "Error") !? "Failed"'
 
 ### スローされた値の受け取り
 
-引数付きキャッチ演算子 `try !? (error => catch)` により、スローされた値を受け取ることができます。
+引数付きキャッチ演算子 `try !? ( error => catch)` により、スローされた値を受け取ることができます。
 
 ```shell
 $ xa '
@@ -395,7 +395,7 @@ $ xa '
     value := 10
     value > 5 && !! "Larger than 5:", value
     "Not larger than 5:", value
-  ) !? (e => e)
+  ) !? ( e => e)
 '
 # Larger than 5:
 # 10
@@ -416,7 +416,7 @@ $ xa '
   evenOrThrow := x -> x % 2 == 0 || !! "Not even: $x"
 
   x := 5
-  "Number: $x", evenOrThrow(x) !? (e => "Caught error: $e"), "Mod 2: $(x % 2)"
+  "Number: $x", evenOrThrow(x) !? ( e => "Caught error: $e"), "Mod 2: $(x % 2)"
 '
 # Number: 5
 # Caught error: Not even: 5
