@@ -112,8 +112,6 @@ $ xa -q '
 
 `block` を実行し、結果を `PROMISE` で返します。
 
-`block` が正常に終了した場合、その戻り値で解決済みの `PROMISE` を返します。
-
 `block` 内で例外がスローされた場合、その例外で拒否された `PROMISE` を返します。
 
 ```shell
@@ -126,18 +124,14 @@ $ xa '
 # Success
 ```
 
----
-
-例外がスローされた場合、 `PROMISE` は拒否された状態で返されます。
-
 ```shell
 $ xa '
   promise := TRY ( =>
-    !! "Error occurred"
+    !! "Error"
   )
   promise::await() !? ( e => "Caught: $e" )
 '
-# Caught: Error occurred
+# Caught: Error
 ```
 
 ---
