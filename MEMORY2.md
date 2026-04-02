@@ -969,3 +969,561 @@ a ?:
 - 新規: これも同じ。`?:` が先にElvisとして消費され、`body` が右辺。次に `: c` がstream（assignmentOperator）レベルで処理される。
 
 **`:` インデントブロックは、`?:` の直後に改行+インデント増加がある場合でも、Elvisの右辺として通常の式がパースされるため影響しない。** インデントブロックが「factor位置」に来るのは、`:` 自体がfactor位置にある場合のみであり、`?:` の `:` は中置演算子の一部としてトークン化されるため、factorの `:` とは競合しない。
+
+---
+
+## 16. 既存構文への後方互換性 — 網羅的検証
+
+### 16.1 検証の方針
+
+colonIndentBlockをfactorに追加した場合、**既存の有効なソースコードが従来と同一のASTを維持するか**を検証する。
+
+方針:
+1. colonIndentBlockがマッチする条件は「`:` がfactor位置にあり、直後に改行+インデント増加」
+2. factorの選択肢リストの**末尾**に追加されるため、他のfactor選択肢より先にマッチすることはない
+3. したがって、既存コードへの影響はPEGの**バックトラック経路の変化**を通じてのみ起こりうる
+
+影響パターン: PEGの順序付き選択で、従来は選択肢Nが成功していたが、colonIndentBlockの追加により選択肢M（M < N）が新たに成功し、異なるASTを生成する。
+
+### 16.2 影響が起こるための必要条件
+
+colonIndentBlockの追加で既存コードのパースが変わるには、以下が**すべて**成立する必要がある:
+
+1. 既存の有効なコード中に `:` が存在する
+2. PEGの解析過程で、その `:` がfactor位置で試行される（バックトラック経路を含む）
+3. colonIndentBlockがその位置でマッチする（`:` + 改行 + インデント増加）
+4. そのマッチにより、上位の選択肢が新たに成功する
+5. その新たな成功が、従来の成功パスと異なるASTを生成する
+
+**条件2が成立する場面を文法規則ごとに網羅的に列挙する。**
+
+### 16.3 文法中のfactor試行位置の完全列挙
+
+factorが試行される位置:
+
+| # | 文法規則 | factor試行のコンテキスト |
+|---|---------|----------------------|
+| F1 | `right` (L174) | `factor * rightOperator.zeroOrMore` — 式の最初のトークン |
+| F2 | `rightOperator` `.` (L167) | `.` の右辺: `nonFloatFactor` |
+| F3 | `rightOperator` `?.` (L168) | `?.` の右辺: `nonFloatFactor` |
+| F4 | `rightOperator` `::` (L169) | `::` の右辺: `nonFloatFactor` |
+| F5 | `rightOperator` `?::` (L170) | `?::` の右辺: `nonFloatFactor` |
+| F6 | `templateStringContent` (L96) | `$` の直後: `ref { factor }` |
+| F7 | `formattedString` (L97) | `$%...` の直後: `ref { brackets }` ← factorではなくbracketsのみ |
+
+F2-F5はnonFloatFactor経由、F6は直接factor経由。F7はbracketsのみなので`:` は関係しない。
+
+**factorは常に式の解析チェーンの最下層（F1）で試行される。** つまり、以下のすべての優先順位レベルでfactorが最終的に到達する:
+
+```
+factor ← right ← pow ← left ← mul ← add ← range ← infixIdentifier ←
+match ← spaceship ← comparison ← and ← or ← condition ← commas ←
+pipeRight/executionRight ← stream ← semicolons ← expression
+```
+
+### 16.4 既存の有効なコード中で `:` がfactor位置で試行される場面
+
+**重要な洞察: 既存の有効なコードでは、`:` はfactorではないため、factor位置に `:` があればfactorは必ず失敗する。factorが失敗した場合、上位パーサーもfactorの結果に依存しているため連鎖的に失敗する。**
+
+したがって、既存コードでfactor位置に `:` が来る場面とは、**PEGのバックトラック過程で一時的にfactor位置に `:` が試行されるが、その選択肢全体は最終的に失敗し、別の選択肢が成功する**という状況に限られる。
+
+### 16.5 バックトラック経路の網羅的列挙
+
+文法中の `or()` による選択肢（バックトラックが起こる場所）を列挙し、各選択肢内でfactorが `:` 位置で試行されうるかを検証する。
+
+#### 16.5.1 `condition` パーサー (L231-236)
+
+```kotlin
+val condition: Parser<Node> = or(
+    // A: 三項演算子  or ? condition : condition
+    or * -b * (-'?').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition },
+    // B: Elvis  or ?: condition
+    or * -b * (-"?:").result * -b * ref { condition },
+    // C: !?
+    or * -b * (-"!?").result * -b * ref { condition },
+    // D: 素通し
+    or,
+)
+```
+
+**選択肢Aの中間の `ref { condition }`（`?` の後）でfactorが `:` 位置で試行される。**
+
+これは§15で詳細に分析済み。結論: 選択肢AでcolonIndentBlockがマッチしても、三項演算子の2番目の `:` が残らず選択肢Aは失敗する。選択肢B（Elvis）にフォールバックし、従来と同じASTが得られる。
+
+ただし、以下の入力パターンについてさらに精密に検証する:
+
+**パターン1: `a ?: b` （同一行、改行なし）**
+- 選択肢A: `?` 消費 → `ref { condition }` at `:` → colonIndentBlock: `:` 消費、次は ` b` — 改行なし → colonIndentBlock失敗 → factor失敗 → 選択肢A失敗
+- 選択肢B: `?:` 消費 → `b` → `a ?: b` ✓
+- **変化なし** ✓
+
+**パターン2: `a ?:\n    b` （改行+インデントあり）**
+- 選択肢A: `?` 消費 → `-b` は `:` を消費しない（`s` は `[ \t]+` のみ） → `ref { condition }` at `:` → colonIndentBlock: `:`, `\n`, indent=4>0 → マッチ、body=`b` → 成功 → `-b` → `-':' * !':'` → `:` なし → **選択肢A失敗**
+- 選択肢B: `?:` 消費 → `-b` で `\n    ` 消費 → `b` → `a ?: b` ✓
+- **変化なし** ✓
+
+**パターン3: `a ?:\n    b: c` （改行+インデント、右辺にエントリー）**
+- 選択肢A: colonIndentBlockがbody `b: c` を吸収 → 2番目の `:` なし → **選択肢A失敗**
+- 選択肢B: `?:` 消費 → `-b` → `b: c` → stream中で `b : c`（エントリー） → Elvis: `a ?: (b : c)` ✓
+- **変化なし** ✓
+
+**パターン4: `a ?:\n b` （改行+1スペースインデント）**
+- 選択肢A: colonIndentBlock: indent=1>0 → マッチ → 2番目の `:` なし → **選択肢A失敗**
+- 選択肢B: `?:` 消費 → `-b` → `b` → `a ?: b` ✓
+- **変化なし** ✓
+
+**パターン5: `a ?:\nb` （改行、インデントなし = 0文字目）**
+- 選択肢A: colonIndentBlock: indent=0, currentIndent=0, 0>0は偽 → **colonIndentBlock失敗**
+- 選択肢B: `?:` → `-b` → `b` → `a ?: b` ✓
+- **変化なし** ✓
+
+#### 16.5.2 `stream` パーサー (L281-284)
+
+```kotlin
+val stream: Parser<Node> = or(
+    // A: 代入系
+    commas * assignmentOperatorPart * ref { stream },
+    // B: パイプ/実行
+    commas * streamRightPart.zeroOrMore,
+)
+```
+
+`assignmentOperatorPart` = `-s * assignmentOperator.result * -b`
+
+`assignmentOperator` (L254-262) の中で `:` を使うもの:
+- `:` → `-':' * !'=' * !':'`
+- `:=` → `-":="`
+
+選択肢Aで `commas` が成功した後、`assignmentOperatorPart` で `:` が消費される。**これはfactor位置ではない。** `:` はassignmentOperator位置で消費されるため、colonIndentBlockの対象外。
+
+選択肢Aの `ref { stream }` 内でfactorが試行される場面: **右辺の式の先頭。** 既存の有効なコードでは、`:` は右辺の先頭に来ない（factorではないため）。
+
+**変化なし** ✓
+
+#### 16.5.3 `pipeRight` パーサー (L268-272)
+
+```kotlin
+val pipeRight: Parser<Node> = or(
+    commas * pipeOperatorPart * ref { pipeRight },
+    commas * assignmentOperatorPart * ref { stream },
+    commas,
+)
+```
+
+`pipeOperatorPart` 内にも `assignmentOperatorPart` 内にも `:` を含む演算子がある。しかしこれらはすべて中置演算子位置であり、factor位置ではない。
+
+**変化なし** ✓
+
+#### 16.5.4 `executionRight` パーサー (L273-276)
+
+```kotlin
+val executionRight: Parser<Node> = or(
+    commas * assignmentOperatorPart * ref { stream },
+    commas,
+)
+```
+
+同上。**変化なし** ✓
+
+#### 16.5.5 `semicolonsPart` パーサー (L286-290)
+
+```kotlin
+val semicolonsPart: Parser<List<Node>> = or(
+    // A: 改行区切り
+    stream * -s * -br * -b * ref { semicolonsPart },
+    // B: セミコロン区切り
+    (stream * -s + fixed(EmptyNode)) * -';' * (-b * ref { semicolonsPart } + fixed(listOf(EmptyNode))),
+    // C: 単文
+    stream,
+)
+```
+
+選択肢Aの `ref { semicolonsPart }` 内で、次の文の先頭にfactorが試行される。既存の有効なコードでは、`:` は文の先頭に来ない。
+
+**変化なし** ✓
+
+#### 16.5.6 `commasPart` パーサー (L238-241)
+
+```kotlin
+val commasPart: Parser<List<Node>> = or(
+    (condition * -b + fixed(EmptyNode)) * -',' * (-b * ref { commasPart } + fixed(listOf(EmptyNode))),
+    condition,
+)
+```
+
+カンマの後に来る式。`:` が来ることはない（既存では）。**変化なし** ✓
+
+#### 16.5.7 `factor` 自体 (L139)
+
+```kotlin
+val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier +
+    float + integer + rawString + templateString + embeddedString + regex + brackets
+```
+
+colonIndentBlockは**末尾に追加**。PEGの順序付き選択により、既存の選択肢が先に試行される。既存の選択肢のいずれかが成功すれば、colonIndentBlockは試行されない。
+
+**唯一の影響: 既存の選択肢がすべて失敗した場合にcolonIndentBlockが試行される。** これは `:` が既存のfactorでない場合のみ。既存の有効なコードでは、factor位置にはfactorとして有効なトークンが来るため、colonIndentBlockに到達することはない。
+
+**変化なし** ✓
+
+#### 16.5.8 左結合演算子パーサー群
+
+`mul`, `add`, `range`, `infixIdentifier`, `match`, `spaceship`, `comparison`, `and`, `or` — すべて `leftAssociative()` を使用。
+
+```kotlin
+leftAssociative(lower, -s * operator.result * -b) { left, op, right -> ... }
+```
+
+演算子の右辺は `lower` レベルの式。factor位置に到達するまで下降する。`add` の `-` は `-'-' * !'>'` だが、これはfactor位置ではなく演算子位置。
+
+**変化なし** ✓
+
+#### 16.5.9 `rightOperator` (L156-173)
+
+```kotlin
+val rightOperator: Parser<(Node) -> Node> = or(
+    ...
+    -b * (-"::").result * -b * nonFloatFactor,   // L169
+    -b * (-"?::").result * -b * nonFloatFactor,  // L170
+    ...
+)
+```
+
+`::` と `?::` の右辺で `nonFloatFactor` が試行される。**nonFloatFactor にもcolonIndentBlockを追加するかどうか**は設計判断だが、仮に追加しても、既存コードで `::` や `?::` の後に `:` が来ることはない（既存ではfactorではないため）。
+
+**変化なし** ✓
+
+#### 16.5.10 `pow` パーサー (L175-178)
+
+```kotlin
+val pow: Parser<Node> = right * (-s * (-'^').result * -b * ref { left }).optional
+```
+
+`^` の右辺は `ref { left }`。`left` → `unaryOperator.zeroOrMore * pow` → `pow` → `right` → `factor`。既存コードで `^` の右辺に `:` は来ない。
+
+**変化なし** ✓
+
+#### 16.5.11 `left` パーサー (L179)
+
+```kotlin
+val left: Parser<Node> = (unaryOperator.result * -b).zeroOrMore * pow
+```
+
+前置演算子 `?`（L146）の後に `-b` → `pow` → `right` → factor。`?` の後に `:` が来る場合:
+
+```
+?:
+    body
+```
+
+既存: `?` は前置演算子。その後factorが期待される。`:` はfactorではない → 失敗。この入力は無効。
+
+colonIndentBlock追加後: `?` 前置演算子の後に `:` → colonIndentBlock → `?(indent_block(body))` — **新規の有効な構文。** 既存の有効なコードではないため後方互換性に影響なし。
+
+**変化なし** ✓
+
+### 16.6 `condition` 選択肢Aの再帰構造と `?:` の精密検証
+
+§15.3-15.8で分析した内容を踏まえ、ここでは**conditionの再帰構造**に焦点を当てる。
+
+`condition` の選択肢Aは再帰的:
+```
+or ? condition : condition
+```
+
+1番目の `condition` も再び `condition` のor選択を試行する。もし1番目の `condition` 内で**さらにElvisが使われていた場合**:
+
+**パターン6: `a ? b ?: c : d`（三項の中にElvis）**
+
+```
+a ? b ?: c : d
+```
+
+解析:
+- 選択肢A: `or` → `a`. `?`. `ref { condition }`:
+  - 再帰的に `condition` をパース。入力: `b ?: c : d`
+  - 内側の condition 選択肢A: `or` → `b`. `?`. `ref { condition }`:
+    - 入力: `: c : d` の位置。factor at `:` → 失敗（既存）/ colonIndentBlock: `:` の後が ` c`、改行なし → 失敗。
+  - 内側の condition 選択肢B: `or` → `b`. `?:`. `ref { condition }`:
+    - 入力: `c : d`。condition → `c`（orレベルで停止）。
+    - Elvis: `b ?: c`。
+  - 1番目の condition = `b ?: c`。
+- `-b` → ` `. `-':' * !':'` → `:`. `-b` → ` `. `ref { condition }` → `d`.
+- 三項: `a ? (b ?: c) : d` ✓
+
+colonIndentBlock追加後: 同じ。内側のfactorで colonIndentBlock は改行なしのため失敗。**変化なし** ✓
+
+**パターン7: `a ? b ?:\n    c\n: d`（改行を含む三項+Elvis複合）**
+
+```
+a ? b ?:
+    c
+: d
+```
+
+解析:
+- 選択肢A: `or` → `a`. `?`. `-b` → ` `. `ref { condition }`:
+  - 入力: `b ?:\n    c\n: d`
+  - 内側の condition 選択肢A: `or` → `b`. `?`. `-b` → nothing（次は `:`）. `ref { condition }`:
+    - 入力: `:\n    c\n: d`
+    - colonIndentBlockなし: factor at `:` → 失敗 → condition失敗 → 選択肢A失敗
+    - colonIndentBlockあり: factor → colonIndentBlock: `:`, `\n`, indent=4>0, body=`c` → 成功。condition = `indent_block(c)`.
+    - 戻って: `-b` → `\n` 消費。`-':' * !':'` at `: d` → `:` 消費。`-b` → ` `. `ref { condition }` → `d`.
+    - **内側の選択肢A成功!** `b ? indent_block(c) : d` ← 三項演算子！
+  - 1番目の condition = `b ? indent_block(c) : d`。
+
+  外側に戻る:
+  - `-b` → ファイル末尾。`-':' * !':'` → `:` なし → **選択肢A失敗**。
+
+- 選択肢B: `or` → `a`. `?:` → `a ?:\n` ...wait。`(-"?:").result` は位置 `?` から `?:` を連続2文字として消費する。`?` の後の文字は `:` で隣接 → マッチ。
+  - `-b` → `\n    ` 消費。
+  - `ref { condition }` at `c`:
+    - condition → or → ... → factor → `c`。condition → `c`。
+  - Elvis: `a ?: c`。position は `c` の後、`\n: d`。
+
+  commas → `a ?: c`。stream:
+  - assignmentOperatorPart: `-s` → nothing at `\n`。assignmentOperator at `\n` → どれもマッチしない。失敗。
+  - streamRightPart.zeroOrMore → empty。stream → `a ?: c`。
+
+  semicolonsPart:
+  - 選択肢A: stream(`a ?: c`) * -s → nothing * -br → `\n` * -b → nothing * ref { semicolonsPart }:
+    - 入力: `: d`。stream → commas → ... → factor at `:` → 失敗（既存）。semicolonsPart失敗。
+  - 選択肢C: stream → `a ?: c`。
+
+  expression → `a ?: c`。rootParser: expression → `a ?: c`。残り `\n: d` は消費されず。**パース不完全 → 実質パースエラー。**
+
+**これは既存の有効なコードではない!** `a ?:\n    c\n: d` は現在パースに成功しない。
+
+colonIndentBlock追加後:
+- 選択肢Aの内側で `b ? indent_block(c) : d` が成功 → 外側の condition = `b ? indent_block(c) : d` → しかし外側の三項の2番目の `:` がない → 選択肢A失敗。
+- 選択肢B: Elvis `a ?: c` → ...
+
+しかし待て。**colonIndentBlock追加後、`ref { semicolonsPart }` で `: d` は colonIndentBlock でパースできるか？**
+
+`: d` — colonIndentBlockは `:` の後に改行を要求する。`d` は改行ではない → colonIndentBlock失敗。
+
+**この入力はcolonIndentBlock追加後もパース不完全。** ← ただしこれは元々無効なコード。
+
+**パターン8: `a ? b ?:\n    c\n:\n    d`（全パーツがインデントブロック）**
+
+```
+a ? b ?:
+    c
+:
+    d
+```
+
+既存: 無効。colonIndentBlock追加後:
+- 選択肢A: `?` 消費 → condition: `b ?:\n    c\n:\n    d`
+  - 内側 選択肢A: `b` → `?` → condition at `:\n    c\n:\n    d`:
+    - colonIndentBlock: `:`, `\n`, indent(`    c`)=4>0 → body=`c` → 成功。
+  - 内側 `-b` → `\n` 消費。`:` at `:\n    d` → `!':'`: 次は `\n` ≠ `:` → `:` 消費。
+  - `-b` → `\n    ` 消費。condition → `d`。
+  - 内側三項: `b ? (indent_block c) : d`。
+- 外側 `-b` → ファイル末尾。`-':' * !':'` → `:` なし → 外側選択肢A失敗。
+- 選択肢B: `a` → `?:` 消費 → `-b` → `\n    ` → condition at `c`:
+  - `c` → condition → `c`。
+- Elvis: `a ?: c`。position after `c`, at `\n:\n    d`。
+- semicolonsPart: stream(`a ?: c`) → `-s` → nothing → `-br` → `\n` → `-b` → nothing → ref { semicolonsPart } at `:\n    d`:
+  - stream → factor → colonIndentBlock: `:`, `\n`, indent=4>0, body=`d` → 成功。
+  - semicolonsPart → [indent_block(d)]。
+- semicolonsPart → [`a ?: c`, `indent_block(d)`]。
+- expression → `(a ?: c); (indent_block d)`。
+
+**これは新規の有効な構文。** 既存コードではないため後方互換性に影響なし。✓
+
+### 16.7 `?:` 以外の2文字演算子の検証
+
+`:` を末尾に持つ2文字演算子で、先頭文字が前置的に消費されるパスが存在するもの:
+
+| 演算子 | 先頭文字の前置消費パス | 検証 |
+|--------|---------------------|------|
+| `?:` (Elvis) | `?` が三項演算子の先頭として消費 | §15, §16.5.1で検証済み |
+| `!:` (実行) | `!` が前置演算子 `!` として消費 | 下記で検証 |
+| `::` (メソッドバインド) | 1番目の `:` が…? | 下記で検証 |
+| `:=` (変数宣言) | `:` が…? | 下記で検証 |
+
+#### 16.7.1 `!:` の検証
+
+`!:` は `executionOperator` (L252)。`!` は前置演算子（`unaryOperator` L147）として `!'!' * !'?'` ガード付きで定義されている。
+
+`!:` がパースされるのは `executionOperatorPart` = `-b * executionOperator.result * -b`。これは `streamRightPart` 内で使われる。
+
+仮に `!` が前置演算子として消費された場合: `!` は `unaryOperator` で `-'!' * !'!' * !'?'`。`:` は `!` でも `?` でもないのでガードを通過。`!` が消費される。その後 `-b` → factor。factor位置に `:` が来る。
+
+しかし、`!` が前置演算子として消費されるのは `left` パーサー (L179) の `(unaryOperator.result * -b).zeroOrMore * pow` であり、これはfactorの上の左辺解析。一方 `!:` は `executionOperator` であり、stream レベルで処理される。
+
+**問題のパターン: `a !:\n    b` は `a !: b`（実行演算子）か、`a` の後に `!` 前置 + colonIndentBlock `:\n    b` か？**
+
+`stream` パーサー (L281-284):
+```
+commas * streamRightPart.zeroOrMore
+```
+
+`streamRightPart` (L277-280):
+```
+pipeOperatorPart * pipeRight
+executionOperatorPart * executionRight
+```
+
+`executionOperatorPart` = `-b * executionOperator.result * -b`。
+
+解析: `a !:\n    b`
+- stream → commas → ... → factor → `a`。chain up → commas = `a`。
+- streamRightPart 試行:
+  - executionOperatorPart: `-b` → ` ` 消費。executionOperator at `!:` → `!:` 2文字消費。`-b` → `\n    ` 消費。
+  - executionRight → commas → condition → ... → factor → `b`。
+  - **`a !: b` として成功。**
+
+colonIndentBlock追加後: 同じパス。`!:` は `executionOperator` レベルで2文字として消費される。factorは `a` と `b` の位置でのみ試行され、`:` はそのどちらの位置にもない。
+
+**変化なし** ✓
+
+しかし、もし `commas` 内で `!` が前置演算子として消費される可能性は？ `commas` → `condition` → `or` → ... → `left` → `(unaryOperator * -b).zeroOrMore * pow`。
+
+入力 `a !:\n    b` の場合、factorが `a` をパースした後、chain upしていく過程で `!:` に到達する。`:` の位置は、mul/add/range等の中置演算子位置でチェックされるが、どの演算子にもマッチしない。最終的に `or` レベルまで上昇し、condition に到達。condition のどの選択肢も `:` では始まらない。commas に到達。commas → `a`。
+
+その後 stream レベルで `!:` が `executionOperator` として消費される。**`:` がfactorとして試行される瞬間は存在しない。**
+
+**変化なし** ✓
+
+#### 16.7.2 `::` の検証
+
+`::` は `rightOperator` (L169): `-b * (-"::").result * -b * nonFloatFactor`。
+
+`right` = `factor * rightOperator.zeroOrMore`。factorの後に `::` が試行される。`::` は2文字トークンとして消費される。最初の `:` がfactorとして試行されることはない（factorは**前に**パースされ成功している）。
+
+**変化なし** ✓
+
+#### 16.7.3 `:=` の検証
+
+`:=` は `assignmentOperator` (L257): `-":="` 。stream レベルで消費される。
+
+`stream` → `commas * assignmentOperatorPart * ref { stream }` — commasの後に `:=` が試行される。factorはcommas内で試行済み。`:=` の位置ではfactorは試行されない。
+
+**変化なし** ✓
+
+### 16.8 三項演算子の `:` がcolonIndentBlockに奪われるケースの検証
+
+三項演算子 `a ? b : c` の `:` は condition レベルで消費される（factor位置ではない）。
+
+```
+or * -b * (-'?').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition }
+```
+
+ここで `-':' * !':'` は、1番目の `ref { condition }` が成功した**後に**試行される。この `:` はfactor位置ではなく、condition パーサーの内部トークン。**colonIndentBlockがこの `:` を消費することはありえない。**
+
+ただし、間接的な影響の可能性:
+- 1番目の `ref { condition }` が、colonIndentBlockの追加により**より多くの入力を消費する**ようになった場合、2番目の `:` の位置がずれる
+
+これが起こるのは、1番目の `ref { condition }` の中で、式の解析がcolonIndentBlockにより拡張される場合。しかし、1番目の condition は `condition` レベルであり、factorレベルまで下降する。factorレベルでcolonIndentBlockがマッチするのは `:` がfactor位置にある場合のみ。
+
+**既存の有効なコード `a ? b : c` ではどうか:**
+
+- `ref { condition }` at `b : c`: condition → or → ... → factor → `b`。chain up → or → `b`。condition → `b`（`:` は condition/or のどのレベルの演算子でもないため、`b` で停止）。
+
+`:` は condition の**外**で消費される。factor位置に `:` は来ない。**変化なし** ✓
+
+**改行を含む場合 `a ? b\n: c`:**
+
+- 選択肢A: `?` 消費。`-b` → ` ` 消費。`ref { condition }` at `b\n: c`:
+  - condition → or → ... → factor → `b`。chain up → `b`。condition → `b`。position は `b` の後、`\n: c` の前。
+- `-b` → `\n` 消費。position at `: c`。
+- `-':' * !':'` → `:` 消費。next ` ` ≠ `:`。成功。
+- `-b` → ` `。`ref { condition }` → `c`。
+- 三項: `a ? b : c`。✓
+
+colonIndentBlock追加後: 同じパス。`ref { condition }` at `b` ではfactor → `b` → 成功。colonIndentBlockは試行されない（`b` はidentifierとして先にマッチ）。`:` は condition の外で消費される。**変化なし** ✓
+
+### 16.9 `-b` パーサーが `:` を飛び越えないことの証明
+
+`b` = `s * -(br * s).zeroOrMore`
+
+`s` = `-(+Regex("""[ \t]+""") + lineComment + blockComment).zeroOrMore`
+
+`s` がマッチするもの: `[ \t]+`（水平空白）、`#` or `//` で始まる行コメント、`/*...*/` ブロックコメント。
+
+**`:` は水平空白でもコメント開始文字でもない。** したがって `s` は `:` を消費しない。
+
+`br` = `+Regex("""\n|\r\n?""")` — 改行のみ。`:` は改行ではない。
+
+**結論: `-b` は `:` を飛び越えない。** `?` の直後に `:` がある場合、`-b` は何も消費せず、次のパーサー（`ref { condition }` など）は `:` の位置から開始する。
+
+### 16.10 テンプレート文字列内の `$` + factor
+
+```kotlin
+(-'$').result * ref { factor }
+```
+
+テンプレート文字列 `"...$:..."` で `$` の後に `:` が来る場合:
+
+- 既存: factor at `:` → 失敗。`(-'$').result * ref { factor }` 全体が失敗。`:` は `templateStringCharacter` の `[^"$\\]+` にマッチし、リテラル文字として扱われる。
+
+- colonIndentBlock追加後:
+  - `$` の後の `:` でcolonIndentBlockが試行される
+  - `:` の後に改行があるか？テンプレート文字列は `"..."` で囲まれた中。改行がある場合（複数行テンプレート文字列）:
+    ```
+    "$:
+        body"
+    ```
+  - colonIndentBlock: `:` 消費、改行あり、インデント増加チェック... これは**既存の無効な構文が新たに有効になるケース**であり、既存の有効なコードの動作が変わるケースではない。
+  - **ただし注意:** 既存の `"$:\n    body"` は `$` + factor 失敗 → `$` がリテラル `$` として扱われない。実は `$` はtemplateStringCharacterの `[^"$\\]+` で除外されているため、`$` 単体ではマッチしない。つまり `"$:..."` は `$` でtemplateStringContent の2番目の選択肢が試行される: `(-'$').result * ref { factor }`。factor 失敗 → 2番目の選択肢全体が失敗。3番目の選択肢（formatter）も `$%` でないため失敗。templateStringContent のどの選択肢も失敗 → `zeroOrMore` が停止。次に `-'"'` が試行される → `$` ≠ `"` → **テンプレート文字列全体のパース失敗。**
+
+  したがって、`"$:\n    body"` は**既存でも無効な構文。** 後方互換性に影響なし。
+
+**変化なし** ✓
+
+### 16.11 括弧内の式の先頭
+
+```kotlin
+val round: Parser<Node> = (-'(').result * -b * (ref { expression } * -b).optional * -')'
+```
+
+`(` の後に `-b` → `expression`。expression → semicolons → semicolonsPart → stream → commas → condition → or → ... → factor。
+
+`(:` のような入力:
+- 既存: factor at `:` → 失敗 → expression 失敗 → optional → None → `)` を期待。
+- colonIndentBlock追加後: factor → colonIndentBlock at `:` → 改行が必要。`(:b)` のように改行なしなら失敗。
+
+**既存の有効なコードでは `(` の直後に `:` は来ない。変化なし** ✓
+
+### 16.12 結論
+
+**colonIndentBlock を factor の末尾に追加しても、既存の有効なソースコードのパース結果は一切変化しない。**
+
+その根拠:
+
+1. **factor位置の排他性:** 既存の有効なコードでは、factor位置にはfactorとして有効なトークン（識別子、数値、文字列、括弧等）が来る。`:` は既存のfactorではないため、既存コードのfactor位置に `:` が来ることはない。
+
+2. **PEGバックトラックの安全性:** conditionパーサーの選択肢A（三項演算子）で、`?` の後にfactorとして `:` がcolonIndentBlockで消費されうるが、三項演算子パターンは2番目の `:` も必要とする。colonIndentBlockが式を吸収するため2番目の `:` が残らず、選択肢Aは失敗する。選択肢B（Elvis）にフォールバックし、従来と同一のASTが得られる。
+
+3. **`-b` パーサーの不透過性:** `-b` は水平空白・改行・コメントのみを消費し、`:` を消費しない。これにより、`?` と `:` の間に `-b` が挟まっている場合でも、`:` が意図しない位置に移動することはない。
+
+4. **中置演算子位置の分離:** `:` を含む既存の中置演算子（`:`, `:=`, `::`, `?::`, `?:`, `!:`）はすべて、factorより上位の文法レベル（condition, assignmentOperator, executionOperator, rightOperator）で消費される。これらの位置でfactorは試行されないため、colonIndentBlockとの競合は発生しない。
+
+5. **colonIndentBlockのマッチ条件の厳格性:** colonIndentBlockは `:` + 改行 + インデント増加を要求する。同一行上の `:` には決してマッチしない。これにより、`a ?: b` のような同一行上のElvis演算子は影響を受けない。
+
+### 16.13 検証済みパターン一覧
+
+| # | パターン | 既存の解析結果 | colonIndentBlock追加後 | 変化 |
+|---|---------|-------------|---------------------|------|
+| 1 | `a ?: b` | Elvis: `a ?: b` | 同じ | なし |
+| 2 | `a ?:\n    b` | Elvis: `a ?: b` | 同じ | なし |
+| 3 | `a ?:\n    b: c` | Elvis: `a ?: (b : c)` | 同じ | なし |
+| 4 | `a ?:\n b` | Elvis: `a ?: b` | 同じ | なし |
+| 5 | `a ?:\nb` | Elvis: `a ?: b` | 同じ | なし |
+| 6 | `a ? b ?: c : d` | 三項: `a ? (b ?: c) : d` | 同じ | なし |
+| 7 | `a !:\n    b` | 実行: `a !: b` | 同じ | なし |
+| 8 | `key: value` | エントリー: `key : value` | 同じ | なし |
+| 9 | `key:\n    value` | エントリー: `key : value` | 同じ | なし |
+| 10 | `a :: b` | メソッドバインド | 同じ | なし |
+| 11 | `a ?:: b` | Null安全メソッドバインド | 同じ | なし |
+| 12 | `x := y` | 変数宣言 | 同じ | なし |
+| 13 | `a ? b : c` | 三項: `a ? b : c` | 同じ | なし |
+| 14 | `a ? b\n: c` | 三項: `a ? b : c` | 同じ | なし |
+| 15 | `a ? b:\n    c` | 三項: `a ? b : c` | 同じ | なし |
+| 16 | `(a)` | 丸括弧 | 同じ | なし |
+| 17 | `a >> b` | 実行 | 同じ | なし |
+| 18 | `a \| b` | パイプ | 同じ | なし |
+| 19 | `a => b` | 引数 | 同じ | なし |
+| 20 | `!a` | 前置否定 | 同じ | なし |
