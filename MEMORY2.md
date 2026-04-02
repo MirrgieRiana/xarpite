@@ -1327,3 +1327,715 @@ xarpeg 5.2.0 として `Parser.create` APIを追加し、colonIndentBlock パー
 > `:` を頭に持つインデント括弧が定義できればいい。ただ、 `:` は頭に来ないという前提が崩壊する
 
 **分析結果:** `:` がfactor位置に来てもパーサーの優先順位により中置演算子の `:` とは自然に区別可能。「前提の崩壊」は文法レベルでは問題にならない。ただし、**インデント検出の実装**がxarpegの制約により困難。xarpeg自体の拡張が必要。
+
+---
+
+## 28. 3種の括弧のインデント括弧としての使い分け設計
+
+### 28.1 括弧の意味論の整理
+
+Xarpiteの3種の括弧は、リテラル（独立）形式と後置（レシーバ付き）形式で異なる意味を持つ：
+
+| 括弧 | リテラル形式 | 後置形式 |
+|------|-------------|---------|
+| `()` | 新しい変数スコープを作成し式を評価 | 関数の即時呼び出し |
+| `[]` | 配列を作成（ストリーム展開あり） | 関数の部分適用（引数バインド） |
+| `{}` | オブジェクトを作成（キー値ペア） | オブジェクト継承（親の設定） |
+
+### 28.2 インデント括弧で最も需要がある括弧種類
+
+ユーザーがインデント括弧を使いたいと思う場面を考える：
+
+**1. コードブロック（関数本体、制御構造）→ `()` が必要**
+```xarpite
+# 現在
+f := args -> (
+    result := compute(args)
+    result + 1
+)
+
+# インデント括弧で
+f := args ->:
+    result := compute(args)
+    result + 1
+```
+
+**2. 配列リテラル → `[]` が必要**
+```xarpite
+# 現在
+items := [
+    "apple"
+    "banana"
+    "cherry"
+]
+
+# インデント括弧で
+items := :[
+    "apple"
+    "banana"
+    "cherry"
+```
+
+**3. オブジェクトリテラル → `{}` が必要**
+```xarpite
+# 現在
+config := {
+    host: "localhost"
+    port: 8080
+    debug: TRUE
+}
+
+# インデント括弧で
+config := :{
+    host: "localhost"
+    port: 8080
+    debug: TRUE
+```
+
+**4. クロージャ渡し → `()` + `=>` が必要**
+```xarpite
+# 現在
+LAUNCH(task => (
+    OUT << "Hello"
+    OUT << "World"
+))
+
+# インデント括弧で
+LAUNCH(task =>:
+    OUT << "Hello"
+    OUT << "World"
+```
+
+### 28.3 需要の優先順位
+
+1. **`()` コードブロック** — 最も頻繁。関数本体、ラムダ、制御構造の本体
+2. **`{}` オブジェクトリテラル** — 中程度。複雑なオブジェクト定義
+3. **`[]` 配列リテラル** — 低め。配列は通常コンパクト
+
+→ デフォルトの `:` は `()` （コードブロック/スコープ）として扱うのが最も自然。
+
+### 28.4 括弧種類の指定構文案
+
+**案1: `:` のみ（常に `()`）**
+```
+:   → ()
+```
+- 最もシンプル
+- オブジェクトや配列のインデント構文が使えない
+- Issue #177のユースケースはほぼカバー
+
+**案2: `:(`, `:[`, `:{`**
+```
+:(  → ()   （デフォルトの : と同じ）
+:[  → []   （配列）
+:{  → {}   （オブジェクト）
+```
+- 括弧種類を明示的に指定可能
+- `:{` は現在 `:` + `{` として合法だが、factor位置でのみ新解釈
+- 閉じ括弧不要のメリットを維持
+
+**案3: 開き括弧 + `:` + インデント（Issue本文の案B）**
+```
+( => :   → ( => )   （ラムダ丸括弧）
+[ :      → [ ]      （配列）
+{ :      → { }      （オブジェクト）
+```
+- 開き括弧を明示するので括弧種類が自明
+- `:` は「閉じ括弧をインデントで代用」というマーカー
+- 開き括弧があるので閉じ括弧省略のメリットが半減
+
+**推奨: 案2**
+
+理由：
+- 案1は用途が限定的すぎる
+- 案3は開き括弧を書く手間があり、インデント括弧のメリットが薄い
+- 案2は完全に新しいトークン群（`:(`, `:[`, `:{`）として導入でき、既存構文との衝突リスクが低い
+
+### 28.5 案2の詳細な文法定義
+
+```
+indentBlock    ::= colonParen | colonBracket | colonBrace
+colonParen     ::= ':(' NEWLINE INDENT expression DEDENT   → BracketsLiteralSimpleRoundNode
+colonBracket   ::= ':[' NEWLINE INDENT expression DEDENT   → BracketsLiteralSimpleSquareNode
+colonBrace     ::= ':{' NEWLINE INDENT expression DEDENT   → BracketsLiteralSimpleCurlyNode
+
+# Arrowed variants
+colonArrowParen   ::= ':(' commas '=>' NEWLINE INDENT expression DEDENT  → BracketsLiteralArrowedRoundNode
+colonArrowBracket ::= ':[' commas '=>' NEWLINE INDENT expression DEDENT  → BracketsLiteralArrowedSquareNode
+# colonArrowBrace は不要（現在も arrowedCurly は不使用/エラー）
+
+factor ::= ... | indentBlock
+```
+
+**注意:** `:(` は2文字トークンとしてパースする必要がある。
+現在 `:` は `assignmentOperator` で中置演算子として定義されており、`(` は `brackets` でfactorとして定義されている。
+`:(` がfactor位置に来た場合、`:` が先に中置演算子として消費されるか、`:(` がfactorとしてマッチするかは、パーサーの評価順序に依存する。
+
+**PEGの特性:**
+factor位置では中置演算子は試行されない（中置演算子は左辺の後にのみ出現する）。
+したがって、factor位置での `:(` は中置演算子 `:` とは衝突せず、新しいfactorとして正しくマッチする。
+
+---
+
+## 29. エッジケースの網羅的列挙
+
+### 29.1 空のインデントブロック
+
+```xarpite
+result := :
+```
+
+`:` の後にインデントされた行がない場合。
+→ **エラーにするべき。** 空のブロックは `()` (NULL) で書くべき。
+
+### 29.2 インデントブロック内のさらなるインデント括弧
+
+```xarpite
+f := args ->:
+    inner := x ->:
+        x + 1
+    inner(args)
+```
+
+ネストされたインデント括弧。
+→ インデントスタックにより正しく処理可能。外側のブロックは4スペース、内側は8スペース。
+
+### 29.3 インデントブロックとセミコロンの混在
+
+```xarpite
+f := :
+    a := 1; b := 2
+    a + b
+```
+
+インデントブロック内でセミコロンによる文の区切り。
+→ **問題なし。** 既存の `semicolons` パーサーが処理。
+
+### 29.4 インデントブロック後の継続式
+
+```xarpite
+result := (:
+    compute()
+) + 10
+```
+
+案2では `:(` の後にインデントブロックがあり、その後に `+ 10` がある。
+→ ブロックの終了（デインデント）で自動的に `)` が挿入されるため、`+ 10` は外側の式の一部として正しくパースされる。
+
+ただし、閉じ括弧が省略されるため：
+```xarpite
+result := :(
+    compute()
++ 10
+```
+→ デインデントで `)` が挿入され、`+ 10` が外側の式に。**正しい。**
+
+### 29.5 タブとスペースの混在
+
+```xarpite
+f := :
+    body_with_spaces
+	body_with_tab
+```
+
+タブとスペースのインデントが混在する場合。
+→ **Pythonと同様に、タブとスペースの混在はエラーにするべき。**
+または、タブを一定数のスペースに変換する。
+
+### 29.6 コメントのみの行
+
+```xarpite
+f := :
+    # これはコメント
+    body
+```
+
+コメント行のインデントはブロックの判定に影響するか？
+→ **コメント行はインデント判定から除外するべき。** 空行と同様に扱う。
+
+### 29.7 空行
+
+```xarpite
+f := :
+    a := 1
+
+    a + 1
+```
+
+空行がブロック内に含まれる場合。
+→ **空行はインデント判定から除外。** ブロックの終了は非空行のデインデントで判定。
+
+### 29.8 インデント括弧を後置位置で使う
+
+```xarpite
+obj := MyClass:{
+    a: 1
+    b: 2
+```
+
+`MyClass` の後に `:{` が来て、オブジェクト継承 + インデント括弧。
+→ `:{` がfactor位置の新トークンなら、これは `MyClass` の後のfactorとして解釈され、後置括弧（`BracketsRightSimpleCurlyNode`）ではなくリテラル括弧になってしまう。
+
+**問題:** 後置位置での `:{` をサポートするには、`rightOperator` にもインデント括弧を追加する必要がある。
+
+```kotlin
+val rightOperator: Parser<(Node) -> Node> = or(
+    // ... 既存の後置括弧 ...
+    -s * colonIndentBlockRight,  // 新規: 後置インデント括弧
+)
+```
+
+### 29.9 三項演算子の直後のインデント括弧
+
+```xarpite
+result := condition ? :
+    true_branch
+: false_branch
+```
+
+三項演算子の `?` の後に `:` インデントブロック。
+→ 三項演算子は `condition` パーサーで処理される。`?` の後に来る式（真の枝）としてfactorが評価され、`:` インデントブロックがマッチする。偽の枝の `:` は三項演算子の一部として消費される。
+→ **正しく動作する可能性がある**が、偽の枝の `:` がインデント括弧と誤認されないか確認が必要。
+
+### 29.10 パイプ演算子との組み合わせ
+
+```xarpite
+1 .. 10 | x =>:
+    result := x * 2
+    OUT << result
+    result
+```
+
+パイプ演算子の右辺にクロージャ + インデント括弧。
+→ `|` の右辺で `x =>` が消費され、その後のfactorとして `:` インデントブロックがマッチ。
+→ **正しく動作するはず。**
+
+### 29.11 複数のインデントブロックが連続する場合
+
+```xarpite
+if := condition, then, else_ ->
+    condition ? then() : else_()
+
+if(x > 0; :
+    OUT << "positive"
+; :
+    OUT << "negative"
+)
+```
+
+引数としてインデント括弧を複数渡す場合。
+→ `;` で区切られた各引数がfactorとして評価され、それぞれ `:` インデントブロックがマッチ。
+→ **インデントの管理が複雑になる。** 第2引数のインデントブロックのインデントレベルはどうなるか？
+
+これは実装上の大きな課題。各引数のインデントブロックが同じインデントレベルにあると、デインデントの判定が困難になる。
+
+### 29.12 行末の空白がある場合
+
+```xarpite
+f := :   
+    body
+```
+
+`:` の後にスペースがあり、その後に改行。
+→ 水平空白はスキップして改行を検出する。**問題なし。**
+
+### 29.13 `:` の直後にコメントがある場合
+
+```xarpite
+f := : # この関数は...
+    body
+```
+
+`:` の後にコメント、その後に改行。
+→ コメントはスキップして改行を検出する。**問題なし。**
+
+### 29.14 インデントブロックの最後の式が値を返す場合
+
+```xarpite
+result := :
+    a := compute()
+    a + 1
+```
+
+インデントブロック ≡ `(a := compute(); a + 1)` なので、`a + 1` の値が返る。
+→ **問題なし。** `semicolons` パーサーの最後の式が値になる。
+
+### 29.15 文字列内のコロン
+
+```xarpite
+msg := "key: value"
+```
+
+文字列内の `:` はインデント括弧として解釈されてはならない。
+→ 前処理方式では文字列の境界を認識する必要がある。パーサー内部方式では文字列パーサーが先にマッチするため問題なし。
+
+---
+
+## 30. 後置インデント括弧の設計
+
+### 30.1 後置位置でのインデント括弧の必要性
+
+Issue #177の最も重要なユースケースは**関数呼び出し時のクロージャ渡し**：
+
+```xarpite
+LAUNCH ( => :
+    OUT << "Hello, World!"
+```
+
+これは後置括弧 `LAUNCH(...)` のクロージャバリエーションであり、リテラルfactorではない。
+後置位置でのインデント括弧が必要。
+
+### 30.2 後置インデント括弧の構文
+
+`rightOperator` に追加する後置インデント括弧：
+
+```
+# 単純な後置インデント括弧
+f:(         → f( ... )         （関数呼び出し + インデントブロック）
+f:[         → f[ ... ]         （部分適用 + インデントブロック）
+f:{         → f{ ... }         （オブジェクト継承 + インデントブロック）
+
+# Arrow付き後置インデント括弧
+f:( args => → f( args => ... ) （クロージャ呼び出し + インデントブロック）
+f:[ args => → f[ args => ... ] （クロージャ部分適用 + インデントブロック）
+```
+
+### 30.3 Issue本文の構文との対応
+
+Issue #177の案B:
+```xarpite
+LAUNCH ( => :
+    OUT << "Hello, World!"
+```
+
+これは「`(` で開始 → `=>` でクロージャ → `:` でインデントブロック開始 → 閉じ括弧省略」。
+
+しかし、この構文は `LAUNCH` + 後置 `(` + `=>` + `:` という4要素の組み合わせであり、パーサーの設計が複雑になる。
+
+**簡略化案:**
+```xarpite
+LAUNCH :( =>
+    OUT << "Hello, World!"
+```
+
+`:(` を「インデント丸括弧開始」として、`=> ` の後にインデントブロック本体が続く。
+ただし、この場合 `:(` はレシーバ `LAUNCH` の直後に来るので後置演算子として機能する。
+
+### 30.4 後置と前置の統一設計
+
+**統一ルール: `:(`, `:[`, `:{` はコンテキストにより前置（factor）または後置（rightOperator）として機能する**
+
+- 式の先頭 → リテラル括弧（前置）
+- 式の直後（レシーバあり）→ 後置括弧
+
+これは既存の `(`, `[`, `{` と同じ振る舞い：
+- `(expr)` → リテラル丸括弧
+- `f(args)` → 後置丸括弧（関数呼び出し）
+
+`:(`, `:[`, `:{` も同様に振る舞えばよい。
+
+---
+
+## 31. 具体的なユースケースのビフォー・アフター
+
+### 31.1 関数定義
+
+**Before:**
+```xarpite
+fibonacci := n -> (
+    n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2)
+)
+```
+
+**After:**
+```xarpite
+fibonacci := n -> :(
+    n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2)
+```
+
+### 31.2 複数行の関数本体
+
+**Before:**
+```xarpite
+process := data -> (
+    validated := validate(data)
+    transformed := transform(validated)
+    save(transformed)
+    transformed
+)
+```
+
+**After:**
+```xarpite
+process := data -> :(
+    validated := validate(data)
+    transformed := transform(validated)
+    save(transformed)
+    transformed
+```
+
+### 31.3 ネストされたクロージャ
+
+**Before:**
+```xarpite
+LAUNCH(task => (
+    result := FETCH("https://api.example.com/data")
+    LAUNCH(inner_task => (
+        processed := PARSE(result)
+        OUT << processed
+    ))
+))
+```
+
+**After:**
+```xarpite
+LAUNCH :( task =>
+    result := FETCH("https://api.example.com/data")
+    LAUNCH :( inner_task =>
+        processed := PARSE(result)
+        OUT << processed
+```
+
+閉じ括弧が4個から0個に削減される。
+
+### 31.4 オブジェクト定義
+
+**Before:**
+```xarpite
+Person := {
+    new: name, age -> Person{
+        name: name
+        age: age
+    }
+    greet: this -> "I'm $(this.name), $(this.age) years old"
+    `&_`: this -> "Person[$(this.name)]"
+}
+```
+
+**After:**
+```xarpite
+Person := :{
+    new: name, age -> Person :{
+        name: name
+        age: age
+    greet: this -> "I'm $(this.name), $(this.age) years old"
+    `&_`: this -> "Person[$(this.name)]"
+```
+
+**問題:** ネストされたインデント括弧のデインデントが `new` の本体と `Person` の本体で正しく処理されるか？
+`Person:{` の本体は4スペースインデント。`new` の値の中の `Person:{` は8スペースインデント。
+`greet` の行は4スペースインデントなので、8スペースのブロックは終了し、4スペースのブロックに戻る。
+→ **正しく動作する。**
+
+### 31.5 制御構造的パターン
+
+**Before:**
+```xarpite
+1 .. 100 | (
+    x := _ * 2
+    x > 50 ? (
+        OUT << "Large: $x"
+    ) : (
+        OUT << "Small: $x"
+    )
+    x
+)
+```
+
+**After:**
+```xarpite
+1 .. 100 | :(
+    x := _ * 2
+    x > 50 ? :(
+        OUT << "Large: $x"
+    : :(
+        OUT << "Small: $x"
+    x
+```
+
+**問題:** 三項演算子の偽の枝（`:`の後）でインデント括弧を使う場合、`:` がインデント括弧マーカーなのか三項演算子の一部なのか曖昧になる。
+
+→ `:(` は2文字トークンなので、三項演算子の `:` + `(` とは区別可能…と思いきや、`: (` と `: :(` の区別が必要。
+
+実は、三項演算子の `:` の後に来る式（偽の枝）はfactorから始まる。ここでfactorとして `:(` がマッチすれば、それはインデント括弧になる。
+
+→ **三項演算子の偽の枝でもインデント括弧は使用可能。**
+
+### 31.6 パイプチェーン
+
+**Before:**
+```xarpite
+data
+    | validate
+    | x => (
+        transformed := transform(x)
+        enriched := enrich(transformed)
+        enriched
+    )
+    | save
+```
+
+**After:**
+```xarpite
+data
+    | validate
+    | x => :(
+        transformed := transform(x)
+        enriched := enrich(transformed)
+        enriched
+    | save
+```
+
+**問題:** インデント括弧のデインデントと次のパイプ `|` の関係。
+パイプ `|` が4スペースインデント（外側）にあるため、`:(` のブロック（8スペースインデント）は正しくデインデントで閉じられる。
+→ **正しく動作する。**
+
+---
+
+## 32. `:(` / `:[` / `:{` のパースにおける技術的詳細
+
+### 32.1 `:{` の既存構文との衝突分析
+
+現在のXarpiteで `:` の直後に `{` が来るケース：
+
+```xarpite
+key: {a: 1; b: 2}
+```
+
+これは `InfixColonNode(key, BracketsLiteralSimpleCurlyNode({a:1;b:2}))` — エントリー演算子の右辺にオブジェクトリテラル。
+
+`:{` をインデント括弧として導入した場合、これは？
+
+→ `key` がfactorとしてパースされた後、`:` が中置演算子（`assignmentOperator`）としてマッチする。右辺として `{a: 1; b: 2}` が通常のオブジェクトリテラルとしてパースされる。
+→ `:{` が2文字トークンとしてfactorに追加されても、この位置では中置演算子 `:` が先にマッチするため、`:{` factorは試行されない。
+
+**衝突なし。**
+
+### 32.2 `:(` の既存構文との衝突分析
+
+```xarpite
+key: (expr)
+```
+
+→ 同上。中置演算子 `:` が先にマッチし、右辺に `(expr)` が来る。
+→ `:(` factorは試行されない。
+
+**衝突なし。**
+
+### 32.3 factor位置での `:(` の動作
+
+```xarpite
+result := :(
+    body
+```
+
+1. `result` → factor (identifier)
+2. `:=` → assignmentOperator
+3. 右辺のfactor: `:(` → colonIndentBlock → `BracketsLiteralSimpleRoundNode(body)`
+
+**正しく動作する。**
+
+### 32.4 後置位置での `:(` の動作
+
+```xarpite
+LAUNCH:(
+    body
+```
+
+1. `LAUNCH` → factor (identifier)
+2. rightOperator: `:(` → 後置インデント括弧 → `BracketsRightSimpleRoundNode(LAUNCH, body)`
+
+**正しく動作する。**
+
+ただし、これは `LAUNCH` と `:(` の間に空白がない場合。空白がある場合：
+
+```xarpite
+LAUNCH :(
+    body
+```
+
+rightOperatorは `-s * ...` で始まるため、水平空白の後に `:(` がマッチ。
+→ **正しく動作する。**
+
+---
+
+## 33. 総括: 推奨する完全な設計
+
+### 33.1 構文
+
+| 記法 | 意味 | 等価表現 |
+|------|------|---------|
+| `:(` + インデントブロック | 丸括弧（コードブロック/スコープ） | `( expression )` |
+| `:[` + インデントブロック | 角括弧（配列） | `[ expression ]` |
+| `:{` + インデントブロック | 波括弧（オブジェクト） | `{ expression }` |
+| `:(` args `=>` + インデントブロック | Arrow付き丸括弧 | `( args => expression )` |
+| `:[` args `=>` + インデントブロック | Arrow付き角括弧 | `[ args => expression ]` |
+
+### 33.2 文法変更
+
+```
+# factorに追加
+factor ::= ... | colonIndentLiteralBlock
+
+# rightOperatorに追加
+rightOperator ::= ... | colonIndentRightBlock
+
+# 定義
+colonIndentLiteralBlock ::= colonParen | colonBracket | colonBrace
+  colonParen   ::= ':(' [commas '=>'] NEWLINE INDENT expression DEDENT
+  colonBracket ::= ':[' [commas '=>'] NEWLINE INDENT expression DEDENT
+  colonBrace   ::= ':{' NEWLINE INDENT expression DEDENT
+
+colonIndentRightBlock ::= colonRightParen | colonRightBracket | colonRightBrace
+  colonRightParen   ::= ':(' [commas '=>'] NEWLINE INDENT expression DEDENT
+  colonRightBracket ::= ':[' [commas '=>'] NEWLINE INDENT expression DEDENT
+  colonRightBrace   ::= ':{' NEWLINE INDENT expression DEDENT
+```
+
+### 33.3 ASTノード
+
+既存のノード型をそのまま再利用。インデント括弧は対応する通常の括弧と同じノードに変換される：
+- `:(` → `BracketsLiteralSimpleRoundNode` / `BracketsRightSimpleRoundNode`
+- `:[` → `BracketsLiteralSimpleSquareNode` / `BracketsRightSimpleSquareNode`
+- `:{` → `BracketsLiteralSimpleCurlyNode` / `BracketsRightSimpleCurlyNode`
+
+→ **GetterCompiler, RunnerCompilerの変更は不要。**
+
+### 33.4 実装方式
+
+**推奨: 前処理方式**
+
+`:(`, `:[`, `:{` は明確な2文字トークンであるため、前処理段階で正確に検出可能：
+1. 文字列・コメント・正規表現の内部をスキップする簡易レキサー
+2. `:(`, `:[`, `:{` を検出
+3. その後の改行 + インデントブロックを検出
+4. ブロックの終了位置（デインデント）を計算
+5. 対応する閉じ括弧 `)`, `]`, `}` を挿入
+
+**前処理で `:` 単独をマーカーとする場合の三項演算子との衝突問題は、`:(` / `:[` / `:{` を使うことで完全に回避される。**
+
+### 33.5 残る技術課題
+
+1. **前処理の字句解析**: 文字列・コメント・正規表現内の `:(` をスキップする処理
+2. **インデントの正規化**: タブとスペースの混在への対応
+3. **エラーメッセージ**: 前処理で挿入した括弧に起因するエラーメッセージの品質
+4. **位置マッピング**: パーサーのエラー位置を元のソースに逆変換
+
+### 33.6 段階的実装計画
+
+**Phase 1: 最小実装**
+- `:(` のみサポート（最も需要が高い丸括弧）
+- 前処理方式で実装
+- `:[`, `:{` は将来の拡張として保留
+
+**Phase 2: 全括弧種類サポート**
+- `:[`, `:{` を追加
+- Arrow付きバリエーション（`:(args =>` 等）を追加
+
+**Phase 3: エラーメッセージ改善**
+- 位置マッピングの実装
+- インデントエラーの親切なメッセージ
+
+**Phase 4: xarpeg統合**
+- xarpegにカスタムパーサーAPIを追加
+- 前処理を廃止し、パーサー内部でインデント処理
