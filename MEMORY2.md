@@ -1393,6 +1393,30 @@ colonIndentBlock追加後: 同じパス。`!:` は `executionOperator` レベル
 
 `right` = `factor * rightOperator.zeroOrMore`。factorの後に `::` が試行される。`::` は2文字トークンとして消費される。最初の `:` がfactorとして試行されることはない（factorは**前に**パースされ成功している）。
 
+**改行を含む場合の精密トレース: `a ::\n    b`**
+
+```
+a ::
+    b
+```
+
+解析: `right` = `factor * rightOperator.zeroOrMore`
+
+1. `factor` → `a`（identifier）。成功。
+2. `rightOperator` の選択肢L169: `-b * (-"::").result * -b * nonFloatFactor`
+   - `-b` → `s * -(br * s).zeroOrMore`。`s` = ` `（スペース）消費。`-(br * s).zeroOrMore` → `br` の位置は `:`。`:` は改行 `\n|\r\n?` ではない → `zeroOrMore` は0回で成功。`-b` 完了。
+   - `(-"::").result` → `::` を2文字一括で消費。成功。
+   - `-b` → `s` は何も消費しない → `br` → `\n` 消費 → `s` → `    `（4スペース）消費。成功。
+   - `nonFloatFactor` → `b`（identifier）。成功。
+3. **結果: `a :: b`（InfixColonColonNode）** ✓
+
+**曖昧性が生じない理由:**
+
+1. **rightOperator位置にcolonIndentBlockは存在しない。** colonIndentBlockはfactor/nonFloatFactor位置にのみ存在する。`a` がfactorとして成功した後、rightOperatorが試行される位置ではfactorは試行されない。
+2. **`::` は2文字トークン `-"::"` として原子的に消費される。** PEGでは `::` が1文字ずつ `:` + `:` に分割されるパスは存在しない。
+3. **エントリー演算子 `:` のガード。** assignmentOperator の `:` は `-':' * !'=' * !':'` であり、次の文字が `:` の場合にマッチしない。したがって、stream レベルで `::` がエントリー演算子 `:` + colonIndentBlock `:` に分割されることもない。
+4. **`a : :\n    b`（スペース区切り）は別の話。** これはエントリー演算子 `:` の右辺に colonIndentBlock `:\n    b` が来る新規構文であり、`a :: b` とは文字列が異なる。
+
 **変化なし** ✓
 
 #### 16.7.3 `:=` の検証
@@ -1517,6 +1541,7 @@ val round: Parser<Node> = (-'(').result * -b * (ref { expression } * -b).optiona
 | 8 | `key: value` | エントリー: `key : value` | 同じ | なし |
 | 9 | `key:\n    value` | エントリー: `key : value` | 同じ | なし |
 | 10 | `a :: b` | メソッドバインド | 同じ | なし |
+| 10b | `a ::\n    b` | メソッドバインド: `a :: b` | 同じ | なし |
 | 11 | `a ?:: b` | Null安全メソッドバインド | 同じ | なし |
 | 12 | `x := y` | 変数宣言 | 同じ | なし |
 | 13 | `a ? b : c` | 三項: `a ? b : c` | 同じ | なし |
