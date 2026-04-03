@@ -26,6 +26,7 @@ import mirrg.xarpite.FormattedStringContent
 import mirrg.xarpite.Frame
 import mirrg.xarpite.HexadecimalNode
 import mirrg.xarpite.IdentifierNode
+import mirrg.xarpite.IndentBlockNode
 import mirrg.xarpite.InfixAmpersandAmpersandNode
 import mirrg.xarpite.InfixAmpersandNode
 import mirrg.xarpite.InfixAsteriskNode
@@ -229,6 +230,12 @@ fun Frame.compileToGetter(node: Node): Getter {
         }
 
         is BracketsLiteralSimpleCurlyNode -> compileObjectCreationToGetter(null, node.body)
+
+        is IndentBlockNode -> {
+            val frame = Frame(this)
+            val newNode = frame.compileToGetter(node.body)
+            NewEnvironmentGetter(frame.nextVariableIndex, frame.mountCount, newNode)
+        }
 
         is UnaryPlusNode -> ToNumberGetter(compileToGetter(node.main), node.position)
         is UnaryMinusNode -> compileUnaryMinusToGetter(node.main, node.position)

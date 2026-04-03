@@ -1,6 +1,6 @@
 package mirrg.xarpite
 
-import io.github.mirrgieriana.xarpeg.parseAllOrThrow
+import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -32,7 +32,7 @@ class Evaluator {
     }
 
     suspend fun get(location: String, src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAllOrThrow(src)
+        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
@@ -50,7 +50,7 @@ class Evaluator {
     }
 
     suspend fun run(location: String, src: String) {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAllOrThrow(src)
+        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
