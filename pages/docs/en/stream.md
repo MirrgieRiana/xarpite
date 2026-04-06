@@ -849,3 +849,27 @@ $ xa '
 # [0;1;2;3;4;5;6;7;8;9]
 # Finished
 ```
+
+## `RANDOM`: Select a Random Element from a Stream
+
+`<T> RANDOM(stream: STREAM<T>): T | NULL`
+
+Selects and returns a random element from `stream`.
+
+---
+
+Returns `NULL` if the stream is empty.
+
+```shell
+$ xa 'RANDOM(,)'
+# NULL
+```
+
+---
+
+When a single-element stream or a non-stream value is passed, the value itself is returned.
+
+```shell
+$ xa 'RANDOM(42)'
+# 42
+```
