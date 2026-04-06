@@ -171,7 +171,7 @@ $ xa '
 
 ---
 
-Label returns pass through `TRY` blocks.
+`TRY` does not catch returns.
 
 ```shell
 $ xa '
