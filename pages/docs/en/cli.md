@@ -89,6 +89,7 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
