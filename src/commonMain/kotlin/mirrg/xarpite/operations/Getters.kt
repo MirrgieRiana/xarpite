@@ -119,16 +119,18 @@ class ArrayCreationGetter(private val getters: List<Getter>) : Getter {
 
 class ObjectFromStreamGetter(private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
+        val stream = getter.evaluate(env)
         val map = mutableMapOf<String, FluoriteValue>()
-        val value = getter.evaluate(env)
-        suspend fun addEntry(item: FluoriteValue) {
-            require(item is FluoriteArray && item.values.size == 2) { "Expected 2-element array for object conversion, got: $item" }
-            map[item.values[0].toString()] = item.values[1]
-        }
-        if (value is FluoriteStream) {
-            value.collect { item -> addEntry(item) }
+        if (stream is FluoriteStream) {
+            stream.collect { item ->
+                require(item is FluoriteArray)
+                require(item.values.size == 2)
+                map[item.values[0].toString()] = item.values[1]
+            }
         } else {
-            addEntry(value)
+            require(stream is FluoriteArray)
+            require(stream.values.size == 2)
+            map[stream.values[0].toString()] = stream.values[1]
         }
         return FluoriteObject(FluoriteObject.fluoriteClass, map)
     }
