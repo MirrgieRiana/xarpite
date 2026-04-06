@@ -84,6 +84,15 @@ $ seq 1 3 | xa 'I.[]'
 # [1;2;3]
 ```
 
+---
+
+A single value that is not a stream also works.
+
+```shell
+$ xa '100.[]'
+# [100]
+```
+
 ## Accessing Array Elements
 
 In Xarpite, there are two main ways to access array elements:

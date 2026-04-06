@@ -80,7 +80,7 @@ In this example, at the time of calculating the value of `result`, no value has 
 The object conversion operator converts a stream of 2-element arrays into an object.
 
 ```shell
-$ xa '((a: 1), (b: 2)).{}'
+$ xa '(["a", 1], ["b", 2]).{}'
 # {a:1;b:2}
 ```
 
@@ -98,7 +98,7 @@ $ xa '({a: 1; b: 2; c: 3}() | (_.0 & "z": _.1 * 10)).{}'
 A single 2-element array that is not a stream also works.
 
 ```shell
-$ xa '(a: 100).{}'
+$ xa '["a", 100].{}'
 # {a:100}
 ```
 
