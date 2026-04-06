@@ -56,5 +56,17 @@ fun createConvertMounts(): List<Map<String, Mount>> {
                 usage("OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
             }
         },
+        "TO_STREAM" define FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    value
+                } else {
+                    FluoriteStream(value)
+                }
+            } else {
+                usage("TO_STREAM(value: VALUE): STREAM<VALUE>")
+            }
+        },
     ).let { listOf(it) }
 }

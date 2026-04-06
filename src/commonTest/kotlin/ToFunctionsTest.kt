@@ -2,6 +2,7 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,6 +29,16 @@ class ToFunctionsTest {
         assertEquals(false, eval(""" TO_BOOLEAN(0) """).boolean)
         assertEquals(true, eval(""" TO_BOOLEAN(1) """).boolean)
         assertEquals(true, eval(""" FALSE, TRUE, FALSE >> TO_BOOLEAN """).boolean)
+    }
+
+    @Test
+    fun toStreamTest() = runTest {
+        // ストリーム入力 → そのまま返す
+        assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())
+        // 非ストリーム入力 → ストリームに変換
+        assertEquals("1", eval("TO_STREAM(1)").stream())
+        // 空ストリーム入力 → そのまま返す
+        assertEquals("", eval("TO_STREAM(,)").stream())
     }
 
     @Test

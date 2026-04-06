@@ -997,6 +997,23 @@ $ xa 'TO_OBJECT(("a": 1), ("b": 2), ("c": 3))'
 # {a:1;b:2;c:3}
 ```
 
+## `TO_STREAM` Convert Value to Stream
+
+`TO_STREAM(value: VALUE): STREAM<VALUE>`
+
+If the first argument is not a stream, converts it to a stream that yields that value.
+If the first argument is already a stream, returns it as-is.
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `::LET` / `LET` Pass Value to Block and Return Block's Result
 
 `<I, O> I::LET(block: I -> O): O`
