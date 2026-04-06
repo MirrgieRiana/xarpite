@@ -153,7 +153,7 @@ If the `PROMISE` is completed as failed, `await` throws that exception value.
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? ( e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
 ```

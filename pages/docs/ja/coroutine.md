@@ -160,7 +160,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? ( e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
 ```
