@@ -155,7 +155,7 @@ class IndentBlockTest {
     @Test
     fun indentBlockInFunctionBody() = runTest {
         // 関数の本体にインデントブロックをネストして使用する
-        // スコープが分離されるため、外側の変数をキャプチャしない
+        // ブロック内で評価した値を関数の戻り値として扱える
         assertEquals(10, eval("f := () ->:\n  10\nf()").int)
     }
 
