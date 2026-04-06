@@ -850,6 +850,23 @@ $ xa '
 # Finished
 ```
 
+## `TO_STREAM`: Convert Value to Stream
+
+`TO_STREAM(value: VALUE): STREAM<VALUE>`
+
+If `value` is not a stream, converts it to a stream that yields that value.
+If `value` is already a stream, returns it as-is.
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `RANDOM`: Select a Random Element from a Stream
 
 `<T> RANDOM(stream: STREAM<T>): T | NULL`

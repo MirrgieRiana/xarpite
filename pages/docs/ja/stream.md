@@ -1019,6 +1019,23 @@ $ xa -q '
 
 `VOID` に対して無限ストリームを渡した場合、無限ループによりプロセスが応答不能になる可能性があります。
 
+## `TO_STREAM`: 値をストリームに変換
+
+`TO_STREAM(value: VALUE): STREAM<VALUE>`
+
+`value` がストリームでない場合、その値を返すストリームに変換します。
+`value` がストリームの場合、そのストリームをそのまま返します。
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `RANDOM`: ストリームからランダムな要素を選ぶ
 
 `<T> RANDOM(stream: STREAM<T>): T | NULL`
