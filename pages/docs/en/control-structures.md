@@ -105,3 +105,82 @@ $ xa -q '
 # 2
 # 3
 ```
+
+### `TRY`: Exception Catching
+
+`<T> TRY(block: () -> T): PROMISE<T>`
+
+Executes `block` and returns the result as a `PROMISE`.
+
+If an exception is thrown within `block`, returns a rejected `PROMISE` with that exception.
+
+```shell
+$ xa '
+  promise := TRY ( =>
+    "Success"
+  )
+  promise::await()
+'
+# Success
+```
+
+```shell
+$ xa '
+  promise := TRY ( =>
+    !! "Error"
+  )
+  promise::await() !? ( e => "Caught: $e" )
+'
+# Caught: Error
+```
+
+---
+
+Since `TRY` returns a `PROMISE`, it can also be used as a result type without using the catch operator.
+
+```shell
+$ xa '
+  result := TRY ( =>
+    !! "Failed"
+  )
+  result::isCompleted()
+'
+# TRUE
+```
+
+---
+
+If the return value of `block` is a stream, it will be resolved.
+
+```shell
+$ xa '
+  counter := 0
+  promise := TRY ( =>
+    1 .. 3 | (
+      counter = counter + 1
+      counter
+    )
+  )
+  [promise::await()], [promise::await()], [promise::await()], counter
+'
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# 3
+```
+
+---
+
+`TRY` does not catch returns.
+
+```shell
+$ xa '
+  (
+    TRY ( =>
+      label!! "returned"
+    )
+    "not returned"
+  ) !: label
+'
+# returned
+```

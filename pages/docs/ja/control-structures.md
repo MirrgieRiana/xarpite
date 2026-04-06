@@ -105,3 +105,82 @@ $ xa -q '
 # 2
 # 3
 ```
+
+### `TRY`: 例外の捕捉
+
+`<T> TRY(block: () -> T): PROMISE<T>`
+
+`block` をその場で実行し、結果を `PROMISE` で返します。
+
+`block` 内で例外がスローされた場合、その例外で拒否された `PROMISE` を返します。
+
+```shell
+$ xa '
+  promise := TRY ( =>
+    "Success"
+  )
+  promise::await()
+'
+# Success
+```
+
+```shell
+$ xa '
+  promise := TRY ( =>
+    !! "Error"
+  )
+  promise::await() !? ( e => "Caught: $e" )
+'
+# Caught: Error
+```
+
+---
+
+`TRY` は `PROMISE` を返すため、キャッチ演算子を使わずに結果型として扱うこともできます。
+
+```shell
+$ xa '
+  result := TRY ( =>
+    !! "Failed"
+  )
+  result::isCompleted()
+'
+# TRUE
+```
+
+---
+
+`block` の戻り値がストリームだった場合、解決されます。
+
+```shell
+$ xa '
+  counter := 0
+  promise := TRY ( =>
+    1 .. 3 | (
+      counter = counter + 1
+      counter
+    )
+  )
+  [promise::await()], [promise::await()], [promise::await()], counter
+'
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# 3
+```
+
+---
+
+`TRY` はリターンをキャッチしません。
+
+```shell
+$ xa '
+  (
+    TRY ( =>
+      label!! "returned"
+    )
+    "not returned"
+  ) !: label
+'
+# returned
+```
