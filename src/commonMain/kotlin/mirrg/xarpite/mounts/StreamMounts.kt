@@ -105,7 +105,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     value
                 }
             } else {
-                usage("<T> RANDOM(stream: STREAM<T>): T | NULL")
+                usage("<T> RANDOM(stream: T,): T | NULL")
             }
         },
         *run {
