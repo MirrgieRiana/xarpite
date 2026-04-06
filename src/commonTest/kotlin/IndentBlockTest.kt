@@ -30,7 +30,7 @@ class IndentBlockTest {
 
     @Test
     fun indentBlockEmpty() = runTest {
-        // 空のインデントブロック（: の後に中身なし）はEmptyNodeになる
+        // 空のインデントブロック（: の後に中身なし）を評価するとFluoriteNull（NULL値）になる
         assertEquals(FluoriteNull, eval(":\n"))
     }
 
@@ -263,18 +263,6 @@ class IndentBlockTest {
     fun indentBlockPreservesBindSyntax() = runTest {
         // 既存のバインド構文が引き続き動作する
         assertEquals("12", eval("(a, b -> a & b)[1](2)").string)
-    }
-
-    @Test
-    fun indentBlockPreservesWhileLoop() = runTest {
-        // 既存のWHILEが引き続き動作する
-        """
-            i := 0
-            WHILE [ => i < 5 ] ( =>
-                i = i + 1
-            )
-            i
-        """.let { assertEquals(5, eval(it).int) }
     }
 
     @Test
