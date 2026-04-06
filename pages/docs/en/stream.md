@@ -861,7 +861,7 @@ Selects and returns a random element from `stream`.
 Returns `NULL` if the stream is empty.
 
 ```shell
-$ xa 'RANDOM()'
+$ xa 'RANDOM(,)'
 # NULL
 ```
 

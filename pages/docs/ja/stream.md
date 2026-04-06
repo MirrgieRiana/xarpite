@@ -1030,7 +1030,7 @@ $ xa -q '
 空ストリームの場合は `NULL` を返します。
 
 ```shell
-$ xa 'RANDOM()'
+$ xa 'RANDOM(,)'
 # NULL
 ```
 
