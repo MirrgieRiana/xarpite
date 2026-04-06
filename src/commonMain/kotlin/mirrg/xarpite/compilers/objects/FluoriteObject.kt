@@ -110,6 +110,22 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                 )
             )
         }
+
+        suspend fun fromStream(stream: FluoriteValue): FluoriteObject {
+            val map = mutableMapOf<String, FluoriteValue>()
+            if (stream is FluoriteStream) {
+                stream.collect { item ->
+                    require(item is FluoriteArray)
+                    require(item.values.size == 2)
+                    map[item.values[0].toString()] = item.values[1]
+                }
+            } else {
+                require(stream is FluoriteArray)
+                require(stream.values.size == 2)
+                map[stream.values[0].toString()] = stream.values[1]
+            }
+            return FluoriteObject(fluoriteClass, map)
+        }
     }
 
     override fun toString() = "{${map.entries.joinToString(";") { "${it.key}:${it.value}" }}}"

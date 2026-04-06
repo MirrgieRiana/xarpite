@@ -118,23 +118,7 @@ class ArrayCreationGetter(private val getters: List<Getter>) : Getter {
 }
 
 class ObjectFromStreamGetter(private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment): FluoriteValue {
-        val stream = getter.evaluate(env)
-        val map = mutableMapOf<String, FluoriteValue>()
-        if (stream is FluoriteStream) {
-            stream.collect { item ->
-                require(item is FluoriteArray)
-                require(item.values.size == 2)
-                map[item.values[0].toString()] = item.values[1]
-            }
-        } else {
-            require(stream is FluoriteArray)
-            require(stream.values.size == 2)
-            map[stream.values[0].toString()] = stream.values[1]
-        }
-        return FluoriteObject(FluoriteObject.fluoriteClass, map)
-    }
-
+    override suspend fun evaluate(env: Environment) = FluoriteObject.fromStream(getter.evaluate(env))
     override val code get() = "ObjectFromStreamGetter[${getter.code}]"
 }
 
