@@ -3,7 +3,6 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.mounts.createCommonMounts
-import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.get
