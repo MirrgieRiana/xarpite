@@ -117,6 +117,11 @@ class ArrayCreationGetter(private val getters: List<Getter>) : Getter {
     override val code get() = "ArrayCreationGetter[${getters.code}]"
 }
 
+class ObjectFromStreamGetter(private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment) = FluoriteObject.fromStream(getter.evaluate(env))
+    override val code get() = "ObjectFromStreamGetter[${getter.code}]"
+}
+
 class ObjectCreationGetter(private val parentGetter: Getter?, private val variableCount: Int, private val objectInitializers: List<ObjectInitializer>) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val parent = parentGetter?.let { it.evaluate(env) as FluoriteObject } ?: FluoriteObject.fluoriteClass

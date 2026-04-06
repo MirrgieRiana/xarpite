@@ -2,13 +2,10 @@ package mirrg.xarpite.mounts
 
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
-import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
-import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -54,20 +51,7 @@ fun createConvertMounts(): List<Map<String, Mount>> {
         },
         "TO_OBJECT" define FluoriteFunction { arguments ->
             if (arguments.size == 1) {
-                val stream = arguments[0]
-                val map = mutableMapOf<String, FluoriteValue>()
-                if (stream is FluoriteStream) {
-                    stream.collect { item ->
-                        require(item is FluoriteArray)
-                        require(item.values.size == 2)
-                        map[item.values[0].toString()] = item.values[1]
-                    }
-                } else {
-                    require(stream is FluoriteArray)
-                    require(stream.values.size == 2)
-                    map[stream.values[0].toString()] = stream.values[1]
-                }
-                FluoriteObject(FluoriteObject.fluoriteClass, map)
+                FluoriteObject.fromStream(arguments[0])
             } else {
                 usage("OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
             }
