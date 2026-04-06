@@ -112,8 +112,6 @@ $ xa -q '
 
 Executes `block` and returns the result as a `PROMISE`.
 
-If `block` completes successfully, returns a resolved `PROMISE` with its return value.
-
 If an exception is thrown within `block`, returns a rejected `PROMISE` with that exception.
 
 ```shell
@@ -126,18 +124,14 @@ $ xa '
 # Success
 ```
 
----
-
-When an exception is thrown, the `PROMISE` is returned in a rejected state.
-
 ```shell
 $ xa '
   promise := TRY ( =>
-    !! "Error occurred"
+    !! "Error"
   )
-  promise::await() !? ( e => "Caught: $e")
+  promise::await() !? ( e => "Caught: $e" )
 '
-# Caught: Error occurred
+# Caught: Error
 ```
 
 ---
@@ -156,9 +150,7 @@ $ xa '
 
 ---
 
-If the return value of `block` is a stream, it is automatically iterated once, and a copy of the element sequence is retained.
-
-Therefore, the final processing of the `TRY` block always executes exactly once under any circumstances.
+If the return value of `block` is a stream, it will be resolved.
 
 ```shell
 $ xa '
