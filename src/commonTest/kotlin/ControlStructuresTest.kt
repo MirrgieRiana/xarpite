@@ -4,6 +4,7 @@ import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -128,13 +129,24 @@ class ControlStructuresTest {
                     counter
                 )
             )
-            [promise::await()], [promise::await()];
-            counter
+            promise::await(), promise::await()
         """.let {
-            val result = eval(it)
-            // ストリームが1度だけ評価され、counterが3になる
-            assertEquals(3, result.int)
+            // awaitの結果がストリームとして [1;2;3] を返し、2回のawaitの結果が連結される
+            assertEquals("1,2,3,1,2,3", eval(it).stream())
         }
+    }
+
+    @Test
+    fun tryLabelReturn() = runTest {
+        // ラベルリターンはTRYブロックを貫通する
+        """
+            (
+                TRY ( =>
+                    label!! "returned"
+                )
+                "not returned"
+            ) !: label
+        """.let { assertEquals("returned", eval(it).string) }
     }
 
 }

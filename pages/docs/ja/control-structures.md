@@ -168,3 +168,19 @@ $ xa '
 # [1;2;3]
 # 3
 ```
+
+---
+
+ラベルリターンは `TRY` ブロックを貫通します。
+
+```shell
+$ xa '
+  (
+    TRY ( =>
+      label!! "returned"
+    )
+    "not returned"
+  ) !: label
+'
+# returned
+```

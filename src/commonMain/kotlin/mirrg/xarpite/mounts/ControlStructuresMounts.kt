@@ -10,6 +10,8 @@ import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.define
+import mirrg.xarpite.operations.Returner
+import kotlin.coroutines.cancellation.CancellationException
 
 context(context: RuntimeContext)
 fun createControlStructuresMounts(): List<Map<String, Mount>> {
@@ -31,6 +33,10 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             val promise = FluoritePromise()
             val value = try {
                 block.invoke(null, emptyArray()).cache()
+            } catch (e: Returner) {
+                throw e
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
                 promise.deferred.completeExceptionally(e)
                 return@FluoriteFunction promise

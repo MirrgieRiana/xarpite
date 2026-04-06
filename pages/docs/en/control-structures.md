@@ -168,3 +168,19 @@ $ xa '
 # [1;2;3]
 # 3
 ```
+
+---
+
+Label returns pass through `TRY` blocks.
+
+```shell
+$ xa '
+  (
+    TRY ( =>
+      label!! "returned"
+    )
+    "not returned"
+  ) !: label
+'
+# returned
+```
