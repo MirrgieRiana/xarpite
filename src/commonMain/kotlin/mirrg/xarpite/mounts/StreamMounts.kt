@@ -92,14 +92,14 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "RANDOM" define FluoriteFunction { arguments ->
-            if (arguments.size == 0) {
-                FluoriteNull
-            } else if (arguments.size == 1) {
+            if (arguments.size == 1) {
                 val value = arguments[0]
                 if (value is FluoriteStream) {
                     val list = value.toMutableList()
                     if (list.isEmpty()) {
                         FluoriteNull
+                    } else if (list.size == 1) {
+                        list.single()
                     } else {
                         list[Random.nextInt(list.size)]
                     }
