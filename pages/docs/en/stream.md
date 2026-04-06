@@ -852,21 +852,24 @@ $ xa '
 
 ## `RANDOM`: Select a Random Element from a Stream
 
-`<T> RANDOM(stream: T,): T | NULL`
+`<T> RANDOM(stream: STREAM<T>): T | NULL`
 
 Selects and returns a random element from `stream`.
 
+---
+
 Returns `NULL` if the stream is empty.
+
+```shell
+$ xa 'RANDOM()'
+# NULL
+```
 
 ---
 
-When a non-stream value is passed, the value itself is returned.
+When a single-element stream or a non-stream value is passed, the value itself is returned.
 
 ```shell
 $ xa 'RANDOM(42)'
 # 42
 ```
-
----
-
-Passing an infinite stream to `RANDOM` may cause the process to crash due to an infinite loop and unbounded growth of the internal array, leading to memory exhaustion.

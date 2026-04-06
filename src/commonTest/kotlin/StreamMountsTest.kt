@@ -189,6 +189,7 @@ class StreamMountsTest {
         assertEquals(1, eval("1 >> RANDOM").int) // 非ストリームはその要素を返す
         assertEquals(FluoriteNull, eval(", >> RANDOM")) // 空ストリームの場合、NULLを返す
         assertEquals(42, eval("42, >> RANDOM").int) // 1要素のストリームはその要素を返す
+        assertEquals(FluoriteNull, eval("RANDOM()")) // 引数なしの場合、NULLを返す
     }
 
     @Test
