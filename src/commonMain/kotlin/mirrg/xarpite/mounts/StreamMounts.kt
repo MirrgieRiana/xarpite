@@ -39,6 +39,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.random.Random
 
 context(context: RuntimeContext)
 fun createStreamMounts(): List<Map<String, Mount>> {
@@ -88,6 +89,23 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             } else {
                 usage("<T> SHUFFLE(stream: T,): T,")
+            }
+        },
+        "RANDOM" define FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    val list = value.toMutableList()
+                    if (list.isEmpty()) {
+                        FluoriteNull
+                    } else {
+                        list[Random.nextInt(list.size)]
+                    }
+                } else {
+                    value
+                }
+            } else {
+                usage("<T> RANDOM(stream: STREAM<T>): T | NULL")
             }
         },
         *run {
