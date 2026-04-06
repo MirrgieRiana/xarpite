@@ -50,7 +50,7 @@ class IndentBlockTest {
     fun indentBlockRetainsScope() = runTest {
         // インデントブロックは独自のスコープを持ち、内側で同名変数を再定義しても外側の値は変わらない
         assertEquals(10, eval(":\n  a := 10\n  a").int)
-        assertEquals(1, eval("a := 1\n:\n  a := 10\na").int)
+        assertEquals(1, eval("a := 1\n:\n  a := 10\n  a\na").int)
     }
 
     // endregion
