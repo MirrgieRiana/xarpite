@@ -89,9 +89,9 @@ class ObjectTest {
 
     @Test
     fun toObject() = runTest {
-        assertEquals("{a:1;b:2;c:3}", eval("TO_OBJECT((a: 1), (b: 2), (c: 3))").obj) // OBJECT関数はストリームをオブジェクトにする
+        assertEquals("{a:1;b:2;c:3}", eval("TO_OBJECT((a: 1), (b: 2), (c: 3))").obj) // TO_OBJECT はストリームをオブジェクトにする
         assertEquals("{a:100}", eval("TO_OBJECT(a: 100)").obj) // ストリームでなくてもよい
-        assertEquals("{1:10;2:20;3:30}", eval("1 .. 3 | ((_): _ * 10) >> TO_OBJECT").obj) // OBJECT関数はパイプ演算子と組み合わせて使うと便利
+        assertEquals("{1:10;2:20;3:30}", eval("1 .. 3 | ((_): _ * 10) >> TO_OBJECT").obj) // TO_OBJECT はパイプ演算子と組み合わせて使うと便利
         assertEquals("{a:1;b:2}", eval("((a: 1), (b: 2)).{}").obj) // .{} オブジェクト化演算子
         assertEquals("{az:10;bz:20;cz:30}", eval("({a: 1; b: 2; c: 3}() | (_.0 & \"z\": _.1 * 10)).{}").obj) // .{} オブジェクト化演算子とパイプの組み合わせ
         assertEquals("{a:100}", eval("(a: 100).{}").obj) // ストリームでなくてもよい
