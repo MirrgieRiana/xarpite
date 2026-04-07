@@ -754,7 +754,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (fillValue == null) {
                         val minLength = arrays.minOf { it.size }
                         if (minLength != maxLength) {
-                            throw FluoriteException("Arrays have different lengths".toFluoriteString())
+                            throw FluoriteException("Arrays have different lengths: min=$minLength, max=$maxLength".toFluoriteString())
                         }
                     }
                     
