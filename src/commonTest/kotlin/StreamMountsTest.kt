@@ -299,7 +299,7 @@ class StreamMountsTest {
     }
 
     @Test
-    fun toStreamTest() = runTest {
+    fun toStream() = runTest {
         // ストリーム入力 → そのまま返す
         assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())
         // 非ストリーム入力 → ストリームに変換
