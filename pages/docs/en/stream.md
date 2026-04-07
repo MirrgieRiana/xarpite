@@ -724,8 +724,9 @@ $ xa '
 
 `TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If `value` is not a stream, converts it to a stream that yields that value.
-If `value` is already a stream, returns it as-is.
+If `stream` is a stream, returns it as-is without resolving it.
+
+If `stream` is not a stream, converts it to a single-element stream that yields that value.
 
 ```shell
 $ xa 'TO_STREAM(1)'
