@@ -298,5 +298,15 @@ class StreamMountsTest {
         assertEquals("", eval("CACHE(,)").stream())
     }
 
+    @Test
+    fun toStream() = runTest {
+        // ストリーム入力 → そのまま返す
+        assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())
+        // 非ストリーム入力 → ストリームに変換
+        assertEquals("1", eval("TO_STREAM(1)").stream())
+        // 空ストリーム入力 → そのまま返す
+        assertEquals("", eval("TO_STREAM(,)").stream())
+    }
+
 
 }

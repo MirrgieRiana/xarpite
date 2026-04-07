@@ -720,6 +720,24 @@ $ xa '
 
 # Stream Functions
 
+## `TO_STREAM`: Convert Value to Stream
+
+`TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>`
+
+If `stream` is a stream, returns it as-is without resolving it.
+
+If `stream` is not a stream, converts it to a single-element stream that yields that value.
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `PIPE`: Create Stream That Remembers Read Position
 
 `<T> PIPE(stream: STREAM<T>): STREAM<T>`

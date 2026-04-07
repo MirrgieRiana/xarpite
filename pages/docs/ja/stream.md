@@ -692,6 +692,24 @@ a | b =>
 
 # ストリーム系関数
 
+## `TO_STREAM`: 値をストリームに変換
+
+`TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>`
+
+`stream` がストリームの場合、それを解決せずにそのまま返します。
+
+`stream` がストリームでない場合、その値を返す1要素のストリームに変換します。
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `GENERATE`: 関数からストリームを生成
 
 `<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>`

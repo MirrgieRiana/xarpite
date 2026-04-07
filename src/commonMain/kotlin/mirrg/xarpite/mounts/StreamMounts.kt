@@ -44,6 +44,18 @@ import kotlin.random.Random
 context(context: RuntimeContext)
 fun createStreamMounts(): List<Map<String, Mount>> {
     return mapOf(
+        "TO_STREAM" define FluoriteFunction { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    value
+                } else {
+                    FluoriteStream(value)
+                }
+            } else {
+                usage("TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>")
+            }
+        },
         "GENERATE" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
             val generator = arguments[0]
