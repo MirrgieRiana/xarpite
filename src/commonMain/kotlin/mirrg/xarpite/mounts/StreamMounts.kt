@@ -731,25 +731,19 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (entries.isNotEmpty()) usage()
                     if (arguments3.isNotEmpty()) usage()
                     
-                    // Collect all arrays from the stream
                     val arrays = mutableListOf<List<FluoriteValue>>()
-                    if (table is FluoriteStream) {
-                        table.collect { item ->
-                            if (item is FluoriteArray) {
-                                arrays.add(item.values.toList())
-                            } else {
-                                throw FluoriteException("Expected array, got ${item}".toFluoriteString())
-                            }
+                    table.toFlow().collect { item ->
+                        if (item is FluoriteArray) {
+                            arrays.add(item.values.toList())
+                        } else {
+                            throw FluoriteException("Expected array, got ${item}".toFluoriteString())
                         }
-                    } else {
-                        throw FluoriteException("Expected stream of arrays, got ${table}".toFluoriteString())
                     }
-                    
+
                     if (arrays.isEmpty()) {
                         return@FluoriteFunction FluoriteStream.EMPTY
                     }
-                    
-                    // Check if all arrays have the same length, or use fill value
+
                     val maxLength = arrays.maxOf { it.size }
                     if (fillValue == null) {
                         val minLength = arrays.minOf { it.size }
@@ -757,17 +751,11 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             throw FluoriteException("Arrays have different lengths: min=$minLength, max=$maxLength".toFluoriteString())
                         }
                     }
-                    
-                    // Transpose
+
                     FluoriteStream {
                         for (i in 0 until maxLength) {
                             val column = arrays.map { array ->
-                                if (i < array.size) {
-                                    array[i]
-                                } else {
-                                    // fillValue must be non-null here because we already checked above
-                                    fillValue!!
-                                }
+                                if (i < array.size) array[i] else fillValue!!
                             }
                             emit(column.toFluoriteArray())
                         }
