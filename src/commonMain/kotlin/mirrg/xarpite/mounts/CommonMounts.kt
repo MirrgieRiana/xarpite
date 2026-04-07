@@ -5,7 +5,15 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 
-fun usage(vararg usages: String): Nothing = throw FluoriteException(listOf("Usage:", *usages.map { "  $it" }.toTypedArray()).joinToString("\n").toFluoriteString())
+fun usage(vararg usages: String): Nothing {
+    if (usages.isEmpty()) {
+        throw FluoriteException("No usage information available.".toFluoriteString())
+    } else if (usages.size == 1) {
+        throw FluoriteException("Usage: ${usages.single()}".toFluoriteString())
+    } else {
+        throw FluoriteException(listOf("Usage:", *usages.map { "  $it" }.toTypedArray()).joinToString("\n").toFluoriteString())
+    }
+}
 
 context(context: RuntimeContext)
 fun createCommonMounts(): List<Map<String, Mount>> {
@@ -18,5 +26,6 @@ fun createCommonMounts(): List<Map<String, Mount>> {
         createStreamMounts(),
         createDataConversionMounts(),
         createStringMounts(),
+        createIoMounts(),
     ).flatten()
 }

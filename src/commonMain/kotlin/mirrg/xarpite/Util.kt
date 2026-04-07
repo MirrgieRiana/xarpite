@@ -316,3 +316,21 @@ fun Iterable<FluoriteValue>.partitionIfEntry(): Pair<MutableMap<String, Fluorite
 }
 
 inline fun Path.map(mapper: (String) -> String) = mapper(this.toString()).toPath()
+
+operator fun Path.contains(other: Path) = this == other || this.isAncestorOf(other)
+
+fun Path.isAncestorOf(other: Path): Boolean {
+    if (this == other) return false
+    var path = other
+    while (true) {
+        path = path.parent ?: return false
+        if (this == path) return true
+    }
+}
+
+fun isUrl(location: String) = location.startsWith("http://", ignoreCase = true) || location.startsWith("https://", ignoreCase = true)
+
+
+// I/O utilities
+
+suspend fun RuntimeContext.fetch(url: String) = io.fetch(this, url)

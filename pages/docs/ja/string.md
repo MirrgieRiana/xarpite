@@ -500,3 +500,36 @@ $ xa '"Ab", "Cd" >> LC'
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` パス解決
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+`STRING::RESOLVE(file: STRING): STRING`
+
+`dir` を起点にして `file` へのパスを解決します。
+
+```shell
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
+```
+
+---
+
+出力パスは自動で正規化（ `.` や `..` の平坦化）が行われます。
+
+シンボリックリンクの解決は行われません。
+
+```shell
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+`"$PWD/file"` のような文字列連結を使うと、ルートディレクトリに対して `//file` のようなパスが生成されます。
+
+代わりに `PWD::RESOLVE("file")` のように `RESOLVE` 関数を使用してください。

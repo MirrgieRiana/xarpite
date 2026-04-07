@@ -1,6 +1,7 @@
 package mirrg.xarpite.operations
 
 import mirrg.xarpite.Environment
+import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
@@ -116,6 +117,11 @@ class ArrayCreationGetter(private val getters: List<Getter>) : Getter {
     override val code get() = "ArrayCreationGetter[${getters.code}]"
 }
 
+class ObjectFromStreamGetter(private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment) = FluoriteObject.fromStream(getter.evaluate(env))
+    override val code get() = "ObjectFromStreamGetter[${getter.code}]"
+}
+
 class ObjectCreationGetter(private val parentGetter: Getter?, private val variableCount: Int, private val objectInitializers: List<ObjectInitializer>) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val parent = parentGetter?.let { it.evaluate(env) as FluoriteObject } ?: FluoriteObject.fluoriteClass
@@ -228,7 +234,9 @@ class MethodAccessGetter(
             if (result != null) return result
         }
 
-        throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        withStackTrace(position) {
+            throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        }
     }
 
     override val code get() = "MethodAccessGetter[${receiverGetter.code};$variable;${mountCounts.joinToString { "$it" }};${name.escapeJsonString()};${argumentGetters.code};$isBinding,$isNullSafe]"
@@ -346,29 +354,33 @@ class Returner : Throwable() {
     companion object {
         private val unused = mutableListOf<Returner>()
 
-        fun allocate(frameIndex: Int, labelIndex: Int, value: FluoriteValue): Returner {
+        fun allocate(label: Label, value: FluoriteValue): Returner {
             val returner = if (hasFreeze()) Returner() else unused.removeLastOrNull() ?: Returner()
-            returner.frameIndex = frameIndex
-            returner.labelIndex = labelIndex
+            returner.label = label
             returner.value = value
             return returner
         }
 
         fun recycle(returner: Returner) {
             if (hasFreeze()) return
+            returner.label = null
+            returner.value = FluoriteNull
             if (unused.size >= 100) return
             unused += returner
         }
     }
 
-    var frameIndex: Int = 0
-    var labelIndex: Int = 0
+    var label: Label? = null
     var value: FluoriteValue = FluoriteNull
 }
 
-class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = throw Returner.allocate(frameIndex, labelIndex, getter.evaluate(env))
-    override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
+class ReturnGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val label = env.variableTable[frameIndex][variableIndex] as? Label ?: throw IllegalStateException("Unexpected non-label variable at ReturnGetter: $name")
+        throw Returner.allocate(label, getter.evaluate(env))
+    }
+
+    override val code get() = "ReturnGetter[$frameIndex;$variableIndex;$name;${getter.code}]"
 }
 
 class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter: Getter, private val isNullSafe: Boolean, private val position: Position) : Getter {
@@ -851,13 +863,15 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override val code get() = "TryCatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
+class LabelGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
+        val label = Label(name)
+        val newEnv = Environment(env, 1, 0)
+        newEnv.variableTable[frameIndex][variableIndex] = label
         try {
-            val newEnv = Environment(env, 0, 0)
             return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
-            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+            if (returner.label === label) {
                 val value = returner.value
                 Returner.recycle(returner)
                 return value
@@ -867,7 +881,7 @@ class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, priv
         }
     }
 
-    override val code get() = "LabelGetter[$frameIndex;$labelIndex;${getter.code}]"
+    override val code get() = "LabelGetter[$frameIndex;$variableIndex;$name;${getter.code}]"
 }
 
 class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: Int, private val indexVariableIndex: Int?, private val valueVariableIndex: Int, private val contentGetter: Getter) : Getter {

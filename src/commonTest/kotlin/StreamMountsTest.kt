@@ -10,6 +10,7 @@ import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamMountsTest {
@@ -180,11 +181,11 @@ class StreamMountsTest {
         assertEquals("[1;[14;15]]", eval("14, 15 >> GROUP[by: _ -> _.&.0]").stream()) // すべてが同じグループになってもよい
         assertEquals("[1;[14]],[2;[25]],[3;[36]]", eval("14, 25, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 3要素でもよい
         assertEquals("[1;[14;15]],[3;[36]]", eval("14, 15, 36 >> GROUP[by: _ -> _.&.0]").stream()) // 部分的にグループ化されてもよい
-        
+
         assertEquals("[1;[1;1]],[2;[2;2]],[3;[3]]", eval("1, 2, 1, 3, 2 >> GROUP").stream()) // byを省略した場合、要素自身がキーになる
         assertEquals("[1;[1]]", eval("1 >> GROUP").stream()) // 要素が1個でもよい
         assertEquals("", eval(", >> GROUP").stream()) // 要素が0個でもよい
-        
+
         assertEquals("[apple;[apple;apple]],[cherry;[cherry]],[banana;[banana;banana]]", eval(""""apple", "cherry","banana", "banana", "apple" >> GROUP""").stream()) // 文字列のグループ化
     }
 
@@ -197,6 +198,15 @@ class StreamMountsTest {
     }
 
     @Test
+    fun random() = runTest {
+        assertTrue(eval("1, 2, 3 >> RANDOM").int in 1..3) // RANDOMでストリームからランダムな要素を1つ選ぶ
+        assertEquals(1, eval("1 >> RANDOM").int) // 非ストリームはその要素を返す
+        assertEquals(FluoriteNull, eval(", >> RANDOM")) // 空ストリームの場合、NULLを返す
+        assertEquals(42, eval("42, >> RANDOM").int) // 1要素のストリームはその要素を返す
+        assertFails { eval("RANDOM()") } // 引数なしの場合、エラーを返す
+    }
+
+    @Test
     fun pipe() = runTest {
         // 複数回の読み取りで位置を記憶
         assertEquals(5, eval("""
@@ -205,7 +215,7 @@ class StreamMountsTest {
             TAKE(3; pipe)
             FIRST(pipe)
         """).int)
-        
+
         // 副作用は1度だけ発生
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -217,7 +227,7 @@ class StreamMountsTest {
             pipe
             array
         """).array())
-        
+
         // 未消費時は副作用なし
         assertEquals("[]", eval("""
             array := []
@@ -227,13 +237,13 @@ class StreamMountsTest {
             ))
             array
         """).array())
-        
+
         // 空ストリーム
         assertEquals("", eval("""
             pipe := PIPE(,)
             pipe
         """).stream())
-        
+
         // 非ストリーム
         assertEquals(42, eval("""
             pipe := PIPE(42)
@@ -254,16 +264,16 @@ class StreamMountsTest {
             VOID(stream)
             array
         """).array())
-        
+
         // VOIDの戻り値はNULLで、元のストリームとは無関係
         assertEquals(FluoriteNull, eval("""
             null := VOID(1 .. 3)
             null
         """))
-        
+
         // 非ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(42)"))
-        
+
         // 空ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(,)"))
     }
@@ -282,7 +292,7 @@ class StreamMountsTest {
             CACHE(stream)
             array
         """).array())
-        
+
         // CACHEの戻り値のストリームは何度評価しても副作用が発生しない
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -294,12 +304,22 @@ class StreamMountsTest {
             cached
             array
         """).array())
-        
+
         // 非ストリームでもそのまま返す
         assertEquals(42, eval("CACHE(42)").int)
-        
+
         // 空ストリームも正しくキャッシュする
         assertEquals("", eval("CACHE(,)").stream())
+    }
+
+    @Test
+    fun toStream() = runTest {
+        // ストリーム入力 → そのまま返す
+        assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())
+        // 非ストリーム入力 → ストリームに変換
+        assertEquals("1", eval("TO_STREAM(1)").stream())
+        // 空ストリーム入力 → そのまま返す
+        assertEquals("", eval("TO_STREAM(,)").stream())
     }
 
 

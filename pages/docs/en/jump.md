@@ -260,7 +260,7 @@ The throw operator can also be written simply as `!!` with the `value` clause om
 In this case, `NULL` is thrown.
 
 ```shell
-$ xa '(!!) !? (e => "Error: $e")'
+$ xa '(!!) !? ( e => "Error: $e" )'
 # Error: NULL
 ```
 
@@ -280,7 +280,7 @@ $ xa '(!! "Error") !? "Failed"'
 
 ### Receiving Thrown Values
 
-With the catch operator with argument `try !? (error => catch)`, you can receive the thrown value.
+With the catch operator with argument `try !? ( error => catch )`, you can receive the thrown value.
 
 ```shell
 $ xa '
@@ -395,7 +395,7 @@ $ xa '
     value := 10
     value > 5 && !! "Larger than 5:", value
     "Not larger than 5:", value
-  ) !? (e => e)
+  ) !? ( e => e )
 '
 # Larger than 5:
 # 10
@@ -416,7 +416,7 @@ $ xa '
   evenOrThrow := x -> x % 2 == 0 || !! "Not even: $x"
 
   x := 5
-  "Number: $x", evenOrThrow(x) !? (e => "Caught error: $e"), "Mod 2: $(x % 2)"
+  "Number: $x", evenOrThrow(x) !? ( e => "Caught error: $e" ), "Mod 2: $(x % 2)"
 '
 # Number: 5
 # Caught error: Not even: 5

@@ -58,11 +58,11 @@ $ xa '[1 <= 2, 2 <= 2, 3 <= 2]'
 # [TRUE;TRUE;FALSE]
 ```
 
-## Overloading Comparison Operators
+## Overriding Comparison Operators
 
 Comparison operators actually determine their behavior based on the result of the spaceship operator.
 
-When the spaceship operator is overloaded, the behavior of the various comparison operators changes accordingly.
+When the spaceship operator is overridden, the behavior of the various comparison operators changes accordingly.
 
 # Equality Operators
 
@@ -232,7 +232,7 @@ $ xa ' "aa" <=> "a" '
 # 1
 ```
 
-## Overloading the Spaceship Operator
+## Overriding the Spaceship Operator
 
 The spaceship operator is actually an operator that calls the `_<=>_` method of the left-hand value and returns its return value.
 

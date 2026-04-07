@@ -26,6 +26,7 @@ import mirrg.xarpite.FormattedStringContent
 import mirrg.xarpite.Frame
 import mirrg.xarpite.HexadecimalNode
 import mirrg.xarpite.IdentifierNode
+import mirrg.xarpite.IndentBlockNode
 import mirrg.xarpite.InfixAmpersandAmpersandNode
 import mirrg.xarpite.InfixAmpersandNode
 import mirrg.xarpite.InfixAsteriskNode
@@ -90,9 +91,7 @@ import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
-import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
-import mirrg.xarpite.getLabel
 import mirrg.xarpite.getMountCounts
 import mirrg.xarpite.getVariable
 import mirrg.xarpite.operations.AndGetter
@@ -141,6 +140,7 @@ import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
+import mirrg.xarpite.operations.ObjectFromStreamGetter
 import mirrg.xarpite.operations.ObjectInitializer
 import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
@@ -232,6 +232,12 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is BracketsLiteralSimpleCurlyNode -> compileObjectCreationToGetter(null, node.body)
 
+        is IndentBlockNode -> {
+            val frame = Frame(this)
+            val newNode = frame.compileToGetter(node.body)
+            NewEnvironmentGetter(frame.nextVariableIndex, frame.mountCount, newNode)
+        }
+
         is UnaryPlusNode -> ToNumberGetter(compileToGetter(node.main), node.position)
         is UnaryMinusNode -> compileUnaryMinusToGetter(node.main, node.position)
         is UnaryQuestionNode -> ToBooleanGetter(compileToGetter(node.main), node.position)
@@ -266,8 +272,8 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is ReturnNode -> {
             require(node.left is IdentifierNode)
-            val label = getLabel(node.left.string) ?: throw IllegalArgumentException("No such label: ${node.left.string}")
-            ReturnGetter(label.first, label.second, compileToGetter(node.right))
+            val variable = getVariable("!:${node.left.string}") ?: throw IllegalArgumentException("No such label: ${node.left.string}")
+            ReturnGetter(variable.first, variable.second, node.left.string, compileToGetter(node.right))
         }
 
         is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters, node.position)
@@ -340,7 +346,7 @@ private fun Frame.compileUnaryMinusToGetter(main: Node, position: Position): Get
 }
 
 private fun Frame.compileIncrementToGetter(node: Node, isIncrement: Boolean, isSuffix: Boolean, position: Position): Getter {
-    val setter = compileToSetter(node)
+    val setter = compileToSetter(node).getOrNull()
     val getter = compileToGetter(node)
     return IncrementGetter(getter, setter, isIncrement, isSuffix, position)
 }
@@ -406,12 +412,26 @@ fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBin
 private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
     return when (node) {
         is InfixPeriodNode -> {
-            val receiverGetter = compileToGetter(node.left)
-            val nameGetter = when (node.right) {
-                is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
-                else -> compileToGetter(node.right)
+            when {
+                node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> { // stream.[]
+                    val streamGetter = compileToGetter(node.left)
+                    ArrayCreationGetter(listOf(streamGetter))
+                }
+
+                node.right is BracketsLiteralSimpleCurlyNode && node.right.body is EmptyNode -> { // stream.{}
+                    val streamGetter = compileToGetter(node.left)
+                    ObjectFromStreamGetter(streamGetter)
+                }
+
+                else -> {
+                    val receiverGetter = compileToGetter(node.left)
+                    val nameGetter = when (node.right) {
+                        is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
+                        else -> compileToGetter(node.right)
+                    }
+                    ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
+                }
             }
-            ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
         }
 
         is InfixQuestionPeriodNode -> {
@@ -462,8 +482,8 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixExclamationColonNode -> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
-            val labelIndex = newFrame.defineLabel(node.right.string)
-            LabelGetter(newFrame.frameIndex, labelIndex, newFrame.compileToGetter(node.left))
+            val variableIndex = newFrame.defineVariable("!:${node.right.string}")
+            LabelGetter(newFrame.frameIndex, variableIndex, node.right.string, newFrame.compileToGetter(node.left))
         }
 
         is InfixColonNode -> {
@@ -475,7 +495,7 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         }
 
         is InfixEqualNode -> {
-            val setter = compileToSetter(node.left)
+            val setter = compileToSetter(node.left).getOrThrow()
             val getter = compileToGetter(node.right)
             AssignmentGetter(setter, getter)
         }
@@ -496,14 +516,14 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
 
         is InfixPlusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left)
+            val leftSetter = compileToSetter(node.left).getOrNull()
             val getter = compileToGetter(node.right)
             PlusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }
 
         is InfixMinusEqualNode -> {
             val leftGetter = compileToGetter(node.left)
-            val leftSetter = compileToSetter(node.left)
+            val leftSetter = compileToSetter(node.left).getOrNull()
             val getter = compileToGetter(node.right)
             MinusAssignmentGetter(leftGetter, leftSetter, getter, node.position)
         }

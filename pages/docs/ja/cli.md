@@ -43,7 +43,9 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
@@ -87,7 +89,9 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
@@ -262,6 +266,15 @@ $ {
 
 ---
 
+`scriptfile` に `-` を指定すると、標準入力からスクリプトを読み込みます。
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
+# 123
+```
+
+---
+
 `-f` オプションが指定された場合、第1引数はスクリプトに渡す引数の一部として解釈されます。
 
 ```shell
@@ -352,6 +365,39 @@ $ xa 'ARGS' 1 2 3
 
 Windows上でJVM版ランタイムを起動した場合は3に該当しますが、ジャンクションの解決は行われないことが判明しています。
 
+---
+
+ルートディレクトリでは `/` になることに注意してください。
+
+例えば、次のような文字列結合を行うと異常なパス文字列が生成されます。
+
+この問題の解決として `RESOLVE` 関数が利用できます。
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
+### `LOCATION`: 実行中のスクリプトのパスを取得
+
+`LOCATION: STRING`
+
+現在実行中のXarpiteスクリプトのパスです。
+
+`LOCATION` は正規化（ `.` や `..` である階層の除去）済みの絶対パスであり、ファイルパスもしくはURLを表します。
+
+---
+
+ファイル名に相当する末尾の部分が `-` である場合、 `-e` コマンドラインオプションなどの手段によって動的に与えられたスクリプトであることを示します。
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
+
 ### `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
@@ -367,41 +413,41 @@ $ FOO=bar xa 'ENV.FOO'
 
 `INC: ARRAY<STRING>`
 
-Maven座標形式でモジュールを `USE` する際に検索されるディレクトリパスの配列です。
+モジュールを `USE` する際に検索されるディレクトリパスやURLの配列です。
 
-相対パスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+`http://` または `https://` で始まる文字列はURLとして解釈されます。
 
-デフォルトでは `./.xarpite/maven` が含まれています。
+相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+
+デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
 
 ---
 
-`INC` に値を追加することで、カスタムのモジュール検索パスを追加できます。
+この配列をプログラムから実行中に変更することで、モジュールの検索対象を動的に変更することができます。
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+  mkdir module-fruits
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+  echo ' "Apple" ' > module-fruits/apple.xa1
 
   xa '
-    INC::push("maven-fruit")
-    USE("com.example.fruit:apple:1.0.0")
+    INC += "module-fruits"
+    USE("apple")
   '
 
-  rm -r maven-fruit
+  rm -r module-fruits
 }
 # Apple
 ```
 
-### `IN`, `I`: コンソールから文字列を1行ずつ読み取る
+### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
 
-`I: STREAM<STRING>`
-
 標準入力から文字列を1行ずつ読み取るストリームです。
 
-`I` は `IN` の別名です。
+`I` および `INL` は `IN` の別名です。
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -434,13 +480,6 @@ $ {
 # 2: 456
 ```
 
-ストリームは逐次的であるため、非常に大きな反復も少ないメモリ消費で行うことができます。
-
-```shell
-$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
-# 100000000
-```
-
 ---
 
 `IN` を一度でも使用した場合、 `INB` を使用することはできません。
@@ -465,8 +504,6 @@ $ echo -n "abc" | xa 'INB'
 ### `OUT`, `O`: 標準出力に出力
 
 `OUT(value: VALUE): NULL`
-
-`O(value: VALUE): NULL`
 
 標準出力に出力します。
 
@@ -561,11 +598,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
-### `FILES`: ディレクトリ内のファイルの一覧を取得
+### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 `dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+`FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
 
 ファイル名にはディレクトリのパスは含まれません。
 
@@ -576,22 +615,85 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
-### `READ`: テキストファイルから読み込み
+### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのディレクトリとファイルのパスを再帰的に検索するストリームを返します。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのファイルのパスを再帰的に検索するストリームを返します。
+
+ディレクトリのパスは報告されません。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+```
+
+### `READ` / `READL`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
 `file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
+
+`READL` は `READ` の別名であり、同一の動作を持ちます。
 
 改行コードは除去されます。
 
@@ -678,17 +780,17 @@ $ {
 # apple
 ```
 
-### `USE`: 外部Xarpiteファイルの結果を取得
+### `USE`: モジュールの呼び出し
 
 `USE(reference: STRING): VALUE`
 
 `reference` で指定されたXarpiteスクリプトを評価した結果を返します。
 
-`reference` にはいくつかの指定方法があります。
+`USE` されるXarpiteスクリプトをモジュールと呼びます。
 
----
+`reference` には、絶対ローカルファイルパス、URL、相対パス、 `INC` を起点とした相対パス、Maven座標の指定方法があります。
 
-`USE` されることを前提として記述されたXarpite スクリプトファイルをモジュールと呼びます。
+#### モジュールの文化的位置付け
 
 モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開しますが、そうでない場合もあります。
 
@@ -696,27 +798,83 @@ $ {
 
 ---
 
-同一絶対ファイルパスに対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
+`@USE("fruit")` のように `USE` 関数の戻り値をそのままマウントすることで、ディレクティブのような使用感を実現できます。
 
-そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。
+#### `INC` に基づくロケーションの解決
 
-スクリプトの結果がストリームである場合、そのストリームは解決されます。
+`reference` は検索場所を与える `INC` ビルトイン定数に基づいて実際のロケーションに解決されます。
 
-ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。
+原則として `INC` 配列内で先頭に近いパスに属するモジュールが優先されます。
+
+ただし、ローカルファイルパスである `INC` エントリーは、URLであるエントリーよりも優先的に検索されます。
 
 ---
 
-`USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感を実現できます。
-
-#### 相対パスによる指定
-
-`reference` が相対パスである場合、 `USE` 関数の呼び出しを行ったファイルからの相対パスとして解決されます。
-
-`-e` コマンドラインオプションによって起動されたコンテキストでは、カレントディレクトリからの相対パスとして解決されます。
-
 ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
 
-拡張子の `.xa1` は省略可能です。
+ローカルファイルパスの末尾の `.xa1` や `/main.xa1` は省略可能です。
+
+`-e` コマンドラインオプションによって起動されたコンテキストでは、ロケーションは `PWD` 直下の `-` という名前のファイルとして扱われます。
+
+---
+
+ロケーションがURLである場合、通信によって非同期的にスクリプトが取得され、その間はサスペンドされます。
+
+オンライン上にある多数のモジュールを使用する場合、 `LAUNCH` 関数などでコルーチンを起動することで並列化ができます。
+
+#### 同一ロケーションにあるスクリプトの再利用
+
+同一ロケーションに対する `USE` 関数の結果は再利用されます。
+
+返されるインスタンスは常に同一となり、読み込み時の副作用も1度だけ生じます。
+
+スクリプトの結果がストリームである場合、そのストリームは解決されます。
+
+シンボリックリンクなどによって異なるロケーションにある場合は、ファイル実体が同一でもそれぞれ別に評価されます。
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
+
+#### 絶対ローカルファイルパスによる `reference` の指定
+
+`reference` が絶対ローカルファイルパスである場合、そのファイルを呼び出します。
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("$PWD/fruit.xa1")'
+
+  rm fruit.xa1
+}
+# Apple
+```
+
+#### URLによる `reference` の指定
+
+`reference` がURLである場合、そこからスクリプトを取得して呼び出します。
+
+`http://` または `https://` で始まる `reference` がURLとして解釈されます。
+
+#### 相対パスによる `reference` の指定
+
+`reference` が `.` または `..` の階層で始まる相対パスである場合、 `USE` 関数の呼び出しを行ったスクリプトのロケーションからの相対パスとして解決されます。
 
 ---
 
@@ -732,6 +890,23 @@ $ {
   rm fruit.xa1
 }
 # Apple
+# Apple
+```
+
+---
+
+以下は、 `main.xa1` ファイルを持つディレクトリを呼び出す例です。
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
 # Apple
 ```
 
@@ -765,57 +940,39 @@ $ {
 # Apple
 ```
 
-#### 絶対パスによる指定
+#### `INC` を起点とした相対パスによる `reference` の指定
 
-`reference` が絶対パスである場合、そのファイルを呼び出します。
-
-ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
-
-拡張子の `.xa1` は省略可能です。
+`reference` が `.` または `..` の階層で始まらない相対パスである場合、対応するモジュールを `INC` から検索します。
 
 ```shell
 $ {
-  echo ' "Apple" ' > fruit.xa1
+  mkdir -p modules/fruit
 
-  xa 'USE("$PWD/fruit.xa1")'
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  rm fruit.xa1
+  xa -q '
+    INC += "modules"
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
+  '
+
+  rm -r modules
 }
+# Apple
+# Apple
 # Apple
 ```
 
----
+#### Maven座標による `reference` の指定
 
-同一の絶対パスで表されるファイルを異なる指定方法で複数回ロードしても、最初に読み込まれた結果がキャッシュされ、再利用されます。
+`reference` がMaven座標である場合、対応するモジュールを `INC` から検索します。
 
-```shell
-$ {
-  echo 'IN' > input.xa1
-
-  xa '1 .. 3' | xa -q '
-    OUT << USE("./input.xa1") >> TO_ARRAY
-    OUT << USE("./input") >> TO_ARRAY
-    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
-    OUT << USE("$PWD/input") >> TO_ARRAY
-  '
-
-  rm input.xa1
-}
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-# [1;2;3]
-```
-
-#### Maven座標による指定
-
-`reference` がMaven座標形式である場合、対応するモジュールファイルを `INC` に登録されたディレクトリから検索します。
-
-Maven座標形式は `group:artifact:version` の形式で指定します。
+Maven座標は `group:artifact:version` の形式で指定します。
 
 拡張子には `.xa1` が自動的に付与されます。
 
-例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、各 `INC` パスに対して `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` を解決して検索します。
+例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、 `INC` の各エントリーに対して `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` というサブパスが検索されます。
 
 ```shell
 $ {
@@ -830,11 +987,13 @@ $ {
 # Apple
 ```
 
-### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
+### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
+
+`EXECL` は `EXEC` の別名であり、同一の動作を持ちます。
 
 `command` にはプロセスおよびその引数を1要素ずつ指定します。
 
@@ -955,3 +1114,22 @@ $ xa '
 ---
 
 これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+**この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXIT`: 指定した終了コードでプロセスを終了
+
+`EXIT(code: INT): NOTHING`
+
+指定した終了コードでXarpiteプロセスを終了します。
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

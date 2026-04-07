@@ -1117,7 +1117,7 @@ Useful for using or modifying values in the middle of method chains.
 ```shell
 $ xa '
   variable := ""
-  "apple"::ALSO ( s => 
+  "apple"::ALSO ( s =>
     variable = variable & s
   )
   variable
