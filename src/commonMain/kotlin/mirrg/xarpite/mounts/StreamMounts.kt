@@ -720,17 +720,17 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 return FluoriteFunction { arguments ->
                     fun usage(): Nothing = usage("<T> $name([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>")
                     val arguments2 = arguments.toMutableList()
-                    
+
                     if (arguments2.isEmpty()) usage()
                     val table = arguments2.removeLast()
-                    
+
                     val (entries, arguments3) = arguments2.partitionIfEntry()
-                    
+
                     val fillValue = entries.remove("fill") ?: arguments3.removeFirstOrNull()
-                    
+
                     if (entries.isNotEmpty()) usage()
                     if (arguments3.isNotEmpty()) usage()
-                    
+
                     val arrays = mutableListOf<List<FluoriteValue>>()
                     table.toFlow().collect { item ->
                         if (item is FluoriteArray) {

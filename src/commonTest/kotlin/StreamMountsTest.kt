@@ -5,6 +5,7 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
@@ -170,7 +171,7 @@ class StreamMountsTest {
         assertFails { eval("TRANSPOSE([1, 2, 3], [4, 5])").stream() } // 長さが異なる場合、エラーになる
         assertEquals("[1;4],[2;5],[3;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])").stream()) // fill を指定すると、短い配列をパディングする
         assertEquals("[1;4;7],[2;5;0],[3;0;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5], [7])").stream()) // 複数の配列が短い場合でもパディングする
-        assertEquals("[name;Alice],[age;30],[city;Tokyo]", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values)").stream()) // keys と values から エントリー配列を構成できる
+        assertEquals("{name:Alice;age:30;city:Tokyo}", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values) >> TO_OBJECT").obj) // keys と values からオブジェクトを構成できる
     }
 
     @Test

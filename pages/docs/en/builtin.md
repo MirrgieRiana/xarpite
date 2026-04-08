@@ -768,7 +768,12 @@ Takes a stream of arrays and returns a stream of arrays with rows and columns sw
 `ZIP` is an alias of `TRANSPOSE` and has the same behavior.
 
 ```shell
-$ xa 'TRANSPOSE([1, 2, 3], [4, 5, 6])'
+$ xa '
+  TRANSPOSE(
+    [1;2;3],
+    [4;5;6],
+  )
+'
 # [1;4]
 # [2;5]
 # [3;6]
@@ -776,12 +781,16 @@ $ xa 'TRANSPOSE([1, 2, 3], [4, 5, 6])'
 
 ---
 
-With the `fill` parameter, shorter arrays are padded with the specified value.
+With the `fill` parameter, shorter arrays are padded with `fill`.
 
-Without the `fill` parameter, an error occurs if arrays have different lengths.
+Without the `fill` parameter, an error is thrown if arrays have different lengths.
 
 ```shell
-$ xa 'TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])'
+$ xa '
+  [1;2;3],
+  [4;5],
+  >> TRANSPOSE[fill: 0]
+'
 # [1;4]
 # [2;5]
 # [3;0]
@@ -789,17 +798,15 @@ $ xa 'TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])'
 
 ---
 
-The following example creates an array of entries from two arrays called `keys` and `values`.
+The following example constructs an object from two arrays called `keys` and `values`.
 
 ```shell
 $ xa '
   keys := ["name", "age", "city"]
   values := ["Alice", 30, "Tokyo"]
-  ZIP(keys, values)
+  ZIP(keys, values) >> TO_OBJECT
 '
-# [name;Alice]
-# [age;30]
-# [city;Tokyo]
+# {name:Alice;age:30;city:Tokyo}
 ```
 
 ## `GROUP` Group Stream by Key
