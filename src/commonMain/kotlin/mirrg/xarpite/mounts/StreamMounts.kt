@@ -734,30 +734,27 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     val arrays = mutableListOf<List<FluoriteValue>>()
                     table.toFlow().collect { item ->
                         if (item is FluoriteArray) {
-                            arrays.add(item.values.toList())
+                            arrays += item.values.toList()
                         } else {
-                            throw FluoriteException("Expected array, got ${item}".toFluoriteString())
+                            throw FluoriteException("Expected array, got $item".toFluoriteString())
                         }
                     }
 
-                    if (arrays.isEmpty()) {
-                        return@FluoriteFunction FluoriteStream.EMPTY
+                    if (arrays.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+
+                    if (fillValue == null) {
+                        val firstLength = arrays.first().size
+                        val mismatchIndex = arrays.indexOfFirst { it.size != firstLength }
+                        if (mismatchIndex != -1) {
+                            throw FluoriteException("Arrays have different lengths: table[0]=$firstLength, table[$mismatchIndex]=${arrays[mismatchIndex].size}".toFluoriteString())
+                        }
                     }
 
                     val maxLength = arrays.maxOf { it.size }
-                    if (fillValue == null) {
-                        val minLength = arrays.minOf { it.size }
-                        if (minLength != maxLength) {
-                            throw FluoriteException("Arrays have different lengths: min=$minLength, max=$maxLength".toFluoriteString())
-                        }
-                    }
 
                     FluoriteStream {
-                        for (i in 0 until maxLength) {
-                            val column = arrays.map { array ->
-                                if (i < array.size) array[i] else fillValue!!
-                            }
-                            emit(column.toFluoriteArray())
+                        repeat(maxLength) { i ->
+                            emit(arrays.map { it.getOrNull(i) ?: fillValue!! }.toFluoriteArray())
                         }
                     }
                 }
