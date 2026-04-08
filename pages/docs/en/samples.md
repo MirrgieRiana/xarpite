@@ -116,7 +116,7 @@ $ xa '
          v
      ]
    mergeSort := list -> list.$# < 2 ? list : :
-     center := FLOOR(list.$# / 2)
+     center := list.$# DIV 2
      merge(
        mergeSort(list[0 ~ center])
        mergeSort(list[center ~ list.$#])
