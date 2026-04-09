@@ -731,30 +731,29 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (entries.isNotEmpty()) usage()
                     if (arguments3.isNotEmpty()) usage()
 
-                    val arrays = mutableListOf<List<FluoriteValue>>()
-                    table.toFlow().collect { item ->
-                        if (item is FluoriteArray) {
-                            arrays += item.values.toList()
-                        } else {
-                            throw FluoriteException("Expected array, got $item".toFluoriteString())
-                        }
-                    }
-
-                    if (arrays.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
-
-                    if (fillValue == null) {
-                        val firstLength = arrays.first().size
-                        val mismatchIndex = arrays.indexOfFirst { it.size != firstLength }
-                        if (mismatchIndex != -1) {
-                            throw FluoriteException("Arrays have different lengths: table[0]=$firstLength, table[$mismatchIndex]=${arrays[mismatchIndex].size}".toFluoriteString())
-                        }
-                    }
-
-                    val maxLength = arrays.maxOf { it.size }
-
                     FluoriteStream {
-                        repeat(maxLength) { i ->
-                            emit(arrays.map { it.getOrNull(i) ?: fillValue!! }.toFluoriteArray())
+                        val arrays = mutableListOf<List<FluoriteValue>>()
+                        table.toFlow().collect { item ->
+                            if (item is FluoriteArray) {
+                                arrays += item.values.toList()
+                            } else {
+                                throw FluoriteException("Expected array, got $item".toFluoriteString())
+                            }
+                        }
+
+                        if (arrays.isNotEmpty()) {
+                            if (fillValue == null) {
+                                val firstLength = arrays.first().size
+                                val mismatchIndex = arrays.indexOfFirst { it.size != firstLength }
+                                if (mismatchIndex != -1) {
+                                    throw FluoriteException("Arrays have different lengths: table[0]=$firstLength, table[$mismatchIndex]=${arrays[mismatchIndex].size}".toFluoriteString())
+                                }
+                            }
+
+                            val maxLength = arrays.maxOf { it.size }
+                            repeat(maxLength) { i ->
+                                emit(arrays.map { it.getOrNull(i) ?: fillValue!! }.toFluoriteArray())
+                            }
                         }
                     }
                 }
