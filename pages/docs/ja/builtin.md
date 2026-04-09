@@ -619,6 +619,56 @@ $ xa '"a", "b", "c" >> INDEXED'
 # [2;c]
 ```
 
+## `TRANSPOSE` / `ZIP` 配列のストリームを転置
+
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
+
+配列のストリームを受け取り、行と列を入れ替えた配列のストリームを返します。
+
+`ZIP` は `TRANSPOSE` の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa '
+  TRANSPOSE(
+    [1;2;3],
+    [4;5;6],
+  )
+'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+`fill` パラメータを指定した場合、短い配列を `fill` でパディングします。
+
+`fill` パラメータを指定しない場合、配列の長さが異なるとエラーをスローします。
+
+```shell
+$ xa '
+  [1;2;3],
+  [4;5],
+  >> TRANSPOSE[fill: 0]
+'
+# [1;4]
+# [2;5]
+# [3;0]
+```
+
+---
+
+以下の例では、 `keys` と `values` という2つの配列からオブジェクトを構成します。
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys, values) >> TO_OBJECT
+'
+# {name:Alice;age:30;city:Tokyo}
+```
+
 ## `GROUP` ストリームをキーでグループ化
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`

@@ -715,6 +715,55 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
         },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("<T> $name([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>")
+                    val arguments2 = arguments.toMutableList()
+
+                    if (arguments2.isEmpty()) usage()
+                    val table = arguments2.removeLast()
+
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                    val fillValue = entries.remove("fill") ?: arguments3.removeFirstOrNull()
+
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+
+                    val arrays = mutableListOf<List<FluoriteValue>>()
+                    table.toFlow().collect { item ->
+                        if (item is FluoriteArray) {
+                            arrays += item.values.toList()
+                        } else {
+                            throw FluoriteException("Expected array, got $item".toFluoriteString())
+                        }
+                    }
+
+                    if (arrays.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+
+                    if (fillValue == null) {
+                        val firstLength = arrays.first().size
+                        val mismatchIndex = arrays.indexOfFirst { it.size != firstLength }
+                        if (mismatchIndex != -1) {
+                            throw FluoriteException("Arrays have different lengths: table[0]=$firstLength, table[$mismatchIndex]=${arrays[mismatchIndex].size}".toFluoriteString())
+                        }
+                    }
+
+                    val maxLength = arrays.maxOf { it.size }
+
+                    FluoriteStream {
+                        repeat(maxLength) { i ->
+                            emit(arrays.map { it.getOrNull(i) ?: fillValue!! }.toFluoriteArray())
+                        }
+                    }
+                }
+            }
+            arrayOf(
+                "TRANSPOSE" define create("TRANSPOSE"),
+                "ZIP" define create("ZIP"),
+            )
+        },
         "GROUP" define FluoriteFunction { arguments ->
             fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
             val arguments2 = arguments.toMutableList()

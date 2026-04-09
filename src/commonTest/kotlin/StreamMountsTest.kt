@@ -5,6 +5,7 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
@@ -157,6 +158,20 @@ class StreamMountsTest {
         assertEquals("[0;1]", eval("1 >> INDEXED").stream()) // 非ストリームの場合、インデックス0の1要素ストリームになる
         assertEquals("", eval(", >> INDEXED").stream()) // 空ストリームの場合、空ストリームになる
         assertEquals("[0;a],[1;b],[2;c]", eval("\"a\", \"b\", \"c\" | i, v => [i; v]").stream()) // パイプ演算子の i, v => と同様の効果を持つ
+    }
+
+    @Test
+    fun transpose() = runTest {
+        assertEquals("[1;4],[2;5],[3;6]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6])").stream()) // TRANSPOSE で配列のストリームを転置する
+        assertEquals("[1;4],[2;5],[3;6]", eval("ZIP([1, 2, 3], [4, 5, 6])").stream()) // ZIP は TRANSPOSE の別名
+        assertEquals("[a;x],[b;y],[c;z]", eval("TRANSPOSE([\"a\", \"b\", \"c\"], [\"x\", \"y\", \"z\"])").stream()) // 文字列でも動作する
+        assertEquals("[1;4;7],[2;5;8],[3;6;9]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6], [7, 8, 9])").stream()) // 3つ以上の配列でも動作する
+        assertEquals("[1;4]", eval("TRANSPOSE([1], [4])").stream()) // 要素が1つでも動作する
+        assertEquals("", eval("TRANSPOSE(,)").stream()) // 空ストリームの場合、空ストリームになる
+        assertFails { eval("TRANSPOSE([1, 2, 3], [4, 5])").stream() } // 長さが異なる場合、エラーになる
+        assertEquals("[1;4],[2;5],[3;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])").stream()) // fill を指定すると、短い配列をパディングする
+        assertEquals("[1;4;7],[2;5;0],[3;0;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5], [7])").stream()) // 複数の配列が短い場合でもパディングする
+        assertEquals("{name:Alice;age:30;city:Tokyo}", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values) >> TO_OBJECT").obj) // keys と values からオブジェクトを構成できる
     }
 
     @Test
