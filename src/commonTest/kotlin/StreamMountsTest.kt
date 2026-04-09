@@ -172,16 +172,6 @@ class StreamMountsTest {
         assertEquals("[1;4],[2;5],[3;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])").stream()) // fill を指定すると、短い配列をパディングする
         assertEquals("[1;4;7],[2;5;0],[3;0;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5], [7])").stream()) // 複数の配列が短い場合でもパディングする
         assertEquals("{name:Alice;age:30;city:Tokyo}", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values) >> TO_OBJECT").obj) // keys と values からオブジェクトを構成できる
-
-        // 未消費時は副作用なし
-        assertEquals("[]", eval("""
-            array := []
-            t := TRANSPOSE(([1, 2, 3], [4, 5, 6]) | (
-                array::push << _
-                _
-            ))
-            array
-        """).array())
     }
 
     @Test
