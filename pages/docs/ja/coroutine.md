@@ -165,6 +165,34 @@ $ xa '
 # ERROR!!
 ```
 
+### `awaitException`: `PROMISE` の完了を待機し、例外値を取得する
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+`PROMISE` の内容が完了するまで待機します。
+
+`PROMISE` が失敗として完了した場合、その例外値を返します。
+
+`PROMISE` が正常に完了した場合、 `NULL` を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
+```
+
 ### `isCompleted`: `PROMISE` の完了状態を調べる
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`
