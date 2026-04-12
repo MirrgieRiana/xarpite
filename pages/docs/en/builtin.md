@@ -283,33 +283,20 @@ $ xa '1 .. 3 | _ * 10 >> JOIN["|"]'
 # 10|20|30
 ```
 
-## `INTERCALATE` Concatenate Stream of Arrays into Stream
+## `INTERCALATE` Concatenate Stream of Arrays into Array
 
-`<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): STREAM<T>`
+`<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): ARRAY<T>`
 
-Returns a stream with each array of the second argument stream concatenated with the first argument separator array.
+Returns an array with each array of the second argument stream concatenated with the first argument separator array.
 
 The separator array is inserted between arrays, but not at the beginning or end.
 
-The result is output sequentially as a stream and is never collected into an array.
-
 ```shell
 $ xa 'INTERCALATE([0]; [1; 2], [3; 4], [5; 6])'
-# 1
-# 2
-# 0
-# 3
-# 4
-# 0
-# 5
-# 6
+# [1;2;0;3;4;0;5;6]
 
 $ xa 'INTERCALATE(["|"]; ["a"; "b"], ["c"; "d"])'
-# a
-# b
-# |
-# c
-# d
+# [a;b;|;c;d]
 ```
 
 ---
@@ -318,10 +305,7 @@ When the separator array is empty, it simply concatenates the arrays.
 
 ```shell
 $ xa 'INTERCALATE([]; [1; 2], [3; 4])'
-# 1
-# 2
-# 3
-# 4
+# [1;2;3;4]
 ```
 
 ---
@@ -330,19 +314,12 @@ When used with partial application, it becomes easier to incorporate into pipe c
 
 ```shell
 $ xa '[1; 2], [3; 4], [5; 6] >> INTERCALATE[[0]]'
-# 1
-# 2
-# 0
-# 3
-# 4
-# 0
-# 5
-# 6
+# [1;2;0;3;4;0;5;6]
 ```
 
 ---
 
-`INTERCALATE` is the array version of `JOIN`, handling arrays instead of strings. The result is returned sequentially as a stream.
+`INTERCALATE` is the array version of `JOIN`, handling arrays instead of strings.
 
 ## `SPLIT` Split String into Stream
 
