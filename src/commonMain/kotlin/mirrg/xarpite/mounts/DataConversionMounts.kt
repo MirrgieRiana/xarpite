@@ -156,6 +156,20 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             buffer.readUtf8().toFluoriteString()
         },
         *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction { arguments ->
+                    fun usage(): Nothing = usage("$name(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    ("'" + string.replace("'", "'\\''") + "'").toFluoriteString()
+                }
+            }
+            arrayOf(
+                "SHELL_ESCAPE" define create("SHELL_ESCAPE"),
+                "BASH_ESCAPE" define create("BASH_ESCAPE"),
+            )
+        },
+        *run {
             suspend fun parseIndent(indent: FluoriteValue): String {
                 return if (indent is FluoriteNumber) {
                     val number = indent.roundToInt()
