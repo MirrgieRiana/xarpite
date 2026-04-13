@@ -262,6 +262,24 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 # こんにちは
 ```
 
+## `SHELL_ESCAPE` / `BASH_ESCAPE` シェル用エスケープ
+
+`SHELL_ESCAPE(string: STRING): STRING`
+
+`string` をシェルに安全に渡せる形式にエスケープします。
+
+具体的には `'` を `'\''` に置換し、全体をシングルクォートで囲みます。
+
+`BASH_ESCAPE` は `SHELL_ESCAPE` の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa 'SHELL_ESCAPE("Hello, World!")'
+# 'Hello, World!'
+
+$ xa "SHELL_ESCAPE(%>Don't ask<%)"
+# 'Don'\''t ask'
+```
+
 ## `JSON` 値をJSON文字列に変換
 
 `JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`

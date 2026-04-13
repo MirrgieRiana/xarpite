@@ -308,5 +308,19 @@ class DataConversionTest {
         assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D """).string)
     }
 
+    @Test
+    fun shellEscape() = runTest {
+        // SHELL_ESCAPE で文字列をシェル用にエスケープ
+        assertEquals("'Hello'", eval(""" "Hello" >> SHELL_ESCAPE """).string) // 通常の文字列はシングルクォートで囲まれる
+        assertEquals("'Hello World'", eval(""" "Hello World" >> SHELL_ESCAPE """).string) // スペースを含む文字列
+        assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> SHELL_ESCAPE """).string) // シングルクォートを含む文字列
+        assertEquals("''\\'''", eval(""" "'" >> SHELL_ESCAPE """).string) // シングルクォートのみ
+        assertEquals("''", eval(""" "" >> SHELL_ESCAPE """).string) // 空文字列
+        assertEquals("'abc'\\''def'\\''ghi'", eval(""" "abc'def'ghi" >> SHELL_ESCAPE """).string) // 複数のシングルクォート
+
+        // BASH_ESCAPE は SHELL_ESCAPE のエイリアス
+        assertEquals("'Hello'", eval(""" "Hello" >> BASH_ESCAPE """).string) // BASH_ESCAPEでも同じ結果
+        assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> BASH_ESCAPE """).string) // BASH_ESCAPEでもシングルクォートがエスケープされる
+    }
 
 }
