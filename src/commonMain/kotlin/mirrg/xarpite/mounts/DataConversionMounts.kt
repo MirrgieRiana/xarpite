@@ -161,7 +161,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     fun usage(): Nothing = usage("$name(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
-                    ("'" + string.replace("'", "'\\''") + "'").toFluoriteString()
+                    "'${string.replace("'", """'\''""")}'".toFluoriteString()
                 }
             }
             arrayOf(
