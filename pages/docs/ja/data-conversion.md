@@ -266,26 +266,19 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 `SHELL_ESCAPE(string: STRING): STRING`
 
-`string` をシングルクォートで囲み、シェルに安全に渡せる形式にエスケープします。
+`string` をシェルに安全に渡せる形式にエスケープします。
+
+具体的には `'` を `'\''` に置換し、全体をシングルクォートで囲みます。
 
 `BASH_ESCAPE` は `SHELL_ESCAPE` の別名であり、同一の動作を持ちます。
 
 ```shell
-$ xa 'SHELL_ESCAPE("Hello")'
-# 'Hello'
+$ xa 'SHELL_ESCAPE("Hello, World!")'
+# 'Hello, World!'
 
-$ xa '"Don'\''t ask" >> SHELL_ESCAPE'
+$ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
-
-$ xa 'BASH_ESCAPE("Hello World")'
-# 'Hello World'
 ```
-
----
-
-この関数は文字列中のシングルクォートを `'\''` に置換し、全体をシングルクォートで囲みます。
-
-これにより、特殊文字を含む文字列を安全にシェルコマンドの引数として渡すことができます。
 
 ## `JSON` 値をJSON文字列に変換
 
