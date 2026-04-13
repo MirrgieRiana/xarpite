@@ -44,8 +44,8 @@ initMetadataForClass(FileSource, 'FileSource');
 initMetadataForObject(NodeJsFileSystem, 'NodeJsFileSystem', VOID, FileSystem);
 //endregion
 function FileSink(fd) {
-  this.dbc_1 = fd;
-  this.ebc_1 = false;
+  this.ybh_1 = fd;
+  this.zbh_1 = false;
 }
 protoOf(FileSink).f1m = function (source, byteCount) {
   // Inline function 'kotlin.require' call
@@ -59,26 +59,26 @@ protoOf(FileSink).f1m = function (source, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message_0));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.ebc_1) {
+  if (!!this.zbh_1) {
     var message_1 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_1));
   }
   var data = source.u1n(byteCount);
-  var writtenByteCount = writeSync(this.dbc_1, data);
+  var writtenByteCount = writeSync(this.ybh_1, data);
   if (!equalsLong(numberToLong(writtenByteCount), byteCount)) {
     throw IOException_init_$Create$('expected ' + byteCount.toString() + ' but was ' + writtenByteCount);
   }
 };
 protoOf(FileSink).g4 = function () {
-  if (this.ebc_1)
+  if (this.zbh_1)
     return Unit_instance;
-  this.ebc_1 = true;
-  closeSync(this.dbc_1);
+  this.zbh_1 = true;
+  closeSync(this.ybh_1);
 };
 function FileSource(fd) {
-  this.fbc_1 = fd;
-  this.gbc_1 = new Long(0, 0);
-  this.hbc_1 = false;
+  this.abi_1 = fd;
+  this.bbi_1 = new Long(0, 0);
+  this.cbi_1 = false;
 }
 protoOf(FileSource).j1o = function (sink, byteCount) {
   // Inline function 'kotlin.require' call
@@ -87,29 +87,29 @@ protoOf(FileSource).j1o = function (sink, byteCount) {
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
   // Inline function 'kotlin.check' call
-  if (!!this.hbc_1) {
+  if (!!this.cbi_1) {
     var message_0 = 'closed';
     throw IllegalStateException_init_$Create$(toString(message_0));
   }
   var data = new Int8Array(convertToInt(byteCount));
-  var tmp0_fd = this.fbc_1;
+  var tmp0_fd = this.abi_1;
   var tmp1_length = toNumber(byteCount);
-  var tmp2_position = toNumber(this.gbc_1);
+  var tmp2_position = toNumber(this.bbi_1);
   var readByteCount = numberToInt(readSync(tmp0_fd, data, 0.0, tmp1_length, tmp2_position));
   if (readByteCount === 0)
     return new Long(-1, -1);
   var tmp = this;
   // Inline function 'kotlin.Long.plus' call
-  var this_0 = this.gbc_1;
-  tmp.gbc_1 = add(this_0, fromInt(readByteCount));
+  var this_0 = this.bbi_1;
+  tmp.bbi_1 = add(this_0, fromInt(readByteCount));
   sink.p1l(data, 0, readByteCount);
   return fromInt(readByteCount);
 };
 protoOf(FileSource).g4 = function () {
-  if (this.hbc_1)
+  if (this.cbi_1)
     return Unit_instance;
-  this.hbc_1 = true;
-  closeSync(this.fbc_1);
+  this.cbi_1 = true;
+  closeSync(this.abi_1);
 };
 function _get_errorCode__501hwc($this, _this__u8e3s4) {
   // Inline function 'kotlin.js.asDynamic' call
@@ -170,10 +170,10 @@ function toIOException($this, _this__u8e3s4) {
 function NodeJsFileSystem() {
   NodeJsFileSystem_instance = this;
   FileSystem.call(this);
-  this.ibc_1 = 61440;
-  this.jbc_1 = 32768;
-  this.kbc_1 = 16384;
-  this.lbc_1 = 40960;
+  this.dbi_1 = 61440;
+  this.ebi_1 = 32768;
+  this.fbi_1 = 16384;
+  this.gbi_1 = 40960;
 }
 protoOf(NodeJsFileSystem).q1l = function (path) {
   var pathString = path.toString();
@@ -193,7 +193,7 @@ protoOf(NodeJsFileSystem).q1l = function (path) {
   }
   var stat = tmp;
   var symlinkTarget = null;
-  if ((numberToInt(stat.mode) & this.ibc_1) === this.lbc_1) {
+  if ((numberToInt(stat.mode) & this.dbi_1) === this.gbi_1) {
     try {
       symlinkTarget = Companion_getInstance().r1m(readlinkSync(pathString));
     } catch ($p) {
@@ -205,7 +205,7 @@ protoOf(NodeJsFileSystem).q1l = function (path) {
       }
     }
   }
-  return new FileMetadata((numberToInt(stat.mode) & this.ibc_1) === this.jbc_1, (numberToInt(stat.mode) & this.ibc_1) === this.kbc_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
+  return new FileMetadata((numberToInt(stat.mode) & this.dbi_1) === this.ebi_1, (numberToInt(stat.mode) & this.dbi_1) === this.fbi_1, symlinkTarget, numberToLong(stat.size), numberToLong(stat.birthtimeMs), numberToLong(stat.mtimeMs), numberToLong(stat.atimeMs));
 };
 protoOf(NodeJsFileSystem).t1m = function (dir) {
   return ensureNotNull(list(this, dir, true));

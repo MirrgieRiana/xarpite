@@ -262,6 +262,24 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 # こんにちは
 ```
 
+## `SHELL_ESCAPE` / `BASH_ESCAPE` Shell Escaping
+
+`SHELL_ESCAPE(string: STRING): STRING`
+
+Escapes `string` into a form that can be safely passed to a shell.
+
+Specifically, it replaces `'` with `'\''` and encloses the entire string in single quotes.
+
+`BASH_ESCAPE` is an alias of `SHELL_ESCAPE` and has the same behavior.
+
+```shell
+$ xa 'SHELL_ESCAPE("Hello, World!")'
+# 'Hello, World!'
+
+$ xa "SHELL_ESCAPE(%>Don't ask<%)"
+# 'Don'\''t ask'
+```
+
 ## `JSON` Convert Value to JSON String
 
 `JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`

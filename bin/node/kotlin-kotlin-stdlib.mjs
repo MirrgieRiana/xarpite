@@ -37,11 +37,6 @@ if (typeof Array.prototype.fill === 'undefined') {
     Object.defineProperty(TypedArray.prototype, 'fill', {value: Array.prototype.fill});
   }
 });
-if (typeof Math.log10 === 'undefined') {
-  Math.log10 = function (x) {
-    return Math.log(x) * Math.LOG10E;
-  };
-}
 if (typeof Math.clz32 === 'undefined') {
   Math.clz32 = function (log, LN2) {
     return function (x) {
@@ -53,11 +48,10 @@ if (typeof Math.clz32 === 'undefined') {
     };
   }(Math.log, Math.LN2);
 }
-if (typeof String.prototype.startsWith === 'undefined') {
-  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
-    position = position || 0;
-    return this.lastIndexOf(searchString, position) === position;
-  }});
+if (typeof Math.log10 === 'undefined') {
+  Math.log10 = function (x) {
+    return Math.log(x) * Math.LOG10E;
+  };
 }
 if (typeof String.prototype.endsWith === 'undefined') {
   Object.defineProperty(String.prototype, 'endsWith', {value: function (searchString, position) {
@@ -68,6 +62,12 @@ if (typeof String.prototype.endsWith === 'undefined') {
     position -= searchString.length;
     var lastIndex = subjectString.indexOf(searchString, position);
     return lastIndex !== -1 && lastIndex === position;
+  }});
+}
+if (typeof String.prototype.startsWith === 'undefined') {
+  Object.defineProperty(String.prototype, 'startsWith', {value: function (searchString, position) {
+    position = position || 0;
+    return this.lastIndexOf(searchString, position) === position;
   }});
 }
 //endregion
@@ -1485,9 +1485,6 @@ function single_3(_this__u8e3s4) {
   }
   return tmp;
 }
-function getOrNull_1(_this__u8e3s4, index) {
-  return (0 <= index ? index <= (charSequenceLength(_this__u8e3s4) - 1 | 0) : false) ? charSequenceGet(_this__u8e3s4, index) : null;
-}
 function drop_1(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
   if (!(n >= 0)) {
@@ -1506,6 +1503,9 @@ function dropLast_1(_this__u8e3s4, n) {
     throw IllegalArgumentException_init_$Create$_0(toString_1(message));
   }
   return take_2(_this__u8e3s4, coerceAtLeast(_this__u8e3s4.length - n | 0, 0));
+}
+function getOrNull_1(_this__u8e3s4, index) {
+  return (0 <= index ? index <= (charSequenceLength(_this__u8e3s4) - 1 | 0) : false) ? charSequenceGet(_this__u8e3s4, index) : null;
 }
 function takeLast_0(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
@@ -7501,6 +7501,28 @@ function replace_0(_this__u8e3s4, oldValue, newValue, ignoreCase) {
   // Inline function 'kotlin.js.asDynamic' call
   return _this__u8e3s4.replace(tmp2, replacement);
 }
+function startsWith_0(_this__u8e3s4, prefix, startIndex, ignoreCase) {
+  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
+  if (!ignoreCase) {
+    // Inline function 'kotlin.text.nativeStartsWith' call
+    // Inline function 'kotlin.js.asDynamic' call
+    return _this__u8e3s4.startsWith(prefix, startIndex);
+  } else
+    return regionMatches(_this__u8e3s4, startIndex, prefix, 0, prefix.length, ignoreCase);
+}
+function endsWith(_this__u8e3s4, suffix, ignoreCase) {
+  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
+  if (!ignoreCase) {
+    // Inline function 'kotlin.text.nativeEndsWith' call
+    // Inline function 'kotlin.js.asDynamic' call
+    return _this__u8e3s4.endsWith(suffix);
+  } else
+    return regionMatches(_this__u8e3s4, _this__u8e3s4.length - suffix.length | 0, suffix, 0, suffix.length, ignoreCase);
+}
+function regionMatches(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase) {
+  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
+  return regionMatchesImpl(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase);
+}
 function repeat(_this__u8e3s4, n) {
   // Inline function 'kotlin.require' call
   if (!(n >= 0)) {
@@ -7537,28 +7559,6 @@ function repeat(_this__u8e3s4, n) {
       return result;
   }
   return tmp;
-}
-function startsWith_0(_this__u8e3s4, prefix, startIndex, ignoreCase) {
-  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
-  if (!ignoreCase) {
-    // Inline function 'kotlin.text.nativeStartsWith' call
-    // Inline function 'kotlin.js.asDynamic' call
-    return _this__u8e3s4.startsWith(prefix, startIndex);
-  } else
-    return regionMatches(_this__u8e3s4, startIndex, prefix, 0, prefix.length, ignoreCase);
-}
-function endsWith(_this__u8e3s4, suffix, ignoreCase) {
-  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
-  if (!ignoreCase) {
-    // Inline function 'kotlin.text.nativeEndsWith' call
-    // Inline function 'kotlin.js.asDynamic' call
-    return _this__u8e3s4.endsWith(suffix);
-  } else
-    return regionMatches(_this__u8e3s4, _this__u8e3s4.length - suffix.length | 0, suffix, 0, suffix.length, ignoreCase);
-}
-function regionMatches(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase) {
-  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
-  return regionMatchesImpl(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase);
 }
 function get_REPLACEMENT_BYTE_SEQUENCE() {
   _init_properties_utf8Encoding_kt__9thjs4();
