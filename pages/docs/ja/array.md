@@ -492,3 +492,23 @@ $ xa -q '
 # [apple;cherry;banana]
 # [cherry]
 ```
+
+# 配列系関数
+
+## `INTERCALATE`: 配列のストリームを配列に連結
+
+`<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): ARRAY<T>`
+
+`arrays` の各配列の間に `separator` を結合した配列を返します。
+
+```shell
+$ xa 'INTERCALATE(["<", ">"]; ["a", "b"], ["c", "d"])'
+# [a;b;<;>;c;d]
+
+$ xa '[1, 2], [3, 4], [5, 6] >> INTERCALATE[[0]]'
+# [1;2;0;3;4;0;5;6]
+```
+
+---
+
+セパレータ配列が空の場合、単純に配列を連結します。
