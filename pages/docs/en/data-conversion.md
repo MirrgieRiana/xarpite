@@ -266,26 +266,19 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 
 `SHELL_ESCAPE(string: STRING): STRING`
 
-Escapes `string` by enclosing it in single quotes so that it can be safely passed to a shell.
+Escapes `string` into a form that can be safely passed to a shell.
+
+Specifically, it replaces `'` with `'\''` and encloses the entire string in single quotes.
 
 `BASH_ESCAPE` is an alias of `SHELL_ESCAPE` and has the same behavior.
 
 ```shell
-$ xa 'SHELL_ESCAPE("Hello")'
-# 'Hello'
+$ xa 'SHELL_ESCAPE("Hello, World!")'
+# 'Hello, World!'
 
-$ xa '"Don'\''t ask" >> SHELL_ESCAPE'
+$ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
-
-$ xa 'BASH_ESCAPE("Hello World")'
-# 'Hello World'
 ```
-
----
-
-This function replaces single quotes in the string with `'\''` and encloses the entire string in single quotes.
-
-This allows strings containing special characters to be safely passed as shell command arguments.
 
 ## `JSON` Convert Value to JSON String
 
