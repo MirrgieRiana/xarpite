@@ -21,23 +21,23 @@ fun createArrayMounts(): List<Map<String, Mount>> {
             if (separator !is FluoriteArray) throw FluoriteException("First argument must be an array".toFluoriteString())
             val arrays = arguments[1]
 
-            val result = mutableListOf<FluoriteValue>()
-            var isFirst = true
             if (arrays is FluoriteStream) {
+                val result = mutableListOf<FluoriteValue>()
+                var isFirst = true
                 arrays.collect { array ->
                     if (array !is FluoriteArray) throw FluoriteException("Stream elements must be arrays".toFluoriteString())
                     if (isFirst) {
                         isFirst = false
                     } else {
-                        result.addAll(separator.values)
+                        result += separator.values
                     }
-                    result.addAll(array.values)
+                    result += array.values
                 }
+                result.asFluoriteArray()
             } else {
                 if (arrays !is FluoriteArray) throw FluoriteException("Second argument must be a stream of arrays or an array".toFluoriteString())
-                result.addAll(arrays.values)
+                arrays.values.toMutableList().asFluoriteArray()
             }
-            result.asFluoriteArray()
         },
     ).let { listOf(it) }
 }
