@@ -664,6 +664,18 @@ class XarpiteTest {
         // CONTAINSメソッドで上書きできる
         assertEquals(true, eval("'abc' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
         assertEquals(false, eval("'123' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
+
+        // ::CONTAINS拡張関数で含有チェックができる
+        assertEquals(true, eval("'---abc---'::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("'---abc---'::CONTAINS('123')").boolean)
+        assertEquals(true, eval("[10, 20, 30]::CONTAINS(30)").boolean)
+        assertEquals(false, eval("[10, 20, 30]::CONTAINS(40)").boolean)
+        assertEquals(true, eval("{a: 10; b: 20}::CONTAINS('a')").boolean)
+        assertEquals(false, eval("{a: 10; b: 20}::CONTAINS('c')").boolean)
+
+        // ::CONTAINS拡張関数はカスタム_@_メソッドでも動作する
+        assertEquals(true, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('123')").boolean)
     }
 
     @Test
