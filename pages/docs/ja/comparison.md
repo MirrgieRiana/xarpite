@@ -158,25 +158,6 @@ $ xa -q '
 # apple is in basket
 ```
 
-## CONTAINS拡張関数
-
-`VALUE::CONTAINS(content: VALUE): BOOLEAN`
-
-`CONTAINS` は、含有演算子 `@` を拡張関数の形式で呼び出すためのシュガーです。
-
-`value::CONTAINS(content)` は `content @ value` と等価です。
-
-```shell
-$ xa '"abcde"::CONTAINS("bcd")'
-# TRUE
-
-$ xa '[1, 2, 3]::CONTAINS(2)'
-# TRUE
-
-$ xa '{a: 1; b: 2; c: 3}::CONTAINS("a")'
-# TRUE
-```
-
 # instanceOf演算子
 
 instanceOf演算子 `left ?= right` は、 `left` が `right` のインスタンスであるか否かを返します。
@@ -294,4 +275,19 @@ $ xa '
 # cherry
 # durian
 # elderberry
+```
+
+# 比較系関数
+
+## `::CONTAINS`: 比較を行う拡張関数
+
+`VALUE::CONTAINS(content: VALUE): BOOLEAN`
+
+`::CONTAINS` 拡張関数は含有演算子 `@` を拡張関数の形式で呼び出すためのシンタックスシュガーです。
+
+`container::CONTAINS(content)` は `content @ container` と等価です。
+
+```shell
+$ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
 ```
