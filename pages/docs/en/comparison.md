@@ -158,25 +158,6 @@ $ xa -q '
 # apple is in basket
 ```
 
-## CONTAINS Extension Function
-
-`VALUE::CONTAINS(content: VALUE): BOOLEAN`
-
-`CONTAINS` is a sugar for calling the containment operator `@` in extension function form.
-
-`value::CONTAINS(content)` is equivalent to `content @ value`.
-
-```shell
-$ xa '"abcde"::CONTAINS("bcd")'
-# TRUE
-
-$ xa '[1, 2, 3]::CONTAINS(2)'
-# TRUE
-
-$ xa '{a: 1; b: 2; c: 3}::CONTAINS("a")'
-# TRUE
-```
-
 # InstanceOf Operator
 
 The instanceOf operator `left ?= right` returns whether `left` is an instance of `right`.
@@ -294,4 +275,19 @@ $ xa '
 # cherry
 # durian
 # elderberry
+```
+
+# Comparison Functions
+
+## `::CONTAINS`: Extension Function for Containment
+
+`VALUE::CONTAINS(content: VALUE): BOOLEAN`
+
+The `::CONTAINS` extension function is syntactic sugar for calling the containment operator `@` in extension function form.
+
+`container::CONTAINS(content)` is equivalent to `content @ container`.
+
+```shell
+$ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
 ```
