@@ -277,7 +277,7 @@ $ xa '
 # elderberry
 ```
 
-# Comparison Functions
+# Containment Functions
 
 ## `::CONTAINS`: Extension Function for Containment
 

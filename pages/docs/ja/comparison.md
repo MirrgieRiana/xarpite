@@ -277,9 +277,9 @@ $ xa '
 # elderberry
 ```
 
-# 比較系関数
+# 含有系関数
 
-## `::CONTAINS`: 比較を行う拡張関数
+## `::CONTAINS`: 含有を行う拡張関数
 
 `VALUE::CONTAINS(content: VALUE): BOOLEAN`
 
