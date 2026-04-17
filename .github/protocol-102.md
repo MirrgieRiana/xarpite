@@ -12,7 +12,7 @@
 `.github/copilot-instructions.md` があれば、それにも準拠しなさい。
 `AGENTS.md` があれば、それにも準拠しなさい。
 
-### 本プロトコルの末尾が END PROTOCOL マーカーで終わっていることを確認しなさい。
+### 本プロトコル末尾に END PROTOCOL マーカーがあることを確認しなさい
 
 ### PR上での返答・報告・質問には必ず `reply_to_comment` を使いなさい
 
