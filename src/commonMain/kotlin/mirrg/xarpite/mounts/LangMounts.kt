@@ -17,8 +17,8 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
-import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -64,16 +64,16 @@ fun createLangMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
+        "RUN" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
+            val function = arguments[0]
+            function.invoke(null, emptyArray())
+        },
         "CALL" define FluoriteFunction { arguments ->
             if (arguments.size != 2) usage("<T> CALL(function: () -> T; arguments: ARRAY<T>): T")
             val function = arguments[0]
             val argumentsArray = arguments[1] as FluoriteArray
             function.invoke(null, argumentsArray.values.toTypedArray())
-        },
-        "RUN" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
-            val function = arguments[0]
-            function.invoke(null, emptyArray())
         },
         "LAUNCH" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
