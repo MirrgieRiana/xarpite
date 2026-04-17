@@ -70,6 +70,11 @@ fun createLangMounts(): List<Map<String, Mount>> {
             val argumentsArray = arguments[1] as FluoriteArray
             function.invoke(null, argumentsArray.values.toTypedArray())
         },
+        "RUN" define FluoriteFunction { arguments ->
+            if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
+            val function = arguments[0]
+            function.invoke(null, emptyArray())
+        },
         "LAUNCH" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
             val function = arguments[0]

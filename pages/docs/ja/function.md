@@ -725,6 +725,19 @@ $ xa '
 
 # 組み込み定数
 
+## `RUN` 関数を実行する
+
+`RUN(function: () -> T): T`
+
+引数なし関数を実行し、その戻り値を返します。
+
+```shell
+$ xa '
+  RUN(() -> 123)
+'
+# 123
+```
+
 ## `CALL` 関数を呼び出す
 
 `CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
