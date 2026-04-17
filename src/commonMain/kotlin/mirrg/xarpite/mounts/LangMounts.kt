@@ -65,7 +65,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
             FluoriteNull
         },
         "CALL" define FluoriteFunction { arguments ->
-            if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
+            if (arguments.size != 2) usage("<T> CALL(function: () -> T; arguments: ARRAY<T>): T")
             val function = arguments[0]
             val argumentsArray = arguments[1] as FluoriteArray
             function.invoke(null, argumentsArray.values.toTypedArray())

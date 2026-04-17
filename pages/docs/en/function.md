@@ -727,22 +727,20 @@ This is a specification that arises from the fact that variables are statically 
 
 ## `RUN` Execute a Function
 
-`RUN(function: () -> T): T`
+`<T> RUN(function: () -> T): T`
 
-Executes a no-argument function and returns the result.
+Executes `function` with zero arguments and returns the result.
 
 ```shell
-$ xa '
-  RUN(() -> 123)
-'
+$ xa 'RUN(() -> 123)'
 # 123
 ```
 
 ## `CALL` Call a Function
 
-`CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
+`<T> CALL(function: () -> T; arguments: ARRAY<T>): T`
 
-Executes the function in the first argument by passing each element of the array in the second argument as an argument.
+Executes `function` by passing each element of `arguments` as a separate argument.
 
 ```shell
 $ xa '
