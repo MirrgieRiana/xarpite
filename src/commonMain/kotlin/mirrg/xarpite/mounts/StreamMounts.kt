@@ -523,6 +523,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         if (parameterName !is FluoriteString) return@run
                         if (parameterName.value != "by") return@run
                         val keyGetter = entry.values[1]
+                        if (keyGetter is FluoriteFunction && keyGetter.arity != null && keyGetter.arity != 1) return@run // by:指定時もアリティ1を検証
                         val stream = arguments[1]
 
                         return@FluoriteFunction if (stream is FluoriteStream) {
