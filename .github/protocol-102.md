@@ -1,4 +1,4 @@
------BEGIN PROTOCOL-----
+-----BEGIN PROTOCOL 102-----
 
 # プロトコル102
 
@@ -88,4 +88,4 @@ PRのコメント履歴から現行セッションを起動したコメントを
 
 ### `/.github/copilot-instructions.md` に更新履歴の記述規則がある場合、更新履歴を記述しなさい
 
------END PROTOCOL-----
+-----END PROTOCOL 102-----
