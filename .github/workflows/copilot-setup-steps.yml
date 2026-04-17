@@ -20,5 +20,12 @@ jobs:
           java-version: "21"
 
       - run: |
-          mkdir -p build
-          curl -sL https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/.github/protocol-102.md > CLAUDE.md
+          echo '' > CLAUDE.md
+
+          echo '### BEGIN .github/copilot-instructions.md ###' >> CLAUDE.md
+          cat .github/copilot-instructions.md >> CLAUDE.md
+          echo '### END .github/copilot-instructions.md ###' >> CLAUDE.md
+
+          echo '### BEGIN protocol-102.md ###' >> CLAUDE.md
+          curl -sL https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/.github/protocol-102.md >> CLAUDE.md
+          echo '### END protocol-102.md ###' >> CLAUDE.md

@@ -10,3 +10,4 @@ build/
 *.tmp
 .xarpite/
 /.codex
+/CLAUDE.md
