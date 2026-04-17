@@ -17,6 +17,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
+import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
@@ -148,6 +149,12 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
+        "::CONTAINS" define fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+                if (arguments.size != 2) usage("VALUE::CONTAINS(content: VALUE): BOOLEAN")
+                arguments[0].contains(null, arguments[1])
+            },
+        ),
         "LAZY" define FluoriteFunction { arguments ->
             if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
             val initializer = arguments[0]
