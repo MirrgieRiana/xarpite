@@ -121,6 +121,8 @@ class StreamMountsTest {
         assertEquals("21,32,13", eval("13, 21, 32 >> SORT[a, b -> a % 10 <=> b % 10]").stream()) // 2引数の関数を指定して比較をカスタマイズできる
 
         assertEquals("21,32,13", eval("13, 21, 32 >> SORT[by: _ -> _ % 10]").stream()) // byでソートキーを指定できる
+        assertEquals("21,32,13", eval("13, 21, 32 >> SORT[_ -> _ % 10]").stream()) // byを省略してソートキーを指定できる
+        assertEquals("13,32,21", eval("13, 21, 32 >> SORTR[_ -> _ % 10]").stream()) // SORTRでもbyを省略してソートキーを指定できる
     }
 
     @Test

@@ -718,13 +718,18 @@ $ xa '1 .. 9 >> SORT[a, b -> a % 3 <=> b % 3] >> JOIN[" "]'
 
 ### Sort by Key Getter Function
 
-`SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORT([by: ]key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If the first argument is a `by` parameter, applies the `key_getter` function to each element of the second argument, compares the results, and sorts.
+If the first argument is a 1-parameter function, applies the `key_getter` function to each element of the second argument, compares the results, and sorts.
+
+The `by` parameter name can be omitted.
 
 The following example sorts by the remainder when dividing each element by 3.
 
 ```shell
+$ xa '1 .. 9 >> SORT[x -> x % 3] >> JOIN[" "]'
+# 3 6 9 1 4 7 2 5 8
+
 $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 # 3 6 9 1 4 7 2 5 8
 ```
@@ -735,7 +740,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 
 `SORTR(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-`SORTR(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORTR([by: ]key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Sorts a stream in descending order.
 

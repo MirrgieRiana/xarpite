@@ -523,6 +523,21 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         if (parameterName !is FluoriteString) return@run
                         if (parameterName.value != "by") return@run
                         val keyGetter = entry.values[1]
+                        if (keyGetter is FluoriteFunction && keyGetter.arity != null && keyGetter.arity != 1) return@run // by:指定時もアリティ1を検証
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(null, arrayOf(a)).compareTo(null, keyGetter.invoke(null, arrayOf(b))).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // SORT(key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE> （by省略・アリティ1の関数）
+                        if (arguments.size != 2) return@run
+                        val fn = arguments[0]
+                        if (fn !is FluoriteFunction) return@run
+                        if (fn.arity != 1) return@run
+                        val keyGetter = fn
                         val stream = arguments[1]
 
                         return@FluoriteFunction if (stream is FluoriteStream) {
@@ -545,7 +560,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     usage(
                         "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
                         "$name(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>",
-                        "$name(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name([by: ]key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
                     )
                 }
             }

@@ -693,7 +693,7 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
 
 class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        return FluoriteFunction { arguments ->
+        return FluoriteFunction(variableIndices.size) { arguments ->
             val newEnv = Environment(env, 1 + variableIndices.size, 0)
             newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(arguments.toFluoriteArray())
             variableIndices.forEachIndexed { i, variableIndex ->
