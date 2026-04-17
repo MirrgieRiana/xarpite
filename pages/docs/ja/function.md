@@ -727,22 +727,20 @@ $ xa '
 
 ## `RUN` 関数を実行する
 
-`RUN(function: () -> T): T`
+`<T> RUN(function: () -> T): T`
 
-引数なし関数を実行し、その戻り値を返します。
+`function` を0個の引数で実行し、その戻り値を返します。
 
 ```shell
-$ xa '
-  RUN(() -> 123)
-'
+$ xa 'RUN(() -> 123)'
 # 123
 ```
 
 ## `CALL` 関数を呼び出す
 
-`CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
+`<T> CALL(function: () -> T; arguments: ARRAY<T>): T`
 
-第1引数の関数に対し、第2引数の配列の各要素を引数として渡して実行します。
+`function` を `arguments` の各要素をそれぞれ別の引数として渡して実行します。
 
 ```shell
 $ xa '
