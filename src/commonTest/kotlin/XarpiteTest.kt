@@ -1464,4 +1464,10 @@ class XarpiteTest {
 
     }
 
+    @Test
+    fun runTest2() = runTest {
+        assertEquals(123, eval("RUN(() -> 123)").int) // RUN は引数なし関数を実行してその戻り値を返す
+        assertEquals(579, eval("RUN(() -> 456 + 123)").int) // RUN は関数の中で計算ができる
+    }
+
 }
