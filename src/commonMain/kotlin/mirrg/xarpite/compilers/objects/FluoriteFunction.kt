@@ -2,7 +2,7 @@ package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
 
-class FluoriteFunction(val function: suspend (Array<FluoriteValue>) -> FluoriteValue) : FluoriteValue {
+class FluoriteFunction(val arity: Int? = null, val function: suspend (Array<FluoriteValue>) -> FluoriteValue) : FluoriteValue {
     companion object {
         val fluoriteClass by lazy {
             FluoriteObject(

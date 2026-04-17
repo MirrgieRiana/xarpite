@@ -531,6 +531,20 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             stream
                         }
                     }
+                    run { // SORT(key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE> （by省略・アリティ1の関数）
+                        if (arguments.size != 2) return@run
+                        val fn = arguments[0]
+                        if (fn !is FluoriteFunction) return@run
+                        if (fn.arity != 1) return@run
+                        val keyGetter = fn
+                        val stream = arguments[1]
+
+                        return@FluoriteFunction if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(null, arrayOf(a)).compareTo(null, keyGetter.invoke(null, arrayOf(b))).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
                     run { // SORT(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 2) return@run
                         val comparator = arguments[0]
@@ -545,7 +559,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     usage(
                         "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
                         "$name(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>",
-                        "$name(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name([by: ]key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
                     )
                 }
             }
