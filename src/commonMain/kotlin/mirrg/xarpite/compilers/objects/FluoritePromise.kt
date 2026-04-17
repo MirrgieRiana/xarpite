@@ -35,6 +35,16 @@ class FluoritePromise : FluoriteValue {
                         val promise = arguments[0] as FluoritePromise
                         promise.deferred.await()
                     },
+                    "awaitException" to FluoriteFunction { arguments ->
+                        if (arguments.size != 1) usage("<T> PROMISE<T>::awaitException(): VALUE")
+                        val promise = arguments[0] as FluoritePromise
+                        try {
+                            promise.deferred.await()
+                            FluoriteNull
+                        } catch (e: FluoriteException) {
+                            e.value
+                        }
+                    },
                     "isCompleted" to FluoriteFunction { arguments ->
                         if (arguments.size != 1) usage("<T> PROMISE<T>::isCompleted(): BOOLEAN")
                         val promise = arguments[0] as FluoritePromise
