@@ -738,7 +738,7 @@ $ xa 'RUN(() -> 123)'
 
 ## `CALL` 関数を呼び出す
 
-`<T> CALL(function: () -> T; arguments: ARRAY<T>): T`
+`<A..., T> CALL(function: (A) -> T; arguments: [A]): T`
 
 `function` を `arguments` の各要素をそれぞれ別の引数として渡して実行します。
 

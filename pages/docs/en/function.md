@@ -738,7 +738,7 @@ $ xa 'RUN(() -> 123)'
 
 ## `CALL` Call a Function
 
-`<T> CALL(function: () -> T; arguments: ARRAY<T>): T`
+`<A..., T> CALL(function: (A) -> T; arguments: [A]): T`
 
 Executes `function` by passing each element of `arguments` as a separate argument.
 
