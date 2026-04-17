@@ -20,5 +20,5 @@ jobs:
           java-version: "21"
 
       - run: |
-          mkdir -p build
-          curl -sL https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/.github/protocol-102.md -o build/PROTOCOL.md
+          echo '' > CLAUDE.md
+          curl -sL https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/.github/protocol-102.md >> CLAUDE.md

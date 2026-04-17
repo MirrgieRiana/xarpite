@@ -725,11 +725,22 @@ This is a specification that arises from the fact that variables are statically 
 
 # Built-in Constants
 
+## `RUN` Execute a Function
+
+`<T> RUN(function: () -> T): T`
+
+Executes `function` with zero arguments and returns the result.
+
+```shell
+$ xa 'RUN(() -> 123)'
+# 123
+```
+
 ## `CALL` Call a Function
 
-`CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
+`<A..., T> CALL(function: (A) -> T; arguments: [A]): T`
 
-Executes the function in the first argument by passing each element of the array in the second argument as an argument.
+Executes `function` by passing each element of `arguments` as a separate argument.
 
 ```shell
 $ xa '
