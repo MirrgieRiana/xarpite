@@ -34,5 +34,6 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
 
     override val parent get() = fluoriteClass
 
+    suspend fun call(arguments: Array<suspend () -> FluoriteValue>) = function(arguments)
     suspend fun callImmediate(arguments: Array<FluoriteValue>) = function(arguments.map { suspend { it } }.toTypedArray())
 }
