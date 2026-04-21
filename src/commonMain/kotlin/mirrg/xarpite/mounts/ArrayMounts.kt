@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 context(context: RuntimeContext)
 fun createArrayMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "INTERCALATE" define FluoriteFunction { arguments ->
+        "INTERCALATE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): ARRAY<T>")
             val separator = arguments[0]
             if (separator !is FluoriteArray) throw FluoriteException("First argument must be an array".toFluoriteString())

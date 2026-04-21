@@ -27,12 +27,12 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val actualArguments = arguments.drop(1).map { it.toJsObject() }.toTypedArray()
                         convertToFluoriteValue(jsObject.value.apply(undefined, actualArguments))
                     },
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val jsObject = arguments[0] as FluoriteJsObject
                         val key: dynamic = run {
@@ -43,7 +43,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         }
                         convertToFluoriteValue(jsObject.value[key])
                     },
-                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 3) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val jsObject = arguments[0] as FluoriteJsObject
                         val key: dynamic = run {
@@ -56,15 +56,15 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         jsObject.value[key] = value
                         FluoriteNull
                     },
-                    OperatorMethod.METHOD.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.METHOD.methodName to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val method = arguments[1] as FluoriteString
-                        FluoriteFunction { arguments2 ->
+                        FluoriteFunction.immediate { arguments2 ->
                             val actualArguments = arguments2.map { it.toJsObject() }.toTypedArray()
                             convertToFluoriteValue(jsObject.value[method].apply(jsObject.value, actualArguments))
                         }
                     },
-                    "new" to FluoriteFunction { arguments ->
+                    "new" to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val actualArguments = arguments.drop(1).map { it.toJsObject() }.toTypedArray()
                         convertToFluoriteValue(js("Reflect.construct")(jsObject.value, actualArguments))

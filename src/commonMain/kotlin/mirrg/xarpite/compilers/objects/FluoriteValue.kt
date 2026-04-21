@@ -13,13 +13,13 @@ interface FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 null, mutableMapOf(
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0]
                         if (obj !is FluoriteObject) throw FluoriteException("Cannot get property: $obj".toFluoriteString())
                         val key = arguments[1].toFluoriteString(null).value
                         obj.map[key] ?: FluoriteNull
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { "${it[0]}".toFluoriteString() },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { "${it[0]}".toFluoriteString() },
                 )
             )
         }
@@ -76,7 +76,7 @@ suspend fun FluoriteValue.callMethod(position: Position?, name: String, argument
 
 suspend fun FluoriteValue.callMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     return if (method is FluoriteFunction) {
-        method.function(arrayOf(this, *arguments))
+        method.call(arrayOf(this, *arguments))
     } else {
         method.invoke(position, arrayOf(this, *arguments))
     }

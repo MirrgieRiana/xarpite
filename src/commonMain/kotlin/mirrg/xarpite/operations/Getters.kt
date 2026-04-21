@@ -153,7 +153,7 @@ class MethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -164,7 +164,7 @@ class MethodAccessGetter(
         suspend fun processFunction(function: FluoriteValue): FluoriteValue {
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
+                FluoriteFunction.immediate { arguments2 ->
                     receiver.callMethod(position, function, arguments + arguments2)
                 }
             } else {
@@ -175,7 +175,7 @@ class MethodAccessGetter(
         suspend fun processCallable(callable: Callable): FluoriteValue {
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
+                FluoriteFunction.immediate { arguments2 ->
                     withStackTrace(position) {
                         callable.call(arguments + arguments2)
                     }
@@ -254,7 +254,7 @@ class FunctionalMethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -265,7 +265,7 @@ class FunctionalMethodAccessGetter(
         val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
         return if (isBinding) {
-            FluoriteFunction { arguments2 ->
+            FluoriteFunction.immediate { arguments2 ->
                 receiver.callMethod(position, function, arguments + arguments2)
             }
         } else {
@@ -693,7 +693,7 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
 
 class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        return FluoriteFunction { arguments ->
+        return FluoriteFunction.immediate { arguments ->
             val newEnv = Environment(env, 1 + variableIndices.size, 0)
             newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(arguments.toFluoriteArray())
             variableIndices.forEachIndexed { i, variableIndex ->

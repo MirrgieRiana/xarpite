@@ -27,7 +27,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     return mapOf(
         "LOCATION" define LazyMount { location.toFluoriteString() },
         "USE" define run {
-            FluoriteFunction { arguments ->
+            FluoriteFunction.immediate { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
                 val (moduleLocation, src) = resolveModuleLocation(context.inc, location, reference)

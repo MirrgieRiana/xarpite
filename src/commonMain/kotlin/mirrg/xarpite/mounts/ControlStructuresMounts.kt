@@ -16,7 +16,7 @@ import kotlin.coroutines.cancellation.CancellationException
 context(context: RuntimeContext)
 fun createControlStructuresMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "WHILE" define FluoriteFunction { arguments ->
+        "WHILE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WHILE(condition: () -> BOOLEAN; block: () -> VALUE): NULL")
             val condition = arguments[0]
             val block = arguments[1]
@@ -27,7 +27,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "TRY" define FluoriteFunction { arguments ->
+        "TRY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> TRY(block: () -> T): PROMISE<T>")
             val block = arguments[0]
             val promise = FluoritePromise()
@@ -39,7 +39,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
                 throw e
             } catch (e: Throwable) {
                 promise.deferred.completeExceptionally(e)
-                return@FluoriteFunction promise
+                return@immediate promise
             }
             promise.deferred.complete(value)
             promise

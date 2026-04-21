@@ -18,9 +18,9 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteInt },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteInt).value != 0).toFluoriteBoolean() },
-                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteInt },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteInt).value != 0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
                         val number = arguments[0] as FluoriteInt
                         if (number.value == Int.MIN_VALUE) {
                             FluoriteDouble(abs(number.value.toDouble()))
@@ -28,7 +28,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             FluoriteInt(abs(number.value))
                         }
                     },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value + right.value)
@@ -36,7 +36,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value - right.value)
@@ -44,7 +44,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
@@ -73,13 +73,13 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteDouble },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
-                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteDouble },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
                         val number = arguments[0] as FluoriteDouble
                         FluoriteDouble(abs(number.value))
                     },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value + right.value)
@@ -87,7 +87,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value - right.value)
@@ -95,7 +95,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()

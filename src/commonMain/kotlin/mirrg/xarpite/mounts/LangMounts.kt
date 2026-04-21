@@ -46,7 +46,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 emit(FluoriteNull)
             }
         },
-        "SLEEP" define FluoriteFunction { arguments ->
+        "SLEEP" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 0 -> yield()
 
@@ -64,18 +64,18 @@ fun createLangMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "RUN" define FluoriteFunction { arguments ->
+        "RUN" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
             val function = arguments[0]
             function.invoke(null, emptyArray())
         },
-        "CALL" define FluoriteFunction { arguments ->
+        "CALL" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("<A..., T> CALL(function: (A) -> T; arguments: [A]): T")
             val function = arguments[0]
             val argumentsArray = arguments[1] as FluoriteArray
             function.invoke(null, argumentsArray.values.toTypedArray())
         },
-        "LAUNCH" define FluoriteFunction { arguments ->
+        "LAUNCH" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
             val function = arguments[0]
             val promise = FluoritePromise()
@@ -97,7 +97,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     arguments.forEach {
                         if (it is FluoriteStream) {
                             it.collect { item ->
@@ -117,7 +117,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(signature: String): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size == 2) {
                         val self = arguments[0]
                         val block = arguments[1]
@@ -136,7 +136,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(signature: String): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size == 2) {
                         val self = arguments[0]
                         val block = arguments[1]
@@ -155,16 +155,16 @@ fun createLangMounts(): List<Map<String, Mount>> {
             )
         },
         "::CONTAINS" define fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon FluoriteFunction { arguments ->
+            FluoriteValue.fluoriteClass colon FluoriteFunction.immediate { arguments ->
                 if (arguments.size != 2) usage("VALUE::CONTAINS(content: VALUE): BOOLEAN")
                 arguments[0].contains(null, arguments[1])
             },
         ),
-        "LAZY" define FluoriteFunction { arguments ->
+        "LAZY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
             val initializer = arguments[0]
             var value: FluoriteValue? = null
-            FluoriteFunction {
+            FluoriteFunction.immediate {
                 if (value == null) {
                     val value2 = initializer.invoke(null, emptyArray()).cache()
                     value = value2

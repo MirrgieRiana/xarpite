@@ -7,19 +7,19 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
         val fluoriteClass: FluoriteObject by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         val key = arguments[1].toFluoriteString(null).value
                         obj.map[key] ?: FluoriteNull
                     },
-                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         val key = arguments[1].toFluoriteString(null).value
                         val value = arguments[2]
                         obj.map[key] = value
                         FluoriteNull
                     },
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         when (arguments.size) {
                             1 -> {
@@ -48,7 +48,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                             else -> throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         }
                     },
-                    OperatorMethod.SET_CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         when (arguments.size) {
                             3 -> {
@@ -61,15 +61,15 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                             else -> throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         }
                     },
-                    OperatorMethod.BIND.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.BIND.methodName to FluoriteFunction.immediate { arguments ->
                         // TODO
                         val obj = arguments[0] as FluoriteObject
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        FluoriteFunction { arguments2 ->
+                        FluoriteFunction.immediate { arguments2 ->
                             obj.invoke(null, arguments1 + arguments2)
                         }
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                         val sb = StringBuilder()
                         sb.append('{')
                         (arguments[0] as FluoriteObject).map.entries.forEachIndexed { i, (key, value) ->
@@ -81,12 +81,12 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         sb.append('}')
                         sb.toString().toFluoriteString()
                     },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { (it[0] as FluoriteObject).map.isNotEmpty().toFluoriteBoolean() },
-                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { (it[0] as FluoriteObject).map.isNotEmpty().toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         FluoriteInt(obj.map.size)
                     },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteObject
                         val right = arguments[1] as FluoriteObject
                         val map = mutableMapOf<String, FluoriteValue>()
@@ -94,8 +94,8 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         map += right.map
                         FluoriteObject(fluoriteClass, map)
                     },
-                    OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1].toFluoriteString(null).value in (it[0] as FluoriteObject).map).toFluoriteBoolean() },
-                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CONTAINS.methodName to FluoriteFunction.immediate { (it[1].toFluoriteString(null).value in (it[0] as FluoriteObject).map).toFluoriteBoolean() },
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
                         val key = arguments[1]
                         if (key is FluoriteStream) {

@@ -29,7 +29,7 @@ import kotlin.io.encoding.Base64
 context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "BASE" define FluoriteFunction { arguments ->
+        "BASE" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber(null).roundToInt()
@@ -37,7 +37,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             val number = arguments[1].toFluoriteNumber(null).roundToInt()
             number.toString(radix).uppercase().toFluoriteString()
         },
-        "BASED" define FluoriteFunction { arguments ->
+        "BASED" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASED(radix: NUMBER; string: STRING): NUMBER")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber(null).roundToInt()
@@ -45,13 +45,13 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             val string = arguments[1].toFluoriteString(null).value
             FluoriteInt(string.toInt(radix))
         },
-        "UTF8" define FluoriteFunction { arguments ->
+        "UTF8" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
             string.encodeToByteArray().asFluoriteBlob()
         },
-        "UTF8D" define FluoriteFunction { arguments ->
+        "UTF8D" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("UTF8D(blobLike: BLOB_LIKE): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
@@ -60,13 +60,13 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             val base64 by lazy { Base64.Mime }
             arrayOf(
-                "BASE64" define FluoriteFunction { arguments ->
+                "BASE64" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
                     base64.encode(string.encodeToByteArray()).replace("\r\n", "\n").toFluoriteString()
                 },
-                "BASE64D" define FluoriteFunction { arguments ->
+                "BASE64D" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
@@ -74,7 +74,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
             )
         },
-        "URL" define FluoriteFunction { arguments ->
+        "URL" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -90,7 +90,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             sb.toString().toFluoriteString()
         },
-        "URLD" define FluoriteFunction { arguments ->
+        "URLD" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("URLD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -118,7 +118,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             buffer.readUtf8().toFluoriteString()
         },
-        "PERCENT" define FluoriteFunction { arguments ->
+        "PERCENT" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -132,7 +132,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             sb.toString().toFluoriteString()
         },
-        "PERCENTD" define FluoriteFunction { arguments ->
+        "PERCENTD" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -157,7 +157,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("$name(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
@@ -180,7 +180,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "JSON" define FluoriteFunction { arguments ->
+                "JSON" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
                     val arguments2 = arguments.toMutableList()
 
@@ -196,7 +196,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
 
                     value.toSingleJsonFluoriteValue(null, indent = indent)
                 },
-                "JSOND" define FluoriteFunction { arguments ->
+                "JSOND" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
                     if (arguments.size != 1) usage()
                     val value = arguments[0]
@@ -204,7 +204,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
-                        return FluoriteFunction { arguments ->
+                        return FluoriteFunction.immediate { arguments ->
                             fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
                             val arguments2 = arguments.toMutableList()
 
@@ -228,7 +228,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
-                        return FluoriteFunction { arguments ->
+                        return FluoriteFunction.immediate { arguments ->
                             fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
                             if (arguments.size != 1) usage()
                             val value = arguments[0]
@@ -242,7 +242,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
             )
         },
-        "CSV" define FluoriteFunction { arguments ->
+        "CSV" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
             if (arguments.isEmpty()) usage()
             val parameters = arguments.dropLast(1)
@@ -307,7 +307,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 toCsv(value)
             }
         },
-        "CSVD" define FluoriteFunction { arguments ->
+        "CSVD" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("""CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
             if (arguments.isEmpty()) usage()
             val parameters = arguments.dropLast(1)

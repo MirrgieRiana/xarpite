@@ -56,7 +56,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 emit(bytes.asFluoriteBlob())
             }
         },
-        "ERR" define FluoriteFunction { arguments ->
+        "ERR" define FluoriteFunction.immediate { arguments ->
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
@@ -68,14 +68,14 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "OUTB" define FluoriteFunction { arguments ->
+        "OUTB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStdout(bytes)
             }
             FluoriteNull
         },
-        "ERRB" define FluoriteFunction { arguments ->
+        "ERRB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStderr(bytes)
@@ -84,7 +84,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
                     val fileSystem = getFileSystem().getOrThrow()
@@ -103,7 +103,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 "READL" define create("READL"),
             )
         },
-        "READB" define FluoriteFunction { arguments ->
+        "READB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
             val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
@@ -119,7 +119,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
         },
-        "WRITE" define FluoriteFunction { arguments ->
+        "WRITE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITE(file: STRING; string: STRING): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val string = arguments[1].toFluoriteString(null).value
@@ -129,7 +129,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "WRITEL" define FluoriteFunction { arguments ->
+        "WRITEL" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val lines = arguments[1].toFlow()
@@ -142,7 +142,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "WRITEB" define FluoriteFunction { arguments ->
+        "WRITEB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val blobLike = arguments[1]
@@ -156,7 +156,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
                     val dir = arguments[0].toFluoriteString(null).value
                     val fileSystem = getFileSystem().getOrThrow()
@@ -170,7 +170,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
                     val dirPath = arguments[0].toFluoriteString(null).value.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
@@ -201,7 +201,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
                     suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
                         val envEntry = argument as? FluoriteArray ?: usage()
@@ -251,7 +251,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 "EXECL" define create("EXECL"),
             )
         },
-        "BASH" define FluoriteFunction { arguments ->
+        "BASH" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")
             val arguments2 = arguments.toMutableList()
 
@@ -277,7 +277,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             result.toFluoriteString()
         },
-        "EXIT" define FluoriteFunction { arguments ->
+        "EXIT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
             val code = arguments[0].toFluoriteNumber(null).toInt()
             context.io.exit(code)
