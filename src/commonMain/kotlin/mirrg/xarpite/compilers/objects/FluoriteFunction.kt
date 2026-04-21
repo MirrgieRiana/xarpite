@@ -2,7 +2,7 @@ package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
 
-class FluoriteFunction private constructor(private val function: suspend (Array<() -> FluoriteValue>) -> FluoriteValue) : FluoriteValue {
+class FluoriteFunction private constructor(private val function: suspend (Array<suspend () -> FluoriteValue>) -> FluoriteValue) : FluoriteValue {
     companion object {
         val fluoriteClass by lazy {
             FluoriteObject(
@@ -33,5 +33,5 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
 
     override val parent get() = fluoriteClass
 
-    suspend fun call(arguments: Array<FluoriteValue>) = function(arguments.map { { it } }.toTypedArray())
+    suspend fun call(arguments: Array<FluoriteValue>) = function(arguments.map { suspend { it } }.toTypedArray())
 }
