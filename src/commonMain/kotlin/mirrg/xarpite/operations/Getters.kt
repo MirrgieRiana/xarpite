@@ -21,11 +21,12 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callMethod
+import mirrg.xarpite.compilers.objects.callAsMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.getLength
-import mirrg.xarpite.compilers.objects.getMethod
+import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
@@ -165,10 +166,10 @@ class MethodAccessGetter(
             val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
             return if (isBinding) {
                 FluoriteFunction.immediate { arguments2 ->
-                    receiver.callMethod(position, function, arguments + arguments2)
+                    receiver.callAsMethod(position, function, arguments + arguments2)
                 }
             } else {
-                receiver.callMethod(position, function, arguments)
+                receiver.callAsMethod(position, function, arguments)
             }
         }
 
@@ -224,7 +225,7 @@ class MethodAccessGetter(
 
         // レシーバのメソッドのチェック
         run {
-            val callable = receiver.getMethod(position, name)
+            val callable = receiver.getSolvedMethod(position, name)
             if (callable != null) return processCallable(callable)
         }
 
@@ -266,10 +267,10 @@ class FunctionalMethodAccessGetter(
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
         return if (isBinding) {
             FluoriteFunction.immediate { arguments2 ->
-                receiver.callMethod(position, function, arguments + arguments2)
+                receiver.callAsMethod(position, function, arguments + arguments2)
             }
         } else {
-            receiver.callMethod(position, function, arguments)
+            receiver.callAsMethod(position, function, arguments)
         }
     }
 
