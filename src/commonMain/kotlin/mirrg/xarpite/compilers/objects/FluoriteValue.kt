@@ -76,7 +76,7 @@ suspend fun FluoriteValue.callMethod(position: Position?, name: String, argument
 
 suspend fun FluoriteValue.callMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     return if (method is FluoriteFunction) {
-        method.call(arrayOf(this, *arguments))
+        method.callImmediate(arrayOf(this, *arguments))
     } else {
         method.invoke(position, arrayOf(this, *arguments))
     }

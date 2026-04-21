@@ -10,18 +10,18 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
                     OperatorMethod.CALL.methodName to immediate { arguments ->
                         val function = arguments[0] as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.call(arguments1)
+                        function.callImmediate(arguments1)
                     },
                     OperatorMethod.SET_CALL.methodName to immediate { arguments ->
                         val function = arguments[0] as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.call(arguments1)
+                        function.callImmediate(arguments1)
                     },
                     OperatorMethod.BIND.methodName to immediate { arguments ->
                         val function = arguments[0] as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
                         immediate { arguments2 ->
-                            function.call(arguments1 + arguments2)
+                            function.callImmediate(arguments1 + arguments2)
                         }
                     },
                 )
@@ -34,5 +34,5 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
 
     override val parent get() = fluoriteClass
 
-    suspend fun call(arguments: Array<FluoriteValue>) = function(arguments.map { suspend { it } }.toTypedArray())
+    suspend fun callImmediate(arguments: Array<FluoriteValue>) = function(arguments.map { suspend { it } }.toTypedArray())
 }
