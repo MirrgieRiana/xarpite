@@ -53,6 +53,14 @@ private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     }
 }
 
+suspend fun FluoriteValue.callAsMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
+    return if (method is FluoriteFunction) {
+        method.callImmediate(arrayOf(this, *arguments))
+    } else {
+        method.invoke(position, arrayOf(this, *arguments))
+    }
+}
+
 suspend fun FluoriteValue.getSolvedMethod(position: Position?, name: String): Callable? {
     val method = this.getPureMethod(name) ?: run {
         val fallbackMethod = this.getPureMethod(OperatorMethod.METHOD.methodName) ?: return null
@@ -71,14 +79,6 @@ suspend fun FluoriteValue.callMethod(position: Position?, name: String, argument
     val callable = this.getSolvedMethod(position, name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
     return withStackTrace(position) {
         callable.call(arguments)
-    }
-}
-
-suspend fun FluoriteValue.callAsMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
-    return if (method is FluoriteFunction) {
-        method.callImmediate(arrayOf(this, *arguments))
-    } else {
-        method.invoke(position, arrayOf(this, *arguments))
     }
 }
 
