@@ -20,8 +20,8 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.callAsMethod
+import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo

@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
@@ -13,11 +12,10 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.test.get
 import mirrg.xarpite.withEvaluator
-import okio.Path.Companion.toPath
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

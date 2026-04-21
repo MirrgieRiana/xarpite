@@ -4,9 +4,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -15,7 +15,6 @@ import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.addDefaultIncPaths
-import mirrg.xarpite.cli.cliEval as cliEvalImpl
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -41,6 +40,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import mirrg.xarpite.cli.cliEval as cliEvalImpl
 
 val baseDir = "build/test".toPath()
 
