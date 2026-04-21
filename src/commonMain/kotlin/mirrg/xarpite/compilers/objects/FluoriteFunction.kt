@@ -28,6 +28,7 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
             )
         }
 
+        fun create(function: suspend (Array<suspend () -> FluoriteValue>) -> FluoriteValue) = FluoriteFunction(function)
         fun immediate(function: suspend (Array<FluoriteValue>) -> FluoriteValue) = FluoriteFunction { arguments -> function(arguments.map { it() }.toTypedArray()) }
     }
 
