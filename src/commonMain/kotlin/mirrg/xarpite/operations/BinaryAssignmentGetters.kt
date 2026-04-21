@@ -5,6 +5,7 @@ import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
+import mirrg.xarpite.compilers.objects.callImmediate
 import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
@@ -19,7 +20,7 @@ class PlusAssignmentGetter(private val leftGetter: Getter, private val leftSette
             val right = getter.evaluate(env)
             val accessor = createAccessor(leftGetter, leftSetter, env)
             withStackTrace(position) {
-                callable.call(arrayOf(right, accessor)).cache()
+                callable.callImmediate(arrayOf(right, accessor)).cache()
             }
         } else {
             if (leftSetter == null) {
@@ -45,7 +46,7 @@ class MinusAssignmentGetter(private val leftGetter: Getter, private val leftSett
             val right = getter.evaluate(env)
             val accessor = createAccessor(leftGetter, leftSetter, env)
             withStackTrace(position) {
-                callable.call(arrayOf(right, accessor)).cache()
+                callable.callImmediate(arrayOf(right, accessor)).cache()
             }
         } else {
             if (leftSetter == null) {

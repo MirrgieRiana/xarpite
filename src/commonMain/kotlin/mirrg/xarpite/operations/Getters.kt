@@ -21,6 +21,7 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
+import mirrg.xarpite.compilers.objects.callImmediate
 import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
@@ -178,12 +179,12 @@ class MethodAccessGetter(
             return if (isBinding) {
                 FluoriteFunction.immediate { arguments2 ->
                     withStackTrace(position) {
-                        callable.call(arguments + arguments2)
+                        callable.callImmediate(arguments + arguments2)
                     }
                 }
             } else {
                 withStackTrace(position) {
-                    callable.call(arguments)
+                    callable.callImmediate(arguments)
                 }
             }
         }

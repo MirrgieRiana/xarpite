@@ -38,8 +38,10 @@ fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
 }
 
 fun interface Callable {
-    suspend fun call(arguments: Array<FluoriteValue>): FluoriteValue
+    suspend fun call(arguments: Array<suspend () -> FluoriteValue>): FluoriteValue
 }
+
+suspend fun Callable.callImmediate(arguments: Array<FluoriteValue>) = this.call(arguments.map { suspend { it } }.toTypedArray())
 
 private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     var currentObject = this.parent
@@ -67,18 +69,18 @@ suspend fun FluoriteValue.getSolvedMethod(position: Position?, name: String): Ca
         val actualMethod = this.callAsMethod(position, fallbackMethod, arrayOf(name.toFluoriteString()))
         if (actualMethod == FluoriteNull) return null
         return Callable { arguments ->
-            actualMethod.invoke(position, arguments)
+            actualMethod.invoke(position, arguments.map { it() }.toTypedArray())
         }
     }
     return Callable { arguments ->
-        this.callAsMethod(position, method, arguments)
+        this.callAsMethod(position, method, arguments.map { it() }.toTypedArray())
     }
 }
 
 suspend fun FluoriteValue.callMethod(position: Position?, name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
     val callable = this.getSolvedMethod(position, name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
     return withStackTrace(position) {
-        callable.call(arguments)
+        callable.callImmediate(arguments)
     }
 }
 
