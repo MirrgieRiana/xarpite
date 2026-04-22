@@ -77,11 +77,15 @@ suspend fun FluoriteValue.getSolvedMethod(position: Position?, name: String): Ca
     }
 }
 
-suspend fun FluoriteValue.callMethodImmediate(position: Position?, name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
+suspend fun FluoriteValue.callMethod(position: Position?, name: String, arguments: Array<suspend () -> FluoriteValue> = arrayOf()): FluoriteValue {
     val callable = this.getSolvedMethod(position, name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
     return withStackTrace(position) {
-        callable.callImmediate(arguments)
+        callable.call(arguments)
     }
+}
+
+suspend fun FluoriteValue.callMethodImmediate(position: Position?, name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
+    return this.callMethod(position, name, arguments.map { suspend { it } }.toTypedArray())
 }
 
 suspend fun FluoriteValue.invokeImmediate(position: Position?, arguments: Array<FluoriteValue>) = this.callMethodImmediate(position, OperatorMethod.CALL.methodName, arguments)
