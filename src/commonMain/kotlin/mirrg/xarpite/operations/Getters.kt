@@ -18,7 +18,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
-import mirrg.xarpite.compilers.objects.bind
+import mirrg.xarpite.compilers.objects.bindImmediate
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
 import mirrg.xarpite.compilers.objects.callImmediate
@@ -292,7 +292,7 @@ class FunctionBindGetter(private val functionGetter: Getter, private val argumen
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.bind(position, arguments)
+        return function.bindImmediate(position, arguments)
     }
 
     override val code get() = "FunctionBindGetter[${functionGetter.code};${argumentGetters.code}]"
