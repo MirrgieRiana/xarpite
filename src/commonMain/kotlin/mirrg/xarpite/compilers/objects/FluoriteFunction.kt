@@ -7,21 +7,21 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.CALL.methodName to immediate { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.CALL.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.callImmediate(arguments1)
+                        function.call(arguments1)
                     },
-                    OperatorMethod.SET_CALL.methodName to immediate { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.SET_CALL.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.callImmediate(arguments1)
+                        function.call(arguments1)
                     },
-                    OperatorMethod.BIND.methodName to immediate { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.BIND.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        immediate { arguments2 ->
-                            function.callImmediate(arguments1 + arguments2)
+                        create { arguments2 ->
+                            function.call(arguments1 + arguments2)
                         }
                     },
                 )
