@@ -21,7 +21,6 @@ import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
-import mirrg.xarpite.compilers.objects.callImmediate
 import mirrg.xarpite.compilers.objects.callMethodImmediate
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
@@ -175,16 +174,16 @@ class MethodAccessGetter(
         }
 
         suspend fun processCallable(callable: Callable): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction.immediate { arguments2 ->
+                FluoriteFunction.create { arguments2 ->
                     withStackTrace(position) {
-                        callable.callImmediate(arguments + arguments2)
+                        callable.call(arguments + arguments2)
                     }
                 }
             } else {
                 withStackTrace(position) {
-                    callable.callImmediate(arguments)
+                    callable.call(arguments)
                 }
             }
         }
