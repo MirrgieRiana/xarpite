@@ -55,25 +55,25 @@ private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     }
 }
 
-suspend fun FluoriteValue.callAsMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
+suspend fun FluoriteValue.callAsMethod(position: Position?, method: FluoriteValue, arguments: Array<suspend () -> FluoriteValue> = arrayOf()): FluoriteValue {
     return if (method is FluoriteFunction) {
-        method.callImmediate(arrayOf(this, *arguments))
+        method.call(arrayOf(suspend { this }, *arguments))
     } else {
-        method.invokeImmediate(position, arrayOf(this, *arguments))
+        method.invoke(position, arrayOf(suspend { this }, *arguments))
     }
 }
 
 suspend fun FluoriteValue.getSolvedMethod(position: Position?, name: String): Callable? {
     val method = this.getPureMethod(name) ?: run {
         val fallbackMethod = this.getPureMethod(OperatorMethod.METHOD.methodName) ?: return null
-        val actualMethod = this.callAsMethod(position, fallbackMethod, arrayOf(name.toFluoriteString()))
+        val actualMethod = this.callAsMethod(position, fallbackMethod, arrayOf(suspend { name.toFluoriteString() }))
         if (actualMethod == FluoriteNull) return null
         return Callable { arguments ->
             actualMethod.invokeImmediate(position, arguments.map { it() }.toTypedArray())
         }
     }
     return Callable { arguments ->
-        this.callAsMethod(position, method, arguments.map { it() }.toTypedArray())
+        this.callAsMethod(position, method, arguments)
     }
 }
 

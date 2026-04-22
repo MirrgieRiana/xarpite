@@ -164,9 +164,9 @@ class MethodAccessGetter(
         }
 
         suspend fun processFunction(function: FluoriteValue): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction.immediate { arguments2 ->
+                FluoriteFunction.create { arguments2 ->
                     receiver.callAsMethod(position, function, arguments + arguments2)
                 }
             } else {
@@ -265,9 +265,9 @@ class FunctionalMethodAccessGetter(
         }
 
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return if (isBinding) {
-            FluoriteFunction.immediate { arguments2 ->
+            FluoriteFunction.create { arguments2 ->
                 receiver.callAsMethod(position, function, arguments + arguments2)
             }
         } else {
