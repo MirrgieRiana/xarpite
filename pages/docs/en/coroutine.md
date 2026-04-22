@@ -115,6 +115,37 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: Launch a New Coroutine (Lazy-Evaluated Argument Variant)
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+Asynchronously launches `function` as a coroutine.
+
+Equivalent to `LAUNCH`, but accepts the argument as a lazy-evaluated argument.
+
+`function` defers evaluation until actual invocation in some contexts including function call syntax.
+
+```shell
+$ xa '
+  promise := LAUNCH2 ("apple")
+  promise::await()
+'
+# apple
+```
+
+---
+
+`function` is launched independently of the caller and begins executing once the caller suspends.
+
+```shell
+$ xa '
+  result := PROMISE.new()
+  LAUNCH2 (result::complete("apple"))
+  result::await()
+'
+# apple
+```
+
 ## `PROMISE`: Asynchronous Result Container
 
 `PROMISE` is a container whose contents are determined with delay.

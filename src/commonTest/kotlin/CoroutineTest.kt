@@ -185,6 +185,52 @@ class CoroutineTest {
     }
 
     @Test
+    fun launch2Basic() = runTest {
+        // LAUNCH2 は遅延評価引数を使って非同期にコルーチンを起動する
+        """
+            promise := LAUNCH2 ("apple")
+            promise::await()
+        """.let { assertEquals("apple", eval(it).string) }
+
+        // LAUNCH2 は LAUNCH と同様に動作する
+        """
+            result := PROMISE.new()
+            LAUNCH2 (result::complete("apple"))
+            result::await()
+        """.let { assertEquals("apple", eval(it).string) }
+    }
+
+    @Test
+    fun launch2ExceptionStderr() = runTest {
+        // LAUNCH2内で例外が発生した場合、stderrに出力されることを検証
+        val ioContext = TestIoContext()
+
+        withEvaluator(ioContext) { context, evaluator ->
+            evaluator.defineMounts(context.run { createCommonMounts() })
+
+            // 例外を発生させるLAUNCH2
+            val result = evaluator.get(
+                """
+                    job := LAUNCH2 (!!"Error in LAUNCH2")
+                    SLEEP()
+                    (
+                        job::await()
+                        !!"Should not reach here"
+                    ) !? ( e => e)
+                """
+            ).cache()
+
+            // 結果の検証：例外がキャッチされている
+            assertEquals("Error in LAUNCH2", result.string)
+
+            // stderrへの出力を検証
+            val stderrOutput = ioContext.stderrBytes.toUtf8String()
+            assertTrue(stderrOutput.contains("COROUTINE["), "stderr should contain 'COROUTINE[', but was: $stderrOutput")
+            assertTrue(stderrOutput.contains("Error in LAUNCH2"), "stderr should contain the error message, but was: $stderrOutput")
+        }
+    }
+
+    @Test
     fun launchExceptionStderr() = runTest {
         // LAUNCH内で例外が発生した場合、stderrに出力されることを検証
         val ioContext = TestIoContext()

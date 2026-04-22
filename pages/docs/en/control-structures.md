@@ -106,6 +106,32 @@ $ xa -q '
 # 3
 ```
 
+### `WHILE2`: Conditional Loop (Lazy-Evaluated Argument Variant)
+
+`WHILE2(condition(): BOOLEAN; block(): VALUE): NULL`
+
+Repeatedly executes `block` while `condition` returns `TRUE`.
+
+Equivalent to `WHILE`, but accepts arguments as lazy-evaluated arguments.
+
+`condition` and `block` defer evaluation until actual invocation in some contexts including function call syntax, and may be evaluated multiple times on each loop iteration.
+
+```shell
+$ xa '
+  i := 0
+  WHILE2 (i < 5; (
+    OUT << i
+    i = i + 1
+  ))
+'
+# 0
+# 1
+# 2
+# 3
+# 4
+# NULL
+```
+
 ### `TRY`: Exception Catching
 
 `<T> TRY(block: () -> T): PROMISE<T>`
@@ -183,4 +209,28 @@ $ xa '
   ) !: label
 '
 # returned
+```
+
+### `TRY2`: Exception Catching (Lazy-Evaluated Argument Variant)
+
+`<T> TRY2(block(): T): PROMISE<T>`
+
+Executes `block` and returns the result as a `PROMISE`.
+
+Equivalent to `TRY`, but accepts the argument as a lazy-evaluated argument.
+
+`block` defers evaluation until actual invocation in some contexts including function call syntax.
+
+```shell
+$ xa '
+  TRY2 ("Success")::await()
+'
+# Success
+```
+
+```shell
+$ xa '
+  TRY2 (!! "Error")::await() !? ( e => "Caught: $e" )
+'
+# Caught: Error
 ```

@@ -1177,3 +1177,47 @@ $ xa -q '
 # 100
 # 100
 ```
+
+## `LAZY2`: Lazy Evaluation and Caching Function (Lazy-Evaluated Argument Variant)
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+Returns a function that performs lazy evaluation and caching.
+
+Equivalent to `LAZY`, but accepts the argument as a lazy-evaluated argument.
+
+`initializer` defers evaluation until actual invocation in some contexts including function call syntax. It is evaluated only once on the first call, and the result is cached.
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
+```
+
+---
+
+This function is useful in combination with delegated variables, as it allows omitting the function call operator.
+
+```shell
+$ xa -q '
+  time := 0
+  \now := LAZY2 (time)
+
+  time = 100
+  OUT << now
+  time = 200
+  OUT << now
+'
+# 100
+# 100
+```

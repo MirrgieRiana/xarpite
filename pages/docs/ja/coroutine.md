@@ -122,6 +122,37 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: 新しいコルーチンを起動する（遅延評価引数版）
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+`function` をコルーチンとして非同期に起動します。
+
+`LAUNCH` と同等ですが、引数を遅延評価引数として受け取ります。
+
+`function` は、関数呼び出し構文を含むいくつかの場面において、引数の評価が実際の評価時まで遅延されます。
+
+```shell
+$ xa '
+  promise := LAUNCH2 ("apple")
+  promise::await()
+'
+# apple
+```
+
+---
+
+`function` は呼び出し元とは独立して起動され、呼び出し元スレッドがサスペンドされ次第実行されます。
+
+```shell
+$ xa '
+  result := PROMISE.new()
+  LAUNCH2 (result::complete("apple"))
+  result::await()
+'
+# apple
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。
