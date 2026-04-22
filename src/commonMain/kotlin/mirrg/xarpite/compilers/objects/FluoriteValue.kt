@@ -84,7 +84,7 @@ suspend fun FluoriteValue.callMethod(position: Position?, name: String, argument
     }
 }
 
-suspend fun FluoriteValue.callMethodImmediate(position: Position?, name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
+suspend fun FluoriteValue.callMethodImmediate(position: Position?, name: String, arguments: Array<FluoriteValue>): FluoriteValue {
     return this.callMethod(position, name, arguments.map { suspend { it } }.toTypedArray())
 }
 
@@ -93,11 +93,11 @@ suspend fun FluoriteValue.invokeImmediate(position: Position?, arguments: Array<
 suspend fun FluoriteValue.setInvoke(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = run { this.callMethod(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
 suspend fun FluoriteValue.setInvokeImmediate(position: Position?, arguments: Array<FluoriteValue>) = run { this.callMethodImmediate(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
 suspend fun FluoriteValue.bind(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = this.callMethod(position, OperatorMethod.BIND.methodName, arguments)
-suspend fun FluoriteValue.toFluoriteNumber(position: Position?): FluoriteNumber = this.callMethodImmediate(position, OperatorMethod.TO_NUMBER.methodName).let { if (it is FluoriteNumber) it else it.toFluoriteNumber(position) }
-suspend fun FluoriteValue.toFluoriteString(position: Position?): FluoriteString = this.callMethodImmediate(position, OperatorMethod.TO_STRING.methodName).let { if (it is FluoriteString) it else it.toFluoriteString(position) }
-suspend fun FluoriteValue.toFluoriteBoolean(position: Position?): FluoriteBoolean = this.callMethodImmediate(position, OperatorMethod.TO_BOOLEAN.methodName).let { if (it is FluoriteBoolean) it else it.toFluoriteBoolean(position) }
+suspend fun FluoriteValue.toFluoriteNumber(position: Position?): FluoriteNumber = this.callMethod(position, OperatorMethod.TO_NUMBER.methodName).let { if (it is FluoriteNumber) it else it.toFluoriteNumber(position) }
+suspend fun FluoriteValue.toFluoriteString(position: Position?): FluoriteString = this.callMethod(position, OperatorMethod.TO_STRING.methodName).let { if (it is FluoriteString) it else it.toFluoriteString(position) }
+suspend fun FluoriteValue.toFluoriteBoolean(position: Position?): FluoriteBoolean = this.callMethod(position, OperatorMethod.TO_BOOLEAN.methodName).let { if (it is FluoriteBoolean) it else it.toFluoriteBoolean(position) }
 suspend fun FluoriteValue.toBoolean(position: Position?) = this.toFluoriteBoolean(position).value
-suspend fun FluoriteValue.getLength(position: Position?) = this.callMethodImmediate(position, OperatorMethod.GET_LENGTH.methodName) as FluoriteNumber
+suspend fun FluoriteValue.getLength(position: Position?) = this.callMethod(position, OperatorMethod.GET_LENGTH.methodName) as FluoriteNumber
 suspend fun FluoriteValue.contains(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.CONTAINS.methodName, arrayOf(value)).toFluoriteBoolean(position)
 suspend fun FluoriteValue.match(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.MATCH.methodName, arrayOf(value))
 suspend fun FluoriteValue.plus(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.PLUS.methodName, arrayOf(value))

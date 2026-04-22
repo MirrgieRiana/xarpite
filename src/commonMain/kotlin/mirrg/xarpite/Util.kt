@@ -15,7 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.callMethodImmediate
+import mirrg.xarpite.compilers.objects.callMethod
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
@@ -43,7 +43,7 @@ suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): St
         is FluoriteBoolean -> JsonPrimitive(this.value)
         FluoriteNull -> JsonNull
         is FluoriteStream -> throw IllegalArgumentException("Cannot convert FluoriteStream to single JSON")
-        else -> this.callMethodImmediate(position, "$&_").toJsonElement()
+        else -> this.callMethod(position, "$&_").toJsonElement()
     }
 
     val jsonElement = this.toJsonElement()
