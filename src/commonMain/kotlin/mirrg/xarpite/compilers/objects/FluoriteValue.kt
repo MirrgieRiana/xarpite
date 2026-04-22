@@ -93,7 +93,6 @@ suspend fun FluoriteValue.invokeImmediate(position: Position?, arguments: Array<
 suspend fun FluoriteValue.setInvoke(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = run { this.callMethod(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
 suspend fun FluoriteValue.setInvokeImmediate(position: Position?, arguments: Array<FluoriteValue>) = run { this.callMethodImmediate(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
 suspend fun FluoriteValue.bind(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = this.callMethod(position, OperatorMethod.BIND.methodName, arguments)
-suspend fun FluoriteValue.bindImmediate(position: Position?, arguments: Array<FluoriteValue>) = this.callMethodImmediate(position, OperatorMethod.BIND.methodName, arguments)
 suspend fun FluoriteValue.toFluoriteNumber(position: Position?): FluoriteNumber = this.callMethodImmediate(position, OperatorMethod.TO_NUMBER.methodName).let { if (it is FluoriteNumber) it else it.toFluoriteNumber(position) }
 suspend fun FluoriteValue.toFluoriteString(position: Position?): FluoriteString = this.callMethodImmediate(position, OperatorMethod.TO_STRING.methodName).let { if (it is FluoriteString) it else it.toFluoriteString(position) }
 suspend fun FluoriteValue.toFluoriteBoolean(position: Position?): FluoriteBoolean = this.callMethodImmediate(position, OperatorMethod.TO_BOOLEAN.methodName).let { if (it is FluoriteBoolean) it else it.toFluoriteBoolean(position) }
