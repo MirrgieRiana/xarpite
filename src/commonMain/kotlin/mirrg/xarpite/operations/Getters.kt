@@ -18,7 +18,7 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
-import mirrg.xarpite.compilers.objects.bindImmediate
+import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
 import mirrg.xarpite.compilers.objects.callImmediate
@@ -29,7 +29,7 @@ import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.getLength
 import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.instanceOf
-import mirrg.xarpite.compilers.objects.invokeImmediate
+import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
@@ -281,8 +281,8 @@ class FunctionalMethodAccessGetter(
 class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.invokeImmediate(position, arguments)
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
+        return function.invoke(position, arguments)
     }
 
     override val code get() = "FunctionInvocationGetter[${functionGetter.code};${argumentGetters.code}]"
@@ -291,8 +291,8 @@ class FunctionInvocationGetter(private val functionGetter: Getter, private val a
 class FunctionBindGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.bindImmediate(position, arguments)
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
+        return function.bind(position, arguments)
     }
 
     override val code get() = "FunctionBindGetter[${functionGetter.code};${argumentGetters.code}]"
