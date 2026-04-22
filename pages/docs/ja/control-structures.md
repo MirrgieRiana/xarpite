@@ -106,6 +106,32 @@ $ xa -q '
 # 3
 ```
 
+### `WHILE2`: 条件ループ（遅延評価引数版）
+
+`WHILE2(condition: *BOOLEAN; block: *VALUE): NULL`
+
+`condition` が `TRUE` を返す間、 `block` を繰り返し実行します。
+
+`WHILE` と同等ですが、引数を遅延評価引数として受け取ります。
+
+`condition` と `block` は、関数呼び出し構文を含むいくつかの場面において、引数の評価が実際の評価時まで遅延されます。また、ループの繰り返しのたびに複数回評価されます。
+
+```shell
+$ xa '
+  i := 0
+  WHILE2 (i < 5; (
+    OUT << i
+    i = i + 1
+  ))
+'
+# 0
+# 1
+# 2
+# 3
+# 4
+# NULL
+```
+
 ### `TRY`: 例外の捕捉
 
 `<T> TRY(block: () -> T): PROMISE<T>`
@@ -183,4 +209,28 @@ $ xa '
   ) !: label
 '
 # returned
+```
+
+### `TRY2`: 例外の捕捉（遅延評価引数版）
+
+`<T> TRY2(block: *T): PROMISE<T>`
+
+`block` をその場で実行し、結果を `PROMISE` で返します。
+
+`TRY` と同等ですが、引数を遅延評価引数として受け取ります。
+
+`block` は、関数呼び出し構文を含むいくつかの場面において、引数の評価が実際の評価時まで遅延されます。
+
+```shell
+$ xa '
+  TRY2 ("Success")::await()
+'
+# Success
+```
+
+```shell
+$ xa '
+  TRY2 (!! "Error")::await() !? ( e => "Caught: $e" )
+'
+# Caught: Error
 ```

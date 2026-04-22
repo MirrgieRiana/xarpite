@@ -137,4 +137,67 @@ class VariableTest {
         """.let { assertEquals("[6;6;1]", eval(it).array()) }
     }
 
+    @Test
+    fun lazy2BasicTest() = runTest {
+        // LAZY2の基本動作テスト
+        """
+            \sum := LAZY2 (1 .. 3 >> SUM)
+            sum
+        """.let { assertEquals(6, eval(it).int) }
+    }
+
+    @Test
+    fun lazy2WithDelegatedVariableTest() = runTest {
+        // LAZY2と委譲変数の組み合わせテスト
+        """
+            time := 0
+            \now := LAZY2 (time)
+
+            time = 100
+            [now, now]
+        """.let { assertEquals("[100;100]", eval(it).array()) }
+    }
+
+    @Test
+    fun lazy2MultipleAccessTest() = runTest {
+        // LAZY2で複数回アクセスしても1回しか評価されないことを確認
+        """
+            time := 0
+            \now := LAZY2 (time)
+
+            time = 100
+            first := now
+            time = 110
+            second := now
+            [first, second]
+        """.let { assertEquals("[100;100]", eval(it).array()) }
+    }
+
+    @Test
+    fun lazy2EvaluationCountTest() = runTest {
+        // LAZY2が実際に1回しか評価されないことをカウンターで確認
+        """
+            counter := 0
+            \increment := LAZY2 (counter = counter + 1)
+
+            [increment, increment, increment, counter]
+        """.let { assertEquals("[1;1;1;1]", eval(it).array()) }
+    }
+
+    @Test
+    fun lazy2WithStreamTest() = runTest {
+        // LAZY2がストリームを返した場合、解決してキャッシュすることを確認
+        """
+            counter := 0
+            lazy := LAZY2 ((
+                counter = counter + 1
+                1 .. 3
+            ))
+
+            first := lazy() >> SUM
+            second := lazy() >> SUM
+            [first, second, counter]
+        """.let { assertEquals("[6;6;1]", eval(it).array()) }
+    }
+
 }
