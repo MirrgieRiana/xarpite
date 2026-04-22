@@ -1,7 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteInt
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -97,15 +97,15 @@ class MathTest {
         val random = eval("RAND")
 
         repeat(100) {
-            val d = random.invoke(null, arrayOf()).double
+            val d = random.invokeImmediate(null, arrayOf()).double
             assertTrue(d >= 0.0 && d < 1.0)
         }
         repeat(100) {
-            val i = random.invoke(null, arrayOf(FluoriteInt(4))).int
+            val i = random.invokeImmediate(null, arrayOf(FluoriteInt(4))).int
             assertTrue(i >= 0 && i < 4)
         }
         repeat(100) {
-            val i = random.invoke(null, arrayOf(FluoriteInt(4), FluoriteInt(10))).int
+            val i = random.invokeImmediate(null, arrayOf(FluoriteInt(4), FluoriteInt(10))).int
             assertTrue(i >= 4 && i < 10)
         }
     }

@@ -123,7 +123,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                                 suspend fun yield(matchResult: FluoriteValue, fromIndex: Int, toIndex: Int) {
                                     sb.append(string.value, index, fromIndex)
                                     val newValue = if (new is FluoriteFunction) {
-                                        new.invoke(null, arrayOf(matchResult))
+                                        new.invokeImmediate(null, arrayOf(matchResult))
                                     } else {
                                         new
                                     }

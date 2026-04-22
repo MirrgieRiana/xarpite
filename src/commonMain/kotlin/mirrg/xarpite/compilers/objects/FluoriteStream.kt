@@ -15,7 +15,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         var sum: FluoriteValue? = null
                         (arguments[0] as FluoriteStream).collect { item ->
                             val number = item.toFluoriteNumber(null)
-                            sum = sum?.callMethod(null, OperatorMethod.PLUS.methodName, arrayOf(number)) ?: number
+                            sum = sum?.callMethodImmediate(null, OperatorMethod.PLUS.methodName, arrayOf(number)) ?: number
                         }
                         sum ?: FluoriteInt.ZERO
                     },
@@ -40,7 +40,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         val key = arguments[1]
                         FluoriteStream {
                             stream.collect { item ->
-                                val result = item.callMethod(null, OperatorMethod.PROPERTY.methodName, arrayOf(key))
+                                val result = item.callMethodImmediate(null, OperatorMethod.PROPERTY.methodName, arrayOf(key))
                                 if (result is FluoriteStream) {
                                     result.flowProvider(this)
                                 } else {
@@ -55,7 +55,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         FluoriteFunction.immediate { arguments2 ->
                             FluoriteStream {
                                 stream.collect { item ->
-                                    val result = item.callMethod(null, method.value, arguments2)
+                                    val result = item.callMethodImmediate(null, method.value, arguments2)
                                     if (result is FluoriteStream) {
                                         result.flowProvider(this)
                                     } else {
@@ -70,7 +70,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
                         var sum: FluoriteValue? = null
                         stream.collect { item ->
                             val length = item.getLength(null)
-                            sum = sum?.callMethod(null, OperatorMethod.PLUS.methodName, arrayOf(length)) ?: length
+                            sum = sum?.callMethodImmediate(null, OperatorMethod.PLUS.methodName, arrayOf(length)) ?: length
                         }
                         sum ?: FluoriteInt.ZERO
                     },

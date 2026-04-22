@@ -17,7 +17,7 @@ import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -92,7 +92,7 @@ fun FluoriteFunction.toJsFunction(): dynamic {
         var finished = false
         var result: dynamic = undefined
         val job = CoroutineScope(Dispatchers.Main.immediate).launch {
-            val result2 = this@toJsFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            val result2 = this@toJsFunction.invokeImmediate(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
             finished = true
             result = result2
         }
@@ -117,7 +117,7 @@ fun FluoriteFunction.toJsAsyncFunction(): dynamic {
     )
     return functionCreator { arguments: Array<dynamic> ->
         GlobalScope.promise {
-            this@toJsAsyncFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            this@toJsAsyncFunction.invokeImmediate(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
         }
     }
 }

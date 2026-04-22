@@ -7,7 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoritePromise
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.consume
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.define
 import mirrg.xarpite.operations.Returner
@@ -21,9 +21,9 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             val condition = arguments[0]
             val block = arguments[1]
             while (true) {
-                val conditionResult = condition.invoke(null, emptyArray())
+                val conditionResult = condition.invokeImmediate(null, emptyArray())
                 if (!conditionResult.toBoolean(null)) break
-                block.invoke(null, emptyArray()).consume()
+                block.invokeImmediate(null, emptyArray()).consume()
             }
             FluoriteNull
         },
@@ -32,7 +32,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             val block = arguments[0]
             val promise = FluoritePromise()
             val value = try {
-                block.invoke(null, emptyArray()).cache()
+                block.invokeImmediate(null, emptyArray()).cache()
             } catch (e: Returner) {
                 throw e
             } catch (e: CancellationException) {

@@ -22,14 +22,14 @@ import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
 import mirrg.xarpite.compilers.objects.callImmediate
-import mirrg.xarpite.compilers.objects.callMethod
+import mirrg.xarpite.compilers.objects.callMethodImmediate
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.getLength
 import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.instanceOf
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.match
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
@@ -282,7 +282,7 @@ class FunctionInvocationGetter(private val functionGetter: Getter, private val a
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
         val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
-        return function.invoke(position, arguments)
+        return function.invokeImmediate(position, arguments)
     }
 
     override val code get() = "FunctionInvocationGetter[${functionGetter.code};${argumentGetters.code}]"
@@ -390,7 +390,7 @@ class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) return FluoriteNull
         val key = keyGetter.evaluate(env)
-        return receiver.callMethod(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
+        return receiver.callMethodImmediate(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
     }
 
     override val code get() = "ItemAccessGetter[${receiverGetter.code};${keyGetter.code};$isNullSafe]"

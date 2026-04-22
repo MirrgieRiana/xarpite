@@ -25,7 +25,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -72,7 +72,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     }
                     FluoriteNull
                 }
-                generator.invoke(null, arrayOf(yieldFunction)).consume()
+                generator.invokeImmediate(null, arrayOf(yieldFunction)).consume()
             }
         },
         "REVERSE" define FluoriteFunction.immediate { arguments ->
@@ -155,7 +155,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             FluoriteStream {
                                 val set = mutableSetOf<FluoriteValue>()
                                 stream.collect { item ->
-                                    val key = keyGetter.invoke(null, arrayOf(item))
+                                    val key = keyGetter.invokeImmediate(null, arrayOf(item))
                                     if (set.add(key)) emit(item)
                                 }
                             }
@@ -491,7 +491,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     var result: FluoriteValue? = null
                     stream.collect { item ->
                         val result2 = result
-                        result = (if (result2 == null) item else function.invoke(null, arrayOf(result2, item)))
+                        result = (if (result2 == null) item else function.invokeImmediate(null, arrayOf(result2, item)))
                     }
                     result ?: FluoriteNull
                 } else {
@@ -526,7 +526,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         val stream = arguments[1]
 
                         return@immediate if (stream is FluoriteStream) {
-                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invoke(null, arrayOf(a)).compareTo(null, keyGetter.invoke(null, arrayOf(b))).value }.toFluoriteStream()
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invokeImmediate(null, arrayOf(a)).compareTo(null, keyGetter.invokeImmediate(null, arrayOf(b))).value }.toFluoriteStream()
                         } else {
                             stream
                         }
@@ -537,7 +537,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         val stream = arguments[1]
 
                         return@immediate if (stream is FluoriteStream) {
-                            stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invoke(null, arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invokeImmediate(null, arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
                         } else {
                             stream
                         }
@@ -675,12 +675,12 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     FluoriteStream {
                         if (stream is FluoriteStream) {
                             stream.collect { item ->
-                                if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
+                                if (predicate.invokeImmediate(null, arrayOf(item)).toBoolean(null)) {
                                     emit(item)
                                 }
                             }
                         } else {
-                            if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
+                            if (predicate.invokeImmediate(null, arrayOf(stream)).toBoolean(null)) {
                                 emit(stream)
                             }
                         }
@@ -782,7 +782,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
                 suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter?.invoke(null, arrayOf(value)) ?: value
+                    val key = keyGetter?.invokeImmediate(null, arrayOf(value)) ?: value
                     val list = groups.getOrPut(key) { mutableListOf() }
                     list += value
                 }

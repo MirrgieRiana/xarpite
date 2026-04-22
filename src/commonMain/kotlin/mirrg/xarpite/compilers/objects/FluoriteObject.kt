@@ -66,7 +66,7 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
                         val obj = arguments[0] as FluoriteObject
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
                         FluoriteFunction.immediate { arguments2 ->
-                            obj.invoke(null, arguments1 + arguments2)
+                            obj.invokeImmediate(null, arguments1 + arguments2)
                         }
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
