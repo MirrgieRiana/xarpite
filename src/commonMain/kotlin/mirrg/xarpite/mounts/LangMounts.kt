@@ -97,7 +97,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
             promise
         },
         "LAUNCH2" define FluoriteFunction.create { arguments ->
-            if (arguments.size != 1) usage("<T> LAUNCH2(function: *T): PROMISE<T>")
+            if (arguments.size != 1) usage("<T> LAUNCH2(function(): T): PROMISE<T>")
             val function = arguments[0]
             val promise = FluoritePromise()
             val coroutineId = nextCoroutineId
@@ -196,7 +196,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
             }
         },
         "LAZY2" define FluoriteFunction.create { arguments ->
-            if (arguments.size != 1) usage("<T> LAZY2(initializer: *T): () -> T")
+            if (arguments.size != 1) usage("<T> LAZY2(initializer(): T): () -> T")
             val initializer = arguments[0]
             var value: FluoriteValue? = null
             FluoriteFunction.immediate {

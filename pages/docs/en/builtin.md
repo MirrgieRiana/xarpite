@@ -1180,7 +1180,7 @@ $ xa -q '
 
 ## `LAZY2` Lazy Evaluation and Caching Function (Lazy Argument Version)
 
-`<T> LAZY2(initializer: *T): () -> T`
+`<T> LAZY2(initializer(): T): () -> T`
 
 Returns a function that performs lazy evaluation and caching.
 

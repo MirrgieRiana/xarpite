@@ -124,7 +124,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 ### `LAUNCH2`: 新しいコルーチンを起動する（遅延評価引数版）
 
-`<T> LAUNCH2(function: *T): PROMISE<T>`
+`<T> LAUNCH2(function(): T): PROMISE<T>`
 
 `function` をコルーチンとして非同期に起動します。
 

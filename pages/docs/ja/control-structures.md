@@ -108,7 +108,7 @@ $ xa -q '
 
 ### `WHILE2`: 条件ループ（遅延評価引数版）
 
-`WHILE2(condition: *BOOLEAN; block: *VALUE): NULL`
+`WHILE2(condition(): BOOLEAN; block(): VALUE): NULL`
 
 `condition` が `TRUE` を返す間、 `block` を繰り返し実行します。
 
@@ -213,7 +213,7 @@ $ xa '
 
 ### `TRY2`: 例外の捕捉（遅延評価引数版）
 
-`<T> TRY2(block: *T): PROMISE<T>`
+`<T> TRY2(block(): T): PROMISE<T>`
 
 `block` をその場で実行し、結果を `PROMISE` で返します。
 

@@ -108,7 +108,7 @@ $ xa -q '
 
 ### `WHILE2`: Conditional Loop (Lazy Argument Version)
 
-`WHILE2(condition: *BOOLEAN; block: *VALUE): NULL`
+`WHILE2(condition(): BOOLEAN; block(): VALUE): NULL`
 
 Repeatedly executes `block` while `condition` returns `TRUE`.
 
@@ -213,7 +213,7 @@ $ xa '
 
 ### `TRY2`: Exception Catching (Lazy Argument Version)
 
-`<T> TRY2(block: *T): PROMISE<T>`
+`<T> TRY2(block(): T): PROMISE<T>`
 
 Executes `block` and returns the result as a `PROMISE`.
 
