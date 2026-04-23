@@ -122,7 +122,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
-### `LAUNCH2`: 新しいコルーチンを起動する（遅延評価引数版）
+### `LAUNCH2`: 新しいコルーチンを起動する
 
 `<T> LAUNCH2(function(): T): PROMISE<T>`
 
@@ -130,25 +130,12 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 `LAUNCH` と同等ですが、引数を遅延評価引数として受け取ります。
 
-`function` は、関数呼び出し構文を含むいくつかの場面において、引数の評価が実際の評価時まで遅延されます。
-
 ```shell
 $ xa '
-  promise := LAUNCH2 ("apple")
+  promise := LAUNCH2 ((
+    "apple"
+  ))
   promise::await()
-'
-# apple
-```
-
----
-
-`function` は呼び出し元とは独立して起動され、呼び出し元スレッドがサスペンドされ次第実行されます。
-
-```shell
-$ xa '
-  result := PROMISE.new()
-  LAUNCH2 (result::complete("apple"))
-  result::await()
 '
 # apple
 ```
