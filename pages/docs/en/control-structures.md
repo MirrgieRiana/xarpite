@@ -42,7 +42,7 @@ See [Jump](jump.md) for details.
 
 `WHILE(condition: () -> BOOLEAN; block: () -> VALUE): NULL`
 
-Repeatedly executes `block` while `condition` returns `TRUE`.
+Repeatedly executes `block` while `condition` returns true.
 
 This function reproduces the common "while statement".
 
@@ -106,20 +106,18 @@ $ xa -q '
 # 3
 ```
 
-### `WHILE2`: Conditional Loop (Lazy Argument Version)
+### `WHILE2`: Conditional Loop
 
 `WHILE2(condition(): BOOLEAN; block(): VALUE): NULL`
 
-Repeatedly executes `block` while `condition` returns `TRUE`.
+Repeatedly executes `block` while `condition` returns true.
 
 Equivalent to `WHILE`, but receives arguments as lazy-evaluated arguments.
-
-`condition` and `block` have their evaluation deferred until actual use in several situations including function call syntax. They are also re-evaluated on each iteration of the loop.
 
 ```shell
 $ xa '
   i := 0
-  WHILE2 (i < 5; (
+  WHILE2 [ i < 5 ] ((
     OUT << i
     i = i + 1
   ))
@@ -211,7 +209,7 @@ $ xa '
 # returned
 ```
 
-### `TRY2`: Exception Catching (Lazy Argument Version)
+### `TRY2`: Exception Catching
 
 `<T> TRY2(block(): T): PROMISE<T>`
 
@@ -219,18 +217,12 @@ Executes `block` and returns the result as a `PROMISE`.
 
 Equivalent to `TRY`, but receives the argument as a lazy-evaluated argument.
 
-`block` has its evaluation deferred until actual use in several situations including function call syntax.
-
 ```shell
 $ xa '
-  TRY2 ("Success")::await()
+  promise := TRY2 ((
+    "Success"
+  ))
+  promise::await()
 '
 # Success
-```
-
-```shell
-$ xa '
-  TRY2 (!! "Error")::await() !? ( e => "Caught: $e" )
-'
-# Caught: Error
 ```

@@ -567,6 +567,12 @@ $ xa -q '
 
 Function calls with closures can also be written as method calls or partial application of functions.
 
+# Lazy-Evaluated Arguments
+
+Xarpite functions essentially receive arguments not as values but as arguments.
+
+Most functions evaluate all arguments immediately upon being called, but some functions defer, skip, or evaluate arguments multiple times.
+
 # Named Arguments
 
 There is no syntax dedicated to named arguments, but you can achieve something close using the entry operator.

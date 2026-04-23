@@ -115,7 +115,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
-### `LAUNCH2`: Launch a New Coroutine (Lazy Argument Version)
+### `LAUNCH2`: Launch a New Coroutine
 
 `<T> LAUNCH2(function(): T): PROMISE<T>`
 
@@ -123,25 +123,12 @@ Launches `function` asynchronously as a coroutine.
 
 Equivalent to `LAUNCH`, but receives the argument as a lazy-evaluated argument.
 
-`function` has its evaluation deferred until actual use in several situations including function call syntax.
-
 ```shell
 $ xa '
-  promise := LAUNCH2 ("apple")
+  promise := LAUNCH2 ((
+    "apple"
+  ))
   promise::await()
-'
-# apple
-```
-
----
-
-`function` is launched independently of the caller and is executed as soon as the calling thread is suspended.
-
-```shell
-$ xa '
-  result := PROMISE.new()
-  LAUNCH2 (result::complete("apple"))
-  result::await()
 '
 # apple
 ```
