@@ -96,6 +96,26 @@ fun createLangMounts(): List<Map<String, Mount>> {
             nextCoroutineId++
             promise
         },
+        "LAUNCH2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 1) usage("<T> LAUNCH2(function(): T): PROMISE<T>")
+            val function = arguments[0]
+            val promise = FluoritePromise()
+            val coroutineId = nextCoroutineId
+            context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
+                try {
+                    promise.deferred.complete(function().cache())
+                } catch (e: Throwable) {
+                    try {
+                        context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
+                    } catch (_: Throwable) {
+                        // stderrへの出力に失敗しても、元の例外処理は継続する
+                    }
+                    promise.deferred.completeExceptionally(e)
+                }
+            }
+            nextCoroutineId++
+            promise
+        },
         *run {
             fun create(): FluoriteValue {
                 return FluoriteFunction.immediate { arguments ->
@@ -168,6 +188,20 @@ fun createLangMounts(): List<Map<String, Mount>> {
             FluoriteFunction.immediate {
                 if (value == null) {
                     val value2 = initializer.invoke(null, emptyArray()).cache()
+                    value = value2
+                    value2
+                } else {
+                    value
+                }
+            }
+        },
+        "LAZY2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 1) usage("<T> LAZY2(initializer(): T): () -> T")
+            val initializer = arguments[0]
+            var value: FluoriteValue? = null
+            FluoriteFunction.immediate {
+                if (value == null) {
+                    val value2 = initializer().cache()
                     value = value2
                     value2
                 } else {

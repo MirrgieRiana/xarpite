@@ -1018,3 +1018,27 @@ $ xa -q '
 # 100
 # 100
 ```
+
+## `LAZY2` 遅延評価・キャッシュ関数
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+遅延評価とキャッシュをする関数を返します。
+
+`LAZY` と同等ですが、引数を遅延評価引数として受け取ります。
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
+```

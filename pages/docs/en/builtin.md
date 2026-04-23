@@ -1177,3 +1177,27 @@ $ xa -q '
 # 100
 # 100
 ```
+
+## `LAZY2` Lazy Evaluation and Caching Function
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+Returns a function that performs lazy evaluation and caching.
+
+Equivalent to `LAZY`, but receives the argument as a lazy-evaluated argument.
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
+```
