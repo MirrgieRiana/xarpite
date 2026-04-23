@@ -679,11 +679,12 @@ class CliTest {
         val result = cliEval(
             context,
             """
-            a := USE("$absolutePath")
-            b := USE("$absolutePath")
+            a := USE(ARGS.0)
+            b := USE(ARGS.0)
             a.variables.fruit = "orange"
             b.variables.fruit
-            """.trimIndent()
+            """.trimIndent(),
+            absolutePath,
         ).toFluoriteString(null).value
         assertEquals("orange", result)
         fileSystem.delete(file)
