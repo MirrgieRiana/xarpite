@@ -23,23 +23,23 @@ private class KtorServerControlImpl(
 ) : KtorServerControl {
     private var server: EmbeddedServer<*, *>? = null
     private val routes = java.util.concurrent.ConcurrentHashMap<String, String>()
-    
+
     override val baseUrl: String
         get() = "http://localhost:$port"
-    
+
     override fun addRoute(path: String, content: String) {
         routes[path] = content
     }
-    
+
     override fun stop() {
         server?.stop(1000, 2000)
         server = null
     }
-    
+
     fun getContent(path: String): String? {
         return routes[path]
     }
-    
+
     suspend fun startServer() {
         // 事前にServerSocketで取得した空きポート番号を使用してKtorサーバーを起動
         server = embeddedServer(CIO, port = port) {
@@ -56,7 +56,7 @@ private class KtorServerControlImpl(
                 }
             }
         }.start(wait = false)
-        
+
         // サーバーが実際に応答できるまで待つ（実時間で待機するためにDispatchers.IOを使用）
         withContext(Dispatchers.IO) {
             var retries = 50
