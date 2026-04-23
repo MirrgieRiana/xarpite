@@ -117,7 +117,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 ### `LAUNCH2`: Launch a New Coroutine (Lazy Argument Version)
 
-`<T> LAUNCH2(function: *T): PROMISE<T>`
+`<T> LAUNCH2(function(): T): PROMISE<T>`
 
 Launches `function` asynchronously as a coroutine.
 

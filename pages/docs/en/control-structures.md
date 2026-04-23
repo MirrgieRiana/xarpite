@@ -108,13 +108,13 @@ $ xa -q '
 
 ### `WHILE2`: Conditional Loop (Lazy Argument Version)
 
-`WHILE2(condition: *BOOLEAN; block: *VALUE): NULL`
+`WHILE2(condition(): BOOLEAN; block(): VALUE): NULL`
 
 Repeatedly executes `block` while `condition` returns `TRUE`.
 
 Equivalent to `WHILE`, but receives arguments as lazy-evaluated arguments.
 
-`condition` and `block` have their evaluation deferred until actual use in several situations including function call syntax. They are also evaluated multiple times on each iteration of the loop.
+`condition` and `block` have their evaluation deferred until actual use in several situations including function call syntax. They are also re-evaluated on each iteration of the loop.
 
 ```shell
 $ xa '
@@ -213,7 +213,7 @@ $ xa '
 
 ### `TRY2`: Exception Catching (Lazy Argument Version)
 
-`<T> TRY2(block: *T): PROMISE<T>`
+`<T> TRY2(block(): T): PROMISE<T>`
 
 Executes `block` and returns the result as a `PROMISE`.
 

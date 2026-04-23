@@ -1021,7 +1021,7 @@ $ xa -q '
 
 ## `LAZY2` 遅延評価・キャッシュ関数（遅延評価引数版）
 
-`<T> LAZY2(initializer: *T): () -> T`
+`<T> LAZY2(initializer(): T): () -> T`
 
 遅延評価とキャッシュをする関数を返します。
 

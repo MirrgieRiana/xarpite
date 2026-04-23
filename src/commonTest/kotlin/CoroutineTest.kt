@@ -232,7 +232,7 @@ class CoroutineTest {
 
     @Test
     fun launch2StreamLaunch() = runTest {
-        // LAUNCH2 ラムダの戻り値のストリームは、awaitされなくても1度だけイテレートされる
+        // LAUNCH2 の式の評価結果がストリームの場合、awaitされなくても1度だけイテレートされる
         """
             promises := [PROMISE.new(), PROMISE.new()]
             LAUNCH2 (0 .. 1 | promises(_)::complete())
@@ -241,7 +241,7 @@ class CoroutineTest {
             TRUE
         """.let { assertTrue(eval(it).boolean) }
 
-        // LAUNCH2 ラムダの戻り値のストリームは、何度awaitしても必ず1度だけ評価される
+        // LAUNCH2 の式の評価結果がストリームの場合、何度awaitしても必ず1度だけ評価される
         """
             counter := 0
             promise := LAUNCH2 (1 .. 10 | counter = counter + _)

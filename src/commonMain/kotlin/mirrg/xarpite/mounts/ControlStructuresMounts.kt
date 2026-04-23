@@ -28,7 +28,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             FluoriteNull
         },
         "WHILE2" define FluoriteFunction.create { arguments ->
-            if (arguments.size != 2) usage("WHILE2(condition: *BOOLEAN; block: *VALUE): NULL")
+            if (arguments.size != 2) usage("WHILE2(condition(): BOOLEAN; block(): VALUE): NULL")
             val condition = arguments[0]
             val block = arguments[1]
             while (true) {
@@ -56,7 +56,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             promise
         },
         "TRY2" define FluoriteFunction.create { arguments ->
-            if (arguments.size != 1) usage("<T> TRY2(block: *T): PROMISE<T>")
+            if (arguments.size != 1) usage("<T> TRY2(block(): T): PROMISE<T>")
             val block = arguments[0]
             val promise = FluoritePromise()
             val value = try {
