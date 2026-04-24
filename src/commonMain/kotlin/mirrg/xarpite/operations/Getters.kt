@@ -702,16 +702,15 @@ class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariab
                 } else {
                     argument()
                 }
-            }.toTypedArray().toFluoriteArray()
-            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments)
+            }.toTypedArray()
+            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments.toFluoriteArray())
             variableIndices.forEachIndexed { i, variableIndex ->
-                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(
-                    if (isLazy[i]) {
-                        FluoriteFunction.create { arguments.getOrNull(i)?.invoke() ?: FluoriteNull }
-                    } else {
-                        arguments.getOrNull(i)?.invoke() ?: FluoriteNull
-                    }
-                )
+                val evaluatedArgument = if (isLazy[i]) {
+                    FluoriteFunction.create { arguments.getOrNull(i)?.invoke() ?: FluoriteNull }
+                } else {
+                    arguments.getOrNull(i)?.invoke() ?: FluoriteNull
+                }
+                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(evaluatedArgument)
             }
             getter.evaluate(newEnv)
         }
