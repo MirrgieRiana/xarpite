@@ -698,7 +698,7 @@ class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariab
             val newEnv = Environment(env, 1 + variableIndices.size, 0)
             val evaluatedArguments = arguments.mapIndexed { i, argument ->
                 if (isLazy.getOrNull(i) ?: false) {
-                    FluoriteFunction.create { argument() }
+                    FluoriteFunction.immediate { argument() }
                 } else {
                     argument()
                 }
