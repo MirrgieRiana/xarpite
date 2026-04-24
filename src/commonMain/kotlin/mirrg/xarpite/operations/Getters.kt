@@ -694,37 +694,30 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
 
 class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val isLazy: List<Boolean>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        return if (isLazy.any { it }) {
-            FluoriteFunction.create { arguments ->
-                val newEnv = Environment(env, 1 + variableIndices.size, 0)
-                val evaluatedArguments = Array(arguments.size) { i -> resolveArgument(arguments, i) }
-                newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments.toFluoriteArray())
-                variableIndices.forEachIndexed { i, variableIndex ->
-                    newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(resolveArgument(arguments, i))
+        return FluoriteFunction.create { arguments ->
+            val newEnv = Environment(env, 1 + variableIndices.size, 0)
+            val evaluatedArguments = arguments.mapIndexed { i, argument ->
+                if (isLazy.getOrNull(i) ?: false) {
+                    FluoriteFunction.create { argument() }
+                } else {
+                    argument()
                 }
-                getter.evaluate(newEnv)
+            }.toTypedArray().toFluoriteArray()
+            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments)
+            variableIndices.forEachIndexed { i, variableIndex ->
+                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(
+                    if (isLazy[i]) {
+                        FluoriteFunction.create { arguments.getOrNull(i)?.invoke() ?: FluoriteNull }
+                    } else {
+                        arguments.getOrNull(i)?.invoke() ?: FluoriteNull
+                    }
+                )
             }
-        } else {
-            FluoriteFunction.immediate { arguments ->
-                val newEnv = Environment(env, 1 + variableIndices.size, 0)
-                newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(arguments.toFluoriteArray())
-                variableIndices.forEachIndexed { i, variableIndex ->
-                    newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(arguments.getOrNull(i) ?: FluoriteNull)
-                }
-                getter.evaluate(newEnv)
-            }
+            getter.evaluate(newEnv)
         }
     }
 
-    private suspend fun resolveArgument(arguments: Array<suspend () -> FluoriteValue>, i: Int): FluoriteValue {
-        return if (i < isLazy.size && isLazy[i]) {
-            FluoriteFunction.immediate { _ -> arguments[i]() }
-        } else {
-            arguments.getOrNull(i)?.invoke() ?: FluoriteNull
-        }
-    }
-
-    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${getter.code}]"
+    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${isLazy.joinToString(",") { "$it" }};${getter.code}]"
 }
 
 class MatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
