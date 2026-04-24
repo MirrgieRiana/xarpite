@@ -697,21 +697,10 @@ class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariab
         return if (isLazy.any { it }) {
             FluoriteFunction.create { arguments ->
                 val newEnv = Environment(env, 1 + variableIndices.size, 0)
-                val evaluatedArguments = Array(arguments.size) { i ->
-                    if (i < isLazy.size && isLazy[i]) {
-                        FluoriteFunction.immediate { _ -> arguments[i]() }
-                    } else {
-                        arguments.getOrNull(i)?.invoke() ?: FluoriteNull
-                    }
-                }
+                val evaluatedArguments = Array(arguments.size) { i -> resolveArgument(arguments, i) }
                 newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments.toFluoriteArray())
                 variableIndices.forEachIndexed { i, variableIndex ->
-                    val value = if (i < isLazy.size && isLazy[i]) {
-                        FluoriteFunction.immediate { _ -> arguments[i]() }
-                    } else {
-                        arguments.getOrNull(i)?.invoke() ?: FluoriteNull
-                    }
-                    newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(value)
+                    newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(resolveArgument(arguments, i))
                 }
                 getter.evaluate(newEnv)
             }
@@ -724,6 +713,14 @@ class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariab
                 }
                 getter.evaluate(newEnv)
             }
+        }
+    }
+
+    private suspend fun resolveArgument(arguments: Array<suspend () -> FluoriteValue>, i: Int): FluoriteValue {
+        return if (i < isLazy.size && isLazy[i]) {
+            FluoriteFunction.immediate { _ -> arguments[i]() }
+        } else {
+            arguments.getOrNull(i)?.invoke() ?: FluoriteNull
         }
     }
 
