@@ -356,12 +356,13 @@ private fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): 
     val argumentsVariableIndex = functionNewFrame.defineVariable("__")
     val variables = parseArguments(node.arguments)
     val variableIndices = variables.map { (name, _) -> functionNewFrame.defineVariable(name) }
+    val isLazy = variables.map { (_, lazy) -> lazy }
     val functionBodyGetter = run {
         val bracketsNewFrame = Frame(functionNewFrame)
         val bracketsBodyGetter = bracketsNewFrame.compileToGetter(node.body)
         NewEnvironmentGetter(bracketsNewFrame.nextVariableIndex, bracketsNewFrame.mountCount, bracketsBodyGetter)
     }
-    return listOf(FunctionGetter(functionNewFrame.frameIndex, argumentsVariableIndex, variableIndices, emptyList(), functionBodyGetter))
+    return listOf(FunctionGetter(functionNewFrame.frameIndex, argumentsVariableIndex, variableIndices, isLazy, functionBodyGetter))
 }
 
 fun Frame.createSimpleArgumentGetters(node: BracketsRightSimpleNode): List<Getter> {
@@ -597,6 +598,7 @@ private fun parseArguments(argumentsNode: Node): List<Pair<String, Boolean>> {
                     throw IllegalArgumentException("Invalid lazy argument: $node")
                 }
             }
+
             else -> throw IllegalArgumentException("Invalid argument: $node")
         }
     }
