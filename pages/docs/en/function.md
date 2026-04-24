@@ -129,6 +129,33 @@ $ xa '
 # 123
 ```
 
+### Lazy-Evaluated Arguments
+
+By appending `()` after the argument name, you can declare that argument as a **lazy-evaluated argument**.
+
+A lazy-evaluated argument is not evaluated immediately at the time of the call. Instead, the variable that receives this argument becomes "a function that evaluates the argument".
+The evaluation occurs only when you call `argumentName()` inside the function body.
+
+```shell
+$ xa '(block() -> block())(1 + 2)'
+# 3
+```
+
+---
+
+In the following example, only one of `then` or `else` is evaluated depending on the value of `cond`.
+
+```shell
+$ xa -q '
+  my_if := cond, then(), else() -> cond ? then() : else()
+
+  counter := 0
+  my_if(TRUE; counter = counter + 1; counter = counter + 10)
+  OUT << counter
+'
+# 1
+```
+
 ## Argument List
 
 The variable `__` receives all given arguments as an array.
