@@ -573,12 +573,30 @@ Xarpite functions essentially receive arguments not as values but as arguments.
 
 Most functions evaluate all arguments immediately upon being called, but some functions defer, skip, or evaluate arguments multiple times.
 
+This property affects the timing of side effects and computation.
+
 The following syntaxes pass arguments to the function as expressions, without immediate evaluation.
 
 - Function call: `function(argument; ...)`
 - Method call: `receiver::method(argument; ...)`
 - Function partial application: `function[argument; ...]`
 - Method partial application: `receiver::method[argument; ...]`
+
+## Defining Functions with Lazy-Evaluated Arguments
+
+By appending `()` after the argument name in lambda operators and closure-style function calls, you can declare that argument as a lazy-evaluated argument.
+
+```shell
+$ xa -q '
+  if := condition, then(), else() -> condition ? then() : else()
+  if [TRUE] [(
+    OUT << "Then branch"
+  )] ((
+    OUT << "Else branch"
+  ))
+'
+# Then branch
+```
 
 # Named Arguments
 
