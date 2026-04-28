@@ -756,6 +756,17 @@ $ xa '
 
 # 組み込み定数
 
+## `NOP` 何もしない関数
+
+`NOP(): NULL`
+
+何もせずにNULLを返します。
+
+```shell
+$ xa 'NOP()'
+# NULL
+```
+
 ## `RUN` 関数を実行する
 
 `<T> RUN(function: () -> T): T`

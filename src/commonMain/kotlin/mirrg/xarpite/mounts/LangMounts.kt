@@ -65,6 +65,10 @@ fun createLangMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
+        "NOP" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 0) usage("NOP(): NULL")
+            FluoriteNull
+        },
         "RUN" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
             val function = arguments[0]

@@ -1470,4 +1470,9 @@ class XarpiteTest {
         assertEquals(579, eval("RUN(() -> 456 + 123)").int) // RUN は関数の中で計算ができる
     }
 
+    @Test
+    fun nopTest() = runTest {
+        assertEquals(FluoriteNull, eval("NOP()")) // NOP は何もせず NULL を返す
+    }
+
 }

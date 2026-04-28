@@ -756,6 +756,17 @@ This is a specification that arises from the fact that variables are statically 
 
 # Built-in Constants
 
+## `NOP` Do-Nothing Function
+
+`NOP(): NULL`
+
+Does nothing and returns NULL.
+
+```shell
+$ xa 'NOP()'
+# NULL
+```
+
 ## `RUN` Execute a Function
 
 `<T> RUN(function: () -> T): T`
