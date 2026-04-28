@@ -236,6 +236,14 @@ class FunctionTest {
 
         // 遅延評価引数を (x()) -> 記法でも宣言できる
         assertEquals(3, eval("((x()) -> x())(1 + 2)").int)
+
+        // クロージャ付き関数呼び出し（=> 記法）でも遅延評価引数が機能する
+        """
+            counter := 0
+            register := listener -> listener(counter = counter + 1)
+            register ( event() => event() + event() )
+            counter
+        """.let { assertEquals(2, eval(it).int) }
     }
 
 }
