@@ -595,7 +595,7 @@ private fun parseArguments(argumentsNode: Node): List<Pair<String, Boolean>> {
                 if (receiver is IdentifierNode && body is EmptyNode) {
                     Pair(receiver.string, true)
                 } else {
-                    throw IllegalArgumentException("Invalid lazy argument: $node")
+                    throw IllegalArgumentException("Invalid pass-by-formula argument: $node")
                 }
             }
 

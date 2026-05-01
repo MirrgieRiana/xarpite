@@ -121,7 +121,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 Launches `function` asynchronously as a coroutine.
 
-Equivalent to `LAUNCH`, but receives the argument as a lazy-evaluated argument.
+Equivalent to `LAUNCH`, but receives the argument as a pass-by-formula argument.
 
 ```shell
 $ xa '

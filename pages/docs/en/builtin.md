@@ -1184,7 +1184,7 @@ $ xa -q '
 
 Returns a function that performs lazy evaluation and caching.
 
-Equivalent to `LAZY`, but receives the argument as a lazy-evaluated argument.
+Equivalent to `LAZY`, but receives the argument as a pass-by-formula argument.
 
 ```shell
 $ xa -q '

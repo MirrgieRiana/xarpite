@@ -112,7 +112,7 @@ $ xa -q '
 
 Repeatedly executes `block` while `condition` returns true.
 
-Equivalent to `WHILE`, but receives arguments as lazy-evaluated arguments.
+Equivalent to `WHILE`, but receives arguments as pass-by-formula arguments.
 
 ```shell
 $ xa '
@@ -215,7 +215,7 @@ $ xa '
 
 Executes `block` and returns the result as a `PROMISE`.
 
-Equivalent to `TRY`, but receives the argument as a lazy-evaluated argument.
+Equivalent to `TRY`, but receives the argument as a pass-by-formula argument.
 
 ```shell
 $ xa '

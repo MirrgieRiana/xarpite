@@ -190,11 +190,11 @@ class FunctionTest {
     }
 
     @Test
-    fun lazyArgument() = runTest {
-        // block() 記法で遅延評価引数を宣言できる
-        assertEquals(3, eval("(block() -> block())(1 + 2)").int) // 遅延評価引数の基本動作
+    fun passByFormulaArgument() = runTest {
+        // block() 記法で式渡し引数を宣言できる
+        assertEquals(3, eval("(block() -> block())(1 + 2)").int) // 式渡し引数の基本動作
 
-        // 遅延評価引数は呼び出さなければ評価されない
+        // 式渡し引数は呼び出さなければ評価されない
         """
             counter := 0
             f := block() -> NULL
@@ -202,7 +202,7 @@ class FunctionTest {
             counter
         """.let { assertEquals(0, eval(it).int) }
 
-        // 遅延評価引数は複数回呼び出すと複数回評価される
+        // 式渡し引数は複数回呼び出すと複数回評価される
         """
             counter := 0
             f := block() -> block() + block()
@@ -210,7 +210,7 @@ class FunctionTest {
             counter
         """.let { assertEquals(2, eval(it).int) }
 
-        // 通常引数と遅延評価引数を混在できる
+        // 通常引数と式渡し引数を混在できる
         """
             counter := 0
             f := x, block() -> x + block()
@@ -234,10 +234,10 @@ class FunctionTest {
             counter
         """.let { assertEquals(10, eval(it).int) }
 
-        // 遅延評価引数を (x()) -> 記法でも宣言できる
+        // 式渡し引数を (x()) -> 記法でも宣言できる
         assertEquals(3, eval("((x()) -> x())(1 + 2)").int)
 
-        // クロージャ付き関数呼び出し（=> 記法）でも遅延評価引数が機能する
+        // クロージャ付き関数呼び出し（=> 記法）でも式渡し引数が機能する
         """
             counter := 0
             register := listener -> listener(counter = counter + 1)

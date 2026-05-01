@@ -186,7 +186,7 @@ class CoroutineTest {
 
     @Test
     fun launch2Basic() = runTest {
-        // LAUNCH2 は遅延評価引数を使って非同期にコルーチンを起動する
+        // LAUNCH2 は式渡し引数を使って非同期にコルーチンを起動する
         """
             promise := LAUNCH2 ("apple")
             promise::await()

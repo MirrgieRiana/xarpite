@@ -567,7 +567,7 @@ $ xa -q '
 
 Function calls with closures can also be written as method calls or partial application of functions.
 
-# Lazy-Evaluated Arguments
+# Pass-by-Formula Arguments
 
 Xarpite functions essentially receive arguments not as values but as arguments.
 
@@ -582,9 +582,9 @@ The following syntaxes pass arguments to the function as expressions, without im
 - Function partial application: `function[argument; ...]`
 - Method partial application: `receiver::method[argument; ...]`
 
-## Defining Functions with Lazy-Evaluated Arguments
+## Defining Functions with Pass-by-Formula Arguments
 
-By appending `()` after the argument name in lambda operators and closure-style function calls, you can declare that argument as a lazy-evaluated argument.
+By appending `()` after the argument name in lambda operators and closure-style function calls, you can declare that argument as a pass-by-formula argument.
 
 ```shell
 $ xa -q '
