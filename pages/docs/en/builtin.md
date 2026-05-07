@@ -526,7 +526,7 @@ $ xa 'COUNT(,)'
 
 ## `AND` / `ALL` Check if All are True
 
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether all passed elements evaluate to true.
 
@@ -603,7 +603,7 @@ $ xa '
 
 ## `OR` / `ANY` Check if Any is True
 
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether any of the passed elements evaluate to true.
 

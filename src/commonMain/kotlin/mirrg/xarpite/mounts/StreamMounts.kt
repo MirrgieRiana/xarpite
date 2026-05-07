@@ -384,9 +384,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction.create fn@{ arguments ->
-                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
-                    for (argument in arguments) {
+                return FluoriteFunction.create { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { argument ->
                         val stream = argument()
                         if (stream is FluoriteStream) {
                             val result = flow {
@@ -394,9 +394,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                                     if (!item.toBoolean(null)) emit(item)
                                 }
                             }.firstOrNull()
-                            if (result != null) return@fn result
+                            if (result != null) return@create result
                         } else {
-                            if (!stream.toBoolean(null)) return@fn stream
+                            if (!stream.toBoolean(null)) return@create stream
                         }
                     }
                     FluoriteBoolean.TRUE
@@ -409,9 +409,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction.create fn@{ arguments ->
-                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
-                    for (argument in arguments) {
+                return FluoriteFunction.create { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { argument ->
                         val stream = argument()
                         if (stream is FluoriteStream) {
                             val result = flow {
@@ -419,9 +419,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                                     if (item.toBoolean(null)) emit(item)
                                 }
                             }.firstOrNull()
-                            if (result != null) return@fn result
+                            if (result != null) return@create result
                         } else {
-                            if (stream.toBoolean(null)) return@fn stream
+                            if (stream.toBoolean(null)) return@create stream
                         }
                     }
                     FluoriteBoolean.FALSE
