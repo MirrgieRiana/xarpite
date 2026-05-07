@@ -138,6 +138,34 @@ class DataConversionTest {
     }
 
     @Test
+    fun tsv() = runTest {
+        assertEquals("a\tb", eval(""" ["a","b"] >> TSV """).string) // TSV で配列を文字列に変換できる（デフォルト区切り文字はタブ）
+        assertEquals("""["a","b"]""", eval(""" "a\tb" >> TSVD >> JSON """).string) // TSVD で文字列を配列に変換できる（デフォルト区切り文字はタブ）
+
+        // ストリームは各要素が変換される
+        assertEquals("a\tb,c\td", eval(""" ["a","b"],["c","d"] >> TSV """).stream())
+
+        // タブを含むセルはクォートされる
+        assertEquals("\"a\tb\"", eval(""" ["a\tb"] >> TSV """).string)
+        assertEquals("""["a\tb"]""", eval(""" "\"a\tb\"" >> TSVD >> JSON """).string)
+
+        // TSVDのフォーマット
+        assertEquals("""["a","","b"]""", eval(""" "a\t\tb" >> TSVD >> JSON """).string) // 空のセクションは空文字列になる
+        assertEquals("""["","a","b"]""", eval(""" "\ta\tb" >> TSVD >> JSON """).string) // 先頭のタブの前は空文字列になる
+        assertEquals("""["a","b",""]""", eval(""" "a\tb\t" >> TSVD >> JSON """).string) // 末尾のタブの後は空文字列になる
+
+        // セパレータを指定した場合はCSVとシノニムになる
+        assertEquals(
+            eval(""" ["a","b"] >> CSV[separator: "|"] """).string,
+            eval(""" ["a","b"] >> TSV[separator: "|"] """).string,
+        ) // separator指定時はCSVとTSVは同一の結果になる
+        assertEquals(
+            eval(""" "a|b" >> CSVD[separator: "|"] >> JSON """).string,
+            eval(""" "a|b" >> TSVD[separator: "|"] >> JSON """).string,
+        ) // separator指定時はCSVDとTSVDは同一の結果になる
+    }
+
+    @Test
     fun utf8() = runTest {
         // UTF8 で文字列をUTF-8 BLOBに変換
         assertEquals("BLOB.of([97;98;99])", eval(""" "abc" >> UTF8 >> TO_STRING """).string) // ASCII文字列
