@@ -375,7 +375,7 @@ $ xa '
 
 ## `CSV` Convert Array to CSV String
 
-`CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
 
 Encodes an array of strings or a stream thereof into a CSV row string or a stream thereof.
 
@@ -431,7 +431,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` Convert CSV String to Array
 
-`CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Decodes a CSV row string or a stream thereof into an array of strings or a stream thereof.
 
@@ -467,3 +467,15 @@ Half-width spaces and tab characters at the beginning/end of lines or before/aft
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
+
+## `TSV` Convert Array to TSV String
+
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+
+Has the same behavior as the `CSV` function, but the default separator is the tab character `\t`.
+
+## `TSVD` Convert TSV String to Array
+
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+
+Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.

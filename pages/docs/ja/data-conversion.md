@@ -375,7 +375,7 @@ $ xa '
 
 ## `CSV` 配列をCSV文字列に変換
 
-`CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
 
 文字列の配列やそのストリームを、CSV行の文字列やそのストリームにエンコードします。
 
@@ -431,7 +431,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` CSV文字列を配列に変換
 
-`CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 CSV行の文字列やそのストリームを、文字列の配列やそのストリームにデコードします。
 
@@ -467,3 +467,15 @@ $ xa ' ",1,,3," >> CSVD >> JSON '
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
+
+## `TSV` 配列をTSV文字列に変換
+
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+
+`CSV` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
+
+## `TSVD` TSV文字列を配列に変換
+
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+
+`CSVD` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
