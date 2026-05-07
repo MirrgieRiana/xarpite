@@ -2289,6 +2289,33 @@ class CliTest {
     }
 
     @Test
+    fun execlWithCwd() = runTest {
+        val context = TestIoContext()
+        try {
+            // EXECLでもcwd引数が使用できることを確認
+            val result = cliEval(context, getExecLSrcWrappingHexForShellWithCwd("pwd", "/tmp"))
+            val output = result.toFluoriteString(null).value
+            assertEquals("/tmp", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
+    fun execlWithCwdAndEnv() = runTest {
+        val context = TestIoContext()
+        try {
+            // EXECLでもcwdとenvの両方が使用できることを確認
+            val script = "printf \"\$TEST_VAR:\$(pwd)\""
+            val result = cliEval(context, getExecLSrcWrappingHexForShellWithCwdAndEnv(script, "/tmp", mapOf("TEST_VAR" to "hello")))
+            val output = result.toFluoriteString(null).value
+            assertEquals("hello:/tmp", output)
+        } catch (e: WorkInProgressError) {
+            // 非対応プラットフォームではWorkInProgressErrorがスローされるので無視
+        }
+    }
+
+    @Test
     fun err() = runTest {
         val context = TestIoContext()
         // ERR でエラー出力に書き込める
@@ -2773,4 +2800,17 @@ private fun getExecSrcWrappingHexForShellWithCwd(script: String, cwd: String): S
 private fun getExecSrcWrappingHexForShellWithEnvAndCwd(script: String, envObject: String, cwd: String): String {
     val hex = script.encodeToByteArray().toHexString()
     return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject; cwd: "$cwd")"""
+}
+
+/** EXECLのcwd対応版 */
+private fun getExecLSrcWrappingHexForShellWithCwd(script: String, cwd: String): String {
+    val hex = script.encodeToByteArray().toHexString()
+    return """EXECL("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; cwd: "$cwd")"""
+}
+
+/** EXECLのcwdとenv対応版 */
+private fun getExecLSrcWrappingHexForShellWithCwdAndEnv(script: String, cwd: String, env: Map<String, String>): String {
+    val hex = script.encodeToByteArray().toHexString()
+    val envObject = env.entries.joinToString(", ", "{", "}") { (k, v) -> "$k: \"$v\"" }
+    return """EXECL("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject; cwd: "$cwd")"""
 }
