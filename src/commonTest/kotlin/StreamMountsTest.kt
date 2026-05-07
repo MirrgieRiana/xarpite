@@ -109,6 +109,10 @@ class StreamMountsTest {
         assertEquals(2, eval("1 MAX 2").int) // 中置 MAX で2値の大きい方を得る（右が大きい）
         assertEquals(2, eval("2 MAX 1").int) // 中置 MAX で2値の大きい方を得る（左が大きい）
         assertEquals(5, eval("5 MAX 5").int) // 中置 MAX で2値が等しい場合はその値を得る
+        assertEquals(1, eval("(1, 3) MIN (2, 4)").int) // 2引数をストリームとして MIN できる
+        assertEquals(4, eval("(1, 3) MAX (2, 4)").int) // 2引数をストリームとして MAX できる
+        assertEquals(FluoriteNull, eval("MIN(,; ,)")) // 両引数が空ストリームの場合、NULL
+        assertEquals(FluoriteNull, eval("MAX(,; ,)")) // 両引数が空ストリームの場合、NULL
     }
 
     @Test
