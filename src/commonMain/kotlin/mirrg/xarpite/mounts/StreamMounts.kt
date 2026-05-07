@@ -350,7 +350,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (a.compareTo(null, b).value <= 0) a else b
                 }
 
-                else -> usage("MIN(numbers: STREAM<NUMBER>): NUMBER")
+                else -> usage("MIN(numbers: STREAM<NUMBER>): NUMBER | MIN(a: NUMBER; b: NUMBER): NUMBER")
             }
         },
         "MAX" define FluoriteFunction.immediate { arguments ->
@@ -377,7 +377,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (a.compareTo(null, b).value >= 0) a else b
                 }
 
-                else -> usage("MAX(numbers: STREAM<NUMBER>): NUMBER")
+                else -> usage("MAX(numbers: STREAM<NUMBER>): NUMBER | MAX(a: NUMBER; b: NUMBER): NUMBER")
             }
         },
         "COUNT" define FluoriteFunction.immediate { arguments ->
