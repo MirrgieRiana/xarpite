@@ -431,7 +431,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` Convert CSV String to Array
 
-`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Decodes a CSV row string or a stream thereof into an array of strings or a stream thereof.
 
@@ -476,6 +476,6 @@ Has the same behavior as the `CSV` function, but the default separator is the ta
 
 ## `TSVD` Convert TSV String to Array
 
-`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.

@@ -431,7 +431,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` CSV文字列を配列に変換
 
-`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 CSV行の文字列やそのストリームを、文字列の配列やそのストリームにデコードします。
 
@@ -476,6 +476,6 @@ $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 
 ## `TSVD` TSV文字列を配列に変換
 
-`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 `CSVD` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
