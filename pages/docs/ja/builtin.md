@@ -386,7 +386,7 @@ $ xa 'COUNT(,)'
 
 ## `AND` / `ALL` すべてが真かを判定
 
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 渡されたすべての要素が真であるかどうかを判定します。
 
@@ -420,7 +420,7 @@ $ xa '1 .. 50 | _ != 39 >> AND'
 
 最初に論理値化が偽である要素が見つかった時点で、以降のストリームのイテレーションと要素の論理値化はスキップされます。
 
-左辺の値によって右辺自体の評価をスキップする `&&` 演算子とは異なり、各引数そのものは関数の実行前にすべて評価されます。
+`&&` 演算子と同様に、第1引数の評価結果が確定した時点で第2引数の評価を省略します。
 
 ```shell
 $ xa '1, "a", TRUE, 0, "b" >> AND'
@@ -458,12 +458,12 @@ $ xa '
 
   list
 '
-# [left;right]
+# [left]
 ```
 
 ## `OR` / `ANY` いずれかが真かを判定
 
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 渡された要素がいずれか一つでも真であるかどうかを判定します。
 
