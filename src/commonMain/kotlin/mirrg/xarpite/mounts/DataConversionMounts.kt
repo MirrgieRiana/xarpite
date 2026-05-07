@@ -258,12 +258,12 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                         .toMutableMap()
                     val separator = parameters.pop("separator", {
                         val string = it.toFluoriteString(null).value
-                        check(string.length == 1)
+                        if (string.length != 1) usage()
                         string
                     }) { defaultSeparator } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
                     val quote = parameters.pop("quote", {
                         val string = it.toFluoriteString(null).value
-                        check(string.length == 1)
+                        if (string.length != 1) usage()
                         string
                     }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
                     if (parameters.isNotEmpty()) usage()
@@ -331,12 +331,12 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                         .toMutableMap()
                     val separator = parameters.pop("separator", {
                         val string = it.toFluoriteString(null).value
-                        check(string.length == 1)
+                        if (string.length != 1) usage()
                         string
                     }) { defaultSeparator } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
                     val quote = parameters.pop("quote", {
                         val string = it.toFluoriteString(null).value
-                        check(string.length == 1)
+                        if (string.length != 1) usage()
                         string
                     }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
                     if (parameters.isNotEmpty()) usage()
