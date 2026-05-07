@@ -560,7 +560,7 @@ More precisely, this function returns the first element whose booleanization is 
 
 As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
 
-Unlike the `&&` operator, which skips evaluation of the right-hand side itself based on the left-hand side value, each argument itself is evaluated before the function executes.
+Like the `&&` operator, the second argument is not evaluated if the first argument already determines the result.
 
 ```shell
 $ xa '1, "a", TRUE, 0, "b" >> AND'
@@ -598,7 +598,7 @@ $ xa '
 
   list
 '
-# [left;right]
+# [left]
 ```
 
 ## `OR` / `ANY` Check if Any is True

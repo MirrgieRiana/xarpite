@@ -384,18 +384,19 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction.immediate { arguments ->
+                return FluoriteFunction.create fn@{ arguments ->
                     if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
-                    arguments.forEach { stream ->
+                    for (argument in arguments) {
+                        val stream = argument()
                         if (stream is FluoriteStream) {
                             val result = flow {
                                 stream.collect { item ->
                                     if (!item.toBoolean(null)) emit(item)
                                 }
                             }.firstOrNull()
-                            if (result != null) return@immediate result
+                            if (result != null) return@fn result
                         } else {
-                            if (!stream.toBoolean(null)) return@immediate stream
+                            if (!stream.toBoolean(null)) return@fn stream
                         }
                     }
                     FluoriteBoolean.TRUE
@@ -408,18 +409,19 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(name: String): FluoriteFunction {
-                return FluoriteFunction.immediate { arguments ->
+                return FluoriteFunction.create fn@{ arguments ->
                     if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN")
-                    arguments.forEach { stream ->
+                    for (argument in arguments) {
+                        val stream = argument()
                         if (stream is FluoriteStream) {
                             val result = flow {
                                 stream.collect { item ->
                                     if (item.toBoolean(null)) emit(item)
                                 }
                             }.firstOrNull()
-                            if (result != null) return@immediate result
+                            if (result != null) return@fn result
                         } else {
-                            if (stream.toBoolean(null)) return@immediate stream
+                            if (stream.toBoolean(null)) return@fn stream
                         }
                     }
                     FluoriteBoolean.FALSE
