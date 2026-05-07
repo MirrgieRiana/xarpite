@@ -469,11 +469,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` Minimum Value of Stream
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the minimum value of the first argument stream.
+Returns the minimum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -481,15 +481,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` Maximum Value of Stream
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the maximum value of the first argument stream.
+Returns the maximum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -497,6 +500,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` Number of Stream Elements

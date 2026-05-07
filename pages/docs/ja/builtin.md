@@ -329,11 +329,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` ストリームの最小値
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-第1引数のストリームの最小値を返します。
+`numbers1` および `numbers2` の各要素のうち、最小の値を返します。
 
-ストリームが空の場合は `NULL` を返します。
+要素が1個も無い場合は `NULL` を返します。
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -341,15 +341,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` ストリームの最大値
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-第1引数のストリームの最大値を返します。
+`numbers1` および `numbers2` の各要素のうち、最大の値を返します。
 
-ストリームが空の場合は `NULL` を返します。
+要素が1個も無い場合は `NULL` を返します。
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -357,6 +360,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` ストリームの要素数

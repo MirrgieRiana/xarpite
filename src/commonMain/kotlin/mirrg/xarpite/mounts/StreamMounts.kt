@@ -327,42 +327,44 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "MIN" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                if (stream is FluoriteStream) {
-                    var result: FluoriteValue? = null
-                    stream.collect { item ->
+            if (arguments.size !in 1..2) usage("MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER")
+            var result: FluoriteValue? = null
+            arguments.forEach { argument ->
+                if (argument is FluoriteStream) {
+                    argument.collect { item ->
                         val result2 = result
                         if (result2 == null || item.compareTo(null, result2).value < 0) {
                             result = item
                         }
                     }
-                    result ?: FluoriteNull
                 } else {
-                    stream
+                    val result2 = result
+                    if (result2 == null || argument.compareTo(null, result2).value < 0) {
+                        result = argument
+                    }
                 }
-            } else {
-                usage("MIN(numbers: STREAM<NUMBER>): NUMBER")
             }
+            result ?: FluoriteNull
         },
         "MAX" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                if (stream is FluoriteStream) {
-                    var result: FluoriteValue? = null
-                    stream.collect { item ->
+            if (arguments.size !in 1..2) usage("MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER")
+            var result: FluoriteValue? = null
+            arguments.forEach { argument ->
+                if (argument is FluoriteStream) {
+                    argument.collect { item ->
                         val result2 = result
                         if (result2 == null || item.compareTo(null, result2).value > 0) {
                             result = item
                         }
                     }
-                    result ?: FluoriteNull
                 } else {
-                    stream
+                    val result2 = result
+                    if (result2 == null || argument.compareTo(null, result2).value > 0) {
+                        result = argument
+                    }
                 }
-            } else {
-                usage("MAX(numbers: STREAM<NUMBER>): NUMBER")
             }
+            result ?: FluoriteNull
         },
         "COUNT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
