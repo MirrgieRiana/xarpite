@@ -243,7 +243,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             )
         },
         *run {
-            fun createCsv(name: String, defaultSeparator: String): FluoriteFunction {
+            fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("""$name(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
                     if (arguments.isEmpty()) usage()
@@ -310,8 +310,13 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     }
                 }
             }
-
-            fun createCsvD(name: String, defaultSeparator: String): FluoriteFunction {
+            arrayOf(
+                "CSV" define create("CSV", ","),
+                "TSV" define create("TSV", "\t"),
+            )
+        },
+        *run {
+            fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("""$name(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
                     if (arguments.isEmpty()) usage()
@@ -420,12 +425,9 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     }
                 }
             }
-
             arrayOf(
-                "CSV" define createCsv("CSV", ","),
-                "TSV" define createCsv("TSV", "\t"),
-                "CSVD" define createCsvD("CSVD", ","),
-                "TSVD" define createCsvD("TSVD", "\t"),
+                "CSVD" define create("CSVD", ","),
+                "TSVD" define create("TSVD", "\t"),
             )
         },
     ).let { listOf(it) }
