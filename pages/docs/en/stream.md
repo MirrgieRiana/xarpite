@@ -720,6 +720,24 @@ $ xa '
 
 # Stream Functions
 
+## `TO_STREAM`: Convert Value to Stream
+
+`TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>`
+
+If `stream` is a stream, returns it as-is without resolving it.
+
+If `stream` is not a stream, converts it to a single-element stream that yields that value.
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
 ## `PIPE`: Create Stream That Remembers Read Position
 
 `<T> PIPE(stream: STREAM<T>): STREAM<T>`
@@ -848,4 +866,28 @@ $ xa '
 '
 # [0;1;2;3;4;5;6;7;8;9]
 # Finished
+```
+
+## `RANDOM`: Select a Random Element from a Stream
+
+`<T> RANDOM(stream: STREAM<T>): T | NULL`
+
+Selects and returns a random element from `stream`.
+
+---
+
+Returns `NULL` if the stream is empty.
+
+```shell
+$ xa 'RANDOM(,)'
+# NULL
+```
+
+---
+
+When a single-element stream or a non-stream value is passed, the value itself is returned.
+
+```shell
+$ xa 'RANDOM(42)'
+# 42
 ```

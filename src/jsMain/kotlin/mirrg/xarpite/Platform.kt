@@ -4,9 +4,6 @@ import okio.FileSystem
 
 actual fun getProgramName(): String? = null
 
-var envGetter: () -> Map<String, String> = { emptyMap() }
-actual fun getEnv(): Map<String, String> = envGetter()
-
 actual fun hasFreeze() = false
 
 var fileSystemGetter: (() -> FileSystem)? = null
@@ -21,6 +18,7 @@ actual fun getFileSystem(): Result<FileSystem> {
 
 var isWindowsImpl: (() -> Boolean)? = null
 actual fun isWindows(): Boolean = isWindowsImpl!!()
+<<<<<<< HEAD
 
 var readLineFromStdinImpl: (suspend () -> String?)? = null
 actual suspend fun readLineFromStdin(): String? = readLineFromStdinImpl!!()
@@ -37,3 +35,5 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl
 actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?): String {
     throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
 }
+=======
+>>>>>>> origin/main

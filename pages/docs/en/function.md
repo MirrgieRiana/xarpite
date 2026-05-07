@@ -532,7 +532,7 @@ $ xa -q '
   OUT << obj::apple()
   OUT << obj::banana(1)
   OUT << obj::cherry(1; 2; 3)
-  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? (e => e)
+  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? ( e => e )
 '
 # apple[] called
 # banana[1] called
@@ -566,6 +566,37 @@ $ xa -q '
 ## Variations
 
 Function calls with closures can also be written as method calls or partial application of functions.
+
+# Pass-by-Formula Arguments
+
+Xarpite functions essentially receive arguments not as values but as arguments.
+
+Most functions evaluate all arguments immediately upon being called, but some functions defer, skip, or evaluate arguments multiple times.
+
+This property affects the timing of side effects and computation.
+
+The following syntaxes pass arguments to the function as expressions, without immediate evaluation.
+
+- Function call: `function(argument; ...)`
+- Method call: `receiver::method(argument; ...)`
+- Function partial application: `function[argument; ...]`
+- Method partial application: `receiver::method[argument; ...]`
+
+## Defining Functions with Pass-by-Formula Arguments
+
+By appending `()` after the argument name in lambda operators and closure-style function calls, you can declare that argument as a pass-by-formula argument.
+
+```shell
+$ xa -q '
+  if := condition, then(), else() -> condition ? then() : else()
+  if [TRUE] [(
+    OUT << "Then branch"
+  )] ((
+    OUT << "Else branch"
+  ))
+'
+# Then branch
+```
 
 # Named Arguments
 
@@ -725,11 +756,33 @@ This is a specification that arises from the fact that variables are statically 
 
 # Built-in Constants
 
+## `NOP` Do-Nothing Function
+
+`NOP(): NULL`
+
+Does nothing and returns NULL.
+
+```shell
+$ xa 'NOP()'
+# NULL
+```
+
+## `RUN` Execute a Function
+
+`<T> RUN(function: () -> T): T`
+
+Executes `function` with zero arguments and returns the result.
+
+```shell
+$ xa 'RUN(() -> 123)'
+# 123
+```
+
 ## `CALL` Call a Function
 
-`CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
+`<A..., T> CALL(function: (A) -> T; arguments: [A]): T`
 
-Executes the function in the first argument by passing each element of the array in the second argument as an argument.
+Executes `function` by passing each element of `arguments` as a separate argument.
 
 ```shell
 $ xa '

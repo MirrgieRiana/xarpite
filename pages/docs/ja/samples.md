@@ -102,31 +102,26 @@ $ xa '
 
 ```shell
 $ xa '
-  m := a, b -> (
-    ai := 0
-    bi := 0
-    [0 ~ $#a + $#b | (
-      ai != $#a && (bi == $#b || a(ai) < b(bi)) ? (
-        v := a(ai)
-        ai = ai + 1
-        v
-      ) : (
-        v := b(bi)
-        bi = bi + 1
-        v
-      )
-    )]
-  )
-
-  ms := l -> $#l < 2 ? l : (
-    c := FLOOR($#l / 2)
-    m(
-      ms(l[0 ~ c])
-      ms(l[c ~ $#l])
-    )
-  )
-
-  ms([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5])
+   merge := a, b -> :
+     ai := 0
+     bi := 0
+     [0 ~ a.$# + b.$# | :
+       ai != a.$# && (bi == b.$# || a(ai) <= b(bi)) ? :
+         v := a(ai)
+         ai++
+         v
+       : :
+         v := b(bi)
+         bi++
+         v
+     ]
+   mergeSort := list -> list.$# < 2 ? list : :
+     center := list.$# DIV 2
+     merge(
+       mergeSort(list[0 ~ center])
+       mergeSort(list[center ~ list.$#])
+     )
+   mergeSort([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5])
 '
 # [1;1;2;3;3;4;5;5;5;6;9]
 ```

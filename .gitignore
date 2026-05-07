@@ -8,3 +8,6 @@ build/
 .kotlin
 ~$*
 *.tmp
+.xarpite/
+/.codex
+/CLAUDE.md

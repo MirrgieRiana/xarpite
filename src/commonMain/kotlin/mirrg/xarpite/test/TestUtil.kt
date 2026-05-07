@@ -1,13 +1,15 @@
 package mirrg.xarpite.test
 
-import io.github.mirrgieriana.xarpeg.parseAllOrThrow
+import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
+import mirrg.xarpite.IoContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
+import mirrg.xarpite.XarpiteParseContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
@@ -23,14 +25,14 @@ import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 
 fun parse(src: String): String {
-    val parseResult = XarpiteGrammar("test").rootParser.parseAllOrThrow(src)
+    val parseResult = XarpiteGrammar("test").rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String): FluoriteValue {
-    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }

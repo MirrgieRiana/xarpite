@@ -162,12 +162,13 @@ $ xa ' "[$%+09.2f(123)]" '
 | 半角空白 | 符号のための半角空白を表示します。    |
 | `0`  | スペースの代わりに `0` で埋めます。 |
 
-| 変換 | 意味    |
-|----|-------|
-| d  | 10進整数 |
-| x  | 16進整数 |
-| f  | 10進小数 |
-| s  | 文字列   |
+| 変換 | 意味         |
+|----|------------|
+| d  | 10進整数      |
+| x  | 16進整数（小文字） |
+| X  | 16進整数（大文字） |
+| f  | 10進小数      |
+| s  | 文字列        |
 
 ## 文字コンテント `abcABC123`
 
@@ -499,3 +500,36 @@ $ xa '"Ab", "Cd" >> LC'
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` パス解決
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+`STRING::RESOLVE(file: STRING): STRING`
+
+`dir` を起点にして `file` へのパスを解決します。
+
+```shell
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
+```
+
+---
+
+出力パスは自動で正規化（ `.` や `..` の平坦化）が行われます。
+
+シンボリックリンクの解決は行われません。
+
+```shell
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+`"$PWD/file"` のような文字列連結を使うと、ルートディレクトリに対して `//file` のようなパスが生成されます。
+
+代わりに `PWD::RESOLVE("file")` のように `RESOLVE` 関数を使用してください。

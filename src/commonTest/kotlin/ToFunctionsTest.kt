@@ -36,7 +36,7 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" OR(TRUE; TRUE) """).boolean)
         assertEquals(true, eval(""" OR(TRUE; FALSE) """).boolean)
         assertEquals(true, eval(""" OR(FALSE; TRUE) """).boolean)
-        
+
         // すべて偽の場合 - FALSEを返す
         assertEquals(false, eval(""" OR(FALSE; FALSE) """).boolean)
 
@@ -47,21 +47,21 @@ class ToFunctionsTest {
         // 最初に真である要素を返す
         assertEquals(1, eval(""" OR(1; 0) """).int)
         assertEquals("a", eval(""" OR(""; "a") """).string)
-        
+
         // すべて偽の場合はFALSEを返す
         assertEquals(false, eval(""" OR(0; "") """).boolean)
-        
+
         // ストリームの場合 - 最初に真の要素を返す
         assertEquals(true, eval(""" OR(TRUE, FALSE; TRUE, FALSE) """).boolean)
         assertEquals(true, eval(""" 1 .. 50 | _ != 39 >> OR """).boolean)
-        
+
         // ストリームの場合 - すべて偽ならFALSEを返す
         assertEquals(false, eval(""" FALSE, FALSE >> OR """).boolean)
         assertEquals(false, eval(""" 0, "" >> OR """).boolean)
-        
+
         // 要素が一つも無い場合はFALSEを返す
         assertEquals(false, eval(""" EMPTY >> OR """).boolean)
-        
+
         // イテレーションのスキップ確認
         val result1 = eval("""
             list := []
@@ -72,6 +72,22 @@ class ToFunctionsTest {
             list
         """)
         assertEquals("[1]", result1.toString()) // [1] だけが評価される
+
+        // 短絡評価 - 第1引数がTRUEの場合、第2引数は評価されない
+        val result2 = eval("""
+            list := []
+            (list += "left"; TRUE) OR (list += "right"; FALSE)
+            list
+        """)
+        assertEquals("[left]", result2.toString()) // 第1引数がTRUEなので第2引数は評価されない
+
+        // 短絡評価 - 第1引数がFALSEの場合、第2引数は評価される
+        val result3 = eval("""
+            list := []
+            (list += "left"; FALSE) OR (list += "right"; TRUE)
+            list
+        """)
+        assertEquals("[left;right]", result3.toString()) // 第1引数がFALSEなので第2引数も評価される
     }
 
     @Test
@@ -86,7 +102,7 @@ class ToFunctionsTest {
     fun andTest() = runTest {
         // すべて真の場合 - TRUEを返す
         assertEquals(true, eval(""" AND(TRUE; TRUE) """).boolean)
-        
+
         // 偽の要素がある場合 - 最初の偽の要素を返す
         assertEquals(false, eval(""" AND(TRUE; FALSE) """).boolean)
         assertEquals(false, eval(""" AND(FALSE; TRUE) """).boolean)
@@ -99,20 +115,20 @@ class ToFunctionsTest {
         // 最初に偽である要素を返す
         assertEquals(0, eval(""" AND(1, "a", TRUE, 0, "b") """).int)
         assertEquals("", eval(""" AND(1; "") """).string)
-        
+
         // すべて真の場合はTRUEを返す
         assertEquals(true, eval(""" AND(1; "a") """).boolean)
         assertEquals(true, eval(""" AND("a"; "b") """).boolean)
         assertEquals(true, eval(""" AND(1, "a", TRUE, 2, "b") """).boolean)
-        
+
         // ストリームの場合
         assertEquals(false, eval(""" AND(TRUE, FALSE; TRUE, FALSE) """).boolean)
         assertEquals(false, eval(""" 1 .. 50 | _ != 39 >> AND """).boolean)
         assertEquals(true, eval(""" 1 .. 50 | _ != 0 >> AND """).boolean)
-        
+
         // 要素が一つも無い場合はTRUEを返す
         assertEquals(true, eval(""" EMPTY >> AND """).boolean)
-        
+
         // イテレーションのスキップ確認
         val result2 = eval("""
             list := []
@@ -123,6 +139,22 @@ class ToFunctionsTest {
             list
         """)
         assertEquals("[5;4;3;2;1;0]", result2.toString()) // 0 が見つかるまで評価される
+
+        // 短絡評価 - 第1引数がFALSEの場合、第2引数は評価されない
+        val result3 = eval("""
+            list := []
+            (list += "left"; FALSE) AND (list += "right"; TRUE)
+            list
+        """)
+        assertEquals("[left]", result3.toString()) // 第1引数がFALSEなので第2引数は評価されない
+
+        // 短絡評価 - 第1引数がTRUEの場合、第2引数は評価される
+        val result4 = eval("""
+            list := []
+            (list += "left"; TRUE) AND (list += "right"; FALSE)
+            list
+        """)
+        assertEquals("[left;right]", result4.toString()) // 第1引数がTRUEなので第2引数も評価される
     }
 
     @Test

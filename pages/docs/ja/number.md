@@ -407,7 +407,7 @@ $ xa 'ABS(-10)'
 
 ### `FLOOR`: 小数点以下切り捨て
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 第1引数の数値を、値が小さい方の整数に丸めます。
 

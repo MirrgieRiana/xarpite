@@ -21,6 +21,7 @@ sealed class BracketsLiteralSimpleNode(body: Node, position: Position) : Bracket
 class BracketsLiteralSimpleRoundNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 class BracketsLiteralSimpleSquareNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 class BracketsLiteralSimpleCurlyNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
+class IndentBlockNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 sealed class BracketsRightNode(val receiver: Node, body: Node, position: Position) : BracketsNode(body, position)
 sealed class BracketsRightArrowedNode(receiver: Node, val arguments: Node, body: Node, position: Position) : BracketsRightNode(receiver, body, position)
 class BracketsRightArrowedRoundNode(receiver: Node, arguments: Node, body: Node, position: Position) : BracketsRightArrowedNode(receiver, arguments, body, position)
@@ -32,6 +33,8 @@ class BracketsRightSimpleSquareNode(receiver: Node, body: Node, position: Positi
 class BracketsRightSimpleCurlyNode(receiver: Node, body: Node, position: Position) : BracketsRightSimpleNode(receiver, body, position)
 class ThrowNode(val right: Node, val position: Position) : Node()
 class ReturnNode(val left: Node, val right: Node) : Node()
+class SuffixPlusPlusNode(val main: Node, val position: Position) : Node()
+class SuffixMinusMinusNode(val main: Node, val position: Position) : Node()
 sealed class UnaryNode(val main: Node, val side: Side, val position: Position) : Node()
 class UnaryPlusPlusNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryMinusMinusNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
@@ -46,8 +49,6 @@ class UnaryDollarAsteriskNode(main: Node, side: Side, position: Position) : Unar
 class UnaryAtNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryAsteriskNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryBackslashNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
-class SuffixPlusPlusNode(val main: Node, val position: Position) : Node()
-class SuffixMinusMinusNode(val main: Node, val position: Position) : Node()
 sealed class InfixNode(val left: Node, val right: Node, val position: Position) : Node()
 class InfixPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixQuestionPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
@@ -71,6 +72,7 @@ class InfixPipePipeNode(left: Node, right: Node, position: Position) : InfixNode
 class InfixQuestionColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
+class InfixEqualColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixMinusGreaterNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixPlusEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixMinusEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
@@ -121,7 +123,8 @@ enum class FormatterFlag {
 
 enum class FormatterConversion {
     DECIMAL,
-    HEXADECIMAL,
+    LOWERCASE_HEXADECIMAL,
+    UPPERCASE_HEXADECIMAL,
     FLOAT,
     STRING,
 }

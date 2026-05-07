@@ -12,16 +12,16 @@ The byte sequence stored in a BLOB is managed as unsigned 8-bit integers.
 
 ## BLOB Composition
 
-`BLOB_LIKE := STREAM<NUMBER | ARRAY<NUMBER> | BLOB>`
+`BLOB_LIKE := NUMBER | BLOB | STREAM<BLOB_LIKE> | ARRAY<BLOB_LIKE>`
 
 BLOB composition is the rule for generating a single BLOB from `BLOB_LIKE`.
 
 `BLOB_LIKE` is not an actual class but a convenience type representing types that can be converted to BLOB.
 
 - If `BLOB_LIKE` is a number, it is added to the new BLOB after rounding the decimal part and removing bits other than the lower 8 bits.
-- If `BLOB_LIKE` is an array, each element is treated as a number.
 - If `BLOB_LIKE` is a BLOB, it is copied as-is to the new BLOB instance.
-- If `BLOB_LIKE` is a stream, each element is added to the new BLOB using the above methods.
+- If `BLOB_LIKE` is an array, each element is recursively treated as `BLOB_LIKE`.
+- If `BLOB_LIKE` is a stream, each element is recursively treated as `BLOB_LIKE`.
 
 ## `BLOB.of` Generating BLOB from Array
 

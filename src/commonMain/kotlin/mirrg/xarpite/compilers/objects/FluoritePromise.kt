@@ -9,10 +9,10 @@ class FluoritePromise : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    "new" to FluoriteFunction { arguments ->
+                    "new" to FluoriteFunction.immediate { arguments ->
                         FluoritePromise()
                     },
-                    "complete" to FluoriteFunction { arguments ->
+                    "complete" to FluoriteFunction.immediate { arguments ->
                         val (promise, value) = when (arguments.size) {
                             1 -> Pair(arguments[0] as FluoritePromise, FluoriteNull)
                             2 -> Pair(arguments[0] as FluoritePromise, arguments[1])
@@ -21,7 +21,7 @@ class FluoritePromise : FluoriteValue {
                         promise.deferred.complete(value)
                         FluoriteNull
                     },
-                    "fail" to FluoriteFunction { arguments ->
+                    "fail" to FluoriteFunction.immediate { arguments ->
                         val (promise, error) = when (arguments.size) {
                             1 -> Pair(arguments[0] as FluoritePromise, FluoriteNull)
                             2 -> Pair(arguments[0] as FluoritePromise, arguments[1])
@@ -30,12 +30,12 @@ class FluoritePromise : FluoriteValue {
                         promise.deferred.completeExceptionally(FluoriteException(error))
                         FluoriteNull
                     },
-                    "await" to FluoriteFunction { arguments ->
+                    "await" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) usage("<T> PROMISE<T>::await(): T")
                         val promise = arguments[0] as FluoritePromise
                         promise.deferred.await()
                     },
-                    "isCompleted" to FluoriteFunction { arguments ->
+                    "isCompleted" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) usage("<T> PROMISE<T>::isCompleted(): BOOLEAN")
                         val promise = arguments[0] as FluoritePromise
                         promise.deferred.isCompleted.toFluoriteBoolean()

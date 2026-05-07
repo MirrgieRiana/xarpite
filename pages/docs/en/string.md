@@ -162,12 +162,13 @@ The format specifier grammar is as follows:
 | Half-width space | Display half-width space for sign. |
 | `0`          | Pad with `0` instead of spaces.       |
 
-| Conversion | Meaning             |
-|------------|---------------------|
-| d          | Decimal integer     |
-| x          | Hexadecimal integer |
-| f          | Decimal fraction    |
-| s          | String              |
+| Conversion | Meaning                            |
+|------------|-------------------------------------|
+| d          | Decimal integer                     |
+| x          | Hexadecimal integer (lowercase)     |
+| X          | Hexadecimal integer (uppercase)     |
+| f          | Decimal fraction                    |
+| s          | String                              |
 
 ## Character Content `abcABC123`
 
@@ -499,3 +500,36 @@ There is also an extension function version that can be called with `string::LC(
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` Path Resolution
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+`STRING::RESOLVE(file: STRING): STRING`
+
+Resolves the path to `file` starting from `dir`.
+
+```shell
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
+```
+
+---
+
+The output path is automatically normalized (flattening `.` and `..`).
+
+Symbolic links are not resolved.
+
+```shell
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
+
+Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.

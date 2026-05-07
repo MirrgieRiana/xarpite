@@ -19,6 +19,9 @@ else
   export XARPITE_VERSION="0.0.0-SNAPSHOT"
 fi
 
+# Set environment variable for PWD (current working directory)
+export XARPITE_PWD="$(pwd)"
+
 # Parse launcher options
 LAUNCHER_OPTION_ENGINE=""
 while (($# > 0))

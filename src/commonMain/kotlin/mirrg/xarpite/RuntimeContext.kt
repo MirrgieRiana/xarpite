@@ -1,8 +1,14 @@
 package mirrg.xarpite
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
+import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
+import mirrg.xarpite.cli.getPwd
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import okio.Path.Companion.toPath
 
@@ -12,16 +18,38 @@ class RuntimeContext(
     val io: IoContext,
 ) {
 
-    private val srcs = mutableMapOf<String, String>()
-
-    fun setSrc(location: String, src: String) {
-        srcs[location] = src
+    val httpClient by lazy {
+        val httpClient = HttpClient()
+        daemonScope.launch {
+            try {
+                awaitCancellation()
+            } finally {
+                httpClient.close()
+            }
+        }
+        httpClient
     }
 
-    fun getModuleSrc(location: String): String {
+
+    private val srcs = mutableMapOf<String, Single<String?>>()
+
+    fun setSrc(location: String, src: String?) {
+        srcs[location] = Single(src)
+    }
+
+    suspend fun getModuleSrc(location: String): String? {
         return srcs.getOrPut(location) {
-            getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
-        }
+            if (isUrl(location)) {
+                Single(io.fetch(this, location).getOrNull()?.decodeToString())
+            } else {
+                val fileSystem = getFileSystem().getOrThrow()
+                if (fileSystem.metadataOrNull(location.toPath())?.isRegularFile ?: false) {
+                    Single(fileSystem.read(location.toPath()) { readUtf8() })
+                } else {
+                    Single(null)
+                }
+            }
+        }.first
     }
 
 
@@ -29,7 +57,14 @@ class RuntimeContext(
 
     fun renderPosition(position: Position?): String {
         if (position == null) return "UNKNOWN"
-        val src = srcs[position.location] ?: return position.location
+        val pwdPath = io.getPwd().toPath()
+        val locationPath = position.location.toPath()
+        val location = if (pwdPath.isAncestorOf(locationPath)) {
+            locationPath.relativeTo(pwdPath).toString()
+        } else {
+            position.location
+        }
+        val src = srcs[position.location]?.first ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
         }
@@ -40,12 +75,23 @@ class RuntimeContext(
         val snippet = line.substring(startColumnIndex, endColumnIndex)
         val startEllipsis = if (startColumnIndex > 0) "..." else ""
         val endEllipsis = if (endColumnIndex < line.length) "..." else ""
-        return "${position.location}:$row:$column  $startEllipsis$snippet$endEllipsis"
+        val errorPositionInSnippet = column - 1 - startColumnIndex
+        val leftMargin = " ".repeat(10 - errorPositionInSnippet)
+        val rowDigits = row.toString().length
+        val columnDigits = column.toString().length
+        val positionPadding = " ".repeat((3 - rowDigits) + (3 - columnDigits))
+        return "$location:$row:$column$positionPadding  $startEllipsis$leftMargin$snippet$endEllipsis"
     }
+
+
+    val inc = FluoriteArray()
+    val moduleResults = mutableMapOf<String, FluoriteValue>()
 
 }
 
 interface IoContext {
+    fun getEnv(): Map<String, String>
+    fun getPlatformPwd(): String
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -53,14 +99,20 @@ interface IoContext {
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?): String
+    suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray>
+    fun exit(code: Int): Nothing
 }
 
 open class UnsupportedIoContext : IoContext {
-    override suspend fun out(value: FluoriteValue) = throw UnsupportedOperationException()
-    override suspend fun err(value: FluoriteValue) = throw UnsupportedOperationException()
+    override fun getEnv(): Map<String, String> = throw UnsupportedOperationException()
+    override fun getPlatformPwd(): String = throw UnsupportedOperationException()
+    override suspend fun out(value: FluoriteValue): Unit = throw UnsupportedOperationException()
+    override suspend fun err(value: FluoriteValue): Unit = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
-    override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
-    override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
+    override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
+    override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?): String = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
+    override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
 }

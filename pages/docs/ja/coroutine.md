@@ -20,7 +20,7 @@ title: "コルーチン"
 
 起動されたコルーチンは、 `LAUNCH` の呼び出し元のスレッドが次にサスペンドした際に実行されます。
 
-この関数は `function` の戻り値もしくは `function` 内でスローされた例外が格納される `PROMISE` を返します。
+この関数は `function` の戻り値もしくは `function` 内でスローされた値が格納される `PROMISE` を返します。
 
 ```shell
 $ xa '
@@ -49,7 +49,7 @@ $ xa '
 
 ---
 
-`function` 内で例外がスローされた場合、その例外は標準エラー出力にも出力されます。
+`function` 内で何らかの値がスローされた場合、その値は標準エラー出力にも出力されます。
 
 ```shell
 $ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
@@ -122,6 +122,24 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: 新しいコルーチンを起動する
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+`function` をコルーチンとして非同期に起動します。
+
+`LAUNCH` と同等ですが、引数を式渡し引数として受け取ります。
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。
@@ -154,13 +172,13 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 ---
 
-`PROMISE` が失敗として完了した場合、 `await` はその例外をスローします。
+`PROMISE` が失敗として完了した場合、 `await` はその例外値をスローします。
 
 ```shell
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? (e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
 ```
