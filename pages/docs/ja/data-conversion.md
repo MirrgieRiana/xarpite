@@ -467,3 +467,46 @@ $ xa ' ",1,,3," >> CSVD >> JSON '
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
+
+## `TSV` 配列をTSV文字列に変換
+
+`TSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+
+`CSV` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
+
+```shell
+$ xa ' [1;2;3] >> TSV '
+# 1	2	3
+```
+
+---
+
+`separator` を明示的に指定した場合、`TSV` と `CSV` は同一の動作をします。
+
+```shell
+$ xa ' [1;2;3] >> TSV[separator: "|"] '
+# 1|2|3
+```
+
+---
+
+その他の仕様は `CSV` 関数と同様です。
+
+## `TSVD` TSV文字列を配列に変換
+
+`TSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+
+`CSVD` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
+
+```shell
+$ xa ' "1\t2\t3" >> TSVD >> JSON '
+# ["1","2","3"]
+```
+
+---
+
+`separator` を明示的に指定した場合、`TSVD` と `CSVD` は同一の動作をします。
+
+---
+
+その他の仕様は `CSVD` 関数と同様です。
