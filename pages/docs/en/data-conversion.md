@@ -375,7 +375,7 @@ $ xa '
 
 ## `CSV` Convert Array to CSV String
 
-`CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
 
 Encodes an array of strings or a stream thereof into a CSV row string or a stream thereof.
 
@@ -431,7 +431,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` Convert CSV String to Array
 
-`CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Decodes a CSV row string or a stream thereof into an array of strings or a stream thereof.
 
@@ -470,43 +470,12 @@ $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 
 ## `TSV` Convert Array to TSV String
 
-`TSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
 
 Has the same behavior as the `CSV` function, but the default separator is the tab character `\t`.
 
-```shell
-$ xa ' [1;2;3] >> TSV '
-# 1	2	3
-```
-
----
-
-When `separator` is explicitly specified, `TSV` and `CSV` behave identically.
-
-```shell
-$ xa ' [1;2;3] >> TSV[separator: "|"] '
-# 1|2|3
-```
-
----
-
-For other specifications, see the `CSV` function.
-
 ## `TSVD` Convert TSV String to Array
 
-`TSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.
-
-```shell
-$ xa ' "1\t2\t3" >> TSVD >> JSON '
-# ["1","2","3"]
-```
-
----
-
-When `separator` is explicitly specified, `TSVD` and `CSVD` behave identically.
-
----
-
-For other specifications, see the `CSVD` function.
