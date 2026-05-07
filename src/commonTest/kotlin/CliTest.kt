@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage

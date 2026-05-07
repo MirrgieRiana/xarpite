@@ -85,12 +85,13 @@ suspend fun main() {
             override fun getPlatformPwd(): String = process.cwd()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
             override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
-            override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
-            override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
-            override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
-            override suspend fun writeBytesToStderr(bytes: ByteArray) = mirrg.xarpite.writeBytesToStderr(bytes)
-            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?) = mirrg.xarpite.executeProcess(process, args, env, cwd)
-override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+            override suspend fun readLineFromStdin() = readLineFromStdinImpl()
+            override suspend fun readBytesFromStdin() = readBytesFromStdinImpl()
+            override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
+            override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
+            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
+
+            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
                 return try {
                     val response = context.httpClient.get(url)
                     if (response.status.value in 200..299) {
@@ -107,8 +108,14 @@ override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArr
 
             override fun exit(code: Int): Nothing = process.exit(code)
         }
-override fun exit(code: Int): Nothing = process.exit(code)
-
+        val options = try {
+            parseArguments(process.argv.drop(2), ioContext)
+        } catch (_: ShowUsage) {
+            showUsage(ioContext)
+            return@coroutineScope
+        } catch (_: ShowVersion) {
+            showVersion(ioContext)
+            return@coroutineScope
         }
         cliEval(ioContext, options) {
             createJsMounts()
