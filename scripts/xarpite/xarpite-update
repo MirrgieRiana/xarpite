@@ -7,14 +7,6 @@ error() {
   exit 1
 }
 
-usage() {
-  echo "Usage: xarpite-update [-y]"
-  echo ""
-  echo "Options:"
-  echo "  -y    Skip confirmation prompt and apply updates automatically."
-  echo "  -h    Show this help message and exit."
-}
-
 check() {
   command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
 }
@@ -25,24 +17,6 @@ check sort
 check rsync
 check readlink
 check mktemp
-
-# Parse arguments
-auto_yes=false
-for arg in "$@"; do
-  case "$arg" in
-    -y)
-      auto_yes=true
-      ;;
-    -h)
-      usage
-      exit 0
-      ;;
-    *)
-      usage >&2
-      error "Error: Unknown option: $arg"
-      ;;
-  esac
-done
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
@@ -126,18 +100,16 @@ echo "Updating"
 echo "--- Dry run (no changes) ---"
 rsync -n --itemize-changes -ac --delete "$workdir"/ ./
 echo
-if ! "$auto_yes"; then
-  printf "Type Y to apply (otherwise cancel): " >&2
-  read -r answer
-  echo
-  case "$answer" in
-    [Yy]*)
-      ;;
-    *)
-      error "Cancelled."
-      ;;
-  esac
-fi
+printf "Type Y to apply (otherwise cancel): " >&2
+read -r answer
+echo
+case "$answer" in
+  [Yy]*)
+    ;;
+  *)
+    error "Cancelled."
+    ;;
+esac
 echo "Syncing"
 rsync -ac --delete "$workdir"/ ./
 
