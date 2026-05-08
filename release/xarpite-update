@@ -137,7 +137,9 @@ fi
 echo
 if ! "$auto_yes"; then
   printf "Type Y to apply (otherwise cancel): " >&2
-  read -r answer
+  if ! read -r answer; then
+    error "Cancelled."
+  fi
   echo
   case "$answer" in
     [Yy]*)
