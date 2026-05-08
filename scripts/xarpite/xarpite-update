@@ -7,6 +7,14 @@ error() {
   exit 1
 }
 
+usage() {
+  echo "Usage: xarpite-update [-y]"
+  echo ""
+  echo "Options:"
+  echo "  -y    Skip confirmation prompt and apply updates automatically."
+  echo "  -h    Show this help message and exit."
+}
+
 check() {
   command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
 }
@@ -25,7 +33,12 @@ for arg in "$@"; do
     -y)
       auto_yes=true
       ;;
+    -h)
+      usage
+      exit 0
+      ;;
     *)
+      usage >&2
       error "Error: Unknown option: $arg"
       ;;
   esac
