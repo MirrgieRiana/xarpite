@@ -136,8 +136,9 @@ class XarpiteGrammar(val location: String) {
         // %> が開始と埋め込みの終端を兼ねているため、expressionには出来ない
         // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
         (-"<%=").result * -b * ref { stream } * -b * -"%>" map { NodeStringContent(it.b, it.a.position) },
+        -"<%#" * -Regex("""[^%]*(?:%(?!>)[^%]*)*""") * -"%>" map { LiteralStringContent("") }, // <%# ... %> はコメント
     )
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' map { EmbeddedStringNode(it) } // %>string<%
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' map { EmbeddedStringNode(it) } // %>string<%
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字
