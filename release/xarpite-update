@@ -18,6 +18,19 @@ check rsync
 check readlink
 check mktemp
 
+# Parse arguments
+auto_yes=false
+for arg in "$@"; do
+  case "$arg" in
+    -y)
+      auto_yes=true
+      ;;
+    *)
+      error "Error: Unknown option: $arg"
+      ;;
+  esac
+done
+
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
 # Setup temporary directory with cleanup trap
@@ -109,16 +122,18 @@ if ! printf "%s\n" "$lines" | grep -q '^! '; then
   exit 0
 fi
 echo
-printf "Type Y to apply (otherwise cancel): " >&2
-read -r answer
-echo
-case "$answer" in
-  [Yy]*)
-    ;;
-  *)
-    error "Cancelled."
-    ;;
-esac
+if ! "$auto_yes"; then
+  printf "Type Y to apply (otherwise cancel): " >&2
+  read -r answer
+  echo
+  case "$answer" in
+    [Yy]*)
+      ;;
+    *)
+      error "Cancelled."
+      ;;
+  esac
+fi
 echo "Syncing"
 rsync --itemize-changes -rlpgoDc --delete "$workdir"/ ./
 
