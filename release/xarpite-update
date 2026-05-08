@@ -101,9 +101,15 @@ echo "Updating"
 chmod --reference=. "$workdir"
 
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -rlpgoDc --delete "$workdir"/ ./
+{
+  lines="$(rsync -n -rlpgoDc --delete "$workdir"/ ./ --out-format='! %i' | tee >(cat >&3))"
+} 3>&1
+if ! printf "%s\n" "$lines" | grep -q '^! '; then
+  echo "No changes needed."
+  exit 0
+fi
 echo
-printf "Type Y to apply (otherwise cancel): " >&2
+echo "Type Y to apply (otherwise cancel): " >&2
 read -r answer
 echo
 case "$answer" in
