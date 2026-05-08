@@ -102,14 +102,14 @@ chmod --reference=. "$workdir"
 
 echo "--- Dry run (no changes) ---"
 {
-  lines="$(rsync -n -rlpgoDc --delete "$workdir"/ ./ --out-format='! %i' | tee >(cat >&3))"
+  lines="$(rsync -n -rlpgoDc --delete "$workdir"/ ./ --out-format='! %i %n%L' | tee >(cat >&3))"
 } 3>&1
 if ! printf "%s\n" "$lines" | grep -q '^! '; then
   echo "No changes needed."
   exit 0
 fi
 echo
-echo "Type Y to apply (otherwise cancel): " >&2
+printf "Type Y to apply (otherwise cancel): " >&2
 read -r answer
 echo
 case "$answer" in
