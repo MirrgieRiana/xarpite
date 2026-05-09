@@ -79,6 +79,27 @@ class StringMountsTest {
     }
 
     @Test
+    fun linesd() = runTest {
+        // 基本的な行ストリームの結合
+        assertEquals("a\nb\nc\n", eval("LINESD(\"a\", \"b\", \"c\")").string)
+
+        // 単一要素
+        assertEquals("a\n", eval("LINESD(\"a\")").string)
+
+        // 空行を含む場合
+        assertEquals("a\n\nb\n", eval("LINESD(\"a\", \"\", \"b\")").string)
+
+        // 空ストリームの場合
+        assertEquals("", eval("LINES(\"\") >> LINESD").string)
+
+        // LINESとの往復変換（末尾改行あり）
+        assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\\n\") >> LINESD").string)
+
+        // LINESとの往復変換（末尾改行なし）
+        assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\") >> LINESD").string)
+    }
+
+    @Test
     fun resolve() = runTest {
         // 基本的なパス結合
         assertEquals("/home/apple/Apple.txt", eval("RESOLVE('/home/apple'; 'Apple.txt')").string)

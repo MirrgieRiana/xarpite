@@ -233,6 +233,31 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` 行ストリームを文字列に結合
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+`lines` の各要素に改行を付加して連結した文字列を返します。
+
+`LINES` の逆変換であり、末尾が改行で終わる文字列を `LINES` で分割した後、`LINESD` で結合することで元の文字列を復元できます。
+
+```shell
+$ xa 'LINESD("A", "B", "C") >> JSONS'
+# "A\nB\nC\n"
+
+$ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
+# "A\nB\nC\n"
+```
+
+---
+
+空ストリームの場合、空文字列を返します。
+
+```shell
+$ xa 'LINES("") >> LINESD >> JSONS'
+# ""
+```
+
 ## `KEYS` オブジェクトのキーのストリームを取得
 
 `KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
