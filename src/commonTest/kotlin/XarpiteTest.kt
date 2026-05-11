@@ -314,6 +314,11 @@ class XarpiteTest {
              %> <%
         """.let { assertEquals("123", eval(it).string.trim()) } // <%= の後で改行しても正しくパースされる
 
+        assertEquals("hello world", eval(" %>hello <%# this is a comment %>world<% ").string) // <%# ... %> はコメント
+        assertEquals("hello world", eval(" %>hello <%#%>world<% ").string) // 空コメント
+        assertEquals("hello world", eval(" %>hello <%# comment % with percent %>world<% ").string) // コメント内に % を含む
+        assertEquals("hello world", eval(" %>hello <%# comment\nwith newline\n%>world<% ").string) // コメント内に改行を含む
+
     }
 
     @Test

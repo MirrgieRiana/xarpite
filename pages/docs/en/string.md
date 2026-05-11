@@ -185,6 +185,7 @@ Embedded string literals are string literals with a distinctive appearance enclo
 | CR                | LF                          |
 | LF                | LF                          |
 | `<%=` expr `%>`   | Embedding                   |
+| `<%#` ... `%>`    | Comment                     |
 | `<%`              | End of embedded string      |
 | Other characters  | The character itself        |
 
@@ -244,6 +245,15 @@ Like parentheses, variables declared inside do not escape outside.
 ```shell
 $ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
+```
+
+## Comment Content `<%# ... %>`
+
+Enclosing with `<%#` `%>` creates a comment. The content of the comment is not output.
+
+```shell
+$ xa ' %>hello <%# this is a comment %>world<% '
+# hello world
 ```
 
 ## Character Content `abcABC123`
