@@ -328,6 +328,8 @@ Updates the currently running Xarpite to the latest version.
 
 This command requires permission to write to the installation directory.
 
+Specifying the `-h` option shows the usage information and exits.
+
 Specifying the `-y` option skips the confirmation prompt and automatically applies the update.
 
 ## CLI-Exclusive Built-in Constants and Functions

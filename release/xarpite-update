@@ -8,23 +8,23 @@ error() {
 }
 
 usage() {
-  echo "Usage: xarpite-update [-y] [-h]"
+  echo "Usage: xarpite-update [-h] [-y]"
   echo ""
   echo "Options:"
-  echo "  -y    Skip confirmation prompt and apply updates automatically."
   echo "  -h    Show this help message and exit."
+  echo "  -y    Skip confirmation prompt and apply updates automatically."
 }
 
 # Parse arguments
 auto_yes=0
 for arg in "$@"; do
   case "$arg" in
-    -y)
-      auto_yes=1
-      ;;
     -h)
       usage
       exit 0
+      ;;
+    -y)
+      auto_yes=1
       ;;
     *)
       usage >&2
