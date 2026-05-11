@@ -131,14 +131,14 @@ class XarpiteGrammar(val location: String) {
         +Regex("""(?:<(?!%))+""") map { it.value.normalize() }, // 通常の < （ (?!<%)< を使うと一部の環境で非常に長い入力でStackOverflowになる）
         -"<%%" map { "<%" }, // <%% で <% になる
     )
-    val embeddedStringContent: Parser<StringContent> = or(
-        embeddedStringCharacter.oneOrMore map { LiteralStringContent(it.join("")) },
+    val embeddedStringContent: Parser<List<StringContent>> = or(
+        embeddedStringCharacter.oneOrMore map { listOf(LiteralStringContent(it.join(""))) },
         // %> が開始と埋め込みの終端を兼ねているため、expressionには出来ない
         // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
-        (-"<%=").result * -b * ref { stream } * -b * -"%>" map { NodeStringContent(it.b, it.a.position) },
-        -"<%#" * -Regex("""[^%]*(?:%(?!>)[^%]*)*""") * -"%>" map { LiteralStringContent("") }, // <%# ... %> コメント構文（内容は出力されない）
+        (-"<%=").result * -b * ref { stream } * -b * -"%>" map { listOf(NodeStringContent(it.b, it.a.position)) },
+        -"<%#" * -Regex("""[^%]*(?:%(?!>)[^%]*)*""") * -"%>" map { emptyList() }, // <%# ... %> コメント
     )
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' map { EmbeddedStringNode(it) } // %>string<% ( <%=, <%# を除く)
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' map { EmbeddedStringNode(it.flatten()) } // %>string<% ( <%=, <%# を除く)
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字
