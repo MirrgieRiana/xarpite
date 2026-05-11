@@ -8,30 +8,19 @@ error() {
 }
 
 usage() {
-  echo "Usage: xarpite-update [-y]"
+  echo "Usage: xarpite-update [-y] [-h]"
   echo ""
   echo "Options:"
   echo "  -y    Skip confirmation prompt and apply updates automatically."
   echo "  -h    Show this help message and exit."
 }
 
-check() {
-  command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
-}
-check curl
-check tar
-check perl
-check sort
-check rsync
-check readlink
-check mktemp
-
 # Parse arguments
-auto_yes=false
+auto_yes=0
 for arg in "$@"; do
   case "$arg" in
     -y)
-      auto_yes=true
+      auto_yes=1
       ;;
     -h)
       usage
@@ -43,6 +32,17 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+check() {
+  command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
+}
+check curl
+check tar
+check perl
+check sort
+check rsync
+check readlink
+check mktemp
 
 cd -- "$(dirname -- "$(readlink -f -- "$0")")"
 
@@ -135,7 +135,7 @@ if ! printf "%s\n" "$lines" | grep -q '^! '; then
   exit 0
 fi
 echo
-if ! "$auto_yes"; then
+if (( ! auto_yes )); then
   printf "Type Y to apply (otherwise cancel): " >&2
   if ! read -r answer; then
     error "Cancelled."
