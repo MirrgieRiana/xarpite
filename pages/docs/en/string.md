@@ -663,6 +663,8 @@ Takes a string `string` and returns a stream of numeric values for each Unicode 
 
 Characters represented by surrogate pairs are returned as a single code point, not as two UTF-16 code units.
 
+Throws an error if the string contains an isolated surrogate.
+
 ```shell
 $ xa 'CODE_POINTS("ABC") >> TO_ARRAY >> JSONS'
 # [65,66,67]

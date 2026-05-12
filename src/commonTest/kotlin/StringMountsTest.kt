@@ -154,6 +154,9 @@ class StringMountsTest {
         // CODE_POINT: 1コードポイントでない場合はエラー
         assertFailsWith<Exception> { eval("CODE_POINT('')") } // 空文字列はエラー
         assertFailsWith<Exception> { eval("CODE_POINT('AB')") } // 2文字はエラー
+        // 孤立サロゲートはエラー
+        assertFailsWith<Exception> { eval("CODE_POINT('\uD800')") } // 孤立上位サロゲートはエラー
+        assertFailsWith<Exception> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
 
         // CODE_POINTD: コードポイントから文字列を返す
         assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
@@ -170,6 +173,9 @@ class StringMountsTest {
         assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
         assertEquals("128512", eval("CODE_POINTS('\uD83D\uDE00')").stream()) // 😀 のコードポイント
         assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
+        // 孤立サロゲートはエラー
+        assertFailsWith<Exception> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
+        assertFailsWith<Exception> { eval("CODE_POINTS('\uDC00')").stream() } // 孤立下位サロゲートはエラー
 
         // CODE_POINTSD: コードポイントのストリームから文字列を返す
         assertEquals("ABC", eval("CODE_POINTSD(65, 66, 67)").string) // コードポイント列から文字列
