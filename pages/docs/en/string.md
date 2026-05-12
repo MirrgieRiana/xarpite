@@ -543,3 +543,158 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
 
 Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
+
+## `CHAR_CODE` Get UTF-16 Code Unit
+
+`CHAR_CODE(char: STRING): INT`
+
+Takes a string `char` containing exactly one UTF-16 code unit and returns its numeric value.
+
+Throws an error if `char` does not contain exactly one UTF-16 code unit.
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("\u3042")'
+# 12354
+```
+
+## `CHAR_CODED` Convert UTF-16 Code Unit to String
+
+`CHAR_CODED(charCode: INT): STRING`
+
+Takes a numeric UTF-16 code unit value `charCode` and returns a string consisting of that single code unit.
+
+Throws an error if `charCode` is not in the range 0 to 65535.
+
+```shell
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+```
+
+## `CHAR_CODES` Convert String to UTF-16 Code Unit Stream
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+Takes a string `string` and returns a stream of numeric values for each UTF-16 code unit.
+
+```shell
+$ xa 'CHAR_CODES("ABC") >> TO_ARRAY >> JSONS'
+# [65,66,67]
+
+$ xa 'CHAR_CODES("\u3042\u3044") >> TO_ARRAY >> JSONS'
+# [12354,12356]
+```
+
+## `CHAR_CODESD` Convert UTF-16 Code Unit Stream to String
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+Takes a stream `charCodes` of numeric UTF-16 code unit values and returns a string composed of those code units in order.
+
+Throws an error if any code unit is not in the range 0 to 65535.
+
+```shell
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa 'CHAR_CODESD(12354, 12356)'
+# あい
+```
+
+---
+
+`CHAR_CODES` and `CHAR_CODESD` are inverse transformations of each other.
+
+```shell
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
+# Hello
+```
+
+## `CODE_POINT` Get Unicode Code Point
+
+`CODE_POINT(char: STRING): INT`
+
+Takes a string `char` containing exactly one Unicode code point and returns its numeric value.
+
+Throws an error if `char` does not contain exactly one code point, or if it contains an isolated surrogate.
+
+Characters represented by surrogate pairs (U+10000 and above) are correctly handled as a single code point.
+
+```shell
+$ xa 'CODE_POINT("A")'
+# 65
+
+$ xa 'CODE_POINT("\u3042")'
+# 12354
+
+$ xa 'CODE_POINT("\uD83D\uDE00")'
+# 128512
+```
+
+## `CODE_POINTD` Convert Unicode Code Point to String
+
+`CODE_POINTD(codePoint: INT): STRING`
+
+Takes a numeric Unicode code point value `codePoint` and returns a string consisting of the character for that code point.
+
+Throws an error if `codePoint` is not in the range 0 to 1114111, or if it is a surrogate code point (U+D800 to U+DFFF).
+
+```shell
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(12354)'
+# あ
+
+$ xa 'CODE_POINTD(128512)'
+# 😀
+```
+
+## `CODE_POINTS` Convert String to Unicode Code Point Stream
+
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+Takes a string `string` and returns a stream of numeric values for each Unicode code point.
+
+Characters represented by surrogate pairs are returned as a single code point, not as two UTF-16 code units.
+
+```shell
+$ xa 'CODE_POINTS("ABC") >> TO_ARRAY >> JSONS'
+# [65,66,67]
+
+$ xa 'CODE_POINTS("\uD83D\uDE00") >> TO_ARRAY >> JSONS'
+# [128512]
+```
+
+## `CODE_POINTSD` Convert Unicode Code Point Stream to String
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
+Takes a stream `codePoints` of numeric Unicode code point values and returns a string composed of those code points in order.
+
+Throws an error if any code point is not in the range 0 to 1114111, or if it is a surrogate code point.
+
+```shell
+$ xa 'CODE_POINTSD(65, 66, 67)'
+# ABC
+
+$ xa 'CODE_POINTSD(128512)'
+# 😀
+```
+
+---
+
+`CODE_POINTS` and `CODE_POINTSD` are inverse transformations of each other.
+
+```shell
+$ xa '"Hello" >> CODE_POINTS >> CODE_POINTSD'
+# Hello
+
+$ xa '"\uD83D\uDE00" >> CODE_POINTS >> CODE_POINTSD'
+# 😀
+```

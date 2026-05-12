@@ -1,10 +1,12 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringMountsTest {
@@ -103,5 +105,86 @@ class StringMountsTest {
 
         // 2段階の .. を含むパス
         assertEquals("/home/file.txt", eval("RESOLVE('/home/user/dir'; '../../file.txt')").string)
+    }
+
+    @Test
+    fun charCode() = runTest {
+        // CHAR_CODE: UTF-16コード単位を返す
+        assertEquals(65, eval("CHAR_CODE('A')").int) // 'A' のコードは65
+        assertEquals(12354, eval("CHAR_CODE('\u3042')").int) // 'あ' のコードは12354
+
+        // CHAR_CODE: 1コード単位でない場合はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODE('')") } // 空文字列はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODE('AB')") } // 2文字はエラー
+
+        // CHAR_CODED: コード単位から文字列を返す
+        assertEquals("A", eval("CHAR_CODED(65)").string) // 65 は 'A'
+        assertEquals("\u3042", eval("CHAR_CODED(12354)").string) // 12354 は 'あ'
+
+        // CHAR_CODED: 範囲外の場合はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODED(-1)") } // 負数はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODED(65536)") } // 65536はエラー
+
+        // CHAR_CODES: 文字列からUTF-16コード単位のストリームを返す
+        assertEquals("65,66,67", eval("CHAR_CODES('ABC')").stream()) // 'ABC'のコード列
+        assertEquals("12354,12356", eval("CHAR_CODES('\u3042\u3044')").stream()) // 'あい'のコード列
+        assertEquals("", eval("CHAR_CODES('')").stream()) // 空文字列は空ストリーム
+
+        // CHAR_CODESD: コード単位のストリームから文字列を返す
+        assertEquals("ABC", eval("CHAR_CODESD(65, 66, 67)").string) // コード列から文字列
+        assertEquals("\u3042\u3044", eval("CHAR_CODESD(12354, 12356)").string) // 日本語文字
+        assertEquals("A", eval("CHAR_CODESD(65)").string) // 単一のコード単位
+
+        // CHAR_CODESD: 範囲外の場合はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODESD(-1)") } // 負数はエラー
+        assertFailsWith<Exception> { eval("CHAR_CODESD(65536)") } // 65536はエラー
+
+        // CHAR_CODESとCHAR_CODESDは逆変換
+        assertEquals("Hello", eval("'Hello' >> CHAR_CODES >> CHAR_CODESD").string)
+    }
+
+    @Test
+    fun codePoint() = runTest {
+        // CODE_POINT: Unicodeコードポイントを返す
+        assertEquals(65, eval("CODE_POINT('A')").int) // 'A' のコードポイントは65
+        assertEquals(12354, eval("CODE_POINT('\u3042')").int) // 'あ' のコードポイントは12354
+        // サロゲートペアの文字（U+1F600 😀 = 0x1F600 = 128512）
+        assertEquals(128512, eval("CODE_POINT('\uD83D\uDE00')").int) // 😀 のコードポイント
+
+        // CODE_POINT: 1コードポイントでない場合はエラー
+        assertFailsWith<Exception> { eval("CODE_POINT('')") } // 空文字列はエラー
+        assertFailsWith<Exception> { eval("CODE_POINT('AB')") } // 2文字はエラー
+
+        // CODE_POINTD: コードポイントから文字列を返す
+        assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
+        assertEquals("\u3042", eval("CODE_POINTD(12354)").string) // 12354 は 'あ'
+        assertEquals("\uD83D\uDE00", eval("CODE_POINTD(128512)").string) // 128512 は 😀
+
+        // CODE_POINTD: 範囲外の場合はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTD(-1)") } // 負数はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTD(1114112)") } // U+110000はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTD(55296)") } // サロゲートはエラー（U+D800）
+
+        // CODE_POINTS: 文字列からUnicodeコードポイントのストリームを返す
+        assertEquals("65,66,67", eval("CODE_POINTS('ABC')").stream()) // 'ABC'のコードポイント列
+        assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
+        assertEquals("128512", eval("CODE_POINTS('\uD83D\uDE00')").stream()) // 😀 のコードポイント
+        assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
+
+        // CODE_POINTSD: コードポイントのストリームから文字列を返す
+        assertEquals("ABC", eval("CODE_POINTSD(65, 66, 67)").string) // コードポイント列から文字列
+        assertEquals("\u3042\u3044", eval("CODE_POINTSD(12354, 12356)").string) // 日本語文字
+        assertEquals("\uD83D\uDE00", eval("CODE_POINTSD(128512)").string) // 😀
+        assertEquals("A", eval("CODE_POINTSD(65)").string) // 単一のコードポイント
+
+        // CODE_POINTSD: 範囲外の場合はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTSD(-1)") } // 負数はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTSD(1114112)") } // U+110000はエラー
+        assertFailsWith<Exception> { eval("CODE_POINTSD(55296)") } // サロゲートはエラー
+
+        // CODE_POINTSとCODE_POINTSDは逆変換
+        assertEquals("Hello", eval("'Hello' >> CODE_POINTS >> CODE_POINTSD").string)
+        // サロゲートペアも往復できる
+        assertEquals("\uD83D\uDE00", eval("'\uD83D\uDE00' >> CODE_POINTS >> CODE_POINTSD").string)
     }
 }

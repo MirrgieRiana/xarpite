@@ -543,3 +543,158 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 `"$PWD/file"` のような文字列連結を使うと、ルートディレクトリに対して `//file` のようなパスが生成されます。
 
 代わりに `PWD::RESOLVE("file")` のように `RESOLVE` 関数を使用してください。
+
+## `CHAR_CODE` UTF-16コード単位を取得
+
+`CHAR_CODE(char: STRING): INT`
+
+UTF-16コード単位が丁度1個の文字列 `char` を受け取り、そのコード単位の数値を返します。
+
+`char` にUTF-16コード単位が1個でない文字列を渡すとエラーになります。
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("\u3042")'
+# 12354
+```
+
+## `CHAR_CODED` UTF-16コード単位から文字列に変換
+
+`CHAR_CODED(charCode: INT): STRING`
+
+UTF-16コード単位の数値 `charCode` を受け取り、そのコード単位1個からなる文字列を返します。
+
+`charCode` が0以上65535以下でない場合はエラーになります。
+
+```shell
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+```
+
+## `CHAR_CODES` 文字列からUTF-16コード単位ストリームに変換
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+文字列 `string` を受け取り、各UTF-16コード単位の数値をストリームとして返します。
+
+```shell
+$ xa 'CHAR_CODES("ABC") >> TO_ARRAY >> JSONS'
+# [65,66,67]
+
+$ xa 'CHAR_CODES("\u3042\u3044") >> TO_ARRAY >> JSONS'
+# [12354,12356]
+```
+
+## `CHAR_CODESD` UTF-16コード単位ストリームから文字列に変換
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+UTF-16コード単位の数値のストリーム `charCodes` を受け取り、それらのコード単位を順に並べた文字列を返します。
+
+各コード単位が0以上65535以下でない場合はエラーになります。
+
+```shell
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa 'CHAR_CODESD(12354, 12356)'
+# あい
+```
+
+---
+
+`CHAR_CODES` と `CHAR_CODESD` は互いに逆変換です。
+
+```shell
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
+# Hello
+```
+
+## `CODE_POINT` Unicodeコードポイントを取得
+
+`CODE_POINT(char: STRING): INT`
+
+Unicodeコードポイントが丁度1個の文字列 `char` を受け取り、そのコードポイントの数値を返します。
+
+`char` にコードポイントが1個でない文字列や孤立サロゲートを含む文字列を渡すとエラーになります。
+
+サロゲートペアで表される文字（U+10000以上）も1個のコードポイントとして正しく扱われます。
+
+```shell
+$ xa 'CODE_POINT("A")'
+# 65
+
+$ xa 'CODE_POINT("\u3042")'
+# 12354
+
+$ xa 'CODE_POINT("\uD83D\uDE00")'
+# 128512
+```
+
+## `CODE_POINTD` Unicodeコードポイントから文字列に変換
+
+`CODE_POINTD(codePoint: INT): STRING`
+
+Unicodeコードポイントの数値 `codePoint` を受け取り、そのコードポイントに対応する文字からなる文字列を返します。
+
+`codePoint` が0以上1114111以下でない場合、またはサロゲートコードポイント（U+D800～U+DFFF）の場合はエラーになります。
+
+```shell
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(12354)'
+# あ
+
+$ xa 'CODE_POINTD(128512)'
+# 😀
+```
+
+## `CODE_POINTS` 文字列からUnicodeコードポイントストリームに変換
+
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+文字列 `string` を受け取り、各Unicodeコードポイントの数値をストリームとして返します。
+
+サロゲートペアで表される文字は、2個のUTF-16コード単位ではなく1個のコードポイントとして返されます。
+
+```shell
+$ xa 'CODE_POINTS("ABC") >> TO_ARRAY >> JSONS'
+# [65,66,67]
+
+$ xa 'CODE_POINTS("\uD83D\uDE00") >> TO_ARRAY >> JSONS'
+# [128512]
+```
+
+## `CODE_POINTSD` Unicodeコードポイントストリームから文字列に変換
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
+Unicodeコードポイントの数値のストリーム `codePoints` を受け取り、それらのコードポイントを順に並べた文字列を返します。
+
+各コードポイントが0以上1114111以下でない場合、またはサロゲートコードポイントの場合はエラーになります。
+
+```shell
+$ xa 'CODE_POINTSD(65, 66, 67)'
+# ABC
+
+$ xa 'CODE_POINTSD(128512)'
+# 😀
+```
+
+---
+
+`CODE_POINTS` と `CODE_POINTSD` は互いに逆変換です。
+
+```shell
+$ xa '"Hello" >> CODE_POINTS >> CODE_POINTSD'
+# Hello
+
+$ xa '"\uD83D\uDE00" >> CODE_POINTS >> CODE_POINTSD'
+# 😀
+```
