@@ -178,12 +178,16 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 var i = 0
                 while (i < string.length) {
                     val c = string[i]
-                    if (c.isHighSurrogate() && i + 1 < string.length && string[i + 1].isLowSurrogate()) {
-                        val codePoint = 0x10000 + ((c.code - 0xD800) shl 10) + (string[i + 1].code - 0xDC00)
-                        emit(FluoriteInt(codePoint))
-                        i += 2
-                    } else if (c.isHighSurrogate() || c.isLowSurrogate()) {
-                        throw FluoriteException("CODE_POINTS encountered an isolated surrogate at index $i".toFluoriteString())
+                    if (c.isHighSurrogate()) {
+                        if (i + 1 < string.length && string[i + 1].isLowSurrogate()) {
+                            val codePoint = 0x10000 + ((c.code - 0xD800) shl 10) + (string[i + 1].code - 0xDC00)
+                            emit(FluoriteInt(codePoint))
+                            i += 2
+                        } else {
+                            throw FluoriteException("The string passed to CODE_POINTS must not contain an isolated surrogate".toFluoriteString())
+                        }
+                    } else if (c.isLowSurrogate()) {
+                        throw FluoriteException("The string passed to CODE_POINTS must not contain an isolated surrogate".toFluoriteString())
                     } else {
                         emit(FluoriteInt(c.code))
                         i++
