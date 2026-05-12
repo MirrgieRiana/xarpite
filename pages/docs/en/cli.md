@@ -993,7 +993,7 @@ $ {
 
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>][; cwd: cwd: STRING]): STREAM<STRING>`
 
 Executes an external command.
 
@@ -1043,6 +1043,15 @@ $ A=APPLE B=ANNA xa '
 # A=APPLE
 # B=
 # C=CHERRY
+```
+
+---
+
+The `cwd` argument lets you specify the working directory for the process.
+
+```shell
+$ xa 'EXEC("pwd"; cwd: "/tmp")'
+# /tmp
 ```
 
 ---

@@ -9,6 +9,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import okio.FileSystem
 import java.io.BufferedReader
+import java.io.File
 
 actual fun getProgramName(): String? = null
 fun getEnv(): Map<String, String> = System.getenv()
@@ -39,7 +40,7 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.flush()
 }
 
-suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
+actual suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?): String = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
@@ -51,6 +52,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
                 environment[key] = value
             }
         }
+        if (cwd != null) processBuilder.directory(File(cwd))
         val processInstance = processBuilder.start()
 
         try {
