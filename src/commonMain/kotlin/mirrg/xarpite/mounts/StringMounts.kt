@@ -120,7 +120,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
             }
         },
         "CHAR_CODESD" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 1) usage("CHAR_CODESD(charCode: INT): STRING | CHAR_CODESD(charCodes: STREAM<INT>): STRING")
+            if (arguments.size != 1) usage("CHAR_CODESD(charCodes: STREAM<INT>): STRING")
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCode(item: FluoriteValue) {
@@ -196,7 +196,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
             }
         },
         "CODE_POINTSD" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 1) usage("CODE_POINTSD(codePoint: INT): STRING | CODE_POINTSD(codePoints: STREAM<INT>): STRING")
+            if (arguments.size != 1) usage("CODE_POINTSD(codePoints: STREAM<INT>): STRING")
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCodePoint(item: FluoriteValue) {

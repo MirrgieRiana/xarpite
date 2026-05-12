@@ -590,13 +590,11 @@ $ xa 'CHAR_CODES("\u3042\u3044") >> TO_ARRAY >> JSONS'
 # [12354,12356]
 ```
 
-## `CHAR_CODESD` Convert UTF-16 Code Unit(s) to String
-
-`CHAR_CODESD(charCode: INT): STRING`
+## `CHAR_CODESD` Convert UTF-16 Code Unit Stream to String
 
 `CHAR_CODESD(charCodes: STREAM<INT>): STRING`
 
-Takes a numeric UTF-16 code unit value `charCode`, or a stream `charCodes` of numeric UTF-16 code unit values, and returns a string composed of those code units in order.
+Takes a stream `charCodes` of numeric UTF-16 code unit values and returns a string composed of those code units in order.
 
 Throws an error if any code unit is not in the range 0 to 65535.
 
@@ -675,13 +673,11 @@ $ xa 'CODE_POINTS("\uD83D\uDE00") >> TO_ARRAY >> JSONS'
 # [128512]
 ```
 
-## `CODE_POINTSD` Convert Unicode Code Point(s) to String
-
-`CODE_POINTSD(codePoint: INT): STRING`
+## `CODE_POINTSD` Convert Unicode Code Point Stream to String
 
 `CODE_POINTSD(codePoints: STREAM<INT>): STRING`
 
-Takes a numeric Unicode code point value `codePoint`, or a stream `codePoints` of numeric Unicode code point values, and returns a string composed of those code points in order.
+Takes a stream `codePoints` of numeric Unicode code point values and returns a string composed of those code points in order.
 
 Throws an error if any code point is not in the range 0 to 1114111, or if it is a surrogate code point.
 

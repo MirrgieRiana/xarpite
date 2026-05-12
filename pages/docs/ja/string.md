@@ -590,13 +590,11 @@ $ xa 'CHAR_CODES("\u3042\u3044") >> TO_ARRAY >> JSONS'
 # [12354,12356]
 ```
 
-## `CHAR_CODESD` UTF-16コード単位から文字列に変換
-
-`CHAR_CODESD(charCode: INT): STRING`
+## `CHAR_CODESD` UTF-16コード単位ストリームから文字列に変換
 
 `CHAR_CODESD(charCodes: STREAM<INT>): STRING`
 
-UTF-16コード単位の数値 `charCode`、またはUTF-16コード単位の数値のストリーム `charCodes` を受け取り、それらのコード単位を順に並べた文字列を返します。
+UTF-16コード単位の数値のストリーム `charCodes` を受け取り、それらのコード単位を順に並べた文字列を返します。
 
 各コード単位が0以上65535以下でない場合はエラーになります。
 
@@ -675,13 +673,11 @@ $ xa 'CODE_POINTS("\uD83D\uDE00") >> TO_ARRAY >> JSONS'
 # [128512]
 ```
 
-## `CODE_POINTSD` Unicodeコードポイントから文字列に変換
-
-`CODE_POINTSD(codePoint: INT): STRING`
+## `CODE_POINTSD` Unicodeコードポイントストリームから文字列に変換
 
 `CODE_POINTSD(codePoints: STREAM<INT>): STRING`
 
-Unicodeコードポイントの数値 `codePoint`、またはUnicodeコードポイントの数値のストリーム `codePoints` を受け取り、それらのコードポイントを順に並べた文字列を返します。
+Unicodeコードポイントの数値のストリーム `codePoints` を受け取り、それらのコードポイントを順に並べた文字列を返します。
 
 各コードポイントが0以上1114111以下でない場合、またはサロゲートコードポイントの場合はエラーになります。
 
