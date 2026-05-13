@@ -101,13 +101,13 @@ fun createStringMounts(): List<Map<String, Mount>> {
         "CHAR_CODE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CHAR_CODE(char: STRING): INT")
             val string = arguments[0].toFluoriteString(null).value
-            if (string.length != 1) throw FluoriteException("The argument to CHAR_CODE must be a string of exactly 1 UTF-16 code unit, got ${string.length}".toFluoriteString())
+            if (string.length != 1) throw FluoriteException("Argument must be a string of exactly 1 UTF-16 code unit, got ${string.length}".toFluoriteString())
             FluoriteInt(string[0].code)
         },
         "CHAR_CODED" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CHAR_CODED(charCode: INT): STRING")
             val code = arguments[0].toFluoriteNumber(null).roundToInt()
-            if (code < 0 || code > 0xFFFF) throw FluoriteException("The argument to CHAR_CODED must be in 0..65535, got $code".toFluoriteString())
+            if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be in 0..65535, got $code".toFluoriteString())
             code.toChar().toString().toFluoriteString()
         },
         "CHAR_CODES" define FluoriteFunction.immediate { arguments ->
@@ -125,7 +125,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val sb = StringBuilder()
             suspend fun appendCode(item: FluoriteValue) {
                 val code = item.toFluoriteNumber(null).roundToInt()
-                if (code < 0 || code > 0xFFFF) throw FluoriteException("Each element in CHAR_CODESD must be in 0..65535, got $code".toFluoriteString())
+                if (code < 0 || code > 0xFFFF) throw FluoriteException("Each element must be in 0..65535, got $code".toFluoriteString())
                 sb.append(code.toChar())
             }
             if (value is FluoriteStream) {
@@ -140,27 +140,27 @@ fun createStringMounts(): List<Map<String, Mount>> {
             if (arguments.size != 1) usage("CODE_POINT(char: STRING): INT")
             val string = arguments[0].toFluoriteString(null).value
             val codePoint = when {
-                string.isEmpty() -> throw FluoriteException("The argument to CODE_POINT must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
+                string.isEmpty() -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
                 string.length == 1 -> {
                     val c = string[0]
-                    if (c.isHighSurrogate() || c.isLowSurrogate()) throw FluoriteException("The argument to CODE_POINT must not contain an isolated surrogate".toFluoriteString())
+                    if (c.isHighSurrogate() || c.isLowSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
                     c.code
                 }
                 string.length == 2 -> {
                     val high = string[0]
                     val low = string[1]
-                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) throw FluoriteException("The argument to CODE_POINT must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
                     0x10000 + ((high.code - 0xD800) shl 10) + (low.code - 0xDC00)
                 }
-                else -> throw FluoriteException("The argument to CODE_POINT must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                else -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
             }
             FluoriteInt(codePoint)
         },
         "CODE_POINTD" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CODE_POINTD(codePoint: INT): STRING")
             val codePoint = arguments[0].toFluoriteNumber(null).roundToInt()
-            if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("The argument to CODE_POINTD must be in 0..1114111, got $codePoint".toFluoriteString())
-            if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed in CODE_POINTD, got $codePoint".toFluoriteString())
+            if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Argument must be in 0..1114111, got $codePoint".toFluoriteString())
+            if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
             val string = if (codePoint < 0x10000) {
                 codePoint.toChar().toString()
             } else {
@@ -184,10 +184,10 @@ fun createStringMounts(): List<Map<String, Mount>> {
                             emit(FluoriteInt(codePoint))
                             i += 2
                         } else {
-                            throw FluoriteException("The string passed to CODE_POINTS must not contain an isolated surrogate".toFluoriteString())
+                            throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
                         }
                     } else if (c.isLowSurrogate()) {
-                        throw FluoriteException("The string passed to CODE_POINTS must not contain an isolated surrogate".toFluoriteString())
+                        throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
                     } else {
                         emit(FluoriteInt(c.code))
                         i++
@@ -201,8 +201,8 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val sb = StringBuilder()
             suspend fun appendCodePoint(item: FluoriteValue) {
                 val codePoint = item.toFluoriteNumber(null).roundToInt()
-                if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element in CODE_POINTSD must be in 0..1114111, got $codePoint".toFluoriteString())
-                if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed in CODE_POINTSD, got $codePoint".toFluoriteString())
+                if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element must be in 0..1114111, got $codePoint".toFluoriteString())
+                if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
                 if (codePoint < 0x10000) {
                     sb.append(codePoint.toChar())
                 } else {
