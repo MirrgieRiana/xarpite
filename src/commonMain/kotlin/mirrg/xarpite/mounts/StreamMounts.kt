@@ -251,6 +251,24 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("LINES(string: STRING): STREAM<STRING>")
             }
         },
+        "LINESD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                val sb = StringBuilder()
+                if (stream is FluoriteStream) {
+                    stream.collect { value ->
+                        sb.append(value.toFluoriteString(null).value)
+                        sb.append('\n')
+                    }
+                } else {
+                    sb.append(stream.toFluoriteString(null).value)
+                    sb.append('\n')
+                }
+                sb.toString().toFluoriteString()
+            } else {
+                usage("LINESD(lines: STRING | STREAM<STRING>): STRING")
+            }
+        },
         "KEYS" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
             if (arguments.size == 1) {
