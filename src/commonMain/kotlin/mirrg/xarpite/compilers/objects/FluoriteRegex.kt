@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.isRegexStackOverflow
 import mirrg.xarpite.operations.FluoriteException
 
 data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValue {
@@ -78,18 +79,33 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
         val options = mutableSetOf<RegexOption>()
         if (flagData.multiline) options += RegexOption.MULTILINE
         if (flagData.ignoreCase) options += RegexOption.IGNORE_CASE
-        pattern.toRegex(options)
+        try {
+            pattern.toRegex(options)
+        } catch (e: Throwable) {
+            if (e.isRegexStackOverflow()) throw FluoriteException("Stack overflow in regular expression".toFluoriteString())
+            throw e
+        }
     }
 
     private fun matchImpl(string: String): FluoriteValue {
         return if (flagData.global) {
             FluoriteStream {
-                regexCache.findAll(string).forEach { matchResult ->
-                    emit(matchResult.toFluoriteValue())
+                try {
+                    regexCache.findAll(string).forEach { matchResult ->
+                        emit(matchResult.toFluoriteValue())
+                    }
+                } catch (e: Throwable) {
+                    if (e.isRegexStackOverflow()) throw FluoriteException("Stack overflow in regular expression".toFluoriteString())
+                    throw e
                 }
             }
         } else {
-            regexCache.find(string)?.toFluoriteValue() ?: FluoriteNull
+            try {
+                regexCache.find(string)?.toFluoriteValue() ?: FluoriteNull
+            } catch (e: Throwable) {
+                if (e.isRegexStackOverflow()) throw FluoriteException("Stack overflow in regular expression".toFluoriteString())
+                throw e
+            }
         }
     }
 

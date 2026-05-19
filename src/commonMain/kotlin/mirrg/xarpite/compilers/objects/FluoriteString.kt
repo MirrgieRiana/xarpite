@@ -1,6 +1,8 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.isRegexStackOverflow
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 
 data class FluoriteString(val value: String) : FluoriteValue {
@@ -104,7 +106,14 @@ data class FluoriteString(val value: String) : FluoriteValue {
                         val right = arguments[0] as FluoriteString
                         val left = arguments[1]
                         when (left) {
-                            is FluoriteRegex -> (left.regexCache.find(right.value) != null).toFluoriteBoolean()
+                            is FluoriteRegex -> {
+                                try {
+                                    (left.regexCache.find(right.value) != null).toFluoriteBoolean()
+                                } catch (e: Throwable) {
+                                    if (e.isRegexStackOverflow()) throw FluoriteException("Stack overflow in regular expression".toFluoriteString())
+                                    throw e
+                                }
+                            }
                             else -> (left.toFluoriteString(null).value in right.value).toFluoriteBoolean()
                         }
                     },
@@ -133,14 +142,19 @@ data class FluoriteString(val value: String) : FluoriteValue {
 
                                 when (old) {
                                     is FluoriteRegex -> {
-                                        if (forceAllOrFirst == true || forceAllOrFirst != false && old.flagData.global) {
-                                            old.regexCache.findAll(string.value).forEach { result ->
-                                                yield(result.toFluoriteValue(), result.range.first, result.range.last + 1)
+                                        try {
+                                            if (forceAllOrFirst == true || forceAllOrFirst != false && old.flagData.global) {
+                                                old.regexCache.findAll(string.value).forEach { result ->
+                                                    yield(result.toFluoriteValue(), result.range.first, result.range.last + 1)
+                                                }
+                                            } else {
+                                                old.regexCache.find(string.value)?.let { result ->
+                                                    yield(result.toFluoriteValue(), result.range.first, result.range.last + 1)
+                                                }
                                             }
-                                        } else {
-                                            old.regexCache.find(string.value)?.let { result ->
-                                                yield(result.toFluoriteValue(), result.range.first, result.range.last + 1)
-                                            }
+                                        } catch (e: Throwable) {
+                                            if (e.isRegexStackOverflow()) throw FluoriteException("Stack overflow in regular expression".toFluoriteString())
+                                            throw e
                                         }
                                     }
 
