@@ -2,6 +2,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteRegex
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
@@ -11,6 +12,7 @@ import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegexTest {
@@ -63,6 +65,25 @@ class RegexTest {
         assertEquals("ABC", eval(""" /ABC/gim.pattern """).string) // patternの取得
         assertEquals("gim", eval(""" /ABC/gim.flags """).string) // flagsの取得
         assertEquals(FluoriteNull, eval(""" /ABC/.flags """)) // nullのflagsの取得
+    }
+
+    @Test
+    fun stackOverflowIsConvertedToFluoriteException() = runTest {
+        // 深いネストのパターンを使用する。JVMではコンパイル時にStackOverflowが発生することが実験で確認されている。
+        // JS・Nativeでもパターン次第では発生しうるため、同様にFluoriteExceptionに変換されることを確認する。
+        // FluoriteException以外(StackOverflowErrorやPatternSyntaxExceptionなど)が伝播した場合はテスト失敗。
+        val depth = 1500
+        val deepNestedPattern = "(".repeat(depth) + "a" + ")?".repeat(depth)
+        try {
+            eval("""REGEX.new("$deepNestedPattern")""")
+            // 一部のプラットフォームではコンパイルが成功することもある - OK
+        } catch (e: FluoriteException) {
+            // StackOverflowError / PatternSyntaxException が FluoriteException に正しく変換された
+            assertTrue(
+                e.value.string.contains("stack overflow", ignoreCase = true),
+                "Expected 'stack overflow' in error message but got: ${e.value.string}",
+            )
+        }
     }
 
 }
