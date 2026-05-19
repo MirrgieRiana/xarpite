@@ -72,6 +72,10 @@ class RegexTest {
         // 深いネストのパターンを使用する。JVMではコンパイル時にStackOverflowが発生することが実験で確認されている。
         // JS・Nativeでもパターン次第では発生しうるため、同様にFluoriteExceptionに変換されることを確認する。
         // FluoriteException以外(StackOverflowErrorやPatternSyntaxExceptionなど)が伝播した場合はテスト失敗。
+        //
+        // パターン例: depth=1500 の場合は (((((...a...)?)?)?)?)
+        // 深い再帰を要するため、JVMのパターンコンパイラ内でStackOverflowErrorが発生し、
+        // PatternSyntaxException("Stack overflow during pattern compilation")として伝播する。
         val depth = 1500
         val deepNestedPattern = "(".repeat(depth) + "a" + ")?".repeat(depth)
         try {

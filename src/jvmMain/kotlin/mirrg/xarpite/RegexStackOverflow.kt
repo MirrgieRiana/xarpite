@@ -5,7 +5,7 @@ actual fun Throwable.isRegexStackOverflow(): Boolean {
     // Java 21以降、コンパイル時のStackOverflowErrorはPatternSyntaxExceptionとして伝播することがある
     if (this is java.util.regex.PatternSyntaxException) {
         val msg = message ?: return false
-        return msg.startsWith("Stack overflow during pattern compilation")
+        return msg.contains("Stack overflow", ignoreCase = true) && msg.contains("pattern compilation", ignoreCase = true)
     }
     return false
 }
