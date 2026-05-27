@@ -733,6 +733,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
+## `SLIDE` ストリームをスライディングウィンドウに分割
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+第2引数のストリームの要素を第1引数で指定したサイズのスライディングウィンドウに分割した配列のストリームを返します。
+要素数がサイズに満たない場合は空ストリームになります。
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
+```
+
 ## `TAKE` ストリームの先頭を取得
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`

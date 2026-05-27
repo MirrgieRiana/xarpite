@@ -873,6 +873,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
+## `SLIDE` Split Stream into Sliding Windows
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+Returns a stream of arrays formed by sliding a window of the size specified in the first argument over the elements of the second argument stream.
+If the number of elements is less than the size, the result is an empty stream.
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
+```
+
 ## `TAKE` Get Beginning of Stream
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
