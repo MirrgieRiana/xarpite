@@ -373,18 +373,22 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
-## `LINESD` Join Line Stream into String
+## `LINESD` Concatenate Line Stream into String
 
 `LINESD(lines: STREAM<STRING>): STRING`
 
 Returns a string by appending a newline to each element of `lines` and concatenating them.
 
-This is the inverse of `LINES`. A string ending with a newline can be restored by splitting it with `LINES` and then joining with `LINESD`.
-
 ```shell
 $ xa 'LINESD("A", "B", "C") >> JSONS'
 # "A\nB\nC\n"
+```
 
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`. A string ending with a newline can be restored by splitting it with `LINES` and then concatenating with `LINESD`.
+
+```shell
 $ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
 # "A\nB\nC\n"
 ```

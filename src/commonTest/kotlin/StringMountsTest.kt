@@ -80,7 +80,7 @@ class StringMountsTest {
 
     @Test
     fun linesd() = runTest {
-        // 基本的な行ストリームの結合
+        // 基本的な行ストリームの連結
         assertEquals("a\nb\nc\n", eval("LINESD(\"a\", \"b\", \"c\")").string)
 
         // 単一要素
@@ -92,10 +92,10 @@ class StringMountsTest {
         // 空ストリームの場合
         assertEquals("", eval("LINES(\"\") >> LINESD").string)
 
-        // LINESとの往復変換（末尾改行あり）
+        // 末尾が改行の文字列はLINESとの往復で復元される
         assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\\n\") >> LINESD").string)
 
-        // LINESとの往復変換（末尾改行なし）
+        // 末尾に改行がない文字列はLINES → LINESDで改行が付加される
         assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\") >> LINESD").string)
     }
 
