@@ -266,7 +266,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
                 sb.toString().toFluoriteString()
             } else {
-                usage("LINESD(lines: STRING | STREAM<STRING>): STRING")
+                usage("LINESD(lines: STREAM<STRING>): STRING")
             }
         },
         "KEYS" define FluoriteFunction.immediate { arguments ->
