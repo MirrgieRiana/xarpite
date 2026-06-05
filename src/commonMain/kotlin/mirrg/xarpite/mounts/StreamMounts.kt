@@ -582,6 +582,32 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
             }
         },
+        "SLIDE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 2) {
+                val size = arguments[0].toFluoriteNumber(null).toInt()
+                require(size > 0)
+                val stream = arguments[1]
+                FluoriteStream {
+                    val deque = ArrayDeque<FluoriteValue>()
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            deque += item
+                            if (deque.size == size) {
+                                emit(deque.toFluoriteArray())
+                                deque.removeFirst()
+                            }
+                        }
+                    } else {
+                        deque += stream
+                        if (deque.size == size) {
+                            emit(deque.toFluoriteArray())
+                        }
+                    }
+                }
+            } else {
+                usage("SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
+            }
+        },
         "TAKE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
