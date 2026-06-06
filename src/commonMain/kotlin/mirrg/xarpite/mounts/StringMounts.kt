@@ -106,7 +106,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
         },
         "CHAR_CODED" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CHAR_CODED(charCode: INT): STRING")
-            val code = arguments[0].toFluoriteNumber(null).roundToInt()
+            val number = arguments[0].toFluoriteNumber(null)
+            if (!number.toDouble().isFinite()) throw FluoriteException("Argument must be a finite number".toFluoriteString())
+            val code = number.roundToInt()
             if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be in 0..65535, got $code".toFluoriteString())
             code.toChar().toString().toFluoriteString()
         },
@@ -124,7 +126,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCode(item: FluoriteValue) {
-                val code = item.toFluoriteNumber(null).roundToInt()
+                val number = item.toFluoriteNumber(null)
+                if (!number.toDouble().isFinite()) throw FluoriteException("Each element must be a finite number".toFluoriteString())
+                val code = number.roundToInt()
                 if (code < 0 || code > 0xFFFF) throw FluoriteException("Each element must be in 0..65535, got $code".toFluoriteString())
                 sb.append(code.toChar())
             }
@@ -158,7 +162,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
         },
         "CODE_POINTD" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CODE_POINTD(codePoint: INT): STRING")
-            val codePoint = arguments[0].toFluoriteNumber(null).roundToInt()
+            val number = arguments[0].toFluoriteNumber(null)
+            if (!number.toDouble().isFinite()) throw FluoriteException("Argument must be a finite number".toFluoriteString())
+            val codePoint = number.roundToInt()
             if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Argument must be in 0..1114111, got $codePoint".toFluoriteString())
             if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
             val string = if (codePoint < 0x10000) {
@@ -200,7 +206,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCodePoint(item: FluoriteValue) {
-                val codePoint = item.toFluoriteNumber(null).roundToInt()
+                val number = item.toFluoriteNumber(null)
+                if (!number.toDouble().isFinite()) throw FluoriteException("Each element must be a finite number".toFluoriteString())
+                val codePoint = number.roundToInt()
                 if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element must be in 0..1114111, got $codePoint".toFluoriteString())
                 if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
                 if (codePoint < 0x10000) {
