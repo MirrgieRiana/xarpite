@@ -37,6 +37,8 @@ class StringTest {
         assertEquals("", eval("''::take(2)").string) // 空文字列からの取得
         assertEquals("ab", eval("'abcde'::take('1.5')").string) // 文字数は数値化し、四捨五入される
         assertEquals("あい", eval("'あいう'::take(2)").string) // マルチバイト文字の取得
+        assertEquals("😀", eval("'😀x'::take(2)").string) // サロゲートペアは UTF-16 コードユニット 2 つ分として扱われる
+        assertEquals(1, eval("'😀x'::take(1)").string.length) // サロゲートペアの途中（Char 単位）で分割される（既存の添字演算子と同じ挙動）
         assertFails { eval("'abcde'::take(-1)") } // 負の count はエラーになる
     }
 
@@ -79,6 +81,7 @@ class StringTest {
         assertEquals(FluoriteNull, eval("''::last()")) // 空文字列の末尾は NULL が返る
         assertEquals("あ", eval("'あいう'::first()").string) // マルチバイト文字の先頭
         assertEquals("う", eval("'あいう'::last()").string) // マルチバイト文字の末尾
+        assertEquals(1, eval("'😀x'::first()").string.length) // first はコードユニット単位なのでサロゲートペアの片方を返す（既存の添字演算子と同じ挙動）
         assertFails { eval("'abc'::first(123)") } // 余分な引数はエラーになる
         assertFails { eval("'abc'::last(123)") } // 余分な引数はエラーになる
     }
