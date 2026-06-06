@@ -373,6 +373,37 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` Concatenate Line Stream into String
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+Returns a string by appending a newline to each element of `lines` and concatenating them.
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+An empty stream returns an empty string.
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
 ## `KEYS` Get Stream of Object Keys
 
 `KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
