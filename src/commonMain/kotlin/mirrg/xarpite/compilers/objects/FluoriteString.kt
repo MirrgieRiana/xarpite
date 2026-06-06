@@ -181,7 +181,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
                                 if (arguments.size != 2) throw IllegalArgumentException("STRING::$name(count: INT): STRING")
                                 val string = arguments[0] as FluoriteString
                                 val count = arguments[1].toFluoriteNumber(null).roundToInt()
-                                require(count >= 0)
+                                require(count >= 0) { "STRING::$name(count: INT): STRING <- count must be non-negative, got $count" }
                                 transform(string.value, count).toFluoriteString()
                             }
                         }
@@ -197,10 +197,12 @@ data class FluoriteString(val value: String) : FluoriteValue {
                         )
                     },
                     "first" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("STRING::first(): STRING | NULL")
                         val string = arguments[0] as FluoriteString
                         string.value.firstOrNull()?.toString()?.toFluoriteString() ?: FluoriteNull
                     },
                     "last" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("STRING::last(): STRING | NULL")
                         val string = arguments[0] as FluoriteString
                         string.value.lastOrNull()?.toString()?.toFluoriteString() ?: FluoriteNull
                     },

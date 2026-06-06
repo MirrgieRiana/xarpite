@@ -5,6 +5,7 @@ import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringTest {
@@ -36,6 +37,7 @@ class StringTest {
         assertEquals("", eval("''::take(2)").string) // 空文字列からの取得
         assertEquals("ab", eval("'abcde'::take('1.5')").string) // 文字数は数値化し、四捨五入される
         assertEquals("あい", eval("'あいう'::take(2)").string) // マルチバイト文字の取得
+        assertFails { eval("'abcde'::take(-1)") } // 負の count はエラーになる
     }
 
     @Test
@@ -56,6 +58,7 @@ class StringTest {
         assertEquals("", eval("'abcde'::drop(10)").string) // 長さを超える場合は空文字列になる
         assertEquals("", eval("''::drop(2)").string) // 空文字列からの除去
         assertEquals("う", eval("'あいう'::drop(2)").string) // マルチバイト文字の除去
+        assertFails { eval("'abcde'::drop(-1)") } // 負の count はエラーになる
     }
 
     @Test
@@ -76,6 +79,8 @@ class StringTest {
         assertEquals(FluoriteNull, eval("''::last()")) // 空文字列の末尾は NULL が返る
         assertEquals("あ", eval("'あいう'::first()").string) // マルチバイト文字の先頭
         assertEquals("う", eval("'あいう'::last()").string) // マルチバイト文字の末尾
+        assertFails { eval("'abc'::first(123)") } // 余分な引数はエラーになる
+        assertFails { eval("'abc'::last(123)") } // 余分な引数はエラーになる
     }
 
     @Test
