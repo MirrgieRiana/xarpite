@@ -30,6 +30,10 @@ class DataConversionTest {
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON[indent: 2] """).string
         ) // indentは数値でも指定でき、その数だけ空白が使用される
+        assertEquals(
+            eval(""" {a: 1} >> JSON """).string,
+            eval(""" {a: 1} >> JSON[indent: NULL] """).string
+        ) // indentにNULLを指定するとインデント無しになる
 
         // JSONS
         assertEquals("[\n 1\n],[\n 2\n]", eval(""" [1], [2] >> JSONS[indent: 1] """).stream()) // JSONS でindentを指定できる

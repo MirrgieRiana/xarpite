@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -170,8 +171,10 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             )
         },
         *run {
-            suspend fun parseIndent(indent: FluoriteValue): String {
-                return if (indent is FluoriteNumber) {
+            suspend fun parseIndent(indent: FluoriteValue): String? {
+                return if (indent is FluoriteNull) {
+                    null
+                } else if (indent is FluoriteNumber) {
                     val number = indent.roundToInt()
                     if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
                     " ".repeat(number)
