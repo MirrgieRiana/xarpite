@@ -240,16 +240,7 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 `lines` の各要素に改行を付加して連結した文字列を返します。
 
 ```shell
-$ xa 'LINESD("A", "B", "C") >> JSONS'
-# "A\nB\nC\n"
-```
-
----
-
-`LINESD` は概念的に `LINES` と逆の操作を行います。末尾が改行で終わる文字列を `LINES` で分割した後、`LINESD` で連結することで元の文字列を復元できます。
-
-```shell
-$ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
+$ xa '"A", "B", "C" >> LINESD >> JSON'
 # "A\nB\nC\n"
 ```
 
@@ -258,8 +249,19 @@ $ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
 空ストリームの場合、空文字列を返します。
 
 ```shell
-$ xa 'LINES("") >> LINESD >> JSONS'
+$ xa ', >> LINESD >> JSON'
 # ""
+```
+
+---
+
+`LINESD` は概念的に `LINES` と逆の操作を行います。
+
+末尾が改行で終わる文字列を `LINES` で分割してから `LINESD` で連結すると、改行文字などの違いを除き、元の文字列に戻ります。
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
 ```
 
 ## `KEYS` オブジェクトのキーのストリームを取得
