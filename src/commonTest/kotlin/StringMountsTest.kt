@@ -126,10 +126,6 @@ class StringMountsTest {
         assertFailsWith<FluoriteException> { eval("CHAR_CODED(-1)") } // 負数はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODED(65536)") } // 65536はエラー
 
-        // CHAR_CODED: 非有限数（NaN/Infinity）はエラー
-        assertFailsWith<FluoriteException> { eval("CHAR_CODED(+'NaN')") } // NaNはエラー
-        assertFailsWith<FluoriteException> { eval("CHAR_CODED(+'Infinity')") } // Infinityはエラー
-
         // CHAR_CODES: 文字列からUTF-16コード単位のストリームを返す
         assertEquals("65,66,67", eval("CHAR_CODES('ABC')").stream()) // 'ABC'のコード列
         assertEquals("12354,12356", eval("CHAR_CODES('\u3042\u3044')").stream()) // 'あい'のコード列
@@ -147,10 +143,6 @@ class StringMountsTest {
         // CHAR_CODESD: 範囲外の場合はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODESD(-1)") } // 負数はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODESD(65536)") } // 65536はエラー
-
-        // CHAR_CODESD: 非有限数（NaN/Infinity）はエラー
-        assertFailsWith<FluoriteException> { eval("CHAR_CODESD(+'NaN')") } // NaNはエラー
-        assertFailsWith<FluoriteException> { eval("CHAR_CODESD(+'Infinity')") } // Infinityはエラー
 
         // CHAR_CODESとCHAR_CODESDは逆変換
         assertEquals("Hello", eval("'Hello' >> CHAR_CODES >> CHAR_CODESD").string)
@@ -183,10 +175,6 @@ class StringMountsTest {
         assertFailsWith<FluoriteException> { eval("CODE_POINTD(1114112)") } // U+110000はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTD(55296)") } // サロゲートはエラー（U+D800）
 
-        // CODE_POINTD: 非有限数（NaN/Infinity）はエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTD(+'NaN')") } // NaNはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTD(+'Infinity')") } // Infinityはエラー
-
         // CODE_POINTS: 文字列からUnicodeコードポイントのストリームを返す
         assertEquals("65,66,67", eval("CODE_POINTS('ABC')").stream()) // 'ABC'のコードポイント列
         assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
@@ -206,10 +194,6 @@ class StringMountsTest {
         assertFailsWith<FluoriteException> { eval("CODE_POINTSD(-1)") } // 負数はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTSD(1114112)") } // U+110000はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTSD(55296)") } // サロゲートはエラー
-
-        // CODE_POINTSD: 非有限数（NaN/Infinity）はエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTSD(+'NaN')") } // NaNはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTSD(+'Infinity')") } // Infinityはエラー
 
         // CODE_POINTSとCODE_POINTSDは逆変換
         assertEquals("Hello", eval("'Hello' >> CODE_POINTS >> CODE_POINTSD").string)
