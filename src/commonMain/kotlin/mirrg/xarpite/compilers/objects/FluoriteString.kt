@@ -175,6 +175,35 @@ data class FluoriteString(val value: String) : FluoriteValue {
                             "replaceFirst" to create("replaceFirst", false),
                         )
                     },
+                    *run {
+                        fun create(name: String, transform: (String, Int) -> String): FluoriteValue {
+                            return FluoriteFunction.immediate { arguments ->
+                                if (arguments.size != 2) throw IllegalArgumentException("STRING::$name(count: INT): STRING")
+                                val string = arguments[0] as FluoriteString
+                                val count = arguments[1].toFluoriteNumber(null).roundToInt()
+                                require(count >= 0)
+                                transform(string.value, count).toFluoriteString()
+                            }
+                        }
+                        arrayOf(
+                            "take" to create("take") { string, count -> string.take(count) },
+                            "takeFirst" to create("takeFirst") { string, count -> string.take(count) },
+                            "taker" to create("taker") { string, count -> string.takeLast(count) },
+                            "takeLast" to create("takeLast") { string, count -> string.takeLast(count) },
+                            "drop" to create("drop") { string, count -> string.drop(count) },
+                            "dropFirst" to create("dropFirst") { string, count -> string.drop(count) },
+                            "dropr" to create("dropr") { string, count -> string.dropLast(count) },
+                            "dropLast" to create("dropLast") { string, count -> string.dropLast(count) },
+                        )
+                    },
+                    "first" to FluoriteFunction.immediate { arguments ->
+                        val string = arguments[0] as FluoriteString
+                        string.value.firstOrNull()?.toString()?.toFluoriteString() ?: FluoriteNull
+                    },
+                    "last" to FluoriteFunction.immediate { arguments ->
+                        val string = arguments[0] as FluoriteString
+                        string.value.lastOrNull()?.toString()?.toFluoriteString() ?: FluoriteNull
+                    },
                 )
             )
         }

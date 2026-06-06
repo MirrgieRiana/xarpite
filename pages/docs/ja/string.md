@@ -372,6 +372,58 @@ $ xa '"abcde"[1..3]'
 # bcd
 ```
 
+# 先頭・末尾の取得と除去
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+`take` `taker` メソッドで先頭・末尾の `count` 文字を取得し、 `drop` `dropr` メソッドで先頭・末尾の `count` 文字を除去できます。
+
+`count` は数値化し、四捨五入されます。 `count` が文字列の長さを超える場合、 `take` `taker` は文字列全体を、 `drop` `dropr` は空文字列を返します。
+
+```shell
+$ xa '"abcde"::take(2)'
+# ab
+
+$ xa '"abcde"::taker(2)'
+# de
+
+$ xa '"abcde"::drop(2)'
+# cde
+
+$ xa '"abcde"::dropr(2)'
+# abc
+```
+
+`takeFirst` は `take` の、 `takeLast` は `taker` の、 `dropFirst` は `drop` の、 `dropLast` は `dropr` の別名であり、それぞれ同一の動作を持ちます。
+
+```shell
+$ xa '"abcde"::takeLast(2)'
+# de
+
+$ xa '"abcde"::dropLast(2)'
+# abc
+```
+
+`first` `last` メソッドで先頭・末尾の 1 文字を取得します。文字列が空の場合は `NULL` を返します。
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+```
+
 # 文字列の置換
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`

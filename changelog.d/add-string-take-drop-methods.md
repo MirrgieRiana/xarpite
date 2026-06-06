@@ -1,0 +1,1 @@
+Added STRING methods `take`, `taker`, `drop`, `dropr`, `first`, and `last` (with the synonyms `takeFirst`, `takeLast`, `dropFirst`, and `dropLast`) for taking and dropping characters from the ends of a string.

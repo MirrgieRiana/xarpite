@@ -372,6 +372,58 @@ $ xa '"abcde"[1..3]'
 # bcd
 ```
 
+# Taking and Dropping from the Ends
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+The `take` and `taker` methods get the first and last `count` characters, and the `drop` and `dropr` methods remove the first and last `count` characters.
+
+`count` is converted to a number and rounded. If `count` exceeds the length of the string, `take` and `taker` return the entire string, while `drop` and `dropr` return an empty string.
+
+```shell
+$ xa '"abcde"::take(2)'
+# ab
+
+$ xa '"abcde"::taker(2)'
+# de
+
+$ xa '"abcde"::drop(2)'
+# cde
+
+$ xa '"abcde"::dropr(2)'
+# abc
+```
+
+`takeFirst` is an alias of `take`, `takeLast` of `taker`, `dropFirst` of `drop`, and `dropLast` of `dropr`, each having identical behavior.
+
+```shell
+$ xa '"abcde"::takeLast(2)'
+# de
+
+$ xa '"abcde"::dropLast(2)'
+# abc
+```
+
+The `first` and `last` methods get the first and last single character. If the string is empty, `NULL` is returned.
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+```
+
 # String Replacement
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
