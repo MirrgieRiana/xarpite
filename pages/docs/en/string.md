@@ -544,7 +544,7 @@ Using string concatenation like `"$PWD/file"` generates paths like `//file` for 
 
 Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
 
-## Conversion Between Characters and UTF-16 Code Units
+## Conversion Between Characters and Character Codes
 
 `CHAR_CODE(char: STRING): INT`
 
@@ -554,16 +554,30 @@ Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
 
 `CHAR_CODESD(charCodes: STREAM<INT>): STRING`
 
-These functions convert between a string and the UTF-16 code unit value of each of its characters.
+`CODE_POINT(char: STRING): INT`
 
-| Function      | Conversion                                | Error condition                            |
-|---------------|-------------------------------------------|--------------------------------------------|
-| `CHAR_CODE`   | string of one code unit → code unit value | The string does not contain exactly one code unit. |
-| `CHAR_CODED`  | code unit value → string of one code unit | The value is not between 0 and 65535.      |
-| `CHAR_CODES`  | string → stream of code unit values       | (none)                                     |
-| `CHAR_CODESD` | stream of code unit values → string       | A value is not between 0 and 65535.        |
+`CODE_POINTD(codePoint: INT): STRING`
 
-`CHAR_CODES` and `CHAR_CODESD` are inverse transformations of each other.
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
+These functions convert between a string and the character code value of each of its characters.
+
+The `CHAR_CODE` family works in UTF-16 code units, whereas the `CODE_POINT` family treats a character represented by a surrogate pair (U+10000 and above) as a single Unicode code point.
+
+| Function       | Conversion                                  | Error condition                                                                             |
+|----------------|---------------------------------------------|---------------------------------------------------------------------------------------------|
+| `CHAR_CODE`    | string of one code unit → code unit value   | The string does not contain exactly one code unit.                                          |
+| `CHAR_CODED`   | code unit value → string of one code unit   | The value is not between 0 and 65535.                                                       |
+| `CHAR_CODES`   | string → stream of code unit values         | (none)                                                                                      |
+| `CHAR_CODESD`  | stream of code unit values → string         | A value is not between 0 and 65535.                                                         |
+| `CODE_POINT`   | string of one code point → code point value | The string does not contain exactly one code point, or it contains an isolated surrogate.   |
+| `CODE_POINTD`  | code point value → string                   | The value is not between 0 and 1114111, or it is a surrogate code point (U+D800 to U+DFFF). |
+| `CODE_POINTS`  | string → stream of code point values        | The string contains an isolated surrogate.                                                  |
+| `CODE_POINTSD` | stream of code point values → string        | A value is not between 0 and 1114111, or it is a surrogate code point.                      |
+
+`CHAR_CODES` and `CHAR_CODESD`, and `CODE_POINTS` and `CODE_POINTSD`, are inverse transformations of each other.
 
 ```shell
 $ xa 'CHAR_CODE("A")'
@@ -586,32 +600,7 @@ $ xa 'CHAR_CODESD(65, 66, 67)'
 
 $ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
 # Hello
-```
 
-## Conversion Between Characters and Unicode Code Points
-
-`CODE_POINT(char: STRING): INT`
-
-`CODE_POINTD(codePoint: INT): STRING`
-
-`CODE_POINTS(string: STRING): STREAM<INT>`
-
-`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
-
-These functions convert between a string and the Unicode code point value of each of its characters.
-
-Whereas the `CHAR_CODE` family works in UTF-16 code units, these treat a character represented by a surrogate pair (U+10000 and above) as a single code point.
-
-| Function       | Conversion                                  | Error condition                            |
-|----------------|---------------------------------------------|--------------------------------------------|
-| `CODE_POINT`   | string of one code point → code point value | The string does not contain exactly one code point, or it contains an isolated surrogate. |
-| `CODE_POINTD`  | code point value → string                   | The value is not between 0 and 1114111, or it is a surrogate code point (U+D800 to U+DFFF). |
-| `CODE_POINTS`  | string → stream of code point values        | The string contains an isolated surrogate. |
-| `CODE_POINTSD` | stream of code point values → string        | A value is not between 0 and 1114111, or it is a surrogate code point. |
-
-`CODE_POINTS` and `CODE_POINTSD` are inverse transformations of each other.
-
-```shell
 $ xa 'CODE_POINT("A")'
 # 65
 
