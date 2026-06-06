@@ -380,16 +380,7 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 Returns a string by appending a newline to each element of `lines` and concatenating them.
 
 ```shell
-$ xa 'LINESD("A", "B", "C") >> JSONS'
-# "A\nB\nC\n"
-```
-
----
-
-`LINESD` conceptually performs the inverse operation of `LINES`. A string ending with a newline can be restored by splitting it with `LINES` and then concatenating with `LINESD`.
-
-```shell
-$ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
+$ xa '"A", "B", "C" >> LINESD >> JSON'
 # "A\nB\nC\n"
 ```
 
@@ -398,8 +389,19 @@ $ xa 'LINES("A\nB\nC\n") >> LINESD >> JSONS'
 An empty stream returns an empty string.
 
 ```shell
-$ xa 'LINES("") >> LINESD >> JSONS'
+$ xa ', >> LINESD >> JSON'
 # ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
 ```
 
 ## `KEYS` Get Stream of Object Keys
