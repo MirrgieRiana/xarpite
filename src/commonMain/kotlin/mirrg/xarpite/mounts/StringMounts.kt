@@ -145,7 +145,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 string.isEmpty() -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
                 string.length == 1 -> {
                     val c = string[0]
-                    if (c.isHighSurrogate() || c.isLowSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                    if (c.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
                     c.code
                 }
                 string.length == 2 -> {
