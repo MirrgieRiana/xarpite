@@ -2,11 +2,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.invokeImmediate
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -17,6 +19,14 @@ class MathTest {
         assertEquals(10, eval("FLOOR(10.1)").int) // FLOOR関数は小数点以下を切り捨てて内部的な型をINTにする
         assertEquals(10, eval("FLOOR(10)").int) // 整数はそのまま
         assertEquals(-11, eval("FLOOR(-10.1)").int) // 負の数も値が小さくなるように切り捨てる
+    }
+
+    @Test
+    fun roundToIntRejectsNaN() = runTest {
+        // 数値をINTに丸める箇所では、NaNを0として扱わずにエラーにする
+        assertFailsWith<FluoriteException> { eval("[10;20;30](+'NaN')") } // 配列のインデックス
+        assertFailsWith<FluoriteException> { eval("'abc'(+'NaN')") } // 文字列のインデックス
+        assertFailsWith<FluoriteException> { eval("BASE(10; +'NaN')") } // BASE関数の数値引数
     }
 
     @Test
