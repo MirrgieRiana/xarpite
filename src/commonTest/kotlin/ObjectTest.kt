@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -7,6 +8,7 @@ import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -95,6 +97,12 @@ class ObjectTest {
         assertEquals("{a:1;b:2}", eval("((a: 1), (b: 2)).{}").obj) // .{} オブジェクト化演算子
         assertEquals("{az:10;bz:20;cz:30}", eval("({a: 1; b: 2; c: 3}() | (_.0 & \"z\": _.1 * 10)).{}").obj) // .{} オブジェクト化演算子とパイプの組み合わせ
         assertEquals("{a:100}", eval("(a: 100).{}").obj) // ストリームでなくてもよい
+    }
+
+    @Test
+    fun toObjectUsage() = runTest {
+        val exception = assertFailsWith<FluoriteException> { eval("TO_OBJECT(1; 2)") } // 引数の数が不正だと usage メッセージを出す
+        assertTrue(exception.message!!.contains("TO_OBJECT")) // usage メッセージの関数名が TO_OBJECT になっている
     }
 
 

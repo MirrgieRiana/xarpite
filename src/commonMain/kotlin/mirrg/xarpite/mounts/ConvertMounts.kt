@@ -46,14 +46,14 @@ fun createConvertMounts(): List<Map<String, Mount>> {
                 }
                 list.asFluoriteArray()
             } else {
-                usage("ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>")
+                usage("TO_ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>")
             }
         },
         "TO_OBJECT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 FluoriteObject.fromStream(arguments[0])
             } else {
-                usage("OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
+                usage("TO_OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
             }
         },
     ).let { listOf(it) }
