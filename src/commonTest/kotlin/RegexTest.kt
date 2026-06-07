@@ -48,6 +48,13 @@ class RegexTest {
     }
 
     @Test
+    fun not_match() = runTest {
+        assertEquals(false, eval(""" "ABC" !~ /B/ """).boolean) // 部分一致
+        assertEquals(true, eval(""" "ABC" !~ /D/ """).boolean) // 部分一致しない
+        assertEquals(false, eval(""" "ABC" !~ /b/i """).boolean) // 大文字小文字を区別しない
+    }
+
+    @Test
     fun match_stream() = runTest {
         assertEquals(
             eval(""" ("1", "2", "3" =~ /\d/) | _.0 """).stream(),

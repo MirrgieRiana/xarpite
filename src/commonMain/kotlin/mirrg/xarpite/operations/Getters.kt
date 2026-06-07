@@ -737,6 +737,24 @@ class MatchGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "MatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
+class NotMatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val left = leftGetter.evaluate(env)
+        val right = rightGetter.evaluate(env)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.collect { item ->
+                    emit((right.match(position, item) == FluoriteNull).toFluoriteBoolean())
+                }
+            }
+        } else {
+            (right.match(position, left) == FluoriteNull).toFluoriteBoolean()
+        }
+    }
+
+    override val code get() = "NotMatchGetter[${leftGetter.code};${rightGetter.code}]"
+}
+
 class SpaceshipGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
