@@ -69,6 +69,7 @@ class DataConversionTest {
 
         // 不正な入力はネイティブ例外ではなくFluoriteExceptionになり !? で捕まえられる
         assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは !? で捕まえられる
+        assertTrue(eval(""" ((1 / 0) >> JSON) !? (e => e) """).string.startsWith("Failed to encode to JSON")) // 特殊な浮動小数点値のエンコードは !? で捕まえられる
     }
 
     @Test
