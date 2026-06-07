@@ -455,6 +455,97 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 # String Utility Functions
 
+## Conversion Between Characters and Character Codes
+
+`CHAR_CODE(char: STRING): INT`
+
+`CHAR_CODED(charCode: INT): STRING`
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+`CODE_POINT(char: STRING): INT`
+
+`CODE_POINTD(codePoint: INT): STRING`
+
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
+These functions convert between a string and the character code value of each of its characters.
+
+The `CHAR_CODE` family works in UTF-16 code units, whereas the `CODE_POINT` family treats a character represented by a surrogate pair (U+10000 and above) as a single Unicode code point.
+
+| Function       | Input type    | Input meaning            | Output type   | Output meaning           |
+|----------------|---------------|--------------------------|---------------|--------------------------|
+| `CHAR_CODE`    | `STRING`      | exactly one code unit    | `INT`         | code unit value          |
+| `CHAR_CODED`   | `INT`         | code unit value          | `STRING`      | exactly one code unit    |
+| `CHAR_CODES`   | `STRING`      | string                   | `STREAM<INT>` | value of each code unit  |
+| `CHAR_CODESD`  | `STREAM<INT>` | value of each code unit  | `STRING`      | string                   |
+| `CODE_POINT`   | `STRING`      | exactly one code point   | `INT`         | code point value         |
+| `CODE_POINTD`  | `INT`         | code point value         | `STRING`      | exactly one code point   |
+| `CODE_POINTS`  | `STRING`      | string                   | `STREAM<INT>` | value of each code point |
+| `CODE_POINTSD` | `STREAM<INT>` | value of each code point | `STRING`      | string                   |
+
+`CHAR_CODES` and `CHAR_CODESD`, and `CODE_POINTS` and `CODE_POINTSD`, are inverse transformations of each other.
+
+An error is raised for inputs that fall under any of the following:
+
+- `CHAR_CODED` / `CHAR_CODESD` given a value that is not between 0 and 65535
+- `CODE_POINTD` / `CODE_POINTSD` given a value that is not between 0 and 1114111, or a surrogate code point (U+D800 to U+DFFF)
+- `CHAR_CODE` / `CODE_POINT` given a string that does not consist of exactly one code unit or code point, respectively
+- `CODE_POINT` / `CODE_POINTS` given a string that contains an isolated surrogate
+
+For `CHAR_CODESD` and `CODE_POINTSD`, which take a stream, the numeric conditions are checked for each element.
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("あ")'
+# 12354
+
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+
+$ xa 'JSONS(TO_ARRAY(CHAR_CODES("ABC")))'
+# [65,66,67]
+
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa 'CHAR_CODESD(CHAR_CODES("Hello"))'
+# Hello
+
+$ xa 'CODE_POINT("A")'
+# 65
+
+$ xa 'CODE_POINT("🍰")'
+# 127856
+
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(127856)'
+# 🍰
+
+$ xa 'JSONS(TO_ARRAY(CODE_POINTS("ABC")))'
+# [65,66,67]
+
+$ xa 'JSONS(TO_ARRAY(CODE_POINTS("🍰")))'
+# [127856]
+
+$ xa 'CODE_POINTSD(127856)'
+# 🍰
+
+$ xa 'CODE_POINTSD(CODE_POINTS("🍰"))'
+# 🍰
+```
+
 ## `UC` Convert to Uppercase
 
 `UC(string: STRING): STRING`
@@ -543,85 +634,3 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
 
 Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
-
-## Conversion Between Characters and Character Codes
-
-`CHAR_CODE(char: STRING): INT`
-
-`CHAR_CODED(charCode: INT): STRING`
-
-`CHAR_CODES(string: STRING): STREAM<INT>`
-
-`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
-
-`CODE_POINT(char: STRING): INT`
-
-`CODE_POINTD(codePoint: INT): STRING`
-
-`CODE_POINTS(string: STRING): STREAM<INT>`
-
-`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
-
-These functions convert between a string and the character code value of each of its characters.
-
-The `CHAR_CODE` family works in UTF-16 code units, whereas the `CODE_POINT` family treats a character represented by a surrogate pair (U+10000 and above) as a single Unicode code point.
-
-| Function       | Conversion                                  | Error condition                                                                             |
-|----------------|---------------------------------------------|---------------------------------------------------------------------------------------------|
-| `CHAR_CODE`    | string of one code unit → code unit value   | The string does not contain exactly one code unit.                                          |
-| `CHAR_CODED`   | code unit value → string of one code unit   | The value is not between 0 and 65535.                                                       |
-| `CHAR_CODES`   | string → stream of code unit values         | (none)                                                                                      |
-| `CHAR_CODESD`  | stream of code unit values → string         | A value is not between 0 and 65535.                                                         |
-| `CODE_POINT`   | string of one code point → code point value | The string does not contain exactly one code point, or it contains an isolated surrogate.   |
-| `CODE_POINTD`  | code point value → string                   | The value is not between 0 and 1114111, or it is a surrogate code point (U+D800 to U+DFFF). |
-| `CODE_POINTS`  | string → stream of code point values        | The string contains an isolated surrogate.                                                  |
-| `CODE_POINTSD` | stream of code point values → string        | A value is not between 0 and 1114111, or it is a surrogate code point.                      |
-
-`CHAR_CODES` and `CHAR_CODESD`, and `CODE_POINTS` and `CODE_POINTSD`, are inverse transformations of each other.
-
-```shell
-$ xa 'CHAR_CODE("A")'
-# 65
-
-$ xa 'CHAR_CODE("あ")'
-# 12354
-
-$ xa 'CHAR_CODED(65)'
-# A
-
-$ xa 'CHAR_CODED(12354)'
-# あ
-
-$ xa 'CHAR_CODES("ABC") >> TO_ARRAY >> JSONS'
-# [65,66,67]
-
-$ xa 'CHAR_CODESD(65, 66, 67)'
-# ABC
-
-$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
-# Hello
-
-$ xa 'CODE_POINT("A")'
-# 65
-
-$ xa 'CODE_POINT("😀")'
-# 128512
-
-$ xa 'CODE_POINTD(65)'
-# A
-
-$ xa 'CODE_POINTD(128512)'
-# 😀
-
-$ xa 'CODE_POINTS("ABC") >> TO_ARRAY >> JSONS'
-# [65,66,67]
-
-$ xa 'CODE_POINTS("😀") >> TO_ARRAY >> JSONS'
-# [128512]
-
-$ xa 'CODE_POINTSD(128512)'
-# 😀
-
-$ xa '"😀" >> CODE_POINTS >> CODE_POINTSD'
-# 😀
-```
