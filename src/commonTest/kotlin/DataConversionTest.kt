@@ -66,6 +66,9 @@ class DataConversionTest {
         // JSONLD (synonym for JSONSD)
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+
+        // 不正な入力はネイティブ例外ではなくFluoriteExceptionになり !? で捕まえられる
+        assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは !? で捕まえられる
     }
 
     @Test
