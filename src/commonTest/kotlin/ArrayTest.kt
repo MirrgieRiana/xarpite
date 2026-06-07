@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -8,6 +9,8 @@ import mirrg.xarpite.test.parse
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ArrayTest {
@@ -32,6 +35,12 @@ class ArrayTest {
         assertEquals("[1;2;3]", eval("(1, 2, 3).[]").array()) // .[] 配列化演算子
         assertEquals("[10;20;30]", eval("(1 .. 3 | _ * 10).[]").array()) // .[] 配列化演算子とパイプの組み合わせ
         assertEquals("[100]", eval("100.[]").array()) // ストリームでなくてもよい
+    }
+
+    @Test
+    fun toArrayUsage() = runTest {
+        val exception = assertFailsWith<FluoriteException> { eval("TO_ARRAY(1; 2)") } // 引数の数が不正だと usage メッセージを出す
+        assertTrue(exception.message!!.contains("TO_ARRAY")) // usage メッセージの関数名が TO_ARRAY になっている
     }
 
     @Test
