@@ -762,7 +762,7 @@ The file is emptied before reading begins from the `lines` stream.
 
 For this reason, if you read from the same file you are writing to within `lines`, its contents will be lost.
 
-For such a self-reference, use [`CACHE`](./stream.md) to resolve the input first.
+For such a self-reference, use `CACHE` to resolve the input first.
 
 ```shell
 $ {
@@ -785,7 +785,7 @@ The file is emptied before reading begins from `blobLike`.
 
 For this reason, if you read from the same file you are writing to within `blobLike`, its contents will be lost.
 
-For such a self-reference, use [`CACHE`](./stream.md) to resolve the input first.
+For such a self-reference, use `CACHE` to resolve the input first.
 
 ```shell
 $ {
