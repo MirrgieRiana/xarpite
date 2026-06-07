@@ -477,16 +477,18 @@ These functions convert between a string and the character code value of each of
 
 The `CHAR_CODE` family works in UTF-16 code units, whereas the `CODE_POINT` family treats a character represented by a surrogate pair (U+10000 and above) as a single Unicode code point.
 
-| Function       | Input type    | Input meaning            | Output type   | Output meaning           |
-|----------------|---------------|--------------------------|---------------|--------------------------|
-| `CHAR_CODE`    | `STRING`      | exactly one code unit    | `INT`         | code unit value          |
-| `CHAR_CODED`   | `INT`         | code unit value          | `STRING`      | exactly one code unit    |
-| `CHAR_CODES`   | `STRING`      | string                   | `STREAM<INT>` | value of each code unit  |
-| `CHAR_CODESD`  | `STREAM<INT>` | value of each code unit  | `STRING`      | string                   |
-| `CODE_POINT`   | `STRING`      | exactly one code point   | `INT`         | code point value         |
-| `CODE_POINTD`  | `INT`         | code point value         | `STRING`      | exactly one code point   |
-| `CODE_POINTS`  | `STRING`      | string                   | `STREAM<INT>` | value of each code point |
-| `CODE_POINTSD` | `STREAM<INT>` | value of each code point | `STRING`      | string                   |
+Functions with the `D` suffix decode (from a number to a string, `→`), while those without it encode (from a string to a number, `←`).
+
+| Function       | Pre-decode type | Pre-decode meaning       | Direction | Post-decode type | Post-decode meaning    |
+|----------------|-----------------|--------------------------|-----------|------------------|------------------------|
+| `CHAR_CODE`    | `INT`           | code unit value          | ←        | `STRING`         | exactly one code unit  |
+| `CHAR_CODED`   | `INT`           | code unit value          | →        | `STRING`         | exactly one code unit  |
+| `CHAR_CODES`   | `STREAM<INT>`   | value of each code unit  | ←        | `STRING`         | string                 |
+| `CHAR_CODESD`  | `STREAM<INT>`   | value of each code unit  | →        | `STRING`         | string                 |
+| `CODE_POINT`   | `INT`           | code point value         | ←        | `STRING`         | exactly one code point |
+| `CODE_POINTD`  | `INT`           | code point value         | →        | `STRING`         | exactly one code point |
+| `CODE_POINTS`  | `STREAM<INT>`   | value of each code point | ←        | `STRING`         | string                 |
+| `CODE_POINTSD` | `STREAM<INT>`   | value of each code point | →        | `STRING`         | string                 |
 
 `CHAR_CODES` and `CHAR_CODESD`, and `CODE_POINTS` and `CODE_POINTSD`, are inverse transformations of each other.
 
