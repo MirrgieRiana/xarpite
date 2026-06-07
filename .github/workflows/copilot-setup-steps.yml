@@ -18,7 +18,3 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-
-      - run: |
-          echo '' > CLAUDE.md
-          curl -sL https://raw.githubusercontent.com/MirrgieRiana/xarpite/refs/heads/main/.github/protocol-102.md >> CLAUDE.md
