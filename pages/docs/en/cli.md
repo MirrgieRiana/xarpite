@@ -758,6 +758,17 @@ Writes each line from `lines` to the file specified by `file`.
 
 If the file already exists, it will be overwritten.
 
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+---
+
 The file is emptied before reading begins from the `lines` stream.
 
 For this reason, if you read from the same file you are writing to within `lines`, its contents will be lost.
@@ -766,7 +777,8 @@ For such a self-reference, use `CACHE` to resolve the input first.
 
 ```shell
 $ {
-  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL("tmp.txt"; CACHE(READL("tmp.txt")))'
   printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
@@ -781,6 +793,17 @@ Writes `blobLike` to the file specified by `file`.
 
 If the file already exists, it will be overwritten.
 
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+---
+
 The file is emptied before reading begins from `blobLike`.
 
 For this reason, if you read from the same file you are writing to within `blobLike`, its contents will be lost.
@@ -789,7 +812,8 @@ For such a self-reference, use `CACHE` to resolve the input first.
 
 ```shell
 $ {
-  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB("tmp.bin"; CACHE(READB("tmp.bin")))'
   printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
