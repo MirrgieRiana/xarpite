@@ -117,6 +117,7 @@ class StringMountsTest {
         // CHAR_CODE: 1コード単位でない場合はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODE('')") } // 空文字列はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODE('AB')") } // 2文字はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODE('\uD83C\uDF70')") } // サロゲートペア（🍰）は2コード単位なのでエラー
 
         // CHAR_CODED: コード単位から文字列を返す
         assertEquals("A", eval("CHAR_CODED(65)").string) // 65 は 'A'
@@ -164,6 +165,8 @@ class StringMountsTest {
         // 孤立サロゲートはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800')") } // 孤立上位サロゲートはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
+        // 長さ2でも正しいサロゲートペアでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800A')") } // 上位サロゲートの後ろが下位サロゲートでないとエラー
 
         // CODE_POINTD: コードポイントから文字列を返す
         assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
@@ -183,6 +186,8 @@ class StringMountsTest {
         // 孤立サロゲートはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uDC00')").stream() } // 孤立下位サロゲートはエラー
+        // 上位サロゲートの直後が下位サロゲートでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD83CA')").stream() } // 上位サロゲート＋非下位サロゲートはエラー
 
         // CODE_POINTSD: コードポイントのストリームから文字列を返す
         assertEquals("ABC", eval("CODE_POINTSD(65, 66, 67)").string) // コードポイント列から文字列
