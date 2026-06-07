@@ -184,7 +184,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             arrayOf(
                 "JSON" define FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
+                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING")
                     val arguments2 = arguments.toMutableList()
 
                     if (arguments2.isEmpty()) usage()
@@ -208,7 +208,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 *run {
                     fun create(name: String): FluoriteFunction {
                         return FluoriteFunction.immediate { arguments ->
-                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>")
                             val arguments2 = arguments.toMutableList()
 
                             if (arguments2.isEmpty()) usage()
