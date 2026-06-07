@@ -52,7 +52,7 @@ suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): St
     fun encode(json: Json): String = try {
         json.encodeToString(jsonElement)
     } catch (e: SerializationException) {
-        throw FluoriteException("Failed to encode to JSON: ${e.message}".toFluoriteString())
+        throw FluoriteException("Failed to encode to JSON: ${e.message ?: e.toString()}".toFluoriteString())
     }
 
     if (indent == null) return encode(Json)
@@ -101,7 +101,7 @@ fun String.toFluoriteValueAsSingleJson(): FluoriteValue {
     val jsonElement = try {
         Json.decodeFromString<JsonElement>(this)
     } catch (e: SerializationException) {
-        throw FluoriteException("Invalid JSON: ${e.message}".toFluoriteString())
+        throw FluoriteException("Invalid JSON: ${e.message ?: e.toString()}".toFluoriteString())
     }
     return jsonElement.toFluoriteValue()
 }
