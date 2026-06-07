@@ -11,8 +11,8 @@ enum class FluoriteBoolean(val value: Boolean) : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { if ((it[0] as FluoriteBoolean).value) FluoriteInt.ONE else FluoriteInt.ZERO },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { it[0] as FluoriteBoolean },
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { if ((it[0] as FluoriteBoolean).value) FluoriteInt.ONE else FluoriteInt.ZERO },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { it[0] as FluoriteBoolean },
                 )
             )
         }

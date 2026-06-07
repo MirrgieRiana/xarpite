@@ -233,6 +233,37 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` 行ストリームを文字列に連結
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+`lines` の各要素に改行を付加して連結した文字列を返します。
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+空ストリームの場合、空文字列を返します。
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` は概念的に `LINES` と逆の操作を行います。
+
+末尾が改行で終わる文字列を `LINES` で分割してから `LINESD` で連結すると、改行文字などの違いを除き、元の文字列に戻ります。
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
 ## `KEYS` オブジェクトのキーのストリームを取得
 
 `KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
@@ -329,11 +360,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` ストリームの最小値
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-第1引数のストリームの最小値を返します。
+`numbers1` および `numbers2` の各要素のうち、最小の値を返します。
 
-ストリームが空の場合は `NULL` を返します。
+要素が1個も無い場合は `NULL` を返します。
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -341,15 +372,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` ストリームの最大値
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-第1引数のストリームの最大値を返します。
+`numbers1` および `numbers2` の各要素のうち、最大の値を返します。
 
-ストリームが空の場合は `NULL` を返します。
+要素が1個も無い場合は `NULL` を返します。
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -357,6 +391,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` ストリームの要素数
@@ -380,7 +417,7 @@ $ xa 'COUNT(,)'
 
 ## `AND` / `ALL` すべてが真かを判定
 
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 渡されたすべての要素が真であるかどうかを判定します。
 
@@ -414,7 +451,7 @@ $ xa '1 .. 50 | _ != 39 >> AND'
 
 最初に論理値化が偽である要素が見つかった時点で、以降のストリームのイテレーションと要素の論理値化はスキップされます。
 
-左辺の値によって右辺自体の評価をスキップする `&&` 演算子とは異なり、各引数そのものは関数の実行前にすべて評価されます。
+`&&` 演算子と同様に、第1引数の評価結果が確定した時点で第2引数の評価を省略します。
 
 ```shell
 $ xa '1, "a", TRUE, 0, "b" >> AND'
@@ -452,12 +489,12 @@ $ xa '
 
   list
 '
-# [left;right]
+# [left]
 ```
 
 ## `OR` / `ANY` いずれかが真かを判定
 
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 渡された要素がいずれか一つでも真であるかどうかを判定します。
 
@@ -573,7 +610,7 @@ $ xa '10, 20, 30, 40, 50 >> GET[1 .. 3]'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-第1引数のストリームの唯一の要素を返します。ストリームが空か複数要素を持つ場合は例外をスローします。
+第1引数のストリームの唯一の要素を返します。ストリームが空か複数要素を持つ場合はエラーをスローします。
 
 非ストリームを渡した場合は、その値をそのまま返します。
 
@@ -648,6 +685,69 @@ $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
 ```
 
+## `INDEXED` インデックス付きのストリームに変換
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+`stream` の各要素に対して0から始まるインデックスを付与した2要素配列のストリームを返します。
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
+```
+
+## `TRANSPOSE` / `ZIP` 配列のストリームを転置
+
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
+
+配列のストリームを受け取り、行と列を入れ替えた配列のストリームを返します。
+
+`ZIP` は `TRANSPOSE` の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa '
+  TRANSPOSE(
+    [1;2;3],
+    [4;5;6],
+  )
+'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+`fill` パラメータを指定した場合、短い配列を `fill` でパディングします。
+
+`fill` パラメータを指定しない場合、配列の長さが異なるとエラーをスローします。
+
+```shell
+$ xa '
+  [1;2;3],
+  [4;5],
+  >> TRANSPOSE[fill: 0]
+'
+# [1;4]
+# [2;5]
+# [3;0]
+```
+
+---
+
+以下の例では、 `keys` と `values` という2つの配列からオブジェクトを構成します。
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys, values) >> TO_OBJECT
+'
+# {name:Alice;age:30;city:Tokyo}
+```
+
 ## `GROUP` ストリームをキーでグループ化
 
 `<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>`
@@ -706,6 +806,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
+## `SLIDE` ストリームをスライディングウィンドウに分割
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+第2引数のストリームの要素を第1引数で指定したサイズのスライディングウィンドウに分割した配列のストリームを返します。
+要素数がサイズに満たない場合は空ストリームになります。
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
+```
+
 ## `TAKE` ストリームの先頭を取得
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
@@ -752,11 +866,13 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` ストリームを条件で抽出
+## `FILTER` / `GREP` ストリームを条件で抽出
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 `stream` の各要素に `predicate` を適用し、真となった要素のみを含むストリームを返します。
+
+`GREP` は `FILTER` の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
@@ -769,10 +885,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` ストリームを条件で抽出
-
-`FILTER` のエイリアスです。
 
 ## `REDUCE` ストリームの要素を累積する
 
@@ -946,7 +1058,7 @@ $ xa '
 ```shell
 $ xa '
   variable := ""
-  "apple"::ALSO ( s => 
+  "apple"::ALSO ( s =>
     variable = variable & s
   )
   variable
@@ -998,4 +1110,28 @@ $ xa -q '
 '
 # 100
 # 100
+```
+
+## `LAZY2` 遅延評価・キャッシュ関数
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+遅延評価とキャッシュをする関数を返します。
+
+`LAZY` と同等ですが、引数を式渡し引数として受け取ります。
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
 ```

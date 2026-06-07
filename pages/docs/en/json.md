@@ -12,8 +12,8 @@ Several functions are provided to convert between JSON strings and values:
 
 - `JSON`
 - `JSOND`
-- `JSONS`
-- `JSONSD`
+- `JSONS` / `JSONL`
+- `JSONSD` / `JSONLD`
 
 See [data-conversion.md](data-conversion.md) for details.
 

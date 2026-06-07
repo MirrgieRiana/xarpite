@@ -7,7 +7,6 @@ import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.define
 import kotlin.math.abs
@@ -31,7 +30,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             )
         ),
         "PI" define FluoriteDouble(3.141592653589793), // TODO kotlinアップデート時に定数に置換し直す
-        "ABS" define FluoriteFunction { arguments ->
+        "ABS" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> when (val number = arguments[0].toFluoriteNumber(null)) {
                     is FluoriteInt -> if (number.value == Int.MIN_VALUE) {
@@ -47,7 +46,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 else -> usage("ABS(value: NUMBER): NUMBER")
             }
         },
-        "FLOOR" define FluoriteFunction { arguments ->
+        "FLOOR" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> when (val number = arguments[0]) {
                     is FluoriteDouble -> FluoriteInt(floor(number.value).toInt())
@@ -58,7 +57,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 else -> usage("FLOOR(number: NUMBER): INT")
             }
         },
-        "DIV" define FluoriteFunction { arguments ->
+        "DIV" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
@@ -81,31 +80,31 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
             }
         },
-        "SQRT" define FluoriteFunction { arguments ->
+        "SQRT" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(sqrt((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("SQRT(number: NUMBER): NUMBER")
             }
         },
-        "SIN" define FluoriteFunction { arguments ->
+        "SIN" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(sin((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("SIN(number: NUMBER): NUMBER")
             }
         },
-        "COS" define FluoriteFunction { arguments ->
+        "COS" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(cos((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("COS(number: NUMBER): NUMBER")
             }
         },
-        "TAN" define FluoriteFunction { arguments ->
+        "TAN" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(tan((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("TAN(number: NUMBER): NUMBER")
             }
         },
-        "POW" define FluoriteFunction { arguments ->
+        "POW" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 2 -> {
                     val base = arguments[0] as FluoriteNumber
@@ -116,19 +115,19 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 else -> usage("POW(base: NUMBER; exponent: NUMBER): NUMBER")
             }
         },
-        "EXP" define FluoriteFunction { arguments ->
+        "EXP" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(exp((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("EXP(number: NUMBER): NUMBER")
             }
         },
-        "LOG" define FluoriteFunction { arguments ->
+        "LOG" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(ln((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("LOG(number: NUMBER): NUMBER")
             }
         },
-        "RAND" define FluoriteFunction { arguments ->
+        "RAND" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 0 -> {
                     FluoriteDouble(Random.nextDouble())

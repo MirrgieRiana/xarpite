@@ -46,35 +46,83 @@ class StringMountsTest {
     fun lines() = runTest {
         // 基本的な改行分割
         assertEquals("a,b,c", eval("LINES(\"a\\nb\\nc\")").stream())
-        
+
         // 末尾に改行がある場合、最後の改行は削除される
         assertEquals("a,b,c", eval("LINES(\"a\\nb\\nc\\n\")").stream())
-        
+
         // 空文字列の場合
         assertEquals("", eval("LINES(\"\")").stream())
-        
+
         // 改行のみの場合
         assertEquals("", eval("LINES(\"\\n\")").stream())
-        
+
         // 複数の改行のみの場合
         assertEquals(",", eval("LINES(\"\\n\\n\")").stream())
-        
+
         // Windows形式の改行（CRLF）
         assertEquals("a,b,c", eval("LINES(\"a\\r\\nb\\r\\nc\")").stream())
-        
+
         // 末尾がCRLFの場合
         assertEquals("a,b,c", eval("LINES(\"a\\r\\nb\\r\\nc\\r\\n\")").stream())
-        
+
         // 旧Mac形式の改行（CR）
         assertEquals("a,b,c", eval("LINES(\"a\\rb\\rc\")").stream())
-        
+
         // 末尾がCRの場合
         assertEquals("a,b,c", eval("LINES(\"a\\rb\\rc\\r\")").stream())
-        
+
         // 混在する改行形式
         assertEquals("a,b,c,d", eval("LINES(\"a\\nb\\r\\nc\\rd\")").stream())
-        
+
         // 空行を含む場合
         assertEquals("a,,b", eval("LINES(\"a\\n\\nb\")").stream())
+    }
+
+    @Test
+    fun linesd() = runTest {
+        // 基本的な行ストリームの連結
+        assertEquals("a\nb\nc\n", eval("LINESD(\"a\", \"b\", \"c\")").string)
+
+        // 単一要素
+        assertEquals("a\n", eval("LINESD(\"a\")").string)
+
+        // 空行を含む場合
+        assertEquals("a\n\nb\n", eval("LINESD(\"a\", \"\", \"b\")").string)
+
+        // 空ストリームの場合
+        assertEquals("", eval("LINES(\"\") >> LINESD").string)
+
+        // 末尾が改行の文字列はLINESとの往復で復元される
+        assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\\n\") >> LINESD").string)
+
+        // 末尾に改行がない文字列はLINES → LINESDで改行が付加される
+        assertEquals("a\nb\nc\n", eval("LINES(\"a\\nb\\nc\") >> LINESD").string)
+    }
+
+    @Test
+    fun resolve() = runTest {
+        // 基本的なパス結合
+        assertEquals("/home/apple/Apple.txt", eval("RESOLVE('/home/apple'; 'Apple.txt')").string)
+
+        // ルートディレクトリとの結合
+        assertEquals("/Banana.txt", eval("RESOLVE('/'; 'Banana.txt')").string)
+
+        // 拡張関数版と相対パスの解決
+        assertEquals("/home/cherry/Cherry.txt", eval("'/home/apple/'::RESOLVE('../cherry/./Cherry.txt')").string)
+
+        // . を含むパスの正規化
+        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user'; './file.txt')").string)
+
+        // 複数の .. を含むパス
+        assertEquals("/file.txt", eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string)
+
+        // 拡張関数版
+        assertEquals("/home/user/file.txt", eval("'/home/user'::RESOLVE('file.txt')").string)
+
+        // 末尾にスラッシュがあるディレクトリパス
+        assertEquals("/home/user/file.txt", eval("RESOLVE('/home/user/'; 'file.txt')").string)
+
+        // 2段階の .. を含むパス
+        assertEquals("/home/file.txt", eval("RESOLVE('/home/user/dir'; '../../file.txt')").string)
     }
 }

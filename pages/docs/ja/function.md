@@ -532,7 +532,7 @@ $ xa -q '
   OUT << obj::apple()
   OUT << obj::banana(1)
   OUT << obj::cherry(1; 2; 3)
-  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? (e => e)
+  OUT << obj::durian(1; 2; 3; 4; 5; 6) !? ( e => e )
 '
 # apple[] called
 # banana[1] called
@@ -566,6 +566,37 @@ $ xa -q '
 ## バリエーション
 
 クロージャ付き関数呼び出しは、メソッド呼び出しや関数の部分適用としても書くことができます。
+
+# 式渡し引数
+
+Xarpiteの関数は、引数を本質的に値ではなく引数として受け取っています。
+
+大部分の関数は呼び出し直後にすべての引数を評価しますが、一部の関数は引数の評価を遅延させたり、省略したり、複数回行います。
+
+この性質は副作用や計算時間の発生タイミングに影響します。
+
+以下の構文は、引数を即時評価せず、式の状態で関数に渡します。
+
+- 関数呼び出し: `function(argument; ...)`
+- メソッド呼び出し: `receiver::method(argument; ...)`
+- 関数の部分適用: `function[argument; ...]`
+- メソッドの部分適用: `receiver::method[argument; ...]`
+
+## 式渡し引数を持つ関数の定義
+
+ラムダ演算子およびクロージャ付き関数呼び出しの引数名の後に `()` を付けることで、その引数を式渡し引数として宣言できます。
+
+```shell
+$ xa -q '
+  if := condition, then(), else() -> condition ? then() : else()
+  if [TRUE] [(
+    OUT << "Then branch"
+  )] ((
+    OUT << "Else branch"
+  ))
+'
+# Then branch
+```
 
 # 名前付き引数
 
@@ -725,11 +756,33 @@ $ xa '
 
 # 組み込み定数
 
+## `NOP` 何もしない関数
+
+`NOP(): NULL`
+
+何もせずにNULLを返します。
+
+```shell
+$ xa 'NOP()'
+# NULL
+```
+
+## `RUN` 関数を実行する
+
+`<T> RUN(function: () -> T): T`
+
+`function` を0個の引数で実行し、その戻り値を返します。
+
+```shell
+$ xa 'RUN(() -> 123)'
+# 123
+```
+
 ## `CALL` 関数を呼び出す
 
-`CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE`
+`<A..., T> CALL(function: (A) -> T; arguments: [A]): T`
 
-第1引数の関数に対し、第2引数の配列の各要素を引数として渡して実行します。
+`function` を `arguments` の各要素をそれぞれ別の引数として渡して実行します。
 
 ```shell
 $ xa '

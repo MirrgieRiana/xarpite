@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
+    kotlin("multiplatform") version "2.3.0"
 }
 
 kotlin {

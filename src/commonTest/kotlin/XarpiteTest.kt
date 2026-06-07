@@ -2,6 +2,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
@@ -18,6 +19,7 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -312,6 +314,11 @@ class XarpiteTest {
              %> <%
         """.let { assertEquals("123", eval(it).string.trim()) } // <%= の後で改行しても正しくパースされる
 
+        assertEquals("hello world", eval(" %>hello <%# this is a comment %>world<% ").string) // <%# ... %> はコメント
+        assertEquals("hello world", eval(" %>hello <%#%>world<% ").string) // 空コメント
+        assertEquals("hello world", eval(" %>hello <%# comment % with percent %>world<% ").string) // コメント内に % を含む
+        assertEquals("hello world", eval(" %>hello <%# comment\nwith newline\n%>world<% ").string) // コメント内に改行を含む
+
     }
 
     @Test
@@ -433,7 +440,7 @@ class XarpiteTest {
 
         assertEquals("b", eval("(!!'a') !? 'b'").string) // !? で例外をキャッチできる
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
-        assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
+        assertEquals("a", eval("(!!'a') !? ( e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
 
         // !? は try 節のストリームを解決する（副作用が1度だけ生じる）
@@ -662,6 +669,18 @@ class XarpiteTest {
         // CONTAINSメソッドで上書きできる
         assertEquals(true, eval("'abc' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
         assertEquals(false, eval("'123' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
+
+        // ::CONTAINS拡張関数で含有チェックができる
+        assertEquals(true, eval("'---abc---'::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("'---abc---'::CONTAINS('123')").boolean)
+        assertEquals(true, eval("[10, 20, 30]::CONTAINS(30)").boolean)
+        assertEquals(false, eval("[10, 20, 30]::CONTAINS(40)").boolean)
+        assertEquals(true, eval("{a: 10; b: 20}::CONTAINS('a')").boolean)
+        assertEquals(false, eval("{a: 10; b: 20}::CONTAINS('c')").boolean)
+
+        // ::CONTAINS拡張関数はカスタム_@_メソッドでも動作する
+        assertEquals(true, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('123')").boolean)
     }
 
     @Test
@@ -919,12 +938,12 @@ class XarpiteTest {
         assertEquals("a,b,c", eval(""" SPLIT("|"; limit: 10; "a|b|c") """).stream()) // limitが要素数以上の場合は通常通り分割される
         assertEquals("a|b|c", eval(""" SPLIT("|"; limit: 1; "a|b|c") """).string) // limit: 1の場合は元の文字列が素のSTRINGとして返される
         assertEquals("a,bc", eval(""" SPLIT(""; limit: 2; "abc") """).stream()) // 空セパレータでもlimitを使用できる
-        
+
         // SPLIT with by: prefix
         assertEquals("a,b,c", eval(""" SPLIT(by: "|"; "a|b|c") """).stream()) // by:プレフィックスでセパレータを指定できる
         assertEquals("a,b|c|d", eval(""" SPLIT(by: "|"; limit: 2; "a|b|c|d") """).stream()) // by:とlimitを併用できる
         assertEquals("test", eval(""" SPLIT(by: "|"; limit: 1; "test") """).string) // by:とlimit: 1を併用すると素のSTRINGが返される
-        
+
         // SPLIT limit parameter error cases
         try {
             eval(""" SPLIT(limit: 2; limit: 3; "|"; "a|b|c") """) // limitパラメータを2回指定するとエラー
@@ -932,14 +951,14 @@ class XarpiteTest {
         } catch (e: FluoriteException) {
             assertEquals("Duplicate key: limit", e.value.string)
         }
-        
+
         try {
             eval(""" SPLIT("|"; limit: 0; "a|b|c") """) // limit: 0はエラー
             fail()
         } catch (e: FluoriteException) {
             assertEquals("Limit must be positive or NULL", e.value.string)
         }
-        
+
         try {
             eval(""" SPLIT("|"; limit: -1; "a|b|c") """) // limit: -1はエラー
             fail()
@@ -971,7 +990,7 @@ class XarpiteTest {
         // Runner で !? の右辺で例外オブジェクトを受け取れる（引数あり）
         """
             result := NULL
-            (!!'error_value') !? (e => result = e);
+            (!!'error_value') !? ( e => result = e);
             result
         """.let { assertEquals("error_value", eval(it).string) }
 
@@ -1423,6 +1442,42 @@ class XarpiteTest {
             result
         """.let { assertEquals("default", eval(it).string) }
 
+        // リターン文を含むラムダを別の場所で起動しても誤ったラベルにキャッチされない
+        // 別所で定義されたリターンが誤ったラベルにキャッチされるバグのテストケース
+        """
+            getFruit := (
+                () -> (
+                    vehicle!! "car"
+                    "apple"
+                )
+            ) !: vehicle
+            fruit := getFruit() !: fruit
+            "Fruit is: " + fruit
+        """.let {
+            try {
+                val result = eval(it)
+                fail("Expected FluoriteException but got: $result")
+            } catch (e: FluoriteException) {
+                // 正しい動作: 宛先のないリターンとしてエラーになる
+                // エラーメッセージにラベル名が含まれていることを確認
+                assertTrue(e.value is FluoriteString)
+                val message = (e.value as FluoriteString).string
+                assertTrue(message.contains("Unmatched return"), "Expected 'Unmatched return' in error message but got: $message")
+                assertTrue(message.contains("vehicle"), "Expected 'vehicle' in error message but got: $message")
+            }
+        }
+
+    }
+
+    @Test
+    fun runTest2() = runTest {
+        assertEquals(123, eval("RUN(() -> 123)").int) // RUN は引数なし関数を実行してその戻り値を返す
+        assertEquals(579, eval("RUN(() -> 456 + 123)").int) // RUN は関数の中で計算ができる
+    }
+
+    @Test
+    fun nopTest() = runTest {
+        assertEquals(FluoriteNull, eval("NOP()")) // NOP は何もせず NULL を返す
     }
 
 }
