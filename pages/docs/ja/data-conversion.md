@@ -282,7 +282,7 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 
 ## `JSON` 値をJSON文字列に変換
 
-`JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`
+`JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`
 
 `value` をJSON形式の文字列に変換します。
 
@@ -315,6 +315,15 @@ $ xa '{a: 1; b: 2} >> JSON[indent: 2]'
 # }
 ```
 
+---
+
+`indent` に `NULL` を指定した場合、インデントは使用されず、コンパクトな出力になります。
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: NULL]'
+# {"a":1,"b":2}
+```
+
 ## `JSOND` JSON文字列を値に変換
 
 `JSOND(json: STRING): VALUE`
@@ -328,7 +337,7 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 
 ## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
 
-`JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
 

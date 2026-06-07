@@ -282,7 +282,7 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 
 ## `JSON` Convert Value to JSON String
 
-`JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING`
+`JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`
 
 Converts `value` to a JSON-formatted string.
 
@@ -315,6 +315,15 @@ $ xa '{a: 1; b: 2} >> JSON[indent: 2]'
 # }
 ```
 
+---
+
+If you pass `NULL` to `indent`, no indentation is used and the output is compact.
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: NULL]'
+# {"a":1,"b":2}
+```
+
 ## `JSOND` Convert JSON String to Value
 
 `JSOND(json: STRING): VALUE`
@@ -328,7 +337,7 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 
 ## `JSONS` / `JSONL` Convert Stream of Values to Stream of JSON Strings
 
-`JSONS([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 Returns a stream that converts each element of `values` to a JSON-formatted string.
 

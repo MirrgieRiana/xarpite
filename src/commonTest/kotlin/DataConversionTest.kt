@@ -30,6 +30,10 @@ class DataConversionTest {
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON[indent: 2] """).string
         ) // indentは数値でも指定でき、その数だけ空白が使用される
+        assertEquals(
+            eval(""" {a: 1} >> JSON """).string,
+            eval(""" {a: 1} >> JSON[indent: NULL] """).string
+        ) // indentにNULLを指定するとインデント無しになる
 
         // JSONS
         assertEquals("[\n 1\n],[\n 2\n]", eval(""" [1], [2] >> JSONS[indent: 1] """).stream()) // JSONS でindentを指定できる
@@ -37,6 +41,10 @@ class DataConversionTest {
             eval(""" {a: 1}, {b: 2} >> JSONS[indent: 2] """).stream(),
             eval(""" {a: 1}, {b: 2} >> JSONS["  "] """).stream()
         ) // JSONS でindentは位置引数でも指定できる
+        assertEquals(
+            eval(""" {a: 1}, {b: 2} >> JSONS """).stream(),
+            eval(""" {a: 1}, {b: 2} >> JSONS[indent: NULL] """).stream()
+        ) // JSONS でindentにNULLを指定するとインデント無しになる
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
@@ -50,6 +58,10 @@ class DataConversionTest {
         // JSONL (synonym for JSONS)
         assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONL").stream()) // JSONLはJSONSのシノニムとして動作する
         assertEquals("[\n  1\n],[\n  2\n],[\n  3\n]", eval(""" [1], [2], [3] >> JSONL[indent: "  "] """).stream()) // indentオプションも使用できる
+        assertEquals(
+            eval(""" [1], [2], [3] >> JSONL """).stream(),
+            eval(""" [1], [2], [3] >> JSONL[indent: NULL] """).stream()
+        ) // JSONL でもindentにNULLを指定するとインデント無しになる
 
         // JSONLD (synonym for JSONSD)
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
