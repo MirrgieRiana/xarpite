@@ -778,7 +778,7 @@ For such a self-reference, use `CACHE` to resolve the input first.
 ```shell
 $ {
   printf 'apple\nbanana\ncherry\n' > tmp.txt
-  xa -q 'WRITEL("tmp.txt"; CACHE(READL("tmp.txt")))'
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
   printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
   rm tmp.txt
 }
@@ -813,7 +813,7 @@ For such a self-reference, use `CACHE` to resolve the input first.
 ```shell
 $ {
   printf 'apple' > tmp.bin
-  xa -q 'WRITEB("tmp.bin"; CACHE(READB("tmp.bin")))'
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
   printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
