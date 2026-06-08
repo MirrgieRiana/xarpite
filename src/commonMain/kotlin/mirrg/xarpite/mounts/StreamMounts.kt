@@ -1,6 +1,8 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -479,7 +481,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             val gotten = FluoriteStream {
                 coroutineScope {
                     val cache = mutableListOf<FluoriteValue>()
-                    val channel = stream.toFlow().produceIn(this)
+                    val channel = stream.toFlow().buffer(Channel.RENDEZVOUS).produceIn(this)
                     var streamEnded = false
                     indices.toFlow().collect { indexValue ->
                         val index = indexValue.toFluoriteNumber(null).roundToInt()

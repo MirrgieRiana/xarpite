@@ -204,6 +204,28 @@ class StreamMountsTest {
 
         // GET can be used with partial application
         assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream())
+
+        // GET only iterates the source stream up to the required index (with one element of look-ahead)
+        assertEquals("[1;2]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            GET(0; stream)
+            array
+        """).array())
+        assertEquals("[1;2;3;4]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            (GET(0, 2; stream)) >> VOID
+            array
+        """).array())
+
+        // GET with a negative index reads the whole source stream
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            stream := 1 .. 3 | ( array::push << _ ; _ )
+            GET(-1; stream)
+            array
+        """).array())
     }
 
     @Test
