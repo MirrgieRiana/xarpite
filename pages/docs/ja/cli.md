@@ -767,6 +767,24 @@ $ {
 # apple,banana,cherry,
 ```
 
+---
+
+ファイルは `lines` のストリームを読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `lines` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
 ### `WRITEB`: バイナリファイルに書き込み
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
@@ -778,6 +796,24 @@ $ {
 ```shell
 $ {
   xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+---
+
+ファイルは `blobLike` を読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `blobLike` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
   printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
