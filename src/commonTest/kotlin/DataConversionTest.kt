@@ -363,4 +363,16 @@ class DataConversionTest {
         assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> BASH_ESCAPE """).string) // BASH_ESCAPEでもシングルクォートがエスケープされる
     }
 
+    @Test
+    fun regexEscape() = runTest {
+        // REGEX_ESCAPE で文字列を正規表現用にエスケープ
+        assertEquals("abc", eval(""" "abc" >> REGEX_ESCAPE """).string) // メタ文字を含まない文字列はそのまま
+        assertEquals("a\\.b", eval(""" "a.b" >> REGEX_ESCAPE """).string) // ドットがエスケープされる
+        assertEquals("a\\+b\\*c\\?", eval(""" "a+b*c?" >> REGEX_ESCAPE """).string) // 量指定子がエスケープされる
+        assertEquals("\\(\\[\\{\\}\\]\\)", eval(""" "([{}])" >> REGEX_ESCAPE """).string) // 各種括弧がエスケープされる
+        assertEquals("\\^a\\$\\|b", eval(""" '^a$|b' >> REGEX_ESCAPE """).string) // アンカーと選択がエスケープされる
+        assertEquals("a\\\\b", eval(""" 'a\b' >> REGEX_ESCAPE """).string) // バックスラッシュ自身がエスケープされる
+        assertEquals("", eval(""" "" >> REGEX_ESCAPE """).string) // 空文字列
+    }
+
 }

@@ -280,6 +280,22 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
 ```
 
+## `REGEX_ESCAPE` Regex Escaping
+
+`REGEX_ESCAPE(string: STRING): STRING`
+
+Escapes `string` into a form that can be treated as a literal within a regular expression.
+
+Specifically, it prepends a backslash before the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
+
+```shell
+$ xa 'REGEX_ESCAPE("a.b")'
+# a\.b
+
+$ xa 'REGEX_ESCAPE("1+1=2")'
+# 1\+1=2
+```
+
 ## `JSON` Convert Value to JSON String
 
 `JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`
