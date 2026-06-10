@@ -27,6 +27,7 @@ title: "組み込みオブジェクトのクラス定数"
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `EXCEPTION`
 
 # 定数
 

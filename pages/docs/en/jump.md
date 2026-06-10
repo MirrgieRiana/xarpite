@@ -428,3 +428,17 @@ $ xa '
 The `try` in the catch operator `try !? catch` can include up to logical operators but cannot include pipe operators.
 
 To include pipe operators, you need to enclose them in parentheses.
+
+## `EXCEPTION`: Native Exceptions
+
+`EXCEPTION` is a class representing native exceptions originating from the host language.
+
+You can determine whether a value is a native exception with `value ?= EXCEPTION`.
+
+### `message`: Retrieve the Exception Message
+
+`EXCEPTION::message(): STRING | NULL`
+
+Returns the message of the native exception.
+
+Returns `NULL` if there is no message.
