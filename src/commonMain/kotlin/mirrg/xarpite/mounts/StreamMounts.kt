@@ -1,8 +1,5 @@
 package mirrg.xarpite.mounts
 
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -479,20 +476,35 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             val indices = arguments[0]
             val stream = arguments[1]
             val gotten = FluoriteStream {
-                coroutineScope {
-                    val cache = mutableListOf<FluoriteValue>()
-                    val channel = stream.toFlow().buffer(Channel.RENDEZVOUS).produceIn(this)
-                    var streamEnded = false
-                    indices.toFlow().collect { indexValue ->
-                        val index = indexValue.toFluoriteNumber(null).roundToInt()
-                        // 負の添字は末尾からの参照なので、その時点でストリーム全体を読み切る
-                        while ((index < 0 || cache.size <= index) && !streamEnded) {
-                            val received = channel.receiveCatching()
-                            if (received.isSuccess) cache.add(received.getOrThrow()) else streamEnded = true
+                // 先に添字を汲み尽くし、参照される最大の正添字と最も深い負添字を確定する
+                val indexList = mutableListOf<Int>()
+                indices.toFlow().collect { indexList += it.toFluoriteNumber(null).roundToInt() }
+                val positiveIndices = indexList.filter { it >= 0 }.toSet()
+                val maxPositiveIndex = positiveIndices.maxOrNull() ?: -1
+                val tailSize = indexList.filter { it < 0 }.minOrNull()?.let { -it } ?: 0
+
+                // 値ストリームを1パスし、正添字は添字をキーにした map に、負添字は末尾の deque に拾う
+                val positiveValues = mutableMapOf<Int, FluoriteValue>()
+                val tail = ArrayDeque<FluoriteValue>()
+                var position = 0
+                try {
+                    stream.toFlow().collect { item ->
+                        if (position in positiveIndices) positiveValues[position] = item
+                        if (tailSize > 0) {
+                            tail += item
+                            if (tail.size > tailSize) tail.removeFirst()
                         }
-                        emit(cache.getOrNull(if (index >= 0) index else index + cache.size) ?: FluoriteNull)
+                        position++
+                        if (tailSize == 0 && position > maxPositiveIndex) throw IterationAborted // 負添字が無ければ必要な位置まで読めば打ち切れる
                     }
-                    channel.cancel()
+                } catch (_: IterationAborted) {
+
+                }
+
+                // 添字の順に解決して出力する
+                indexList.forEach { index ->
+                    val value = if (index >= 0) positiveValues[index] else tail.getOrNull(index + tail.size)
+                    emit(value ?: FluoriteNull)
                 }
             }
             if (indices is FluoriteStream) gotten else gotten.toFlow().firstOrNull() ?: FluoriteNull

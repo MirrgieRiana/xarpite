@@ -194,18 +194,18 @@ class StreamMountsTest {
 
         assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスが第1引数なので部分適用できる
 
-        assertEquals("[1;2]", eval("""
+        assertEquals("[1]", eval("""
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
             GET(0; stream)
             array
-        """).array()) // 必要なインデックスまで（1要素の先読みを含む）しか元ストリームを読まない
-        assertEquals("[1;2;3;4]", eval("""
+        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
+        assertEquals("[1;2;3]", eval("""
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
             (GET(0, 2; stream)) >> VOID
             array
-        """).array()) // 最大のインデックスまで（1要素の先読みを含む）しか元ストリームを読まない
+        """).array()) // 最大のインデックスまでしか元ストリームを読まず、先読みもしない
 
         assertEquals("[1;2;3]", eval("""
             array := []
