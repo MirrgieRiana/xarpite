@@ -284,11 +284,9 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 
 `REGEX_ESCAPE(string: STRING): STRING`
 
-Escapes `string` into a form that can be treated as a literal within a regular expression.
+Escapes `string` into a form that can be treated as a literal outside of a character class within a regular expression.
 
 Specifically, it inserts a backslash before each of the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
-
-Note that `-` is not escaped. Since `-` has special meaning only inside a character class `[...]`, use the escaped string outside of a character class.
 
 ```shell
 $ xa 'REGEX_ESCAPE("a.b")'
