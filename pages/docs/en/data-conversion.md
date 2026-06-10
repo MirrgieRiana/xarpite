@@ -288,6 +288,8 @@ Escapes `string` into a form that can be treated as a literal within a regular e
 
 Specifically, it inserts a backslash before each of the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
 
+Note that `-` is not escaped. Since `-` has special meaning only inside a character class `[...]`, use the escaped string outside of a character class.
+
 ```shell
 $ xa 'REGEX_ESCAPE("a.b")'
 # a\.b

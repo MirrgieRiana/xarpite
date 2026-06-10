@@ -367,6 +367,7 @@ class DataConversionTest {
     fun regexEscape() = runTest {
         // REGEX_ESCAPE で文字列を正規表現用にエスケープ
         assertEquals("abc", eval(""" "abc" >> REGEX_ESCAPE """).string) // メタ文字を含まない文字列はそのまま
+        assertEquals("a-b", eval(""" "a-b" >> REGEX_ESCAPE """).string) // ハイフンはエスケープしない（文字クラスの外ではリテラルのため）
         assertEquals("a\\.b", eval(""" "a.b" >> REGEX_ESCAPE """).string) // ドットがエスケープされる
         assertEquals("a\\+b\\*c\\?", eval(""" "a+b*c?" >> REGEX_ESCAPE """).string) // 量指定子がエスケープされる
         assertEquals("\\(\\[\\{\\}\\]\\)", eval(""" "([{}])" >> REGEX_ESCAPE """).string) // 各種括弧がエスケープされる
