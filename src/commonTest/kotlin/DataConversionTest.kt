@@ -373,6 +373,11 @@ class DataConversionTest {
         assertEquals("\\^a\\$\\|b", eval(""" '^a$|b' >> REGEX_ESCAPE """).string) // アンカーと選択がエスケープされる
         assertEquals("a\\\\b", eval(""" 'a\b' >> REGEX_ESCAPE """).string) // バックスラッシュ自身がエスケープされる
         assertEquals("", eval(""" "" >> REGEX_ESCAPE """).string) // 空文字列
+
+        // エスケープ結果を実際に正規表現として使うと、元の文字列にリテラルとして一致する
+        assertEquals("a.b", eval(""" ("a.b" =~ REGEX.new("a.b" >> REGEX_ESCAPE)).0 """).string) // エスケープ後の文字列は元の文字列に一致する
+        assertEquals(FluoriteNull, eval(""" "aXb" =~ REGEX.new("a.b" >> REGEX_ESCAPE) """)) // . がリテラル化され、ワイルドカードとして別の文字には一致しない
+        assertEquals("^a$|b", eval(""" ('^a$|b' =~ REGEX.new('^a$|b' >> REGEX_ESCAPE)).0 """).string) // メタ文字を多数含む文字列もリテラルとして一致する
     }
 
 }
