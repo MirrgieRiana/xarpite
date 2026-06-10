@@ -286,7 +286,7 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 
 Escapes `string` into a form that can be treated as a literal within a regular expression.
 
-Specifically, it prepends a backslash before the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
+Specifically, it inserts a backslash before each of the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
 
 ```shell
 $ xa 'REGEX_ESCAPE("a.b")'
