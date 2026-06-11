@@ -429,13 +429,13 @@ The `try` in the catch operator `try !? catch` can include up to logical operato
 
 To include pipe operators, you need to enclose them in parentheses.
 
-## `ERROR`: Native Errors
+# `ERROR`: Native Errors
 
 `ERROR` is a class representing native errors originating from the host language.
 
 You can determine whether a value is a native error with `value ?= ERROR`.
 
-### `message`: Error Message
+## `message`: Error Message
 
 The `message` property retrieves the message of the native error.
 
