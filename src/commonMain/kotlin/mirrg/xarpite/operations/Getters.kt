@@ -20,12 +20,13 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.callMethod
+import mirrg.xarpite.compilers.objects.callAsMethod
+import mirrg.xarpite.compilers.objects.callMethodImmediate
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.getLength
-import mirrg.xarpite.compilers.objects.getMethod
+import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
@@ -153,7 +154,7 @@ class MethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -162,20 +163,20 @@ class MethodAccessGetter(
         }
 
         suspend fun processFunction(function: FluoriteValue): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
-                    receiver.callMethod(position, function, arguments + arguments2)
+                FluoriteFunction.create { arguments2 ->
+                    receiver.callAsMethod(position, function, arguments + arguments2)
                 }
             } else {
-                receiver.callMethod(position, function, arguments)
+                receiver.callAsMethod(position, function, arguments)
             }
         }
 
         suspend fun processCallable(callable: Callable): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
+                FluoriteFunction.create { arguments2 ->
                     withStackTrace(position) {
                         callable.call(arguments + arguments2)
                     }
@@ -224,7 +225,7 @@ class MethodAccessGetter(
 
         // レシーバのメソッドのチェック
         run {
-            val callable = receiver.getMethod(position, name)
+            val callable = receiver.getSolvedMethod(position, name)
             if (callable != null) return processCallable(callable)
         }
 
@@ -254,7 +255,7 @@ class FunctionalMethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -263,13 +264,13 @@ class FunctionalMethodAccessGetter(
         }
 
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return if (isBinding) {
-            FluoriteFunction { arguments2 ->
-                receiver.callMethod(position, function, arguments + arguments2)
+            FluoriteFunction.create { arguments2 ->
+                receiver.callAsMethod(position, function, arguments + arguments2)
             }
         } else {
-            receiver.callMethod(position, function, arguments)
+            receiver.callAsMethod(position, function, arguments)
         }
     }
 
@@ -279,7 +280,7 @@ class FunctionalMethodAccessGetter(
 class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return function.invoke(position, arguments)
     }
 
@@ -289,7 +290,7 @@ class FunctionInvocationGetter(private val functionGetter: Getter, private val a
 class FunctionBindGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return function.bind(position, arguments)
     }
 
@@ -388,7 +389,7 @@ class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) return FluoriteNull
         val key = keyGetter.evaluate(env)
-        return receiver.callMethod(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
+        return receiver.callMethodImmediate(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
     }
 
     override val code get() = "ItemAccessGetter[${receiverGetter.code};${keyGetter.code};$isNullSafe]"
@@ -691,19 +692,26 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "EntryGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val getter: Getter) : Getter {
+class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val isLazy: List<Boolean>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        return FluoriteFunction { arguments ->
+        return FluoriteFunction.create { arguments ->
             val newEnv = Environment(env, 1 + variableIndices.size, 0)
-            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(arguments.toFluoriteArray())
+            val evaluatedArguments = arguments.mapIndexed { i, argument ->
+                if (isLazy.getOrNull(i) ?: false) {
+                    FluoriteFunction.immediate { argument() }
+                } else {
+                    argument()
+                }
+            }.toTypedArray()
+            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments.toFluoriteArray())
             variableIndices.forEachIndexed { i, variableIndex ->
-                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(arguments.getOrNull(i) ?: FluoriteNull)
+                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(evaluatedArguments.getOrNull(i) ?: FluoriteNull)
             }
             getter.evaluate(newEnv)
         }
     }
 
-    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${getter.code}]"
+    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${isLazy.joinToString(",") { "$it" }};${getter.code}]"
 }
 
 class MatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {

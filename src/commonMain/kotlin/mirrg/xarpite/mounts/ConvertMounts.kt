@@ -15,28 +15,28 @@ import mirrg.xarpite.define
 context(context: RuntimeContext)
 fun createConvertMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "TO_STRING" define FluoriteFunction { arguments ->
+        "TO_STRING" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 arguments[0].toFluoriteString(null)
             } else {
                 usage("TO_STRING(value: VALUE): STRING")
             }
         },
-        "TO_NUMBER" define FluoriteFunction { arguments ->
+        "TO_NUMBER" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 arguments[0].toFluoriteNumber(null)
             } else {
                 usage("TO_NUMBER(value: VALUE): NUMBER")
             }
         },
-        "TO_BOOLEAN" define FluoriteFunction { arguments ->
+        "TO_BOOLEAN" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 arguments[0].toFluoriteBoolean(null)
             } else {
                 usage("TO_BOOLEAN(value: VALUE): BOOLEAN")
             }
         },
-        "TO_ARRAY" define FluoriteFunction { arguments ->
+        "TO_ARRAY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 val list = if (stream is FluoriteStream) {
@@ -46,14 +46,14 @@ fun createConvertMounts(): List<Map<String, Mount>> {
                 }
                 list.asFluoriteArray()
             } else {
-                usage("ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>")
+                usage("TO_ARRAY(stream: STREAM<VALUE>): ARRAY<VALUE>")
             }
         },
-        "TO_OBJECT" define FluoriteFunction { arguments ->
+        "TO_OBJECT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 FluoriteObject.fromStream(arguments[0])
             } else {
-                usage("OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
+                usage("TO_OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
             }
         },
     ).let { listOf(it) }

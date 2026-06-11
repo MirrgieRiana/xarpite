@@ -276,3 +276,18 @@ $ xa '
 # durian
 # elderberry
 ```
+
+# Comparison Functions
+
+## `::CONTAINS`: Extension Function for Containment
+
+`VALUE::CONTAINS(content: VALUE): BOOLEAN`
+
+The `::CONTAINS` extension function is syntactic sugar for calling the containment operator `@` in extension function form.
+
+`container::CONTAINS(content)` is equivalent to `content @ container`.
+
+```shell
+$ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
+```

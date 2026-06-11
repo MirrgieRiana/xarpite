@@ -27,6 +27,7 @@ You can reference classes of various built-in objects.
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # Constants
 
@@ -373,6 +374,37 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` Concatenate Line Stream into String
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+Returns a string by appending a newline to each element of `lines` and concatenating them.
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+An empty stream returns an empty string.
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
 ## `KEYS` Get Stream of Object Keys
 
 `KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
@@ -469,11 +501,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` Minimum Value of Stream
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the minimum value of the first argument stream.
+Returns the minimum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -481,15 +513,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` Maximum Value of Stream
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the maximum value of the first argument stream.
+Returns the maximum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -497,6 +532,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` Number of Stream Elements
@@ -520,7 +558,7 @@ $ xa 'COUNT(,)'
 
 ## `AND` / `ALL` Check if All are True
 
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether all passed elements evaluate to true.
 
@@ -554,7 +592,7 @@ More precisely, this function returns the first element whose booleanization is 
 
 As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
 
-Unlike the `&&` operator, which skips evaluation of the right-hand side itself based on the left-hand side value, each argument itself is evaluated before the function executes.
+Like the `&&` operator, the second argument is not evaluated if the first argument already determines the result.
 
 ```shell
 $ xa '1, "a", TRUE, 0, "b" >> AND'
@@ -592,12 +630,12 @@ $ xa '
 
   list
 '
-# [left;right]
+# [left]
 ```
 
 ## `OR` / `ANY` Check if Any is True
 
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether any of the passed elements evaluate to true.
 
@@ -865,6 +903,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [1;2]
 # [3;4]
 # [5]
+```
+
+## `SLIDE` Split Stream into Sliding Windows
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+Returns a stream of arrays formed by sliding a window of the size specified in the first argument over the elements of the second argument stream.
+If the number of elements is less than the size, the result is an empty stream.
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
 ```
 
 ## `TAKE` Get Beginning of Stream
@@ -1176,4 +1228,28 @@ $ xa -q '
 '
 # 100
 # 100
+```
+
+## `LAZY2` Lazy Evaluation and Caching Function
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+Returns a function that performs lazy evaluation and caching.
+
+Equivalent to `LAZY`, but receives the argument as a pass-by-formula argument.
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
 ```

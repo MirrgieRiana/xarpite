@@ -1,6 +1,5 @@
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
@@ -12,8 +11,9 @@ import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.getPwdImpl
+import mirrg.xarpite.operations.FluoriteException
+import kotlin.coroutines.cancellation.CancellationException
 
 fun main(args: Array<String>) {
     runBlocking {

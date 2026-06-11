@@ -1,9 +1,11 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringTest {
@@ -24,6 +26,64 @@ class StringTest {
     fun concatenate() = runTest {
         assertEquals("ab", eval(" 'a' & 'b' ").string) // & で文字列の連結ができる
         assertEquals("12", eval(" 1 & 2 ").string) // 文字列に変換する
+    }
+
+    @Test
+    fun take() = runTest {
+        assertEquals("ab", eval("'abcde'::take(2)").string) // 先頭の n 文字を取得する
+        assertEquals("ab", eval("'abcde'::takeFirst(2)").string) // takeFirst は take のシノニム
+        assertEquals("", eval("'abcde'::take(0)").string) // 0 文字は空文字列になる
+        assertEquals("abcde", eval("'abcde'::take(10)").string) // 長さを超える場合は文字列全体になる
+        assertEquals("", eval("''::take(2)").string) // 空文字列からの取得
+        assertEquals("ab", eval("'abcde'::take('1.5')").string) // 文字数は数値化し、四捨五入される
+        assertEquals("あい", eval("'あいう'::take(2)").string) // マルチバイト文字の取得
+        assertEquals("😀", eval("'😀x'::take(2)").string) // サロゲートペアは UTF-16 コードユニット 2 つ分として扱われる
+        assertEquals(1, eval("'😀x'::take(1)").string.length) // サロゲートペアの途中（Char 単位）で分割される（既存の添字演算子と同じ挙動）
+        assertFails { eval("'abcde'::take(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun taker() = runTest {
+        assertEquals("de", eval("'abcde'::taker(2)").string) // 末尾の n 文字を取得する
+        assertEquals("de", eval("'abcde'::takeLast(2)").string) // takeLast は taker のシノニム
+        assertEquals("", eval("'abcde'::taker(0)").string) // 0 文字は空文字列になる
+        assertEquals("abcde", eval("'abcde'::taker(10)").string) // 長さを超える場合は文字列全体になる
+        assertEquals("", eval("''::taker(2)").string) // 空文字列からの取得
+        assertEquals("いう", eval("'あいう'::taker(2)").string) // マルチバイト文字の取得
+    }
+
+    @Test
+    fun drop() = runTest {
+        assertEquals("cde", eval("'abcde'::drop(2)").string) // 先頭の n 文字を除く
+        assertEquals("cde", eval("'abcde'::dropFirst(2)").string) // dropFirst は drop のシノニム
+        assertEquals("abcde", eval("'abcde'::drop(0)").string) // 0 文字は文字列全体になる
+        assertEquals("", eval("'abcde'::drop(10)").string) // 長さを超える場合は空文字列になる
+        assertEquals("", eval("''::drop(2)").string) // 空文字列からの除去
+        assertEquals("う", eval("'あいう'::drop(2)").string) // マルチバイト文字の除去
+        assertFails { eval("'abcde'::drop(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun dropr() = runTest {
+        assertEquals("abc", eval("'abcde'::dropr(2)").string) // 末尾の n 文字を除く
+        assertEquals("abc", eval("'abcde'::dropLast(2)").string) // dropLast は dropr のシノニム
+        assertEquals("abcde", eval("'abcde'::dropr(0)").string) // 0 文字は文字列全体になる
+        assertEquals("", eval("'abcde'::dropr(10)").string) // 長さを超える場合は空文字列になる
+        assertEquals("", eval("''::dropr(2)").string) // 空文字列からの除去
+        assertEquals("あ", eval("'あいう'::dropr(2)").string) // マルチバイト文字の除去
+    }
+
+    @Test
+    fun firstAndLast() = runTest {
+        assertEquals("a", eval("'abc'::first()").string) // 先頭の 1 文字を取得する
+        assertEquals("c", eval("'abc'::last()").string) // 末尾の 1 文字を取得する
+        assertEquals(FluoriteNull, eval("''::first()")) // 空文字列の先頭は NULL が返る
+        assertEquals(FluoriteNull, eval("''::last()")) // 空文字列の末尾は NULL が返る
+        assertEquals("あ", eval("'あいう'::first()").string) // マルチバイト文字の先頭
+        assertEquals("う", eval("'あいう'::last()").string) // マルチバイト文字の末尾
+        assertEquals(1, eval("'😀x'::first()").string.length) // first はコードユニット単位なのでサロゲートペアの片方を返す（既存の添字演算子と同じ挙動）
+        assertFails { eval("'abc'::first(123)") } // 余分な引数はエラーになる
+        assertFails { eval("'abc'::last(123)") } // 余分な引数はエラーになる
     }
 
     @Test

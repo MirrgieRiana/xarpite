@@ -122,6 +122,24 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: 新しいコルーチンを起動する
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+`function` をコルーチンとして非同期に起動します。
+
+`LAUNCH` と同等ですが、引数を式渡し引数として受け取ります。
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。

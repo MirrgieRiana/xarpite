@@ -4,9 +4,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -15,7 +15,6 @@ import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.addDefaultIncPaths
-import mirrg.xarpite.cli.cliEval as cliEvalImpl
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -41,6 +40,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import mirrg.xarpite.cli.cliEval as cliEvalImpl
 
 val baseDir = "build/test".toPath()
 
@@ -679,11 +679,12 @@ class CliTest {
         val result = cliEval(
             context,
             """
-            a := USE("$absolutePath")
-            b := USE("$absolutePath")
+            a := USE(ARGS.0)
+            b := USE(ARGS.0)
             a.variables.fruit = "orange"
             b.variables.fruit
-            """.trimIndent()
+            """.trimIndent(),
+            absolutePath,
         ).toFluoriteString(null).value
         assertEquals("orange", result)
         fileSystem.delete(file)
@@ -992,10 +993,10 @@ class CliTest {
         val dir1 = "build/test/use.dotdot.tmp".toPath()
         val dir2 = dir1.resolve("subdir")
         fileSystem.createDirectories(dir2)
-        
+
         val callerFile = dir2.resolve("caller.xa1")
         val moduleFile = dir1.resolve("module.xa1")
-        
+
         fileSystem.write(moduleFile) { writeUtf8("\"DotDotRelative\"") }
         fileSystem.write(callerFile) { writeUtf8("""USE("../module")""") }
 
@@ -1024,7 +1025,7 @@ class CliTest {
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
         val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, scriptFile = null)
         var capturedInc: List<FluoriteValue>? = null
-        cliEvalImpl(context, options) { 
+        cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
             emptyList()
         }
@@ -1115,7 +1116,7 @@ class CliTest {
     @Test
     fun incUrlFormatWithTrailingSlash() = runTest {
         val context = TestIoContext()
-        
+
         // URLの末尾スラッシュがあっても正しくINCに追加できることを確認
         val result = cliEval(context, """
             INC::push("http://example.com/modules/")
@@ -1123,7 +1124,7 @@ class CliTest {
             INC
         """.trimIndent())
         val arrayStr = result.array()
-        
+
         // URL形式がINCに追加されていることを確認
         assertTrue("http://example.com/modules/" in arrayStr)
         assertTrue("https://test.org/libs/" in arrayStr)
@@ -1179,13 +1180,13 @@ class CliTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Exception should have a stack trace")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // スタックトレースにモジュールファイルのパスが含まれることを確認
         val hasModuleLocation = stackTrace.any { position ->
             position?.location?.contains("error_module") == true
         }
         assertTrue(hasModuleLocation, "Stack trace should include the module location where the error occurred, but got: ${stackTrace.map { it?.location }}")
-        
+
         // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
         // スタックトレースは [呼び出し元, ..., エラー発生箇所] の順
         val lastPosition = stackTrace.lastOrNull()
@@ -1223,16 +1224,16 @@ class CliTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Exception should have a stack trace")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // スタックトレースにモジュールファイルのパスが含まれることを確認
         val hasModuleLocation = stackTrace.any { position ->
             position?.location?.contains("method_error_module") == true
         }
         assertTrue(
-            hasModuleLocation, 
+            hasModuleLocation,
             "Stack trace should include the module location where the method error occurred, but got: ${stackTrace.map { it?.location }}"
         )
-        
+
         // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
         val lastPosition = stackTrace.lastOrNull()
         assertNotNull(lastPosition, "Stack trace should have at least one position")
@@ -1273,7 +1274,7 @@ class CliTest {
         // スタックトレースを確認
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Exception should have a stack trace")
-        
+
         // スタックトレースには inner.xa1 が含まれるべき
         val hasInnerLocation = stackTrace.any { position ->
             position?.location?.contains("inner") == true
@@ -1309,7 +1310,7 @@ class CliTest {
         // スタックトレースを確認
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Exception should have a stack trace")
-        
+
         // ストリームのイテレーション中のエラーは、ストリームを呼び出した側（USE呼び出し元）に紐づけられる
         // これは論理的に正しい挙動：ストリームの評価は遅延実行されるため、エラーはイテレーション時に発生する
         // つまり、スタックトレースには呼び出し元（test）のみが含まれ、モジュールの位置は含まれない
@@ -1353,7 +1354,7 @@ class CliTest {
         // スタックトレースを確認
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Exception should have a stack trace")
-        
+
         // 関数内で発生したエラーは、関数を呼び出した側に紐づけられる
         // これは論理的に正しい挙動：関数のコールスタックは呼び出し元であり、
         // 関数が定義されているソースコードのスタックは含まれない
@@ -2455,12 +2456,12 @@ class CliTest {
     @Test
     fun verboseOptionParsing() = runTest {
         val context = TestIoContext()
-        
+
         // Test that --verbose option is parsed correctly with -e
         val options = parseArguments(listOf("--verbose", "-e", "1+1"), context)
         assertEquals(true, options.verbose)
         assertEquals("1+1", options.src)
-        
+
         // Test without --verbose
         val options2 = parseArguments(listOf("-e", "1+1"), context)
         assertEquals(false, options2.verbose)
@@ -2476,7 +2477,7 @@ class CliTest {
                 errMessagesVerbose.add(value.toFluoriteString(null).value)
             }
         }
-        
+
         val verboseOptions = Options(
             src = "!! 'test error'",
             arguments = emptyList(),
@@ -2485,7 +2486,7 @@ class CliTest {
             scriptFile = null,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
-        
+
         val verboseOutput = errMessagesVerbose.joinToString("\n")
         assertTrue(verboseOutput.isNotEmpty(), "Error message should be captured when verbose=true")
         assertTrue(verboseOutput.contains("ERROR:"), "Verbose error output should have ERROR prefix")
@@ -2495,7 +2496,7 @@ class CliTest {
             verboseOutput.contains("FluoriteException"),
             "Verbose error output should contain Kotlin stack trace with exception class name",
         )
-        
+
         // Test with verbose = false
         val errMessagesNonVerbose = mutableListOf<String>()
         val nonVerboseContext = TestIoContext()
@@ -2504,7 +2505,7 @@ class CliTest {
                 errMessagesNonVerbose.add(value.toFluoriteString(null).value)
             }
         }
-        
+
         val nonVerboseOptions = Options(
             src = "!! 'test error'",
             arguments = emptyList(),
@@ -2513,7 +2514,7 @@ class CliTest {
             scriptFile = null,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
-        
+
         val nonVerboseOutput = errMessagesNonVerbose.joinToString("\n")
         assertTrue(nonVerboseOutput.isNotEmpty(), "Error message should be captured when verbose=false")
         assertTrue(nonVerboseOutput.contains("ERROR:"), "Non-verbose error output should have ERROR prefix")

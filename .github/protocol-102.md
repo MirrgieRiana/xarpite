@@ -1,7 +1,4 @@
----
-name: プロトコル102
-about: AIの円滑な作業
----
+-----BEGIN PROTOCOL 102-----
 
 # プロトコル102
 
@@ -14,6 +11,8 @@ about: AIの円滑な作業
 
 `.github/copilot-instructions.md` があれば、それにも準拠しなさい。
 `AGENTS.md` があれば、それにも準拠しなさい。
+
+### 本プロトコル末尾に END PROTOCOL マーカーがあることを確認しなさい
 
 ### PR上での返答・報告・質問には必ず `reply_to_comment` を使いなさい
 
@@ -88,3 +87,5 @@ PRのコメント履歴から現行セッションを起動したコメントを
 この指示は通常のPRのタイトルや説明文の更新を省略してよいことを表すものではない。
 
 ### `/.github/copilot-instructions.md` に更新履歴の記述規則がある場合、更新履歴を記述しなさい
+
+-----END PROTOCOL 102-----

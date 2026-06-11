@@ -6,7 +6,7 @@ import mirrg.xarpite.mounts.usage
 
 internal fun createAccessor(getter: Getter, setter: Setter?, env: Environment): FluoriteFunction {
     return if (setter != null) {
-        FluoriteFunction { arguments ->
+        FluoriteFunction.immediate { arguments ->
             if (arguments.isEmpty()) {
                 getter.evaluate(env)
             } else if (arguments.size == 1) {
@@ -18,7 +18,7 @@ internal fun createAccessor(getter: Getter, setter: Setter?, env: Environment): 
             }
         }
     } else {
-        FluoriteFunction { arguments ->
+        FluoriteFunction.immediate { arguments ->
             if (arguments.isEmpty()) {
                 getter.evaluate(env)
             } else {

@@ -189,4 +189,61 @@ class FunctionTest {
         assertEquals("[2;1;0;1;2]", eval("[ -2 .. 2 | *ABS ]").array())
     }
 
+    @Test
+    fun passByFormulaArgument() = runTest {
+        // block() 記法で式渡し引数を宣言できる
+        assertEquals(3, eval("(block() -> block())(1 + 2)").int) // 式渡し引数の基本動作
+
+        // 式渡し引数は呼び出さなければ評価されない
+        """
+            counter := 0
+            f := block() -> NULL
+            f(counter = counter + 1)
+            counter
+        """.let { assertEquals(0, eval(it).int) }
+
+        // 式渡し引数は複数回呼び出すと複数回評価される
+        """
+            counter := 0
+            f := block() -> block() + block()
+            f(counter = counter + 1)
+            counter
+        """.let { assertEquals(2, eval(it).int) }
+
+        // 通常引数と式渡し引数を混在できる
+        """
+            counter := 0
+            f := x, block() -> x + block()
+            f(10; counter = counter + 1)
+            counter
+        """.let { assertEquals(1, eval(it).int) }
+
+        // cond が TRUE のとき then() のみ評価され else() は評価されない
+        """
+            counter := 0
+            my_if := cond, then(), else() -> cond ? then() : else()
+            my_if(TRUE; counter = counter + 1; counter = counter + 10)
+            counter
+        """.let { assertEquals(1, eval(it).int) }
+
+        // cond が FALSE のとき else() のみ評価され then() は評価されない
+        """
+            counter := 0
+            my_if := cond, then(), else() -> cond ? then() : else()
+            my_if(FALSE; counter = counter + 1; counter = counter + 10)
+            counter
+        """.let { assertEquals(10, eval(it).int) }
+
+        // 式渡し引数を (x()) -> 記法でも宣言できる
+        assertEquals(3, eval("((x()) -> x())(1 + 2)").int)
+
+        // クロージャ付き関数呼び出し（=> 記法）でも式渡し引数が機能する
+        """
+            counter := 0
+            register := listener -> listener(counter = counter + 1)
+            register ( event() => event() + event() )
+            counter
+        """.let { assertEquals(2, eval(it).int) }
+    }
+
 }

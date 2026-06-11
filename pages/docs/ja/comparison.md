@@ -276,3 +276,18 @@ $ xa '
 # durian
 # elderberry
 ```
+
+# 比較系関数
+
+## `::CONTAINS`: 含有判定を行う拡張関数
+
+`VALUE::CONTAINS(content: VALUE): BOOLEAN`
+
+`::CONTAINS` 拡張関数は含有演算子 `@` を拡張関数の形式で呼び出すためのシンタックスシュガーです。
+
+`container::CONTAINS(content)` は `content @ container` と等価です。
+
+```shell
+$ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
+```

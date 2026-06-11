@@ -314,6 +314,11 @@ class XarpiteTest {
              %> <%
         """.let { assertEquals("123", eval(it).string.trim()) } // <%= の後で改行しても正しくパースされる
 
+        assertEquals("hello world", eval(" %>hello <%# this is a comment %>world<% ").string) // <%# ... %> はコメント
+        assertEquals("hello world", eval(" %>hello <%#%>world<% ").string) // 空コメント
+        assertEquals("hello world", eval(" %>hello <%# comment % with percent %>world<% ").string) // コメント内に % を含む
+        assertEquals("hello world", eval(" %>hello <%# comment\nwith newline\n%>world<% ").string) // コメント内に改行を含む
+
     }
 
     @Test
@@ -664,6 +669,18 @@ class XarpiteTest {
         // CONTAINSメソッドで上書きできる
         assertEquals(true, eval("'abc' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
         assertEquals(false, eval("'123' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
+
+        // ::CONTAINS拡張関数で含有チェックができる
+        assertEquals(true, eval("'---abc---'::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("'---abc---'::CONTAINS('123')").boolean)
+        assertEquals(true, eval("[10, 20, 30]::CONTAINS(30)").boolean)
+        assertEquals(false, eval("[10, 20, 30]::CONTAINS(40)").boolean)
+        assertEquals(true, eval("{a: 10; b: 20}::CONTAINS('a')").boolean)
+        assertEquals(false, eval("{a: 10; b: 20}::CONTAINS('c')").boolean)
+
+        // ::CONTAINS拡張関数はカスタム_@_メソッドでも動作する
+        assertEquals(true, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('123')").boolean)
     }
 
     @Test
@@ -1450,6 +1467,17 @@ class XarpiteTest {
             }
         }
 
+    }
+
+    @Test
+    fun runTest2() = runTest {
+        assertEquals(123, eval("RUN(() -> 123)").int) // RUN は引数なし関数を実行してその戻り値を返す
+        assertEquals(579, eval("RUN(() -> 456 + 123)").int) // RUN は関数の中で計算ができる
+    }
+
+    @Test
+    fun nopTest() = runTest {
+        assertEquals(FluoriteNull, eval("NOP()")) // NOP は何もせず NULL を返す
     }
 
 }

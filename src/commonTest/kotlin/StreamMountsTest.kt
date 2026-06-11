@@ -27,6 +27,16 @@ class StreamMountsTest {
     }
 
     @Test
+    fun slide() = runTest {
+        assertEquals("[1;2;3],[2;3;4],[3;4;5]", eval("SLIDE(3; 1, 2, 3, 4, 5)").stream()) // SLIDE でスライディングウィンドウに分割する
+        assertEquals("[1;2],[2;3],[3;4],[4;5]", eval("SLIDE(2; 1, 2, 3, 4, 5)").stream()) // サイズ2の場合
+        assertEquals("[1;2]", eval("SLIDE(2; 1, 2)").stream()) // 全体の要素数が一致している場合、1個の配列になる
+        assertEquals("", eval("SLIDE(2; 1)").stream()) // 要素数がサイズに満たない場合、空ストリームになる
+        assertEquals("[1]", eval("SLIDE(1; 1)").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
+        assertEquals("", eval("SLIDE(2; ,)").stream()) // 空ストリームの場合、空ストリームになる
+    }
+
+    @Test
     fun takeDrop() = runTest {
         assertEquals("1,2", eval("TAKE(2; 1, 2, 3)").stream()) // TAKE で先頭を取得
         assertEquals("1,2", eval("TAKE(2; 1, 2)").stream()) // 要素が丁度の場合はそのまま返す
@@ -103,6 +113,16 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("MIN(,)")) // 空ストリームの場合、NULL
         assertEquals(3.0, eval("MAX(1.0, 2.0, 3.0)").double) // MAX で最大値を得る
         assertEquals(FluoriteNull, eval("MAX(,)")) // 空ストリームの場合、NULL
+        assertEquals(1, eval("1 MIN 2").int) // 中置 MIN で2値の小さい方を得る（左が小さい）
+        assertEquals(1, eval("2 MIN 1").int) // 中置 MIN で2値の小さい方を得る（右が小さい）
+        assertEquals(5, eval("5 MIN 5").int) // 中置 MIN で2値が等しい場合はその値を得る
+        assertEquals(2, eval("1 MAX 2").int) // 中置 MAX で2値の大きい方を得る（右が大きい）
+        assertEquals(2, eval("2 MAX 1").int) // 中置 MAX で2値の大きい方を得る（左が大きい）
+        assertEquals(5, eval("5 MAX 5").int) // 中置 MAX で2値が等しい場合はその値を得る
+        assertEquals(1, eval("(1, 3) MIN (2, 4)").int) // 2引数をストリームとして MIN できる
+        assertEquals(4, eval("(1, 3) MAX (2, 4)").int) // 2引数をストリームとして MAX できる
+        assertEquals(FluoriteNull, eval("MIN(,; ,)")) // 両引数が空ストリームの場合、NULL
+        assertEquals(FluoriteNull, eval("MAX(,; ,)")) // 両引数が空ストリームの場合、NULL
     }
 
     @Test

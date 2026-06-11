@@ -15,7 +15,7 @@ class IoMountsTest {
         // ダミーの結果を返し、それが関数から適切に返されることを検証
         var capturedUrl: String? = null
         val mockResponse = "Hello, World!".encodeToByteArray()
-        
+
         val result = eval(
             """FETCH("https://example.com/test")""",
             ioContext = object : UnsupportedIoContext() {
@@ -46,7 +46,7 @@ class IoMountsTest {
                 }
             }
         )
-        
+
         assertEquals("https://example.com/data", capturedUrl)
         // BLOBの内容を検証
         assertEquals("BLOB.of([72;101;108;108;111])", result.string)

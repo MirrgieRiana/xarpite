@@ -227,7 +227,7 @@ class CompoundAssignmentTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションが += 演算子の位置（index 4）を指していることを確認
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
@@ -244,7 +244,7 @@ class CompoundAssignmentTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションが -= 演算子の位置（index 4）を指していることを確認
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
@@ -318,7 +318,7 @@ class CompoundAssignmentTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションは関数呼び出しの開始位置（index 4, `(` の位置）を指す
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
@@ -335,7 +335,7 @@ class CompoundAssignmentTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションは関数呼び出しの開始位置（index 6, `(` の位置）を指す
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")

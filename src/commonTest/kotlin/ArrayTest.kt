@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -8,6 +9,8 @@ import mirrg.xarpite.test.parse
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ArrayTest {
@@ -32,6 +35,12 @@ class ArrayTest {
         assertEquals("[1;2;3]", eval("(1, 2, 3).[]").array()) // .[] 配列化演算子
         assertEquals("[10;20;30]", eval("(1 .. 3 | _ * 10).[]").array()) // .[] 配列化演算子とパイプの組み合わせ
         assertEquals("[100]", eval("100.[]").array()) // ストリームでなくてもよい
+    }
+
+    @Test
+    fun toArrayUsage() = runTest {
+        val exception = assertFailsWith<FluoriteException> { eval("TO_ARRAY(1; 2)") } // 引数の数が不正だと usage メッセージを出す
+        assertTrue(exception.message!!.contains("TO_ARRAY")) // usage メッセージの関数名が TO_ARRAY になっている
     }
 
     @Test
@@ -135,6 +144,16 @@ class ArrayTest {
         assertEquals("[1;2;3]", eval("a := [1, 2, 3]; a -= 4; a").array()) // 存在しない要素を削除しても変化しない
         assertEquals("[1;3;2]", eval("a := [1, 2, 3, 2]; a -= 2; a").array()) // 最初の一致する要素のみ削除される
         assertEquals("[3]", eval("a := [1, 2, 3, 2]; a -= 1, 2, 2; a").array()) // ストリームによる複数削除
+    }
+
+    @Test
+    fun intercalate() = runTest {
+        assertEquals("[1;2;0;3;4;0;5;6]", eval("INTERCALATE([0]; [1; 2], [3; 4], [5; 6])").array()) // INTERCALATE で配列のストリームを配列に連結する
+        assertEquals("[a;b;|;c;d]", eval("""INTERCALATE(["|"]; ["a"; "b"], ["c"; "d"])""").array()) // 文字列配列でも動作する
+        assertEquals("[1;2;3;4]", eval("INTERCALATE([]; [1; 2], [3; 4])").array()) // セパレータが空配列の場合は単純に連結
+        assertEquals("[1;2]", eval("INTERCALATE([0]; [1; 2])").array()) // 配列が1つの場合はそのまま返す
+        assertEquals("[]", eval("INTERCALATE([0]; ,)").array()) // 空ストリームの場合は空配列を返す
+        assertEquals("[1;2;9;9;3;4;5;9;9;6]", eval("INTERCALATE([9; 9]; [1; 2], [3; 4; 5], [6])").array()) // セパレータが複数要素でもよい
     }
 
 }

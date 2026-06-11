@@ -16,7 +16,7 @@ import kotlin.coroutines.cancellation.CancellationException
 context(context: RuntimeContext)
 fun createControlStructuresMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "WHILE" define FluoriteFunction { arguments ->
+        "WHILE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WHILE(condition: () -> BOOLEAN; block: () -> VALUE): NULL")
             val condition = arguments[0]
             val block = arguments[1]
@@ -27,7 +27,18 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "TRY" define FluoriteFunction { arguments ->
+        "WHILE2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 2) usage("WHILE2(condition(): BOOLEAN; block(): VALUE): NULL")
+            val condition = arguments[0]
+            val block = arguments[1]
+            while (true) {
+                val conditionResult = condition()
+                if (!conditionResult.toBoolean(null)) break
+                block().consume()
+            }
+            FluoriteNull
+        },
+        "TRY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> TRY(block: () -> T): PROMISE<T>")
             val block = arguments[0]
             val promise = FluoritePromise()
@@ -39,7 +50,24 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
                 throw e
             } catch (e: Throwable) {
                 promise.deferred.completeExceptionally(e)
-                return@FluoriteFunction promise
+                return@immediate promise
+            }
+            promise.deferred.complete(value)
+            promise
+        },
+        "TRY2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 1) usage("<T> TRY2(block(): T): PROMISE<T>")
+            val block = arguments[0]
+            val promise = FluoritePromise()
+            val value = try {
+                block().cache()
+            } catch (e: Returner) {
+                throw e
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                promise.deferred.completeExceptionally(e)
+                return@create promise
             }
             promise.deferred.complete(value)
             promise

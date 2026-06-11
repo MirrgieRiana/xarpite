@@ -2,6 +2,20 @@
 
 <!-- INSERTION POINT -->
 
+## 4.106.0
+
+**Improvements:**
+
+- Added indent-block syntax using `:` followed by an indented block as an alternative to parenthesized expressions.
+- Added `INTERCALATE` function for joining array streams with separator arrays.
+- Added `RANDOM` function that selects a random element from a stream.
+- Added `SHELL_ESCAPE` / `BASH_ESCAPE` function to escape strings for safe use in shell commands.
+- Added `stream.{}` syntax to convert a stream of 2-element arrays to an object.
+- Added `TO_STREAM` function to convert a value to a stream.
+- Added `TRANSPOSE` function and its synonym `ZIP` to transpose a stream of arrays.
+- Added `TRY` control function that executes a block and returns the result as a `PROMISE`, catching exceptions into a rejected `PROMISE`.
+- Added `--verbose` option to display Kotlin stack traces for debugging interpreter internals.
+
 ## 4.105.0
 
 **Improvements:**

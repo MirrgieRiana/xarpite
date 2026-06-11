@@ -115,6 +115,24 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: Launch a New Coroutine
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+Launches `function` asynchronously as a coroutine.
+
+Equivalent to `LAUNCH`, but receives the argument as a pass-by-formula argument.
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: Asynchronous Result Container
 
 `PROMISE` is a container whose contents are determined with delay.

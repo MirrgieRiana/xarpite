@@ -185,6 +185,7 @@ Embedded string literals are string literals with a distinctive appearance enclo
 | CR                | LF                          |
 | LF                | LF                          |
 | `<%=` expr `%>`   | Embedding                   |
+| `<%#` ... `%>`    | Comment                     |
 | `<%`              | End of embedded string      |
 | Other characters  | The character itself        |
 
@@ -244,6 +245,15 @@ Like parentheses, variables declared inside do not escape outside.
 ```shell
 $ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
+```
+
+## Comment Content `<%# ... %>`
+
+Enclosing with `<%#` `%>` creates a comment. The content of the comment is not output.
+
+```shell
+$ xa ' %>hello <%# this is a comment %>world<% '
+# hello world
 ```
 
 ## Character Content `abcABC123`
@@ -360,6 +370,79 @@ $ xa '"abc" & "def"'
 ```shell
 $ xa '"abcde"[1..3]'
 # bcd
+```
+
+# Taking and Dropping Substrings from the Ends
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+Returns the string obtained by taking or dropping the first or last `count` characters of the string.
+
+`count` is converted to a number and rounded.
+
+Each method has an alias with identical behavior.
+
+| Method  | Alias       | Target | Operation | Behavior when `count` exceeds the string length |
+|---------|-------------|--------|-----------|-------------------------------------------------|
+| `take`  | `takeFirst` | First  | Take      | The entire string                               |
+| `taker` | `takeLast`  | Last   | Take      | The entire string                               |
+| `drop`  | `dropFirst` | First  | Drop      | An empty string                                 |
+| `dropr` | `dropLast`  | Last   | Drop      | An empty string                                 |
+
+```shell
+$ xa '"[" & "abcde"::take(2) & "]"'
+# [ab]
+
+$ xa '"[" & "abcde"::taker(2) & "]"'
+# [de]
+
+$ xa '"[" & "abcde"::take(0) & "]"'
+# []
+
+$ xa '"[" & "abcde"::take(10) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(2) & "]"'
+# [cde]
+
+$ xa '"[" & "abcde"::dropr(2) & "]"'
+# [abc]
+
+$ xa '"[" & "abcde"::drop(0) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(10) & "]"'
+# []
+```
+
+# Taking Characters from the Ends
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+The `first` and `last` methods get the first or last single character.
+
+If the string is empty, `NULL` is returned.
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+
+$ xa '""::first()'
+# NULL
+
+$ xa '""::last()'
+# NULL
 ```
 
 # String Replacement

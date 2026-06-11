@@ -492,3 +492,23 @@ $ xa -q '
 # [apple;cherry;banana]
 # [cherry]
 ```
+
+# Array Functions
+
+## `INTERCALATE`: Concatenate Stream of Arrays into Array
+
+`<T> INTERCALATE(separator: ARRAY<T>; arrays: STREAM<ARRAY<T>>): ARRAY<T>`
+
+Returns an array by joining each array in `arrays` with `separator` inserted between them.
+
+```shell
+$ xa 'INTERCALATE(["<", ">"]; ["a", "b"], ["c", "d"])'
+# [a;b;<;>;c;d]
+
+$ xa '[1, 2], [3, 4], [5, 6] >> INTERCALATE[[0]]'
+# [1;2;0;3;4;0;5;6]
+```
+
+---
+
+When the separator array is empty, it simply concatenates the arrays.

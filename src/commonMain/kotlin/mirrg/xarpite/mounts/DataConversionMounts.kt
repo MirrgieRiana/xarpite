@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -29,7 +30,7 @@ import kotlin.io.encoding.Base64
 context(context: RuntimeContext)
 fun createDataConversionMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "BASE" define FluoriteFunction { arguments ->
+        "BASE" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASE(radix: NUMBER; number: NUMBER): STRING")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber(null).roundToInt()
@@ -37,7 +38,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             val number = arguments[1].toFluoriteNumber(null).roundToInt()
             number.toString(radix).uppercase().toFluoriteString()
         },
-        "BASED" define FluoriteFunction { arguments ->
+        "BASED" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASED(radix: NUMBER; string: STRING): NUMBER")
             if (arguments.size != 2) usage()
             val radix = arguments[0].toFluoriteNumber(null).roundToInt()
@@ -45,13 +46,13 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             val string = arguments[1].toFluoriteString(null).value
             FluoriteInt(string.toInt(radix))
         },
-        "UTF8" define FluoriteFunction { arguments ->
+        "UTF8" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("UTF8(string: STRING): BLOB")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
             string.encodeToByteArray().asFluoriteBlob()
         },
-        "UTF8D" define FluoriteFunction { arguments ->
+        "UTF8D" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("UTF8D(blobLike: BLOB_LIKE): STRING")
             if (arguments.size != 1) usage()
             val value = arguments[0]
@@ -60,13 +61,13 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             val base64 by lazy { Base64.Mime }
             arrayOf(
-                "BASE64" define FluoriteFunction { arguments ->
+                "BASE64" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("BASE64(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
                     base64.encode(string.encodeToByteArray()).replace("\r\n", "\n").toFluoriteString()
                 },
-                "BASE64D" define FluoriteFunction { arguments ->
+                "BASE64D" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("BASE64D(string: STRING): STRING")
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
@@ -74,7 +75,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
             )
         },
-        "URL" define FluoriteFunction { arguments ->
+        "URL" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("URL(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -90,7 +91,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             sb.toString().toFluoriteString()
         },
-        "URLD" define FluoriteFunction { arguments ->
+        "URLD" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("URLD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -118,7 +119,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             buffer.readUtf8().toFluoriteString()
         },
-        "PERCENT" define FluoriteFunction { arguments ->
+        "PERCENT" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("PERCENT(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -132,7 +133,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             sb.toString().toFluoriteString()
         },
-        "PERCENTD" define FluoriteFunction { arguments ->
+        "PERCENTD" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("PERCENTD(string: STRING): STRING")
             if (arguments.size != 1) usage()
             val string = arguments[0].toFluoriteString(null).value
@@ -156,8 +157,41 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             buffer.readUtf8().toFluoriteString()
         },
         *run {
-            suspend fun parseIndent(indent: FluoriteValue): String {
-                return if (indent is FluoriteNumber) {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("$name(string: STRING): STRING")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    "'${string.replace("'", """'\''""")}'".toFluoriteString()
+                }
+            }
+            arrayOf(
+                "SHELL_ESCAPE" define create("SHELL_ESCAPE"),
+                "BASH_ESCAPE" define create("BASH_ESCAPE"),
+            )
+        },
+        "REGEX_ESCAPE" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("REGEX_ESCAPE(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString(null).value
+            val sb = StringBuilder()
+            string.forEach { char ->
+                when (char) {
+                    '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')', '[', ']', '{', '}' -> {
+                        sb.append('\\')
+                        sb.append(char)
+                    }
+
+                    else -> sb.append(char)
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
+        *run {
+            suspend fun parseIndent(indent: FluoriteValue): String? {
+                return if (indent is FluoriteNull) {
+                    null
+                } else if (indent is FluoriteNumber) {
                     val number = indent.roundToInt()
                     if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
                     " ".repeat(number)
@@ -166,8 +200,8 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "JSON" define FluoriteFunction { arguments ->
-                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
+                "JSON" define FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING")
                     val arguments2 = arguments.toMutableList()
 
                     if (arguments2.isEmpty()) usage()
@@ -182,7 +216,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
 
                     value.toSingleJsonFluoriteValue(null, indent = indent)
                 },
-                "JSOND" define FluoriteFunction { arguments ->
+                "JSOND" define FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("JSOND(json: STRING): VALUE")
                     if (arguments.size != 1) usage()
                     val value = arguments[0]
@@ -190,8 +224,8 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
-                        return FluoriteFunction { arguments ->
-                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                        return FluoriteFunction.immediate { arguments ->
+                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>")
                             val arguments2 = arguments.toMutableList()
 
                             if (arguments2.isEmpty()) usage()
@@ -214,7 +248,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
-                        return FluoriteFunction { arguments ->
+                        return FluoriteFunction.immediate { arguments ->
                             fun usage(): Nothing = usage("$name(jsons: STREAM<STRING>): STREAM<VALUE>")
                             if (arguments.size != 1) usage()
                             val value = arguments[0]
@@ -228,177 +262,193 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 },
             )
         },
-        "CSV" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
-            if (arguments.isEmpty()) usage()
-            val parameters = arguments.dropLast(1)
-                .associate {
-                    val array = it as? FluoriteArray ?: usage()
-                    if (array.values.size != 2) usage()
-                    val key = array.values[0] as? FluoriteString ?: usage()
-                    val value = array.values[1]
-                    key.value to value
-                }
-                .toMutableMap()
-            val separator = parameters.pop("separator", {
-                val string = it.toFluoriteString(null).value
-                check(string.length == 1)
-                string
-            }) { "," } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
-            val quote = parameters.pop("quote", {
-                val string = it.toFluoriteString(null).value
-                check(string.length == 1)
-                string
-            }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
-            if (parameters.isNotEmpty()) usage()
-            val value = arguments.last()
+        *run {
+            fun create(name: String, defaultSeparator: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
+                    if (arguments.isEmpty()) usage()
+                    val parameters = arguments.dropLast(1)
+                        .associate {
+                            val array = it as? FluoriteArray ?: usage()
+                            if (array.values.size != 2) usage()
+                            val key = array.values[0] as? FluoriteString ?: usage()
+                            val value = array.values[1]
+                            key.value to value
+                        }
+                        .toMutableMap()
+                    val separator = parameters.pop("separator", {
+                        val string = it.toFluoriteString(null).value
+                        if (string.length != 1) usage()
+                        string
+                    }) { defaultSeparator } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
+                    val quote = parameters.pop("quote", {
+                        val string = it.toFluoriteString(null).value
+                        if (string.length != 1) usage()
+                        string
+                    }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
+                    if (parameters.isNotEmpty()) usage()
+                    val value = arguments.last()
 
-            suspend fun toCsv(value: FluoriteValue): FluoriteString {
-                val sb = StringBuilder()
-                (value as FluoriteArray).values.forEachIndexed { index, value2 ->
-                    if (index > 0) sb.append(separator)
-                    val string = value2.toFluoriteString(null).value
-                    if (string.isEmpty()) return@forEachIndexed
-                    val needQuote = run {
-                        val first = string.first()
-                        if (first == ' ') return@run true
-                        if (first == '\t') return@run true
-                        val last = string.last()
-                        if (last == ' ') return@run true
-                        if (last == '\t') return@run true
-                        if (separator in string) return@run true
-                        if (quote in string) return@run true
-                        if ('\r' in string) return@run true
-                        if ('\n' in string) return@run true
-                        false
+                    suspend fun toCsv(value: FluoriteValue): FluoriteString {
+                        val sb = StringBuilder()
+                        (value as FluoriteArray).values.forEachIndexed { index, value2 ->
+                            if (index > 0) sb.append(separator)
+                            val string = value2.toFluoriteString(null).value
+                            if (string.isEmpty()) return@forEachIndexed
+                            val needQuote = run {
+                                val first = string.first()
+                                if (first == ' ') return@run true
+                                if (first == '\t') return@run true
+                                val last = string.last()
+                                if (last == ' ') return@run true
+                                if (last == '\t') return@run true
+                                if (separator in string) return@run true
+                                if (quote in string) return@run true
+                                if ('\r' in string) return@run true
+                                if ('\n' in string) return@run true
+                                false
+                            }
+                            if (needQuote) {
+                                sb.append(quote)
+                                sb.append(string.replace(quote, "$quote$quote"))
+                                sb.append(quote)
+                            } else {
+                                sb.append(string)
+                            }
+                        }
+                        return sb.toString().toFluoriteString()
                     }
-                    if (needQuote) {
-                        sb.append(quote)
-                        sb.append(string.replace(quote, "$quote$quote"))
-                        sb.append(quote)
+
+                    if (value is FluoriteStream) {
+                        FluoriteStream {
+                            value.collect {
+                                emit(toCsv(it))
+                            }
+                        }
                     } else {
-                        sb.append(string)
+                        toCsv(value)
                     }
                 }
-                return sb.toString().toFluoriteString()
             }
-
-            if (value is FluoriteStream) {
-                FluoriteStream {
-                    value.collect {
-                        emit(toCsv(it))
-                    }
-                }
-            } else {
-                toCsv(value)
-            }
+            arrayOf(
+                "CSV" define create("CSV", ","),
+                "TSV" define create("TSV", "\t"),
+            )
         },
-        "CSVD" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("""CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
-            if (arguments.isEmpty()) usage()
-            val parameters = arguments.dropLast(1)
-                .associate {
-                    val array = it as? FluoriteArray ?: usage()
-                    if (array.values.size != 2) usage()
-                    val key = array.values[0] as? FluoriteString ?: usage()
-                    val value = array.values[1]
-                    key.value to value
-                }
-                .toMutableMap()
-            val separator = parameters.pop("separator", {
-                val string = it.toFluoriteString(null).value
-                check(string.length == 1)
-                string
-            }) { "," } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
-            val quote = parameters.pop("quote", {
-                val string = it.toFluoriteString(null).value
-                check(string.length == 1)
-                string
-            }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
-            if (parameters.isNotEmpty()) usage()
-            val value = arguments.last()
+        *run {
+            fun create(name: String, defaultSeparator: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
+                    if (arguments.isEmpty()) usage()
+                    val parameters = arguments.dropLast(1)
+                        .associate {
+                            val array = it as? FluoriteArray ?: usage()
+                            if (array.values.size != 2) usage()
+                            val key = array.values[0] as? FluoriteString ?: usage()
+                            val value = array.values[1]
+                            key.value to value
+                        }
+                        .toMutableMap()
+                    val separator = parameters.pop("separator", {
+                        val string = it.toFluoriteString(null).value
+                        if (string.length != 1) usage()
+                        string
+                    }) { defaultSeparator } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
+                    val quote = parameters.pop("quote", {
+                        val string = it.toFluoriteString(null).value
+                        if (string.length != 1) usage()
+                        string
+                    }) { "\"" } // StringでやらないとJSの謎バグでChar同士の比較が成功しない
+                    if (parameters.isNotEmpty()) usage()
+                    val value = arguments.last()
 
-            suspend fun fromCsv(csv: FluoriteValue): FluoriteArray {
-                val list = mutableListOf<FluoriteValue>()
-                val sb = StringBuilder()
-                val quoted = mutableListOf<Boolean>()
+                    suspend fun fromCsv(csv: FluoriteValue): FluoriteArray {
+                        val list = mutableListOf<FluoriteValue>()
+                        val sb = StringBuilder()
+                        val quoted = mutableListOf<Boolean>()
 
-                val STATE_NOT_QUOTED = 0
-                val STATE_QUOTED = 1
-                val STATE_AFTER_QUOTED = 2
-                var state = STATE_NOT_QUOTED
+                        val STATE_NOT_QUOTED = 0
+                        val STATE_QUOTED = 1
+                        val STATE_AFTER_QUOTED = 2
+                        var state = STATE_NOT_QUOTED
 
-                fun flush() {
-                    var head = 0
-                    while (true) {
-                        if (head >= sb.length) break
-                        if (quoted[head]) break
-                        if (sb[head] != ' ' && sb[head] != '\t') break
-                        head++
+                        fun flush() {
+                            var head = 0
+                            while (true) {
+                                if (head >= sb.length) break
+                                if (quoted[head]) break
+                                if (sb[head] != ' ' && sb[head] != '\t') break
+                                head++
+                            }
+
+                            var tail = sb.length - 1
+                            while (true) {
+                                if (tail + 1 <= head) break
+                                if (quoted[tail]) break
+                                if (sb[tail] != ' ' && sb[tail] != '\t') break
+                                tail--
+                            }
+
+                            list += sb.substring(head, tail + 1).toFluoriteString()
+                            sb.clear()
+                            quoted.clear()
+                        }
+
+                        csv.toFluoriteString(null).value.forEach { ch2 ->
+                            val ch = ch2.toString()
+                            if (state == STATE_NOT_QUOTED) {
+                                if (ch == quote) {
+                                    state = STATE_QUOTED
+                                } else if (ch == separator) {
+                                    flush()
+                                } else {
+                                    sb.append(ch)
+                                    quoted += false
+                                }
+                            } else if (state == STATE_QUOTED) {
+                                if (ch == quote) {
+                                    state = STATE_AFTER_QUOTED
+                                } else {
+                                    sb.append(ch)
+                                    quoted += true
+                                }
+                            } else if (state == STATE_AFTER_QUOTED) {
+                                if (ch == quote) {
+                                    sb.append(ch)
+                                    quoted += false
+                                    state = STATE_QUOTED
+                                } else if (ch == separator) {
+                                    flush()
+                                    state = STATE_NOT_QUOTED
+                                } else {
+                                    sb.append(ch)
+                                    quoted += false
+                                    state = STATE_NOT_QUOTED
+                                }
+                            } else {
+                                throw AssertionError()
+                            }
+                        }
+                        flush()
+
+                        return list.asFluoriteArray()
                     }
 
-                    var tail = sb.length - 1
-                    while (true) {
-                        if (tail + 1 <= head) break
-                        if (quoted[tail]) break
-                        if (sb[tail] != ' ' && sb[tail] != '\t') break
-                        tail--
-                    }
-
-                    list += sb.substring(head, tail + 1).toFluoriteString()
-                    sb.clear()
-                    quoted.clear()
-                }
-
-                csv.toFluoriteString(null).value.forEach { ch2 ->
-                    val ch = ch2.toString()
-                    if (state == STATE_NOT_QUOTED) {
-                        if (ch == quote) {
-                            state = STATE_QUOTED
-                        } else if (ch == separator) {
-                            flush()
-                        } else {
-                            sb.append(ch)
-                            quoted += false
-                        }
-                    } else if (state == STATE_QUOTED) {
-                        if (ch == quote) {
-                            state = STATE_AFTER_QUOTED
-                        } else {
-                            sb.append(ch)
-                            quoted += true
-                        }
-                    } else if (state == STATE_AFTER_QUOTED) {
-                        if (ch == quote) {
-                            sb.append(ch)
-                            quoted += false
-                            state = STATE_QUOTED
-                        } else if (ch == separator) {
-                            flush()
-                            state = STATE_NOT_QUOTED
-                        } else {
-                            sb.append(ch)
-                            quoted += false
-                            state = STATE_NOT_QUOTED
+                    if (value is FluoriteStream) {
+                        FluoriteStream {
+                            value.collect {
+                                emit(fromCsv(it))
+                            }
                         }
                     } else {
-                        throw AssertionError()
+                        fromCsv(value)
                     }
                 }
-                flush()
-
-                return list.asFluoriteArray()
             }
-
-            if (value is FluoriteStream) {
-                FluoriteStream {
-                    value.collect {
-                        emit(fromCsv(it))
-                    }
-                }
-            } else {
-                fromCsv(value)
-            }
+            arrayOf(
+                "CSVD" define create("CSVD", ","),
+                "TSVD" define create("TSVD", "\t"),
+            )
         },
     ).let { listOf(it) }
 }

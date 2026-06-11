@@ -185,6 +185,7 @@ $ xa ' "[$%+09.2f(123)]" '
 | CR           | LF         |
 | LF           | LF         |
 | `<%=` 式 `%>` | 埋め込み       |
+| `<%#` ... `%>` | コメント     |
 | `<%`         | 埋め込み文字列の終端 |
 | それ以外の文字      | その文字自身     |
 
@@ -244,6 +245,15 @@ $ xa '%>[ <%% ]<%'
 ```shell
 $ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
+```
+
+## コメントコンテント `<%# ... %>`
+
+`<%#` `%>` で囲うとコメントになります。コメントの内容は出力されません。
+
+```shell
+$ xa ' %>hello <%# this is a comment %>world<% '
+# hello world
 ```
 
 ## 文字コンテント `abcABC123`
@@ -360,6 +370,79 @@ $ xa '"abc" & "def"'
 ```shell
 $ xa '"abcde"[1..3]'
 # bcd
+```
+
+# 先頭・末尾の部分文字列の取得と除去
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+文字列の先頭または末尾の、 `count` 文字を取得または除去した文字列を返します。
+
+`count` は数値化し、四捨五入されます。
+
+各メソッドには同一の動作を持つ別名が存在します。
+
+| メソッド    | 別名          | 対象 | 操作 | `count` が文字列の長さを超える場合の動作 |
+|---------|-------------|----|----|--------------------------|
+| `take`  | `takeFirst` | 先頭 | 取得 | 文字列全体                    |
+| `taker` | `takeLast`  | 末尾 | 取得 | 文字列全体                    |
+| `drop`  | `dropFirst` | 先頭 | 除去 | 空文字列                     |
+| `dropr` | `dropLast`  | 末尾 | 除去 | 空文字列                     |
+
+```shell
+$ xa '"[" & "abcde"::take(2) & "]"'
+# [ab]
+
+$ xa '"[" & "abcde"::taker(2) & "]"'
+# [de]
+
+$ xa '"[" & "abcde"::take(0) & "]"'
+# []
+
+$ xa '"[" & "abcde"::take(10) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(2) & "]"'
+# [cde]
+
+$ xa '"[" & "abcde"::dropr(2) & "]"'
+# [abc]
+
+$ xa '"[" & "abcde"::drop(0) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(10) & "]"'
+# []
+```
+
+# 先頭・末尾の文字の取得
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+`first` `last` メソッドで先頭・末尾の1文字を取得します。
+
+文字列が空の場合は `NULL` を返します。
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+
+$ xa '""::first()'
+# NULL
+
+$ xa '""::last()'
+# NULL
 ```
 
 # 文字列の置換
