@@ -428,3 +428,15 @@ $ xa '
 The `try` in the catch operator `try !? catch` can include up to logical operators but cannot include pipe operators.
 
 To include pipe operators, you need to enclose them in parentheses.
+
+# `ERROR`: Native Errors
+
+`ERROR` is a class representing native errors originating from the host language.
+
+You can determine whether a value is a native error with `value ?= ERROR`.
+
+## `message`: Error Message
+
+The `message` property retrieves the message of the native error.
+
+It becomes `NULL` if there is no message.
