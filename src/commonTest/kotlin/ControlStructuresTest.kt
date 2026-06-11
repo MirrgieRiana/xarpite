@@ -144,6 +144,13 @@ class ControlStructuresTest {
                 "Success"
             )::awaitException()
         """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() はネイティブ例外を ERROR に包んで返す
+        """
+            TRY ( =>
+                JSOND("{")
+            )::awaitException() ?= ERROR
+        """.let { assertEquals(true, eval(it).boolean) }
     }
 
     @Test

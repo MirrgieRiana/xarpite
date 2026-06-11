@@ -191,6 +191,8 @@ $ xa '
 
 `PROMISE` が失敗として完了した場合、その例外値を返します。
 
+失敗の原因がネイティブエラーである場合、その例外値は `ERROR` になります。
+
 `PROMISE` が正常に完了した場合、 `NULL` を返します。
 
 ```shell
@@ -209,6 +211,15 @@ $ xa '
   promise::awaitException()
 '
 # NULL
+```
+
+```shell
+$ xa '
+  TRY ( =>
+    JSOND("{")
+  )::awaitException() ?= ERROR
+'
+# TRUE
 ```
 
 ### `isCompleted`: `PROMISE` の完了状態を調べる
