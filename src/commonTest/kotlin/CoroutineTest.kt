@@ -97,6 +97,43 @@ class CoroutineTest {
             job::await()
         """.let { assertEquals("ERROR", eval(it).string) }
 
+        // awaitException() は fail() された場合に例外値を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail("ERROR")
+            trigger::awaitException()
+        """.let { assertEquals("ERROR", eval(it).string) }
+
+        // awaitException() は fail() で値が省略された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete("OK")
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() で値が省略された場合にも NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は LAUNCH 内の例外値も取得できる
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            job::awaitException()
+        """.let { assertEquals("Error in LAUNCH", eval(it).string) }
+
         // isCompleted
         assertEquals(false, eval("promise := PROMISE.new(); promise::isCompleted()").boolean) // 初期状態では未完了
         assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isCompleted()").boolean) // 完了すると完了になる

@@ -176,6 +176,36 @@ $ xa '
 # ERROR!!
 ```
 
+### `awaitException`: Wait for `PROMISE` Completion and Retrieve Exception Value
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+Waits until the contents of the `PROMISE` are complete.
+
+If the `PROMISE` is completed as failed, returns the exception value.
+
+If the cause of the failure is a native error, the exception value becomes a value of the `ERROR` type.
+
+If the `PROMISE` is completed successfully, returns `NULL`.
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
+```
+
 ### `isCompleted`: Check `PROMISE` Completion Status
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`

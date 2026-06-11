@@ -3,6 +3,7 @@ package mirrg.xarpite.compilers.objects
 import kotlinx.coroutines.CompletableDeferred
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import kotlin.coroutines.cancellation.CancellationException
 
 class FluoritePromise : FluoriteValue {
     companion object {
@@ -34,6 +35,20 @@ class FluoritePromise : FluoriteValue {
                         if (arguments.size != 1) usage("<T> PROMISE<T>::await(): T")
                         val promise = arguments[0] as FluoritePromise
                         promise.deferred.await()
+                    },
+                    "awaitException" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("<T> PROMISE<T>::awaitException(): VALUE")
+                        val promise = arguments[0] as FluoritePromise
+                        try {
+                            promise.deferred.await()
+                            FluoriteNull
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: FluoriteException) {
+                            e.value
+                        } catch (e: Throwable) {
+                            FluoriteError(e)
+                        }
                     },
                     "isCompleted" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) usage("<T> PROMISE<T>::isCompleted(): BOOLEAN")
