@@ -6,9 +6,9 @@ import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
+import mirrg.xarpite.compilers.objects.FluoriteError
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
-import mirrg.xarpite.compilers.objects.FluoriteNativeException
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoritePromise
@@ -34,6 +34,6 @@ fun createClassMounts(): List<Map<String, Mount>> {
         "BLOB" define FluoriteBlob.fluoriteClass,
         "STREAM" define FluoriteStream.fluoriteClass,
         "PROMISE" define FluoritePromise.fluoriteClass,
-        "EXCEPTION" define FluoriteNativeException.fluoriteClass,
+        "ERROR" define FluoriteError.fluoriteClass,
     ).let { listOf(it) }
 }

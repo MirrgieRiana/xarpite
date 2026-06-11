@@ -27,7 +27,7 @@ You can reference classes of various built-in objects.
 - `STREAM`
 - `PROMISE`
 - `BLOB`
-- `EXCEPTION`
+- `ERROR`
 
 # Constants
 
