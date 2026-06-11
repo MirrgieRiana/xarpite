@@ -1,9 +1,11 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.compilers.objects.FluoriteNativeException
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.callMethodImmediate
 import mirrg.xarpite.compilers.objects.instanceOf
+import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
@@ -15,10 +17,10 @@ class ExceptionTest {
     @Test
     fun message() = runTest {
         val withMessage = FluoriteNativeException(RuntimeException("Something failed"))
-        assertEquals("Something failed", withMessage.callMethodImmediate(null, "message", arrayOf()).string) // メッセージの取得
+        assertEquals("Something failed", withMessage.callMethodImmediate(null, OperatorMethod.PROPERTY.methodName, arrayOf("message".toFluoriteString())).string) // メッセージの取得
 
         val withoutMessage = FluoriteNativeException(RuntimeException())
-        assertEquals(FluoriteNull, withoutMessage.callMethodImmediate(null, "message", arrayOf())) // メッセージが無い場合はNULL
+        assertEquals(FluoriteNull, withoutMessage.callMethodImmediate(null, OperatorMethod.PROPERTY.methodName, arrayOf("message".toFluoriteString()))) // メッセージが無い場合はNULL
     }
 
     @Test

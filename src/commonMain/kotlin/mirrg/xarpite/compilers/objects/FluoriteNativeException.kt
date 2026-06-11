@@ -1,16 +1,20 @@
 package mirrg.xarpite.compilers.objects
 
-import mirrg.xarpite.mounts.usage
+import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.operations.FluoriteException
 
 class FluoriteNativeException(val throwable: Throwable) : FluoriteValue {
     companion object {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    "message" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 1) usage("EXCEPTION::message(): STRING | NULL")
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val exception = arguments[0] as FluoriteNativeException
-                        exception.throwable.message?.toFluoriteString() ?: FluoriteNull
+                        val key = arguments[1].toFluoriteString(null).value
+                        when (key) {
+                            "message" -> exception.throwable.message?.toFluoriteString() ?: FluoriteNull
+                            else -> throw FluoriteException("No such property: $key".toFluoriteString())
+                        }
                     },
                 )
             )

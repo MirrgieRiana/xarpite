@@ -435,10 +435,8 @@ To include pipe operators, you need to enclose them in parentheses.
 
 You can determine whether a value is a native exception with `value ?= EXCEPTION`.
 
-### `message`: Retrieve the Exception Message
+### `message`: Exception Message
 
-`EXCEPTION::message(): STRING | NULL`
+The `message` property retrieves the message of the native exception.
 
-Returns the message of the native exception.
-
-Returns `NULL` if there is no message.
+It becomes `NULL` if there is no message.
