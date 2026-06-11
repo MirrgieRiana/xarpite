@@ -293,6 +293,17 @@ $ xa '
 # ERROR: Error, world!
 ```
 
+### Catching Native Errors
+
+The catch operator catches not only values thrown by the throw operator `!!` (that is, `FluoriteException`) but also native errors originating from the host language.
+
+A caught native error is passed to the `catch` clause as an instance of the native error class `ERROR`.
+
+```shell
+$ xa 'JSOND("{") !? ( e => e ?= ERROR )'
+# TRUE
+```
+
 ### Stream Resolution
 
 If the return value of the `try` clause is a stream, that stream is resolved.

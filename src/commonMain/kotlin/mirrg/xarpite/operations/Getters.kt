@@ -9,6 +9,7 @@ import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
+import mirrg.xarpite.compilers.objects.FluoriteError
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -43,6 +44,7 @@ import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -849,9 +851,13 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(if (e is FluoriteException) e.value else FluoriteError(e))
             rightGetter.evaluate(newEnv)
         }
     }
@@ -863,7 +869,11 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             rightGetter.evaluate(env)
         }
     }
