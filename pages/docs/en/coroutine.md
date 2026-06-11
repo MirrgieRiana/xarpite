@@ -184,7 +184,7 @@ Waits until the contents of the `PROMISE` are complete.
 
 If the `PROMISE` is completed as failed, returns the exception value.
 
-If the cause of the failure is a native error, the exception value becomes `ERROR`.
+If the cause of the failure is a native error, the exception value becomes a value of the `ERROR` type.
 
 If the `PROMISE` is completed successfully, returns `NULL`.
 
@@ -204,15 +204,6 @@ $ xa '
   promise::awaitException()
 '
 # NULL
-```
-
-```shell
-$ xa '
-  TRY ( =>
-    JSOND("{")
-  )::awaitException() ?= ERROR
-'
-# TRUE
 ```
 
 ### `isCompleted`: Check `PROMISE` Completion Status
