@@ -35,6 +35,7 @@ import mirrg.xarpite.compilers.objects.plus
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
+import mirrg.xarpite.compilers.objects.toFluoriteException
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.escapeJsonString
@@ -344,7 +345,7 @@ class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) 
 class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): Nothing {
         withStackTrace(position) {
-            throw FluoriteException(getter.evaluate(env))
+            throw getter.evaluate(env).toFluoriteException()
         }
     }
 
