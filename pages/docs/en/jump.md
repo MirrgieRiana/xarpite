@@ -440,3 +440,7 @@ You can determine whether a value is a native error with `value ?= ERROR`.
 The `message` property retrieves the message of the native error.
 
 It becomes `NULL` if there is no message.
+
+## Rethrowing Native Errors
+
+When you throw an instance of `ERROR` with the throw operator `!! value`, instead of wrapping it in a `FluoriteException`, the original native error it holds is rethrown as is.
