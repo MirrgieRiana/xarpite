@@ -264,6 +264,12 @@ $ xa '(!!) !? ( e => "Error: $e" )'
 # Error: NULL
 ```
 
+### Rethrowing Native Errors
+
+When you throw a value of type `ERROR` with the throw operator, the native error it represents is rethrown as is, rather than the value itself being thrown.
+
+This allows a native error once received as an `ERROR` to be rethrown as a native error.
+
 ## Catch Operator
 
 The catch operator `try !? catch` returns the value from the `try` clause if no value is thrown, or the value from the `catch` clause if a value is thrown.
@@ -440,7 +446,3 @@ You can determine whether a value is a native error with `value ?= ERROR`.
 The `message` property retrieves the message of the native error.
 
 It becomes `NULL` if there is no message.
-
-## Rethrowing Native Errors
-
-When you throw an instance of `ERROR` with the throw operator `!! value`, instead of wrapping it in a `FluoriteException`, the original native error it holds is rethrown as is.

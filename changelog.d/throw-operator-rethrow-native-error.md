@@ -1,1 +1,1 @@
-?Fixed the throw operator `!!` wrapping an `ERROR` instance in a `FluoriteException`; it now rethrows the native error held by the `ERROR` as is.
+?Fixed the throw operator `!!` throwing a value of type `ERROR` itself instead of rethrowing the native error it represents.
