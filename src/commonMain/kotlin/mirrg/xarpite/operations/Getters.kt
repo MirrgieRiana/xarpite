@@ -744,11 +744,11 @@ class NotMatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
         return if (left is FluoriteStream) {
             FluoriteStream {
                 left.collect { item ->
-                    emit((right.match(position, item) == FluoriteNull).toFluoriteBoolean())
+                    emit(right.match(position, item).toFluoriteBoolean(position).not())
                 }
             }
         } else {
-            (right.match(position, left) == FluoriteNull).toFluoriteBoolean()
+            right.match(position, left).toFluoriteBoolean(position).not()
         }
     }
 
