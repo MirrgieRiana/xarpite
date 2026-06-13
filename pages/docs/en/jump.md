@@ -264,11 +264,7 @@ $ xa '(!!) !? ( e => "Error: $e" )'
 # Error: NULL
 ```
 
-### Rethrowing Native Errors
-
-When you throw a value of type `ERROR` with the throw operator, the native error it represents is rethrown as is, rather than the value itself being thrown.
-
-This allows a native error once received as an `ERROR` to be rethrown as a native error.
+When you throw a value of type `ERROR`, the native error it represents is rethrown, rather than the value itself.
 
 ## Catch Operator
 
