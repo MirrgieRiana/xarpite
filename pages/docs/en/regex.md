@@ -176,6 +176,27 @@ $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]
 # tart
 ```
 
+## Negative Match
+
+The `string !~ regex` operator tests whether a string does not match a regular expression.
+
+This operator is equivalent to the negation of the match operator `!(string =~ regex)`, returning the negation of the boolean conversion of the match result.
+
+```shell
+$ xa ' "apple" !~ /pp/ '
+# FALSE
+
+$ xa ' "apple" !~ /xy/ '
+# TRUE
+```
+
+When a global match does not match, the match result is an empty stream, which is treated as false, so the negative match returns `TRUE`.
+
+```shell
+$ xa ' "apple" !~ /xy/g '
+# TRUE
+```
+
 ## Calling Regular Expression Objects as Functions
 
 When a regular expression object is called as a function, it behaves the same as the match operator.
