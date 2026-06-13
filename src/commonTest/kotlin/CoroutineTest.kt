@@ -13,6 +13,7 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -96,6 +97,20 @@ class CoroutineTest {
             trigger::fail("ERROR")
             job::await()
         """.let { assertEquals("ERROR", eval(it).string) }
+
+        // fail() に ERROR 型の値を渡すと、await() 時に元のネイティブ例外がそのまま再スローされる
+        val nativeError = assertFails { eval("""JSOND("{")""") } // JSOND の失敗はネイティブ例外として伝搬する
+        val rethrownError = assertFails {
+            eval(
+                """
+                    error := TRY ( => JSOND("{") )::awaitException()
+                    trigger := PROMISE.new()
+                    trigger::fail(error)
+                    trigger::await()
+                """
+            )
+        } // ERROR を fail で渡して await で投げ直す
+        assertEquals(nativeError::class, rethrownError::class) // FluoriteException で包まれず、元のネイティブ例外と同じクラスで再スローされる
 
         // awaitException() は fail() された場合に例外値を返す
         """
