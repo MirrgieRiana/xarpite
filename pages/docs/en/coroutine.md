@@ -157,6 +157,8 @@ If `value` is omitted, the `PROMISE` is completed with `NULL` as its contents.
 
 Completes the `PROMISE` as failed with `error`.
 
+When `error` is a value of type `ERROR`, the native error it represents becomes the cause of the failure, rather than the value itself.
+
 ### `await`: Wait for `PROMISE` Completion and Retrieve Contents
 
 `<T> PROMISE<T>::await(): T`

@@ -240,6 +240,8 @@ In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
+When you throw a value of type `ERROR`, the native error it represents is rethrown, rather than the value itself.
+
 The thrown value is passed to the right side of the catch operator `try !? catch`.
 
 ```shell

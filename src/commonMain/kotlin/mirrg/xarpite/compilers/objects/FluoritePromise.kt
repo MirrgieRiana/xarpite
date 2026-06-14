@@ -28,7 +28,7 @@ class FluoritePromise : FluoriteValue {
                             2 -> Pair(arguments[0] as FluoritePromise, arguments[1])
                             else -> usage("<T> PROMISE<T>::fail([error: VALUE]): NULL")
                         }
-                        promise.deferred.completeExceptionally(FluoriteException(error))
+                        promise.deferred.completeExceptionally(if (error is FluoriteError) error.throwable else FluoriteException(error))
                         FluoriteNull
                     },
                     "await" to FluoriteFunction.immediate { arguments ->
