@@ -297,7 +297,7 @@ $ xa '
 
 ### Catching Native Errors
 
-The catch operator catches not only values thrown by the throw operator `!!` (that is, `FluoriteException`) but also native errors originating from the host language.
+The catch operator also catches native errors originating from the host language.
 
 A caught native error is passed to the `catch` clause as an instance of the native error class `ERROR`.
 
