@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -470,6 +471,83 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             } else {
                 usage("FIRST(stream: STREAM<VALUE>): VALUE")
             }
+        },
+        "GET" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
+            val indices = arguments[0]
+            val stream = arguments[1]
+            val gotten = FluoriteStream {
+                // 添字を有界な窓ぶんだけ先読みする。窓内で終端が見えれば全添字が確定するので値ストリームを有界メモリで1パスし、
+                // 超過した場合は無限の添字ストリームと見なして遅延逐次へフォールバックする
+                val window = 64 // 窓サイズの具体値の詳細化は別PRに委ねる
+                val prefetched = mutableListOf<Int>()
+                var overflowed = false
+
+                // 遅延逐次フォールバック用の値リーダー。窓を超えて初めて起動し、要求位置まで値を伸ばしながらキャッシュする
+                var channel: ReceiveChannel<FluoriteValue>? = null
+                val lazyValues = mutableListOf<FluoriteValue>()
+                var lazyEnded = false
+                suspend fun lazyResolve(index: Int): FluoriteValue {
+                    val limit = if (index >= 0) index else Int.MAX_VALUE // 負添字は末尾を知るため値ストリームを読み切る
+                    while (!lazyEnded && lazyValues.size <= limit) {
+                        val item = channel!!.receiveCatching().getOrNull()
+                        if (item == null) lazyEnded = true else lazyValues += item
+                    }
+                    return lazyValues.getOrNull(if (index >= 0) index else index + lazyValues.size) ?: FluoriteNull
+                }
+
+                try {
+                    indices.toFlow().collect { rawIndex ->
+                        val index = rawIndex.toFluoriteNumber(null).roundToInt()
+                        if (overflowed) {
+                            emit(lazyResolve(index))
+                        } else {
+                            prefetched += index
+                            if (prefetched.size > window) {
+                                // 窓を超えたので有界化を諦め、バッファ済みの添字から遅延逐次に切り替える
+                                overflowed = true
+                                val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
+                                channel = stream.toFlow().produceIn(context.daemonScope + stackTrace)
+                                prefetched.forEach { emit(lazyResolve(it)) }
+                            }
+                        }
+                    }
+
+                    if (!overflowed) {
+                        // 有界モード: 窓内で添字が出尽くした。参照される最大の正添字と最も深い負添字を確定する
+                        val positiveIndices = prefetched.filter { it >= 0 }.toSet()
+                        val maxPositiveIndex = positiveIndices.maxOrNull() ?: -1
+                        val tailSize = prefetched.filter { it < 0 }.minOrNull()?.let { -it } ?: 0
+
+                        // 値ストリームを1パスし、正添字は添字をキーにした map に、負添字は末尾の deque に拾う
+                        val positiveValues = mutableMapOf<Int, FluoriteValue>()
+                        val tail = ArrayDeque<FluoriteValue>()
+                        var position = 0
+                        try {
+                            stream.toFlow().collect { item ->
+                                if (position in positiveIndices) positiveValues[position] = item
+                                if (tailSize > 0) {
+                                    tail += item
+                                    if (tail.size > tailSize) tail.removeFirst()
+                                }
+                                position++
+                                if (tailSize == 0 && position > maxPositiveIndex) throw IterationAborted // 負添字が無ければ必要な位置まで読めば打ち切れる
+                            }
+                        } catch (_: IterationAborted) {
+
+                        }
+
+                        // 添字の順に解決して出力する
+                        prefetched.forEach { index ->
+                            val value = if (index >= 0) positiveValues[index] else tail.getOrNull(index + tail.size)
+                            emit(value ?: FluoriteNull)
+                        }
+                    }
+                } finally {
+                    channel?.cancel()
+                }
+            }
+            if (indices is FluoriteStream) gotten else gotten.toFlow().firstOrNull() ?: FluoriteNull
         },
         "LAST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
