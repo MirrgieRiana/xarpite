@@ -443,6 +443,34 @@ class XarpiteTest {
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
         assertEquals("a", eval("(!!'a') !? ( e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
+        assertEquals(true, eval("JSOND('{') !? ( e => e ?= ERROR )").boolean) // !? は FluoriteException だけでなくネイティブエラーも捕捉し、ERROR として受け取れる
+        assertEquals(false, eval("(!!'a') !? ( e => e ?= ERROR )").boolean) // スロー演算子でスローされた値は ERROR に包まれず、その値のまま渡される
+        assertEquals("caught", eval("JSOND('{') !? 'caught'").string) // catch 変数を取らない形の !? でもネイティブエラーを捕捉できる
+        assertEquals(2, eval("a := 1; JSOND('{') !? (a = 2); a").int) // 文の位置の !? もネイティブエラーを捕捉して catch 節を実行する
+
+        // !? は Returner（ラベルリターン）を捕捉せず素通しさせる
+        """
+            (
+                (label!! 'escaped') !? 'caught'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取る !?
+        """
+            (
+                (label!! 'escaped') !? 'caught'
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取る !?
 
         // !! で ERROR をスローすると、包んでいたネイティブ例外がそのまま再スローされる
         val nativeError = assertFails { eval("""JSOND("{")""") } // JSOND の失敗はネイティブ例外として伝搬する
