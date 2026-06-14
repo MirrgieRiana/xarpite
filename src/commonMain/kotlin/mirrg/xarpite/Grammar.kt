@@ -238,7 +238,10 @@ class XarpiteGrammar(val location: String) {
         (-'!').result * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it.b, right, it.a.position) } },
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
-    val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
+    val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
+        -"=~" map { ::InfixEqualTildeNode },
+        -"!~" map { ::InfixExclamationTildeNode },
+    )
     val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
