@@ -9,7 +9,6 @@ import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
-import mirrg.xarpite.compilers.objects.FluoriteError
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -38,6 +37,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.toThrowable
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
 import mirrg.xarpite.hasFreeze
@@ -345,8 +345,7 @@ class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) 
 class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): Nothing {
         withStackTrace(position) {
-            val value = getter.evaluate(env)
-            throw if (value is FluoriteError) value.throwable else FluoriteException(value)
+            throw getter.evaluate(env).toThrowable()
         }
     }
 
