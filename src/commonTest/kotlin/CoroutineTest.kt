@@ -13,6 +13,7 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -96,6 +97,57 @@ class CoroutineTest {
             trigger::fail("ERROR")
             job::await()
         """.let { assertEquals("ERROR", eval(it).string) }
+
+        // fail() に ERROR 型の値を渡すと、await() 時に元のネイティブ例外がそのまま再スローされる
+        val nativeError = assertFails { eval("""JSOND("{")""") } // JSOND の失敗はネイティブ例外として伝搬する
+        val rethrownError = assertFails {
+            eval(
+                """
+                    error := TRY ( => JSOND("{") )::awaitException()
+                    trigger := PROMISE.new()
+                    trigger::fail(error)
+                    trigger::await()
+                """
+            )
+        } // ERROR を fail で渡して await で投げ直す
+        assertEquals(nativeError::class, rethrownError::class) // FluoriteException で包まれず、元のネイティブ例外と同じクラスで再スローされる
+
+        // awaitException() は fail() された場合に例外値を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail("ERROR")
+            trigger::awaitException()
+        """.let { assertEquals("ERROR", eval(it).string) }
+
+        // awaitException() は fail() で値が省略された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete("OK")
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() で値が省略された場合にも NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は LAUNCH 内の例外値も取得できる
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            job::awaitException()
+        """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
         // isCompleted
         assertEquals(false, eval("promise := PROMISE.new(); promise::isCompleted()").boolean) // 初期状態では未完了
