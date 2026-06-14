@@ -528,6 +528,99 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 # 文字列ユーティリティ関数
 
+## 文字と文字コードの相互変換
+
+`CHAR_CODE(char: STRING): INT`
+
+`CHAR_CODED(charCode: INT): STRING`
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+`CODE_POINT(char: STRING): INT`
+
+`CODE_POINTD(codePoint: INT): STRING`
+
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
+文字列と、その各文字の文字コードの数値とを相互に変換します。
+
+`CHAR_CODE` 系はUTF-16コード単位を単位とし、`CODE_POINT` 系はサロゲートペアで表される文字（U+10000以上）を1個のUnicodeコードポイントとして扱います。
+
+末尾に `D` が付く関数はデコード（数値から文字列へ、`→`）、付かない関数はエンコード（文字列から数値へ、`←`）に対応します。
+
+| 関数           | デコード前の型 | デコード前の意味       | 変換方向 | デコード後の型 | デコード後の意味            |
+|----------------|----------------|------------------------|----------|----------------|-----------------------------|
+| `CHAR_CODE`    | `INT`          | コード単位の数値       | ←       | `STRING`       | ちょうど1個のコード単位     |
+| `CHAR_CODED`   | `INT`          | コード単位の数値       | →       | `STRING`       | ちょうど1個のコード単位     |
+| `CHAR_CODES`   | `STREAM<INT>`  | 各コード単位の数値     | ←       | `STRING`       | 文字列                      |
+| `CHAR_CODESD`  | `STREAM<INT>`  | 各コード単位の数値     | →       | `STRING`       | 文字列                      |
+| `CODE_POINT`   | `INT`          | コードポイントの数値   | ←       | `STRING`       | ちょうど1個のコードポイント |
+| `CODE_POINTD`  | `INT`          | コードポイントの数値   | →       | `STRING`       | ちょうど1個のコードポイント |
+| `CODE_POINTS`  | `STREAM<INT>`  | 各コードポイントの数値 | ←       | `STRING`       | 文字列                      |
+| `CODE_POINTSD` | `STREAM<INT>`  | 各コードポイントの数値 | →       | `STRING`       | 文字列                      |
+
+`CHAR_CODES` と `CHAR_CODESD`、`CODE_POINTS` と `CODE_POINTSD` は、それぞれ互いに逆変換です。
+
+次のいずれかに該当する入力に対しては、エラーになります。
+
+- `CHAR_CODED`・`CHAR_CODESD` に、0以上65535以下でない数値を与えた場合
+- `CODE_POINTD`・`CODE_POINTSD` に、0以上1114111以下でない数値、またはサロゲートコードポイント（U+D800～U+DFFF）を与えた場合
+- `CHAR_CODE`・`CODE_POINT` に、コード単位またはコードポイントがちょうど1個でない文字列を与えた場合
+- `CODE_POINT`・`CODE_POINTS` に、孤立サロゲートを含む文字列を与えた場合
+
+ストリームを受け取る `CHAR_CODESD`・`CODE_POINTSD` では、数値に関する条件は各要素について判定されます。
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("あ")'
+# 12354
+
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+
+$ xa 'JSONS(TO_ARRAY(CHAR_CODES("ABC")))'
+# [65,66,67]
+
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa 'CHAR_CODESD(CHAR_CODES("Hello"))'
+# Hello
+
+$ xa 'CODE_POINT("A")'
+# 65
+
+$ xa 'CODE_POINT("🍰")'
+# 127856
+
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(127856)'
+# 🍰
+
+$ xa 'JSONS(TO_ARRAY(CODE_POINTS("ABC")))'
+# [65,66,67]
+
+$ xa 'JSONS(TO_ARRAY(CODE_POINTS("🍰")))'
+# [127856]
+
+$ xa 'CODE_POINTSD(127856)'
+# 🍰
+
+$ xa 'CODE_POINTSD(CODE_POINTS("🍰"))'
+# 🍰
+```
+
 ## `UC` 大文字に変換
 
 `UC(string: STRING): STRING`
