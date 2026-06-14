@@ -32,7 +32,7 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         override suspend fun readBytesFromStdin() = throw UnsupportedOperationException()
         override suspend fun writeBytesToStdout(bytes: ByteArray) = throw UnsupportedOperationException()
         override suspend fun writeBytesToStderr(bytes: ByteArray) = throw UnsupportedOperationException()
-        override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw UnsupportedOperationException()
+        override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>, cwd: String?) = throw UnsupportedOperationException()
 
         override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
             return try {

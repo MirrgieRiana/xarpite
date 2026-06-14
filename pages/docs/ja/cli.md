@@ -1029,7 +1029,7 @@ $ {
 
 ### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: env: OBJECT<STRING>][; cwd: cwd: STRING]): STREAM<STRING>`
 
 外部コマンドを実行します。
 
@@ -1079,6 +1079,15 @@ $ A=APPLE B=ANNA xa '
 # A=APPLE
 # B=
 # C=CHERRY
+```
+
+---
+
+`cwd` 引数を指定すると、プロセスの作業ディレクトリを指定できます。
+
+```shell
+$ xa 'EXEC("pwd"; cwd: "/tmp")'
+# /tmp
 ```
 
 ---
