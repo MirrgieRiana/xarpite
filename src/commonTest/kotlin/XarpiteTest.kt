@@ -453,7 +453,24 @@ class XarpiteTest {
             (
                 (label!! 'escaped') !? 'caught'
             ) !: label
-        """.let { assertEquals("escaped", eval(it).string) }
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取る !?
+        """
+            (
+                (label!! 'escaped') !? 'caught'
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取る !?
 
         // !! で ERROR をスローすると、包んでいたネイティブ例外がそのまま再スローされる
         val nativeError = assertFails { eval("""JSOND("{")""") } // JSOND の失敗はネイティブ例外として伝搬する
