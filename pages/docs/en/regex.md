@@ -180,7 +180,7 @@ $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]
 
 The `string !~ regex` operator tests whether a string does not match a regular expression.
 
-This operator returns the negation of the boolean conversion of the match result. When `string` is a stream, it converts whether each element did not match even once into a boolean and returns the results as a stream. In this case, aggregating the entire stream is the caller's responsibility.
+This operator returns the negation of the boolean conversion of the match result. When `string` is a stream, it returns a stream with this applied to each element.
 
 ```shell
 $ xa ' "apple" !~ /pp/ '
