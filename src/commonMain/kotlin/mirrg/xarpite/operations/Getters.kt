@@ -9,7 +9,6 @@ import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
-import mirrg.xarpite.compilers.objects.FluoriteError
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
@@ -38,6 +37,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.toFluoriteValue
 import mirrg.xarpite.compilers.objects.toThrowable
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
@@ -858,7 +858,7 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
             throw e
         } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(if (e is FluoriteException) e.value else FluoriteError(e))
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightGetter.evaluate(newEnv)
         }
     }

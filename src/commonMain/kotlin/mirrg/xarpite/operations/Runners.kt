@@ -5,9 +5,9 @@ import mirrg.xarpite.Environment
 import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.Mount
-import mirrg.xarpite.compilers.objects.FluoriteError
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.toFluoriteValue
 import kotlin.coroutines.cancellation.CancellationException
 
 class GetterRunner(private val getter: Getter) : Runner {
@@ -40,7 +40,7 @@ class TryCatchWithVariableRunner(private val leftRunners: List<Runner>, private 
             throw e
         } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(if (e is FluoriteException) e.value else FluoriteError(e))
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightRunners.forEach {
                 it.evaluate(newEnv)
             }
