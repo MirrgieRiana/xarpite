@@ -57,6 +57,10 @@ fi
 # Execute Xarpite
 if [ "$XARPITE_ENGINE" = "native" ]
 then
+  # Raise the stack size limit to mitigate stack overflow (SIGSEGV) caused by
+  # deeply nested calls such as backtracking in complex regular expressions.
+  # The value is in KiB; defaults to 256 MiB and can be overridden by XARPITE_STACK_SIZE_KB.
+  ulimit -S -s "${XARPITE_STACK_SIZE_KB:-262144}" 2>/dev/null || true
   exec "$SCRIPT_DIR/bin/native/xarpite" "$@"
 elif [ "$XARPITE_ENGINE" = "jvm" ]
 then

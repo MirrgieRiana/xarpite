@@ -174,6 +174,28 @@ Uses the Xarpite engine running on the JVM.
 
 Uses the Xarpite engine running on Node.js.
 
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE_KB`: Environment Variable to Specify the Stack Size Limit
+
+The `XARPITE_STACK_SIZE_KB` environment variable specifies the stack size limit of Xarpite.
+
+The value is in kibibytes (1024 bytes) and is passed directly to `ulimit -s`.
+
+If this environment variable is not specified, `262144` (256 MiB) is used by default.
+
+---
+
+On the native engine, complex regular expression matching involving variable-length repetition performs function calls nested in proportion to the number of repetitions, and the process may crash (SIGSEGV) when the stack is exhausted.
+
+Raising the limit with this environment variable allows deeper calls.
+
+---
+
+This environment variable only takes effect when the native engine is launched via the Linux launcher script.
+
+It is ignored by the JVM engine, the Node.js engine, and launches that do not go through the launcher script.
+
 ## Return Value Output
 
 In CLI Xarpite, the standard behavior is to output the return value of the entire program to standard output.
