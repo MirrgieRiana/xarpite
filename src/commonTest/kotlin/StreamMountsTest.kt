@@ -213,6 +213,16 @@ class StreamMountsTest {
             GET(-1; stream)
             array
         """).array()) // 負のインデックスがある場合は元ストリームを最後まで読み切る
+
+        assertEquals(2, eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            GET(2; nat)
+        """).int) // 添字が窓内なら、無限の値ストリームでも必要な位置まで読めば打ち切れる
+
+        assertEquals("10,20,30,NULL,NULL", eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            TAKE(5; GET(nat; 10, 20, 30))
+        """).stream()) // 添字が窓を超えても、無限の添字ストリームをハングせず遅延逐次で扱える
     }
 
     @Test
