@@ -26,4 +26,4 @@ class FluoriteError(val throwable: Throwable) : FluoriteValue {
 }
 
 fun Throwable.toFluoriteValue(): FluoriteValue = if (this is FluoriteException) this.value else FluoriteError(this)
-fun FluoriteValue.toFluoriteException() = FluoriteException(this)
+fun FluoriteValue.toThrowable(): Throwable = if (this is FluoriteError) this.throwable else FluoriteException(this)
