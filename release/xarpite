@@ -54,6 +54,25 @@ else
   export XARPITE_ENGINE="native"
 fi
 
+# Apply the stack size limit specified by XARPITE_STACK_SIZE
+# The value is a number followed by a unit suffix K (KiB), M (MiB), or G (GiB), such as 256M.
+# This raises the limit for all engines and mitigates stack overflow caused by deeply nested processing.
+if [ -n "$XARPITE_STACK_SIZE" ]
+then
+  if [[ "$XARPITE_STACK_SIZE" =~ ^([1-9][0-9]*)([KMG])$ ]]
+  then
+    case "${BASH_REMATCH[2]}" in
+      K) XARPITE_STACK_SIZE_KIB="${BASH_REMATCH[1]}" ;;
+      M) XARPITE_STACK_SIZE_KIB=$((${BASH_REMATCH[1]} * 1024)) ;;
+      G) XARPITE_STACK_SIZE_KIB=$((${BASH_REMATCH[1]} * 1024 * 1024)) ;;
+    esac
+    ulimit -S -s "$XARPITE_STACK_SIZE_KIB" 2>/dev/null || true
+  else
+    echo "Error: Invalid XARPITE_STACK_SIZE format: $XARPITE_STACK_SIZE (expected a number followed by K, M, or G, such as 256M)" 1>&2
+    exit 1
+  fi
+fi
+
 # Execute Xarpite
 if [ "$XARPITE_ENGINE" = "native" ]
 then

@@ -174,6 +174,34 @@ Uses the Xarpite engine running on the JVM.
 
 Uses the Xarpite engine running on Node.js.
 
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
+
+For example, `256M` represents 256 mebibytes.
+
+---
+
+The unit suffix is mandatory, and omitting it or specifying an invalid value results in an error.
+
+---
+
+This specification applies to all engines.
+
+---
+
+Stack overflows caused by processing that consumes a large amount of stack, such as deep recursion, can be mitigated by raising this limit.
+
+However, this does not completely prevent stack overflows, and processing deeper than the specified limit still causes a stack overflow.
+
 ## Return Value Output
 
 In CLI Xarpite, the standard behavior is to output the return value of the entire program to standard output.
