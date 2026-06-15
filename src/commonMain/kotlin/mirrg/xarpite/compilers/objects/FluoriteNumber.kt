@@ -2,6 +2,7 @@ package mirrg.xarpite.compilers.objects
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -114,7 +115,10 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
     override fun toInt() = value.toBigDecimal().intValue(true)
     override fun toDouble() = value
     override fun negate() = FluoriteDouble(-value)
-    override fun roundToInt() = value.roundToInt()
+    override fun roundToInt(): Int {
+        if (value.isNaN()) throw FluoriteException("Cannot round NaN to an integer".toFluoriteString())
+        return value.roundToInt()
+    }
 }
 
 fun String.toFluoriteNumber(): FluoriteNumber {

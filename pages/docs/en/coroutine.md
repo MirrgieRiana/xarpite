@@ -157,6 +157,8 @@ If `value` is omitted, the `PROMISE` is completed with `NULL` as its contents.
 
 Completes the `PROMISE` as failed with `error`.
 
+When `error` is a value of type `ERROR`, the native error it represents becomes the cause of the failure, rather than the value itself.
+
 ### `await`: Wait for `PROMISE` Completion and Retrieve Contents
 
 `<T> PROMISE<T>::await(): T`
@@ -174,6 +176,36 @@ $ xa '
   promise::await() !? ( e => e )
 '
 # ERROR!!
+```
+
+### `awaitException`: Wait for `PROMISE` Completion and Retrieve Exception Value
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+Waits until the contents of the `PROMISE` are complete.
+
+If the `PROMISE` is completed as failed, returns the exception value.
+
+If the cause of the failure is a native error, the exception value becomes a value of the `ERROR` type.
+
+If the `PROMISE` is completed successfully, returns `NULL`.
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
 ```
 
 ### `isCompleted`: Check `PROMISE` Completion Status

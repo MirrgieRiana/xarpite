@@ -251,6 +251,24 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("LINES(string: STRING): STREAM<STRING>")
             }
         },
+        "LINESD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                val sb = StringBuilder()
+                if (stream is FluoriteStream) {
+                    stream.collect { value ->
+                        sb.append(value.toFluoriteString(null).value)
+                        sb.append('\n')
+                    }
+                } else {
+                    sb.append(stream.toFluoriteString(null).value)
+                    sb.append('\n')
+                }
+                sb.toString().toFluoriteString()
+            } else {
+                usage("LINESD(lines: STREAM<STRING>): STRING")
+            }
+        },
         "KEYS" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
             if (arguments.size == 1) {
@@ -580,6 +598,32 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             } else {
                 usage("CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
+            }
+        },
+        "SLIDE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 2) {
+                val size = arguments[0].toFluoriteNumber(null).toInt()
+                require(size > 0)
+                val stream = arguments[1]
+                FluoriteStream {
+                    val deque = ArrayDeque<FluoriteValue>()
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            deque += item
+                            if (deque.size == size) {
+                                emit(deque.toFluoriteArray())
+                                deque.removeFirst()
+                            }
+                        }
+                    } else {
+                        deque += stream
+                        if (deque.size == size) {
+                            emit(deque.toFluoriteArray())
+                        }
+                    }
+                }
+            } else {
+                usage("SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
             }
         },
         "TAKE" define FluoriteFunction.immediate { arguments ->

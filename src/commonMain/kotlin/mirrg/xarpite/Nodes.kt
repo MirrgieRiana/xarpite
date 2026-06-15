@@ -65,6 +65,7 @@ class InfixPercentNode(left: Node, right: Node, position: Position) : InfixNode(
 class InfixCircumflexNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixPeriodPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixEqualTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
+class InfixExclamationTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixLessEqualGreaterNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixAmpersandAmpersandNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)

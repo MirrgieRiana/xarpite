@@ -30,6 +30,10 @@ class DataConversionTest {
             eval(""" {a: 1} >> JSON[indent: "  "] """).string,
             eval(""" {a: 1} >> JSON[indent: 2] """).string
         ) // indentは数値でも指定でき、その数だけ空白が使用される
+        assertEquals(
+            eval(""" {a: 1} >> JSON """).string,
+            eval(""" {a: 1} >> JSON[indent: NULL] """).string
+        ) // indentにNULLを指定するとインデント無しになる
 
         // JSONS
         assertEquals("[\n 1\n],[\n 2\n]", eval(""" [1], [2] >> JSONS[indent: 1] """).stream()) // JSONS でindentを指定できる
@@ -37,6 +41,10 @@ class DataConversionTest {
             eval(""" {a: 1}, {b: 2} >> JSONS[indent: 2] """).stream(),
             eval(""" {a: 1}, {b: 2} >> JSONS["  "] """).stream()
         ) // JSONS でindentは位置引数でも指定できる
+        assertEquals(
+            eval(""" {a: 1}, {b: 2} >> JSONS """).stream(),
+            eval(""" {a: 1}, {b: 2} >> JSONS[indent: NULL] """).stream()
+        ) // JSONS でindentにNULLを指定するとインデント無しになる
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
@@ -50,10 +58,18 @@ class DataConversionTest {
         // JSONL (synonym for JSONS)
         assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONL").stream()) // JSONLはJSONSのシノニムとして動作する
         assertEquals("[\n  1\n],[\n  2\n],[\n  3\n]", eval(""" [1], [2], [3] >> JSONL[indent: "  "] """).stream()) // indentオプションも使用できる
+        assertEquals(
+            eval(""" [1], [2], [3] >> JSONL """).stream(),
+            eval(""" [1], [2], [3] >> JSONL[indent: NULL] """).stream()
+        ) // JSONL でもindentにNULLを指定するとインデント無しになる
 
         // JSONLD (synonym for JSONSD)
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは "Invalid JSON" で始まる文字列のエラーになる
+        assertTrue(eval(""" ((1 / 0) >> JSON) !? (e => e) """).string.startsWith("Failed to encode to JSON")) // 特殊な浮動小数点値のエンコードは "Failed to encode to JSON" で始まる文字列のエラーになる
     }
 
     @Test
@@ -349,6 +365,24 @@ class DataConversionTest {
         // BASH_ESCAPE は SHELL_ESCAPE のエイリアス
         assertEquals("'Hello'", eval(""" "Hello" >> BASH_ESCAPE """).string) // BASH_ESCAPEでも同じ結果
         assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> BASH_ESCAPE """).string) // BASH_ESCAPEでもシングルクォートがエスケープされる
+    }
+
+    @Test
+    fun regexEscape() = runTest {
+        // REGEX_ESCAPE で文字列を正規表現用にエスケープ
+        assertEquals("abc", eval(""" "abc" >> REGEX_ESCAPE """).string) // メタ文字を含まない文字列はそのまま
+        assertEquals("a-b", eval(""" "a-b" >> REGEX_ESCAPE """).string) // ハイフンはエスケープしない（文字クラスの外ではリテラルのため）
+        assertEquals("a\\.b", eval(""" "a.b" >> REGEX_ESCAPE """).string) // ドットがエスケープされる
+        assertEquals("a\\+b\\*c\\?", eval(""" "a+b*c?" >> REGEX_ESCAPE """).string) // 量指定子がエスケープされる
+        assertEquals("\\(\\[\\{\\}\\]\\)", eval(""" "([{}])" >> REGEX_ESCAPE """).string) // 各種括弧がエスケープされる
+        assertEquals("\\^a\\$\\|b", eval(""" '^a$|b' >> REGEX_ESCAPE """).string) // アンカーと選択がエスケープされる
+        assertEquals("a\\\\b", eval(""" 'a\b' >> REGEX_ESCAPE """).string) // バックスラッシュ自身がエスケープされる
+        assertEquals("", eval(""" "" >> REGEX_ESCAPE """).string) // 空文字列
+
+        // エスケープ結果を実際に正規表現として使うと、元の文字列にリテラルとして一致する
+        assertEquals("a.b", eval(""" ("a.b" =~ REGEX.new("a.b" >> REGEX_ESCAPE)).0 """).string) // エスケープ後の文字列は元の文字列に一致する
+        assertEquals(FluoriteNull, eval(""" "aXb" =~ REGEX.new("a.b" >> REGEX_ESCAPE) """)) // . がリテラル化され、ワイルドカードとして別の文字には一致しない
+        assertEquals("^a$|b", eval(""" ('^a$|b' =~ REGEX.new('^a$|b' >> REGEX_ESCAPE)).0 """).string) // メタ文字を多数含む文字列もリテラルとして一致する
     }
 
 }

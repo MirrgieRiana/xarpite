@@ -37,12 +37,15 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.toFluoriteValue
+import mirrg.xarpite.compilers.objects.toThrowable
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
 import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -344,7 +347,7 @@ class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) 
 class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): Nothing {
         withStackTrace(position) {
-            throw FluoriteException(getter.evaluate(env))
+            throw getter.evaluate(env).toThrowable()
         }
     }
 
@@ -737,6 +740,24 @@ class MatchGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "MatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
+class NotMatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val left = leftGetter.evaluate(env)
+        val right = rightGetter.evaluate(env)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.collect { item ->
+                    emit(right.match(position, item).toFluoriteBoolean(position).not())
+                }
+            }
+        } else {
+            right.match(position, left).toFluoriteBoolean(position).not()
+        }
+    }
+
+    override val code get() = "NotMatchGetter[${leftGetter.code};${rightGetter.code}]"
+}
+
 class SpaceshipGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
@@ -849,9 +870,13 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightGetter.evaluate(newEnv)
         }
     }
@@ -863,7 +888,11 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             rightGetter.evaluate(env)
         }
     }

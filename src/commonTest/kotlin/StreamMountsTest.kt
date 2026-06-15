@@ -27,6 +27,16 @@ class StreamMountsTest {
     }
 
     @Test
+    fun slide() = runTest {
+        assertEquals("[1;2;3],[2;3;4],[3;4;5]", eval("SLIDE(3; 1, 2, 3, 4, 5)").stream()) // SLIDE でスライディングウィンドウに分割する
+        assertEquals("[1;2],[2;3],[3;4],[4;5]", eval("SLIDE(2; 1, 2, 3, 4, 5)").stream()) // サイズ2の場合
+        assertEquals("[1;2]", eval("SLIDE(2; 1, 2)").stream()) // 全体の要素数が一致している場合、1個の配列になる
+        assertEquals("", eval("SLIDE(2; 1)").stream()) // 要素数がサイズに満たない場合、空ストリームになる
+        assertEquals("[1]", eval("SLIDE(1; 1)").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
+        assertEquals("", eval("SLIDE(2; ,)").stream()) // 空ストリームの場合、空ストリームになる
+    }
+
+    @Test
     fun takeDrop() = runTest {
         assertEquals("1,2", eval("TAKE(2; 1, 2, 3)").stream()) // TAKE で先頭を取得
         assertEquals("1,2", eval("TAKE(2; 1, 2)").stream()) // 要素が丁度の場合はそのまま返す

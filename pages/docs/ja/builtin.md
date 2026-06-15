@@ -27,6 +27,7 @@ title: "組み込みオブジェクトのクラス定数"
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # 定数
 
@@ -231,6 +232,37 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+## `LINESD` 行ストリームを文字列に連結
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+`lines` の各要素に改行を付加して連結した文字列を返します。
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+空ストリームの場合、空文字列を返します。
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` は概念的に `LINES` と逆の操作を行います。
+
+末尾が改行で終わる文字列を `LINES` で分割してから `LINESD` で連結すると、改行文字などの違いを除き、元の文字列に戻ります。
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
 ```
 
 ## `KEYS` オブジェクトのキーのストリームを取得
@@ -731,6 +763,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [1;2]
 # [3;4]
 # [5]
+```
+
+## `SLIDE` ストリームをスライディングウィンドウに分割
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+第2引数のストリームの要素を第1引数で指定したサイズのスライディングウィンドウに分割した配列のストリームを返します。
+要素数がサイズに満たない場合は空ストリームになります。
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
 ```
 
 ## `TAKE` ストリームの先頭を取得

@@ -27,6 +27,7 @@ You can reference classes of various built-in objects.
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # Constants
 
@@ -371,6 +372,37 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+## `LINESD` Concatenate Line Stream into String
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+Returns a string by appending a newline to each element of `lines` and concatenating them.
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+An empty stream returns an empty string.
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
 ```
 
 ## `KEYS` Get Stream of Object Keys
@@ -871,6 +903,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [1;2]
 # [3;4]
 # [5]
+```
+
+## `SLIDE` Split Stream into Sliding Windows
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+Returns a stream of arrays formed by sliding a window of the size specified in the first argument over the elements of the second argument stream.
+If the number of elements is less than the size, the result is an empty stream.
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
 ```
 
 ## `TAKE` Get Beginning of Stream

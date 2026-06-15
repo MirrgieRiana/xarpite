@@ -28,76 +28,6 @@ fun createStringMounts(): List<Map<String, Mount>> {
         "QUOT" define "\"".toFluoriteString(),
         "BOM" define "\uFEFF".toFluoriteString(),
 
-        *run {
-            fun create(signature: String): FluoriteFunction {
-                return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size == 1) {
-                        val argument = arguments[0]
-                        if (argument is FluoriteStream) {
-                            FluoriteStream {
-                                argument.collect { item ->
-                                    emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
-                                }
-                            }
-                        } else {
-                            argument.toFluoriteString(null).value.uppercase().toFluoriteString()
-                        }
-                    } else {
-                        usage(signature)
-                    }
-                }
-            }
-            arrayOf(
-                "UC" define create("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>"),
-                "::UC" define fluoriteArrayOf(
-                    FluoriteString.fluoriteClass colon create("STRING::UC(): STRING"),
-                ),
-            )
-        },
-        *run {
-            fun create(signature: String): FluoriteFunction {
-                return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size == 1) {
-                        val argument = arguments[0]
-                        if (argument is FluoriteStream) {
-                            FluoriteStream {
-                                argument.collect { item ->
-                                    emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
-                                }
-                            }
-                        } else {
-                            argument.toFluoriteString(null).value.lowercase().toFluoriteString()
-                        }
-                    } else {
-                        usage(signature)
-                    }
-                }
-            }
-            arrayOf(
-                "LC" define create("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>"),
-                "::LC" define fluoriteArrayOf(
-                    FluoriteString.fluoriteClass colon create("STRING::LC(): STRING"),
-                ),
-            )
-        },
-
-        *run {
-            fun create(signature: String): FluoriteValue {
-                return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 2) usage(signature)
-                    val dir = arguments[0].toFluoriteString(null).value
-                    val file = arguments[1].toFluoriteString(null).value
-                    dir.toPath().resolve(file).normalized().toString().toFluoriteString()
-                }
-            }
-            arrayOf(
-                "RESOLVE" define create("RESOLVE(dir: STRING; file: STRING): STRING"),
-                "::RESOLVE" define fluoriteArrayOf(
-                    FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
-                ),
-            )
-        },
-
         "CHAR_CODE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CHAR_CODE(char: STRING): INT")
             val string = arguments[0].toFluoriteString(null).value
@@ -221,6 +151,76 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 appendCodePoint(value)
             }
             sb.toString().toFluoriteString()
+        },
+
+        *run {
+            fun create(signature: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size == 1) {
+                        val argument = arguments[0]
+                        if (argument is FluoriteStream) {
+                            FluoriteStream {
+                                argument.collect { item ->
+                                    emit(item.toFluoriteString(null).value.uppercase().toFluoriteString())
+                                }
+                            }
+                        } else {
+                            argument.toFluoriteString(null).value.uppercase().toFluoriteString()
+                        }
+                    } else {
+                        usage(signature)
+                    }
+                }
+            }
+            arrayOf(
+                "UC" define create("UC(string: STRING): STRING | UC(string: STREAM<STRING>): STREAM<STRING>"),
+                "::UC" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::UC(): STRING"),
+                ),
+            )
+        },
+        *run {
+            fun create(signature: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size == 1) {
+                        val argument = arguments[0]
+                        if (argument is FluoriteStream) {
+                            FluoriteStream {
+                                argument.collect { item ->
+                                    emit(item.toFluoriteString(null).value.lowercase().toFluoriteString())
+                                }
+                            }
+                        } else {
+                            argument.toFluoriteString(null).value.lowercase().toFluoriteString()
+                        }
+                    } else {
+                        usage(signature)
+                    }
+                }
+            }
+            arrayOf(
+                "LC" define create("LC(string: STRING): STRING | LC(string: STREAM<STRING>): STREAM<STRING>"),
+                "::LC" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::LC(): STRING"),
+                ),
+            )
+        },
+
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 2) usage(signature)
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val file = arguments[1].toFluoriteString(null).value
+                    dir.toPath().resolve(file).normalized().toString().toFluoriteString()
+                }
+            }
+            arrayOf(
+                "RESOLVE" define create("RESOLVE(dir: STRING; file: STRING): STRING"),
+                "::RESOLVE" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
+                ),
+            )
         },
 
         ).let { listOf(it) }

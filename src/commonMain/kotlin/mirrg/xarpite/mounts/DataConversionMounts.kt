@@ -5,6 +5,7 @@ import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -169,9 +170,28 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 "BASH_ESCAPE" define create("BASH_ESCAPE"),
             )
         },
+        "REGEX_ESCAPE" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("REGEX_ESCAPE(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString(null).value
+            val sb = StringBuilder()
+            string.forEach { char ->
+                when (char) {
+                    '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')', '[', ']', '{', '}' -> {
+                        sb.append('\\')
+                        sb.append(char)
+                    }
+
+                    else -> sb.append(char)
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
         *run {
-            suspend fun parseIndent(indent: FluoriteValue): String {
-                return if (indent is FluoriteNumber) {
+            suspend fun parseIndent(indent: FluoriteValue): String? {
+                return if (indent is FluoriteNull) {
+                    null
+                } else if (indent is FluoriteNumber) {
                     val number = indent.roundToInt()
                     if (number <= 0) throw FluoriteException("Indent must be positive".toFluoriteString())
                     " ".repeat(number)
@@ -181,7 +201,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
             }
             arrayOf(
                 "JSON" define FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER; ]value: VALUE): STRING")
+                    fun usage(): Nothing = usage("JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING")
                     val arguments2 = arguments.toMutableList()
 
                     if (arguments2.isEmpty()) usage()
@@ -205,7 +225,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 *run {
                     fun create(name: String): FluoriteFunction {
                         return FluoriteFunction.immediate { arguments ->
-                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER; ]values: STREAM<VALUE>): STREAM<STRING>")
+                            fun usage(): Nothing = usage("$name([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>")
                             val arguments2 = arguments.toMutableList()
 
                             if (arguments2.isEmpty()) usage()
