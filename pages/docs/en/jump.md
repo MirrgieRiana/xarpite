@@ -453,3 +453,14 @@ You can determine whether a value is a native error with `value ?= ERROR`.
 The `message` property retrieves the message of the native error.
 
 It becomes `NULL` if there is no message.
+
+## `throwNativeError`: Throwing a Native Error
+
+`ERROR.throwNativeError(message: STRING): NOTHING`
+
+Throws a native error with the given message.
+
+```shell
+$ xa 'ERROR.throwNativeError("Something went wrong") !? ( e => e.message )'
+# Something went wrong
+```

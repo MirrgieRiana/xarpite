@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 
 class FluoriteError(val throwable: Throwable) : FluoriteValue {
@@ -15,6 +16,11 @@ class FluoriteError(val throwable: Throwable) : FluoriteValue {
                             "message" -> error.throwable.message?.toFluoriteString() ?: FluoriteNull
                             else -> throw FluoriteException("No such property: $key".toFluoriteString())
                         }
+                    },
+                    "throwNativeError" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("ERROR.throwNativeError(message: STRING): NOTHING")
+                        val message = arguments[0].toFluoriteString(null).value
+                        throw RuntimeException(message)
                     },
                 )
             )
