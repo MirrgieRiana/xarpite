@@ -28,6 +28,20 @@ fun createStringMounts(): List<Map<String, Mount>> {
         "QUOT" define "\"".toFluoriteString(),
         "BOM" define "\uFEFF".toFluoriteString(),
 
+        "CHAR_CODE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CHAR_CODE(char: STRING): INT")
+            val string = arguments[0].toFluoriteString(null).value
+            if (string.length != 1) throw FluoriteException("Argument must be a string of exactly 1 UTF-16 code unit, got ${string.length} code units".toFluoriteString())
+            FluoriteInt(string[0].code)
+        },
+        "CHAR_CODED" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CHAR_CODED(charCode: INT): STRING")
+            val number = arguments[0].toFluoriteNumber(null)
+            val code = number.roundToInt()
+            if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be between 0 and 65535, got $code".toFluoriteString())
+            code.toChar().toString().toFluoriteString()
+        },
+
         *run {
             fun create(signature: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
@@ -96,20 +110,6 @@ fun createStringMounts(): List<Map<String, Mount>> {
                     FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
                 ),
             )
-        },
-
-        "CHAR_CODE" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 1) usage("CHAR_CODE(char: STRING): INT")
-            val string = arguments[0].toFluoriteString(null).value
-            if (string.length != 1) throw FluoriteException("Argument must be a string of exactly 1 UTF-16 code unit, got ${string.length} code units".toFluoriteString())
-            FluoriteInt(string[0].code)
-        },
-        "CHAR_CODED" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 1) usage("CHAR_CODED(charCode: INT): STRING")
-            val number = arguments[0].toFluoriteNumber(null)
-            val code = number.roundToInt()
-            if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be between 0 and 65535, got $code".toFluoriteString())
-            code.toChar().toString().toFluoriteString()
         },
 
         ).let { listOf(it) }
