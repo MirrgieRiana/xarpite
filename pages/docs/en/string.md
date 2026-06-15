@@ -528,6 +528,44 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 # String Utility Functions
 
+## Conversion Between Characters and Character Codes
+
+`CHAR_CODE(char: STRING): INT`
+
+`CHAR_CODED(charCode: INT): STRING`
+
+These functions convert between a string and the character code value of each of its characters.
+
+The `CHAR_CODE` family works in UTF-16 code units.
+
+Functions with the `D` suffix decode (from a number to a string, `→`), while those without it encode (from a string to a number, `←`).
+
+| Function       | Pre-decode type | Pre-decode meaning       | Direction | Post-decode type | Post-decode meaning    |
+|----------------|-----------------|--------------------------|-----------|------------------|------------------------|
+| `CHAR_CODE`    | `INT`           | code unit value          | ←        | `STRING`         | exactly one code unit  |
+| `CHAR_CODED`   | `INT`           | code unit value          | →        | `STRING`         | exactly one code unit  |
+
+`CHAR_CODE` and `CHAR_CODED` are inverse transformations of each other.
+
+An error is raised for inputs that fall under any of the following:
+
+- `CHAR_CODED` given a value that is not between 0 and 65535
+- `CHAR_CODE` given a string that does not consist of exactly one code unit
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("あ")'
+# 12354
+
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+```
+
 ## `UC` Convert to Uppercase
 
 `UC(string: STRING): STRING`
