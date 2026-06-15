@@ -534,23 +534,21 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 `CHAR_CODED(charCode: INT): STRING`
 
-These functions convert between a string and the character code value of each of its characters.
+These functions convert between strings and character codes.
 
 The `CHAR_CODE` family works in UTF-16 code units.
 
-Functions with the `D` suffix decode (from a number to a string, `→`), while those without it encode (from a string to a number, `←`).
+Functions with the `D` suffix decode, while those without it encode.
 
-| Function     | Pre-decode type | Pre-decode meaning | Direction | Post-decode type | Post-decode meaning   |
-|--------------|-----------------|--------------------|-----------|------------------|-----------------------|
-| `CHAR_CODE`  | `INT`           | code unit value    | ←         | `STRING`         | exactly one code unit |
-| `CHAR_CODED` | `INT`           | code unit value    | →         | `STRING`         | exactly one code unit |
-
-`CHAR_CODE` and `CHAR_CODED` are inverse transformations of each other.
+| Function     | Pre-decode type | Pre-decode meaning | Direction   | Post-decode type | Post-decode meaning          |
+|--------------|-----------------|--------------------|-------------|------------------|------------------------------|
+| `CHAR_CODE`  | `INT`           | code unit value    | ← to code   | `STRING`         | exactly one UTF-16 code unit |
+| `CHAR_CODED` | `INT`           | code unit value    | → to string | `STRING`         | exactly one UTF-16 code unit |
 
 An error is raised for inputs that fall under any of the following:
 
-- `CHAR_CODED` given a value that is not between 0 and 65535
-- `CHAR_CODE` given a string that does not consist of exactly one code unit
+- `CHAR_CODED`: given a value that is not between 0 and 65535
+- `CHAR_CODE`: given a string that does not consist of exactly one code unit
 
 ```shell
 $ xa 'CHAR_CODE("A")'
