@@ -146,7 +146,6 @@ fun showUsage(ioContext: IoContext) {
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "script" else "scriptfile"
     println("Xarpite (xa) $version $engine")
-    println("Repository: https://github.com/MirrgieRiana/xarpite")
     println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
     println("Launcher Options:")
     println("  --native                 Use the native engine")
@@ -162,6 +161,8 @@ fun showUsage(ioContext: IoContext) {
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
+    println("")
+    println("Repository: https://github.com/MirrgieRiana/xarpite")
 }
 
 fun showVersion(ioContext: IoContext) {

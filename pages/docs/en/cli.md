@@ -34,7 +34,6 @@ The `xarpite` command is the most basic command for executing Xarpite.
 
 ```shell
 $ xarpite -h | tail -n +2
-# Repository: https://github.com/MirrgieRiana/xarpite
 # Usage: xarpite <Launcher Options> <Runtime Options> [--] [scriptfile] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -50,6 +49,8 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -81,7 +82,6 @@ The `xa` command is a shortcut for the `xarpite` command.
 
 ```shell
 $ xa -h | tail -n +2
-# Repository: https://github.com/MirrgieRiana/xarpite
 # Usage: xa <Launcher Options> <Runtime Options> [--] [script] <arguments>
 # Launcher Options:
 #   --native                 Use the native engine
@@ -97,6 +97,8 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
