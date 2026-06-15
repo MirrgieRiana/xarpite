@@ -170,6 +170,23 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 "BASH_ESCAPE" define create("BASH_ESCAPE"),
             )
         },
+        "REGEX_ESCAPE" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("REGEX_ESCAPE(string: STRING): STRING")
+            if (arguments.size != 1) usage()
+            val string = arguments[0].toFluoriteString(null).value
+            val sb = StringBuilder()
+            string.forEach { char ->
+                when (char) {
+                    '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')', '[', ']', '{', '}' -> {
+                        sb.append('\\')
+                        sb.append(char)
+                    }
+
+                    else -> sb.append(char)
+                }
+            }
+            sb.toString().toFluoriteString()
+        },
         *run {
             suspend fun parseIndent(indent: FluoriteValue): String? {
                 return if (indent is FluoriteNull) {

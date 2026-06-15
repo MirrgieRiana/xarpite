@@ -280,6 +280,22 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
 ```
 
+## `REGEX_ESCAPE` 正規表現用エスケープ
+
+`REGEX_ESCAPE(string: STRING): STRING`
+
+`string` を正規表現内の文字クラスの外でリテラルとして扱える形式にエスケープします。
+
+具体的には、正規表現のメタ文字 `\ ^ $ . | ? * + ( ) [ ] { }` の直前にバックスラッシュを付加します。
+
+```shell
+$ xa 'REGEX_ESCAPE("a.b")'
+# a\.b
+
+$ xa 'REGEX_ESCAPE("1+1=2")'
+# 1\+1=2
+```
+
 ## `JSON` 値をJSON文字列に変換
 
 `JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`

@@ -130,6 +130,27 @@ class ControlStructuresTest {
                 !! 12345
             )::await() !? ( e => e)
         """.let { assertEquals(12345, eval(it).int) }
+
+        // awaitException() で例外の値を取得できる
+        """
+            TRY ( =>
+                !! "Error"
+            )::awaitException()
+        """.let { assertEquals("Error", eval(it).string) }
+
+        // awaitException() は成功した場合に NULL を返す
+        """
+            TRY ( =>
+                "Success"
+            )::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() はネイティブ例外を ERROR に包んで返す
+        """
+            TRY ( =>
+                JSOND("{")
+            )::awaitException() ?= ERROR
+        """.let { assertEquals(true, eval(it).boolean) }
     }
 
     @Test

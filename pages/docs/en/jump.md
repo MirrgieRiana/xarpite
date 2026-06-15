@@ -240,6 +240,8 @@ In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
+When you throw a value of type `ERROR`, the native error it represents is rethrown, rather than the value itself.
+
 The thrown value is passed to the right side of the catch operator `try !? catch`.
 
 ```shell
@@ -291,6 +293,17 @@ $ xa '
   )
 '
 # ERROR: Error, world!
+```
+
+### Catching Native Errors
+
+The catch operator also catches native errors originating from the host language.
+
+A caught native error is passed to the `catch` clause as an instance of the native error class `ERROR`.
+
+```shell
+$ xa 'JSOND("{") !? ( e => e ?= ERROR )'
+# TRUE
 ```
 
 ### Stream Resolution
@@ -428,3 +441,15 @@ $ xa '
 The `try` in the catch operator `try !? catch` can include up to logical operators but cannot include pipe operators.
 
 To include pipe operators, you need to enclose them in parentheses.
+
+# `ERROR`: Native Errors
+
+`ERROR` is a class representing native errors originating from the host language.
+
+You can determine whether a value is a native error with `value ?= ERROR`.
+
+## `message`: Error Message
+
+The `message` property retrieves the message of the native error.
+
+It becomes `NULL` if there is no message.
