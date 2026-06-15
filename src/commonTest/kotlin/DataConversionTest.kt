@@ -66,6 +66,10 @@ class DataConversionTest {
         // JSONLD (synonym for JSONSD)
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは "Invalid JSON" で始まる文字列のエラーになる
+        assertTrue(eval(""" ((1 / 0) >> JSON) !? (e => e) """).string.startsWith("Failed to encode to JSON")) // 特殊な浮動小数点値のエンコードは "Failed to encode to JSON" で始まる文字列のエラーになる
     }
 
     @Test
