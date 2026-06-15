@@ -41,6 +41,32 @@ fun createStringMounts(): List<Map<String, Mount>> {
             if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be between 0 and 65535, got $code".toFluoriteString())
             code.toChar().toString().toFluoriteString()
         },
+        "CHAR_CODES" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CHAR_CODES(string: STRING): STREAM<INT>")
+            val string = arguments[0].toFluoriteString(null).value
+            FluoriteStream {
+                for (char in string) {
+                    emit(FluoriteInt(char.code))
+                }
+            }
+        },
+        "CHAR_CODESD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CHAR_CODESD(charCodes: STREAM<INT>): STRING")
+            val value = arguments[0]
+            val sb = StringBuilder()
+            suspend fun appendCode(item: FluoriteValue) {
+                val number = item.toFluoriteNumber(null)
+                val code = number.roundToInt()
+                if (code < 0 || code > 0xFFFF) throw FluoriteException("Each element must be between 0 and 65535, got $code".toFluoriteString())
+                sb.append(code.toChar())
+            }
+            if (value is FluoriteStream) {
+                value.collect { item -> appendCode(item) }
+            } else {
+                appendCode(value)
+            }
+            sb.toString().toFluoriteString()
+        },
 
         *run {
             fun create(signature: String): FluoriteFunction {
