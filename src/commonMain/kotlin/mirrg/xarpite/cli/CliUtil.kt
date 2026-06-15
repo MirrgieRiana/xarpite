@@ -161,6 +161,8 @@ fun showUsage(ioContext: IoContext) {
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
+    println("")
+    println("Repository: https://github.com/MirrgieRiana/xarpite")
 }
 
 fun showVersion(ioContext: IoContext) {

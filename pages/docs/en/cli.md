@@ -49,6 +49,8 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -95,6 +97,8 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
