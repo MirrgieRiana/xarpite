@@ -49,6 +49,8 @@ class DataConversionTest {
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
         assertEquals(1, eval(""" "1" >> JSOND """).int) // プリミティブを直接指定できる
+        assertEquals("1718445872123456789", eval(""" "1718445872123456789" >> JSOND >> JSON """).string) // INTの範囲を超える整数は精度を失わずデコードされ、数値リテラルとしてエンコードされる
+        assertEquals("[123456789012345678901234567890]", eval(""" "[123456789012345678901234567890]" >> JSOND >> JSON """).string) // 配列の要素でも精度が保たれる
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONSD """).stream()) // Jsonのストリームを指定するとストリームになる
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONSD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
         assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい

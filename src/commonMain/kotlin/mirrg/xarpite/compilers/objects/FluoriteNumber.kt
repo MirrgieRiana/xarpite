@@ -1,7 +1,10 @@
 package mirrg.xarpite.compilers.objects
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
@@ -121,6 +124,33 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
     }
 }
 
+data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
+    companion object {
+        val fluoriteClass by lazy {
+            FluoriteObject(
+                FluoriteValue.fluoriteClass, mutableMapOf(
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        when (val argument = arguments[0]) {
+                            is FluoriteString -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteBig -> argument
+                            is FluoriteInt -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteDouble -> FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                            else -> usage("BIG.of(value: STRING | INT | DOUBLE): BIG")
+                        }
+                    },
+                )
+            )
+        }
+    }
+
+    override fun toString() = value.toString()
+    override val parent get() = fluoriteClass
+    override fun toInt() = value.intValue(true)
+    override fun toDouble() = value.doubleValue(false)
+    override fun negate() = FluoriteBig(value.negate())
+    override fun roundToInt() = value.intValue(true)
+}
+
 fun String.toFluoriteNumber(): FluoriteNumber {
     fun toFluoriteDouble() = when (val double = this.toDoubleOrNull()) {
         null -> throw IllegalArgumentException("Cannot convert to number: ${if (this.length > 20) "${this.take(20)}..." else this}")
@@ -131,10 +161,12 @@ fun String.toFluoriteNumber(): FluoriteNumber {
         "." !in this -> when (val int = this.toIntOrNull()) {
             0 -> FluoriteInt.ZERO
             1 -> FluoriteInt.ONE
-            null -> toFluoriteDouble()
+            null -> if (INTEGER_PATTERN.matches(this)) FluoriteBig(this.toBigInteger()) else toFluoriteDouble()
             else -> FluoriteInt(int)
         }
 
         else -> toFluoriteDouble()
     }
 }
+
+private val INTEGER_PATTERN = Regex("""-?[0-9]+""")

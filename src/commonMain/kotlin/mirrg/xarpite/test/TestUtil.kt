@@ -12,6 +12,7 @@ import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.XarpiteParseContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -43,6 +44,7 @@ suspend fun Evaluator.get(src: String) = this.get("test", src)
 suspend fun Evaluator.run(src: String) = this.run("test", src)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
+val FluoriteValue.big get() = (this as FluoriteBig).value.toString()
 val FluoriteValue.double get() = (this as FluoriteDouble).value
 val FluoriteValue.boolean get() = (this as FluoriteBoolean).value
 val FluoriteValue.string get() = (this as FluoriteString).value
