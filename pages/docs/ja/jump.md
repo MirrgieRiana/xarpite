@@ -454,9 +454,9 @@ $ xa '
 
 メッセージが存在しない場合は `NULL` になります。
 
-## `throwNativeError`: ネイティブエラーの送出
+## `throwNativeError`: ネイティブエラーのスロー
 
-`ERROR.throwNativeError` により、指定したメッセージを持つネイティブエラーを送出できます。
+指定したメッセージを持つネイティブエラーをスローします。
 
 ```shell
 $ xa 'ERROR.throwNativeError("Something went wrong") !? ( e => e.message )'
