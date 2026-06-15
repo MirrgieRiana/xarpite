@@ -302,7 +302,7 @@ The catch operator also catches native errors originating from the host language
 A caught native error is passed to the `catch` clause as an instance of the native error class `ERROR`.
 
 ```shell
-$ xa 'JSOND("{") !? ( e => e ?= ERROR )'
+$ xa 'ERROR.throwNativeError("boom") !? ( e => e ?= ERROR )'
 # TRUE
 ```
 
