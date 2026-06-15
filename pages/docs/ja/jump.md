@@ -456,6 +456,8 @@ $ xa '
 
 ## `throwNativeError`: ネイティブエラーのスロー
 
+`ERROR.throwNativeError(message: STRING): NOTHING`
+
 指定したメッセージを持つネイティブエラーをスローします。
 
 ```shell
