@@ -1,5 +1,6 @@
 package mirrg.xarpite
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -48,7 +49,15 @@ suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): St
 
     val jsonElement = this.toJsonElement()
 
-    if (indent == null) return Json.encodeToString(jsonElement)
+    fun encode(json: Json): String {
+        return try {
+            json.encodeToString(jsonElement)
+        } catch (e: SerializationException) {
+            throw FluoriteException("Failed to encode to JSON: ${e.message ?: e.toString()}".toFluoriteString())
+        }
+    }
+
+    if (indent == null) return encode(Json)
     val oldJson = jsons[indent]
     val json = if (oldJson != null) {
         oldJson
@@ -61,7 +70,7 @@ suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): St
         jsons[indent] = newJson
         newJson
     }
-    return json.encodeToString(jsonElement)
+    return encode(json)
 }
 
 suspend fun FluoriteValue.toSingleJsonFluoriteValue(position: Position?, indent: String?) = this.toSingleJson(position, indent).toFluoriteString()
@@ -91,7 +100,12 @@ fun String.toFluoriteValueAsSingleJson(): FluoriteValue {
             else -> this.content.toFluoriteNumber()
         }
     }
-    return Json.decodeFromString<JsonElement>(this).toFluoriteValue()
+    val jsonElement = try {
+        Json.decodeFromString<JsonElement>(this)
+    } catch (e: SerializationException) {
+        throw FluoriteException("Invalid JSON: ${e.message ?: e.toString()}".toFluoriteString())
+    }
+    return jsonElement.toFluoriteValue()
 }
 
 suspend fun FluoriteValue.toFluoriteValueAsSingleJson(position: Position?) = this.toFluoriteString(position).value.toFluoriteValueAsSingleJson()

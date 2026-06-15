@@ -99,11 +99,11 @@ class CoroutineTest {
         """.let { assertEquals("ERROR", eval(it).string) }
 
         // fail() に ERROR 型の値を渡すと、await() 時に元のネイティブ例外がそのまま再スローされる
-        val nativeError = assertFails { eval("""JSOND("{")""") } // JSOND の失敗はネイティブ例外として伝搬する
+        val nativeError = assertFails { eval("""ERROR.throwNativeError("boom")""") } // throwNativeError はネイティブ例外を送出する
         val rethrownError = assertFails {
             eval(
                 """
-                    error := TRY ( => JSOND("{") )::awaitException()
+                    error := TRY ( => ERROR.throwNativeError("boom") )::awaitException()
                     trigger := PROMISE.new()
                     trigger::fail(error)
                     trigger::await()

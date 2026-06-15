@@ -302,7 +302,7 @@ $ xa '
 捕捉されたネイティブエラーは、ネイティブエラークラス `ERROR` のインスタンスとして `catch` 節に渡されます。
 
 ```shell
-$ xa 'JSOND("{") !? ( e => e ?= ERROR )'
+$ xa 'ERROR.throwNativeError("boom") !? ( e => e ?= ERROR )'
 # TRUE
 ```
 

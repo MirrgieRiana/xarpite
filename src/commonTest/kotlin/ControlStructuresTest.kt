@@ -148,7 +148,7 @@ class ControlStructuresTest {
         // awaitException() はネイティブ例外を ERROR に包んで返す
         """
             TRY ( =>
-                JSOND("{")
+                ERROR.throwNativeError("boom")
             )::awaitException() ?= ERROR
         """.let { assertEquals(true, eval(it).boolean) }
     }
