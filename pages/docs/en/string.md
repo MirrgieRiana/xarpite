@@ -540,10 +540,10 @@ The `CHAR_CODE` family works in UTF-16 code units.
 
 Functions with the `D` suffix decode (from a number to a string, `→`), while those without it encode (from a string to a number, `←`).
 
-| Function       | Pre-decode type | Pre-decode meaning       | Direction | Post-decode type | Post-decode meaning    |
-|----------------|-----------------|--------------------------|-----------|------------------|------------------------|
-| `CHAR_CODE`    | `INT`           | code unit value          | ←        | `STRING`         | exactly one code unit  |
-| `CHAR_CODED`   | `INT`           | code unit value          | →        | `STRING`         | exactly one code unit  |
+| Function     | Pre-decode type | Pre-decode meaning | Direction | Post-decode type | Post-decode meaning   |
+|--------------|-----------------|--------------------|-----------|------------------|-----------------------|
+| `CHAR_CODE`  | `INT`           | code unit value    | ←         | `STRING`         | exactly one code unit |
+| `CHAR_CODED` | `INT`           | code unit value    | →         | `STRING`         | exactly one code unit |
 
 `CHAR_CODE` and `CHAR_CODED` are inverse transformations of each other.
 
