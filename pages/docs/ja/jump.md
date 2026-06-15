@@ -453,3 +453,12 @@ $ xa '
 `message` プロパティにより、ネイティブエラーのメッセージを取得できます。
 
 メッセージが存在しない場合は `NULL` になります。
+
+## `throwNativeError`: ネイティブエラーの送出
+
+`ERROR.throwNativeError` により、指定したメッセージを持つネイティブエラーを送出できます。
+
+```shell
+$ xa 'ERROR.throwNativeError("Something went wrong") !? ( e => e.message )'
+# Something went wrong
+```

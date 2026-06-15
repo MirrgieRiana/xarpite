@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 
 class FluoriteError(val throwable: Throwable) : FluoriteValue {
@@ -8,6 +9,11 @@ class FluoriteError(val throwable: Throwable) : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
+                    "throwNativeError" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("ERROR.throwNativeError(message: STRING): NOTHING")
+                        val message = arguments[0].toFluoriteString(null).value
+                        throw RuntimeException(message)
+                    },
                     OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val error = arguments[0] as FluoriteError
                         val key = arguments[1].toFluoriteString(null).value

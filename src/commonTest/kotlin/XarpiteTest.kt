@@ -531,6 +531,13 @@ class XarpiteTest {
     }
 
     @Test
+    fun throwNativeErrorTest() = runTest {
+        assertEquals(true, eval("ERROR.throwNativeError('boom') !? ( e => e ?= ERROR )").boolean) // throwNativeError はネイティブエラーを送出し、!? で ERROR として捕捉できる
+        assertEquals("boom", eval("ERROR.throwNativeError('boom') !? ( e => e.message )").string) // 送出したネイティブエラーは渡したメッセージを保持する
+        assertFails { eval("ERROR.throwNativeError('boom')") } // 捕捉しなければネイティブエラーがそのまま伝搬する
+    }
+
+    @Test
     fun accessTest() = runTest {
         assertEquals("b", eval(" 'abc'.1 ").string) // 文字列に数値アクセスするとそのインデックスの文字を得る
         assertEquals(FluoriteNull, eval(" 'abc'.(-1) ")) // 負のインデックスは無効
