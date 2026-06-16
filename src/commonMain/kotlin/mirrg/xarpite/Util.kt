@@ -1,5 +1,6 @@
 package mirrg.xarpite
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -7,7 +8,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonUnquotedLiteral
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -35,10 +38,12 @@ fun String.escapeJsonString() = this
 private val jsons = mutableMapOf<String, Json>()
 
 suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): String {
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun FluoriteValue.toJsonElement(): JsonElement = when (this) {
         is FluoriteObject -> JsonObject(this.map.mapValues { it.value.toJsonElement() })
         is FluoriteArray -> JsonArray(this.values.map { it.toJsonElement() })
         is FluoriteInt -> JsonPrimitive(this.value)
+        is FluoriteBig -> JsonUnquotedLiteral(this.value.toString())
         is FluoriteDouble -> JsonPrimitive(this.value)
         is FluoriteString -> JsonPrimitive(this.value)
         is FluoriteBoolean -> JsonPrimitive(this.value)
