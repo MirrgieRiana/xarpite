@@ -44,7 +44,7 @@ suspend fun Evaluator.get(src: String) = this.get("test", src)
 suspend fun Evaluator.run(src: String) = this.run("test", src)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
-val FluoriteValue.big get() = (this as FluoriteBig).value.toString()
+val FluoriteValue.big get() = (this as FluoriteBig).value
 val FluoriteValue.double get() = (this as FluoriteDouble).value
 val FluoriteValue.boolean get() = (this as FluoriteBoolean).value
 val FluoriteValue.string get() = (this as FluoriteString).value

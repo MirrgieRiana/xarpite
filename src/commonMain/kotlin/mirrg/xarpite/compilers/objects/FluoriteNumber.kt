@@ -129,12 +129,18 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
                     "of" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("BIG.of(value: STRING | INT | DOUBLE): BIG")
                         when (val argument = arguments[0]) {
                             is FluoriteString -> FluoriteBig(argument.value.toBigInteger())
                             is FluoriteBig -> argument
                             is FluoriteInt -> FluoriteBig(argument.value.toBigInteger())
-                            is FluoriteDouble -> FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                            is FluoriteDouble -> {
+                                if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
+                                FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                            }
                             else -> usage("BIG.of(value: STRING | INT | DOUBLE): BIG")
                         }
                     },
@@ -150,6 +156,8 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
     override fun negate() = FluoriteBig(value.negate())
     override fun roundToInt() = value.intValue(true)
 }
+
+private val INTEGER_PATTERN = Regex("""[+-]?[0-9]+""")
 
 fun String.toFluoriteNumber(): FluoriteNumber {
     fun toFluoriteDouble() = when (val double = this.toDoubleOrNull()) {
@@ -168,5 +176,3 @@ fun String.toFluoriteNumber(): FluoriteNumber {
         else -> toFluoriteDouble()
     }
 }
-
-private val INTEGER_PATTERN = Regex("""-?[0-9]+""")

@@ -12,7 +12,7 @@ Xarpite supports handling numeric values.
 
 ### Numeric Types
 
-There are numeric types: 32-bit integers `INT`, arbitrary-precision integers `BIG`, and 64-bit floating-point numbers `DOUBLE`.
+There are three numeric types: 32-bit integers `INT`, arbitrary-precision integers `BIG`, and 64-bit floating-point numbers `DOUBLE`.
 
 ### Distinction from Strings Representing Numbers
 
