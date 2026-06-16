@@ -179,33 +179,24 @@ $ xa 'TO_NUMBER(NULL)'
 # 0
 ```
 
-## Arbitrary-Precision Integers
+## `BIG`: Arbitrary-Precision Integers
 
-Integers too large to fit within the range of `INT` are handled by the arbitrary-precision integer type `BIG`.
+The arbitrary-precision integer type `BIG` can also handle integers too large to fit within the range of `INT`.
 
 ### Numeric Conversion of Integers Outside the INT Range
 
-Converting a string representing an integer that does not fit within the range of `INT` produces a `BIG` without losing precision.
+Converting a string representing an integer that does not fit within the range of `INT` produces a `BIG` value without losing precision.
 
 ```shell
 $ xa '+"123456789012345678901234567890"'
 # 123456789012345678901234567890
 ```
 
----
-
-This makes it possible to decode JSON containing huge integers while preserving precision.
-
-```shell
-$ xa '"[123456789012345678901234567890]" >> JSOND >> JSON'
-# [123456789012345678901234567890]
-```
-
 ### `BIG.of`: Creating a BIG
 
-`BIG.of(value: STRING | INT | DOUBLE): BIG`
+`BIG.of(value: STRING | NUMBER): BIG`
 
-Converts the first argument to a `BIG`.
+Converts `value` to a `BIG` value.
 
 ```shell
 $ xa 'BIG.of("123456789012345678901234567890")'

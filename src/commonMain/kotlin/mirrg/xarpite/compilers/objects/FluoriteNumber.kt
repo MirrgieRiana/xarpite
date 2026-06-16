@@ -132,7 +132,7 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
                     "of" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 1) usage("BIG.of(value: STRING | INT | DOUBLE): BIG")
+                        if (arguments.size != 1) usage("BIG.of(value: STRING | NUMBER): BIG")
                         when (val argument = arguments[0]) {
                             is FluoriteString -> FluoriteBig(argument.value.toBigInteger())
                             is FluoriteBig -> argument
@@ -141,7 +141,7 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                                 if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
                                 FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
                             }
-                            else -> usage("BIG.of(value: STRING | INT | DOUBLE): BIG")
+                            else -> usage("BIG.of(value: STRING | NUMBER): BIG")
                         }
                     },
                 )
@@ -169,7 +169,14 @@ fun String.toFluoriteNumber(): FluoriteNumber {
         "." !in this -> when (val int = this.toIntOrNull()) {
             0 -> FluoriteInt.ZERO
             1 -> FluoriteInt.ONE
-            null -> if (INTEGER_PATTERN.matches(this)) FluoriteBig(this.toBigInteger()) else toFluoriteDouble()
+            null -> {
+                if (INTEGER_PATTERN.matches(this)) {
+                    FluoriteBig(this.toBigInteger())
+                } else {
+                    toFluoriteDouble()
+                }
+            }
+
             else -> FluoriteInt(int)
         }
 
