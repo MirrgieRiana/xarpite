@@ -43,6 +43,7 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
@@ -91,6 +92,7 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
@@ -323,6 +325,44 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
+
+## Embedded Mode
+
+### `-E`: Interpret the Outermost Source as an Embedded String
+
+When the `-E` option is specified, it interprets the outermost source as the contents of an [embedded string literal](string.md) `%>` to `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+```shell
+$ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
+# <h1>123</h1>
+```
+
+---
+
+You can write a single shebang line at the beginning of the outermost source.
+
+The shebang line is removed along with its trailing line break.
+
+```shell
+$ {
+  printf '%s' '#!/usr/bin/env -S xarpite -E
+<h1><%= 100 + 20 + 3 %></h1>' > script.xa1
+  chmod +x script.xa1
+  ./script.xa1
+  rm script.xa1
+}
+# <h1>123</h1>
+```
+
+---
+
+Only the `#!` line at the very beginning of the outermost source is interpreted as a shebang line; `#!` at any other position is treated as a literal.
+
+---
+
+The `-E` option affects only the outermost source given via `-e` / `-f` / the first argument, and does not affect modules loaded with the `USE` function.
 
 ## Other Commands
 

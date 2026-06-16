@@ -31,8 +31,10 @@ class Evaluator {
         }
     }
 
-    suspend fun get(location: String, src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun get(location: String, src: String, embedded: Boolean = false): FluoriteValue {
+        val grammar = XarpiteGrammar(location)
+        val rootParser = if (embedded) grammar.rootEmbeddedParser else grammar.rootParser
+        val parseResult = rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
@@ -49,8 +51,10 @@ class Evaluator {
         }
     }
 
-    suspend fun run(location: String, src: String) {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun run(location: String, src: String, embedded: Boolean = false) {
+        val grammar = XarpiteGrammar(location)
+        val rootParser = if (embedded) grammar.rootEmbeddedParser else grammar.rootParser
+        val parseResult = rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)

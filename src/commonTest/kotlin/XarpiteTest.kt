@@ -323,6 +323,21 @@ class XarpiteTest {
     }
 
     @Test
+    fun embeddedRootTest() = runTest {
+        assertEquals("abcABC123", eval("abcABC123", embedded = true).string) // 最外部が埋め込み文字列の本体として解釈される
+        assertEquals("123", eval("<%= 100 + 20 + 3 %>", embedded = true).string) // 式の埋め込み
+        assertEquals("<%", eval("<%%", embedded = true).string) // <%% で <% になる
+        assertEquals("\n \n \n", eval("\n \r \r\n", embedded = true).string) // 改行は \n に統一される
+        assertEquals("", eval("", embedded = true).string) // 空のソースは空文字列になる
+
+        assertEquals("a", eval("#!/usr/bin/env -S xarpite -E\na", embedded = true).string) // 先頭のシバン行は末尾の改行ごと取り除かれる
+        assertEquals("", eval("#!/usr/bin/env -S xarpite -E\n", embedded = true).string) // 本文が無くてもシバン行を受理する
+        assertEquals("", eval("#!/usr/bin/env -S xarpite -E", embedded = true).string) // 末尾に改行が無くてもシバン行を受理する
+        assertEquals("a", eval("a", embedded = true).string) // シバン行が無くても本文として解釈される
+        assertEquals("a\n#!b", eval("a\n#!b", embedded = true).string) // 先頭以外の #! はリテラルとして扱われる
+    }
+
+    @Test
     fun bracketsTest() = runTest {
         assertEquals(1, eval("(1)").int) // ( ) で囲うと中身をそのまま得られる
         assertEquals(FluoriteNull, eval("()")) // () でNULLになる

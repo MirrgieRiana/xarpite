@@ -31,14 +31,14 @@ fun parse(src: String): String {
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext(), embedded: Boolean = false): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
-        evaluator.get(src).cache()
+        evaluator.get(src, embedded).cache()
     }
 }
 
-suspend fun Evaluator.get(src: String) = this.get("test", src)
+suspend fun Evaluator.get(src: String, embedded: Boolean = false) = this.get("test", src, embedded)
 
 suspend fun Evaluator.run(src: String) = this.run("test", src)
 

@@ -1023,7 +1023,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, embedded = false, scriptFile = null)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
@@ -1576,6 +1576,51 @@ class CliTest {
         }
 
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun embeddedOptionSetsFlag() = runTest {
+        // -E オプションを指定すると embedded フラグが true になる
+        val options = parseArguments(listOf("-E", "-e", "%>x<%"), TestIoContext())
+        assertEquals("%>x<%", options.src)
+        assertEquals(true, options.embedded)
+
+        // -E を指定しなければ embedded フラグは false である
+        val nonEmbeddedOptions = parseArguments(listOf("-e", "%>x<%"), TestIoContext())
+        assertEquals(false, nonEmbeddedOptions.embedded)
+    }
+
+    @Test
+    fun embeddedOptionCannotBeSpecifiedTwice() = runTest {
+        // -E を2回指定するとエラーになる
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-E", "-E", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun embeddedOptionInterpretsOutermostSourceAsEmbeddedString() = runTest {
+        // -E モードでは最外部のソースが埋め込み文字列の本体として解釈される
+        val context = TestIoContext()
+        assertEquals("<h1>123</h1>", cliEval(context, "<h1><%= 100 + 20 + 3 %></h1>", embedded = true).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun embeddedOptionDoesNotAffectModules() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val context = TestIoContext()
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("embedded.module.tmp")
+        fileSystem.createDirectories(dir)
+        val module = dir.resolve("value.xa1")
+        fileSystem.write(module) { writeUtf8("100 + 20 + 3") }
+        // -E は最外部のソースのみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
+        assertEquals(
+            "result: 123",
+            cliEval(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""", embedded = true).toFluoriteString(null).value,
+        )
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -2483,6 +2528,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = true,
+            embedded = false,
             scriptFile = null,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
@@ -2511,6 +2557,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = false,
+            embedded = false,
             scriptFile = null,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
@@ -2533,7 +2580,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, embedded: Boolean = false): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
@@ -2542,7 +2589,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
-        evaluator.get(src).cache()
+        evaluator.get(src, embedded).cache()
     }
 }
 

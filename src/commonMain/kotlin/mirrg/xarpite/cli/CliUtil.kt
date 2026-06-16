@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val embedded: Boolean, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -25,6 +25,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     val arguments = mutableListOf<String>()
     var quiet = false
     var verbose = false
+    var embedded = false
     var scriptFile: String? = null
     var script: String? = null
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
@@ -53,6 +54,13 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     if (quiet) throw ShowUsage
                     list.removeFirst()
                     quiet = true
+                    continue
+                }
+
+                "-E" -> { // Embeddedモード
+                    if (embedded) throw ShowUsage
+                    list.removeFirst()
+                    embedded = true
                     continue
                 }
 
@@ -120,7 +128,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile)
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, embedded, scriptFile)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
@@ -155,6 +163,7 @@ fun showUsage(ioContext: IoContext) {
     println("  -h, --help               Show this help")
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
+    println("  -E                       Interpret the outermost source as an embedded string")
     println("  --verbose                Display Kotlin stack traces")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
@@ -188,9 +197,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         evaluator.defineMounts(mountsFactory(location))
         try {
             if (options.quiet) {
-                evaluator.run(location, options.src)
+                evaluator.run(location, options.src, options.embedded)
             } else {
-                val result = evaluator.get(location, options.src)
+                val result = evaluator.get(location, options.src, options.embedded)
                 if (result is FluoriteStream) {
                     result.collect {
                         println(it.toFluoriteString(null))

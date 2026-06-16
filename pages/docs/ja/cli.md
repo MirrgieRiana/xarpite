@@ -43,6 +43,7 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
@@ -91,6 +92,7 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
@@ -323,6 +325,44 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
+
+## 埋め込みモード
+
+### `-E`: 最外部のソースを埋め込み文字列として解釈
+
+`-E` オプションを指定すると、最外部のソースを[埋め込み文字列リテラル](string.md) `%>` 〜 `<%` の中身として解釈します。
+
+これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
+
+```shell
+$ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
+# <h1>123</h1>
+```
+
+---
+
+最外部のソースの先頭には、シバン行を1個だけ記述できます。
+
+シバン行は末尾の改行ごと取り除かれます。
+
+```shell
+$ {
+  printf '%s' '#!/usr/bin/env -S xarpite -E
+<h1><%= 100 + 20 + 3 %></h1>' > script.xa1
+  chmod +x script.xa1
+  ./script.xa1
+  rm script.xa1
+}
+# <h1>123</h1>
+```
+
+---
+
+シバン行として解釈されるのは最外部のソースの先頭にある `#!` の行のみであり、それ以外の位置の `#!` はリテラルとして扱われます。
+
+---
+
+`-E` オプションは `-e` / `-f` / 第一引数で与えた最外部のソースのみに作用し、 `USE` 関数で読み込むモジュールには影響しません。
 
 ## その他のコマンド
 
