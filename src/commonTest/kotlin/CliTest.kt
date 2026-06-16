@@ -2594,7 +2594,8 @@ internal class TestIoContext(
     }
 
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
-        executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
+        // ハンドラはプロセスの標準出力をStringとして模擬するため、実プラットフォームと同様にByteArrayへエンコードして返す
+        (executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")).encodeToByteArray()
 
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
         fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")

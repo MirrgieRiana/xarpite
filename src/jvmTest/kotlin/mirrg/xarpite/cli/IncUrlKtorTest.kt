@@ -258,7 +258,7 @@ class IncUrlKtorTest {
             override suspend fun readBytesFromStdin(): ByteArray? = null
             override suspend fun writeBytesToStdout(bytes: ByteArray) {}
             override suspend fun writeBytesToStderr(bytes: ByteArray) {}
-            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
+            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray {
                 throw UnsupportedOperationException("executeProcess is not supported in test")
             }
             override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
