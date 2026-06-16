@@ -1115,6 +1115,31 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 **また、この関数は現状JVM版とNative版でのみ提供されます。**
 
+### `EXECB`: 外部コマンドを実行しBLOBを返す [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+外部コマンドを実行します。
+
+`command` および `env` 引数の仕様は `EXEC` 関数と共通です。
+
+戻り値はそのプロセスの標準出力全体を単一のBLOBとして流すストリームです。
+
+`READB` のような最大8192バイトでの分割は行われず、常に1個のBLOBになります。
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
+
+---
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+この関数は実験的な機能であり、将来的に仕様が変更される可能性があります。
+
+**この関数は現状JVM版とNative版でのみ提供されます。**
+
 ### `BASH`: Bashスクリプトを実行
 
 `BASH(script: STRING[; args: STREAM<STRING>]): STRING`

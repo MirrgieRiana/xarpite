@@ -2148,6 +2148,89 @@ class CliTest {
     }
 
     @Test
+    fun execbReturnsSingleBlob() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("echo hello", functionName = "EXECB")).collectBlobs()
+        // 標準出力全体が単一のBLOBになる
+        assertEquals(1, blobs.size)
+        assertContentEquals("hello".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbDoesNotSplitLinesOrStripNewline() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "a\nb\nc\n"
+            }
+        )
+        // EXEC と異なり、行分割や末尾改行の除去は行わず、生のバイト列をそのまま単一BLOBで返す
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("printf 'a\\nb\\nc\\n'", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("a\nb\nc\n".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEmptyOutput() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                ""
+            }
+        )
+        // 出力が空でも、長さ0のBLOBが1個だけ流れる
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertEquals(0, blobs[0].value.size)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEnvironmentOverrides() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                env["FOO"] ?: "not_set"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}""", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("BAR".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        assertEquals("BAR", capturedCommands[0].third["FOO"])
+    }
+
+    @Test
+    fun execbThrowsOnNonZeroExitCode() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
+            }
+        )
+        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1", functionName = "EXECB")} !? "ERROR"""")
+        assertEquals("ERROR", result.toFluoriteString(null).value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
     fun exitTerminatesWithCode0() = runTest {
         // EXIT(0)で終了コード0で終了することをテスト
         val context = TestIoContext()

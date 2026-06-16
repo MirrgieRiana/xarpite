@@ -1115,6 +1115,31 @@ The return value is not a stream that sequentially reads the process's standard 
 
 **Also, this function is currently only provided in the JVM and Native versions.**
 
+### `EXECB`: Execute External Command and Return a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command.
+
+The specifications of the `command` and `env` arguments are the same as the `EXEC` function.
+
+The return value is a stream that emits the entire standard output of that process as a single BLOB.
+
+It is not split at a maximum of 8192 bytes like `READB`, and is always a single BLOB.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
+
+---
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+This function is an experimental feature and its specification may change in the future.
+
+**This function is currently only provided in the JVM and Native versions.**
+
 ### `BASH`: Execute Bash scripts
 
 `BASH(script: STRING[; args: STREAM<STRING>]): STRING`
