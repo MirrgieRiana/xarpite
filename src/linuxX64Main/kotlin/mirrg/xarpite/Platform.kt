@@ -436,7 +436,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
                     }
                 }
 
-                // ByteArrayのchunkを連結する
+                // ByteArrayのchunkを連結
                 // 事前に総サイズを算出して1回だけByteArrayを確保し、copyIntoで詰めることでO(n^2)を回避
                 val outputSize = outputChunks.sumOf { it.size }
                 val outputBytes = ByteArray(outputSize)
