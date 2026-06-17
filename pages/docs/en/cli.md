@@ -180,21 +180,15 @@ Uses the Xarpite engine running on Node.js.
 
 The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
 
+Some runtimes respect this limit.
+
+---
+
 The value is specified as a number concatenated with a suffix representing the unit.
 
 - `K`: in kibibytes
 - `M`: in mebibytes
 - `G`: in gibibytes
-
-For example, `256M` represents 256 mebibytes.
-
----
-
-The unit suffix is mandatory, and omitting it or specifying an invalid value results in an error.
-
----
-
-Some runtimes respect this limit.
 
 ## Return Value Output
 
