@@ -194,13 +194,7 @@ The unit suffix is mandatory, and omitting it or specifying an invalid value res
 
 ---
 
-This specification applies to all engines.
-
----
-
-Stack overflows caused by processing that consumes a large amount of stack, such as deep recursion, can be mitigated by raising this limit.
-
-However, this does not completely prevent stack overflows, and processing deeper than the specified limit still causes a stack overflow.
+Some runtimes respect this limit.
 
 ## Return Value Output
 
