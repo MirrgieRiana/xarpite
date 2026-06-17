@@ -931,7 +931,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` エントリーのストリームをオブジェクトに変換
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 第1引数のストリームの各要素をエントリーとしてオブジェクトに変換します。
 

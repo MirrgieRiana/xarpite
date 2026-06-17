@@ -1090,7 +1090,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` Convert Stream of Entries to Object
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 Converts each element of the first argument stream into an object as entries.
 
