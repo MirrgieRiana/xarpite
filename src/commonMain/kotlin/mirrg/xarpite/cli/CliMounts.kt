@@ -39,12 +39,9 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
         *run {
-            // XARPITE_VERSION（"4.120.0" 形式）を正規表現で解釈し、各要素を数値として提供する
-            // 形式に合致しない場合は参照時に例外を投げる
             val versionMatch by lazy {
                 val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""
-                Regex("""^(\d+)\.(\d+)\.(\d+)""").find(version)
-                    ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
+                """^(\d+)\.(\d+)\.(\d+)""".toRegex().find(version) ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
             }
             arrayOf(
                 "MAJOR" define LazyMount { FluoriteInt(versionMatch.groupValues[1].toInt()) },
