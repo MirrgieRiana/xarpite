@@ -17,6 +17,7 @@ import mirrg.xarpite.isUrl
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
@@ -37,6 +38,34 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                     evaluator.get(moduleLocation, src).cache()
                 }
             }
+        },
+        "XA" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("XA(script: STRING[; location: location: STRING]): VALUE")
+            val arguments2 = arguments.toMutableList()
+
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+            val locationArgument = entries.remove("location")
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            val scriptLocation = if (locationArgument != null) {
+                val reference = locationArgument.toFluoriteString(null).value
+                if (isUrl(reference)) {
+                    reference
+                } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+                    context.io.getPwd().toPath().resolve(reference).normalized().toString()
+                } else {
+                    throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
+                }
+            } else {
+                location.toPath().parent?.resolve("-")?.normalized()?.toString() ?: "-"
+            }
+
+            val evaluator = Evaluator()
+            evaluator.defineMounts(mountsFactory(scriptLocation))
+            evaluator.get(scriptLocation, script)
         },
     ).let { listOf(it) }
 }

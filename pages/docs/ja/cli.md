@@ -1031,6 +1031,52 @@ $ {
 # Apple
 ```
 
+### `XA`: Xarpiteスクリプトの実行
+
+`XA(script: STRING[; location: location: STRING]): VALUE`
+
+`script` で与えられたXarpiteスクリプトを評価した結果を返します。
+
+`XA` は `USE` と似ていますが、 `reference` によるロケーションの解決を伴わず、 `script` に与えられた文字列そのものを評価します。
+
+また、 `USE` と異なり、評価結果は再利用されません。
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `location` 引数
+
+`location` 引数は、 `script` 内で `USE` する際の相対パスの起点となるロケーションを指定します。 `script` 内の `LOCATION` 定数の値もこれに基づきます。
+
+`location` を省略した場合、 `XA` を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+
+```shell
+$ cd /usr/local/bin && xa -e 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
+`location` を明示する場合、URL、絶対パス、または `.` か `..` の階層で始まる相対パスを指定できます。相対パスは `PWD` を起点として解決されます。
+
+```shell
+$ cd /usr/local/bin && xa -e 'XA("LOCATION"; location: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+```
+
+`.` または `..` の階層で始まらない裸の相対パスは指定できません。
+
+#### 戻り値のストリーム
+
+`script` の評価結果がストリームである場合、 `USE` と異なり、そのストリームは解決されません。
+
+ストリームはそのまま素通りし、終端で消費される時点で評価されます。
+
+```shell
+$ xa 'XA("1, 2, 3") >> JOIN[" "]'
+# 1 2 3
+```
+
 ### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`

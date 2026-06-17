@@ -1011,6 +1011,85 @@ class CliTest {
     }
 
     @Test
+    fun xaEvaluatesScript() = runTest {
+        val context = TestIoContext()
+        // XA は文字列を Xarpite スクリプトとして評価する
+        assertEquals("877", cliEval(context, """XA("8 * 100 + 77")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRequiresAtLeastOneArgument() = runTest {
+        val context = TestIoContext()
+        // 引数が無い場合は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA()""") }
+    }
+
+    @Test
+    fun xaReturnsStreamWithoutResolving() = runTest {
+        val context = TestIoContext()
+        // 戻り値がストリームの場合、USE と異なり解決されずそのまま素通りする
+        assertEquals("1,2,3", cliEval(context, """XA("1, 2, 3")""").stream())
+    }
+
+    @Test
+    fun xaDefaultLocationIsDash() = runTest {
+        val context = TestIoContext()
+        // location を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
+        assertEquals("-", cliEval(context, """XA("LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitRelativeLocationFromPwd() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ./ で始まる location は PWD を起点に正規化される
+        assertEquals("/test/pwd/foo.xa1", cliEval(context, """XA("LOCATION"; location: "./foo.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitAbsoluteLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // 絶対パスの location はそのまま正規化される
+        assertEquals("/other/bar.xa1", cliEval(context, """XA("LOCATION"; location: "/other/baz/../bar.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaAcceptsUrlLocation() = runTest {
+        val context = TestIoContext()
+        // URL の location はそのまま使用される
+        assertEquals("https://example.com/foo.xa1", cliEval(context, """XA("LOCATION"; location: "https://example.com/foo.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRejectsBareRelativeLocation() = runTest {
+        val context = TestIoContext()
+        // ./ の付かない裸の相対パスは禁止される
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; location: "foo.xa1")""") }
+    }
+
+    @Test
+    fun xaInnerUseResolvesFromCallerDirectory() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // location 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
+        val dir = "build/test/xa.use.tmp".toPath()
+        fileSystem.createDirectories(dir)
+        val moduleFile = dir.resolve("module.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"FromXa\"") }
+
+        val result = cliEval(
+            context,
+            """XA(%>USE("./build/test/xa.use.tmp/module")<%)""",
+        ).toFluoriteString(null).value
+
+        assertEquals("FromXa", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
         // デフォルトで ./.xarpite/lib と ./.xarpite/maven が含まれている
