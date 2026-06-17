@@ -54,6 +54,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
 
     val (directoryPathInc, urlInc) = inc.values
         .map { it.toFluoriteString(null).value }
+        .reversed()
         .partition { !isUrl(it) }
 
     fun fail(message: String): Nothing {
