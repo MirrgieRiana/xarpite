@@ -705,6 +705,27 @@ $ xa 'LAST(,)'
 # NULL
 ```
 
+## `GET` Get Element by Index
+
+`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+
+Returns the element of `stream` at the index corresponding to `index`.
+
+Indices start from 0.
+
+If the corresponding index does not exist, returns `NULL`.
+
+```shell
+$ xa 'GET(0; 10, 20, 30)'
+# 10
+
+$ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
+```
+
 ## `SINGLE` Get Only Element of Stream
 
 `<T> SINGLE(stream: STREAM<T>): T`

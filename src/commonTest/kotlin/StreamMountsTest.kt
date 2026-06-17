@@ -157,6 +157,35 @@ class StreamMountsTest {
     }
 
     @Test
+    fun get() = runTest {
+        assertEquals(10, eval("GET(0; 10, 20, 30)").int) // インデックスは0から始まる
+        assertEquals(20, eval("GET(1; 10, 20, 30)").int) // GET でインデックスに対応する要素を取得する
+        assertEquals(30, eval("GET(2; 10, 20, 30)").int) // 末尾の要素も取得できる
+
+        assertEquals(FluoriteNull, eval("GET(3; 10, 20, 30)")) // 範囲外のインデックスは NULL になる
+        assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
+
+        assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
+        assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
+
+        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームの場合は NULL になる
+
+        assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
+
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            GET(2; stream)
+            array
+        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
+
+        assertEquals(2, eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            GET(2; nat)
+        """).int) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
+    }
+
+    @Test
     fun single() = runTest {
         // SINGLE with multiple elements should throw error
         assertFails { eval("SINGLE(4, 5, 6)") }

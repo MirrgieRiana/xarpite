@@ -565,6 +565,27 @@ $ xa 'LAST(,)'
 # NULL
 ```
 
+## `GET` インデックスによる要素の取得
+
+`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+
+`index` に対応するインデックスの、`stream` の要素を返します。
+
+インデックスは0から始まります。
+
+該当するインデックスが存在しない場合は、`NULL` を返します。
+
+```shell
+$ xa 'GET(0; 10, 20, 30)'
+# 10
+
+$ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
+```
+
 ## `SINGLE` ストリームの唯一の要素を取得
 
 `<T> SINGLE(stream: STREAM<T>): T`
