@@ -848,7 +848,7 @@ By mounting the return value of the `USE` function directly with `@USE("fruit")`
 
 `reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
 
-As a general rule, modules belonging to paths closer to the beginning of the `INC` array are given priority.
+As a general rule, modules belonging to paths closer to the end of the `INC` array are given priority.
 
 However, `INC` entries that are local file paths are searched before entries that are URLs.
 

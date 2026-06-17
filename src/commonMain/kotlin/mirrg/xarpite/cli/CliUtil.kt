@@ -171,8 +171,8 @@ fun showVersion(ioContext: IoContext) {
 }
 
 fun RuntimeContext.addDefaultIncPaths() {
-    inc.values += "./.xarpite/lib".toFluoriteString()
     inc.values += "./.xarpite/maven".toFluoriteString()
+    inc.values += "./.xarpite/lib".toFluoriteString()
 }
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {

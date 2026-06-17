@@ -947,14 +947,14 @@ class CliTest {
         fileSystem.write(moduleFile1) { writeUtf8("\"First\"") }
         fileSystem.write(moduleFile2) { writeUtf8("\"Second\"") }
 
-        // INC配列内で先頭に近いパスが優先される
+        // INC配列内で末尾に近いパスが優先される
         val result = cliEval(context, """
             INC::push("build/test/use.inc.priority.1.tmp")
             INC::push("build/test/use.inc.priority.2.tmp")
             USE("same")
         """.trimIndent()).toFluoriteString(null).value
 
-        assertEquals("First", result)
+        assertEquals("Second", result)
 
         // クリーンアップ
         fileSystem.deleteRecursively(incDir1)
@@ -1099,11 +1099,11 @@ class CliTest {
         val moduleFile = localDir.resolve("testmodule.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
 
-        // URL形式のINCを先に追加し、ローカルパスを後に追加
-        // ローカルパスが優先されることを確認
+        // ローカルパスを先に追加し、URL形式のINCを後に追加
+        // 末尾優先の軸ではURLが上位だが、ローカルパスがURLよりも優先されることを確認
         val result = cliEval(context, """
-            INC::push("http://example.com/modules")
             INC::push("build/test/inc.url.priority.tmp")
+            INC::push("http://example.com/modules")
             USE("testmodule")
         """.trimIndent()).toFluoriteString(null).value
 
