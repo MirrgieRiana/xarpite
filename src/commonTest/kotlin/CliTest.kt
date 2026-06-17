@@ -132,6 +132,42 @@ class CliTest {
     }
 
     @Test
+    fun versionMounts() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        // MAJOR / MINOR / PATCH で XARPITE_VERSION の各要素が数値で得られる
+        assertEquals("4", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("120", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsDefaultsToZeroWhenUnset() = runTest {
+        val context = TestIoContext(env = emptyMap())
+        // XARPITE_VERSION が無い場合は 0 とする
+        assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsTreatsNonNumericComponentsAsZero() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "0.0.0-SNAPSHOT"))
+        // 数値として解釈できない要素（"0-SNAPSHOT" など）は 0 とする
+        assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsTreatsMissingComponentsAsZero() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "5"))
+        // 要素が欠けている場合も 0 とする
+        assertEquals("5", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
     fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
         // When code is executed via eval (not from a file), LOCATION should be "-"

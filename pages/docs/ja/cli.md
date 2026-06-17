@@ -449,6 +449,23 @@ $ {
 # Apple
 ```
 
+### `MAJOR`, `MINOR`, `PATCH`: Xarpiteのバージョン番号を取得
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+実行中のXarpiteのバージョン番号を、メジャー・マイナー・パッチの各要素ごとに数値で取得します。
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+バージョン番号を取得できない場合や、数値として解釈できない要素は `0` になります。
+
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`

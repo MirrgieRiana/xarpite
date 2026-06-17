@@ -5,6 +5,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -37,6 +38,21 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        *run {
+            // XARPITE_VERSION（"4.120.0" 形式）を要素ごとに分割し、数値部分を提供する
+            // バージョンを取得できない場合や数値として解釈できない要素は 0 とする
+            fun create(index: Int): LazyMount {
+                return LazyMount {
+                    val version = context.io.getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
+                    FluoriteInt(version.split(".").getOrNull(index)?.toIntOrNull() ?: 0)
+                }
+            }
+            arrayOf(
+                "MAJOR" define create(0),
+                "MINOR" define create(1),
+                "PATCH" define create(2),
+            )
+        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {

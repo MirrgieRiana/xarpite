@@ -449,6 +449,23 @@ $ {
 # Apple
 ```
 
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or a component cannot be interpreted as a number, it becomes `0`.
+
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
