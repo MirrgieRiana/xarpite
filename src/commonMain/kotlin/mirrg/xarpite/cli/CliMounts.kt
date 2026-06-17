@@ -39,18 +39,17 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
         *run {
-            // XARPITE_VERSION（"4.120.0" 形式）を要素ごとに分割し、数値部分を提供する
-            // バージョンを取得できない場合や数値として解釈できない要素は 0 とする
-            fun create(index: Int): LazyMount {
-                return LazyMount {
-                    val version = context.io.getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
-                    FluoriteInt(version.split(".").getOrNull(index)?.toIntOrNull() ?: 0)
-                }
+            // XARPITE_VERSION（"4.120.0" 形式）を正規表現で解釈し、各要素を数値として提供する
+            // 形式に合致しない場合は参照時に例外を投げる
+            val versionMatch by lazy {
+                val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""
+                Regex("""^(\d+)\.(\d+)\.(\d+)""").find(version)
+                    ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
             }
             arrayOf(
-                "MAJOR" define create(0),
-                "MINOR" define create(1),
-                "PATCH" define create(2),
+                "MAJOR" define LazyMount { FluoriteInt(versionMatch.groupValues[1].toInt()) },
+                "MINOR" define LazyMount { FluoriteInt(versionMatch.groupValues[2].toInt()) },
+                "PATCH" define LazyMount { FluoriteInt(versionMatch.groupValues[3].toInt()) },
             )
         },
         *run {

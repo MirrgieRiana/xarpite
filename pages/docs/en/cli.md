@@ -464,7 +464,7 @@ $ xa 'MAJOR ?= INT'
 # TRUE
 ```
 
-If the version number cannot be obtained, or a component cannot be interpreted as a number, it becomes `0`.
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 

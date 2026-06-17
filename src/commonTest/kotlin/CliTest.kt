@@ -138,33 +138,37 @@ class CliTest {
         assertEquals("4", cliEval(context, "MAJOR").toFluoriteString(null).value)
         assertEquals("120", cliEval(context, "MINOR").toFluoriteString(null).value)
         assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+        // MAJOR / MINOR / PATCH は INT 型である
+        assertEquals("TRUE", cliEval(context, "MAJOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "MINOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "PATCH ?= INT").toFluoriteString(null).value)
     }
 
     @Test
-    fun versionMountsDefaultsToZeroWhenUnset() = runTest {
-        val context = TestIoContext(env = emptyMap())
-        // XARPITE_VERSION が無い場合は 0 とする
-        assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
-        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
-        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
-    }
-
-    @Test
-    fun versionMountsTreatsNonNumericComponentsAsZero() = runTest {
+    fun versionMountsIgnoresTrailingSuffix() = runTest {
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "0.0.0-SNAPSHOT"))
-        // 数値として解釈できない要素（"0-SNAPSHOT" など）は 0 とする
+        // 数値三つ組の後に続く接尾辞（"-SNAPSHOT" など）は無視される
         assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
         assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
         assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
     }
 
     @Test
-    fun versionMountsTreatsMissingComponentsAsZero() = runTest {
+    fun versionMountsThrowWhenUnset() = runTest {
+        val context = TestIoContext(env = emptyMap())
+        // XARPITE_VERSION が無い場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
+    }
+
+    @Test
+    fun versionMountsThrowWhenNotInTripleForm() = runTest {
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "5"))
-        // 要素が欠けている場合も 0 とする
-        assertEquals("5", cliEval(context, "MAJOR").toFluoriteString(null).value)
-        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
-        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+        // メジャー.マイナー.パッチ の数値形式に合致しない場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
     }
 
     @Test
