@@ -334,8 +334,6 @@ When the `-E` option is specified, it interprets the outermost source as the con
 
 This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
 
-See [Embedded String Literal](string.md) for details.
-
 ```shell
 $ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
 # <h1>123</h1>
