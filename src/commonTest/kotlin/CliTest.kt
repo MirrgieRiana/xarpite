@@ -1013,10 +1013,11 @@ class CliTest {
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
-        // デフォルトで ./.xarpite/lib と ./.xarpite/maven が含まれている
+        // デフォルトで ./.xarpite/lib、./.xarpite/maven、Maven Central が含まれている
         val incArray = cliEval(context, "INC").array()
         assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
+        assertTrue("https://repo1.maven.org/maven2" in incArray)
     }
 
     @Test
@@ -1033,6 +1034,7 @@ class CliTest {
         val incStrings = capturedInc!!.map { it.toFluoriteString(null).value }
         assertTrue("./.xarpite/lib" in incStrings)
         assertTrue("./.xarpite/maven" in incStrings)
+        assertTrue("https://repo1.maven.org/maven2" in incStrings)
     }
 
     @Test
@@ -2681,7 +2683,8 @@ internal class TestIoContext(
         (executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")).encodeToByteArray()
 
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
-        fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
+        // fetchHandler 未設定時は、デフォルトの INC に含まれる Maven Central のような URL の取得失敗を模擬する
+        fetchHandler?.invoke(context, url) ?: Result.failure(UnsupportedOperationException("fetchHandler is not set"))
 
     override fun getEnv(): Map<String, String> = env
 

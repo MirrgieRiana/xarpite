@@ -427,7 +427,7 @@ $ FOO=bar xa 'ENV.FOO'
 
 相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
 
-デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
+デフォルトでは `./.xarpite/lib`、`./.xarpite/maven`、および Maven Central (`https://repo1.maven.org/maven2`) が含まれています。
 
 ---
 

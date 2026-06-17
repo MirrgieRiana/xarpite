@@ -93,6 +93,25 @@ class IncUrlKtorTest {
     }
 
     @Test
+    fun mavenCoordinateFromDefaultMavenCentral() = runTest {
+        // デフォルトのINCに含まれるMaven Centralを起点に座標が解決されることを確認
+        val io = createTestIoContext { _, url ->
+            if (url == "https://repo1.maven.org/maven2/com/example/mylib/1.0.0/mylib-1.0.0.xa1") {
+                Result.success("\"Module from Maven Central\"".encodeToByteArray())
+            } else {
+                Result.failure(RuntimeException("Not found: $url"))
+            }
+        }
+
+        // INCへの追加なしで、デフォルトのMaven Centralから座標を解決
+        val result = cliEval(io, """
+            USE("com.example:mylib:1.0.0")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Module from Maven Central", result)
+    }
+
+    @Test
     fun httpUrlWithTrailingSlashNormalization() = runTest {
         withKtorServer { server ->
             // 末尾スラッシュがあるINCパスでもモジュールをロードできることを確認
