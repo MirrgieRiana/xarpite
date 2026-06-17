@@ -427,7 +427,7 @@ Strings starting with `http://` or `https://` are interpreted as URLs.
 
 When a relative directory path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
+By default, `./.xarpite/lib`, `./.xarpite/maven`, and Maven Central (`https://repo1.maven.org/maven2`) are included.
 
 ---
 

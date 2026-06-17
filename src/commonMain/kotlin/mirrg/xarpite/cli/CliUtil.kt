@@ -171,6 +171,7 @@ fun showVersion(ioContext: IoContext) {
 }
 
 fun RuntimeContext.addDefaultIncPaths() {
+    inc.values += "https://repo1.maven.org/maven2".toFluoriteString()
     inc.values += "./.xarpite/maven".toFluoriteString()
     inc.values += "./.xarpite/lib".toFluoriteString()
 }
