@@ -43,13 +43,13 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
-#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the outermost source as an embedded string
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -92,13 +92,13 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
-#   -E                       Interpret the outermost source as an embedded string
 #   --verbose                Display Kotlin stack traces
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the outermost source as an embedded string
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
