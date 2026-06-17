@@ -1624,6 +1624,22 @@ class CliTest {
     }
 
     @Test
+    fun embeddedOptionWithQuietProducesNoOutput() = runTest {
+        // -q と -E を併用すると、最外部のソースは runner として解釈されるため、埋め込み文字列の本体は出力されない
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
     fun fileOptionWithStdinReadsFromStdin() = runTest {
         // -f - オプションで標準入力から読み込む
         val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())

@@ -326,13 +326,15 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
 
-## Embedded Mode
+## Interpretation as an Embedded String
 
 ### `-E`: Interpret the Outermost Source as an Embedded String
 
-When the `-E` option is specified, it interprets the outermost source as the contents of an [embedded string literal](string.md) `%>` to `<%`.
+When the `-E` option is specified, it interprets the outermost source as the contents of an embedded string literal `%>` to `<%`.
 
 This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+See [Embedded String Literal](string.md) for details.
 
 ```shell
 $ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
