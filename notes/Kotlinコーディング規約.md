@@ -1,13 +1,15 @@
 # Xarpite Kotlin コード（`src/commonMain/kotlin`）コーディング規約
 
 これまでの実験であぶり出された規約を、テーマごとに整理したものです。
-`escapeJsonString`・`MatrixPositionCalculator`・識別子名予想・`Formatter.format` などの各実験で判明した規約を統合・再編しています。
+`escapeJsonString`・`MatrixPositionCalculator`・識別子名予想・`Formatter.format`・`removeExponent`・`mergeSort`・`toSingleJson` などの各実験で判明した規約を統合・再編しています。
 
 ## 型注釈と式
 
 関数の戻り値型注釈は省略し、式本体（`fun … = …`）で型推論に委ねます。プロパティの型注釈も同様に省略します。
 
-中間変数は最小化します。標準ライブラリ（`binarySearch` 等）と `.let { }` を組み合わせ、途中結果に名前を付けないまま式1本へ畳み込み、`return` に直接埋め込みます。スコープ関数のなかでは `let` が主力です。
+ただし、走査のように手続き的に値が定まり、宣言と初期化を分離せざるをえない場合は、`var mantissa: String` や `val exponent: Int` のように型注釈を付けて先に宣言し、後続の `run { … }` ブロックや分岐の中で代入します。初期化が宣言から離れて推論に委ねられないため、ここでは型注釈を明示します。
+
+中間変数は最小化します。標準ライブラリ（`binarySearch` 等）と `.let { }` を組み合わせ、途中結果に名前を付けないまま式1本へ畳み込み、`return` に直接埋め込みます。この、途中結果を式1本へ畳み込む用途では `let` が主力です。
 
 複数文を要するプロパティ初期化は、`buildList { … }` ではなく `run { val list = …; list }` で書きます（`buildList` は0件です）。
 
@@ -15,7 +17,15 @@
 
 ## 制御構造とイディオム
 
-`for` 文は使わず、`forEach`/`forEachIndexed` に統一します。`continue` 相当も `return@forEach` で表します。`for` を残すのは、Channel 消費やネイティブのグルーコードなど、forEach で書けない箇所のみです。
+`for` 文は使わず、`forEach`/`forEachIndexed` に統一します。`continue` 相当も `return@forEach` で表します。`for` を残すのは、Channel 消費やネイティブのグルーコードなど、forEach で書けない箇所のみで、`commonMain` 本体には1件しかありません。
+
+いっぽうで `while` は素直に使います（`commonMain` で34件）。マージソートの併合や指数表記の桁送り、パーサのような分割統治・走査系の低水準処理では、stdlib に無理に畳み込まず、`while` と可変カウンタで手書きします。その際のループ添字は、`var i = 0`・`var j = 0` のように1文字を使います（`sb`/`ch` と同類の、確立した略語の例外です）。
+
+スコープ関数は `let` と `run` の二本柱で、`with`・`apply`・`also` はほとんど使いません（`commonMain` で `run` 54件・`let` 30件に対し、`also` 1件・`apply`/`with` は0件）。`run { … }` は、使い捨てのローカルを閉じ込めて手続きの段を区切る局所スコープとして多用します。ラベル付きの `run a@{ … return@a }` で局所的な早期脱出を表し、フラグ変数や `break` の代わりにします（`return@run` は28件）。
+
+入れ子のローカル関数も多用します（深いインデントの関数定義は75件）。外から見えない補助処理を、それを使う関数のスコープ内に閉じ込めるためで、`fun String.round()` のようなローカルな拡張関数も内側に定義します。
+
+型に基づく分岐は `when (subject)` の `is 型 ->` で書きます（`is 型 ->` の分岐は188件）。シングルトンの `object` や `enum` の枝だけは `is` を付けず、値そのもので分岐します（`is FluoriteNull` ではなく `FluoriteNull -> …`）。
 
 早期 return には elvis 演算子を好みます（`getOrNull(…) ?: return …`）。
 
@@ -49,10 +59,16 @@ Map を保持するプロパティは `○○Table`、生成用のラムダは `
 
 `commonMain` では `java.*` を import せず、多倍長小数は ionspin の BigDecimal、絶対値は単項マイナスなど、マルチプラットフォームで使える手段に揃えます。
 
+import はワイルドカード（`import パッケージ.*`）を使わず、すべて1つずつ明示的に列挙します（`commonMain` の714件の import はすべて明示で、ワイルドカードは0件です）。
+
 汎用的なエラーは専用の例外クラスを新設せず、既存の `IllegalArgumentException`/`FluoriteException`/`RuntimeException` で投げ分けます。
 
 単なる値の入れ物のために `data class` を増やしません（全193クラス中4件です）。
 
+## コメント
+
+ドキュメンテーションコメント（KDoc `/** … */`）はほとんど使いません（`commonMain` 全体で1件です）。代わりに、説明は処理の途中に置く日本語の行コメント（`//`）で行います（`commonMain` の日本語行コメントは104件です）。`if`/`when` の分岐の各枝にその条件を説明するコメントを添えるほか、長い手続きを段ごとに区切り、各段の頭に「指数表記の分割」「余分な0の除去」のような見出し的なコメントを置きます。
+
 ## 弱い規約・傾向
 
-弱い傾向として、`if`/`when` の分岐の各枝に、その条件を説明する日本語の行コメント（`//`）を添えることがあります（`commonMain` の `//` 付き日本語コメントは104件です）。
+弱い傾向として、ドメインに合う場面では演算子オーバーロードや中置記法を定義することがあります（`operator fun Path.contains`、`infix fun String.define` など。`commonMain` で operator 2件・infix 3件です）。
