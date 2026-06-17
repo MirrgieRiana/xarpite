@@ -44,7 +44,7 @@ $ xa '
 
 The `$#` operator can get the number of bytes in a BLOB.
 
-See [Getting Length](./length.md) for details.
+See Getting Length for details.
 
 ## Converting to Array
 
