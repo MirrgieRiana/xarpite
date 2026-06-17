@@ -106,7 +106,7 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 Decodes `blobLike` as a byte sequence encoded in UTF-8 into a single string.
 
-For `BLOB_LIKE`, see [BLOB](./blob.md).
+For `BLOB_LIKE`, see BLOB.
 
 This function does not normalize newline characters.
 
