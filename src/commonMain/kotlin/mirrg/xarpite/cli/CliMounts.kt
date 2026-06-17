@@ -200,7 +200,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             )
         },
         *run {
-            fun create(name: String, returnType: String, transform: (ByteArray) -> FluoriteStream): FluoriteFunction {
+            fun create(name: String, returnType: String, transform: (ByteArray) -> FluoriteValue): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): $returnType")
                     suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
@@ -240,21 +240,22 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     transform(output)
                 }
             }
-            val lineStream: (ByteArray) -> FluoriteStream = { output ->
+            fun toLineStream(output: ByteArray): FluoriteStream {
                 val lines = output.decodeToString().lines()
                 val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
                     lines.dropLast(1)
                 } else {
                     lines
                 }
-                nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+                return nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+            }
+            fun toBlobStream(output: ByteArray): FluoriteStream {
+                return listOf(output.asFluoriteBlob()).toFluoriteStream()
             }
             arrayOf(
-                "EXEC" define create("EXEC", "STREAM<STRING>", lineStream),
-                "EXECL" define create("EXECL", "STREAM<STRING>", lineStream),
-                "EXECB" define create("EXECB", "STREAM<BLOB>") { output ->
-                    listOf(output.asFluoriteBlob()).toFluoriteStream()
-                },
+                "EXEC" define create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
+                "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
             )
         },
         "BASH" define FluoriteFunction.immediate { arguments ->
