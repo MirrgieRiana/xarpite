@@ -1046,6 +1046,13 @@ class CliTest {
     }
 
     @Test
+    fun xaResolvesExplicitParentRelativeLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ../ で始まる location は PWD を起点に正規化される
+        assertEquals("/test/foo.xa1", cliEval(context, """XA("LOCATION"; location: "../foo.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
     fun xaResolvesExplicitAbsoluteLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
         // 絶対パスの location はそのまま正規化される
@@ -1064,6 +1071,20 @@ class CliTest {
         val context = TestIoContext()
         // ./ の付かない裸の相対パスは禁止される
         assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; location: "foo.xa1")""") }
+    }
+
+    @Test
+    fun xaRejectsUnknownNamedArgument() = runTest {
+        val context = TestIoContext()
+        // location 以外の名前付き引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; foo: "bar")""") }
+    }
+
+    @Test
+    fun xaRejectsExtraPositionalArgument() = runTest {
+        val context = TestIoContext()
+        // 余分な位置引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("1"; "2")""") }
     }
 
     @Test
