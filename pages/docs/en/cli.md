@@ -1115,6 +1115,21 @@ The return value is not a stream that sequentially reads the process's standard 
 
 **Also, this function is currently only provided in the JVM and Native versions.**
 
+### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command and returns the byte sequence of its standard output as a stream of BLOBs.
+
+There is currently no guarantee regarding the timing between the execution state of the external command and its output.
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
+
 ### `BASH`: Execute Bash scripts
 
 `BASH(script: STRING[; args: STREAM<STRING>]): STRING`

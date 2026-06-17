@@ -1115,6 +1115,21 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 **また、この関数は現状JVM版とNative版でのみ提供されます。**
 
+### `EXECB`: 外部コマンドを実行しBLOBで返す [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+外部コマンドを実行し、その標準出力のバイト列をBLOBのストリームとして返します。
+
+外部コマンドの実行状態と出力のタイミングの間には、今のところ何の保証もありません。
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
+
 ### `BASH`: Bashスクリプトを実行
 
 `BASH(script: STRING[; args: STREAM<STRING>]): STRING`
