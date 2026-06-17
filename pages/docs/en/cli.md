@@ -49,7 +49,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
-#   -E                       Interpret the outermost source as an embedded string
+#   -E                       Interpret the outermost source as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -98,7 +98,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
-#   -E                       Interpret the outermost source as an embedded string
+#   -E                       Interpret the outermost source as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -326,11 +326,11 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
 
-## Interpretation as an Embedded String
+## Interpretation as an Embedded String Literal
 
-### `-E`: Interpret the Outermost Source as an Embedded String
+### `-E`: Interpret the Outermost Source as an Embedded String Literal
 
-When the `-E` option is specified, it interprets the outermost source as the contents of an embedded string literal `%>` to `<%`.
+When the `-E` option is specified, it interprets the outermost source as the contents of an embedded string literal `%>` `<%`.
 
 This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
 

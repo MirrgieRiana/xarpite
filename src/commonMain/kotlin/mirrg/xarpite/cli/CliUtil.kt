@@ -169,7 +169,7 @@ fun showUsage(ioContext: IoContext) {
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
-    println("  -E                       Interpret the outermost source as an embedded string")
+    println("  -E                       Interpret the outermost source as an embedded string literal")
     println("")
     println("Repository: https://github.com/MirrgieRiana/xarpite")
 }

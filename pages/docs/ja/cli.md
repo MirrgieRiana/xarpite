@@ -49,7 +49,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
-#   -E                       Interpret the outermost source as an embedded string
+#   -E                       Interpret the outermost source as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -98,7 +98,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
-#   -E                       Interpret the outermost source as an embedded string
+#   -E                       Interpret the outermost source as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -326,11 +326,11 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
 
-## 埋め込み文字列としての解釈
+## 埋め込み文字列リテラルとしての解釈
 
-### `-E`: 最外部のソースを埋め込み文字列として解釈
+### `-E`: 最外部のソースを埋め込み文字列リテラルとして解釈
 
-`-E` オプションを指定すると、最外部のソースを埋め込み文字列リテラル `%>` ～ `<%` の中身として解釈します。
+`-E` オプションを指定すると、最外部のソースを埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
 
 これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
 
