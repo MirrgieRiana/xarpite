@@ -715,6 +715,8 @@ Indices start from 0.
 
 If the corresponding index does not exist, returns `NULL`.
 
+If a non-stream is passed, returns that value as-is when `index` is 0; otherwise returns `NULL`.
+
 ```shell
 $ xa 'GET(0; 10, 20, 30)'
 # 10

@@ -475,7 +475,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             if (arguments.size != 2) usage("<T> GET(index: INT; stream: STREAM<T>): T | NULL")
             val index = arguments[0].toFluoriteNumber(null).roundToInt()
             val stream = arguments[1]
-            if (stream is FluoriteStream) {
+            if (index < 0) {
+                FluoriteNull // 負のインデックスは存在しないので、ストリームを走査せず NULL を返す
+            } else if (stream is FluoriteStream) {
                 var result: FluoriteValue? = null
                 var position = 0
                 try {
