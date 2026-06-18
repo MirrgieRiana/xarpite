@@ -667,6 +667,26 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 Other properties follow those of the `AND` function.
 
+## `GET` Get Element by Index
+
+`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+
+Returns the element of `stream` at the index corresponding to `index`.
+
+Indices start from 0.
+
+Throws an error if a negative index is passed.
+
+If the corresponding index does not exist, returns `NULL`.
+
+```shell
+$ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
+```
+
 ## `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
