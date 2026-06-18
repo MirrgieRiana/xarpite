@@ -41,6 +41,7 @@ import mirrg.xarpite.InfixExclamationColonNode
 import mirrg.xarpite.InfixExclamationIdentifierNode
 import mirrg.xarpite.InfixExclamationPercentPercentNode
 import mirrg.xarpite.InfixExclamationQuestionNode
+import mirrg.xarpite.InfixExclamationTildeNode
 import mirrg.xarpite.InfixGreaterGreaterNode
 import mirrg.xarpite.InfixIdentifierNode
 import mirrg.xarpite.InfixLessEqualGreaterNode
@@ -138,6 +139,7 @@ import mirrg.xarpite.operations.NewEnvironmentGetter
 import mirrg.xarpite.operations.NotContainsComparator
 import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
+import mirrg.xarpite.operations.NotMatchGetter
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
 import mirrg.xarpite.operations.ObjectFromStreamGetter
@@ -458,6 +460,7 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixCircumflexNode -> PowerGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixPeriodPeriodNode -> RangeGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixEqualTildeNode -> MatchGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
+        is InfixExclamationTildeNode -> NotMatchGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
         is InfixLessEqualGreaterNode -> SpaceshipGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
         is InfixTildeNode -> ExclusiveRangeGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixAmpersandAmpersandNode -> AndGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)

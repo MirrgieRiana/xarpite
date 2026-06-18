@@ -200,9 +200,9 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             )
         },
         *run {
-            fun create(name: String): FluoriteFunction {
+            fun create(name: String, returnType: String, transform: (ByteArray) -> FluoriteValue): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
+                    fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): $returnType")
                     suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
                         val envEntry = argument as? FluoriteArray ?: usage()
                         if (envEntry.values.size != 2) usage()
@@ -237,18 +237,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     val processArgs = commandList.drop(1)
                     val output = context.io.executeProcess(process, processArgs, env)
 
-                    val lines = output.lines()
-                    val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
-                        lines.dropLast(1)
-                    } else {
-                        lines
-                    }
-                    nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+                    transform(output)
                 }
             }
+            fun toLineStream(output: ByteArray): FluoriteStream {
+                val lines = output.decodeToString().lines()
+                val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
+                    lines.dropLast(1)
+                } else {
+                    lines
+                }
+                return nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+            }
+            fun toBlobStream(output: ByteArray): FluoriteStream {
+                return listOf(output.asFluoriteBlob()).toFluoriteStream()
+            }
             arrayOf(
-                "EXEC" define create("EXEC"),
-                "EXECL" define create("EXECL"),
+                "EXEC" define create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
+                "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
             )
         },
         "BASH" define FluoriteFunction.immediate { arguments ->
@@ -267,7 +274,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
 
             // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
             // ダミーの$0として"bash"を挿入
-            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
+            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap()).decodeToString()
 
             val result = when {
                 output.endsWith("\r\n") -> output.dropLast(2)

@@ -49,6 +49,8 @@ class DataConversionTest {
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
         assertEquals(1, eval(""" "1" >> JSOND """).int) // プリミティブを直接指定できる
+        assertEquals("1718445872123456789", eval(""" "1718445872123456789" >> JSOND >> JSON """).string) // INTの範囲を超える整数は精度を失わずデコードされ、数値リテラルとしてエンコードされる
+        assertEquals("[123456789012345678901234567890]", eval(""" "[123456789012345678901234567890]" >> JSOND >> JSON """).string) // 配列の要素でも精度が保たれる
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONSD """).stream()) // Jsonのストリームを指定するとストリームになる
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONSD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
         assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい
@@ -66,6 +68,10 @@ class DataConversionTest {
         // JSONLD (synonym for JSONSD)
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは "Invalid JSON" で始まる文字列のエラーになる
+        assertTrue(eval(""" ((1 / 0) >> JSON) !? (e => e) """).string.startsWith("Failed to encode to JSON")) // 特殊な浮動小数点値のエンコードは "Failed to encode to JSON" で始まる文字列のエラーになる
     }
 
     @Test
@@ -361,6 +367,24 @@ class DataConversionTest {
         // BASH_ESCAPE は SHELL_ESCAPE のエイリアス
         assertEquals("'Hello'", eval(""" "Hello" >> BASH_ESCAPE """).string) // BASH_ESCAPEでも同じ結果
         assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> BASH_ESCAPE """).string) // BASH_ESCAPEでもシングルクォートがエスケープされる
+    }
+
+    @Test
+    fun regexEscape() = runTest {
+        // REGEX_ESCAPE で文字列を正規表現用にエスケープ
+        assertEquals("abc", eval(""" "abc" >> REGEX_ESCAPE """).string) // メタ文字を含まない文字列はそのまま
+        assertEquals("a-b", eval(""" "a-b" >> REGEX_ESCAPE """).string) // ハイフンはエスケープしない（文字クラスの外ではリテラルのため）
+        assertEquals("a\\.b", eval(""" "a.b" >> REGEX_ESCAPE """).string) // ドットがエスケープされる
+        assertEquals("a\\+b\\*c\\?", eval(""" "a+b*c?" >> REGEX_ESCAPE """).string) // 量指定子がエスケープされる
+        assertEquals("\\(\\[\\{\\}\\]\\)", eval(""" "([{}])" >> REGEX_ESCAPE """).string) // 各種括弧がエスケープされる
+        assertEquals("\\^a\\$\\|b", eval(""" '^a$|b' >> REGEX_ESCAPE """).string) // アンカーと選択がエスケープされる
+        assertEquals("a\\\\b", eval(""" 'a\b' >> REGEX_ESCAPE """).string) // バックスラッシュ自身がエスケープされる
+        assertEquals("", eval(""" "" >> REGEX_ESCAPE """).string) // 空文字列
+
+        // エスケープ結果を実際に正規表現として使うと、元の文字列にリテラルとして一致する
+        assertEquals("a.b", eval(""" ("a.b" =~ REGEX.new("a.b" >> REGEX_ESCAPE)).0 """).string) // エスケープ後の文字列は元の文字列に一致する
+        assertEquals(FluoriteNull, eval(""" "aXb" =~ REGEX.new("a.b" >> REGEX_ESCAPE) """)) // . がリテラル化され、ワイルドカードとして別の文字には一致しない
+        assertEquals("^a$|b", eval(""" ('^a$|b' =~ REGEX.new('^a$|b' >> REGEX_ESCAPE)).0 """).string) // メタ文字を多数含む文字列もリテラルとして一致する
     }
 
 }

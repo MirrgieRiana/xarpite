@@ -27,6 +27,7 @@ title: "組み込みオブジェクトのクラス定数"
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # 定数
 
@@ -657,9 +658,9 @@ $ xa '1 .. 9 >> SORT[a, b -> a % 3 <=> b % 3] >> JOIN[" "]'
 
 ### キー取得関数によるソート
 
-`SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-第1引数が `by` パラメータである場合、第2引数の各要素に対して `key_getter` 関数を適用し、その結果を比較してソートします。
+第1引数が `by` パラメータである場合、第2引数の各要素に対して `keyGetter` 関数を適用し、その結果を比較してソートします。
 
 以下の例では、各要素を3で割った余りでソートしています。
 
@@ -674,7 +675,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 
 `SORTR(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-`SORTR(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORTR(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 ストリームを降順にソートします。
 
@@ -972,7 +973,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` エントリーのストリームをオブジェクトに変換
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 第1引数のストリームの各要素をエントリーとしてオブジェクトに変換します。
 

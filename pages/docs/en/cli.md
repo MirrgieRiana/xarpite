@@ -49,6 +49,8 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -95,6 +97,8 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -173,6 +177,22 @@ Uses the Xarpite engine running on the JVM.
 ### `--node`: Use Node.js Engine
 
 Uses the Xarpite engine running on Node.js.
+
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+Some runtimes respect this limit.
+
+---
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
 
 ## Return Value Output
 
@@ -423,7 +443,7 @@ Strings starting with `http://` or `https://` are interpreted as URLs.
 
 When a relative directory path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
+By default, `./.xarpite/lib`, `./.xarpite/maven`, and Maven Central (`https://repo1.maven.org/maven2`) are included.
 
 ---
 
@@ -767,6 +787,24 @@ $ {
 # apple,banana,cherry,
 ```
 
+---
+
+The file is emptied before reading begins from the `lines` stream.
+
+For this reason, if you read from the same file you are writing to within `lines`, its contents will be lost.
+
+For such a self-reference, use `CACHE` to resolve the input first.
+
+```shell
+$ {
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
 ### `WRITEB`: Write to Binary File
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
@@ -778,6 +816,24 @@ If the file already exists, it will be overwritten.
 ```shell
 $ {
   xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+---
+
+The file is emptied before reading begins from `blobLike`.
+
+For this reason, if you read from the same file you are writing to within `blobLike`, its contents will be lost.
+
+For such a self-reference, use `CACHE` to resolve the input first.
+
+```shell
+$ {
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
   printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
@@ -808,7 +864,7 @@ By mounting the return value of the `USE` function directly with `@USE("fruit")`
 
 `reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
 
-As a general rule, modules belonging to paths closer to the beginning of the `INC` array are given priority.
+As a general rule, modules belonging to paths closer to the end of the `INC` array are given priority.
 
 However, `INC` entries that are local file paths are searched before entries that are URLs.
 
@@ -1074,6 +1130,21 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM and Native versions.**
+
+### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command and returns the byte sequence of its standard output as a stream of BLOBs.
+
+There is currently no guarantee regarding the timing between the execution state of the external command and its output.
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Execute Bash scripts
 

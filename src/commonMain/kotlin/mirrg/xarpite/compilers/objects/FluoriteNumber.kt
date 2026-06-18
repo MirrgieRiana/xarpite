@@ -1,7 +1,10 @@
 package mirrg.xarpite.compilers.objects
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
@@ -121,6 +124,41 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
     }
 }
 
+data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
+    companion object {
+        val fluoriteClass by lazy {
+            FluoriteObject(
+                FluoriteValue.fluoriteClass, mutableMapOf(
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("BIG.of(value: STRING | NUMBER): BIG")
+                        when (val argument = arguments[0]) {
+                            is FluoriteString -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteBig -> argument
+                            is FluoriteInt -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteDouble -> {
+                                if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
+                                FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                            }
+                            else -> usage("BIG.of(value: STRING | NUMBER): BIG")
+                        }
+                    },
+                )
+            )
+        }
+    }
+
+    override fun toString() = value.toString()
+    override val parent get() = fluoriteClass
+    override fun toInt() = value.intValue(true)
+    override fun toDouble() = value.doubleValue(false)
+    override fun negate() = FluoriteBig(value.negate())
+    override fun roundToInt() = value.intValue(true)
+}
+
+private val INTEGER_PATTERN = Regex("""[+-]?[0-9]+""")
+
 fun String.toFluoriteNumber(): FluoriteNumber {
     fun toFluoriteDouble() = when (val double = this.toDoubleOrNull()) {
         null -> throw IllegalArgumentException("Cannot convert to number: ${if (this.length > 20) "${this.take(20)}..." else this}")
@@ -131,7 +169,14 @@ fun String.toFluoriteNumber(): FluoriteNumber {
         "." !in this -> when (val int = this.toIntOrNull()) {
             0 -> FluoriteInt.ZERO
             1 -> FluoriteInt.ONE
-            null -> toFluoriteDouble()
+            null -> {
+                if (INTEGER_PATTERN.matches(this)) {
+                    FluoriteBig(this.toBigInteger())
+                } else {
+                    toFluoriteDouble()
+                }
+            }
+
             else -> FluoriteInt(int)
         }
 

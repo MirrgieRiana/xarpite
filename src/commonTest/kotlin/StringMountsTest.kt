@@ -1,10 +1,13 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringMountsTest {
@@ -124,5 +127,29 @@ class StringMountsTest {
 
         // 2段階の .. を含むパス
         assertEquals("/home/file.txt", eval("RESOLVE('/home/user/dir'; '../../file.txt')").string)
+    }
+
+    @Test
+    fun charCode() = runTest {
+        // CHAR_CODE: UTF-16コード単位を返す
+        assertEquals(65, eval("CHAR_CODE('A')").int) // 'A' のコードは65
+        assertEquals(12354, eval("CHAR_CODE('\u3042')").int) // 'あ' のコードは12354
+        assertEquals(0, eval("CHAR_CODE('\u0000')").int) // 有効範囲の下端0
+        assertEquals(65535, eval("CHAR_CODE('\uFFFF')").int) // 有効範囲の上端65535
+
+        // CHAR_CODE: 1コード単位でない場合はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODE('')") } // 空文字列はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODE('AB')") } // 2文字はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODE('\uD83C\uDF70')") } // サロゲートペア（🍰）は2コード単位なのでエラー
+
+        // CHAR_CODED: コード単位から文字列を返す
+        assertEquals("A", eval("CHAR_CODED(65)").string) // 65 は 'A'
+        assertEquals("\u3042", eval("CHAR_CODED(12354)").string) // 12354 は 'あ'
+        assertEquals("\u0000", eval("CHAR_CODED(0)").string) // 有効範囲の下端0
+        assertEquals("\uFFFF", eval("CHAR_CODED(65535)").string) // 有効範囲の上端65535
+
+        // CHAR_CODED: 範囲外の場合はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODED(-1)") } // 負数はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODED(65536)") } // 65536はエラー
     }
 }

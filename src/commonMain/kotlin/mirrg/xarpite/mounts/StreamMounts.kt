@@ -614,7 +614,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             stream
                         }
                     }
-                    run { // SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                    run { // SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 2) return@run
                         val entry = arguments[0]
                         if (entry !is FluoriteArray) return@run
@@ -645,7 +645,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     usage(
                         "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
                         "$name(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>",
-                        "$name(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
                     )
                 }
             }

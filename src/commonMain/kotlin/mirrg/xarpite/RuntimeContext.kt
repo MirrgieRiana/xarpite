@@ -2,8 +2,11 @@ package mirrg.xarpite
 
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
@@ -24,7 +27,10 @@ class RuntimeContext(
             try {
                 awaitCancellation()
             } finally {
-                httpClient.close()
+                withContext(NonCancellable) {
+                    httpClient.close()
+                    httpClient.coroutineContext.job.join()
+                }
             }
         }
         httpClient
@@ -98,7 +104,7 @@ interface IoContext {
     suspend fun readBytesFromStdin(): ByteArray?
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
-    suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
+    suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray
     suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray>
     fun exit(code: Int): Nothing
 }
@@ -112,7 +118,7 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
     override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = throw UnsupportedOperationException()
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
     override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
 }

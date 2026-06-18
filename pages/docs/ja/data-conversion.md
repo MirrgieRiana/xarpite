@@ -106,7 +106,7 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 `blobLike` をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
 
-`BLOB_LIKE` については [BLOB](./blob.md) を参照してください。
+`BLOB_LIKE` についてはBLOBを参照してください。
 
 この関数は改行文字の正規化を行いません。
 
@@ -278,6 +278,22 @@ $ xa 'SHELL_ESCAPE("Hello, World!")'
 
 $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
+```
+
+## `REGEX_ESCAPE` 正規表現用エスケープ
+
+`REGEX_ESCAPE(string: STRING): STRING`
+
+`string` を正規表現内の文字クラスの外でリテラルとして扱える形式にエスケープします。
+
+具体的には、正規表現のメタ文字 `\ ^ $ . | ? * + ( ) [ ] { }` の直前にバックスラッシュを付加します。
+
+```shell
+$ xa 'REGEX_ESCAPE("a.b")'
+# a\.b
+
+$ xa 'REGEX_ESCAPE("1+1=2")'
+# 1\+1=2
 ```
 
 ## `JSON` 値をJSON文字列に変換

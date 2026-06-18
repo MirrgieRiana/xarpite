@@ -53,7 +53,7 @@ fun createConvertMounts(): List<Map<String, Mount>> {
             if (arguments.size == 1) {
                 FluoriteObject.fromStream(arguments[0])
             } else {
-                usage("TO_OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT")
+                usage("TO_OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT")
             }
         },
     ).let { listOf(it) }

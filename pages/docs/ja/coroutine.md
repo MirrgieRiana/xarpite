@@ -164,6 +164,8 @@ $ xa '
 
 `PROMISE` を `error` で失敗として完了します。
 
+`error` が `ERROR` 型の値である場合は、その値そのものではなく、それが表しているネイティブエラーが失敗の原因になります。
+
 ### `await`: `PROMISE` の完了を待機し、内容を取得する
 
 `<T> PROMISE<T>::await(): T`
@@ -181,6 +183,36 @@ $ xa '
   promise::await() !? ( e => e )
 '
 # ERROR!!
+```
+
+### `awaitException`: `PROMISE` の完了を待機し、例外値を取得する
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+`PROMISE` の内容が完了するまで待機します。
+
+`PROMISE` が失敗として完了した場合、その例外値を返します。
+
+失敗の原因がネイティブエラーである場合、その例外値は `ERROR` 型の値になります。
+
+`PROMISE` が正常に完了した場合、 `NULL` を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
 ```
 
 ### `isCompleted`: `PROMISE` の完了状態を調べる

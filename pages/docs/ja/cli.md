@@ -49,6 +49,8 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -95,6 +97,8 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -173,6 +177,22 @@ JVM上で動作するXarpiteエンジンを使用します。
 ### `--node`: Node.jsエンジンを使用
 
 Node.js上で動作するXarpiteエンジンを使用します。
+
+## スタックサイズの指定
+
+### `XARPITE_STACK_SIZE`: スタックサイズを指定する環境変数
+
+`XARPITE_STACK_SIZE` 環境変数はXarpiteの実行スタックのサイズの上限を指定します。
+
+ランタイムによってはこの上限を尊重します。
+
+---
+
+値は数値と単位を表す接尾辞を連結した形式で指定します。
+
+- `K`: キビバイト単位
+- `M`: メビバイト単位
+- `G`: ギビバイト単位
 
 ## 戻り値の出力
 
@@ -423,7 +443,7 @@ $ FOO=bar xa 'ENV.FOO'
 
 相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
 
-デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
+デフォルトでは `./.xarpite/lib`、`./.xarpite/maven`、および Maven Central (`https://repo1.maven.org/maven2`) が含まれています。
 
 ---
 
@@ -767,6 +787,24 @@ $ {
 # apple,banana,cherry,
 ```
 
+---
+
+ファイルは `lines` のストリームを読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `lines` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
 ### `WRITEB`: バイナリファイルに書き込み
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
@@ -778,6 +816,24 @@ $ {
 ```shell
 $ {
   xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+---
+
+ファイルは `blobLike` を読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `blobLike` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
   printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
   rm tmp.bin
 }
@@ -808,7 +864,7 @@ $ {
 
 `reference` は検索場所を与える `INC` ビルトイン定数に基づいて実際のロケーションに解決されます。
 
-原則として `INC` 配列内で先頭に近いパスに属するモジュールが優先されます。
+原則として `INC` 配列内で末尾に近いパスに属するモジュールが優先されます。
 
 ただし、ローカルファイルパスである `INC` エントリーは、URLであるエントリーよりも優先的に検索されます。
 
@@ -1074,6 +1130,21 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
 **また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXECB`: 外部コマンドを実行しBLOBで返す [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+外部コマンドを実行し、その標準出力のバイト列をBLOBのストリームとして返します。
+
+外部コマンドの実行状態と出力のタイミングの間には、今のところ何の保証もありません。
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Bashスクリプトを実行
 
