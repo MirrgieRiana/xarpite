@@ -51,10 +51,12 @@ jobs:
           ls -la core.* 2>/dev/null || echo "No core dumps found."
           echo "::endgroup::"
           echo "::group::ネイティブバイナリのバックトレース"
-          kexe="$(find build/bin -name '*.kexe' 2>/dev/null | head -n 1)"
           for core in core.*; do
             [ -e "$core" ] || continue
-            echo "core=$core kexe=$kexe"
+            exe="${core#core.}"
+            exe="${exe%.*}"
+            kexe="$(find build/bin -name "$exe" 2>/dev/null | head -n 1)"
+            echo "core=$core exe=$exe kexe=$kexe"
             gdb -batch -ex "thread apply all bt" "$kexe" "$core" || true
           done
           echo "::endgroup::"
