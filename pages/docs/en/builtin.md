@@ -667,44 +667,6 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 Other properties follow those of the `AND` function.
 
-## `FIRST` Get First Element of Stream
-
-`FIRST(stream: STREAM<VALUE>): VALUE`
-
-Returns the first element of the first argument stream. If the stream is empty, returns `NULL`.
-
-If a non-stream is passed, returns that value as-is.
-
-```shell
-$ xa 'FIRST(4, 5, 6)'
-# 4
-
-$ xa 'FIRST(4)'
-# 4
-
-$ xa 'FIRST(,)'
-# NULL
-```
-
-## `LAST` Get Last Element of Stream
-
-`LAST(stream: STREAM<VALUE>): VALUE`
-
-Returns the last element of the first argument stream. If the stream is empty, returns `NULL`.
-
-If a non-stream is passed, returns that value as-is.
-
-```shell
-$ xa 'LAST(4, 5, 6)'
-# 6
-
-$ xa 'LAST(6)'
-# 6
-
-$ xa 'LAST(,)'
-# NULL
-```
-
 ## `GET` Get Elements by Index
 
 `<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
@@ -745,6 +707,44 @@ $ xa '10, 20, 30, 40, 50 >> GET[1 .. 3]'
 # 20
 # 30
 # 40
+```
+
+## `FIRST` Get First Element of Stream
+
+`FIRST(stream: STREAM<VALUE>): VALUE`
+
+Returns the first element of the first argument stream. If the stream is empty, returns `NULL`.
+
+If a non-stream is passed, returns that value as-is.
+
+```shell
+$ xa 'FIRST(4, 5, 6)'
+# 4
+
+$ xa 'FIRST(4)'
+# 4
+
+$ xa 'FIRST(,)'
+# NULL
+```
+
+## `LAST` Get Last Element of Stream
+
+`LAST(stream: STREAM<VALUE>): VALUE`
+
+Returns the last element of the first argument stream. If the stream is empty, returns `NULL`.
+
+If a non-stream is passed, returns that value as-is.
+
+```shell
+$ xa 'LAST(4, 5, 6)'
+# 6
+
+$ xa 'LAST(6)'
+# 6
+
+$ xa 'LAST(,)'
+# NULL
 ```
 
 ## `SINGLE` Get Only Element of Stream

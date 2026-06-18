@@ -451,27 +451,6 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "ANY" define create("ANY"),
             )
         },
-        "FIRST" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size == 1) {
-                val value = arguments[0]
-                if (value is FluoriteStream) {
-                    var result: FluoriteValue? = null
-                    try {
-                        value.collect { item ->
-                            result = item
-                            throw IterationAborted
-                        }
-                    } catch (_: IterationAborted) {
-
-                    }
-                    result ?: FluoriteNull
-                } else {
-                    value
-                }
-            } else {
-                usage("FIRST(stream: STREAM<VALUE>): VALUE")
-            }
-        },
         "GET" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
             val indices = arguments[0]
@@ -548,6 +527,27 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
             if (indices is FluoriteStream) gotten else gotten.toFlow().firstOrNull() ?: FluoriteNull
+        },
+        "FIRST" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    var result: FluoriteValue? = null
+                    try {
+                        value.collect { item ->
+                            result = item
+                            throw IterationAborted
+                        }
+                    } catch (_: IterationAborted) {
+
+                    }
+                    result ?: FluoriteNull
+                } else {
+                    value
+                }
+            } else {
+                usage("FIRST(stream: STREAM<VALUE>): VALUE")
+            }
         },
         "LAST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {

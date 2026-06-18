@@ -527,44 +527,6 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 それ以外の性質は、 `AND` 関数に準じます。
 
-## `FIRST` ストリームの先頭要素を取得
-
-`FIRST(stream: STREAM<VALUE>): VALUE`
-
-第1引数のストリームの先頭要素を返します。ストリームが空の場合は `NULL` を返します。
-
-非ストリームを渡した場合は、その値をそのまま返します。
-
-```shell
-$ xa 'FIRST(4, 5, 6)'
-# 4
-
-$ xa 'FIRST(4)'
-# 4
-
-$ xa 'FIRST(,)'
-# NULL
-```
-
-## `LAST` ストリームの末尾要素を取得
-
-`LAST(stream: STREAM<VALUE>): VALUE`
-
-第1引数のストリームの末尾要素を返します。ストリームが空の場合は `NULL` を返します。
-
-非ストリームを渡した場合は、その値をそのまま返します。
-
-```shell
-$ xa 'LAST(4, 5, 6)'
-# 6
-
-$ xa 'LAST(6)'
-# 6
-
-$ xa 'LAST(,)'
-# NULL
-```
-
 ## `GET` インデックスによる要素の取得
 
 `<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
@@ -605,6 +567,44 @@ $ xa '10, 20, 30, 40, 50 >> GET[1 .. 3]'
 # 20
 # 30
 # 40
+```
+
+## `FIRST` ストリームの先頭要素を取得
+
+`FIRST(stream: STREAM<VALUE>): VALUE`
+
+第1引数のストリームの先頭要素を返します。ストリームが空の場合は `NULL` を返します。
+
+非ストリームを渡した場合は、その値をそのまま返します。
+
+```shell
+$ xa 'FIRST(4, 5, 6)'
+# 4
+
+$ xa 'FIRST(4)'
+# 4
+
+$ xa 'FIRST(,)'
+# NULL
+```
+
+## `LAST` ストリームの末尾要素を取得
+
+`LAST(stream: STREAM<VALUE>): VALUE`
+
+第1引数のストリームの末尾要素を返します。ストリームが空の場合は `NULL` を返します。
+
+非ストリームを渡した場合は、その値をそのまま返します。
+
+```shell
+$ xa 'LAST(4, 5, 6)'
+# 6
+
+$ xa 'LAST(6)'
+# 6
+
+$ xa 'LAST(,)'
+# NULL
 ```
 
 ## `SINGLE` ストリームの唯一の要素を取得
