@@ -5,6 +5,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -37,6 +38,17 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        *run {
+            val versionMatchResult by lazy {
+                val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""
+                """^(\d+)\.(\d+)\.(\d+)""".toRegex().find(version) ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
+            }
+            arrayOf(
+                "MAJOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[1].toInt()) },
+                "MINOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[2].toInt()) },
+                "PATCH" define LazyMount { FluoriteInt(versionMatchResult.groupValues[3].toInt()) },
+            )
+        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {

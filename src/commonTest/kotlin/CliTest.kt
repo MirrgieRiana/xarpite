@@ -132,6 +132,46 @@ class CliTest {
     }
 
     @Test
+    fun versionMounts() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        // MAJOR / MINOR / PATCH で XARPITE_VERSION の各要素が数値で得られる
+        assertEquals("4", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("120", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+        // MAJOR / MINOR / PATCH は INT 型である
+        assertEquals("TRUE", cliEval(context, "MAJOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "MINOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "PATCH ?= INT").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsIgnoresTrailingSuffix() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "0.0.0-SNAPSHOT"))
+        // 数値三つ組の後に続く接尾辞（"-SNAPSHOT" など）は無視される
+        assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsThrowWhenUnset() = runTest {
+        val context = TestIoContext(env = emptyMap())
+        // XARPITE_VERSION が無い場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
+    }
+
+    @Test
+    fun versionMountsThrowWhenNotInTripleForm() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "5"))
+        // メジャー.マイナー.パッチ の数値形式に合致しない場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
+    }
+
+    @Test
     fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
         // When code is executed via eval (not from a file), LOCATION should be "-"
