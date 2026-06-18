@@ -1037,9 +1037,9 @@ $ {
 
 Returns the result of evaluating the Xarpite script given by `script`.
 
-`XA` is similar to `USE`, but it does not involve location resolution via `reference`; it evaluates the string given as `script` directly.
+`XA` does not involve loading a module; it evaluates the string given as `script` directly.
 
-Also, unlike `USE`, the evaluation result is not reused.
+Unlike `USE`, the evaluation result is not reused, and streams are not resolved.
 
 ```shell
 $ xa 'XA("8 * 100 + 77")'
@@ -1048,37 +1048,22 @@ $ xa 'XA("8 * 100 + 77")'
 
 #### `location` Argument
 
-The `location` argument specifies the location used as the base for relative paths when `USE` is called within `script`.
+The `location` argument is used as the location of `script`.
 
-The value of the `LOCATION` constant within `script` is also based on this.
-
-If `location` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called `XA`.
+If `location` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
 
 ```shell
-$ cd /usr/local/bin && xa -e 'XA("LOCATION")'
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
 # /usr/local/bin/-
 ```
 
-If `location` is specified explicitly, it can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+`location` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
 
 Relative paths are resolved from `PWD`.
 
 ```shell
-$ cd /usr/local/bin && xa -e 'XA("LOCATION"; location: "./fruit.xa1")'
+$ cd /usr/local/bin && xa 'XA("LOCATION"; location: "./fruit.xa1")'
 # /usr/local/bin/fruit.xa1
-```
-
-A bare relative path that does not begin with a `.` or `..` level cannot be specified.
-
-#### Return Value Stream
-
-If the result of evaluating `script` is a stream, unlike `USE`, that stream is not resolved.
-
-The stream passes through as is and is evaluated when it is consumed at the terminal.
-
-```shell
-$ xa 'XA("1, 2, 3") >> JOIN[" "]'
-# 1 2 3
 ```
 
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
