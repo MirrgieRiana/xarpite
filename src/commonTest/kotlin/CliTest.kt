@@ -947,14 +947,14 @@ class CliTest {
         fileSystem.write(moduleFile1) { writeUtf8("\"First\"") }
         fileSystem.write(moduleFile2) { writeUtf8("\"Second\"") }
 
-        // INC配列内で先頭に近いパスが優先される
+        // INC配列内で末尾に近いパスが優先される
         val result = cliEval(context, """
             INC::push("build/test/use.inc.priority.1.tmp")
             INC::push("build/test/use.inc.priority.2.tmp")
             USE("same")
         """.trimIndent()).toFluoriteString(null).value
 
-        assertEquals("First", result)
+        assertEquals("Second", result)
 
         // クリーンアップ
         fileSystem.deleteRecursively(incDir1)
@@ -1013,10 +1013,11 @@ class CliTest {
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
-        // デフォルトで ./.xarpite/lib と ./.xarpite/maven が含まれている
+        // デフォルトで ./.xarpite/lib、./.xarpite/maven、Maven Central が含まれている
         val incArray = cliEval(context, "INC").array()
         assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
+        assertTrue("https://repo1.maven.org/maven2" in incArray)
     }
 
     @Test
@@ -1033,6 +1034,7 @@ class CliTest {
         val incStrings = capturedInc!!.map { it.toFluoriteString(null).value }
         assertTrue("./.xarpite/lib" in incStrings)
         assertTrue("./.xarpite/maven" in incStrings)
+        assertTrue("https://repo1.maven.org/maven2" in incStrings)
     }
 
     @Test
@@ -1099,11 +1101,11 @@ class CliTest {
         val moduleFile = localDir.resolve("testmodule.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
 
-        // URL形式のINCを先に追加し、ローカルパスを後に追加
-        // ローカルパスが優先されることを確認
+        // ローカルパスを先に追加し、URL形式のINCを後に追加
+        // 末尾優先の軸ではURLが上位だが、ローカルパスがURLよりも優先されることを確認
         val result = cliEval(context, """
-            INC::push("http://example.com/modules")
             INC::push("build/test/inc.url.priority.tmp")
+            INC::push("http://example.com/modules")
             USE("testmodule")
         """.trimIndent()).toFluoriteString(null).value
 
@@ -2148,6 +2150,89 @@ class CliTest {
     }
 
     @Test
+    fun execbReturnsSingleBlob() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("echo hello", functionName = "EXECB")).collectBlobs()
+        // 標準出力全体が単一のBLOBになる
+        assertEquals(1, blobs.size)
+        assertContentEquals("hello".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbDoesNotSplitLinesOrStripNewline() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "a\nb\nc\n"
+            }
+        )
+        // EXEC と異なり、行分割や末尾改行の除去は行わず、生のバイト列をそのまま単一BLOBで返す
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("printf 'a\\nb\\nc\\n'", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("a\nb\nc\n".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEmptyOutput() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                ""
+            }
+        )
+        // 出力が空でも、長さ0のBLOBが1個だけ流れる
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertEquals(0, blobs[0].value.size)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEnvironmentOverrides() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                env["FOO"] ?: "not_set"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}""", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("BAR".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        assertEquals("BAR", capturedCommands[0].third["FOO"])
+    }
+
+    @Test
+    fun execbThrowsOnNonZeroExitCode() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
+            }
+        )
+        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1", functionName = "EXECB")} !? "ERROR"""")
+        assertEquals("ERROR", result.toFluoriteString(null).value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
     fun exitTerminatesWithCode0() = runTest {
         // EXIT(0)で終了コード0で終了することをテスト
         val context = TestIoContext()
@@ -2598,7 +2683,8 @@ internal class TestIoContext(
         (executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")).encodeToByteArray()
 
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
-        fetchHandler?.invoke(context, url) ?: throw UnsupportedOperationException("fetchHandler is not set")
+        // fetchHandler 未設定時は、デフォルトの INC に含まれる Maven Central のような URL の取得失敗を模擬する
+        fetchHandler?.invoke(context, url) ?: Result.failure(UnsupportedOperationException("fetchHandler is not set"))
 
     override fun getEnv(): Map<String, String> = env
 
