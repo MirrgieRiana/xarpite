@@ -1048,7 +1048,9 @@ $ xa 'XA("8 * 100 + 77")'
 
 #### `location` Argument
 
-The `location` argument specifies the location used as the base for relative paths when `USE` is called within `script`. The value of the `LOCATION` constant within `script` is also based on this.
+The `location` argument specifies the location used as the base for relative paths when `USE` is called within `script`.
+
+The value of the `LOCATION` constant within `script` is also based on this.
 
 If `location` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called `XA`.
 
@@ -1057,7 +1059,9 @@ $ cd /usr/local/bin && xa -e 'XA("LOCATION")'
 # /usr/local/bin/-
 ```
 
-If `location` is specified explicitly, it can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level. Relative paths are resolved from `PWD`.
+If `location` is specified explicitly, it can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from `PWD`.
 
 ```shell
 $ cd /usr/local/bin && xa -e 'XA("LOCATION"; location: "./fruit.xa1")'

@@ -1048,7 +1048,9 @@ $ xa 'XA("8 * 100 + 77")'
 
 #### `location` 引数
 
-`location` 引数は、 `script` 内で `USE` する際の相対パスの起点となるロケーションを指定します。 `script` 内の `LOCATION` 定数の値もこれに基づきます。
+`location` 引数は、 `script` 内で `USE` する際の相対パスの起点となるロケーションを指定します。
+
+`script` 内の `LOCATION` 定数の値もこれに基づきます。
 
 `location` を省略した場合、 `XA` を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
 
@@ -1057,7 +1059,9 @@ $ cd /usr/local/bin && xa -e 'XA("LOCATION")'
 # /usr/local/bin/-
 ```
 
-`location` を明示する場合、URL、絶対パス、または `.` か `..` の階層で始まる相対パスを指定できます。相対パスは `PWD` を起点として解決されます。
+`location` を明示する場合、URL、絶対パス、または `.` か `..` の階層で始まる相対パスを指定できます。
+
+相対パスは `PWD` を起点として解決されます。
 
 ```shell
 $ cd /usr/local/bin && xa -e 'XA("LOCATION"; location: "./fruit.xa1")'
