@@ -26,7 +26,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
       - name: デバッグツールのインストール
-        run: sudo apt-get install -y gdb
+        run: sudo apt-get install -y gdb libc6-dbg
 
       - name: コアダンプの有効化
         run: sudo sysctl -w kernel.core_pattern="${{ github.workspace }}/core.%e.%p"
@@ -57,7 +57,7 @@ jobs:
             exe="${exe%.*}"
             kexe="$(find build/bin -name "$exe" 2>/dev/null | head -n 1)"
             echo "core=$core exe=$exe kexe=$kexe"
-            gdb -batch -ex "thread apply all bt" "$kexe" "$core" || true
+            gdb -batch -ex "info registers" -ex "thread apply all bt full" "$kexe" "$core" || true
           done
           echo "::endgroup::"
 
