@@ -679,8 +679,6 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
-If a non-stream is passed, returns that value as-is when `index` is 0; otherwise returns `NULL`.
-
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
 # 20
