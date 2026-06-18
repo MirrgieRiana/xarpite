@@ -259,6 +259,8 @@ $ xa -A 5 'API_VERSION'
 # 5
 ```
 
+---
+
 When the `-A` option is not specified, the API version becomes the same value as Xarpite's major version.
 
 ## Script Specification
@@ -487,7 +489,7 @@ $ xa -A 5 'API_VERSION'
 
 `API(version: INT): NULL`
 
-Throws an error if the API version of the current environment does not exactly match `version`.
+Asserts that the API version of the current environment exactly matches `version`.
 
 When a script is run in an environment with a different API version than it assumes, it fails on the spot instead of silently behaving differently.
 
@@ -498,6 +500,8 @@ $ xa -A 5 -q '
 '
 # Hello
 ```
+
+---
 
 If they do not match, an error is thrown.
 
