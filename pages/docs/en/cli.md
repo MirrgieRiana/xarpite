@@ -350,7 +350,9 @@ $ {
   printf '%s' '#!/usr/bin/env -S xarpite -E
 <h1><%= 100 + 20 + 3 %></h1>' > script.xa1
   chmod +x script.xa1
+
   ./script.xa1
+
   rm script.xa1
 }
 # <h1>123</h1>
