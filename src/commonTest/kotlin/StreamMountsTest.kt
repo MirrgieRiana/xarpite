@@ -165,7 +165,7 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("GET(3; 10, 20, 30)")) // 範囲外のインデックスは NULL になる
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
 
-        assertEquals(FluoriteNull, eval("GET(-1; 10, 20, 30)")) // 負のインデックスも NULL になる
+        assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
 
         assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
         assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
@@ -186,12 +186,12 @@ class StreamMountsTest {
             GET(2; nat)
         """).int) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
 
-        assertEquals("[]", eval("""
-            array := []
-            stream := 1 .. 100 | ( array::push << _ ; _ )
-            GET(-1; stream)
-            array
-        """).array()) // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングしない
+        assertFails {
+            eval("""
+                nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+                GET(-1; nat)
+            """)
+        } // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングせずエラーになる
     }
 
     @Test
