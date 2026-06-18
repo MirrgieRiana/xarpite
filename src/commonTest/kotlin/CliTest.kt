@@ -1746,12 +1746,21 @@ class CliTest {
     }
 
     @Test
-    fun apiAssertionFailsGracefullyOnNonIntegerVersion() = runTest {
-        // API に非整数を渡しても CLI はクラッシュせず、通常の Xarpite エラーとなる
+    fun apiAssertionRejectsNonIntegerVersion() = runTest {
+        // API に整数でない値を渡すと型エラーとなる
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
         val options = parseArguments(listOf("-A", "4", "-e", "API(4.5)"), context)
         cliEvalImpl(context, options)
-        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
+    }
+
+    @Test
+    fun apiAssertionRejectsDoubleVersion() = runTest {
+        // API に提供バージョンと等しい値でも小数（DOUBLE）を渡すと型エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.0)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
     }
 
     // EXEC/BASHテスト用のヘルパー関数
