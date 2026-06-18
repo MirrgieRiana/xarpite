@@ -25,13 +25,39 @@ jobs:
       - name: libcurlのインストール
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
+      - name: デバッグツールのインストール
+        run: sudo apt-get install -y gdb
+
+      - name: コアダンプの有効化
+        run: sudo sysctl -w kernel.core_pattern="${{ github.workspace }}/core.%e.%p"
+
       - name: Gradleキャッシュの設定
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: ビルドとテスト
-        run: bash gradlew clean build --stacktrace --info
+        run: |
+          ulimit -c unlimited
+          bash gradlew clean build --stacktrace --info --no-daemon -Pkotlin.native.binary.sourceInfoType=libbacktrace
+
+      - name: ネイティブクラッシュ情報の収集
+        if: failure()
+        run: |
+          echo "::group::カーネルメッセージ"
+          sudo dmesg | tail -n 100 || true
+          echo "::endgroup::"
+          echo "::group::コアダンプの一覧"
+          ls -la core.* 2>/dev/null || echo "No core dumps found."
+          echo "::endgroup::"
+          echo "::group::ネイティブバイナリのバックトレース"
+          kexe="$(find build/bin -name '*.kexe' 2>/dev/null | head -n 1)"
+          for core in core.*; do
+            [ -e "$core" ] || continue
+            echo "core=$core kexe=$kexe"
+            gdb -batch -ex "thread apply all bt" "$kexe" "$core" || true
+          done
+          echo "::endgroup::"
 
       - name: レポートをアップロード
         if: failure()
@@ -40,3 +66,14 @@ jobs:
           name: test-report
           path: build/reports
           retention-days: 7
+
+      - name: クラッシュダンプをアップロード
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-crash-dump
+          path: |
+            core.*
+            build/bin/**/*.kexe
+          retention-days: 7
+          if-no-files-found: ignore
