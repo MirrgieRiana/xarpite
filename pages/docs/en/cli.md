@@ -255,13 +255,17 @@ The API version increases each time a breaking change is made to Xarpite, and th
 Specifying the `-A` option runs the script in an environment of that API version.
 
 ```shell
-$ xa -A 5 'API_VERSION'
-# 5
+$ xa -A 4 'API_VERSION'
+# 4
 ```
 
 ---
 
 When the `-A` option is not specified, the API version becomes the same value as Xarpite's major version.
+
+---
+
+If an API version that is not provided by this environment is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
@@ -481,8 +485,8 @@ $ {
 The API version of the current environment is stored as an integer.
 
 ```shell
-$ xa -A 5 'API_VERSION'
-# 5
+$ xa -A 4 'API_VERSION'
+# 4
 ```
 
 ### `API`: Assert the API Version
@@ -494,8 +498,8 @@ Asserts that the API version of the current environment exactly matches `version
 When a script is run in an environment with a different API version than it assumes, it fails on the spot instead of silently behaving differently.
 
 ```shell
-$ xa -A 5 -q '
-  API(5)
+$ xa -A 4 -q '
+  API(4)
   OUT << "Hello"
 '
 # Hello
@@ -506,7 +510,7 @@ $ xa -A 5 -q '
 If they do not match, an error is thrown.
 
 ```shell
-$ xa -A 6 'API(5) !? "API version mismatch"'
+$ xa -A 4 'API(5) !? "API version mismatch"'
 # API version mismatch
 ```
 

@@ -189,10 +189,6 @@ fun RuntimeContext.addDefaultIncPaths() {
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
         context.addDefaultIncPaths()
-        context.apiVersion = options.apiVersion ?: run {
-            val version = ioContext.getEnv()["XARPITE_VERSION"] ?: ""
-            """^(\d+)""".toRegex().find(version)?.groupValues?.get(1)?.toIntOrNull() ?: 0
-        }
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
@@ -202,6 +198,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
+            options.apiVersion?.let { context.apiVersion = it }
             if (options.quiet) {
                 evaluator.run(location, options.src)
             } else {

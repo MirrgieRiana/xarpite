@@ -1698,28 +1698,39 @@ class CliTest {
     }
 
     @Test
-    fun apiVersionDefaultsToZeroWhenVersionUnset() = runTest {
-        // XARPITE_VERSION が無い場合、デフォルトの API_VERSION は 0 になる
+    fun apiVersionDefaultsToProvidedVersionWhenVersionUnset() = runTest {
+        // XARPITE_VERSION が無くても、デフォルトの API_VERSION は提供バージョンになる
         val context = TestIoContext(env = emptyMap())
         val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
         cliEvalImpl(context, options)
-        assertEquals("0\n", context.stdoutBytes.toUtf8String())
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
-    fun apiVersionOptionOverridesDefault() = runTest {
-        // -A で指定した値が API_VERSION に反映される
+    fun apiVersionOptionAcceptsProvidedVersion() = runTest {
+        // -A で提供バージョンを指定すると API_VERSION に反映される
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << API_VERSION"), context)
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << API_VERSION"), context)
         cliEvalImpl(context, options)
-        assertEquals("5\n", context.stdoutBytes.toUtf8String())
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionUnsupportedOptionFailsBeforeExecution() = runTest {
+        // -A で提供していないバージョンを指定すると、スクリプトの実行前にエラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "48", "-q", "-e", "OUT << \"executed\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("48"))
     }
 
     @Test
     fun apiAssertionPassesOnExactMatch() = runTest {
         // API バージョンが厳密一致するとき API は素通りする
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "5", "-q", "-e", "API(5)\nOUT << \"ok\""), context)
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "API(4)\nOUT << \"ok\""), context)
         cliEvalImpl(context, options)
         assertEquals("ok\n", context.stdoutBytes.toUtf8String())
         assertEquals("", context.stderrBytes.toUtf8String())
@@ -1729,7 +1740,7 @@ class CliTest {
     fun apiAssertionFailsOnMismatch() = runTest {
         // API バージョンが厳密一致しないとき API はエラーをスローする
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "5", "-e", "API(6)"), context)
+        val options = parseArguments(listOf("-A", "4", "-e", "API(6)"), context)
         cliEvalImpl(context, options)
         assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
     }

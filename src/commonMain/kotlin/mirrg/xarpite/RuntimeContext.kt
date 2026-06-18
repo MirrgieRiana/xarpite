@@ -10,6 +10,8 @@ import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 
 class RuntimeContext(
@@ -17,6 +19,10 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+
+    companion object {
+        const val PROVIDED_API_VERSION = 4
+    }
 
     val httpClient by lazy {
         val httpClient = HttpClient()
@@ -87,7 +93,11 @@ class RuntimeContext(
     val inc = FluoriteArray()
     val moduleResults = mutableMapOf<String, FluoriteValue>()
 
-    var apiVersion = 0
+    var apiVersion = PROVIDED_API_VERSION
+        set(value) {
+            if (value != PROVIDED_API_VERSION) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
+            field = value
+        }
 
 }
 
