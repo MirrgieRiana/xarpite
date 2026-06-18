@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <version>             Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -92,6 +93,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <version>             Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -237,6 +239,27 @@ $ xa -q '
 Strictly speaking, this option specifies interpreting the entire source code as a statement (runner) context.
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
+
+## API Version
+
+In addition to Xarpite's own version, Xarpite has a concept called the API version.
+
+The API version is an integer that represents up to which generation of breaking changes a script assumes the environment it runs in has incorporated.
+
+The API version increases each time a breaking change is made to Xarpite, and the behavior of an older API version is no longer available in a newer API version.
+
+### `-A`: Set the API Version
+
+`-A <version>`
+
+Specifying the `-A` option runs the script in an environment of that API version.
+
+```shell
+$ xa -A 5 'API_VERSION'
+# 5
+```
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's major version.
 
 ## Script Specification
 
@@ -447,6 +470,40 @@ $ {
   rm -r module-fruits
 }
 # Apple
+```
+
+### `API_VERSION`: Get the API Version
+
+`API_VERSION: INT`
+
+The API version of the current environment is stored as an integer.
+
+```shell
+$ xa -A 5 'API_VERSION'
+# 5
+```
+
+### `API`: Assert the API Version
+
+`API(version: INT): NULL`
+
+Throws an error if the API version of the current environment does not exactly match `version`.
+
+When a script is run in an environment with a different API version than it assumes, it fails on the spot instead of silently behaving differently.
+
+```shell
+$ xa -A 5 -q '
+  API(5)
+  OUT << "Hello"
+'
+# Hello
+```
+
+If they do not match, an error is thrown.
+
+```shell
+$ xa -A 6 'API(5) !? "API version mismatch"'
+# API version mismatch
 ```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console

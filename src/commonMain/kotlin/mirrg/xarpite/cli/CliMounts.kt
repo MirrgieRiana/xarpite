@@ -5,6 +5,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -37,6 +38,13 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        "API_VERSION" define LazyMount { FluoriteInt(context.apiVersion) },
+        "API" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("API(version: INT): NULL")
+            val version = arguments[0].toFluoriteNumber(null).toInt()
+            if (version != context.apiVersion) throw FluoriteException("Script requires API version $version, but the environment API version is ${context.apiVersion}".toFluoriteString())
+            FluoriteNull
+        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {

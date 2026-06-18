@@ -87,6 +87,8 @@ class RuntimeContext(
     val inc = FluoriteArray()
     val moduleResults = mutableMapOf<String, FluoriteValue>()
 
+    var apiVersion: Int = 0
+
 }
 
 interface IoContext {

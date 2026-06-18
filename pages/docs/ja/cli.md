@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <version>             Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -92,6 +93,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <version>             Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -237,6 +239,27 @@ $ xa -q '
 厳密には、このオプションはソースコード全体を文（runner）コンテキストとして解釈することを指定するオプションです。
 
 このため末尾式の部分に変数宣言文などの文が書けるようになります。
+
+## APIバージョン
+
+Xarpiteには、Xarpite自身のバージョンとは別に、APIバージョンという概念があります。
+
+APIバージョンは、スクリプトがどの世代までの破壊的変更を取り込んだ環境で動作することを想定しているかを表す整数です。
+
+Xarpiteに破壊的変更が加えられるたびにAPIバージョンは増加し、古いAPIバージョンにおける挙動は新しいAPIバージョンでは利用できなくなります。
+
+### `-A`: APIバージョンの指定
+
+`-A <version>`
+
+`-A` オプションを指定すると、そのAPIバージョンの環境でスクリプトが実行されます。
+
+```shell
+$ xa -A 5 'API_VERSION'
+# 5
+```
+
+`-A` オプションを指定しない場合、APIバージョンはXarpiteのメジャーバージョンと同じ値になります。
 
 ## スクリプトの指定
 
@@ -447,6 +470,40 @@ $ {
   rm -r module-fruits
 }
 # Apple
+```
+
+### `API_VERSION`: APIバージョンを取得
+
+`API_VERSION: INT`
+
+現在の環境のAPIバージョンが整数で格納されています。
+
+```shell
+$ xa -A 5 'API_VERSION'
+# 5
+```
+
+### `API`: APIバージョンの表明
+
+`API(version: INT): NULL`
+
+現在の環境のAPIバージョンが `version` と厳密に一致しない場合にエラーをスローします。
+
+スクリプトが想定するAPIバージョンと異なる環境で実行されると、黙って異なる挙動になる代わりに、その場でエラーとなります。
+
+```shell
+$ xa -A 5 -q '
+  API(5)
+  OUT << "Hello"
+'
+# Hello
+```
+
+一致しない場合はエラーがスローされます。
+
+```shell
+$ xa -A 6 'API(5) !? "API version mismatch"'
+# API version mismatch
 ```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る

@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?, val apiVersion: Int? = null)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -27,6 +27,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     var verbose = false
     var scriptFile: String? = null
     var script: String? = null
+    var apiVersion: Int? = null
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
     // オプションセクションのパース
@@ -60,6 +61,14 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     if (verbose) throw ShowUsage
                     list.removeFirst()
                     verbose = true
+                    continue
+                }
+
+                "-A" -> { // APIバージョンの指定
+                    if (apiVersion != null) throw ShowUsage
+                    list.removeFirst()
+                    if (list.isEmpty()) throw ShowUsage
+                    apiVersion = list.removeFirst().toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowUsage
                     continue
                 }
 
@@ -120,7 +129,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile)
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile, apiVersion)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
@@ -156,6 +165,7 @@ fun showUsage(ioContext: IoContext) {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  --verbose                Display Kotlin stack traces")
+    println("  -A <version>             Set the API version")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
@@ -179,6 +189,10 @@ fun RuntimeContext.addDefaultIncPaths() {
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
         context.addDefaultIncPaths()
+        context.apiVersion = options.apiVersion ?: run {
+            val version = ioContext.getEnv()["XARPITE_VERSION"] ?: ""
+            """^(\d+)""".toRegex().find(version)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        }
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
         val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
