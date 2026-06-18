@@ -451,28 +451,33 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             )
         },
         "GET" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 2) usage("<T> GET(index: INT; stream: STREAM<T>): T | NULL")
-            val index = arguments[0].toFluoriteNumber(null).roundToInt()
-            if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+            if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
+            val indices = arguments[0]
             val stream = arguments[1]
-            if (stream is FluoriteStream) {
-                var result: FluoriteValue? = null
-                var position = 0
-                try {
-                    stream.collect { item ->
-                        if (position == index) {
-                            result = item
-                            throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切る
-                        }
-                        position++
-                    }
-                } catch (_: IterationAborted) {
+            val gotten = FluoriteStream {
+                // 添字をすべて汲み、参照される最大のインデックスまで値ストリームを1パスして要素を拾う
+                val indexList = mutableListOf<Int>()
+                indices.toFlow().collect { indexList += it.toFluoriteNumber(null).roundToInt() }
+                indexList.forEach { if (it < 0) throw FluoriteException("Index must be non-negative".toFluoriteString()) }
 
+                val targetIndices = indexList.toSet()
+                val maxIndex = targetIndices.maxOrNull() ?: -1
+                val values = mutableMapOf<Int, FluoriteValue>()
+                if (maxIndex >= 0) {
+                    var position = 0
+                    try {
+                        stream.toFlow().collect { item ->
+                            if (position in targetIndices) values[position] = item
+                            position++
+                            if (position > maxIndex) throw IterationAborted // 必要なインデックスまで読めば先読みせず打ち切る
+                        }
+                    } catch (_: IterationAborted) {
+
+                    }
                 }
-                result ?: FluoriteNull
-            } else {
-                if (index == 0) stream else FluoriteNull
+                indexList.forEach { emit(values[it] ?: FluoriteNull) }
             }
+            if (indices is FluoriteStream) gotten else gotten.toFlow().firstOrNull() ?: FluoriteNull
         },
         "FIRST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
