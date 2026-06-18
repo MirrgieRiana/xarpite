@@ -1745,6 +1745,15 @@ class CliTest {
         assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
     }
 
+    @Test
+    fun apiAssertionFailsGracefullyOnNonIntegerVersion() = runTest {
+        // API に非整数を渡しても CLI はクラッシュせず、通常の Xarpite エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.5)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
     // EXEC/BASHテスト用のヘルパー関数
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
