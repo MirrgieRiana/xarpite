@@ -180,6 +180,22 @@ Uses the Xarpite engine running on the JVM.
 
 Uses the Xarpite engine running on Node.js.
 
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+Some runtimes respect this limit.
+
+---
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
+
 ## Return Value Output
 
 In CLI Xarpite, the standard behavior is to output the return value of the entire program to standard output.
@@ -513,6 +529,23 @@ If they do not match, an error is thrown.
 $ xa -A 4 'API(5) !? "API version mismatch"'
 # API version mismatch
 ```
+
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 

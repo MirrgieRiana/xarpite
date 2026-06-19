@@ -2,9 +2,11 @@ package mirrg.xarpite
 
 import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
@@ -80,6 +82,8 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
             }
         }
     } finally {
-        daemonScope.cancel()
+        withContext(NonCancellable) {
+            daemonScope.coroutineContext.job.cancelAndJoin()
+        }
     }
 }

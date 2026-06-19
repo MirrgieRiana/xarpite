@@ -450,6 +450,30 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "ANY" define create("ANY"),
             )
         },
+        "GET" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> GET(index: INT; stream: STREAM<T>): T | NULL")
+            val index = arguments[0].toFluoriteNumber(null).roundToInt()
+            if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+            val stream = arguments[1]
+            if (stream is FluoriteStream) {
+                var result: FluoriteValue? = null
+                var position = 0
+                try {
+                    stream.collect { item ->
+                        if (position == index) {
+                            result = item
+                            throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切る
+                        }
+                        position++
+                    }
+                } catch (_: IterationAborted) {
+
+                }
+                result ?: FluoriteNull
+            } else {
+                if (index == 0) stream else FluoriteNull
+            }
+        },
         "FIRST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]

@@ -2,8 +2,11 @@ package mirrg.xarpite
 
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
@@ -30,7 +33,10 @@ class RuntimeContext(
             try {
                 awaitCancellation()
             } finally {
-                httpClient.close()
+                withContext(NonCancellable) {
+                    httpClient.close()
+                    httpClient.coroutineContext.job.join()
+                }
             }
         }
         httpClient
