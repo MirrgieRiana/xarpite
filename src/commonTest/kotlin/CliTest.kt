@@ -1064,7 +1064,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
@@ -2714,6 +2714,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = true,
+            apiVersion = null,
             scriptFile = null,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
@@ -2742,6 +2743,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = false,
+            apiVersion = null,
             scriptFile = null,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)

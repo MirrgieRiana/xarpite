@@ -44,7 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
-#   -A <version>             Set the API version
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -93,7 +93,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
-#   -A <version>             Set the API version
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -260,15 +260,15 @@ $ xa -q '
 
 Xarpiteには、Xarpite自身のバージョンとは別に、APIバージョンという概念があります。
 
-APIバージョンは、スクリプトがどの世代までの破壊的変更を取り込んだ環境で動作することを想定しているかを表す整数です。
+APIバージョンはランタイム全体に対して適用され、文法や組み込みマウント等の動作に影響を与えます。
 
-Xarpiteに破壊的変更が加えられるたびにAPIバージョンは増加し、古いAPIバージョンにおける挙動は新しいAPIバージョンでは利用できなくなります。
+スクリプトとランタイムのAPIバージョンが完全に一致しない限り、動作は保証されません。
 
 ### `-A`: APIバージョンの指定
 
-`-A <version>`
+`-A <apiversion>`
 
-`-A` オプションを指定すると、そのAPIバージョンの環境でスクリプトが実行されます。
+ランタイムのAPIバージョンを指定します。
 
 ```shell
 $ xa -A 4 'API_VERSION'
@@ -277,11 +277,11 @@ $ xa -A 4 'API_VERSION'
 
 ---
 
-`-A` オプションを指定しない場合、APIバージョンはXarpiteのメジャーバージョンと同じ値になります。
+`-A` オプションを指定しない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
 
 ---
 
-この環境が提供していないAPIバージョンを指定した場合、スクリプトの実行前にエラーとなります。
+ランタイムが提供していないAPIバージョンを指定した場合、スクリプトの実行前にエラーとなります。
 
 ## スクリプトの指定
 
@@ -494,42 +494,6 @@ $ {
 # Apple
 ```
 
-### `API_VERSION`: APIバージョンを取得
-
-`API_VERSION: INT`
-
-現在の環境のAPIバージョンが整数で格納されています。
-
-```shell
-$ xa -A 4 'API_VERSION'
-# 4
-```
-
-### `API`: APIバージョンの表明
-
-`API(version: INT): NULL`
-
-現在の環境のAPIバージョンが `version` と厳密に一致することを表明します。
-
-スクリプトが想定するAPIバージョンと異なる環境で実行されると、黙って異なる挙動になる代わりに、その場でエラーとなります。
-
-```shell
-$ xa -A 4 -q '
-  API(4)
-  OUT << "Hello"
-'
-# Hello
-```
-
----
-
-一致しない場合はエラーがスローされます。
-
-```shell
-$ xa -A 4 'API(5) !? "API version mismatch"'
-# API version mismatch
-```
-
 ### `MAJOR`, `MINOR`, `PATCH`: Xarpiteのバージョン番号を取得
 
 `MAJOR: INT`
@@ -546,6 +510,41 @@ $ xa 'MAJOR ?= INT'
 ```
 
 バージョン番号を取得できない場合や、 `メジャー.マイナー.パッチ` の数値形式で解釈できない場合は、参照時にエラーが発生します。
+
+### `API_VERSION`: APIバージョンを取得
+
+`API_VERSION: INT`
+
+現在のランタイムのAPIバージョンが整数で格納されています。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: APIバージョンのチェック
+
+`API(apiVersion: INT): NULL`
+
+現在のランタイムのAPIバージョンが `apiVersion` と厳密に一致することを保証します。
+
+現在のランタイムのAPIバージョンが `apiVersion` でない場合、エラーをスローします。
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
 

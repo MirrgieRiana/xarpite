@@ -44,7 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
-#   -A <version>             Set the API version
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -93,7 +93,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
-#   -A <version>             Set the API version
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -260,15 +260,15 @@ Therefore, statements such as variable declaration statements can be written in 
 
 In addition to Xarpite's own version, Xarpite has a concept called the API version.
 
-The API version is an integer that represents up to which generation of breaking changes a script assumes the environment it runs in has incorporated.
+The API version applies to the entire runtime and affects behavior such as the grammar and built-in mounts.
 
-The API version increases each time a breaking change is made to Xarpite, and the behavior of an older API version is no longer available in a newer API version.
+Unless the API versions of the script and the runtime match exactly, behavior is not guaranteed.
 
 ### `-A`: Set the API Version
 
-`-A <version>`
+`-A <apiversion>`
 
-Specifying the `-A` option runs the script in an environment of that API version.
+Specifies the API version of the runtime.
 
 ```shell
 $ xa -A 4 'API_VERSION'
@@ -277,11 +277,11 @@ $ xa -A 4 'API_VERSION'
 
 ---
 
-When the `-A` option is not specified, the API version becomes the same value as Xarpite's major version.
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
 
 ---
 
-If an API version that is not provided by this environment is specified, an error occurs before the script is executed.
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
@@ -494,42 +494,6 @@ $ {
 # Apple
 ```
 
-### `API_VERSION`: Get the API Version
-
-`API_VERSION: INT`
-
-The API version of the current environment is stored as an integer.
-
-```shell
-$ xa -A 4 'API_VERSION'
-# 4
-```
-
-### `API`: Assert the API Version
-
-`API(version: INT): NULL`
-
-Asserts that the API version of the current environment exactly matches `version`.
-
-When a script is run in an environment with a different API version than it assumes, it fails on the spot instead of silently behaving differently.
-
-```shell
-$ xa -A 4 -q '
-  API(4)
-  OUT << "Hello"
-'
-# Hello
-```
-
----
-
-If they do not match, an error is thrown.
-
-```shell
-$ xa -A 4 'API(5) !? "API version mismatch"'
-# API version mismatch
-```
-
 ### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
 
 `MAJOR: INT`
@@ -546,6 +510,41 @@ $ xa 'MAJOR ?= INT'
 ```
 
 If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
+
+### `API_VERSION`: Get the API Version
+
+`API_VERSION: INT`
+
+The API version of the current runtime is stored as an integer.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: Check the API Version
+
+`API(apiVersion: INT): NULL`
+
+Guarantees that the API version of the current runtime exactly matches `apiVersion`.
+
+If the API version of the current runtime is not `apiVersion`, an error is thrown.
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 

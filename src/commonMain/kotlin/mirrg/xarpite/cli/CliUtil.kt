@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int? = null, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int?, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -165,7 +165,7 @@ fun showUsage(ioContext: IoContext) {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  --verbose                Display Kotlin stack traces")
-    println("  -A <version>             Set the API version")
+    println("  -A <apiversion>          Set the API version")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
