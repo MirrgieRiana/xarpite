@@ -1039,17 +1039,23 @@ class CliTest {
     }
 
     @Test
-    fun xaResolvesExplicitRelativeLocationFromPwd() = runTest {
+    fun xaResolvesExplicitRelativeLocationFromCallerLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
-        // ./ で始まる location は PWD を起点に正規化される
-        assertEquals("/test/pwd/foo.xa1", cliEval(context, """XA("LOCATION"; location: "./foo.xa1")""").toFluoriteString(null).value)
+        // ./ で始まる location は、PWD ではなく XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/dir/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
     }
 
     @Test
-    fun xaResolvesExplicitParentRelativeLocation() = runTest {
+    fun xaResolvesExplicitParentRelativeLocationFromCallerLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
-        // ../ で始まる location は PWD を起点に正規化される
-        assertEquals("/test/foo.xa1", cliEval(context, """XA("LOCATION"; location: "../foo.xa1")""").toFluoriteString(null).value)
+        // ../ で始まる location も、XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; location: "../foo.xa1")<%; location: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
     }
 
     @Test

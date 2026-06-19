@@ -1059,7 +1059,7 @@ $ cd /usr/local/bin && xa 'XA("LOCATION")'
 
 `location` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
 
-相対パスは `PWD` を起点として解決されます。
+相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
 
 ```shell
 $ cd /usr/local/bin && xa 'XA("LOCATION"; location: "./fruit.xa1")'

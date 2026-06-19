@@ -55,7 +55,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 if (isUrl(reference)) {
                     reference
                 } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-                    context.io.getPwd().toPath().resolve(reference).normalized().toString()
+                    location.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
                 } else {
                     throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
                 }

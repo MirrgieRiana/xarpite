@@ -1059,7 +1059,7 @@ $ cd /usr/local/bin && xa 'XA("LOCATION")'
 
 `location` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
 
-Relative paths are resolved from `PWD`.
+Relative paths are resolved from the location of the script that called the `XA` function.
 
 ```shell
 $ cd /usr/local/bin && xa 'XA("LOCATION"; location: "./fruit.xa1")'
