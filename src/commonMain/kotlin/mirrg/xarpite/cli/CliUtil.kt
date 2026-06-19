@@ -198,7 +198,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
-            options.apiVersion?.let { context.apiVersion = it }
+            if (options.apiVersion != null) context.apiVersion = options.apiVersion
             if (options.quiet) {
                 evaluator.run(location, options.src)
             } else {

@@ -262,7 +262,7 @@ In addition to Xarpite's own version, Xarpite has a concept called the API versi
 
 The API version applies to the entire runtime and affects behavior such as the grammar and built-in mounts.
 
-Unless the API versions of the script and the runtime match exactly, behavior is not guaranteed.
+Unless the API version assumed by the script and the API version of the runtime match exactly, behavior is not guaranteed.
 
 ### `-A`: Set the API Version
 
@@ -526,9 +526,7 @@ $ xa -A 4 'API_VERSION'
 
 `API(apiVersion: INT): NULL`
 
-Guarantees that the API version of the current runtime exactly matches `apiVersion`.
-
-If the API version of the current runtime is not `apiVersion`, an error is thrown.
+If the API version of the current runtime does not exactly match `apiVersion`, an error is thrown.
 
 ```shell
 $ xa -A 4 -q '

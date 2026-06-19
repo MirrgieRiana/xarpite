@@ -23,12 +23,12 @@ class RuntimeContext(
     val io: IoContext,
 ) {
     companion object {
-        val PROVIDED_API_VERSION = 4..4
+        val PROVIDED_API_VERSIONS = 4..4
     }
 
-    var apiVersion = PROVIDED_API_VERSION.last
+    var apiVersion = PROVIDED_API_VERSIONS.first
         set(value) {
-            if (value !in PROVIDED_API_VERSION) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
+            if (value !in PROVIDED_API_VERSIONS) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
             field = value
         }
 
