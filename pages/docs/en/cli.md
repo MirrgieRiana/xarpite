@@ -1037,9 +1037,7 @@ $ {
 
 Returns the result of evaluating the Xarpite script given by `script`.
 
-`XA` does not involve loading a module; it evaluates the string given as `script` directly.
-
-Unlike `USE`, the evaluation result is not reused, and streams are not resolved.
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
 
 ```shell
 $ xa 'XA("8 * 100 + 77")'
