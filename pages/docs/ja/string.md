@@ -553,10 +553,8 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 次のいずれかに該当する入力に対しては、エラーになります。
 
-- `CHAR_CODED`・`CHAR_CODESD`: 0以上65535以下でない数値を与えた場合
+- `CHAR_CODED` `CHAR_CODESD`: 0以上65535以下でない数値を与えた場合
 - `CHAR_CODE`: コード単位が丁度1個でない文字列を与えた場合
-
-ストリームを受け取る `CHAR_CODESD` では、数値に関する条件は各要素について判定されます。
 
 ```shell
 $ xa 'CHAR_CODE("A")'
@@ -571,13 +569,13 @@ $ xa 'CHAR_CODED(65)'
 $ xa 'CHAR_CODED(12354)'
 # あ
 
-$ xa 'JSONS(TO_ARRAY(CHAR_CODES("ABC")))'
-# [65,66,67]
+$ xa 'CHAR_CODES("ABC") >> JOIN[","]'
+# 65,66,67
 
 $ xa 'CHAR_CODESD(65, 66, 67)'
 # ABC
 
-$ xa 'CHAR_CODESD(CHAR_CODES("Hello"))'
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
 # Hello
 ```
 

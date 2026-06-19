@@ -553,10 +553,8 @@ Functions with the `D` suffix decode, while those without it encode.
 
 An error is raised for inputs that fall under any of the following:
 
-- `CHAR_CODED` / `CHAR_CODESD`: given a value that is not between 0 and 65535
+- `CHAR_CODED` `CHAR_CODESD`: given a value that is not between 0 and 65535
 - `CHAR_CODE`: given a string that does not consist of exactly one code unit
-
-For `CHAR_CODESD`, which takes a stream, the numeric condition is checked for each element.
 
 ```shell
 $ xa 'CHAR_CODE("A")'
@@ -571,13 +569,13 @@ $ xa 'CHAR_CODED(65)'
 $ xa 'CHAR_CODED(12354)'
 # あ
 
-$ xa 'JSONS(TO_ARRAY(CHAR_CODES("ABC")))'
-# [65,66,67]
+$ xa 'CHAR_CODES("ABC") >> JOIN[","]'
+# 65,66,67
 
 $ xa 'CHAR_CODESD(65, 66, 67)'
 # ABC
 
-$ xa 'CHAR_CODESD(CHAR_CODES("Hello"))'
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
 # Hello
 ```
 
