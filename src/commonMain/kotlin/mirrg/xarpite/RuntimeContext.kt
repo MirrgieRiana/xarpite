@@ -27,6 +27,13 @@ class RuntimeContext(
         const val PROVIDED_API_VERSION = 4
     }
 
+    var apiVersion = PROVIDED_API_VERSION
+        set(value) {
+            if (value != PROVIDED_API_VERSION) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
+            field = value
+        }
+
+
     val httpClient by lazy {
         val httpClient = HttpClient()
         daemonScope.launch {
@@ -98,12 +105,6 @@ class RuntimeContext(
 
     val inc = FluoriteArray()
     val moduleResults = mutableMapOf<String, FluoriteValue>()
-
-    var apiVersion = PROVIDED_API_VERSION
-        set(value) {
-            if (value != PROVIDED_API_VERSION) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
-            field = value
-        }
 
 }
 

@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?, val apiVersion: Int? = null)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int? = null, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -25,9 +25,9 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     val arguments = mutableListOf<String>()
     var quiet = false
     var verbose = false
+    var apiVersion: Int? = null
     var scriptFile: String? = null
     var script: String? = null
-    var apiVersion: Int? = null
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
     // オプションセクションのパース
@@ -129,7 +129,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile, apiVersion)
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
