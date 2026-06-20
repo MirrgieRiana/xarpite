@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
 import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.XarpiteParseContext
@@ -25,8 +26,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 
-fun parse(src: String): String {
-    val parseResult = XarpiteGrammar("test").rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+fun parse(src: String, apiVersion: Int = RuntimeContext.PROVIDED_API_VERSIONS.first): String {
+    val parseResult = XarpiteGrammar("test", apiVersion).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code

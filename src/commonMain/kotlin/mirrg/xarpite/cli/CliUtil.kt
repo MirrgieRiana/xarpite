@@ -200,9 +200,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         try {
             if (options.apiVersion != null) context.apiVersion = options.apiVersion
             if (options.quiet) {
-                evaluator.run(location, options.src)
+                evaluator.run(location, options.src, context.apiVersion)
             } else {
-                val result = evaluator.get(location, options.src)
+                val result = evaluator.get(location, options.src, context.apiVersion)
                 if (result is FluoriteStream) {
                     result.collect {
                         println(it.toFluoriteString(null))

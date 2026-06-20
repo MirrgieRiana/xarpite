@@ -107,6 +107,26 @@ class XarpiteTest {
     }
 
     @Test
+    fun lineCommentPrefixTest() = runTest {
+
+        // APIバージョン4以前では、# の直前に空白文字が無くても行コメントになる
+        assertEquals(parse("1", 4), parse("1#comment", 4))
+
+        // APIバージョン5以降では、# の直前が行頭または空白文字の場合のみ行コメントになる
+        assertEquals(parse("1", 5), parse("1 #comment", 5)) // スペースの直後
+        assertEquals(parse("1", 5), parse("1\t#comment", 5)) // タブの直後
+        assertEquals(parse("1", 5), parse("1\n#comment", 5)) // 改行の直後（行頭）
+        assertEquals(parse("1", 5), parse("#comment\n1", 5)) // 入力の先頭（行頭）
+
+        // APIバージョン5以降では、# の直前に空白文字が無いと行コメントにならず、構文エラーとなる
+        assertFails { parse("1#comment", 5) }
+
+        // // による行コメントはAPIバージョン5以降でも直前の空白文字を要求しない
+        assertEquals(parse("1", 5), parse("1//comment", 5))
+
+    }
+
+    @Test
     fun builtInConstantTest() = runTest {
         assertEquals(FluoriteNull, eval("NULL"))
         assertEquals(true, eval("TRUE").boolean)
