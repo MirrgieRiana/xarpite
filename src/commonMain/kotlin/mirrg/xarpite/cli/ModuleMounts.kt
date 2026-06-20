@@ -50,17 +50,13 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             if (entries.isNotEmpty()) usage()
             if (arguments3.isNotEmpty()) usage()
 
-            val scriptLocation = if (locationArgument != null) {
-                val reference = locationArgument.toFluoriteString(null).value
-                if (isUrl(reference)) {
-                    reference
-                } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-                    location.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
-                } else {
-                    throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
-                }
+            val reference = locationArgument?.toFluoriteString(null)?.value ?: "./-"
+            val scriptLocation = if (isUrl(reference)) {
+                reference
+            } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+                location.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
             } else {
-                location.toPath().parent?.resolve("-")?.normalized()?.toString() ?: "-"
+                throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
             }
 
             val evaluator = Evaluator()
