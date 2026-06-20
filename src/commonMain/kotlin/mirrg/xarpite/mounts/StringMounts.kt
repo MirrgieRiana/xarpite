@@ -59,7 +59,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 sb.append(code.toChar())
             }
             if (value is FluoriteStream) {
-                value.collect { item -> appendCode(item) }
+                value.collect { item ->
+                    appendCode(item)
+                }
             } else {
                 appendCode(value)
             }
