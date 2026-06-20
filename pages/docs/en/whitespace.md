@@ -22,7 +22,9 @@ $ xa '
 # [1;2;3;4]
 ```
 
-From API version 5 onwards, a `#` line comment can begin only at the start of a line or immediately after a space or tab. This restriction does not apply to `//` line comments.
+From API version 5 onwards, a `#` line comment can begin only at the start of a line or immediately after a space or tab.
+
+This restriction does not apply to `//` line comments.
 
 ## Block Comments `/* comment */`
 
