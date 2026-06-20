@@ -260,7 +260,7 @@ Therefore, statements such as variable declaration statements can be written in 
 
 In addition to Xarpite's own version, Xarpite has a concept called the API version.
 
-The API version applies to the entire runtime and affects behavior such as the grammar and built-in mounts.
+The API version affects behavior such as the grammar and built-in mounts, and applies to the entire runtime.
 
 Unless the API version assumed by the script and the API version of the runtime match exactly, behavior is not guaranteed.
 
