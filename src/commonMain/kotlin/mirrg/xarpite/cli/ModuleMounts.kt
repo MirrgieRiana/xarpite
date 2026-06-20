@@ -53,7 +53,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
             val evaluator = Evaluator()
             evaluator.defineMounts(mountsFactory(scriptLocation))
-            evaluator.get(scriptLocation, script)
+            evaluator.get(scriptLocation, script, false)
         },
     ).let { listOf(it) }
 }
