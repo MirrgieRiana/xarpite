@@ -44,9 +44,9 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
             val (entries, arguments2) = arguments.toList().partitionIfEntry()
             val referenceArgument = entries.remove("reference")
-            if (entries.isNotEmpty()) usage()
-
             val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+
+            if (entries.isNotEmpty()) usage()
             if (arguments2.isNotEmpty()) usage()
 
             val reference = referenceArgument?.toFluoriteString(null)?.value ?: "./-"
