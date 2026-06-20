@@ -50,7 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
-#   -E                       Interpret the outermost source as an embedded string literal
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -100,7 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
-#   -E                       Interpret the outermost source as an embedded string literal
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -373,27 +373,19 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 ## 埋め込み文字列リテラルとしての解釈
 
-### `-E`: 最外部のソースを埋め込み文字列リテラルとして解釈
+### `-E`: スクリプト全体を埋め込み文字列リテラルとして解釈
 
-`-E` オプションを指定すると、最外部のソースを埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
+`-E` オプションを指定すると、スクリプト全体を埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
 
 これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
 
-```shell
-$ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
-# <h1>123</h1>
-```
-
----
-
-最外部のソースの先頭には、シバン行を1個だけ記述できます。
-
-シバン行は末尾の改行ごと取り除かれます。
+スクリプトの先頭行が `#!` で開始する場合、末尾の改行ごと無視されます。
 
 ```shell
 $ {
-  printf '%s' '#!/usr/bin/env -S xarpite -E
-<h1><%= 100 + 20 + 3 %></h1>' > script.xa1
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  printf '%s' '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
   chmod +x script.xa1
 
   ./script.xa1
@@ -405,11 +397,7 @@ $ {
 
 ---
 
-シバン行として解釈されるのは最外部のソースの先頭にある `#!` の行のみであり、それ以外の位置の `#!` はリテラルとして扱われます。
-
----
-
-`-E` オプションは `-e` / `-f` / 第1引数で与えた最外部のソースのみに作用し、 `USE` 関数で読み込むモジュールには影響しません。
+`-E` オプションは、エントリポイントであるスクリプトにのみ作用します。
 
 ## その他のコマンド
 

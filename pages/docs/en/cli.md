@@ -50,7 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
-#   -E                       Interpret the outermost source as an embedded string literal
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -100,7 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
-#   -E                       Interpret the outermost source as an embedded string literal
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -373,27 +373,19 @@ The `-f` option and `-e` option are mutually exclusive and cannot be specified s
 
 ## Interpretation as an Embedded String Literal
 
-### `-E`: Interpret the Outermost Source as an Embedded String Literal
+### `-E`: Interpret the Entire Script as an Embedded String Literal
 
-When the `-E` option is specified, it interprets the outermost source as the contents of an embedded string literal `%>` `<%`.
+When the `-E` option is specified, it interprets the entire script as the contents of an embedded string literal `%>` `<%`.
 
 This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
 
-```shell
-$ xa -E '<h1><%= 100 + 20 + 3 %></h1>'
-# <h1>123</h1>
-```
-
----
-
-You can write a single shebang line at the beginning of the outermost source.
-
-The shebang line is removed along with its trailing line break.
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
 
 ```shell
 $ {
-  printf '%s' '#!/usr/bin/env -S xarpite -E
-<h1><%= 100 + 20 + 3 %></h1>' > script.xa1
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  printf '%s' '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
   chmod +x script.xa1
 
   ./script.xa1
@@ -405,11 +397,7 @@ $ {
 
 ---
 
-Only the `#!` line at the very beginning of the outermost source is interpreted as a shebang line; `#!` at any other position is treated as a literal.
-
----
-
-The `-E` option affects only the outermost source given via `-e` / `-f` / the first argument, and does not affect modules loaded with the `USE` function.
+The `-E` option affects only the entry-point script.
 
 ## Other Commands
 

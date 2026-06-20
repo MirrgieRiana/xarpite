@@ -1641,8 +1641,8 @@ class CliTest {
     }
 
     @Test
-    fun embeddedOptionInterpretsOutermostSourceAsEmbeddedString() = runTest {
-        // -E モードでは最外部のソースが埋め込み文字列の本体として解釈される
+    fun embeddedOptionInterpretsEntireScriptAsEmbeddedString() = runTest {
+        // -E モードではスクリプト全体が埋め込み文字列の本体として解釈される
         val context = TestIoContext()
         assertEquals("<h1>123</h1>", cliEval(context, "<h1><%= 100 + 20 + 3 %></h1>", embedded = true).toFluoriteString(null).value)
     }
@@ -1657,7 +1657,7 @@ class CliTest {
         fileSystem.createDirectories(dir)
         val module = dir.resolve("value.xa1")
         fileSystem.write(module) { writeUtf8("100 + 20 + 3") }
-        // -E は最外部のソースのみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
+        // -E はスクリプト全体のみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
         assertEquals(
             "result: 123",
             cliEval(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""", embedded = true).toFluoriteString(null).value,
@@ -1667,7 +1667,7 @@ class CliTest {
 
     @Test
     fun embeddedOptionWithQuietProducesNoOutput() = runTest {
-        // -q と -E を併用すると、最外部のソースは runner として解釈されるため、埋め込み文字列の本体は出力されない
+        // -q と -E を併用すると、スクリプト全体は runner として解釈されるため、埋め込み文字列の本体は出力されない
         val context = TestIoContext()
         val options = Options(
             src = "<h1><%= 100 + 20 + 3 %></h1>",
