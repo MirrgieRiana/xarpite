@@ -15,7 +15,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int?, val scriptFile: String?)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -25,6 +25,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     val arguments = mutableListOf<String>()
     var quiet = false
     var verbose = false
+    var apiVersion: Int? = null
     var scriptFile: String? = null
     var script: String? = null
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
@@ -60,6 +61,14 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     if (verbose) throw ShowUsage
                     list.removeFirst()
                     verbose = true
+                    continue
+                }
+
+                "-A" -> { // APIバージョンの指定
+                    if (apiVersion != null) throw ShowUsage
+                    list.removeFirst()
+                    if (list.isEmpty()) throw ShowUsage
+                    apiVersion = list.removeFirst().toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowUsage
                     continue
                 }
 
@@ -120,7 +129,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile)
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile)
 }
 
 private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
@@ -156,6 +165,7 @@ fun showUsage(ioContext: IoContext) {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  --verbose                Display Kotlin stack traces")
+    println("  -A <apiversion>          Set the API version")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
@@ -188,6 +198,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
+            if (options.apiVersion != null) context.apiVersion = options.apiVersion
             if (options.quiet) {
                 evaluator.run(location, options.src)
             } else {

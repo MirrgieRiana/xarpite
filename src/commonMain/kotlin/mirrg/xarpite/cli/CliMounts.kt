@@ -38,6 +38,14 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        "API_VERSION" define LazyMount { FluoriteInt(context.apiVersion) },
+        "API" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("API(version: INT): NULL")
+            val version = arguments[0]
+            if (version !is FluoriteInt) throw FluoriteException("API version must be an integer, got $version".toFluoriteString())
+            if (version.value != context.apiVersion) throw FluoriteException("Script requires API version ${version.value}, but the environment API version is ${context.apiVersion}".toFluoriteString())
+            FluoriteNull
+        },
         *run {
             val versionMatchResult by lazy {
                 val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""

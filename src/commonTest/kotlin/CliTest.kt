@@ -1064,7 +1064,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
@@ -1695,6 +1695,112 @@ class CliTest {
         assertFailsWith<ShowVersion> {
             parseArguments(listOf("--version"), TestIoContext())
         }
+    }
+
+    @Test
+    fun apiVersionOptionIsParsed() = runTest {
+        // -A オプションで API バージョンが指定される
+        val options = parseArguments(listOf("-A", "7", "-e", "1"), TestIoContext())
+        assertEquals(7, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionOptionRequiresValue() = runTest {
+        // -A オプションは値を伴わなければエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionOptionRejectsNonInteger() = runTest {
+        // -A オプションに整数でない値を指定するとエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A", "abc", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionDuplicateOptionThrows() = runTest {
+        // -A を重複して指定するとエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A", "5", "-A", "6", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionDefaultsToMajorVersion() = runTest {
+        // -A 無指定のとき API_VERSION はメジャーバージョン（床）になる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionDefaultsToProvidedVersionWhenVersionUnset() = runTest {
+        // XARPITE_VERSION が無くても、デフォルトの API_VERSION は提供バージョンになる
+        val context = TestIoContext(env = emptyMap())
+        val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionOptionAcceptsProvidedVersion() = runTest {
+        // -A で提供バージョンを指定すると API_VERSION に反映される
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionUnsupportedOptionFailsBeforeExecution() = runTest {
+        // -A で提供していないバージョンを指定すると、スクリプトの実行前にエラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "48", "-q", "-e", "OUT << \"executed\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("48"))
+    }
+
+    @Test
+    fun apiAssertionPassesOnExactMatch() = runTest {
+        // API バージョンが厳密一致するとき API は素通りする
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "API(4)\nOUT << \"ok\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiAssertionFailsOnMismatch() = runTest {
+        // API バージョンが厳密一致しないとき API はエラーをスローする
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(6)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
+    @Test
+    fun apiAssertionRejectsNonIntegerVersion() = runTest {
+        // API に整数でない値を渡すと型エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.5)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
+    }
+
+    @Test
+    fun apiAssertionRejectsDoubleVersion() = runTest {
+        // API に提供バージョンと等しい値でも小数（DOUBLE）を渡すと型エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.0)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
     }
 
     // EXEC/BASHテスト用のヘルパー関数
@@ -2608,6 +2714,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = true,
+            apiVersion = null,
             scriptFile = null,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
@@ -2636,6 +2743,7 @@ class CliTest {
             arguments = emptyList(),
             quiet = false,
             verbose = false,
+            apiVersion = null,
             scriptFile = null,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)

@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -92,6 +93,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -253,6 +255,33 @@ $ xa -q '
 厳密には、このオプションはソースコード全体を文（runner）コンテキストとして解釈することを指定するオプションです。
 
 このため末尾式の部分に変数宣言文などの文が書けるようになります。
+
+## APIバージョン
+
+Xarpiteには、Xarpite自身のバージョンとは別に、APIバージョンという概念があります。
+
+APIバージョンは文法や組み込みマウント等の動作に影響を与え、ランタイム全体に対して適用されます。
+
+スクリプトが想定するAPIバージョンとランタイムのAPIバージョンが完全に一致しない限り、動作は保証されません。
+
+### `-A`: APIバージョンの指定
+
+`-A <apiversion>`
+
+ランタイムのAPIバージョンを指定します。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+`-A` オプションを指定しない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
+
+---
+
+ランタイムが提供していないAPIバージョンを指定した場合、スクリプトの実行前にエラーとなります。
 
 ## スクリプトの指定
 
@@ -481,6 +510,39 @@ $ xa 'MAJOR ?= INT'
 ```
 
 バージョン番号を取得できない場合や、 `メジャー.マイナー.パッチ` の数値形式で解釈できない場合は、参照時にエラーが発生します。
+
+### `API_VERSION`: APIバージョンを取得
+
+`API_VERSION: INT`
+
+現在のランタイムのAPIバージョンが整数で格納されています。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: APIバージョンのチェック
+
+`API(apiVersion: INT): NULL`
+
+現在のランタイムのAPIバージョンが `apiVersion` と厳密に一致しない場合、エラーをスローします。
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
 
