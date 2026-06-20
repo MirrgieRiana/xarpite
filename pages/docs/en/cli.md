@@ -384,8 +384,8 @@ If the first line of the script begins with `#!`, it is ignored along with its t
 ```shell
 $ {
   touch script.xa1
-  printf '%s\n' '#!/usr/bin/env -S xarpite -E' >> script.xa1
-  printf '%s' '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
   chmod +x script.xa1
 
   ./script.xa1
