@@ -152,6 +152,7 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
 }
 
 private fun resolveScriptLocation(baseLocation: String, reference: String): String {
+
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         if (isUrl(baseLocation)) {
