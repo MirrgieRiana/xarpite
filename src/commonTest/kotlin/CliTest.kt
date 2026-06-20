@@ -181,15 +181,46 @@ class CliTest {
     }
 
     @Test
-    fun iAlias() = runTest {
+    fun inl() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は1行ずつのストリーム
     }
 
     @Test
-    fun inlAlias() = runTest {
+    fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+        assertEquals("abc,def", cliEval(context, "I").stream()) // I は INL の別名
+    }
+
+    @Test
+    fun inIsLineStreamInApi4() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は INL の別名
+    }
+
+    @Test
+    fun inReadsWholeStringInApi5() = runTest {
+        // APIバージョン5では IN は標準入力全体を1個の文字列として読み取る
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        val result = cliEval(context, "IN", apiVersion = 5)
+        assertTrue(result is FluoriteString)
+        assertEquals("abc\ndef", result.toFluoriteString(null).value)
+    }
+
+    @Test
+    fun inlIsLineStreamInApi5() = runTest {
+        // APIバージョン5でも INL は1行ずつのストリームのまま
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL", apiVersion = 5).stream())
+    }
+
+    @Test
+    fun inWholeStringThroughApiVersionOption() = runTest {
+        // -A 5 を通して IN が標準入力全体の文字列になる
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << IN"), context)
+        cliEvalImpl(context, options)
+        assertEquals("abc\ndef\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -2766,7 +2797,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, apiVersion: Int? = null): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
@@ -2775,6 +2806,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
     }
 }

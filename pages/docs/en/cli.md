@@ -544,16 +544,16 @@ $ xa -A 4 -q '
 #   at -:1:1
 ```
 
-### `IN`, `I`, `INL`: Read Strings Line by Line from Console
+### `INL`, `I`: Read Strings Line by Line from Console
 
-`IN: STREAM<STRING>`
+`INL: STREAM<STRING>`
 
 A stream that reads strings line by line from standard input.
 
-`I` and `INL` are aliases for `IN`.
+`I` is an alias for `INL`.
 
 ```shell
-$ { echo 123; echo 456; } | xa 'IN'
+$ { echo 123; echo 456; } | xa 'INL'
 # 123
 # 456
 ```
@@ -563,7 +563,7 @@ $ { echo 123; echo 456; } | xa 'IN'
 Because streams are sequential, even very large iterations can be performed with low memory consumption.
 
 ```shell
-$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
+$ xa '1 .. 10000 | "#" * 10000' | xa 'INL | $#_ >> SUM'
 # 100000000
 ```
 
@@ -576,16 +576,32 @@ $ {
   echo 123
   echo 456
 } | xa -q '
-  OUT << "1: $(FIRST(IN))"
-  OUT << "2: $(FIRST(IN))"
+  OUT << "1: $(FIRST(INL))"
+  OUT << "2: $(FIRST(INL))"
 '
 # 1: 123
 # 2: 456
 ```
 
+### `IN`: Read a String from Console
+
+On API version 5 or later, `IN` reads the entire standard input as a single string.
+
+`IN: STRING`
+
+```shell
+$ { echo 123; echo 456; } | xa -A 5 -q 'OUT << "[$(IN)]"'
+# [123
+# 456]
+```
+
 ---
 
-If `IN` is used even once, `INB` cannot be used.
+On API version 4, `IN` is an alias for `INL`.
+
+---
+
+If any of `IN`, `I`, or `INL` is used even once, `INB` cannot be used.
 
 ### `INB`: Read Byte Data from Console
 
