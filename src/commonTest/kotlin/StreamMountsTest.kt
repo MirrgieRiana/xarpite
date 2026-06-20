@@ -224,6 +224,7 @@ class StreamMountsTest {
         assertEquals(301, eval("COUNT(GET(0 .. 300; 10, 20, 30))").int) // 添字が上限を超えてもストリーム性は保たれ添字の個数だけ出力される
         assertEquals(FluoriteNull, eval("LAST(GET(0 .. 300; 10, 20, 30))")) // 上限を超えた添字ストリームでも末尾の範囲外は NULL になる
         assertEquals("NULL,NULL,NULL", eval("TAKE(3; GET(0 .. 300; ,))").stream()) // 上限超過かつ値が空ストリームでもすべて NULL になる
+        assertEquals("10,NULL", eval("TAKE(2; GET(0 .. 300; 10))").stream()) // 上限超過かつ値が非ストリームの場合、位置0だけが対応する
     }
 
     @Test
