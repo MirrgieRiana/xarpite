@@ -103,24 +103,37 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun create(name: String): FluoriteFunction {
-                return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
-                    val file = arguments[0].toFluoriteString(null).value
-                    val fileSystem = getFileSystem().getOrThrow()
-                    FluoriteStream {
-                        fileSystem.read(file.toPath()) { // TODO charset
-                            while (true) {
-                                val line = readUtf8Line() ?: break
-                                emit(line.toFluoriteString())
-                            }
+            fun readLineStream(file: String): FluoriteStream {
+                val fileSystem = getFileSystem().getOrThrow()
+                return FluoriteStream {
+                    fileSystem.read(file.toPath()) { // TODO charset
+                        while (true) {
+                            val line = readUtf8Line() ?: break
+                            emit(line.toFluoriteString())
                         }
                     }
                 }
             }
             arrayOf(
-                "READ" define create("READ"),
-                "READL" define create("READL"),
+                "READ" define FluoriteFunction.immediate { arguments ->
+                    if (context.apiVersion >= 5) {
+                        if (arguments.size != 1) usage("READ(file: STRING): STRING")
+                        val file = arguments[0].toFluoriteString(null).value
+                        val fileSystem = getFileSystem().getOrThrow()
+                        fileSystem.read(file.toPath()) { // TODO charset
+                            readUtf8()
+                        }.toFluoriteString()
+                    } else {
+                        if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
+                        val file = arguments[0].toFluoriteString(null).value
+                        readLineStream(file)
+                    }
+                },
+                "READL" define FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("READL(file: STRING): STREAM<STRING>")
+                    val file = arguments[0].toFluoriteString(null).value
+                    readLineStream(file)
+                },
             )
         },
         "READB" define FluoriteFunction.immediate { arguments ->

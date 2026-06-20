@@ -790,21 +790,41 @@ $ {
 # tmp/dir1/file1.txt
 ```
 
-### `READ` / `READL`: テキストファイルから読み込み
+### `READ`: テキストファイルから読み込み
 
-`READ(file: STRING): STREAM<STRING>`
+`READ(file: STRING): STRING`
 
-`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
+`file` で指定されたテキストファイルの内容を、UTF-8でデコードした文字列全体として読み取ります。
 
-`READL` は `READ` の別名であり、同一の動作を持ちます。
+末尾の改行の調整は行われません。
 
-改行コードは除去されます。
+```shell
+$ {
+  printf 'apple\nbanana' > tmp.txt
+  xa -A 5 'READ("tmp.txt")'
+  rm tmp.txt
+}
+# apple
+# banana
+```
+
+---
+
+APIバージョン4では、 `READ` は `READL` と同一の動作を持ち、テキストファイルの内容を1行ずつのストリームとして読み取ります。
+
+### `READL`: テキストファイルから行単位で読み込み
+
+`READL(file: STRING): STREAM<STRING>`
+
+`file` で指定されたテキストファイルの内容を、UTF-8でデコードして1行ずつのストリームとして読み取ります。
+
+改行コードは除去され、末尾の改行の有無は区別されません。
 
 ```shell
 $ {
   echo "apple" > tmp.txt
   echo "banana" >> tmp.txt
-  xa 'READ("tmp.txt")'
+  xa 'READL("tmp.txt")'
   rm tmp.txt
 }
 # apple
