@@ -705,26 +705,26 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 
 `FILES(dir: STRING): STREAM<STRING>`
 
-`dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+`dir` で指定されたディレクトリ直下のファイルのストリームを取得します。
 
-`FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
+`FILES` は、APIバージョン5では `dir` を先頭に含むパスを返し、APIバージョン4ではファイル名のみを返します。
 
-ファイル名にはディレクトリのパスは含まれません。
+`FILE_NAMES` は、APIバージョンに依らず、常にファイル名のみを返します。
 
 返されるファイルには `.` や `..` は含まれず、ディレクトリやその他の特殊なファイルは含まれます。
 
-返されるファイル名は辞書順にソートされます。
+返されるファイルは辞書順にソートされます。
 
 ```shell
 $ {
   mkdir tmp
   touch tmp/file.txt
   mkdir tmp/dir
-  xa 'FILES("tmp")'
+  xa -A 5 'FILES("tmp")'
   rm -r tmp
 }
-# dir
-# file.txt
+# tmp/dir
+# tmp/file.txt
 ```
 
 ### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
