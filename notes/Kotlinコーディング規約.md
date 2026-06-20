@@ -29,6 +29,10 @@
 
 早期 return には elvis 演算子を好みます（`getOrNull(…) ?: return …`）。
 
+コレクションの包含や範囲の判定は中置の `in`/`!in` で書きます（`keyString in entries`、`arguments.size !in 1..2` など。`!in` は7件です）。`.containsKey()` や `.contains()` でのコレクション判定は使いません（`.containsKey()` は0件です）。
+
+関数をまたぐ大域脱出の合図には、引数を取らないシングルトンの `object … : Throwable()`（`ShowUsage`・`ShowVersion`・`IterationAborted` の3個）を新設して `throw` で投げ、受け手は `catch (_: IterationAborted)` のように例外値を `_` で捨てて捕えます（無名捕捉は5件です）。汎用エラーを既存の例外クラスに投げ分けるの（後述）とは別系統で、こちらは制御フローの合図に用います。
+
 途中の文字列変換は `String` の拡張関数として定義し、`.a().b().c()` とメソッドチェーンで一列に流します。引数渡しの入れ子呼び出しにはしません。
 
 ## レイアウトと改行
