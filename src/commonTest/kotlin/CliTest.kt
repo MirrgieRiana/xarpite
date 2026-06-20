@@ -1080,6 +1080,13 @@ class CliTest {
     }
 
     @Test
+    fun xaRejectsRelativeLocationWhenCallerLocationHasNoParent() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションに親ディレクトリが無い場合、相対 location はエラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "/")""") }
+    }
+
+    @Test
     fun xaRejectsUnknownNamedArgument() = runTest {
         val context = TestIoContext()
         // location 以外の名前付き引数は使用法エラーになる

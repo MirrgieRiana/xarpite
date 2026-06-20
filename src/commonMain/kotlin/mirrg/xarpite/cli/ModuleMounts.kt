@@ -156,7 +156,8 @@ private fun resolveScriptLocation(baseLocation: String, reference: String): Stri
     return if (isUrl(reference)) {
         reference
     } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-        baseLocation.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
+        val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+        parentPath.resolve(reference).normalized().toString()
     } else {
         throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
     }
