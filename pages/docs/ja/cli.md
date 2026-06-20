@@ -1048,20 +1048,18 @@ $ xa 'XA("8 * 100 + 77")'
 
 `location` 引数は、 `script` のロケーションに使われます。
 
-`location` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
-
-```shell
-$ cd /usr/local/bin && xa 'XA("LOCATION")'
-# /usr/local/bin/-
-```
-
 `location` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
 
 相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
 
+`location` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+
 ```shell
 $ cd /usr/local/bin && xa 'XA("LOCATION"; location: "./fruit.xa1")'
 # /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
 ```
 
 ### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
