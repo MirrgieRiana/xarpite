@@ -51,13 +51,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             if (arguments3.isNotEmpty()) usage()
 
             val reference = locationArgument?.toFluoriteString(null)?.value ?: "./-"
-            val scriptLocation = if (isUrl(reference)) {
-                reference
-            } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-                location.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
-            } else {
-                throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
-            }
+            val scriptLocation = resolveScriptLocation(location, reference)
 
             val evaluator = Evaluator()
             evaluator.defineMounts(mountsFactory(scriptLocation))
@@ -156,4 +150,14 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
         fail("Module file not found in INC paths: $reference")
     }
 
+}
+
+private fun resolveScriptLocation(baseLocation: String, reference: String): String {
+    return if (isUrl(reference)) {
+        reference
+    } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        baseLocation.toPath().parent?.resolve(reference)?.normalized()?.toString() ?: reference
+    } else {
+        throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
+    }
 }
