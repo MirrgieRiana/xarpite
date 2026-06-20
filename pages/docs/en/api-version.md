@@ -32,7 +32,11 @@ Breaking changes include, for example, the following.
 
 ## Handling the API Version in Scripts
 
-The API version of the runtime is specified with the `-A` option. When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version. For details on `-A`, see the Command Line Tool page.
+The API version of the runtime is specified with the `-A` option.
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+
+For details on `-A`, see the Command Line Tool page.
 
 ---
 
@@ -73,7 +77,11 @@ The check by `API()` is performed not as "greater than or equal to the specified
 
 This is because breaking changes can break compatibility both forward and backward.
 
-For example, suppose function F1 is removed in API version 5, and function F2 is removed in API version 6. In that case, running a script that assumes API version 5 in an API version 6 environment will not work correctly, because F2 no longer exists. Conversely, running a script that assumes API version 6 in an API version 5 environment will diverge from the assumed behavior.
+For example, suppose function F1 is removed in API version 5, and function F2 is removed in API version 6.
+
+In that case, running a script that assumes API version 5 in an API version 6 environment will not work correctly, because F2 no longer exists.
+
+Conversely, running a script that assumes API version 6 in an API version 5 environment will diverge from the assumed behavior.
 
 Therefore, declaring "this exact generation is assumed" with an exact match is the only safe approach.
 
@@ -83,7 +91,9 @@ Breaking changes are introduced in a form that can be opted into via the API ver
 
 The documentation for a feature affected by a breaking change describes how its behavior changes depending on the API version.
 
-In addition, a migration guide is provided as guidance for migrating scripts across generations. The migration guide explains how to rewrite existing notations, calls, and idioms toward a new generation.
+In addition, a migration guide is provided as guidance for migrating scripts across generations.
+
+The migration guide explains how to rewrite existing notations, calls, and idioms toward a new generation.
 
 ## Current Status
 
