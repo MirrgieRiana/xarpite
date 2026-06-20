@@ -9,6 +9,7 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.evalEmbedded
 import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.obj
@@ -324,17 +325,17 @@ class XarpiteTest {
 
     @Test
     fun embeddedRootTest() = runTest {
-        assertEquals("abcABC123", eval("abcABC123", embedded = true).string) // 最外部が埋め込み文字列の本体として解釈される
-        assertEquals("123", eval("<%= 100 + 20 + 3 %>", embedded = true).string) // 式の埋め込み
-        assertEquals("<%", eval("<%%", embedded = true).string) // <%% で <% になる
-        assertEquals("\n \n \n", eval("\n \r \r\n", embedded = true).string) // 改行は \n に統一される
-        assertEquals("", eval("", embedded = true).string) // 空のソースは空文字列になる
+        assertEquals("abcABC123", evalEmbedded("abcABC123").string) // 最外部が埋め込み文字列の本体として解釈される
+        assertEquals("123", evalEmbedded("<%= 100 + 20 + 3 %>").string) // 式の埋め込み
+        assertEquals("<%", evalEmbedded("<%%").string) // <%% で <% になる
+        assertEquals("\n \n \n", evalEmbedded("\n \r \r\n").string) // 改行は \n に統一される
+        assertEquals("", evalEmbedded("").string) // 空のソースは空文字列になる
 
-        assertEquals("a", eval("#!/usr/bin/env -S xarpite -E\na", embedded = true).string) // 先頭のシバン行は末尾の改行ごと取り除かれる
-        assertEquals("", eval("#!/usr/bin/env -S xarpite -E\n", embedded = true).string) // 本文が無くてもシバン行を受理する
-        assertEquals("", eval("#!/usr/bin/env -S xarpite -E", embedded = true).string) // 末尾に改行が無くてもシバン行を受理する
-        assertEquals("a", eval("a", embedded = true).string) // シバン行が無くても本文として解釈される
-        assertEquals("a\n#!b", eval("a\n#!b", embedded = true).string) // 先頭以外の #! はリテラルとして扱われる
+        assertEquals("a", evalEmbedded("#!/usr/bin/env -S xarpite -E\na").string) // 先頭のシバン行は末尾の改行ごと取り除かれる
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E\n").string) // 本文が無くてもシバン行を受理する
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E").string) // 末尾に改行が無くてもシバン行を受理する
+        assertEquals("a", evalEmbedded("a").string) // シバン行が無くても本文として解釈される
+        assertEquals("a\n#!b", evalEmbedded("a\n#!b").string) // 先頭以外の #! はリテラルとして扱われる
     }
 
     @Test

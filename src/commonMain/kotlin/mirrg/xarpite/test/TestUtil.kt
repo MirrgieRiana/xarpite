@@ -32,16 +32,25 @@ fun parse(src: String): String {
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext(), embedded: Boolean = false): FluoriteValue {
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         evaluator.defineMounts(context.run { createCommonMounts() })
-        evaluator.get(src, embedded).cache()
+        evaluator.get(src).cache()
     }
 }
 
-suspend fun Evaluator.get(src: String, embedded: Boolean = false) = this.get("test", src, embedded)
+suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        evaluator.defineMounts(context.run { createCommonMounts() })
+        evaluator.getEmbedded(src).cache()
+    }
+}
 
-suspend fun Evaluator.run(src: String, embedded: Boolean = false) = this.run("test", src, embedded)
+suspend fun Evaluator.get(src: String) = this.get("test", src, false)
+
+suspend fun Evaluator.getEmbedded(src: String) = this.get("test", src, true)
+
+suspend fun Evaluator.run(src: String) = this.run("test", src, false)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
 val FluoriteValue.big get() = (this as FluoriteBig).value

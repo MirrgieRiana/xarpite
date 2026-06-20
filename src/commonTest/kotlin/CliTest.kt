@@ -31,6 +31,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.get
+import mirrg.xarpite.test.getEmbedded
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
@@ -1644,7 +1645,7 @@ class CliTest {
     fun embeddedOptionInterpretsEntireScriptAsEmbeddedString() = runTest {
         // -E モードではスクリプト全体が埋め込み文字列の本体として解釈される
         val context = TestIoContext()
-        assertEquals("<h1>123</h1>", cliEval(context, "<h1><%= 100 + 20 + 3 %></h1>", embedded = true).toFluoriteString(null).value)
+        assertEquals("<h1>123</h1>", cliEvalEmbedded(context, "<h1><%= 100 + 20 + 3 %></h1>").toFluoriteString(null).value)
     }
 
     @Test
@@ -1660,7 +1661,7 @@ class CliTest {
         // -E はスクリプト全体のみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
         assertEquals(
             "result: 123",
-            cliEval(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""", embedded = true).toFluoriteString(null).value,
+            cliEvalEmbedded(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""").toFluoriteString(null).value,
         )
         fileSystem.deleteRecursively(dir)
     }
@@ -2830,7 +2831,7 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, embedded: Boolean = false): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
         context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
@@ -2839,7 +2840,20 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
-        evaluator.get(src, embedded).cache()
+        evaluator.get(src).cache()
+    }
+}
+
+private suspend fun CoroutineScope.cliEvalEmbedded(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        context.addDefaultIncPaths()
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("-"))
+        evaluator.getEmbedded(src).cache()
     }
 }
 
