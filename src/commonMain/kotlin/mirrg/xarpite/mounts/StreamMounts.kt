@@ -1,6 +1,5 @@
 package mirrg.xarpite.mounts
 
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -26,6 +25,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFlow
@@ -456,45 +456,29 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             val indices = arguments[0]
             val stream = arguments[1]
             if (indices is FluoriteStream) {
-                val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
-                val producerScope = context.daemonScope + stackTrace
                 FluoriteStream {
-                    // 添字を逐次バッファに溜め、要素数が256を超えたら最も古い添字を先に消費する
-                    // これにより、添字ストリームが無限であってもハングせずに処理できる
+                    // 添字を逐次バッファに溜める。要素数が256を超えたら添字ストリームを無限とみなして、最も古い添字から消費する
                     val indexBuffer = ArrayDeque<Int>()
-                    var valueChannel: ReceiveChannel<FluoriteValue>? = null
-                    val valueCache = mutableListOf<FluoriteValue>() // 添字ストリーム終了前は、未来の添字が不明なため全要素を保持する
-                    var readCount = 0 // 値ストリームから読み取った要素数
-                    var valueStreamEnded = false
-
-                    // 値ストリームを指定位置まで読み進めて、その位置の要素を返す（範囲外なら NULL）。読んだ要素はすべて valueCache に蓄える
-                    suspend fun readAhead(index: Int): FluoriteValue {
-                        val channel = valueChannel ?: stream.toFlow().produceIn(producerScope).also { valueChannel = it }
-                        while (!valueStreamEnded && readCount <= index) {
-                            val item = channel.receiveCatching().getOrNull()
-                            if (item == null) {
-                                valueStreamEnded = true
-                            } else {
-                                valueCache += item
-                                readCount++
-                            }
-                        }
-                        return if (index < valueCache.size) valueCache[index] else FluoriteNull
-                    }
+                    var valueCache: MutableList<FluoriteValue>? = null
 
                     indices.collect { element ->
                         val index = element.toFluoriteNumber(null).roundToInt()
                         if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
                         indexBuffer.addLast(index)
                         if (indexBuffer.size > 256) {
-                            emit(readAhead(indexBuffer.removeFirst()))
+                            // 以降は未来にどの位置が参照されるか不明なので、初回だけ値ストリームを丸ごとキャッシュし、最も古い添字を消費する
+                            val cache = valueCache ?: run {
+                                val list = stream.consumeToMutableList()
+                                valueCache = list
+                                list
+                            }
+                            emit(cache.getOrNull(indexBuffer.removeFirst()) ?: FluoriteNull)
                         }
                     }
 
-                    // 添字ストリームが終了したので、バッファに残った添字を順に消費する
-                    val channel = valueChannel
-                    if (channel == null) {
-                        // 先読み消費が一度も起きていない（添字ストリームの要素数が256以下）ので、必要なインデックスまで値ストリームを最小限読む
+                    val cache = valueCache
+                    if (cache == null) {
+                        // 添字ストリームが上限以下に収まったので、最大のインデックスまで値ストリームを最小限読み、必要な位置だけ疎な Map に保持する
                         val targetIndices = indexBuffer.toSet()
                         val maxIndex = targetIndices.maxOrNull() ?: -1
                         val values = mutableMapOf<Int, FluoriteValue>()
@@ -514,30 +498,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             emit(values[index] ?: FluoriteNull)
                         }
                     } else {
-                        // 先読みで一部の要素を読み終えている。全要素キャッシュを、バッファに残る添字の位置だけのスロットマップに圧縮する
-                        // 参照されない位置は捨て、参照されるが未取得の位置には空のスロット（null）を割り当ててメモリを最小化する
-                        try {
-                            val slots = mutableMapOf<Int, FluoriteValue?>()
-                            indexBuffer.forEach { index ->
-                                if (index !in slots) slots[index] = if (index < valueCache.size) valueCache[index] else null
-                            }
-                            valueCache.clear()
-                            indexBuffer.forEach { index ->
-                                if (slots[index] == null) {
-                                    while (!valueStreamEnded && readCount <= index) {
-                                        val item = channel.receiveCatching().getOrNull()
-                                        if (item == null) {
-                                            valueStreamEnded = true
-                                        } else {
-                                            if (readCount in slots) slots[readCount] = item // 途中で踏んだ空スロットに要素を蓄える
-                                            readCount++
-                                        }
-                                    }
-                                }
-                                emit(slots[index] ?: FluoriteNull)
-                            }
-                        } finally {
-                            channel.cancel()
+                        // 値ストリームはキャッシュ済みなので、バッファに残った添字を順に消費する
+                        indexBuffer.forEach { index ->
+                            emit(cache.getOrNull(index) ?: FluoriteNull)
                         }
                     }
                 }
