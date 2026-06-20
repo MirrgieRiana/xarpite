@@ -168,5 +168,5 @@ private fun resolveScriptLocation(baseLocation: String, reference: String): Stri
         return reference
     }
 
-    throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
+    throw FluoriteException("Location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
 }
