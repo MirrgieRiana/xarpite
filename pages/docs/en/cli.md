@@ -1152,6 +1152,37 @@ $ {
 # Apple
 ```
 
+### `XA`: Execute Xarpite Script
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+Returns the result of evaluating the Xarpite script given by `script`.
+
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` Argument
+
+The `reference` argument is used as the location of `script`.
+
+`reference` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from the location of the script that called the `XA` function.
+
+If `reference` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`

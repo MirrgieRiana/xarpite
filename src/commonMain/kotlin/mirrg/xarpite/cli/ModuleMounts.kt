@@ -17,6 +17,7 @@ import mirrg.xarpite.isUrl
 import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
@@ -37,6 +38,22 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                     evaluator.get(moduleLocation, src, false).cache()
                 }
             }
+        },
+        "XA" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("XA(script: STRING[; reference: reference: STRING]): VALUE")
+
+            val (entries, arguments2) = arguments.toList().partitionIfEntry()
+            val referenceArgument = entries.remove("reference")
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+            if (entries.isNotEmpty()) usage()
+            if (arguments2.isNotEmpty()) usage()
+
+            val reference = referenceArgument?.toFluoriteString(null)?.value ?: "./-"
+            val scriptLocation = resolveScriptLocation(location, reference)
+
+            val evaluator = Evaluator()
+            evaluator.defineMounts(mountsFactory(scriptLocation))
+            evaluator.get(scriptLocation, script)
         },
     ).let { listOf(it) }
 }
@@ -131,4 +148,24 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
         fail("Module file not found in INC paths: $reference")
     }
 
+}
+
+private fun resolveScriptLocation(baseLocation: String, reference: String): String {
+
+    // ファイルパス
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        if (isUrl(baseLocation)) {
+            return URLBuilder(baseLocation).takeFrom(reference).buildString()
+        } else {
+            val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+            return parentPath.resolve(reference).normalized().toString()
+        }
+    }
+
+    // URL
+    if (isUrl(reference)) {
+        return reference
+    }
+
+    throw FluoriteException("Location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
 }
