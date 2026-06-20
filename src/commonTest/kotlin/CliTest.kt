@@ -31,6 +31,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.get
+import mirrg.xarpite.test.getEmbedded
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
@@ -1064,7 +1065,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null, embedded = false)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
@@ -1618,6 +1619,85 @@ class CliTest {
         }
 
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun embeddedOptionSetsFlag() = runTest {
+        // -E オプションを指定すると embedded フラグが true になる
+        val options = parseArguments(listOf("-E", "-e", "%>x<%"), TestIoContext())
+        assertEquals("%>x<%", options.src)
+        assertEquals(true, options.embedded)
+
+        // -E を指定しなければ embedded フラグは false である
+        val nonEmbeddedOptions = parseArguments(listOf("-e", "%>x<%"), TestIoContext())
+        assertEquals(false, nonEmbeddedOptions.embedded)
+    }
+
+    @Test
+    fun embeddedOptionCannotBeSpecifiedTwice() = runTest {
+        // -E を2回指定するとエラーになる
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-E", "-E", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun embeddedOptionInterpretsEntireScriptAsEmbeddedString() = runTest {
+        // -E モードではスクリプト全体が埋め込み文字列の本体として解釈される
+        val context = TestIoContext()
+        assertEquals("<h1>123</h1>", cliEvalEmbedded(context, "<h1><%= 100 + 20 + 3 %></h1>").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun embeddedOptionDoesNotAffectModules() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val context = TestIoContext()
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("embedded.module.tmp")
+        fileSystem.createDirectories(dir)
+        val module = dir.resolve("value.xa1")
+        fileSystem.write(module) { writeUtf8("100 + 20 + 3") }
+        // -E はスクリプト全体のみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
+        assertEquals(
+            "result: 123",
+            cliEvalEmbedded(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""").toFluoriteString(null).value,
+        )
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun embeddedOptionWithQuietProducesNoOutput() = runTest {
+        // -q と -E を併用すると、スクリプト全体は runner として解釈されるため、埋め込み文字列の本体は出力されない
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun embeddedOptionOutputsResultWithoutAddingNewline() = runTest {
+        // -E の非 -q 出力では、戻り値の文字列を末尾に改行を足さずそのまま出力する
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("<h1>123</h1>", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -2716,6 +2796,7 @@ class CliTest {
             verbose = true,
             apiVersion = null,
             scriptFile = null,
+            embedded = false,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
 
@@ -2745,6 +2826,7 @@ class CliTest {
             verbose = false,
             apiVersion = null,
             scriptFile = null,
+            embedded = false,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
 
@@ -2776,6 +2858,19 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
         }
         evaluator.defineMounts(mountsFactory("-"))
         evaluator.get(src).cache()
+    }
+}
+
+private suspend fun CoroutineScope.cliEvalEmbedded(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        context.addDefaultIncPaths()
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("-"))
+        evaluator.getEmbedded(src).cache()
     }
 }
 

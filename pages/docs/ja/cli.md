@@ -50,6 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -99,6 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -368,6 +370,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
+
+## 埋め込み文字列リテラルとしての解釈
+
+### `-E`: スクリプト全体を埋め込み文字列リテラルとして解釈
+
+`-E` オプションを指定すると、エントリポイントであるスクリプト全体を埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
+
+これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
+
+スクリプトの先頭行が `#!` で開始する場合は、末尾の改行ごと無視されます。
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## その他のコマンド
 

@@ -50,6 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -99,6 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -368,6 +370,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
+
+## Interpretation as an Embedded String Literal
+
+### `-E`: Interpret the Entire Script as an Embedded String Literal
+
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## Other Commands
 
