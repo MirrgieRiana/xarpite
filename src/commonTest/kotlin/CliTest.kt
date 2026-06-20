@@ -1073,6 +1073,16 @@ class CliTest {
     }
 
     @Test
+    fun xaResolvesExplicitRelativeLocationFromUrlCallerLocation() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションが URL の場合、相対 location は URL として解決される
+        assertEquals(
+            "https://example.com/dir/./foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "https://example.com/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
     fun xaRejectsBareRelativeLocation() = runTest {
         val context = TestIoContext()
         // ./ の付かない裸の相対パスは禁止される

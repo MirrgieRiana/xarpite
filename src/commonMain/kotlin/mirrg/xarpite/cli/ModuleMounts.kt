@@ -153,12 +153,20 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
 }
 
 private fun resolveScriptLocation(baseLocation: String, reference: String): String {
-    return if (isUrl(reference)) {
-        reference
-    } else if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
-        val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
-        parentPath.resolve(reference).normalized().toString()
-    } else {
-        throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
+    // ファイルパス
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        if (isUrl(baseLocation)) {
+            return URLBuilder(baseLocation).takeFrom(reference).buildString()
+        } else {
+            val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+            return parentPath.resolve(reference).normalized().toString()
+        }
     }
+
+    // URL
+    if (isUrl(reference)) {
+        return reference
+    }
+
+    throw FluoriteException("XA location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
 }
