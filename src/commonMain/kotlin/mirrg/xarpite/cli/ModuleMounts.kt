@@ -41,14 +41,13 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
         },
         "XA" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("XA(script: STRING[; location: location: STRING]): VALUE")
-            val arguments2 = arguments.toMutableList()
 
-            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
-
-            val (entries, arguments3) = arguments2.partitionIfEntry()
+            val (entries, arguments2) = arguments.toList().partitionIfEntry()
             val locationArgument = entries.remove("location")
             if (entries.isNotEmpty()) usage()
-            if (arguments3.isNotEmpty()) usage()
+
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+            if (arguments2.isNotEmpty()) usage()
 
             val reference = locationArgument?.toFluoriteString(null)?.value ?: "./-"
             val scriptLocation = resolveScriptLocation(location, reference)

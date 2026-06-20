@@ -1083,6 +1083,13 @@ class CliTest {
     }
 
     @Test
+    fun xaAcceptsLocationBeforeScript() = runTest {
+        val context = TestIoContext()
+        // シグネチャの順序に反して location を script より前に渡しても受領される
+        assertEquals("/caller/dir/mod.xa1", cliEval(context, """XA(location: "/caller/dir/mod.xa1"; "LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
     fun xaRejectsBareRelativeLocation() = runTest {
         val context = TestIoContext()
         // ./ の付かない裸の相対パスは禁止される
