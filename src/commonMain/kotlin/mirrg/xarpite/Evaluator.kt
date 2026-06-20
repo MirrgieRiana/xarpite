@@ -55,9 +55,10 @@ class Evaluator {
     }
 
     suspend fun run(location: String, src: String, embedded: Boolean = false) {
-        val grammar = XarpiteGrammar(location)
-        val rootParser = if (embedded) grammar.rootEmbeddedParser else grammar.rootParser
-        val parseResult = rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+        val parseResult = XarpiteGrammar(location)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)

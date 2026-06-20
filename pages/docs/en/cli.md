@@ -375,7 +375,7 @@ The `-f` option and `-e` option are mutually exclusive and cannot be specified s
 
 ### `-E`: Interpret the Entire Script as an Embedded String Literal
 
-When the `-E` option is specified, it interprets the entire script as the contents of an embedded string literal `%>` `<%`.
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
 
 This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
 
@@ -384,7 +384,7 @@ If the first line of the script begins with `#!`, it is ignored along with its t
 ```shell
 $ {
   touch script.xa1
-  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  printf '%s\n' '#!/usr/bin/env -S xarpite -E' >> script.xa1
   printf '%s' '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
   chmod +x script.xa1
 
@@ -394,10 +394,6 @@ $ {
 }
 # <h1>123</h1>
 ```
-
----
-
-The `-E` option affects only the entry-point script.
 
 ## Other Commands
 
