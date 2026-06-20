@@ -1803,6 +1803,32 @@ class CliTest {
         assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
     }
 
+    @Test
+    fun jsonsFunctionIsAvailableInApiVersion4() = runTest {
+        // APIバージョン4では JSONS を利用できる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << ({a: 1} >> JSONS)"), context)
+        cliEvalImpl(context, options)
+        assertEquals("{\"a\":1}\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun jsonsFunctionIsRemovedInApiVersion5() = runTest {
+        // APIバージョン5では JSONS は削除されており、参照するとエラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-e", "{a: 1} >> JSONS"), context)
+        assertFailsWith<IllegalArgumentException> { cliEvalImpl(context, options) }
+    }
+
+    @Test
+    fun jsonlFunctionRemainsAvailableInApiVersion5() = runTest {
+        // APIバージョン5でも JSONL は引き続き利用できる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << ({a: 1} >> JSONL)"), context)
+        cliEvalImpl(context, options)
+        assertEquals("{\"a\":1}\n", context.stdoutBytes.toUtf8String())
+    }
+
     // EXEC/BASHテスト用のヘルパー関数
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,

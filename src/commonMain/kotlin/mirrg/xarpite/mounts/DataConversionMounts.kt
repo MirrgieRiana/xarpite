@@ -241,10 +241,11 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                             values.toJsonsFluoriteValue(null, indent = indent)
                         }
                     }
-                    arrayOf(
-                        "JSONS" define create("JSONS"),
+                    listOfNotNull(
+                        // JSONS はAPIバージョン5で削除された。同等の機能は JSONL が提供する。
+                        if (context.apiVersion < 5) "JSONS" define create("JSONS") else null,
                         "JSONL" define create("JSONL"),
-                    )
+                    ).toTypedArray()
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {

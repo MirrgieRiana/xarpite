@@ -351,16 +351,16 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
+## `JSONL` / `JSONS` 値のストリームをJSON文字列のストリームに変換
 
-`JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONL([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 `values` の各要素をJSON形式の文字列に変換するストリームを返します。
 
-`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
+`JSONS` は `JSONL` の別名であり、同一の動作を持ちますが、APIバージョン5で削除されました。
 
 ```shell
-$ xa '{a: 1}, {b: 2} >> JSONS'
+$ xa '{a: 1}, {b: 2} >> JSONL'
 # {"a":1}
 # {"b":2}
 ```

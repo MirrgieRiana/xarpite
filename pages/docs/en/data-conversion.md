@@ -351,16 +351,16 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` / `JSONL` Convert Stream of Values to Stream of JSON Strings
+## `JSONL` / `JSONS` Convert Stream of Values to Stream of JSON Strings
 
-`JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONL([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 Returns a stream that converts each element of `values` to a JSON-formatted string.
 
-`JSONL` is an alias of `JSONS` and has the same behavior.
+`JSONS` is an alias of `JSONL` and has the same behavior, but it was removed in API version 5.
 
 ```shell
-$ xa '{a: 1}, {b: 2} >> JSONS'
+$ xa '{a: 1}, {b: 2} >> JSONL'
 # {"a":1}
 # {"b":2}
 ```

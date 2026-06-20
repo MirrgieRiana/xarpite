@@ -200,13 +200,13 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 `string` の末尾に改行がある場合、その改行は1個だけ無視されます。
 
 ```shell
-$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONL'
 # ["A","B","C"]
 
-$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONL'
 # ["A","B","C"]
 
-$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONL'
 # ["A","B","C",""]
 ```
 
@@ -215,10 +215,10 @@ $ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
 空文字列の場合は空ストリーム、1個の改行のみの場合は空文字列1個のストリームを返します。
 
 ```shell
-$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("") >> TO_ARRAY >> JSONL'
 # []
 
-$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONL'
 # [""]
 ```
 

@@ -340,13 +340,13 @@ Line break characters are removed from the resulting lines.
 If `string` ends with a line break, only one trailing line break is ignored.
 
 ```shell
-$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC") >> TO_ARRAY >> JSONL'
 # ["A","B","C"]
 
-$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC\n") >> TO_ARRAY >> JSONL'
 # ["A","B","C"]
 
-$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONL'
 # ["A","B","C",""]
 ```
 
@@ -355,10 +355,10 @@ $ xa 'LINES("A\nB\nC\n\n") >> TO_ARRAY >> JSONS'
 An empty string returns an empty stream, and a string with only one line break returns a stream with one empty string.
 
 ```shell
-$ xa 'LINES("") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("") >> TO_ARRAY >> JSONL'
 # []
 
-$ xa 'LINES("\n") >> TO_ARRAY >> JSONS'
+$ xa 'LINES("\n") >> TO_ARRAY >> JSONL'
 # [""]
 ```
 
