@@ -679,28 +679,21 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
-If `indices` is a non-stream, the return value is also a non-stream. If `indices` is a stream, the return value is a stream.
+If `indices` is a non-stream, the return value is also a non-stream.
 
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
 # 20
 
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
+
 $ xa 'GET(0, 2; 10, 20, 30)'
 # 10
 # 30
 
-$ xa 'GET(1 .. 3; 10, 20, 30, 40, 50)'
-# 20
-# 30
-# 40
-
-$ xa '10, 20, 30, 40, 50 >> GET[1 .. 3]'
-# 20
-# 30
-# 40
-
-$ xa 'GET(5; 10, 20, 30)'
-# NULL
+$ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5] >> TO_ARRAY'
+# [40;10;30;30;NULL]
 ```
 
 ## `FIRST` Get First Element of Stream

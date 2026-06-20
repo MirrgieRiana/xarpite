@@ -166,6 +166,7 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
 
         assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
+        assertFails { eval("GET(-1, 0; 10, 20, 30)") } // 添字ストリームに負のインデックスが混入してもエラーになる
 
         assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになる
         assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できる
