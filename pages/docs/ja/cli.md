@@ -1033,7 +1033,7 @@ $ {
 
 ### `XA`: Xarpiteスクリプトの実行
 
-`XA(script: STRING[; location: location: STRING]): VALUE`
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
 
 `script` で与えられたXarpiteスクリプトを評価した結果を返します。
 
@@ -1044,18 +1044,18 @@ $ xa 'XA("8 * 100 + 77")'
 # 877
 ```
 
-#### `location` 引数
+#### `reference` 引数
 
-`location` 引数は、 `script` のロケーションに使われます。
+`reference` 引数は、 `script` のロケーションに使われます。
 
-`location` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
+`reference` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
 
 相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
 
-`location` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+`reference` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
 
 ```shell
-$ cd /usr/local/bin && xa 'XA("LOCATION"; location: "./fruit.xa1")'
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
 # /usr/local/bin/fruit.xa1
 
 $ cd /usr/local/bin && xa 'XA("LOCATION")'

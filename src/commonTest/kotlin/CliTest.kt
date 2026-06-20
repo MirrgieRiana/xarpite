@@ -1034,79 +1034,79 @@ class CliTest {
     @Test
     fun xaDefaultLocationIsDash() = runTest {
         val context = TestIoContext()
-        // location を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
+        // reference を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
         assertEquals("-", cliEval(context, """XA("LOCATION")""").toFluoriteString(null).value)
     }
 
     @Test
     fun xaResolvesExplicitRelativeLocationFromCallerLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
-        // ./ で始まる location は、PWD ではなく XA を呼び出したスクリプトのロケーションを起点に正規化される
+        // ./ で始まる reference は、PWD ではなく XA を呼び出したスクリプトのロケーションを起点に正規化される
         assertEquals(
             "/caller/dir/foo.xa1",
-            cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
         )
     }
 
     @Test
     fun xaResolvesExplicitParentRelativeLocationFromCallerLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
-        // ../ で始まる location も、XA を呼び出したスクリプトのロケーションを起点に正規化される
+        // ../ で始まる reference も、XA を呼び出したスクリプトのロケーションを起点に正規化される
         assertEquals(
             "/caller/foo.xa1",
-            cliEval(context, """XA(%>XA("LOCATION"; location: "../foo.xa1")<%; location: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "../foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
         )
     }
 
     @Test
     fun xaResolvesExplicitAbsoluteLocation() = runTest {
         val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
-        // 絶対パスの location はそのまま正規化される
-        assertEquals("/other/bar.xa1", cliEval(context, """XA("LOCATION"; location: "/other/baz/../bar.xa1")""").toFluoriteString(null).value)
+        // 絶対パスの reference はそのまま正規化される
+        assertEquals("/other/bar.xa1", cliEval(context, """XA("LOCATION"; reference: "/other/baz/../bar.xa1")""").toFluoriteString(null).value)
     }
 
     @Test
     fun xaAcceptsUrlLocation() = runTest {
         val context = TestIoContext()
-        // URL の location はそのまま使用される
-        assertEquals("https://example.com/foo.xa1", cliEval(context, """XA("LOCATION"; location: "https://example.com/foo.xa1")""").toFluoriteString(null).value)
+        // URL の reference はそのまま使用される
+        assertEquals("https://example.com/foo.xa1", cliEval(context, """XA("LOCATION"; reference: "https://example.com/foo.xa1")""").toFluoriteString(null).value)
     }
 
     @Test
     fun xaResolvesExplicitRelativeLocationFromUrlCallerLocation() = runTest {
         val context = TestIoContext()
-        // 呼び出し元ロケーションが URL の場合、相対 location は URL として解決される
+        // 呼び出し元ロケーションが URL の場合、相対 reference は URL として解決される
         assertEquals(
             "https://example.com/dir/./foo.xa1",
-            cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "https://example.com/dir/mod.xa1")""").toFluoriteString(null).value,
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "https://example.com/dir/mod.xa1")""").toFluoriteString(null).value,
         )
     }
 
     @Test
     fun xaAcceptsLocationBeforeScript() = runTest {
         val context = TestIoContext()
-        // シグネチャの順序に反して location を script より前に渡しても受領される
-        assertEquals("/caller/dir/mod.xa1", cliEval(context, """XA(location: "/caller/dir/mod.xa1"; "LOCATION")""").toFluoriteString(null).value)
+        // シグネチャの順序に反して reference を script より前に渡しても受領される
+        assertEquals("/caller/dir/mod.xa1", cliEval(context, """XA(reference: "/caller/dir/mod.xa1"; "LOCATION")""").toFluoriteString(null).value)
     }
 
     @Test
     fun xaRejectsBareRelativeLocation() = runTest {
         val context = TestIoContext()
         // ./ の付かない裸の相対パスは禁止される
-        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; location: "foo.xa1")""") }
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; reference: "foo.xa1")""") }
     }
 
     @Test
     fun xaRejectsRelativeLocationWhenCallerLocationHasNoParent() = runTest {
         val context = TestIoContext()
-        // 呼び出し元ロケーションに親ディレクトリが無い場合、相対 location はエラーになる
-        assertFailsWith<FluoriteException> { cliEval(context, """XA(%>XA("LOCATION"; location: "./foo.xa1")<%; location: "/")""") }
+        // 呼び出し元ロケーションに親ディレクトリが無い場合、相対 reference はエラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/")""") }
     }
 
     @Test
     fun xaRejectsUnknownNamedArgument() = runTest {
         val context = TestIoContext()
-        // location 以外の名前付き引数は使用法エラーになる
+        // reference 以外の名前付き引数は使用法エラーになる
         assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; foo: "bar")""") }
     }
 
@@ -1123,7 +1123,7 @@ class CliTest {
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
-        // location 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
+        // reference 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
         val dir = "build/test/xa.use.tmp".toPath()
         fileSystem.createDirectories(dir)
         val moduleFile = dir.resolve("module.xa1")
