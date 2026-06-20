@@ -1032,6 +1032,22 @@ class CliTest {
     }
 
     @Test
+    fun xaDoesNotReuseEvaluationResult() = runTest {
+        val context = TestIoContext()
+        // USE と異なり、同じ入力に対しても評価結果は再利用されず、毎回まっさらに評価される
+        val result = cliEval(
+            context,
+            """
+            a := XA(%>{ variables: { fruit: "apple" } }<%)
+            b := XA(%>{ variables: { fruit: "apple" } }<%)
+            a.variables.fruit = "banana"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("apple", result)
+    }
+
+    @Test
     fun xaDefaultLocationIsDash() = runTest {
         val context = TestIoContext()
         // reference を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
