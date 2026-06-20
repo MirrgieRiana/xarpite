@@ -212,7 +212,10 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
                 evaluator.run(location, options.src, options.embedded)
             } else {
                 val result = evaluator.get(location, options.src, options.embedded)
-                if (result is FluoriteStream) {
+                if (options.embedded) {
+                    // embeddedモードでは戻り値の文字列を、末尾に改行を足さずそのまま出力する
+                    context.io.writeBytesToStdout(result.toFluoriteString(null).value.encodeToByteArray())
+                } else if (result is FluoriteStream) {
                     result.collect {
                         println(it.toFluoriteString(null))
                     }

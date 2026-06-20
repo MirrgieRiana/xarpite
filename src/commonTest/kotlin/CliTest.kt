@@ -1684,6 +1684,23 @@ class CliTest {
     }
 
     @Test
+    fun embeddedOptionOutputsResultWithoutAddingNewline() = runTest {
+        // -E の非 -q 出力では、戻り値の文字列を末尾に改行を足さずそのまま出力する
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("<h1>123</h1>", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
     fun fileOptionWithStdinReadsFromStdin() = runTest {
         // -f - オプションで標準入力から読み込む
         val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
