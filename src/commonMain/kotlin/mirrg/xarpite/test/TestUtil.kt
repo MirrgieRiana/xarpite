@@ -41,7 +41,7 @@ suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedI
 
 suspend fun Evaluator.get(src: String, embedded: Boolean = false) = this.get("test", src, embedded)
 
-suspend fun Evaluator.run(src: String) = this.run("test", src)
+suspend fun Evaluator.run(src: String, embedded: Boolean = false) = this.run("test", src, embedded)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
 val FluoriteValue.big get() = (this as FluoriteBig).value

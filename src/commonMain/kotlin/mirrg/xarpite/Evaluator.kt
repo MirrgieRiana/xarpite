@@ -54,7 +54,7 @@ class Evaluator {
         }
     }
 
-    suspend fun run(location: String, src: String, embedded: Boolean = false) {
+    suspend fun run(location: String, src: String, embedded: Boolean) {
         val parseResult = XarpiteGrammar(location)
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
             .parseAll(src) { XarpiteParseContext(it) }
