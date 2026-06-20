@@ -44,6 +44,7 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
@@ -93,6 +94,7 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
@@ -180,6 +182,22 @@ Uses the Xarpite engine running on the JVM.
 
 Uses the Xarpite engine running on Node.js.
 
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+Some runtimes respect this limit.
+
+---
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
+
 ## Return Value Output
 
 In CLI Xarpite, the standard behavior is to output the return value of the entire program to standard output.
@@ -239,6 +257,33 @@ $ xa -q '
 Strictly speaking, this option specifies interpreting the entire source code as a statement (runner) context.
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
+
+## API Version
+
+In addition to Xarpite's own version, Xarpite has a concept called the API version.
+
+The API version affects behavior such as the grammar and built-in mounts, and applies to the entire runtime.
+
+Unless the API version assumed by the script and the API version of the runtime match exactly, behavior is not guaranteed.
+
+### `-A`: Set the API Version
+
+`-A <apiversion>`
+
+Specifies the API version of the runtime.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
@@ -469,7 +514,7 @@ Strings starting with `http://` or `https://` are interpreted as URLs.
 
 When a relative directory path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
+By default, `./.xarpite/lib`, `./.xarpite/maven`, and Maven Central (`https://repo1.maven.org/maven2`) are included.
 
 ---
 
@@ -489,6 +534,56 @@ $ {
   rm -r module-fruits
 }
 # Apple
+```
+
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
+
+### `API_VERSION`: Get the API Version
+
+`API_VERSION: INT`
+
+The API version of the current runtime is stored as an integer.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: Check the API Version
+
+`API(apiVersion: INT): NULL`
+
+If the API version of the current runtime does not exactly match `apiVersion`, an error is thrown.
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
 ```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
@@ -890,7 +985,7 @@ By mounting the return value of the `USE` function directly with `@USE("fruit")`
 
 `reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
 
-As a general rule, modules belonging to paths closer to the beginning of the `INC` array are given priority.
+As a general rule, modules belonging to paths closer to the end of the `INC` array are given priority.
 
 However, `INC` entries that are local file paths are searched before entries that are URLs.
 
@@ -1156,6 +1251,21 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM and Native versions.**
+
+### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command and returns the byte sequence of its standard output as a stream of BLOBs.
+
+There is currently no guarantee regarding the timing between the execution state of the external command and its output.
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Execute Bash scripts
 

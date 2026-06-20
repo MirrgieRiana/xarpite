@@ -93,6 +93,25 @@ class IncUrlKtorTest {
     }
 
     @Test
+    fun mavenCoordinateFromDefaultMavenCentral() = runTest {
+        // デフォルトのINCに含まれるMaven Centralを起点に座標が解決されることを確認
+        val io = createTestIoContext { _, url ->
+            if (url == "https://repo1.maven.org/maven2/com/example/mylib/1.0.0/mylib-1.0.0.xa1") {
+                Result.success("\"Module from Maven Central\"".encodeToByteArray())
+            } else {
+                Result.failure(RuntimeException("Not found: $url"))
+            }
+        }
+
+        // INCへの追加なしで、デフォルトのMaven Centralから座標を解決
+        val result = cliEval(io, """
+            USE("com.example:mylib:1.0.0")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Module from Maven Central", result)
+    }
+
+    @Test
     fun httpUrlWithTrailingSlashNormalization() = runTest {
         withKtorServer { server ->
             // 末尾スラッシュがあるINCパスでもモジュールをロードできることを確認
@@ -139,7 +158,7 @@ class IncUrlKtorTest {
     @Test
     fun urlFallbackOnFetchError() = runTest {
         withKtorServer { server ->
-            // 2番目のサーバーURLにのみモジュールを配置（1番目は存在しないURL）
+            // フォールバック先のサーバーURLにのみモジュールを配置（先に試行されるURLは存在しない）
             server.addRoute("/modules2/mymodule.xa1", "\"Fallback Module\"")
 
             val io = createTestIoContext { _, url ->
@@ -155,10 +174,10 @@ class IncUrlKtorTest {
                 }
             }
 
-            // 最初のURLでは見つからず、2番目のURLにフォールバック
+            // 末尾優先のため後から追加したURLが先に試行され、見つからず、もう一方のURLにフォールバック
             val result = cliEval(io, """
-                INC::push("http://localhost:1/nonexistent")
                 INC::push("${server.baseUrl}/modules2")
+                INC::push("http://localhost:1/nonexistent")
                 USE("mymodule.xa1")
             """.trimIndent()).toFluoriteString(null).value
 
@@ -169,7 +188,7 @@ class IncUrlKtorTest {
     @Test
     fun mavenCoordinateUrlFallback() = runTest {
         withKtorServer { server ->
-            // Maven座標形式でも2番目のURLにフォールバック
+            // Maven座標形式でもフォールバック先のURLにのみモジュールを配置（先に試行されるURLは存在しない）
             server.addRoute("/maven2/com/example/mylib/1.0.0/mylib-1.0.0.xa1", "\"Maven Fallback\"")
 
             val io = createTestIoContext { _, url ->
@@ -186,8 +205,8 @@ class IncUrlKtorTest {
             }
 
             val result = cliEval(io, """
-                INC::push("http://localhost:1/nonexistent")
                 INC::push("${server.baseUrl}/maven2")
+                INC::push("http://localhost:1/nonexistent")
                 USE("com.example:mylib:1.0.0")
             """.trimIndent()).toFluoriteString(null).value
 
@@ -258,7 +277,7 @@ class IncUrlKtorTest {
             override suspend fun readBytesFromStdin(): ByteArray? = null
             override suspend fun writeBytesToStdout(bytes: ByteArray) {}
             override suspend fun writeBytesToStderr(bytes: ByteArray) {}
-            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String {
+            override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray {
                 throw UnsupportedOperationException("executeProcess is not supported in test")
             }
             override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {

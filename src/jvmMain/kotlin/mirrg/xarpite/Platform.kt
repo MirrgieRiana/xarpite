@@ -39,7 +39,7 @@ suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.flush()
 }
 
-suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = coroutineScope {
+suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
@@ -56,9 +56,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
         try {
             // 標準出力を非同期で読み取る
             val outputDeferred = async {
-                BufferedReader(processInstance.inputStream.reader()).use { reader ->
-                    reader.readText()
-                }
+                processInstance.inputStream.use { it.readBytes() }
             }
 
             // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送

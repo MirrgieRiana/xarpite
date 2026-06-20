@@ -667,6 +667,26 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 Other properties follow those of the `AND` function.
 
+## `GET` Get Element by Index
+
+`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+
+Returns the element of `stream` at the index corresponding to `index`.
+
+Indices start from 0.
+
+Throws an error if a negative index is passed.
+
+If the corresponding index does not exist, returns `NULL`.
+
+```shell
+$ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
+```
+
 ## `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
@@ -756,9 +776,9 @@ $ xa '1 .. 9 >> SORT[a, b -> a % 3 <=> b % 3] >> JOIN[" "]'
 
 ### Sort by Key Getter Function
 
-`SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If the first argument is a `by` parameter, applies the `key_getter` function to each element of the second argument, compares the results, and sorts.
+If the first argument is a `by` parameter, applies the `keyGetter` function to each element of the second argument, compares the results, and sorts.
 
 The following example sorts by the remainder when dividing each element by 3.
 
@@ -773,7 +793,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 
 `SORTR(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-`SORTR(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORTR(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Sorts a stream in descending order.
 
@@ -1090,7 +1110,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` Convert Stream of Entries to Object
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 Converts each element of the first argument stream into an object as entries.
 
