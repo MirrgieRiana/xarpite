@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
@@ -454,30 +455,111 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
             val indices = arguments[0]
             val stream = arguments[1]
-            val gotten = FluoriteStream {
-                // 添字をすべて汲み、参照される最大のインデックスまで値ストリームを1パスして要素を拾う
-                val indexList = mutableListOf<Int>()
-                indices.toFlow().collect { indexList += it.toFluoriteNumber(null).roundToInt() }
-                indexList.forEach { if (it < 0) throw FluoriteException("Index must be non-negative".toFluoriteString()) }
+            if (indices is FluoriteStream) {
+                val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
+                val producerScope = context.daemonScope + stackTrace
+                FluoriteStream {
+                    // 添字を逐次バッファに溜め、要素数が256を超えたら最も古い添字を先に消費する
+                    // これにより、添字ストリームが無限であってもハングせずに処理できる
+                    val indexBuffer = ArrayDeque<Int>()
+                    var valueChannel: ReceiveChannel<FluoriteValue>? = null
+                    val valueCache = mutableListOf<FluoriteValue>() // 添字ストリーム終了前は、未来の添字が不明なため全要素を保持する
+                    var readCount = 0 // 値ストリームから読み取った要素数
+                    var valueStreamEnded = false
 
-                val targetIndices = indexList.toSet()
-                val maxIndex = targetIndices.maxOrNull() ?: -1
-                val values = mutableMapOf<Int, FluoriteValue>()
-                if (maxIndex >= 0) {
-                    var position = 0
-                    try {
-                        stream.toFlow().collect { item ->
-                            if (position in targetIndices) values[position] = item
-                            position++
-                            if (position > maxIndex) throw IterationAborted // 必要なインデックスまで読めば先読みせず打ち切る
+                    // 値ストリームを指定位置まで読み進めて、その位置の要素を返す（範囲外なら NULL）。読んだ要素はすべて valueCache に蓄える
+                    suspend fun readAhead(index: Int): FluoriteValue {
+                        val channel = valueChannel ?: stream.toFlow().produceIn(producerScope).also { valueChannel = it }
+                        while (!valueStreamEnded && readCount <= index) {
+                            val item = channel.receiveCatching().getOrNull()
+                            if (item == null) {
+                                valueStreamEnded = true
+                            } else {
+                                valueCache += item
+                                readCount++
+                            }
                         }
-                    } catch (_: IterationAborted) {
+                        return if (index < valueCache.size) valueCache[index] else FluoriteNull
+                    }
 
+                    indices.collect { element ->
+                        val index = element.toFluoriteNumber(null).roundToInt()
+                        if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                        indexBuffer.addLast(index)
+                        if (indexBuffer.size > 256) {
+                            emit(readAhead(indexBuffer.removeFirst()))
+                        }
+                    }
+
+                    // 添字ストリームが終了したので、バッファに残った添字を順に消費する
+                    val channel = valueChannel
+                    if (channel == null) {
+                        // 先読み消費が一度も起きていない（添字ストリームの要素数が256以下）ので、必要なインデックスまで値ストリームを最小限読む
+                        val targetIndices = indexBuffer.toSet()
+                        val maxIndex = targetIndices.maxOrNull() ?: -1
+                        val values = mutableMapOf<Int, FluoriteValue>()
+                        if (maxIndex >= 0) {
+                            var position = 0
+                            try {
+                                stream.toFlow().collect { item ->
+                                    if (position in targetIndices) values[position] = item
+                                    position++
+                                    if (position > maxIndex) throw IterationAborted // 必要なインデックスまで読めば先読みせず打ち切る
+                                }
+                            } catch (_: IterationAborted) {
+
+                            }
+                        }
+                        indexBuffer.forEach { index ->
+                            emit(values[index] ?: FluoriteNull)
+                        }
+                    } else {
+                        // 先読みで一部の要素を読み終えている。全要素キャッシュを、バッファに残る添字の位置だけのスロットマップに圧縮する
+                        // 参照されない位置は捨て、参照されるが未取得の位置には空のスロット（null）を割り当ててメモリを最小化する
+                        try {
+                            val slots = mutableMapOf<Int, FluoriteValue?>()
+                            indexBuffer.forEach { index ->
+                                if (index !in slots) slots[index] = if (index < valueCache.size) valueCache[index] else null
+                            }
+                            valueCache.clear()
+                            indexBuffer.forEach { index ->
+                                if (slots[index] == null) {
+                                    while (!valueStreamEnded && readCount <= index) {
+                                        val item = channel.receiveCatching().getOrNull()
+                                        if (item == null) {
+                                            valueStreamEnded = true
+                                        } else {
+                                            if (readCount in slots) slots[readCount] = item // 途中で踏んだ空スロットに要素を蓄える
+                                            readCount++
+                                        }
+                                    }
+                                }
+                                emit(slots[index] ?: FluoriteNull)
+                            }
+                        } finally {
+                            channel.cancel()
+                        }
                     }
                 }
-                indexList.forEach { emit(values[it] ?: FluoriteNull) }
+            } else {
+                // 添字が非ストリームの場合は、その単一の位置まで値ストリームを最小限読んで要素を返す
+                val index = indices.toFluoriteNumber(null).roundToInt()
+                if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                var result: FluoriteValue = FluoriteNull
+                var position = 0
+                try {
+                    stream.toFlow().collect { item ->
+                        if (position == index) {
+                            result = item
+                            throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切る
+                        }
+                        position++
+                    }
+                } catch (_: IterationAborted) {
+
+                }
+                result
             }
-            if (indices is FluoriteStream) gotten else gotten.toFlow().firstOrNull() ?: FluoriteNull
         },
         "FIRST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {

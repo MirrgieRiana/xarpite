@@ -206,6 +206,11 @@ class StreamMountsTest {
                 GET(-1; nat)
             """)
         } // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングせずエラーになる
+
+        assertEquals("10,20,30,NULL,NULL,NULL", eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            GET(0 .. 5; GET(nat; 10, 20, 30))
+        """).stream()) // 添字ストリームが無限でも、先読みバッファで消費しながらストリームを生成できる
     }
 
     @Test
