@@ -1126,29 +1126,21 @@ $ {
 # Apple
 ```
 
-### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
+### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STRING`
 
 外部コマンドを実行します。
 
-`EXECL` は `EXEC` の別名であり、同一の動作を持ちます。
-
 `command` にはプロセスおよびその引数を1要素ずつ指定します。
 
-戻り値はそのプロセスの標準出力を1行ずつ読み取るストリームです。
+戻り値はそのプロセスの標準出力をUTF-8としてデコードした文字列です。
+
+出力の末尾の改行は取り除かれます。
 
 ```shell
 $ xa 'EXEC("echo", "Hello, World!")'
 # Hello, World!
-```
-
-```shell
-$ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
-# 3
-# 13
-# 23
-# 30
 ```
 
 ---
@@ -1206,9 +1198,25 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 この関数は実験的な機能であり、将来的に仕様が変更される可能性があります。
 
-戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
+戻り値は、プロセスの標準出力を逐次的に読み取るものではなく、プロセスの終了後にその標準出力全体をまとめたものです。
 
 **また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXECL`: 外部コマンドを実行し行ストリームで返す [EXPERIMENTAL]
+
+`EXECL(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
+
+外部コマンドを実行し、その標準出力を1行ずつ読み取るストリームとして返します。
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+```shell
+$ xa 'EXECL("bash", "-c", "seq 1 30 | grep 3")'
+# 3
+# 13
+# 23
+# 30
+```
 
 ### `EXECB`: 外部コマンドを実行しBLOBで返す [EXPERIMENTAL]
 

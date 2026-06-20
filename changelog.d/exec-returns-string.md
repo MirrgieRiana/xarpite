@@ -1,0 +1,1 @@
+!Changed the `EXEC` function to return its standard output as a single `STRING` with the trailing newline removed, instead of a stream of lines; use `EXECL` to obtain the standard output as a stream of lines.

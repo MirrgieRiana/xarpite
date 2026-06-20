@@ -260,6 +260,16 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     transform(output)
                 }
             }
+            fun toStringValue(output: ByteArray): FluoriteString {
+                val text = output.decodeToString()
+                val result = when {
+                    text.endsWith("\r\n") -> text.dropLast(2)
+                    text.endsWith("\r") -> text.dropLast(1)
+                    text.endsWith("\n") -> text.dropLast(1)
+                    else -> text
+                }
+                return result.toFluoriteString()
+            }
             fun toLineStream(output: ByteArray): FluoriteStream {
                 val lines = output.decodeToString().lines()
                 val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
@@ -273,7 +283,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 return listOf(output.asFluoriteBlob()).toFluoriteStream()
             }
             arrayOf(
-                "EXEC" define create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXEC" define create("EXEC", "STRING", ::toStringValue),
                 "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
                 "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
             )
