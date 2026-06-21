@@ -14,4 +14,10 @@ This guide provides a section for each API version, and for each breaking change
 
 ---
 
-There are currently no breaking changes that require rewriting to follow.
+## API Version 5
+
+### `READ`
+
+`READ` now returns the entire file content as a single string instead of a stream of lines.
+
+To read it as a stream of lines, use `READL`.

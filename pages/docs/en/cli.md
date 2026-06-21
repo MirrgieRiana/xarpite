@@ -812,25 +812,13 @@ $ {
 
 ### `READ`: Read from Text File
 
-`READ(file: STRING): STRING`
+`READ(file: STRING): STREAM<STRING>`
 
-Reads the contents of the text file specified by `file` as a whole string decoded as UTF-8.
-
-No adjustment is made to the trailing newline.
-
-```shell
-$ {
-  printf 'apple\nbanana' > tmp.txt
-  xa -A 5 'READ("tmp.txt")'
-  rm tmp.txt
-}
-# apple
-# banana
-```
+Like `READL`, reads the contents of the text file specified by `file` as a stream of lines decoded as UTF-8.
 
 ---
 
-In API version 4, `READ` has the same behavior as `READL`, reading the contents of the text file as a stream of lines.
+In API version 5 and later, `READ` reads the entire file content as a single string decoded as UTF-8, without adjusting the trailing newline.
 
 ### `READL`: Read from Text File Line by Line
 

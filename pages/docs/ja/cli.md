@@ -812,25 +812,13 @@ $ {
 
 ### `READ`: テキストファイルから読み込み
 
-`READ(file: STRING): STRING`
+`READ(file: STRING): STREAM<STRING>`
 
-`file` で指定されたテキストファイルの内容を、UTF-8でデコードした文字列全体として読み取ります。
-
-末尾の改行の調整は行われません。
-
-```shell
-$ {
-  printf 'apple\nbanana' > tmp.txt
-  xa -A 5 'READ("tmp.txt")'
-  rm tmp.txt
-}
-# apple
-# banana
-```
+`file` で指定されたテキストファイルの内容を、 `READL` と同じく、UTF-8でデコードして1行ずつのストリームとして読み取ります。
 
 ---
 
-APIバージョン4では、 `READ` は `READL` と同一の動作を持ち、テキストファイルの内容を1行ずつのストリームとして読み取ります。
+APIバージョン5以降では、 `READ` はファイル全体をUTF-8でデコードした単一の文字列として読み取り、末尾の改行の調整を行いません。
 
 ### `READL`: テキストファイルから行単位で読み込み
 
