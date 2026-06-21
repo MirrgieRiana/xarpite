@@ -260,12 +260,6 @@ Therefore, statements such as variable declaration statements can be written in 
 
 ## API Version
 
-In addition to Xarpite's own version, Xarpite has a concept called the API version.
-
-The API version affects behavior such as the grammar and built-in mounts, and applies to the entire runtime.
-
-Unless the API version assumed by the script and the API version of the runtime match exactly, behavior is not guaranteed.
-
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -537,11 +531,11 @@ $ xa 'MAJOR ?= INT'
 
 If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
 
-### `API_VERSION`: Get the API Version
+### `API_VERSION`: Get the Currently Provided API Version
 
 `API_VERSION: INT`
 
-The API version of the current runtime is stored as an integer.
+The API version currently provided by the runtime is stored as an integer.
 
 ```shell
 $ xa -A 4 'API_VERSION'
