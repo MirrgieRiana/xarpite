@@ -725,26 +725,28 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 
 `FILES(dir: STRING): STREAM<STRING>`
 
-Gets a stream of the files directly under the directory specified by `dir`.
+Gets a stream of filenames directly under the directory specified by `dir`.
 
-In API version 5, `FILES` returns paths that include `dir` at the beginning, while in API version 4 it returns only the filenames.
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
-`FILE_NAMES` always returns only the filenames, regardless of the API version.
+Filenames do not include directory paths.
+
+In API version 5, `FILES` returns paths that include `dir` at the beginning. `FILE_NAMES` continues to return only the filenames.
 
 Returned files do not include `.` or `..`, but do include directories and other special files.
 
-Returned files are sorted in lexicographic order.
+Returned filenames are sorted in lexicographic order.
 
 ```shell
 $ {
   mkdir tmp
   touch tmp/file.txt
   mkdir tmp/dir
-  xa -A 5 'FILES("tmp")'
+  xa 'FILES("tmp")'
   rm -r tmp
 }
-# tmp/dir
-# tmp/file.txt
+# dir
+# file.txt
 ```
 
 ### `TREE`: Get All Files and Directories Under Directory
