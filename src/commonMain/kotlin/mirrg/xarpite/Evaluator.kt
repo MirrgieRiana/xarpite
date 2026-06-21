@@ -15,7 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.operations.Returner
 
-class Evaluator {
+class Evaluator(private val context: RuntimeContext) {
 
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
@@ -26,7 +26,7 @@ class Evaluator {
         val runners = maps.map {
             frame.defineBuiltinMount(it)
         }
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
         currentEnv = env
         runners.forEach {
             it.evaluate(env)
@@ -41,7 +41,7 @@ class Evaluator {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
         currentEnv = env
         return withStackTrace(Position(location, 0)) {
             try {
@@ -62,7 +62,7 @@ class Evaluator {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
         currentEnv = env
         withStackTrace(Position(location, 0)) {
             try {
@@ -84,7 +84,8 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
     try {
         return coroutineScope main@{
             withContext(StackTrace()) {
-                block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
+                val runtimeContext = RuntimeContext(this, daemonScope, ioContext)
+                block(runtimeContext, Evaluator(runtimeContext))
             }
         }
     } finally {

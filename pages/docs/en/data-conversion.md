@@ -307,6 +307,8 @@ $ xa '{a: 1; b: 2} >> JSON'
 # {"a":1,"b":2}
 ```
 
+From API version 5 onward, when `indent` is omitted, an indentation of two spaces is used by default.
+
 ---
 
 If you pass a string to `indent`, that string is used for indentation.
