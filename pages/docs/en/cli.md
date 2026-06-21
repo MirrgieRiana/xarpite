@@ -605,6 +605,10 @@ $ {
 
 ### `IN`: Read a String from Console
 
+`IN` is an alias for `INL`.
+
+---
+
 On API version 5 or later, `IN` reads the entire standard input as a single string.
 
 `IN: STRING`
@@ -614,10 +618,6 @@ $ { echo 123; echo 456; } | xa -A 5 -q 'OUT << "[$(IN)]"'
 # [123
 # 456]
 ```
-
----
-
-On API version 4, `IN` is an alias for `INL`.
 
 ---
 
