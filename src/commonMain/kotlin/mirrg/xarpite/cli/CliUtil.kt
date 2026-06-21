@@ -197,17 +197,23 @@ fun RuntimeContext.addDefaultIncPaths() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        if (options.apiVersion != null) {
+            if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
+                context.io.err("This runtime does not support API version $value")
+                return@withEvaluator
+            }
+            context.apiVersion = options.apiVersion
+        }
         context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
+        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory(location))
         try {
-            if (options.apiVersion != null) context.apiVersion = options.apiVersion
-            val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-            lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
-            mountsFactory = { location ->
-                mounts + context.run { createModuleMounts(location, mountsFactory) }
-            }
-            evaluator.defineMounts(mountsFactory(location))
             if (options.quiet) {
                 evaluator.run(location, options.src, options.embedded)
             } else {
