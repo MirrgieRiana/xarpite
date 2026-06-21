@@ -151,5 +151,28 @@ class StringMountsTest {
         // CHAR_CODED: 範囲外の場合はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODED(-1)") } // 負数はエラー
         assertFailsWith<FluoriteException> { eval("CHAR_CODED(65536)") } // 65536はエラー
+
+        // CHAR_CODES: 文字列からUTF-16コード単位のストリームを返す
+        assertEquals("65,66,67", eval("CHAR_CODES('ABC')").stream()) // 'ABC'のコード列
+        assertEquals("12354,12356", eval("CHAR_CODES('\u3042\u3044')").stream()) // 'あい'のコード列
+        assertEquals("", eval("CHAR_CODES('')").stream()) // 空文字列は空ストリーム
+        // サロゲートペア（U+1F370 🍰）は2つのコード単位（55356, 57200）に分解される
+        assertEquals("55356,57200", eval("CHAR_CODES('\uD83C\uDF70')").stream())
+
+        // CHAR_CODESD: コード単位のストリームから文字列を返す
+        assertEquals("ABC", eval("CHAR_CODESD(65, 66, 67)").string) // コード列から文字列
+        assertEquals("\u3042\u3044", eval("CHAR_CODESD(12354, 12356)").string) // 日本語文字
+        assertEquals("A", eval("CHAR_CODESD(65)").string) // 単一のコード単位
+        // サロゲートペアのコード単位から文字列を返す
+        assertEquals("\uD83C\uDF70", eval("CHAR_CODESD(55356, 57200)").string) // 🍰
+
+        // CHAR_CODESD: 範囲外の場合はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODESD(-1)") } // 負数はエラー
+        assertFailsWith<FluoriteException> { eval("CHAR_CODESD(65536)") } // 65536はエラー
+
+        // CHAR_CODESとCHAR_CODESDは逆変換
+        assertEquals("Hello", eval("'Hello' >> CHAR_CODES >> CHAR_CODESD").string)
+        // サロゲートペアも往復できる
+        assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CHAR_CODES >> CHAR_CODESD").string)
     }
 }

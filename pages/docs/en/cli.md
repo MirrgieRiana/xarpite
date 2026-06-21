@@ -50,6 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -99,6 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -258,12 +260,6 @@ Therefore, statements such as variable declaration statements can be written in 
 
 ## API Version
 
-In addition to Xarpite's own version, Xarpite has a concept called the API version.
-
-The API version affects behavior such as the grammar and built-in mounts, and applies to the entire runtime.
-
-Unless the API version assumed by the script and the API version of the runtime match exactly, behavior is not guaranteed.
-
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -368,6 +364,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
+
+## Interpretation as an Embedded String Literal
+
+### `-E`: Interpret the Entire Script as an Embedded String Literal
+
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## Other Commands
 
@@ -511,11 +531,11 @@ $ xa 'MAJOR ?= INT'
 
 If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
 
-### `API_VERSION`: Get the API Version
+### `API_VERSION`: Get the Currently Provided API Version
 
 `API_VERSION: INT`
 
-The API version of the current runtime is stored as an integer.
+The API version currently provided by the runtime is stored as an integer.
 
 ```shell
 $ xa -A 4 'API_VERSION'
@@ -1140,6 +1160,37 @@ $ {
   rm -r .xarpite
 }
 # Apple
+```
+
+### `XA`: Execute Xarpite Script
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+Returns the result of evaluating the Xarpite script given by `script`.
+
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` Argument
+
+The `reference` argument is used as the location of `script`.
+
+`reference` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from the location of the script that called the `XA` function.
+
+If `reference` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
 ```
 
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]

@@ -31,6 +31,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.get
+import mirrg.xarpite.test.getEmbedded
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
@@ -1082,6 +1083,152 @@ class CliTest {
     }
 
     @Test
+    fun xaEvaluatesScript() = runTest {
+        val context = TestIoContext()
+        // XA は文字列を Xarpite スクリプトとして評価する
+        assertEquals("877", cliEval(context, """XA("8 * 100 + 77")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRequiresAtLeastOneArgument() = runTest {
+        val context = TestIoContext()
+        // 引数が無い場合は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA()""") }
+    }
+
+    @Test
+    fun xaReturnsStreamWithoutResolving() = runTest {
+        val context = TestIoContext()
+        // 戻り値がストリームの場合、USE と異なり解決されずそのまま素通りする
+        assertEquals("1,2,3", cliEval(context, """XA("1, 2, 3")""").stream())
+    }
+
+    @Test
+    fun xaDoesNotReuseEvaluationResult() = runTest {
+        val context = TestIoContext()
+        // USE と異なり、同じ入力に対しても評価結果は再利用されず、毎回まっさらに評価される
+        val result = cliEval(
+            context,
+            """
+            a := XA(%>{ variables: { fruit: "apple" } }<%)
+            b := XA(%>{ variables: { fruit: "apple" } }<%)
+            a.variables.fruit = "banana"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("apple", result)
+    }
+
+    @Test
+    fun xaDefaultLocationIsDash() = runTest {
+        val context = TestIoContext()
+        // reference を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
+        assertEquals("-", cliEval(context, """XA("LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitRelativeLocationFromCallerLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ./ で始まる reference は、PWD ではなく XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/dir/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaResolvesExplicitParentRelativeLocationFromCallerLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ../ で始まる reference も、XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "../foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaResolvesExplicitAbsoluteLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // 絶対パスの reference はそのまま正規化される
+        assertEquals("/other/bar.xa1", cliEval(context, """XA("LOCATION"; reference: "/other/baz/../bar.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaAcceptsUrlLocation() = runTest {
+        val context = TestIoContext()
+        // URL の reference はそのまま使用される
+        assertEquals("https://example.com/foo.xa1", cliEval(context, """XA("LOCATION"; reference: "https://example.com/foo.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitRelativeLocationFromUrlCallerLocation() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションが URL の場合、相対 reference は URL として解決される
+        assertEquals(
+            "https://example.com/dir/./foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "https://example.com/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaAcceptsLocationBeforeScript() = runTest {
+        val context = TestIoContext()
+        // シグネチャの順序に反して reference を script より前に渡しても受領される
+        assertEquals("/caller/dir/mod.xa1", cliEval(context, """XA(reference: "/caller/dir/mod.xa1"; "LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRejectsBareRelativeLocation() = runTest {
+        val context = TestIoContext()
+        // ./ の付かない裸の相対パスは禁止される
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; reference: "foo.xa1")""") }
+    }
+
+    @Test
+    fun xaRejectsRelativeLocationWhenCallerLocationHasNoParent() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションに親ディレクトリが無い場合、相対 reference はエラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/")""") }
+    }
+
+    @Test
+    fun xaRejectsUnknownNamedArgument() = runTest {
+        val context = TestIoContext()
+        // reference 以外の名前付き引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; foo: "bar")""") }
+    }
+
+    @Test
+    fun xaRejectsExtraPositionalArgument() = runTest {
+        val context = TestIoContext()
+        // 余分な位置引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("1"; "2")""") }
+    }
+
+    @Test
+    fun xaInnerUseResolvesFromCallerDirectory() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // reference 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
+        val dir = "build/test/xa.use.tmp".toPath()
+        fileSystem.createDirectories(dir)
+        val moduleFile = dir.resolve("module.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"FromXa\"") }
+
+        val result = cliEval(
+            context,
+            """XA(%>USE("./build/test/xa.use.tmp/module")<%)""",
+        ).toFluoriteString(null).value
+
+        assertEquals("FromXa", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
         // デフォルトで ./.xarpite/lib、./.xarpite/maven、Maven Central が含まれている
@@ -1095,7 +1242,7 @@ class CliTest {
     fun cliEvalAddsDefaultIncPaths() = runTest {
         val context = TestIoContext()
         // 実装側の cliEval が INC にデフォルトパスを追加することを検証
-        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null)
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null, embedded = false)
         var capturedInc: List<FluoriteValue>? = null
         cliEvalImpl(context, options) {
             capturedInc = inc.values.toList()
@@ -1649,6 +1796,85 @@ class CliTest {
         }
 
         fileSystem.delete(file)
+    }
+
+    @Test
+    fun embeddedOptionSetsFlag() = runTest {
+        // -E オプションを指定すると embedded フラグが true になる
+        val options = parseArguments(listOf("-E", "-e", "%>x<%"), TestIoContext())
+        assertEquals("%>x<%", options.src)
+        assertEquals(true, options.embedded)
+
+        // -E を指定しなければ embedded フラグは false である
+        val nonEmbeddedOptions = parseArguments(listOf("-e", "%>x<%"), TestIoContext())
+        assertEquals(false, nonEmbeddedOptions.embedded)
+    }
+
+    @Test
+    fun embeddedOptionCannotBeSpecifiedTwice() = runTest {
+        // -E を2回指定するとエラーになる
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-E", "-E", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun embeddedOptionInterpretsEntireScriptAsEmbeddedString() = runTest {
+        // -E モードではスクリプト全体が埋め込み文字列の本体として解釈される
+        val context = TestIoContext()
+        assertEquals("<h1>123</h1>", cliEvalEmbedded(context, "<h1><%= 100 + 20 + 3 %></h1>").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun embeddedOptionDoesNotAffectModules() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val context = TestIoContext()
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("embedded.module.tmp")
+        fileSystem.createDirectories(dir)
+        val module = dir.resolve("value.xa1")
+        fileSystem.write(module) { writeUtf8("100 + 20 + 3") }
+        // -E はスクリプト全体のみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
+        assertEquals(
+            "result: 123",
+            cliEvalEmbedded(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""").toFluoriteString(null).value,
+        )
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun embeddedOptionWithQuietProducesNoOutput() = runTest {
+        // -q と -E を併用すると、スクリプト全体は runner として解釈されるため、埋め込み文字列の本体は出力されない
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun embeddedOptionOutputsResultWithoutAddingNewline() = runTest {
+        // -E の非 -q 出力では、戻り値の文字列を末尾に改行を足さずそのまま出力する
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("<h1>123</h1>", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -2747,6 +2973,7 @@ class CliTest {
             verbose = true,
             apiVersion = null,
             scriptFile = null,
+            embedded = false,
         )
         cliEvalImpl(ioContextVerbose, verboseOptions)
 
@@ -2776,6 +3003,7 @@ class CliTest {
             verbose = false,
             apiVersion = null,
             scriptFile = null,
+            embedded = false,
         )
         cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
 
@@ -2808,6 +3036,19 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
         evaluator.defineMounts(mountsFactory("-"))
         if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
+    }
+}
+
+private suspend fun CoroutineScope.cliEvalEmbedded(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        context.addDefaultIncPaths()
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("-"))
+        evaluator.getEmbedded(src).cache()
     }
 }
 
