@@ -12,6 +12,7 @@ import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.XarpiteParseContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -38,11 +39,21 @@ suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedI
     }
 }
 
-suspend fun Evaluator.get(src: String) = this.get("test", src)
+suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        evaluator.defineMounts(context.run { createCommonMounts() })
+        evaluator.getEmbedded(src).cache()
+    }
+}
 
-suspend fun Evaluator.run(src: String) = this.run("test", src)
+suspend fun Evaluator.get(src: String) = this.get("test", src, false)
+
+suspend fun Evaluator.getEmbedded(src: String) = this.get("test", src, true)
+
+suspend fun Evaluator.run(src: String) = this.run("test", src, false)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
+val FluoriteValue.big get() = (this as FluoriteBig).value
 val FluoriteValue.double get() = (this as FluoriteDouble).value
 val FluoriteValue.boolean get() = (this as FluoriteBoolean).value
 val FluoriteValue.string get() = (this as FluoriteString).value

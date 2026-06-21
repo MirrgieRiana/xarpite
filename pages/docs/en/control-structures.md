@@ -16,25 +16,25 @@ Instead, it uses operators and functions to achieve similar control flow.
 
 Logical OR, logical AND, and ternary operators can be used for conditional branching.
 
-See [Boolean](boolean.md) for details.
+See Boolean for details.
 
 ### Loops
 
 Pipe operators can be used to express loops.
 
-See [Stream](stream.md) for details.
+See Stream for details.
 
 ### Labels and Returns
 
 Label and return operators allow you to break out of arbitrary locations.
 
-See [Jump](jump.md) for details.
+See Jump for details.
 
 ### Exception Mechanism
 
 Throw and catch operators allow you to throw and catch values.
 
-See [Jump](jump.md) for details.
+See Jump for details.
 
 ## Control Functions
 

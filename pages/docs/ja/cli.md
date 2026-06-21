@@ -44,11 +44,15 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -90,11 +94,15 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -174,6 +182,22 @@ JVM上で動作するXarpiteエンジンを使用します。
 
 Node.js上で動作するXarpiteエンジンを使用します。
 
+## スタックサイズの指定
+
+### `XARPITE_STACK_SIZE`: スタックサイズを指定する環境変数
+
+`XARPITE_STACK_SIZE` 環境変数はXarpiteの実行スタックのサイズの上限を指定します。
+
+ランタイムによってはこの上限を尊重します。
+
+---
+
+値は数値と単位を表す接尾辞を連結した形式で指定します。
+
+- `K`: キビバイト単位
+- `M`: メビバイト単位
+- `G`: ギビバイト単位
+
 ## 戻り値の出力
 
 CLI版Xarpiteでは、標準の動作としてプログラム全体の戻り値を標準出力に出力します。
@@ -233,6 +257,27 @@ $ xa -q '
 厳密には、このオプションはソースコード全体を文（runner）コンテキストとして解釈することを指定するオプションです。
 
 このため末尾式の部分に変数宣言文などの文が書けるようになります。
+
+## APIバージョン
+
+### `-A`: APIバージョンの指定
+
+`-A <apiversion>`
+
+ランタイムのAPIバージョンを指定します。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+`-A` オプションを指定しない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
+
+---
+
+ランタイムが提供していないAPIバージョンを指定した場合、スクリプトの実行前にエラーとなります。
 
 ## スクリプトの指定
 
@@ -319,6 +364,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
+
+## 埋め込み文字列リテラルとしての解釈
+
+### `-E`: スクリプト全体を埋め込み文字列リテラルとして解釈
+
+`-E` オプションを指定すると、エントリポイントであるスクリプト全体を埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
+
+これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
+
+スクリプトの先頭行が `#!` で開始する場合は、末尾の改行ごと無視されます。
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## その他のコマンド
 
@@ -423,7 +492,7 @@ $ FOO=bar xa 'ENV.FOO'
 
 相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
 
-デフォルトでは `./.xarpite/lib` と `./.xarpite/maven` が含まれています。
+デフォルトでは `./.xarpite/lib`、`./.xarpite/maven`、および Maven Central (`https://repo1.maven.org/maven2`) が含まれています。
 
 ---
 
@@ -443,6 +512,56 @@ $ {
   rm -r module-fruits
 }
 # Apple
+```
+
+### `MAJOR`, `MINOR`, `PATCH`: Xarpiteのバージョン番号を取得
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+実行中のXarpiteのバージョン番号を、メジャー・マイナー・パッチの各要素ごとに数値で取得します。
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+バージョン番号を取得できない場合や、 `メジャー.マイナー.パッチ` の数値形式で解釈できない場合は、参照時にエラーが発生します。
+
+### `API_VERSION`: 現在提供されているAPIバージョンを取得
+
+`API_VERSION: INT`
+
+現在のランタイムが提供しているAPIバージョンが整数で格納されています。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: APIバージョンのチェック
+
+`API(apiVersion: INT): NULL`
+
+現在のランタイムのAPIバージョンが `apiVersion` と厳密に一致しない場合、エラーをスローします。
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
 ```
 
 ### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
@@ -844,7 +963,7 @@ $ {
 
 `reference` は検索場所を与える `INC` ビルトイン定数に基づいて実際のロケーションに解決されます。
 
-原則として `INC` 配列内で先頭に近いパスに属するモジュールが優先されます。
+原則として `INC` 配列内で末尾に近いパスに属するモジュールが優先されます。
 
 ただし、ローカルファイルパスである `INC` エントリーは、URLであるエントリーよりも優先的に検索されます。
 
@@ -1027,6 +1146,37 @@ $ {
 # Apple
 ```
 
+### `XA`: Xarpiteスクリプトの実行
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+`script` で与えられたXarpiteスクリプトを評価した結果を返します。
+
+`USE` と異なり、同じ入力に対しても評価結果は再利用されず、ストリームの解決も行われません。
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` 引数
+
+`reference` 引数は、 `script` のロケーションに使われます。
+
+`reference` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
+
+相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
+
+`reference` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
 ### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
@@ -1110,6 +1260,21 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
 **また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXECB`: 外部コマンドを実行しBLOBで返す [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+外部コマンドを実行し、その標準出力のバイト列をBLOBのストリームとして返します。
+
+外部コマンドの実行状態と出力のタイミングの間には、今のところ何の保証もありません。
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Bashスクリプトを実行
 

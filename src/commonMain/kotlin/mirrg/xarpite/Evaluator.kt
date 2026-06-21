@@ -2,9 +2,11 @@ package mirrg.xarpite
 
 import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
@@ -31,8 +33,11 @@ class Evaluator {
         }
     }
 
-    suspend fun get(location: String, src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun get(location: String, src: String, embedded: Boolean): FluoriteValue {
+        val parseResult = XarpiteGrammar(location)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
@@ -49,8 +54,11 @@ class Evaluator {
         }
     }
 
-    suspend fun run(location: String, src: String) {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun run(location: String, src: String, embedded: Boolean) {
+        val parseResult = XarpiteGrammar(location)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
@@ -80,6 +88,8 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
             }
         }
     } finally {
-        daemonScope.cancel()
+        withContext(NonCancellable) {
+            daemonScope.coroutineContext.job.cancelAndJoin()
+        }
     }
 }

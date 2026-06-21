@@ -44,11 +44,15 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -90,11 +94,15 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -174,6 +182,22 @@ Uses the Xarpite engine running on the JVM.
 
 Uses the Xarpite engine running on Node.js.
 
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+Some runtimes respect this limit.
+
+---
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
+
 ## Return Value Output
 
 In CLI Xarpite, the standard behavior is to output the return value of the entire program to standard output.
@@ -233,6 +257,27 @@ $ xa -q '
 Strictly speaking, this option specifies interpreting the entire source code as a statement (runner) context.
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
+
+## API Version
+
+### `-A`: Set the API Version
+
+`-A <apiversion>`
+
+Specifies the API version of the runtime.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
@@ -319,6 +364,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
+
+## Interpretation as an Embedded String Literal
+
+### `-E`: Interpret the Entire Script as an Embedded String Literal
+
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## Other Commands
 
@@ -423,7 +492,7 @@ Strings starting with `http://` or `https://` are interpreted as URLs.
 
 When a relative directory path is specified, it is resolved based on `PWD`.
 
-By default, `./.xarpite/lib` and `./.xarpite/maven` are included.
+By default, `./.xarpite/lib`, `./.xarpite/maven`, and Maven Central (`https://repo1.maven.org/maven2`) are included.
 
 ---
 
@@ -443,6 +512,56 @@ $ {
   rm -r module-fruits
 }
 # Apple
+```
+
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
+
+### `API_VERSION`: Get the Currently Provided API Version
+
+`API_VERSION: INT`
+
+The API version currently provided by the runtime is stored as an integer.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: Check the API Version
+
+`API(apiVersion: INT): NULL`
+
+If the API version of the current runtime does not exactly match `apiVersion`, an error is thrown.
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
 ```
 
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
@@ -844,7 +963,7 @@ By mounting the return value of the `USE` function directly with `@USE("fruit")`
 
 `reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
 
-As a general rule, modules belonging to paths closer to the beginning of the `INC` array are given priority.
+As a general rule, modules belonging to paths closer to the end of the `INC` array are given priority.
 
 However, `INC` entries that are local file paths are searched before entries that are URLs.
 
@@ -1027,6 +1146,37 @@ $ {
 # Apple
 ```
 
+### `XA`: Execute Xarpite Script
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+Returns the result of evaluating the Xarpite script given by `script`.
+
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` Argument
+
+The `reference` argument is used as the location of `script`.
+
+`reference` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from the location of the script that called the `XA` function.
+
+If `reference` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
@@ -1110,6 +1260,21 @@ This function is an experimental feature and its specification may change in the
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM and Native versions.**
+
+### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command and returns the byte sequence of its standard output as a stream of BLOBs.
+
+There is currently no guarantee regarding the timing between the execution state of the external command and its output.
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Execute Bash scripts
 

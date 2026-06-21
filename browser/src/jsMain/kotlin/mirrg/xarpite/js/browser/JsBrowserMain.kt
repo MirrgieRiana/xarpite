@@ -55,10 +55,10 @@ fun evaluate(src: String, quiet: Boolean, out: (dynamic) -> Promise<Unit>): Prom
         evaluator.defineMounts(context.run { createCommonMounts() + createJsMounts() + createJsBrowserMounts() })
         try {
             if (quiet) {
-                evaluator.run("-", src)
+                evaluator.run("-", src, false)
                 undefined
             } else {
-                evaluator.get("-", src).cache()
+                evaluator.get("-", src, false).cache()
             }
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())

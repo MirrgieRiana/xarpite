@@ -379,7 +379,7 @@ $ xa '
 
 `$#array` gets the number of elements in the array.
 
-See [Getting Length](./length.md) for details.
+See Getting Length for details.
 
 ## `array + array`: Array Concatenation
 

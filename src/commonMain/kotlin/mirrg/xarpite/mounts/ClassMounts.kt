@@ -3,6 +3,7 @@ package mirrg.xarpite.mounts
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
@@ -24,6 +25,7 @@ fun createClassMounts(): List<Map<String, Mount>> {
         "VALUE" define FluoriteValue.fluoriteClass,
         "NULL_CLASS" define FluoriteNull.fluoriteClass,
         "INT" define FluoriteInt.fluoriteClass,
+        "BIG" define FluoriteBig.fluoriteClass,
         "DOUBLE" define FluoriteDouble.fluoriteClass,
         "BOOLEAN" define FluoriteBoolean.fluoriteClass,
         "STRING" define FluoriteString.fluoriteClass,

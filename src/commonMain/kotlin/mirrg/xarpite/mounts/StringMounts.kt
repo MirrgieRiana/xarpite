@@ -36,8 +36,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
         },
         "CHAR_CODED" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CHAR_CODED(charCode: INT): STRING")
-            val number = arguments[0].toFluoriteNumber(null)
-            val code = number.roundToInt()
+            val code = arguments[0].toFluoriteNumber(null).roundToInt()
             if (code < 0 || code > 0xFFFF) throw FluoriteException("Argument must be between 0 and 65535, got $code".toFluoriteString())
             code.toChar().toString().toFluoriteString()
         },
@@ -45,7 +44,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
             if (arguments.size != 1) usage("CHAR_CODES(string: STRING): STREAM<INT>")
             val string = arguments[0].toFluoriteString(null).value
             FluoriteStream {
-                for (char in string) {
+                string.forEach { char ->
                     emit(FluoriteInt(char.code))
                 }
             }
@@ -55,13 +54,14 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCode(item: FluoriteValue) {
-                val number = item.toFluoriteNumber(null)
-                val code = number.roundToInt()
+                val code = item.toFluoriteNumber(null).roundToInt()
                 if (code < 0 || code > 0xFFFF) throw FluoriteException("Each element must be between 0 and 65535, got $code".toFluoriteString())
                 sb.append(code.toChar())
             }
             if (value is FluoriteStream) {
-                value.collect { item -> appendCode(item) }
+                value.collect { item ->
+                    appendCode(item)
+                }
             } else {
                 appendCode(value)
             }

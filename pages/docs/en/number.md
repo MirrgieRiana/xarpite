@@ -12,7 +12,7 @@ Xarpite supports handling numeric values.
 
 ### Numeric Types
 
-There are two numeric types: 32-bit integers `INT` and 64-bit floating-point numbers `DOUBLE`.
+There are three numeric types: 32-bit integers `INT`, arbitrary-precision integers `BIG`, and 64-bit floating-point numbers `DOUBLE`.
 
 ### Distinction from Strings Representing Numbers
 
@@ -177,6 +177,30 @@ $ xa '1, 2, 3 >> TO_NUMBER'
 
 $ xa 'TO_NUMBER(NULL)'
 # 0
+```
+
+## `BIG`: Arbitrary-Precision Integers
+
+The arbitrary-precision integer type `BIG` can also handle integers too large to fit within the range of `INT`.
+
+### Numeric Conversion of Integers Outside the INT Range
+
+Converting a string representing an integer that does not fit within the range of `INT` produces a `BIG` value without losing precision.
+
+```shell
+$ xa '+"123456789012345678901234567890"'
+# 123456789012345678901234567890
+```
+
+### `BIG.of`: Creating a BIG
+
+`BIG.of(value: STRING | NUMBER): BIG`
+
+Converts `value` to a `BIG` value.
+
+```shell
+$ xa 'BIG.of("123456789012345678901234567890")'
+# 123456789012345678901234567890
 ```
 
 ## Addition/Subtraction Operators
