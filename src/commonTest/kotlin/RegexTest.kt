@@ -48,6 +48,31 @@ class RegexTest {
     }
 
     @Test
+    fun not_match() = runTest {
+        assertEquals(false, eval(""" "ABC" !~ /B/ """).boolean) // 部分一致
+        assertEquals(true, eval(""" "ABC" !~ /D/ """).boolean) // 部分一致しない
+        assertEquals(false, eval(""" "ABC" !~ /b/i """).boolean) // 大文字小文字を区別しない
+        assertEquals(false, eval(""" "ABC" !~ /B/g """).boolean) // グローバルマッチで一致
+        assertEquals(true, eval(""" "ABC" !~ /D/g """).boolean) // グローバルマッチで一致しない（空ストリームは偽）
+    }
+
+    @Test
+    fun match_stream() = runTest {
+        assertEquals(
+            eval(""" ("1", "2", "3" =~ /\d/) | _.0 """).stream(),
+            eval(""" ("1", "2", "3" | _ =~ /\d/) | _.0 """).stream(),
+        )
+    }
+
+    @Test
+    fun not_match_stream() = runTest {
+        assertEquals(
+            eval(""" ("ABC", "DEF", "GHI") | _ !~ /D/ """).stream(),
+            eval(""" ("ABC", "DEF", "GHI") !~ /D/ """).stream(),
+        )
+    }
+
+    @Test
     fun new() = runTest {
         assertEquals(FluoriteRegex("ABC", null), eval(""" REGEX.new("ABC") """)) // ファクトリ関数
         assertEquals(FluoriteRegex("ABC", "gim"), eval(""" REGEX.new("ABC"; "gim") """)) // フラグ指定版

@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("multiplatform") version "2.3.0"
+    kotlin("plugin.serialization") version "2.3.0"
     id("com.dorongold.task-tree") version "4.0.1"
     id("build-logic")
     `maven-publish`
@@ -59,12 +59,36 @@ kotlin {
                 implementation("com.squareup.okio:okio:3.10.2")
                 implementation("com.ionspin.kotlin:bignum:0.3.10")
                 implementation("mirrg.kotlin:mirrg.kotlin.helium-kotlin-2-2:4.4.0")
+                implementation("io.github.mirrgieriana:xarpeg:6.2.0")
+                implementation("io.ktor:ktor-client-core:3.4.0")
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-cio:3.4.0")
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-js:3.4.0")
+            }
+        }
+        linuxX64Main {
+            dependencies {
+                implementation("io.ktor:ktor-client-curl:3.4.0")
             }
         }
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation("io.ktor:ktor-server-core:3.0.3")
+                implementation("io.ktor:ktor-server-cio:3.0.3")
+                implementation("io.ktor:ktor-server-test-host:3.0.3")
             }
         }
     }
@@ -105,16 +129,7 @@ tasks.named("build").configure { dependsOn(bundlePages) }
 val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     group = "build"
     into(project.layout.buildDirectory.dir("bundleXarpiteBinAll"))
-    from("release") {
-        rename("gitignore", ".gitignore")
-        eachFile {
-            if (relativePath.pathString == "xarpite") {
-                permissions {
-                    unix("rwxr-xr-x")
-                }
-            }
-        }
-    }
+    from("release")
     from("LICENSE")
     from("pages/docs/en") { into("docs") }
     from(releaseExecutable.linkTaskProvider) {
@@ -126,9 +141,33 @@ val bundleXarpiteBinAll = tasks.register<Sync>("bundleXarpiteBinAll") {
     doLast {
         val versionFile = destinationDir.resolve("version")
         versionFile.writeText(project.version.toString() + "\n")
+        val classifierFile = destinationDir.resolve("classifier")
+        classifierFile.writeText("all\n")
+        val defaultEngineFile = destinationDir.resolve("default_engine")
+        defaultEngineFile.writeText("native\n")
     }
 }
 tasks.named("build").configure { dependsOn(bundleXarpiteBinAll) }
+
+val bundleXarpiteBinLinuxX64 = tasks.register<Sync>("bundleXarpiteBinLinuxX64") {
+    group = "build"
+    into(project.layout.buildDirectory.dir("bundleXarpiteBinLinuxX64"))
+    from("release")
+    from("LICENSE")
+    from(releaseExecutable.linkTaskProvider) {
+        into("bin/native")
+        rename("xarpite.kexe", "xarpite")
+    }
+    doLast {
+        val versionFile = destinationDir.resolve("version")
+        versionFile.writeText(project.version.toString() + "\n")
+        val classifierFile = destinationDir.resolve("classifier")
+        classifierFile.writeText("linux-x86_64\n")
+        val defaultEngineFile = destinationDir.resolve("default_engine")
+        defaultEngineFile.writeText("native\n")
+    }
+}
+tasks.named("build").configure { dependsOn(bundleXarpiteBinLinuxX64) }
 
 val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     group = "build"
@@ -141,12 +180,27 @@ val createXarpiteBinAllTarGz = tasks.register<Tar>("createXarpiteBinAllTarGz") {
     useFileSystemPermissions()
 }
 
+val createXarpiteBinLinuxX64TarGz = tasks.register<Tar>("createXarpiteBinLinuxX64TarGz") {
+    group = "build"
+    archiveBaseName = "xarpite-bin"
+    archiveClassifier = "linux-x86_64"
+    archiveExtension = "tar.gz"
+    compression = Compression.GZIP
+    from(bundleXarpiteBinLinuxX64)
+    destinationDirectory = project.layout.buildDirectory.dir("xarpiteBinLinuxX64TarGz")
+    useFileSystemPermissions()
+}
+
 publishing {
     publications {
-        create<MavenPublication>("xarpiteBinAll") {
+        create<MavenPublication>("xarpiteBin") {
             artifactId = "xarpite-bin"
             artifact(createXarpiteBinAllTarGz) {
                 classifier = "all"
+                extension = "tar.gz"
+            }
+            artifact(createXarpiteBinLinuxX64TarGz) {
+                classifier = "linux-x86_64"
                 extension = "tar.gz"
             }
             pom {
@@ -189,7 +243,7 @@ signing {
     val signingPassword = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKey, signingPassword)
 
-    sign(publishing.publications["xarpiteBinAll"])
+    sign(publishing.publications["xarpiteBin"])
 }
 
 nexusPublishing {

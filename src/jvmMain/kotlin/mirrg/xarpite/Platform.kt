@@ -11,41 +11,52 @@ import okio.FileSystem
 import java.io.BufferedReader
 
 actual fun getProgramName(): String? = null
-actual fun getEnv(): Map<String, String> = System.getenv()
+fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
 
-actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
+actual fun isWindows(): Boolean {
+    val os = System.getProperty("os.name")
+    return os != null && os.lowercase().startsWith("windows")
+}
 
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
+suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
+
+suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     val byteArray = ByteArray(INB_MAX_BUFFER_SIZE)
     val readSize = System.`in`.read(byteArray)
     if (readSize == -1) return@withContext null
     if (readSize == INB_MAX_BUFFER_SIZE) byteArray else byteArray.copyOf(readSize)
 }
 
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.out.write(bytes)
     System.out.flush()
 }
 
-actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     System.err.write(bytes)
     System.err.flush()
 }
 
-actual suspend fun executeProcess(process: String, args: List<String>): String = coroutineScope {
+suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = coroutineScope {
     withContext(Dispatchers.IO) {
         val commandList = listOf(process) + args
         val processBuilder = ProcessBuilder(commandList)
+        val environment = processBuilder.environment()
+        env.forEach { (key, value) ->
+            if (value.isNullOrEmpty()) {
+                environment.remove(key)
+            } else {
+                environment[key] = value
+            }
+        }
         val processInstance = processBuilder.start()
 
         try {
             // 標準出力を非同期で読み取る
             val outputDeferred = async {
-                BufferedReader(processInstance.inputStream.reader()).use { reader ->
-                    reader.readText()
-                }
+                processInstance.inputStream.use { it.readBytes() }
             }
 
             // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
@@ -74,4 +85,8 @@ actual suspend fun executeProcess(process: String, args: List<String>): String =
             processInstance.destroy()
         }
     }
+}
+
+fun exit(code: Int): Nothing {
+    kotlin.system.exitProcess(code)
 }

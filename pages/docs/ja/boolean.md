@@ -220,3 +220,31 @@ $ xa '"Orange" ?: "Apple"'
 $ xa 'NULL ?: "Apple"'
 # Apple
 ```
+
+---
+
+`value` がストリームである場合、エルビス演算子は各要素に対して適用されます。
+
+エルビス演算子は戻り値のストリームを解決しません。
+
+```shell
+$ xa '(1, NULL, 3) ?: "default"'
+# 1
+# default
+# 3
+
+$ xa '(NULL,) ?: "default"'
+# default
+```
+
+---
+
+`default` がストリームを返した場合、戻り値のストリームは平坦化されます。
+
+```shell
+$ xa '(1, NULL, 3) ?: ("A", "B")'
+# 1
+# A
+# B
+# 3
+```

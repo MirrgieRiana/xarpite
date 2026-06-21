@@ -54,6 +54,83 @@ $ xa '
 # 10
 ```
 
+# Indent Block `:`
+
+By writing an expression with a line break and indentation after `:`, it functions as a factor equivalent to parentheses `(` `)`.
+
+```shell
+$ xa '
+  :
+    1 + 2
+'
+# 3
+```
+
+---
+
+Just like parentheses, compound statements can be written inside an indent block.
+
+```shell
+$ xa '
+  :
+    a := 100
+    b := 20
+    c := 3
+    a + b + c
+'
+# 123
+```
+
+---
+
+The value of an empty indent block is `NULL`.
+
+```shell
+$ xa '
+  :
+'
+# NULL
+```
+
+---
+
+Just like inside parentheses, variables declared inside an indent block do not affect the outside.
+
+```shell
+$ xa '
+  a := 10
+  :
+    a := 20
+    OUT << a
+    a = 30
+    OUT << a
+  a
+'
+# 20
+# 30
+# 10
+```
+
+---
+
+Writing indent blocks on the right side of operators can contribute to readability in some cases.
+
+```shell
+$ xa -q '
+  f := x, y -> :
+    x + y
+  a := :
+    f(10; 20)
+  a == 30 && :
+    1 .. 3 | :
+      OUT << :
+        a
+'
+# 30
+# 30
+# 30
+```
+
 # Root Node
 
 The root node defines the rules for places where any expression can be written, such as the entire file or directly under parentheses.

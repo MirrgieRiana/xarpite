@@ -43,10 +43,16 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -87,10 +93,16 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
+#                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -170,6 +182,22 @@ JVM上で動作するXarpiteエンジンを使用します。
 
 Node.js上で動作するXarpiteエンジンを使用します。
 
+## スタックサイズの指定
+
+### `XARPITE_STACK_SIZE`: スタックサイズを指定する環境変数
+
+`XARPITE_STACK_SIZE` 環境変数はXarpiteの実行スタックのサイズの上限を指定します。
+
+ランタイムによってはこの上限を尊重します。
+
+---
+
+値は数値と単位を表す接尾辞を連結した形式で指定します。
+
+- `K`: キビバイト単位
+- `M`: メビバイト単位
+- `G`: ギビバイト単位
+
 ## 戻り値の出力
 
 CLI版Xarpiteでは、標準の動作としてプログラム全体の戻り値を標準出力に出力します。
@@ -230,6 +258,27 @@ $ xa -q '
 
 このため末尾式の部分に変数宣言文などの文が書けるようになります。
 
+## APIバージョン
+
+### `-A`: APIバージョンの指定
+
+`-A <apiversion>`
+
+ランタイムのAPIバージョンを指定します。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+`-A` オプションを指定しない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
+
+---
+
+ランタイムが提供していないAPIバージョンを指定した場合、スクリプトの実行前にエラーとなります。
+
 ## スクリプトの指定
 
 実行するXarpiteスクリプトの指定方法は起動コマンドと指定方法で6通りに別れます。
@@ -257,6 +306,15 @@ $ {
   xa -f script.xa1
   rm script.xa1
 }
+# 123
+```
+
+---
+
+`scriptfile` に `-` を指定すると、標準入力からスクリプトを読み込みます。
+
+```shell
+$ echo '100 + 20 + 3' | xa -f -
 # 123
 ```
 
@@ -307,6 +365,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
 
+## 埋め込み文字列リテラルとしての解釈
+
+### `-E`: スクリプト全体を埋め込み文字列リテラルとして解釈
+
+`-E` オプションを指定すると、エントリポイントであるスクリプト全体を埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
+
+これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
+
+スクリプトの先頭行が `#!` で開始する場合は、末尾の改行ごと無視されます。
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
+
 ## その他のコマンド
 
 ### `xarpite-update`: Xarpiteを最新版に更新する
@@ -314,6 +396,10 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 現在実行中のXarpiteを最新版に更新します。
 
 このコマンドにはインストールディレクトリに書き込みを行う権限が必要です。
+
+`-h` オプションを指定すると、使い方を表示して終了します。
+
+`-y` オプションを指定すると、確認プロンプトをスキップして自動的に更新を適用します。
 
 ## CLI版限定組み込み定数・関数
 
@@ -328,6 +414,63 @@ $ xa 'ARGS' 1 2 3
 # [1;2;3]
 ```
 
+### `PWD`: カレントディレクトリを取得
+
+`PWD: STRING`
+
+現在のワーキングディレクトリのパスです。
+
+このパスは正規化（ `.` や `..` である階層を含みません）されており、絶対パスです。
+
+---
+
+この定数は以下の優先順位に基づいて値を決定します。
+
+1. 環境変数 `XARPITE_PWD`
+   - この環境変数はLinux版のランチャースクリプト内で自動的に付与されます。
+   - シンボリックリンクの解決はされません。
+2. 環境変数 `PWD`
+   - この環境変数は多くの場合Linuxシェルが自動的に付与します。
+   - シンボリックリンクの解決はされません。
+3. プラットフォーム固有の取得方法
+   - どちらの環境変数も利用できなかった場合、プラットフォームごとに固有の方法でカレントディレクトリを取得します。
+   - シンボリックリンクの解決が行われる場合があります。
+
+Windows上でJVM版ランタイムを起動した場合は3に該当しますが、ジャンクションの解決は行われないことが判明しています。
+
+---
+
+ルートディレクトリでは `/` になることに注意してください。
+
+例えば、次のような文字列結合を行うと異常なパス文字列が生成されます。
+
+この問題の解決として `RESOLVE` 関数が利用できます。
+
+```shell
+$ cd / && xa ' "$PWD/apple.txt" '
+# //apple.txt
+
+$ cd / && xa ' PWD::RESOLVE("apple.txt") '
+# /apple.txt
+```
+
+### `LOCATION`: 実行中のスクリプトのパスを取得
+
+`LOCATION: STRING`
+
+現在実行中のXarpiteスクリプトのパスです。
+
+`LOCATION` は正規化（ `.` や `..` である階層の除去）済みの絶対パスであり、ファイルパスもしくはURLを表します。
+
+---
+
+ファイル名に相当する末尾の部分が `-` である場合、 `-e` コマンドラインオプションなどの手段によって動的に与えられたスクリプトであることを示します。
+
+```shell
+$ cd /usr/local/bin && xa -e 'LOCATION'
+# /usr/local/bin/-
+```
+
 ### `ENV`: 環境変数を取得
 
 環境変数がオブジェクトとして格納されています。
@@ -339,11 +482,95 @@ $ FOO=bar xa 'ENV.FOO'
 
 存在しない変数にアクセスした場合は `NULL` が返ります。
 
-### `IN`: コンソールから文字列を1行ずつ読み取る
+### `INC`: モジュール検索パスの配列
+
+`INC: ARRAY<STRING>`
+
+モジュールを `USE` する際に検索されるディレクトリパスやURLの配列です。
+
+`http://` または `https://` で始まる文字列はURLとして解釈されます。
+
+相対ディレクトリパスを指定した場合、そのパスは `PWD` に基づいて解決されます。
+
+デフォルトでは `./.xarpite/lib`、`./.xarpite/maven`、および Maven Central (`https://repo1.maven.org/maven2`) が含まれています。
+
+---
+
+この配列をプログラムから実行中に変更することで、モジュールの検索対象を動的に変更することができます。
+
+```shell
+$ {
+  mkdir module-fruits
+
+  echo ' "Apple" ' > module-fruits/apple.xa1
+
+  xa '
+    INC += "module-fruits"
+    USE("apple")
+  '
+
+  rm -r module-fruits
+}
+# Apple
+```
+
+### `MAJOR`, `MINOR`, `PATCH`: Xarpiteのバージョン番号を取得
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+実行中のXarpiteのバージョン番号を、メジャー・マイナー・パッチの各要素ごとに数値で取得します。
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+バージョン番号を取得できない場合や、 `メジャー.マイナー.パッチ` の数値形式で解釈できない場合は、参照時にエラーが発生します。
+
+### `API_VERSION`: 現在提供されているAPIバージョンを取得
+
+`API_VERSION: INT`
+
+現在のランタイムが提供しているAPIバージョンが整数で格納されています。
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: APIバージョンのチェック
+
+`API(apiVersion: INT): NULL`
+
+現在のランタイムのAPIバージョンが `apiVersion` と厳密に一致しない場合、エラーをスローします。
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
+
+### `IN`, `I`, `INL`: コンソールから文字列を1行ずつ読み取る
 
 `IN: STREAM<STRING>`
 
 標準入力から文字列を1行ずつ読み取るストリームです。
+
+`I` および `INL` は `IN` の別名です。
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
@@ -376,13 +603,6 @@ $ {
 # 2: 456
 ```
 
-ストリームは逐次的であるため、非常に大きな反復も少ないメモリ消費で行うことができます。
-
-```shell
-$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
-# 100000000
-```
-
 ---
 
 `IN` を一度でも使用した場合、 `INB` を使用することはできません。
@@ -404,11 +624,13 @@ $ echo -n "abc" | xa 'INB'
 
 `INB` を一度でも使用した場合、 `IN` を使用することはできません。
 
-### `OUT`: 標準出力に出力
+### `OUT`, `O`: 標準出力に出力
 
 `OUT(value: VALUE): NULL`
 
 標準出力に出力します。
+
+`O` は `OUT` の別名です。
 
 この関数はしばしば左実行パイプ `<<` によって呼び出されます。
 
@@ -499,11 +721,13 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
-### `FILES`: ディレクトリ内のファイルの一覧を取得
+### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 `dir` で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+`FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
 
 ファイル名にはディレクトリのパスは含まれません。
 
@@ -514,22 +738,85 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
-### `READ`: ファイルから読み込み
+### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのディレクトリとファイルのパスを再帰的に検索するストリームを返します。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+`dir` の配下にあるすべてのファイルのパスを再帰的に検索するストリームを返します。
+
+ディレクトリのパスは報告されません。
+
+返されるパス文字列の先頭には `dir` が含まれます。
+
+返されるパスには `dir` 自身は含まれません。
+
+各ディレクトリ内の項目は名前順にソートされます。
+
+ただし、ディレクトリ内の項目は親ディレクトリの直後に報告されます。
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+```
+
+### `READ` / `READL`: テキストファイルから読み込み
 
 `READ(file: STRING): STREAM<STRING>`
 
-`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み込みます。
+`file` で指定されたテキストファイルの内容を文字列として1行ずつ読み取ります。
+
+`READL` は `READ` の別名であり、同一の動作を持ちます。
 
 改行コードは除去されます。
 
@@ -544,123 +831,359 @@ $ {
 # banana
 ```
 
-### `USE`: 外部Xarpiteファイルの結果を取得
+### `READB`: バイナリファイルから読み込み
 
-`USE(file: STRING): VALUE`
+`READB(file: STRING): STREAM<BLOB>`
 
-指定されたXarpiteスクリプトを評価した結果を返します。
+`file` で指定されたバイナリファイルの内容をBLOBとしてすべて読み取ります。
+
+BLOBは最大8192バイトの長さに分割されます。
 
 ```shell
 $ {
-  echo '877' > banana.xa1
-  xa 'USE("./banana")'
-  rm banana.xa1
+  echo -en '\x20\x21\x22' > tmp.bin
+  xa 'READB("tmp.bin")'
+  rm tmp.bin
 }
-# 877
+# BLOB.of([32;33;34])
 ```
 
----
+### `WRITE`: テキストファイルに書き込み
 
-`file` は `./` で始まる必要があり、 `USE` 関数を呼び出したファイルからの相対パスとして解釈されます。
+`WRITE(file: STRING; string: STRING): NULL`
 
-例えば、 `fruit/apple.xa1` 内で `USE("./banana")` と記述した場合、 `fruit/banana.xa1` が読み込まれます。
+`file` で指定されたファイルに `string` をUTF-8エンコードして書き込みます。
 
-`file` では拡張子の `.xa1` は省略可能です。 `USE("./banana")` と記述した場合、 `./banana` が存在すればそれ、そうでなければ `./banana.xa1` が読み込まれます。
+改行の付与や正規化は行われません。
 
-コードがコマンドライン上で直接指定された場合、カレントディレクトリを起点としてファイルを解決します。
-
-ディレクトリの区切り文字はそれが実行されるOSに関わらず `/` を使用します。
+ファイルが既に存在する場合は上書きされます。
 
 ```shell
 $ {
-  mkdir modules
-  echo '
-    {
-      getBananaImpl: () -> "Banana"
-    }
-  ' > modules/banana.xa1
-  echo '
-    @USE("./banana")
-    {
-      getBanana: () -> getBananaImpl()
-    }
-  ' > modules/fruit.xa1
-  xa '
-    @USE("./modules/fruit")
-    getBanana()
-  '
-  rm modules/banana.xa1
-  rm modules/fruit.xa1
-  rmdir modules
-}
-# Banana
-```
-
----
-
-`USE` 関数の戻り値をマウントすることで、ディレクティブのような使用感を実現できます。
-
-```shell
-$ {
-  echo '
-    {
-      FRUIT: 877
-    }
-  ' > banana.xa1
-  xa '
-    @USE("./banana")
-    FRUIT
-  '
-  rm banana.xa1
-}
-# 877
-```
-
----
-
-同一絶対ファイルパスに対する `USE` 関数の結果はキャッシュされ、同じ呼び出しによって再利用されます。
-
-そのため、返されるインスタンスは常に同一であり、読み込み時の副作用も1度だけ生じます。
-
-スクリプトの結果がストリームである場合、そのストリームは解決されます。
-
-ファイル実体が同一でも、シンボリックリンクなどによって異なる絶対パス上にある場合、別のファイルとみなされます。
-
-```shell
-$ {
-  echo '
-    {
-      variables: {
-        fruit: "apple"
-      }
-    }
-  ' > tmp.xa1
-  xa -q '
-    a := USE("./tmp")
-    b := USE("./tmp")
-    OUT << b.variables.fruit
-    a.variables.fruit = "banana"
-    OUT << b.variables.fruit
-  '
-  rm tmp.xa1
+  xa -q 'WRITE("tmp.txt"; "apple")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
 }
 # apple
-# banana
+```
+
+### `WRITEL`: テキストファイルに行単位で書き込み
+
+`WRITEL(file: STRING; lines: STREAM<STRING>): NULL`
+
+`file` で指定されたファイルに `lines` の各行を書き込みます。
+
+最後の行も含め、各行の末尾には `\n` が付与されます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEL("tmp.txt"; "apple", "banana", "cherry")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
 ```
 
 ---
 
-`USE` されることを前提として記述されたファイルをモジュールと呼びます。
+ファイルは `lines` のストリームを読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `lines` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
+### `WRITEB`: バイナリファイルに書き込み
+
+`WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
+
+`file` で指定されたファイルに `blobLike` を書き込みます。
+
+ファイルが既に存在する場合は上書きされます。
+
+```shell
+$ {
+  xa -q 'WRITEB("tmp.bin"; 97, 112, 112, 108, 101)'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+---
+
+ファイルは `blobLike` を読み始める前に空にされます。
+
+このため、書き込み先と同じファイルを `blobLike` の中で読み取ると、内容が失われます。
+
+このような自己参照を行う場合は、 `CACHE` で入力を先に確定させてください。
+
+```shell
+$ {
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+### `USE`: モジュールの呼び出し
+
+`USE(reference: STRING): VALUE`
+
+`reference` で指定されたXarpiteスクリプトを評価した結果を返します。
+
+`USE` されるXarpiteスクリプトをモジュールと呼びます。
+
+`reference` には、絶対ローカルファイルパス、URL、相対パス、 `INC` を起点とした相対パス、Maven座標の指定方法があります。
+
+#### モジュールの文化的位置付け
 
 モジュールは多くの場合マウント用のオブジェクトを返すことでAPIを公開しますが、そうでない場合もあります。
 
 モジュールの提供するAPIは、組み込みマウント風に大文字で書かれる場合もあれば、そうでない場合もあります。
 
-### `EXEC`: 外部コマンドを実行 [EXPERIMENTAL]
+---
 
-`EXEC(command: STREAM<STRING>): STREAM<STRING>`
+`@USE("fruit")` のように `USE` 関数の戻り値をそのままマウントすることで、ディレクティブのような使用感を実現できます。
+
+#### `INC` に基づくロケーションの解決
+
+`reference` は検索場所を与える `INC` ビルトイン定数に基づいて実際のロケーションに解決されます。
+
+原則として `INC` 配列内で末尾に近いパスに属するモジュールが優先されます。
+
+ただし、ローカルファイルパスである `INC` エントリーは、URLであるエントリーよりも優先的に検索されます。
+
+---
+
+ディレクトリの区切り文字は、それが実行されるOSに関わらず `/` を使用することができます。
+
+ローカルファイルパスの末尾の `.xa1` や `/main.xa1` は省略可能です。
+
+`-e` コマンドラインオプションによって起動されたコンテキストでは、ロケーションは `PWD` 直下の `-` という名前のファイルとして扱われます。
+
+---
+
+ロケーションがURLである場合、通信によって非同期的にスクリプトが取得され、その間はサスペンドされます。
+
+オンライン上にある多数のモジュールを使用する場合、 `LAUNCH` 関数などでコルーチンを起動することで並列化ができます。
+
+#### 同一ロケーションにあるスクリプトの再利用
+
+同一ロケーションに対する `USE` 関数の結果は再利用されます。
+
+返されるインスタンスは常に同一となり、読み込み時の副作用も1度だけ生じます。
+
+スクリプトの結果がストリームである場合、そのストリームは解決されます。
+
+シンボリックリンクなどによって異なるロケーションにある場合は、ファイル実体が同一でもそれぞれ別に評価されます。
+
+```shell
+$ {
+  echo 'IN' > input.xa1
+
+  xa '1 .. 3' | xa -q '
+    OUT << USE("./input.xa1") >> TO_ARRAY
+    OUT << USE("./input") >> TO_ARRAY
+    OUT << USE("$PWD/input.xa1") >> TO_ARRAY
+    OUT << USE("$PWD/input") >> TO_ARRAY
+  '
+
+  rm input.xa1
+}
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+# [1;2;3]
+```
+
+#### 絶対ローカルファイルパスによる `reference` の指定
+
+`reference` が絶対ローカルファイルパスである場合、そのファイルを呼び出します。
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("$PWD/fruit.xa1")'
+
+  rm fruit.xa1
+}
+# Apple
+```
+
+#### URLによる `reference` の指定
+
+`reference` がURLである場合、そこからスクリプトを取得して呼び出します。
+
+`http://` または `https://` で始まる `reference` がURLとして解釈されます。
+
+#### 相対パスによる `reference` の指定
+
+`reference` が `.` または `..` の階層で始まる相対パスである場合、 `USE` 関数の呼び出しを行ったスクリプトのロケーションからの相対パスとして解決されます。
+
+---
+
+以下はカレントディレクトリ直下にあるファイルを呼び出す例です。
+
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
+
+  xa 'USE("./fruit.xa1")'
+  xa 'USE("./fruit")'
+
+  rm fruit.xa1
+}
+# Apple
+# Apple
+```
+
+---
+
+以下は、 `main.xa1` ファイルを持つディレクトリを呼び出す例です。
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
+# Apple
+```
+
+---
+
+以下は `modules` サブディレクトリ内にあるファイルを呼び出し、更にそこから同階層の別のファイルを呼び出す例です。
+
+```shell
+$ {
+  mkdir modules
+
+  echo '
+    {
+      getApple: () -> "Apple"
+    }
+  ' > modules/apple.xa1
+  echo '
+    @USE("./apple.xa1")
+    {
+      getFruit: () -> getApple()
+    }
+  ' > modules/fruit.xa1
+
+  xa '
+    @USE("./modules/fruit.xa1")
+    getFruit()
+  '
+
+  rm -r modules
+}
+# Apple
+```
+
+#### `INC` を起点とした相対パスによる `reference` の指定
+
+`reference` が `.` または `..` の階層で始まらない相対パスである場合、対応するモジュールを `INC` から検索します。
+
+```shell
+$ {
+  mkdir -p modules/fruit
+
+  echo ' "Apple" ' > modules/fruit/main.xa1
+
+  xa -q '
+    INC += "modules"
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
+  '
+
+  rm -r modules
+}
+# Apple
+# Apple
+# Apple
+```
+
+#### Maven座標による `reference` の指定
+
+`reference` がMaven座標である場合、対応するモジュールを `INC` から検索します。
+
+Maven座標は `group:artifact:version` の形式で指定します。
+
+拡張子には `.xa1` が自動的に付与されます。
+
+例えば、 `com.example.fruit:apple:1.0.0` というMaven座標の場合、 `INC` の各エントリーに対して `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` というサブパスが検索されます。
+
+```shell
+$ {
+  mkdir -p .xarpite/maven/com/example/fruit/apple/1.0.0
+
+  echo ' "Apple" ' > .xarpite/maven/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+
+  xa 'USE("com.example.fruit:apple:1.0.0")'
+
+  rm -r .xarpite
+}
+# Apple
+```
+
+### `XA`: Xarpiteスクリプトの実行
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+`script` で与えられたXarpiteスクリプトを評価した結果を返します。
+
+`USE` と異なり、同じ入力に対しても評価結果は再利用されず、ストリームの解決も行われません。
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` 引数
+
+`reference` 引数は、 `script` のロケーションに使われます。
+
+`reference` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
+
+相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
+
+`reference` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
+### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
+
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 外部コマンドを実行します。
+
+`EXECL` は `EXEC` の別名であり、同一の動作を持ちます。
 
 `command` にはプロセスおよびその引数を1要素ずつ指定します。
 
@@ -681,7 +1204,36 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 
 ---
 
-呼び出したプロセスが0以外の終了コードで終了した場合、例外をスローします。
+`env` 引数を指定すると、プロセスの環境変数を指定できます。
+
+環境変数は呼び出したXarpiteプロセスの環境変数を継承した上で追加・上書きされます。
+
+```shell
+$ xa 'EXEC("bash", "-c", %>echo $FOO<%; env: {FOO: "BAR"})'
+# BAR
+```
+
+空文字列もしくはNULLを指定すると、既存の環境変数を削除できます。
+
+```shell
+$ A=APPLE B=ANNA xa '
+  EXEC("bash", "-c", %>
+    echo "A=$A"
+    echo "B=$B"
+    echo "C=$C"
+  <%; env: {
+    B: NULL
+    C: "CHERRY"
+  })
+'
+# A=APPLE
+# B=
+# C=CHERRY
+```
+
+---
+
+呼び出したプロセスが0以外の終了コードで終了した場合、エラーをスローします。
 
 ```shell
 $ xa 'EXEC("bash", "-c", "exit 1") !? "ERROR"'
@@ -707,4 +1259,82 @@ $ xa -q 'EXEC("bash", "-c", "echo 'ERROR' 1>&2")' 2>&1
 
 戻り値は、プロセスの標準出力を逐次的に読み取るストリームではなく、プロセスの終了後にその標準出力を行分割したものです。
 
-**また、この関数は現状JVM版とNative版で提供されます。**
+**また、この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXECB`: 外部コマンドを実行しBLOBで返す [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+外部コマンドを実行し、その標準出力のバイト列をBLOBのストリームとして返します。
+
+外部コマンドの実行状態と出力のタイミングの間には、今のところ何の保証もありません。
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
+
+### `BASH`: Bashスクリプトを実行
+
+`BASH(script: STRING[; args: STREAM<STRING>]): STRING`
+
+`script` をBashスクリプトとして実行し、その標準出力をUTF-8としてデコードし、文字列として返します。
+
+出力の末尾の改行は取り除かれます。
+
+これはBashの `"$(...)"` の動作と似ています。
+
+```shell
+$ xa '
+  result := BASH("echo Hello")
+  "[$result]"
+'
+# [Hello]
+```
+
+---
+
+`args` 引数を指定すると、Bashスクリプトに引数を渡せます。
+
+```shell
+$ xa '
+  result := BASH(%>
+    echo "$1"
+    echo "$2"
+  <%; "The fruit is:", "apple")
+  "[$result]"
+'
+# [The fruit is:
+# apple]
+```
+
+---
+
+この関数は内部的に `bash` コマンドを実行します。
+
+`bash` コマンドが利用できない環境ではエラーが発生します。
+
+---
+
+これ以外の動作は概ね `EXEC` 関数の仕様に準じます。
+
+**この関数は現状JVM版とNative版でのみ提供されます。**
+
+### `EXIT`: 指定した終了コードでプロセスを終了
+
+`EXIT(code: INT): NOTHING`
+
+指定した終了コードでXarpiteプロセスを終了します。
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

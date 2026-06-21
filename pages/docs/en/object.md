@@ -75,6 +75,33 @@ $ xa '
 
 In this example, at the time of calculating the value of `result`, no value has been set for `fruit` yet, so initialization occurs at the point of access.
 
+## `stream.{}`: Object Conversion Operator
+
+The object conversion operator converts a stream of 2-element arrays into an object.
+
+```shell
+$ xa '(["a", 1], ["b", 2]).{}'
+# {a:1;b:2}
+```
+
+---
+
+The object conversion operator is convenient for converting streams returned from variables or function calls to objects with the shortest notation.
+
+```shell
+$ xa '({a: 1; b: 2; c: 3}() | (_.0 & "z": _.1 * 10)).{}'
+# {az:10;bz:20;cz:30}
+```
+
+---
+
+A single 2-element array that is not a stream also works.
+
+```shell
+$ xa '["a", 100].{}'
+# {a:100}
+```
+
 # Streaming Objects `object()`
 
 Similar to streaming arrays, this returns a stream of arrays composed of the key and value of each entry.
@@ -190,3 +217,42 @@ $ xa '
 ```
 
 If the key does not yet exist in that object, it is added anew.
+
+# Deleting Keys from Objects
+
+`object -= key` removes an entry from an object.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "b"
+  object
+'
+# {a:apple;c:cherry}
+```
+
+---
+
+If the key to delete does not exist, nothing happens.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "d"
+  object
+'
+# {a:apple;b:banana;c:cherry}
+```
+
+---
+
+If the right-hand side is a stream, key deletion is performed for each element.
+
+```shell
+$ xa '
+  object := {a: "apple"; b: "banana"; c: "cherry"}
+  object -= "a", "c"
+  object
+'
+# {b:banana}
+```

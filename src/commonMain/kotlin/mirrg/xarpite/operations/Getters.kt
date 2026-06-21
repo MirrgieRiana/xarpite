@@ -1,6 +1,7 @@
 package mirrg.xarpite.operations
 
 import mirrg.xarpite.Environment
+import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
@@ -19,12 +20,13 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.asFluoriteArray
 import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.callMethod
+import mirrg.xarpite.compilers.objects.callAsMethod
+import mirrg.xarpite.compilers.objects.callMethodImmediate
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.getLength
-import mirrg.xarpite.compilers.objects.getMethod
+import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
@@ -35,12 +37,15 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.compilers.objects.toFluoriteValue
+import mirrg.xarpite.compilers.objects.toThrowable
 import mirrg.xarpite.escapeJsonString
 import mirrg.xarpite.getMounts
 import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
 
 object NullGetter : Getter {
@@ -54,14 +59,14 @@ class LiteralGetter(private val value: FluoriteValue) : Getter {
 }
 
 class VariableGetter(private val frameIndex: Int, private val variableIndex: Int) : Getter {
-    override suspend fun evaluate(env: Environment) = env.variableTable[frameIndex][variableIndex]!!.get(env)
+    override suspend fun evaluate(env: Environment) = env.variableTable[frameIndex][variableIndex]!!.get()
     override val code get() = "VariableGetter[$frameIndex;$variableIndex]"
 }
 
 class MountGetter(private val mountCounts: IntArray, private val name: String) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         env.getMounts(name, mountCounts).forEach {
-            return it
+            return it.get()
         }
         throw IllegalArgumentException("No such mount entry: $name")
     }
@@ -116,6 +121,11 @@ class ArrayCreationGetter(private val getters: List<Getter>) : Getter {
     override val code get() = "ArrayCreationGetter[${getters.code}]"
 }
 
+class ObjectFromStreamGetter(private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment) = FluoriteObject.fromStream(getter.evaluate(env))
+    override val code get() = "ObjectFromStreamGetter[${getter.code}]"
+}
+
 class ObjectCreationGetter(private val parentGetter: Getter?, private val variableCount: Int, private val objectInitializers: List<ObjectInitializer>) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val parent = parentGetter?.let { it.evaluate(env) as FluoriteObject } ?: FluoriteObject.fluoriteClass
@@ -147,7 +157,7 @@ class MethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -156,20 +166,20 @@ class MethodAccessGetter(
         }
 
         suspend fun processFunction(function: FluoriteValue): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
-                    receiver.callMethod(position, function, arguments + arguments2)
+                FluoriteFunction.create { arguments2 ->
+                    receiver.callAsMethod(position, function, arguments + arguments2)
                 }
             } else {
-                receiver.callMethod(position, function, arguments)
+                receiver.callAsMethod(position, function, arguments)
             }
         }
 
         suspend fun processCallable(callable: Callable): FluoriteValue {
-            val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+            val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
             return if (isBinding) {
-                FluoriteFunction { arguments2 ->
+                FluoriteFunction.create { arguments2 ->
                     withStackTrace(position) {
                         callable.call(arguments + arguments2)
                     }
@@ -211,24 +221,26 @@ class MethodAccessGetter(
 
         // ローカル変数のチェック
         if (variable != null) {
-            val value = env.variableTable[variable.first][variable.second]!!.get(env)
+            val value = env.variableTable[variable.first][variable.second]!!.get()
             val result = processEntries(value)
             if (result != null) return result
         }
 
         // レシーバのメソッドのチェック
         run {
-            val callable = receiver.getMethod(position, name)
+            val callable = receiver.getSolvedMethod(position, name)
             if (callable != null) return processCallable(callable)
         }
 
         // マウントのチェック
         env.getMounts("::$name", mountCounts).forEach {
-            val result = processEntries(it)
+            val result = processEntries(it.get())
             if (result != null) return result
         }
 
-        throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        withStackTrace(position) {
+            throw FluoriteException("Method not found: $receiver::$name".toFluoriteString())
+        }
     }
 
     override val code get() = "MethodAccessGetter[${receiverGetter.code};$variable;${mountCounts.joinToString { "$it" }};${name.escapeJsonString()};${argumentGetters.code};$isBinding,$isNullSafe]"
@@ -246,7 +258,7 @@ class FunctionalMethodAccessGetter(
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) {
             return if (isBinding) {
-                FluoriteFunction {
+                FluoriteFunction.immediate {
                     FluoriteNull
                 }
             } else {
@@ -255,13 +267,13 @@ class FunctionalMethodAccessGetter(
         }
 
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return if (isBinding) {
-            FluoriteFunction { arguments2 ->
-                receiver.callMethod(position, function, arguments + arguments2)
+            FluoriteFunction.create { arguments2 ->
+                receiver.callAsMethod(position, function, arguments + arguments2)
             }
         } else {
-            receiver.callMethod(position, function, arguments)
+            receiver.callAsMethod(position, function, arguments)
         }
     }
 
@@ -271,7 +283,7 @@ class FunctionalMethodAccessGetter(
 class FunctionInvocationGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return function.invoke(position, arguments)
     }
 
@@ -281,7 +293,7 @@ class FunctionInvocationGetter(private val functionGetter: Getter, private val a
 class FunctionBindGetter(private val functionGetter: Getter, private val argumentGetters: List<Getter>, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val function = functionGetter.evaluate(env)
-        val arguments = Array(argumentGetters.size) { argumentGetters[it].evaluate(env) }
+        val arguments = Array(argumentGetters.size) { suspend { argumentGetters[it].evaluate(env) } }
         return function.bind(position, arguments)
     }
 
@@ -335,7 +347,7 @@ class FluoriteException(val value: FluoriteValue) : Exception(value.toString()) 
 class ThrowGetter(private val getter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): Nothing {
         withStackTrace(position) {
-            throw FluoriteException(getter.evaluate(env))
+            throw getter.evaluate(env).toThrowable()
         }
     }
 
@@ -346,29 +358,33 @@ class Returner : Throwable() {
     companion object {
         private val unused = mutableListOf<Returner>()
 
-        fun allocate(frameIndex: Int, labelIndex: Int, value: FluoriteValue): Returner {
+        fun allocate(label: Label, value: FluoriteValue): Returner {
             val returner = if (hasFreeze()) Returner() else unused.removeLastOrNull() ?: Returner()
-            returner.frameIndex = frameIndex
-            returner.labelIndex = labelIndex
+            returner.label = label
             returner.value = value
             return returner
         }
 
         fun recycle(returner: Returner) {
             if (hasFreeze()) return
+            returner.label = null
+            returner.value = FluoriteNull
             if (unused.size >= 100) return
             unused += returner
         }
     }
 
-    var frameIndex: Int = 0
-    var labelIndex: Int = 0
+    var label: Label? = null
     var value: FluoriteValue = FluoriteNull
 }
 
-class ReturnGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = throw Returner.allocate(frameIndex, labelIndex, getter.evaluate(env))
-    override val code get() = "ReturnGetter[$frameIndex;$labelIndex;${getter.code}]"
+class ReturnGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val label = env.variableTable[frameIndex][variableIndex] as? Label ?: throw IllegalStateException("Unexpected non-label variable at ReturnGetter: $name")
+        throw Returner.allocate(label, getter.evaluate(env))
+    }
+
+    override val code get() = "ReturnGetter[$frameIndex;$variableIndex;$name;${getter.code}]"
 }
 
 class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter: Getter, private val isNullSafe: Boolean, private val position: Position) : Getter {
@@ -376,7 +392,7 @@ class ItemAccessGetter(private val receiverGetter: Getter, private val keyGetter
         val receiver = receiverGetter.evaluate(env)
         if (isNullSafe && receiver == FluoriteNull) return FluoriteNull
         val key = keyGetter.evaluate(env)
-        return receiver.callMethod(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
+        return receiver.callMethodImmediate(position, OperatorMethod.PROPERTY.methodName, arrayOf(key))
     }
 
     override val code get() = "ItemAccessGetter[${receiverGetter.code};${keyGetter.code};$isNullSafe]"
@@ -679,29 +695,67 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "EntryGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val getter: Getter) : Getter {
+class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val isLazy: List<Boolean>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
-        return FluoriteFunction { arguments ->
+        return FluoriteFunction.create { arguments ->
             val newEnv = Environment(env, 1 + variableIndices.size, 0)
-            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(arguments.toFluoriteArray())
+            val evaluatedArguments = arguments.mapIndexed { i, argument ->
+                if (isLazy.getOrNull(i) ?: false) {
+                    FluoriteFunction.immediate { argument() }
+                } else {
+                    argument()
+                }
+            }.toTypedArray()
+            newEnv.variableTable[newFrameIndex][argumentsVariableIndex] = LocalVariable(evaluatedArguments.toFluoriteArray())
             variableIndices.forEachIndexed { i, variableIndex ->
-                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(arguments.getOrNull(i) ?: FluoriteNull)
+                newEnv.variableTable[newFrameIndex][variableIndex] = LocalVariable(evaluatedArguments.getOrNull(i) ?: FluoriteNull)
             }
             getter.evaluate(newEnv)
         }
     }
 
-    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${getter.code}]"
+    override val code get() = "FunctionGetter[$newFrameIndex;$argumentsVariableIndex;${variableIndices.joinToString(",") { "$it" }};${isLazy.joinToString(",") { "$it" }};${getter.code}]"
 }
 
 class MatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return right.match(position, left)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.collect { item ->
+                    val result = right.match(position, item)
+                    if (result is FluoriteStream) {
+                        result.flowProvider(this)
+                    } else {
+                        emit(result)
+                    }
+                }
+            }
+        } else {
+            right.match(position, left)
+        }
     }
 
     override val code get() = "MatchGetter[${leftGetter.code};${rightGetter.code}]"
+}
+
+class NotMatchGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val left = leftGetter.evaluate(env)
+        val right = rightGetter.evaluate(env)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.collect { item ->
+                    emit(right.match(position, item).toFluoriteBoolean(position).not())
+                }
+            }
+        } else {
+            right.match(position, left).toFluoriteBoolean(position).not()
+        }
+    }
+
+    override val code get() = "NotMatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
 class SpaceshipGetter(private val leftGetter: Getter, private val rightGetter: Getter, private val position: Position) : Getter {
@@ -761,7 +815,24 @@ class IfGetter(private val conditionGetter: Getter, private val okGetter: Getter
 class ElvisGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
-        return if (left != FluoriteNull) left else rightGetter.evaluate(env)
+        return if (left is FluoriteStream) {
+            FluoriteStream {
+                left.flowProvider { value ->
+                    if (value != FluoriteNull) {
+                        emit(value)
+                    } else {
+                        val defaultValue = rightGetter.evaluate(env)
+                        if (defaultValue is FluoriteStream) {
+                            defaultValue.flowProvider(this)
+                        } else {
+                            emit(defaultValue)
+                        }
+                    }
+                }
+            }
+        } else {
+            if (left != FluoriteNull) left else rightGetter.evaluate(env)
+        }
     }
 
     override val code get() = "ElvisGetter[${leftGetter.code};${rightGetter.code}]"
@@ -788,7 +859,7 @@ class AssignmentGetter(private val setter: Setter, private val getter: Getter) :
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = setter.evaluate(env)
         val right = getter.evaluate(env)
-        left.invoke(right)
+        left(right)
         return right
     }
 
@@ -799,9 +870,13 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightGetter.evaluate(newEnv)
         }
     }
@@ -813,7 +888,11 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return try {
             leftGetter.evaluate(env).cache()
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             rightGetter.evaluate(env)
         }
     }
@@ -821,13 +900,15 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
     override val code get() = "TryCatchGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, private val getter: Getter) : Getter {
+class LabelGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
+        val label = Label(name)
+        val newEnv = Environment(env, 1, 0)
+        newEnv.variableTable[frameIndex][variableIndex] = label
         try {
-            val newEnv = Environment(env, 0, 0)
             return getter.evaluate(newEnv).cache()
         } catch (returner: Returner) {
-            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+            if (returner.label === label) {
                 val value = returner.value
                 Returner.recycle(returner)
                 return value
@@ -837,7 +918,7 @@ class LabelGetter(private val frameIndex: Int, private val labelIndex: Int, priv
         }
     }
 
-    override val code get() = "LabelGetter[$frameIndex;$labelIndex;${getter.code}]"
+    override val code get() = "LabelGetter[$frameIndex;$variableIndex;$name;${getter.code}]"
 }
 
 class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: Int, private val indexVariableIndex: Int?, private val valueVariableIndex: Int, private val contentGetter: Getter) : Getter {

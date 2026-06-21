@@ -144,6 +144,17 @@ $ xa -q '
 # NULL
 ```
 
+## Matching against a Stream
+
+When `string` is a stream, `item =~ regex` is applied to each element and the results are returned as a stream.
+
+```shell
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+) / | _.1 '
+# apple
+# banana
+# cherry
+```
+
 ## Global Match
 
 Matching with a regular expression with the `g` flag returns a stream of all match results.
@@ -152,7 +163,38 @@ Matching with a regular expression with the `g` flag returns a stream of all mat
 $ xa ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
 # apple
 # people
+
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]+)/g | _.1 '
+# Red
+# apple
+# pie
+# Yellow
+# banana
+# cake
+# Pink
+# cherry
+# tart
 ```
+
+## Negative Match
+
+The `string !~ regex` operator tests whether a string does not match a regular expression.
+
+This operator returns the negation of the boolean conversion of the match result.
+
+When `string` is a stream, it returns a stream with this applied to each element.
+
+```shell
+$ xa ' "apple" !~ /pp/ '
+# FALSE
+
+$ xa ' "apple" !~ /xy/ '
+# TRUE
+```
+
+---
+
+The global match flag is effectively meaningless.
 
 ## Calling Regular Expression Objects as Functions
 

@@ -220,3 +220,31 @@ $ xa '"Orange" ?: "Apple"'
 $ xa 'NULL ?: "Apple"'
 # Apple
 ```
+
+---
+
+When `value` is a stream, the Elvis operator is applied to each element.
+
+The Elvis operator does not resolve the return stream.
+
+```shell
+$ xa '(1, NULL, 3) ?: "default"'
+# 1
+# default
+# 3
+
+$ xa '(NULL,) ?: "default"'
+# default
+```
+
+---
+
+When `default` returns a stream, the return stream is flattened.
+
+```shell
+$ xa '(1, NULL, 3) ?: ("A", "B")'
+# 1
+# A
+# B
+# 3
+```

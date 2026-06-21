@@ -20,7 +20,7 @@ title: "コルーチン"
 
 起動されたコルーチンは、 `LAUNCH` の呼び出し元のスレッドが次にサスペンドした際に実行されます。
 
-この関数は `function` の戻り値もしくは `function` 内でスローされた例外が格納される `PROMISE` を返します。
+この関数は `function` の戻り値もしくは `function` 内でスローされた値が格納される `PROMISE` を返します。
 
 ```shell
 $ xa '
@@ -49,7 +49,7 @@ $ xa '
 
 ---
 
-`function` 内で例外がスローされた場合、その例外は標準エラー出力にも出力されます。
+`function` 内で何らかの値がスローされた場合、その値は標準エラー出力にも出力されます。
 
 ```shell
 $ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
@@ -122,6 +122,24 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: 新しいコルーチンを起動する
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+`function` をコルーチンとして非同期に起動します。
+
+`LAUNCH` と同等ですが、引数を式渡し引数として受け取ります。
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
 `PROMISE` は、遅延して内容が確定するコンテナです。
@@ -146,6 +164,8 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 `PROMISE` を `error` で失敗として完了します。
 
+`error` が `ERROR` 型の値である場合は、その値そのものではなく、それが表しているネイティブエラーが失敗の原因になります。
+
 ### `await`: `PROMISE` の完了を待機し、内容を取得する
 
 `<T> PROMISE<T>::await(): T`
@@ -154,15 +174,45 @@ $ { sleep 0.5; echo stop; } | xa -q '
 
 ---
 
-`PROMISE` が失敗として完了した場合、 `await` はその例外をスローします。
+`PROMISE` が失敗として完了した場合、 `await` はその例外値をスローします。
 
 ```shell
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? (e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
+```
+
+### `awaitException`: `PROMISE` の完了を待機し、例外値を取得する
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+`PROMISE` の内容が完了するまで待機します。
+
+`PROMISE` が失敗として完了した場合、その例外値を返します。
+
+失敗の原因がネイティブエラーである場合、その例外値は `ERROR` 型の値になります。
+
+`PROMISE` が正常に完了した場合、 `NULL` を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
 ```
 
 ### `isCompleted`: `PROMISE` の完了状態を調べる
@@ -183,12 +233,12 @@ $ xa '
 
 ---
 
-以下のサンプルコードでは、実行後1秒おいてから `Hello, world!` が出力されます。
+以下のサンプルコードでは、実行後1秒おいてから `Hello, World!` が出力されます。
 
 ```shell
 $ xa '
   SLEEP(1000)
-  "Hello, world!"
+  "Hello, World!"
 '
-# Hello, world!
+# Hello, World!
 ```

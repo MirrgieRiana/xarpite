@@ -1,8 +1,13 @@
 package mirrg.xarpite.compilers.objects
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.mounts.usage
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 interface FluoriteNumber : FluoriteValue {
@@ -17,9 +22,17 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteInt },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteInt).value != 0).toFluoriteBoolean() },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteInt },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteInt).value != 0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
+                        val number = arguments[0] as FluoriteInt
+                        if (number.value == Int.MIN_VALUE) {
+                            FluoriteDouble(abs(number.value.toDouble()))
+                        } else {
+                            FluoriteInt(abs(number.value))
+                        }
+                    },
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value + right.value)
@@ -27,7 +40,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value - right.value)
@@ -35,7 +48,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
@@ -64,9 +77,13 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction { it[0] as FluoriteDouble },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteDouble },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
+                        val number = arguments[0] as FluoriteDouble
+                        FluoriteDouble(abs(number.value))
+                    },
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value + right.value)
@@ -74,7 +91,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.MINUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value - right.value)
@@ -82,7 +99,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
-                    OperatorMethod.COMPARE.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
@@ -101,8 +118,46 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
     override fun toInt() = value.toBigDecimal().intValue(true)
     override fun toDouble() = value
     override fun negate() = FluoriteDouble(-value)
-    override fun roundToInt() = value.roundToInt()
+    override fun roundToInt(): Int {
+        if (value.isNaN()) throw FluoriteException("Cannot round NaN to an integer".toFluoriteString())
+        return value.roundToInt()
+    }
 }
+
+data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
+    companion object {
+        val fluoriteClass by lazy {
+            FluoriteObject(
+                FluoriteValue.fluoriteClass, mutableMapOf(
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("BIG.of(value: STRING | NUMBER): BIG")
+                        when (val argument = arguments[0]) {
+                            is FluoriteString -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteBig -> argument
+                            is FluoriteInt -> FluoriteBig(argument.value.toBigInteger())
+                            is FluoriteDouble -> {
+                                if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
+                                FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                            }
+                            else -> usage("BIG.of(value: STRING | NUMBER): BIG")
+                        }
+                    },
+                )
+            )
+        }
+    }
+
+    override fun toString() = value.toString()
+    override val parent get() = fluoriteClass
+    override fun toInt() = value.intValue(true)
+    override fun toDouble() = value.doubleValue(false)
+    override fun negate() = FluoriteBig(value.negate())
+    override fun roundToInt() = value.intValue(true)
+}
+
+private val INTEGER_PATTERN = Regex("""[+-]?[0-9]+""")
 
 fun String.toFluoriteNumber(): FluoriteNumber {
     fun toFluoriteDouble() = when (val double = this.toDoubleOrNull()) {
@@ -114,7 +169,14 @@ fun String.toFluoriteNumber(): FluoriteNumber {
         "." !in this -> when (val int = this.toIntOrNull()) {
             0 -> FluoriteInt.ZERO
             1 -> FluoriteInt.ONE
-            null -> toFluoriteDouble()
+            null -> {
+                if (INTEGER_PATTERN.matches(this)) {
+                    FluoriteBig(this.toBigInteger())
+                } else {
+                    toFluoriteDouble()
+                }
+            }
+
             else -> FluoriteInt(int)
         }
 

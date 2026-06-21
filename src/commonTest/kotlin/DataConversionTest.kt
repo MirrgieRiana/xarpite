@@ -19,39 +19,59 @@ class DataConversionTest {
     @Test
     fun jsonFunction() = runTest {
         // JSON
-        assertEquals("""
-{
-  "a": [
-    1,
-    2.5,
-    "3",
-    true,
-    false,
-    null
-  ]
-}
-""".trim(), eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
+        assertEquals("""{"a":[1,2.5,"3",true,false,null]}""", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> JSON """).string) // JSON で値をJson文字列に変換する
         assertEquals("1", eval("1 >> JSON").string) // プリミティブを直接指定できる
-        assertEquals("""
-[
-  1,
-  [
-    2,
-    3
-  ],
-  4
-]
-""".trim(), eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを指定できる
-        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONS").stream()) // ストリームを指定するとJsonのストリームになる
+        assertEquals("[\n  1,\n  [\n    2,\n    3\n  ],\n  4\n]", eval(""" [1, [2, 3], 4] >> JSON[indent: "  "] """).string) // indentを名前付き引数として指定できる
+        assertEquals(
+            eval(""" {a: 1} >> JSON[indent: "  "] """).string,
+            eval(""" {a: 1} >> JSON["  "] """).string
+        ) // indentは位置引数でも指定できる
+        assertEquals(
+            eval(""" {a: 1} >> JSON[indent: "  "] """).string,
+            eval(""" {a: 1} >> JSON[indent: 2] """).string
+        ) // indentは数値でも指定でき、その数だけ空白が使用される
+        assertEquals(
+            eval(""" {a: 1} >> JSON """).string,
+            eval(""" {a: 1} >> JSON[indent: NULL] """).string
+        ) // indentにNULLを指定するとインデント無しになる
+
+        // JSONS
+        assertEquals("[\n 1\n],[\n 2\n]", eval(""" [1], [2] >> JSONS[indent: 1] """).stream()) // JSONS でindentを指定できる
+        assertEquals(
+            eval(""" {a: 1}, {b: 2} >> JSONS[indent: 2] """).stream(),
+            eval(""" {a: 1}, {b: 2} >> JSONS["  "] """).stream()
+        ) // JSONS でindentは位置引数でも指定できる
+        assertEquals(
+            eval(""" {a: 1}, {b: 2} >> JSONS """).stream(),
+            eval(""" {a: 1}, {b: 2} >> JSONS[indent: NULL] """).stream()
+        ) // JSONS でindentにNULLを指定するとインデント無しになる
 
         // JSOND
         assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" '{"a":[1,2.5,"3",true,false,null]}' >> JSOND """).obj) // JSOND でJson文字列を値に変換する
         assertEquals(1, eval(""" "1" >> JSOND """).int) // プリミティブを直接指定できる
+        assertEquals("1718445872123456789", eval(""" "1718445872123456789" >> JSOND >> JSON """).string) // INTの範囲を超える整数は精度を失わずデコードされ、数値リテラルとしてエンコードされる
+        assertEquals("[123456789012345678901234567890]", eval(""" "[123456789012345678901234567890]" >> JSOND >> JSON """).string) // 配列の要素でも精度が保たれる
         assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONSD """).stream()) // Jsonのストリームを指定するとストリームになる
         assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONSD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
         assertEquals("[1],[2]", eval(""" " ", "[", " ", "1", " ", "]", " ", "[", "2", "]", " " >> JSONSD """).stream()) // 余分な空白文字列があってもよい
         assertTrue(eval(""" " " >> JSONSD """).empty()) // ブランク文字列しかない場合、空ストリームになる
         assertTrue(eval(""" , >> JSONSD """).empty()) // 空ストリームの場合、空ストリームになる
+
+        // JSONL (synonym for JSONS)
+        assertEquals("[1],[2],[3]", eval("[1], [2], [3] >> JSONL").stream()) // JSONLはJSONSのシノニムとして動作する
+        assertEquals("[\n  1\n],[\n  2\n],[\n  3\n]", eval(""" [1], [2], [3] >> JSONL[indent: "  "] """).stream()) // indentオプションも使用できる
+        assertEquals(
+            eval(""" [1], [2], [3] >> JSONL """).stream(),
+            eval(""" [1], [2], [3] >> JSONL[indent: NULL] """).stream()
+        ) // JSONL でもindentにNULLを指定するとインデント無しになる
+
+        // JSONLD (synonym for JSONSD)
+        assertEquals("[1],[2],[3]", eval(""" "[1]", "[2]", "[3]" >> JSONLD """).stream()) // JSONLDはJSONSDのシノニムとして動作する
+        assertEquals("[1],[2]", eval(""" "[", "1", "]", "[", "2", "]" >> JSONLD """).stream()) // Jsonは改行可能箇所でストリーム要素が切れていてもよい
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ('[1,2,' >> JSOND) !? (e => e) """).string.startsWith("Invalid JSON")) // 不正なJSONのデコードは "Invalid JSON" で始まる文字列のエラーになる
+        assertTrue(eval(""" ((1 / 0) >> JSON) !? (e => e) """).string.startsWith("Failed to encode to JSON")) // 特殊な浮動小数点値のエンコードは "Failed to encode to JSON" で始まる文字列のエラーになる
     }
 
     @Test
@@ -64,19 +84,8 @@ class DataConversionTest {
         assertEquals("true", eval("$&TRUE").string)
         assertEquals("false", eval("$&FALSE").string)
         assertEquals("null", eval("$&NULL").string)
-        assertEquals("""
-[
-  1,
-  2,
-  3
-]
-""".trim(), eval("$&[1; 2; 3]").string)
-        assertEquals("""
-{
-  "a": 1,
-  "b": 2
-}
-""".trim(), eval("$&{a: 1; b: 2}").string)
+        assertEquals("[1,2,3]", eval("$&[1; 2; 3]").string)
+        assertEquals("{\"a\":1,\"b\":2}", eval("$&{a: 1; b: 2}").string)
 
         // $* でjson文字列がFluoriteValueになる
         assertEquals(10, eval("$*'10'").int)
@@ -93,44 +102,85 @@ class DataConversionTest {
     @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
-        assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSONS """).string) // CSVD で文字列を配列に変換できる
+        assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
 
         // ストリームは各要素が変換される
         assertEquals("""a,b,c,d""", eval(""" ["a","b"],["c","d"] >> CSV """).stream())
-        assertEquals("""["a","b"],["c","d"]""", eval(""" "a,b","c,d" >> CSVD >> JSONS """).stream())
+        // JSONS との連携は indent 指定時のみ検証
+        assertEquals(
+            """
+                [
+                  "a",
+                  "b"
+                ],
+                [
+                  "c",
+                  "d"
+                ]
+            """.trimIndent().replace("\n", ""),
+            eval(""" "a,b","c,d" >> CSVD >> JSONS[indent: "  "] """).stream().replace("\n", "")
+        )
 
         // 空文字列は空文字列を1個含む配列になる
         assertEquals("", eval(""" [""] >> CSV """).string)
-        assertEquals("""[""]""", eval(""" "" >> CSVD >> JSONS """).string)
+        assertEquals("""[""]""", eval(""" "" >> CSVD >> JSON """).string)
 
         // 区切り文字を含むセルはクォートされる
         assertEquals("\"a,b\"", eval(""" ["a,b"] >> CSV """).string)
-        assertEquals("""["a,b"]""", eval(""" "\"a,b\"" >> CSVD >> JSONS """).string)
+        assertEquals("""["a,b"]""", eval(""" "\"a,b\"" >> CSVD >> JSON """).string)
 
         // クォートを含むセルはクォートされ、クォートが2重になる
         assertEquals("\"a\"\"b\"", eval(""" ["a\"b"] >> CSV """).string)
-        assertEquals("""["a\"b"]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSONS """).string)
+        assertEquals("""["a\"b"]""", eval(""" "\"a\"\"b\"" >> CSVD >> JSON """).string)
 
         // 前後に半角空白やタブがあるセルはクォートされる
         assertEquals("\" a \",\"\tb\t\"", eval(""" [" a ","\tb\t"] >> CSV """).string)
-        assertEquals("""[" a ","\tb\t"]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSONS """).string)
+        assertEquals("""[" a ","\tb\t"]""", eval(""" "\" a \",\"\tb\t\"" >> CSVD >> JSON """).string)
 
         // 改行を含むセルはクォートされる
         assertEquals("\"a\r\n\",\"\nb\"", eval(""" ["a\r\n","\nb"] >> CSV """).string)
-        assertEquals("""["a\r\n","\nb"]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSONS """).string)
+        assertEquals("""["a\r\n","\nb"]""", eval(""" "\"a\r\n\",\"\nb\"" >> CSVD >> JSON """).string)
 
         // 区切り文字とクォート文字の指定
         assertEquals("%a|%|%%%b%", eval(""" ["a|","%b"] >> CSV[separator: "|"; quote: "%"] """).string)
-        assertEquals("""["a|","%b"]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSONS """).string)
+        assertEquals("""["a|","%b"]""", eval(""" "%a|%|%%%b%" >> CSVD[separator: "|"; quote: "%"] >> JSON """).string)
 
         // CSVDのフォーマット
-        assertEquals("""["a","","b"]""", eval(""" "a,,b" >> CSVD >> JSONS """).string) // 空のセクションは空文字列になる
-        assertEquals("""["","a","b"]""", eval(""" ",a,b" >> CSVD >> JSONS """).string) // 先頭のカンマの前は空文字列になる
-        assertEquals("""["a","b",""]""", eval(""" "a,b," >> CSVD >> JSONS """).string) // 末尾のカンマの後は空文字列になる
-        assertEquals("""["","a","","c",""]""", eval(""" " , a , , c , " >> CSVD >> JSONS """).string) // 余計な空白はトリムされる
+        assertEquals("""["a","","b"]""", eval(""" "a,,b" >> CSVD >> JSON """).string) // 空のセクションは空文字列になる
+        assertEquals("""["","a","b"]""", eval(""" ",a,b" >> CSVD >> JSON """).string) // 先頭のカンマの前は空文字列になる
+        assertEquals("""["a","b",""]""", eval(""" "a,b," >> CSVD >> JSON """).string) // 末尾のカンマの後は空文字列になる
+        assertEquals("""["","a","","c",""]""", eval(""" " , a , , c , " >> CSVD >> JSON """).string) // 余計な空白はトリムされる
 
-        assertEquals("""["","a","","b",""]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSONS """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
-        assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSONS """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" " \t a \t \t b \t " >> CSVD[separator: "\t"] >> JSON """).string) // 区切り文字がタブの場合、タブを空白文字扱いしない
+        assertEquals("""["","a","","b",""]""", eval(""" "\t \ta\t \t \tb\t \t" >> CSVD[separator: " "] >> JSON """).string) // 区切り文字が半角空白の場合、半角空白を空白文字扱いしない
+    }
+
+    @Test
+    fun tsv() = runTest {
+        assertEquals("a\tb", eval(""" ["a","b"] >> TSV """).string) // TSV で配列を文字列に変換できる（デフォルト区切り文字はタブ）
+        assertEquals("""["a","b"]""", eval(""" "a\tb" >> TSVD >> JSON """).string) // TSVD で文字列を配列に変換できる（デフォルト区切り文字はタブ）
+
+        // ストリームは各要素が変換される
+        assertEquals("a\tb,c\td", eval(""" ["a","b"],["c","d"] >> TSV """).stream())
+
+        // タブを含むセルはクォートされる
+        assertEquals("\"a\tb\"", eval(""" ["a\tb"] >> TSV """).string)
+        assertEquals("""["a\tb"]""", eval(""" "\"a\tb\"" >> TSVD >> JSON """).string)
+
+        // TSVDのフォーマット
+        assertEquals("""["a","","b"]""", eval(""" "a\t\tb" >> TSVD >> JSON """).string) // 空のセクションは空文字列になる
+        assertEquals("""["","a","b"]""", eval(""" "\ta\tb" >> TSVD >> JSON """).string) // 先頭のタブの前は空文字列になる
+        assertEquals("""["a","b",""]""", eval(""" "a\tb\t" >> TSVD >> JSON """).string) // 末尾のタブの後は空文字列になる
+
+        // セパレータを指定した場合はCSVとシノニムになる
+        assertEquals(
+            eval(""" ["a","b"] >> CSV[separator: "|"] """).string,
+            eval(""" ["a","b"] >> TSV[separator: "|"] """).string,
+        ) // separator指定時はCSVとTSVは同一の結果になる
+        assertEquals(
+            eval(""" "a|b" >> CSVD[separator: "|"] >> JSON """).string,
+            eval(""" "a|b" >> TSVD[separator: "|"] >> JSON """).string,
+        ) // separator指定時はCSVDとTSVDは同一の結果になる
     }
 
     @Test
@@ -173,10 +223,10 @@ class DataConversionTest {
 
         // UTF8D はARRAYも受け付ける
         assertEquals("abc123αβγ", eval(""" [97, 98, 99, 49, 50, 51, 206, 177, 206, 178, 206, 179] >> UTF8D """).string) // 配列から直接デコード
-        
+
         // UTF8D は数値も受け付ける
         assertEquals("a", eval(""" 97 >> UTF8D """).string) // 単一の数値
-        
+
         // UTF8D はARRAYとBLOBの混在したストリームも受け付ける
         assertEquals("abc123αβγ", eval("""
             [97, 98, 99],
@@ -235,5 +285,106 @@ class DataConversionTest {
         assertEquals("a=b&c=d test", eval(""" "a=b&c=d test" >> PERCENT >> PERCENTD """).string)
     }
 
+    @Test
+    fun base() = runTest {
+        // BASE で数値を任意の基数の文字列に変換
+        assertEquals("100", eval(""" 256 >> BASE[16] """).string) // 16進数: 256 → "100"
+        assertEquals("FF", eval(""" 255 >> BASE[16] """).string) // 16進数: 255 → "FF"
+        assertEquals("10", eval(""" 16 >> BASE[16] """).string) // 16進数: 16 → "10"
+        assertEquals("0", eval(""" 0 >> BASE[16] """).string) // 16進数: 0 → "0"
+        assertEquals("100000000", eval(""" 256 >> BASE[2] """).string) // 2進数: 256 → "100000000"
+        assertEquals("11111111", eval(""" 255 >> BASE[2] """).string) // 2進数: 255 → "11111111"
+        assertEquals("400", eval(""" 256 >> BASE[8] """).string) // 8進数: 256 → "400"
+        assertEquals("80", eval(""" 256 >> BASE[32] """).string) // 32進数: 256 → "80"
+
+        // BASED で任意の基数の文字列を数値に変換
+        assertEquals(256, eval(""" "100" >> BASED[16] """).int) // 16進数: "100" → 256
+        assertEquals(255, eval(""" "FF" >> BASED[16] """).int) // 16進数: "FF" → 255
+        assertEquals(255, eval(""" "ff" >> BASED[16] """).int) // 16進数: "ff" → 255 (小文字も可)
+        assertEquals(16, eval(""" "10" >> BASED[16] """).int) // 16進数: "10" → 16
+        assertEquals(0, eval(""" "0" >> BASED[16] """).int) // 16進数: "0" → 0
+        assertEquals(256, eval(""" "100000000" >> BASED[2] """).int) // 2進数: "100000000" → 256
+        assertEquals(255, eval(""" "11111111" >> BASED[2] """).int) // 2進数: "11111111" → 255
+        assertEquals(256, eval(""" "400" >> BASED[8] """).int) // 8進数: "400" → 256
+        assertEquals(256, eval(""" "80" >> BASED[32] """).int) // 32進数: "80" → 256
+        assertEquals(520, eval(""" "g8" >> BASED[32] """).int) // 32進数: "g8" → 520 (小文字も可)
+
+        // BASEとBASEDは逆変換の関係
+        assertEquals(256, eval(""" 256 >> BASE[16] >> BASED[16] """).int)
+        assertEquals(12345, eval(""" 12345 >> BASE[10] >> BASED[10] """).int)
+        assertEquals(1023, eval(""" 1023 >> BASE[2] >> BASED[2] """).int)
+        assertEquals(1000, eval(""" 1000 >> BASE[36] >> BASED[36] """).int)
+
+        // さまざまな基数で変換できる
+        assertEquals("1010", eval(""" 10 >> BASE[2] """).string) // 2進数
+        assertEquals("22", eval(""" 10 >> BASE[4] """).string) // 4進数
+        assertEquals("12", eval(""" 10 >> BASE[8] """).string) // 8進数
+        assertEquals("A", eval(""" 10 >> BASE[16] """).string) // 16進数
+        assertEquals("A", eval(""" 10 >> BASE[36] """).string) // 36進数
+    }
+
+    @Test
+    fun base64() = runTest {
+        // BASE64 で文字列をBase64文字列に変換
+        assertEquals("SGVsbG8sIFdvcmxkIQ==", eval(""" "Hello, World!" >> BASE64 """).string)
+        assertEquals("YWJj", eval(""" "abc" >> BASE64 """).string)
+        assertEquals("", eval(""" "" >> BASE64 """).string) // 空文字列は空文字列
+
+        // BASE64D でBase64文字列を文字列に変換
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D """).string)
+        assertEquals("abc", eval(""" "YWJj" >> BASE64D """).string)
+        assertEquals("", eval(""" "" >> BASE64D """).string) // 空文字列は空文字列
+
+        // BASE64とBASE64Dは逆変換の関係
+        assertEquals("Hello, World!", eval(""" "Hello, World!" >> BASE64 >> BASE64D """).string)
+        assertEquals("こんにちは世界", eval(""" "こんにちは世界" >> BASE64 >> BASE64D """).string)
+        assertEquals("🌟✨🎉", eval(""" "🌟✨🎉" >> BASE64 >> BASE64D """).string)
+
+        // BASE64 は76文字ごとに改行される (LF)
+        val longString = "a".repeat(100)
+        val encoded = eval(""" "$longString" >> BASE64 """).string
+        val lines = encoded.split("\n")
+        // 最後の行以外は76文字
+        for (i in 0 until lines.size - 1) {
+            assertEquals(76, lines[i].length, "Line $i should be 76 characters")
+        }
+
+        // BASE64D は改行や空白を無視する
+        assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D """).string)
+        assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D """).string)
+    }
+
+    @Test
+    fun shellEscape() = runTest {
+        // SHELL_ESCAPE で文字列をシェル用にエスケープ
+        assertEquals("'Hello'", eval(""" "Hello" >> SHELL_ESCAPE """).string) // 通常の文字列はシングルクォートで囲まれる
+        assertEquals("'Hello World'", eval(""" "Hello World" >> SHELL_ESCAPE """).string) // スペースを含む文字列
+        assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> SHELL_ESCAPE """).string) // シングルクォートを含む文字列
+        assertEquals("''\\'''", eval(""" "'" >> SHELL_ESCAPE """).string) // シングルクォートのみ
+        assertEquals("''", eval(""" "" >> SHELL_ESCAPE """).string) // 空文字列
+        assertEquals("'abc'\\''def'\\''ghi'", eval(""" "abc'def'ghi" >> SHELL_ESCAPE """).string) // 複数のシングルクォート
+
+        // BASH_ESCAPE は SHELL_ESCAPE のエイリアス
+        assertEquals("'Hello'", eval(""" "Hello" >> BASH_ESCAPE """).string) // BASH_ESCAPEでも同じ結果
+        assertEquals("'Don'\\''t ask'", eval(""" "Don't ask" >> BASH_ESCAPE """).string) // BASH_ESCAPEでもシングルクォートがエスケープされる
+    }
+
+    @Test
+    fun regexEscape() = runTest {
+        // REGEX_ESCAPE で文字列を正規表現用にエスケープ
+        assertEquals("abc", eval(""" "abc" >> REGEX_ESCAPE """).string) // メタ文字を含まない文字列はそのまま
+        assertEquals("a-b", eval(""" "a-b" >> REGEX_ESCAPE """).string) // ハイフンはエスケープしない（文字クラスの外ではリテラルのため）
+        assertEquals("a\\.b", eval(""" "a.b" >> REGEX_ESCAPE """).string) // ドットがエスケープされる
+        assertEquals("a\\+b\\*c\\?", eval(""" "a+b*c?" >> REGEX_ESCAPE """).string) // 量指定子がエスケープされる
+        assertEquals("\\(\\[\\{\\}\\]\\)", eval(""" "([{}])" >> REGEX_ESCAPE """).string) // 各種括弧がエスケープされる
+        assertEquals("\\^a\\$\\|b", eval(""" '^a$|b' >> REGEX_ESCAPE """).string) // アンカーと選択がエスケープされる
+        assertEquals("a\\\\b", eval(""" 'a\b' >> REGEX_ESCAPE """).string) // バックスラッシュ自身がエスケープされる
+        assertEquals("", eval(""" "" >> REGEX_ESCAPE """).string) // 空文字列
+
+        // エスケープ結果を実際に正規表現として使うと、元の文字列にリテラルとして一致する
+        assertEquals("a.b", eval(""" ("a.b" =~ REGEX.new("a.b" >> REGEX_ESCAPE)).0 """).string) // エスケープ後の文字列は元の文字列に一致する
+        assertEquals(FluoriteNull, eval(""" "aXb" =~ REGEX.new("a.b" >> REGEX_ESCAPE) """)) // . がリテラル化され、ワイルドカードとして別の文字には一致しない
+        assertEquals("^a$|b", eval(""" ('^a$|b' =~ REGEX.new('^a$|b' >> REGEX_ESCAPE)).0 """).string) // メタ文字を多数含む文字列もリテラルとして一致する
+    }
 
 }

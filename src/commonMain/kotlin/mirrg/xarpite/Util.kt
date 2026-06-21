@@ -1,12 +1,16 @@
 package mirrg.xarpite
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonUnquotedLiteral
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -20,6 +24,9 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
+import okio.Path
+import okio.Path.Companion.toPath
 
 fun String.escapeJsonString() = this
     .replace("\\", "\\\\")
@@ -31,10 +38,12 @@ fun String.escapeJsonString() = this
 private val jsons = mutableMapOf<String, Json>()
 
 suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): String {
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun FluoriteValue.toJsonElement(): JsonElement = when (this) {
         is FluoriteObject -> JsonObject(this.map.mapValues { it.value.toJsonElement() })
         is FluoriteArray -> JsonArray(this.values.map { it.toJsonElement() })
         is FluoriteInt -> JsonPrimitive(this.value)
+        is FluoriteBig -> JsonUnquotedLiteral(this.value.toString())
         is FluoriteDouble -> JsonPrimitive(this.value)
         is FluoriteString -> JsonPrimitive(this.value)
         is FluoriteBoolean -> JsonPrimitive(this.value)
@@ -45,35 +54,41 @@ suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): St
 
     val jsonElement = this.toJsonElement()
 
-    val effectiveIndent = indent ?: "  "
-    if (effectiveIndent == "") return Json.encodeToString(jsonElement)
-    val oldJson = jsons[effectiveIndent]
+    fun encode(json: Json): String {
+        return try {
+            json.encodeToString(jsonElement)
+        } catch (e: SerializationException) {
+            throw FluoriteException("Failed to encode to JSON: ${e.message ?: e.toString()}".toFluoriteString())
+        }
+    }
+
+    if (indent == null) return encode(Json)
+    val oldJson = jsons[indent]
     val json = if (oldJson != null) {
         oldJson
     } else {
         val newJson = Json {
             prettyPrint = true
-            prettyPrintIndent = effectiveIndent
+            prettyPrintIndent = indent
         }
         if (jsons.size >= 10) jsons.clear()
-        jsons[effectiveIndent] = newJson
+        jsons[indent] = newJson
         newJson
     }
-    return json.encodeToString(jsonElement)
+    return encode(json)
 }
 
 suspend fun FluoriteValue.toSingleJsonFluoriteValue(position: Position?, indent: String?) = this.toSingleJson(position, indent).toFluoriteString()
 
 suspend fun FluoriteValue.toJsonsFluoriteValue(position: Position?, indent: String?): FluoriteValue {
-    val effectiveIndent = indent ?: ""
     return if (this is FluoriteStream) {
         FluoriteStream {
             this@toJsonsFluoriteValue.collect {
-                emit(it.toSingleJsonFluoriteValue(position, effectiveIndent))
+                emit(it.toSingleJsonFluoriteValue(position, indent))
             }
         }
     } else {
-        this.toSingleJsonFluoriteValue(position, effectiveIndent)
+        this.toSingleJsonFluoriteValue(position, indent)
     }
 }
 
@@ -90,7 +105,12 @@ fun String.toFluoriteValueAsSingleJson(): FluoriteValue {
             else -> this.content.toFluoriteNumber()
         }
     }
-    return Json.decodeFromString<JsonElement>(this).toFluoriteValue()
+    val jsonElement = try {
+        Json.decodeFromString<JsonElement>(this)
+    } catch (e: SerializationException) {
+        throw FluoriteException("Invalid JSON: ${e.message ?: e.toString()}".toFluoriteString())
+    }
+    return jsonElement.toFluoriteValue()
 }
 
 suspend fun FluoriteValue.toFluoriteValueAsSingleJson(position: Position?) = this.toFluoriteString(position).value.toFluoriteValueAsSingleJson()
@@ -295,3 +315,41 @@ fun Int.toFluoriteIntAsCompared(): FluoriteInt {
 object IterationAborted : Throwable()
 
 class WorkInProgressError(message: String) : Error(message)
+
+fun Iterable<FluoriteValue>.partitionIfEntry(): Pair<MutableMap<String, FluoriteValue>, MutableList<FluoriteValue>> {
+    val entries = mutableMapOf<String, FluoriteValue>()
+    val nonEntries = mutableListOf<FluoriteValue>()
+    this.forEach { value ->
+        if (value is FluoriteArray && value.values.size == 2) {
+            val key = value.values[0]
+            if (key is FluoriteString) {
+                val keyString = key.value
+                if (keyString in entries) throw FluoriteException("Duplicate key: $keyString".toFluoriteString())
+                entries += keyString to value.values[1]
+                return@forEach
+            }
+        }
+        nonEntries.add(value)
+    }
+    return Pair(entries, nonEntries)
+}
+
+inline fun Path.map(mapper: (String) -> String) = mapper(this.toString()).toPath()
+
+operator fun Path.contains(other: Path) = this == other || this.isAncestorOf(other)
+
+fun Path.isAncestorOf(other: Path): Boolean {
+    if (this == other) return false
+    var path = other
+    while (true) {
+        path = path.parent ?: return false
+        if (this == path) return true
+    }
+}
+
+fun isUrl(location: String) = location.startsWith("http://", ignoreCase = true) || location.startsWith("https://", ignoreCase = true)
+
+
+// I/O utilities
+
+suspend fun RuntimeContext.fetch(url: String) = io.fetch(this, url)

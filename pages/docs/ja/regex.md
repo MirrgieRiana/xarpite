@@ -144,6 +144,28 @@ $ xa -q '
 # NULL
 ```
 
+## ストリームに対するマッチ
+
+`string` がストリームの場合、各要素に対して `item =~ regex` を適用し、その結果をストリームとして返します。
+
+```shell
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+) / | _.1 '
+# apple
+# banana
+# cherry
+
+$ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]+)/g | _.1 '
+# Red
+# apple
+# pie
+# Yellow
+# banana
+# cake
+# Pink
+# cherry
+# tart
+```
+
 ## グローバルマッチ
 
 `g` フラグを付与した正規表現によるマッチでは、すべてのマッチ結果からなるストリームが返されます。
@@ -153,6 +175,26 @@ $ xa ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
 # apple
 # people
 ```
+
+## 否定マッチ
+
+`string !~ regex` 演算子で、文字列が正規表現にマッチしないかどうかを判定できます。
+
+この演算子は、マッチ結果を論理値化して否定した値を返します。
+
+`string` がストリームの場合は、各要素についてこれを行ったストリームを返します。
+
+```shell
+$ xa ' "apple" !~ /pp/ '
+# FALSE
+
+$ xa ' "apple" !~ /xy/ '
+# TRUE
+```
+
+---
+
+グローバルマッチのフラグは、実質的に無意味です。
 
 ## 正規表現オブジェクトの関数呼び出し
 

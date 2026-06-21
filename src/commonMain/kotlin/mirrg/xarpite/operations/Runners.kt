@@ -1,10 +1,14 @@
 package mirrg.xarpite.operations
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.Environment
+import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
+import mirrg.xarpite.Mount
 import mirrg.xarpite.compilers.objects.FluoriteObject
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.toFluoriteValue
+import kotlin.coroutines.cancellation.CancellationException
 
 class GetterRunner(private val getter: Getter) : Runner {
     override suspend fun evaluate(env: Environment) {
@@ -18,39 +22,65 @@ class AssignmentRunner(private val setter: Setter, private val getter: Getter) :
     override suspend fun evaluate(env: Environment) {
         val left = setter.evaluate(env)
         val right = getter.evaluate(env)
-        left.invoke(right)
+        left(right)
     }
 
     override val code get() = "AssignmentRunner[${setter.code};${getter.code}]"
 }
 
-class TryCatchRunner(private val leftRunners: List<Runner>, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightRunners: List<Runner>) : Runner {
+class TryCatchWithVariableRunner(private val leftRunners: List<Runner>, private val newFrameIndex: Int, private val argumentVariableIndex: Int, private val rightRunners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         try {
             leftRunners.forEach {
                 it.evaluate(env)
             }
-        } catch (e: FluoriteException) {
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
             val newEnv = Environment(env, 1, 0)
-            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.value)
+            newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightRunners.forEach {
                 it.evaluate(newEnv)
             }
         }
     }
 
-    override val code get() = "TryCatchRunner[${leftRunners.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
+    override val code get() = "TryCatchWithVariableRunner[${leftRunners.code};$newFrameIndex;$argumentVariableIndex;${rightRunners.code}]"
 }
 
-class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, private val runners: List<Runner>) : Runner {
+class TryCatchRunner(private val leftRunners: List<Runner>, private val rightRunners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         try {
-            val newEnv = Environment(env, 0, 0)
+            leftRunners.forEach {
+                it.evaluate(env)
+            }
+        } catch (e: Returner) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Throwable) {
+            rightRunners.forEach {
+                it.evaluate(env)
+            }
+        }
+    }
+
+    override val code get() = "TryCatchRunner[${leftRunners.code};${rightRunners.code}]"
+}
+
+class LabelRunner(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val runners: List<Runner>) : Runner {
+    override suspend fun evaluate(env: Environment) {
+        val label = Label(name)
+        val newEnv = Environment(env, 1, 0)
+        newEnv.variableTable[frameIndex][variableIndex] = label
+        try {
             runners.forEach {
                 it.evaluate(newEnv)
             }
         } catch (returner: Returner) {
-            if (returner.frameIndex == frameIndex && returner.labelIndex == labelIndex) {
+            if (returner.label === label) {
                 val value = returner.value
                 Returner.recycle(returner)
                 value.consume()
@@ -60,18 +90,18 @@ class LabelRunner(private val frameIndex: Int, private val labelIndex: Int, priv
         }
     }
 
-    override val code get() = "LabelRunner[$frameIndex;$labelIndex;${runners.code}]"
+    override val code get() = "LabelRunner[$frameIndex;$variableIndex;$name;${runners.code}]"
 }
 
 class MountRunner(private val frameIndex: Int, private val mountIndex: Int, private val getter: Getter) : Runner {
     override suspend fun evaluate(env: Environment) {
-        env.mountTable[frameIndex][mountIndex] = (getter.evaluate(env) as FluoriteObject).map.toMap()
+        env.mountTable[frameIndex][mountIndex] = (getter.evaluate(env) as FluoriteObject).map.mapValues { ConstantMount(it.value) }.toMap()
     }
 
     override val code get() = "MountRunner[$frameIndex;$mountIndex;${getter.code}]"
 }
 
-class BuiltinMountRunner(private val frameIndex: Int, private val mountIndex: Int, private val entries: Map<String, FluoriteValue>) : Runner {
+class BuiltinMountRunner(private val frameIndex: Int, private val mountIndex: Int, private val entries: Map<String, Mount>) : Runner {
     override suspend fun evaluate(env: Environment) {
         env.mountTable[frameIndex][mountIndex] = entries
     }

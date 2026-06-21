@@ -13,15 +13,15 @@ import mirrg.xarpite.operations.LiteralGetter
 import mirrg.xarpite.operations.Setter
 import mirrg.xarpite.operations.VariableSetter
 
-fun Frame.compileToSetter(node: Node): Setter {
+fun Frame.compileToSetter(node: Node): Result<Setter> {
     return when (node) {
         is IdentifierNode -> {
             val name = node.string
-            val (frameIndex, variableIndex) = getVariable(name) ?: throw IllegalArgumentException("No such variable: $name")
-            VariableSetter(frameIndex, variableIndex)
+            val (frameIndex, variableIndex) = getVariable(name) ?: return Result.failure(IllegalArgumentException("No such variable: $name"))
+            Result.success(VariableSetter(frameIndex, variableIndex))
         }
 
-        is BracketsRightSimpleRoundNode -> FunctionInvocationSetter(compileToGetter(node.receiver), createSimpleArgumentGetters(node), node.position)
+        is BracketsRightSimpleRoundNode -> Result.success(FunctionInvocationSetter(compileToGetter(node.receiver), createSimpleArgumentGetters(node), node.position))
 
         is InfixPeriodNode -> {
             val receiverGetter = compileToGetter(node.left)
@@ -29,9 +29,9 @@ fun Frame.compileToSetter(node: Node): Setter {
                 is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
                 else -> compileToGetter(node.right)
             }
-            ItemAccessSetter(receiverGetter, keyGetter, node.position)
+            Result.success(ItemAccessSetter(receiverGetter, keyGetter, node.position))
         }
 
-        else -> throw IllegalArgumentException("Illegal setter: ${node::class}")
+        else -> Result.failure(IllegalArgumentException("Illegal setter: ${node::class}"))
     }
 }

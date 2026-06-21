@@ -162,12 +162,13 @@ The format specifier grammar is as follows:
 | Half-width space | Display half-width space for sign. |
 | `0`          | Pad with `0` instead of spaces.       |
 
-| Conversion | Meaning             |
-|------------|---------------------|
-| d          | Decimal integer     |
-| x          | Hexadecimal integer |
-| f          | Decimal fraction    |
-| s          | String              |
+| Conversion | Meaning                            |
+|------------|-------------------------------------|
+| d          | Decimal integer                     |
+| x          | Hexadecimal integer (lowercase)     |
+| X          | Hexadecimal integer (uppercase)     |
+| f          | Decimal fraction                    |
+| s          | String                              |
 
 ## Character Content `abcABC123`
 
@@ -184,6 +185,7 @@ Embedded string literals are string literals with a distinctive appearance enclo
 | CR                | LF                          |
 | LF                | LF                          |
 | `<%=` expr `%>`   | Embedding                   |
+| `<%#` ... `%>`    | Comment                     |
 | `<%`              | End of embedded string      |
 | Other characters  | The character itself        |
 
@@ -243,6 +245,15 @@ Like parentheses, variables declared inside do not escape outside.
 ```shell
 $ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
+```
+
+## Comment Content `<%# ... %>`
+
+Enclosing with `<%#` `%>` creates a comment. The content of the comment is not output.
+
+```shell
+$ xa ' %>hello <%# this is a comment %>world<% '
+# hello world
 ```
 
 ## Character Content `abcABC123`
@@ -361,6 +372,79 @@ $ xa '"abcde"[1..3]'
 # bcd
 ```
 
+# Taking and Dropping Substrings from the Ends
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+Returns the string obtained by taking or dropping the first or last `count` characters of the string.
+
+`count` is converted to a number and rounded.
+
+Each method has an alias with identical behavior.
+
+| Method  | Alias       | Target | Operation | Behavior when `count` exceeds the string length |
+|---------|-------------|--------|-----------|-------------------------------------------------|
+| `take`  | `takeFirst` | First  | Take      | The entire string                               |
+| `taker` | `takeLast`  | Last   | Take      | The entire string                               |
+| `drop`  | `dropFirst` | First  | Drop      | An empty string                                 |
+| `dropr` | `dropLast`  | Last   | Drop      | An empty string                                 |
+
+```shell
+$ xa '"[" & "abcde"::take(2) & "]"'
+# [ab]
+
+$ xa '"[" & "abcde"::taker(2) & "]"'
+# [de]
+
+$ xa '"[" & "abcde"::take(0) & "]"'
+# []
+
+$ xa '"[" & "abcde"::take(10) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(2) & "]"'
+# [cde]
+
+$ xa '"[" & "abcde"::dropr(2) & "]"'
+# [abc]
+
+$ xa '"[" & "abcde"::drop(0) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(10) & "]"'
+# []
+```
+
+# Taking Characters from the Ends
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+The `first` and `last` methods get the first or last single character.
+
+If the string is empty, `NULL` is returned.
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+
+$ xa '""::first()'
+# NULL
+
+$ xa '""::last()'
+# NULL
+```
+
 # String Replacement
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
@@ -444,6 +528,57 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 # String Utility Functions
 
+## Conversion Between Characters and Character Codes
+
+`CHAR_CODE(char: STRING): INT`
+
+`CHAR_CODED(charCode: INT): STRING`
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+These functions convert between strings and character codes.
+
+The `CHAR_CODE` family works in UTF-16 code units.
+
+Functions with the `D` suffix decode, while those without it encode.
+
+| Function      | Pre-decode type | Pre-decode meaning      | Direction   | Post-decode type | Post-decode meaning          |
+|---------------|-----------------|-------------------------|-------------|------------------|------------------------------|
+| `CHAR_CODE`   | `INT`           | code unit value         | ← to code   | `STRING`         | exactly one UTF-16 code unit |
+| `CHAR_CODED`  | `INT`           | code unit value         | → to string | `STRING`         | exactly one UTF-16 code unit |
+| `CHAR_CODES`  | `STREAM<INT>`   | value of each code unit | ← to code   | `STRING`         | string                       |
+| `CHAR_CODESD` | `STREAM<INT>`   | value of each code unit | → to string | `STRING`         | string                       |
+
+An error is raised for inputs that fall under any of the following:
+
+- `CHAR_CODED` `CHAR_CODESD`: given a value that is not between 0 and 65535
+- `CHAR_CODE`: given a string that does not consist of exactly one code unit
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("あ")'
+# 12354
+
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+
+$ xa 'CHAR_CODES("ABC") >> JOIN[","]'
+# 65,66,67
+
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
+# Hello
+```
+
 ## `UC` Convert to Uppercase
 
 `UC(string: STRING): STRING`
@@ -499,3 +634,36 @@ There is also an extension function version that can be called with `string::LC(
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` Path Resolution
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+`STRING::RESOLVE(file: STRING): STRING`
+
+Resolves the path to `file` starting from `dir`.
+
+```shell
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
+```
+
+---
+
+The output path is automatically normalized (flattening `.` and `..`).
+
+Symbolic links are not resolved.
+
+```shell
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
+
+Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.

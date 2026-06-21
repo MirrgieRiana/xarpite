@@ -12,10 +12,10 @@ Several functions are provided to convert between JSON strings and values:
 
 - `JSON`
 - `JSOND`
-- `JSONS`
-- `JSONSD`
+- `JSONS` / `JSONL`
+- `JSONSD` / `JSONLD`
 
-See [data-conversion.md](data-conversion.md) for details.
+See Data Conversion Functions for details.
 
 ## Conversion with Operators
 
@@ -29,10 +29,7 @@ The detailed specification is the same as the `JSON` function.
 
 ```shell
 $ xa '$&{a: 1; b: 2}'
-# {
-#   "a": 1,
-#   "b": 2
-# }
+# {"a":1,"b":2}
 ```
 
 When an array or object is specified, internal elements are also recursively converted to JSON.
