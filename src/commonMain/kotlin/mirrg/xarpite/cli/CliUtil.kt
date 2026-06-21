@@ -200,14 +200,14 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
-        val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
-        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
-        mountsFactory = { location ->
-            mounts + context.run { createModuleMounts(location, mountsFactory) }
-        }
-        evaluator.defineMounts(mountsFactory(location))
         try {
             if (options.apiVersion != null) context.apiVersion = options.apiVersion
+            val mounts = context.run { createCommonMounts() + createCliMounts(options.arguments) + createExtraMounts() }
+            lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+            mountsFactory = { location ->
+                mounts + context.run { createModuleMounts(location, mountsFactory) }
+            }
+            evaluator.defineMounts(mountsFactory(location))
             if (options.quiet) {
                 evaluator.run(location, options.src, options.embedded)
             } else {
