@@ -27,11 +27,11 @@
 
 型に基づく分岐は `when (subject)` の `is 型 ->` で書きます（`is 型 ->` の分岐は188件）。シングルトンの `object` や `enum` の枝だけは `is` を付けず、値そのもので分岐します（`is FluoriteNull` ではなく `FluoriteNull -> …`）。
 
-早期 return には elvis 演算子を好みます（`getOrNull(…) ?: return …`）。
+早期 return には elvis 演算子を好みます（`getOrNull(…) ?: return …`）。これは見つからない側（`null`）で抜ける向きです。反対に、補助関数を渡り歩いて「見つかったら即座に返す」を伝播させるときは、補助関数の戻り値を `T?` にして、各呼び出し地点で `val result = …` と受けてから `if (result != null) return result` で1段ずつ持ち上げます（`if (… != null) return …` は9件です）。`?.let { return it }` のような畳み込みにはしません。
 
 コレクションの包含や範囲の判定は中置の `in`/`!in` で書きます（`keyString in entries`、`arguments.size !in 1..2` など。`!in` は7件です）。`.containsKey()` や `.contains()` でのコレクション判定は使いません（`.containsKey()` は0件です）。
 
-関数をまたぐ大域脱出の合図には、引数を取らないシングルトンの `object … : Throwable()`（`ShowUsage`・`ShowVersion`・`IterationAborted` の3個）を新設して `throw` で投げ、受け手は `catch (_: IterationAborted)` のように例外値を `_` で捨てて捕えます（無名捕捉は5件です）。汎用エラーを既存の例外クラスに投げ分けるの（後述）とは別系統で、こちらは制御フローの合図に用います。
+関数をまたぐ大域脱出の合図には、引数を取らないシングルトンの `object … : Throwable()`（`ShowUsage`・`ShowVersion`・`IterationAborted` の3個）を新設して `throw` で投げ、受け手は `catch (_: IterationAborted)` のように例外値を `_` で捨てて捕えます（無名捕捉は5件です）。汎用エラーを既存の例外クラスに投げ分けるの（後述）とは別系統で、こちらは制御フローの合図に用います。ただし、ラベル付きの大域脱出で値を持ち帰る場合だけは、シングルトンではなく、ラベルと値を運ぶ専用の `Throwable`（`Returner`）を投げます。捕える側は `catch (returner: Returner)` で受け、`if (returner.label === label)` と参照同値でラベルの一致を確かめてから値を取り出し、一致しなければ `throw returner` でそのまま再送して外側の枠へ委ねます（`catch (returner:` は4件です）。
 
 途中の文字列変換は `String` の拡張関数として定義し、`.a().b().c()` とメソッドチェーンで一列に流します。引数渡しの入れ子呼び出しにはしません。
 
