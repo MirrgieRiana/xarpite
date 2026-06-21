@@ -348,6 +348,9 @@ class XarpiteGrammar(val location: String, val apiVersion: Int = RuntimeContext.
 
     val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode }
 
+    val shebang: Parser<Tuple0> = -Regex("""#![^\r\n]*(?:\n|\r\n?)?""") // 最外部の先頭限定のシバン行（末尾の改行ごと消費）
+    val rootEmbeddedParser: Parser<Node> = -shebang.optional * embeddedStringContent.zeroOrMore map { EmbeddedStringNode(it.flatten()) } // 最外部を埋め込み文字列の本体として解釈する
+
     private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
     private val ParseResult<*>.position get() = Position(location, start)
 }
