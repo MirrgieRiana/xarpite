@@ -613,7 +613,6 @@ $ xa 'CODE_POINTSD(127856)'
 $ xa '"🍰" >> CODE_POINTS >> CODE_POINTSD'
 # 🍰
 ```
-```
 
 ## `UC` 大文字に変換
 

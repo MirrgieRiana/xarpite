@@ -74,9 +74,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val codePoint = when {
                 string.isEmpty() -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
                 string.length == 1 -> {
-                    val c = string[0]
-                    if (c.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
-                    c.code
+                    val char = string[0]
+                    if (char.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                    char.code
                 }
                 string.length == 2 -> {
                     val high = string[0]
@@ -90,8 +90,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
         },
         "CODE_POINTD" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("CODE_POINTD(codePoint: INT): STRING")
-            val number = arguments[0].toFluoriteNumber(null)
-            val codePoint = number.roundToInt()
+            val codePoint = arguments[0].toFluoriteNumber(null).roundToInt()
             if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Argument must be between 0 and 1114111, got $codePoint".toFluoriteString())
             if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
             val string = if (codePoint < 0x10000) {
@@ -110,19 +109,19 @@ fun createStringMounts(): List<Map<String, Mount>> {
             FluoriteStream {
                 var i = 0
                 while (i < string.length) {
-                    val c = string[i]
-                    if (c.isHighSurrogate()) {
+                    val char = string[i]
+                    if (char.isHighSurrogate()) {
                         if (i + 1 < string.length && string[i + 1].isLowSurrogate()) {
-                            val codePoint = 0x10000 + ((c.code - 0xD800) shl 10) + (string[i + 1].code - 0xDC00)
+                            val codePoint = 0x10000 + ((char.code - 0xD800) shl 10) + (string[i + 1].code - 0xDC00)
                             emit(FluoriteInt(codePoint))
                             i += 2
                         } else {
                             throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
                         }
-                    } else if (c.isLowSurrogate()) {
+                    } else if (char.isLowSurrogate()) {
                         throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
                     } else {
-                        emit(FluoriteInt(c.code))
+                        emit(FluoriteInt(char.code))
                         i++
                     }
                 }
@@ -133,8 +132,7 @@ fun createStringMounts(): List<Map<String, Mount>> {
             val value = arguments[0]
             val sb = StringBuilder()
             suspend fun appendCodePoint(item: FluoriteValue) {
-                val number = item.toFluoriteNumber(null)
-                val codePoint = number.roundToInt()
+                val codePoint = item.toFluoriteNumber(null).roundToInt()
                 if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element must be between 0 and 1114111, got $codePoint".toFluoriteString())
                 if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
                 if (codePoint < 0x10000) {
@@ -146,7 +144,9 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 }
             }
             if (value is FluoriteStream) {
-                value.collect { item -> appendCodePoint(item) }
+                value.collect { item ->
+                    appendCodePoint(item)
+                }
             } else {
                 appendCodePoint(value)
             }
