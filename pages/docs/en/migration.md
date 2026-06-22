@@ -23,6 +23,19 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
+### `JSONS` Has Been Removed
+
+Up to API version 4, `JSONS` was an alias for `JSONL`.
+
+In API version 5, `JSONS` has been removed.
+
+To preserve the previous behavior, replace calls to `JSONS` with `JSONL`.
+
+```diff
+- JSONS
++ JSONL
+```
+
 ### A `#` Line Comment Can No Longer Begin Except at the Start of a Line or After Whitespace
 
 Up to API version 4, a `#` line comment could begin regardless of the preceding character.
