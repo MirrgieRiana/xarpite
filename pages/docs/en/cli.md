@@ -580,6 +580,12 @@ $ { echo 123; echo 456; } | xa 'IN'
 
 ---
 
+In API version 5, only `IN` is no longer an alias of these, and reads the entire standard input as a single string.
+
+In this case, `IN` returns the input string as-is, without modifying any newline characters.
+
+---
+
 Because streams are sequential, even very large iterations can be performed with low memory consumption.
 
 ```shell
@@ -832,6 +838,12 @@ $ {
 # apple
 # banana
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+Newlines are not adjusted.
 
 ### `READB`: Read from Binary File
 
