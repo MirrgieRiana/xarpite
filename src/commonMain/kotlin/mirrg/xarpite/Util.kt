@@ -37,7 +37,6 @@ fun String.escapeJsonString() = this
 
 private val jsons = mutableMapOf<String, Json>()
 
-// API バージョン 5 以降では、インデント引数を省略した JSON 関数および $& 演算子は2スペースの整形出力を行います。
 fun jsonDefaultIndent(apiVersion: Int): String? = if (apiVersion >= 5) "  " else null
 
 suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): String {
