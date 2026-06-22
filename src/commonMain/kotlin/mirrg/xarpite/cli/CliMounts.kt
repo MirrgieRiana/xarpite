@@ -103,25 +103,22 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun readLineStream(file: String): FluoriteStream {
-                val fileSystem = getFileSystem().getOrThrow()
-                return FluoriteStream {
-                    fileSystem.read(file.toPath()) { // TODO charset
-                        while (true) {
-                            val line = readUtf8Line() ?: break
-                            emit(line.toFluoriteString())
-                        }
-                    }
-                }
-            }
             fun createLineStream(name: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
-                    readLineStream(file)
+                    val fileSystem = getFileSystem().getOrThrow()
+                    FluoriteStream {
+                        fileSystem.read(file.toPath()) { // TODO charset
+                            while (true) {
+                                val line = readUtf8Line() ?: break
+                                emit(line.toFluoriteString())
+                            }
+                        }
+                    }
                 }
             }
-            fun createSingleString(name: String): FluoriteFunction {
+            fun createString(name: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STRING")
                     val file = arguments[0].toFluoriteString(null).value
@@ -132,7 +129,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "READ" define if (context.apiVersion >= 5) createSingleString("READ") else createLineStream("READ"),
+                "READ" define if (context.apiVersion >= 5) createString("READ") else createLineStream("READ"),
                 "READL" define createLineStream("READL"),
             )
         },
