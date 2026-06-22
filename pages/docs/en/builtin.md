@@ -698,7 +698,7 @@ $ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5] >> TO_ARRAY'
 
 ---
 
-`stream` is iterated at most once, and only the positions required for the output are read. Therefore, `stream` can be an infinite stream.
+`stream` is iterated at most once, and only the positions required for the output are read.
 
 ## `FIRST` Get First Element of Stream
 
