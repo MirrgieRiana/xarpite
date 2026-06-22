@@ -22,3 +22,16 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 - FILES("dir")
 + FILE_NAMES("dir")
 ```
+
+### `EXEC` Now Returns the Entire Standard Output as a Single String
+
+Up to API version 4, `EXEC` returned a stream that reads the standard output line by line.
+
+In API version 5, it returns the entire standard output decoded as UTF-8 as a single string.
+
+To preserve the previous behavior, replace calls to `EXEC` with `EXECL`.
+
+```diff
+- EXEC("command")
++ EXECL("command")
+```

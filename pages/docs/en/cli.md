@@ -1179,21 +1179,31 @@ $ cd /usr/local/bin && xa 'XA("LOCATION")'
 # /usr/local/bin/-
 ```
 
-### `EXEC`: Execute External Command [EXPERIMENTAL]
+### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
-`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STRING`
+`EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
 
+`EXECL` is an alias of `EXEC` and has the same behavior.
+
 In `command`, specify the process and its arguments one element at a time.
 
-The return value is the standard output of that process decoded as UTF-8 as a string.
+The return value is a stream that reads the standard output of that process line by line.
 
-Trailing newlines in the output are removed.
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string. In that case, trailing newlines in the output are removed.
 
 ```shell
 $ xa 'EXEC("echo", "Hello, World!")'
 # Hello, World!
+```
+
+```shell
+$ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
+# 3
+# 13
+# 23
+# 30
 ```
 
 ---
@@ -1251,25 +1261,9 @@ The called process is managed in a separate thread, and the main thread suspends
 
 This function is an experimental feature and its specification may change in the future.
 
-The return value does not read the process's standard output sequentially, but rather collects the entire standard output after the process terminates.
+The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
 **Also, this function is currently only provided in the JVM and Native versions.**
-
-### `EXECL`: Execute External Command and Return as a Line Stream [EXPERIMENTAL]
-
-`EXECL(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
-
-Executes an external command and returns its standard output as a stream that reads it line by line.
-
-Other behavior generally follows the specifications of the `EXEC` function.
-
-```shell
-$ xa 'EXECL("bash", "-c", "seq 1 30 | grep 3")'
-# 3
-# 13
-# 23
-# 30
-```
 
 ### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
 

@@ -2053,8 +2053,8 @@ class CliTest {
             }
         )
         val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello"))
-        val output = result.toFluoriteString(null).value
-        assertEquals("hello", output)
+        val lines = result.stream()
+        assertEquals("hello", lines)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -2069,8 +2069,42 @@ class CliTest {
             }
         )
         val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execReturnsStringInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC は標準出力全体を単一の文字列で返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"), apiVersion = 5)
         val output = result.toFluoriteString(null).value
         assertEquals("3\n13\n23\n30", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlReturnsLineStreamInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC と別名でなくなった EXECL は行ストリームを返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"), apiVersion = 5)
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -2165,8 +2199,8 @@ class CliTest {
                 "test\n"
             }
         )
-        // 末尾の改行が除去されることを確認
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"))
+        // APIバージョン5の EXEC では末尾の改行が除去されることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"), apiVersion = 5)
         val output = result.toFluoriteString(null).value
         assertEquals("test", output)
 
@@ -2182,8 +2216,8 @@ class CliTest {
                 "test\n\n\n"
             }
         )
-        // 複数の末尾改行がある場合でも、末尾の改行が1つだけ除去されることを確認
-        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"))
+        // APIバージョン5の EXEC では複数の末尾改行があっても末尾の改行が1つだけ除去されることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), apiVersion = 5)
         val output = result.toFluoriteString(null).value
         assertEquals("test\n\n", output)
 
@@ -2527,7 +2561,7 @@ class CliTest {
 
     @Test
     fun execlRunsSimpleCommand() = runTest {
-        // EXECL が標準出力を行ストリームとして返すことをテスト
+        // EXECL は EXEC の別名であることをテスト
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
@@ -2544,7 +2578,7 @@ class CliTest {
 
     @Test
     fun execlRunsComplexCommand() = runTest {
-        // EXECL が複数行の標準出力を行ごとのストリームに分割することをテスト
+        // EXECL が EXEC と同じ動作を持つことをテスト
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
