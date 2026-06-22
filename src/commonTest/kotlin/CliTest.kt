@@ -182,15 +182,53 @@ class CliTest {
     }
 
     @Test
+    fun inlAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
     }
 
     @Test
-    fun inlAlias() = runTest {
+    fun inIsLineStreamInApi4() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は1行ずつのストリーム
+    }
+
+    @Test
+    fun inReadsWholeStringInApi5() = runTest {
+        // APIバージョン5では IN は標準入力全体を1個の文字列として読み取る
+        val context = TestIoContext(stdinBytes = "abc\ndef\n".encodeToByteArray())
+        val result = cliEval(context, "IN", apiVersion = 5)
+        assertTrue(result is FluoriteString)
+        assertEquals("abc\ndef\n", result.toFluoriteString(null).value) // 末尾の改行も改変されずそのまま保持される
+    }
+
+    @Test
+    fun inPreservesNewlinesInApi5() = runTest {
+        // APIバージョン5の IN は改行文字を一切改変せず入力をそのまま返す
+        val context = TestIoContext(stdinBytes = "a\r\nb\n\n".encodeToByteArray())
+        assertEquals("a\r\nb\n\n", cliEval(context, "IN", apiVersion = 5).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun inlIsLineStreamInApi5() = runTest {
+        // APIバージョン5でも INL は1行ずつのストリームのまま
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL", apiVersion = 5).stream())
+    }
+
+    @Test
+    fun inWholeStringThroughApiVersionOption() = runTest {
+        // -A 5 を通して IN が標準入力全体の文字列になる
+        val context = TestIoContext(stdinBytes = "abc\ndef".encodeToByteArray())
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << IN"), context)
+        cliEvalImpl(context, options)
+        assertEquals("abc\ndef\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -3047,6 +3085,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
     }
 }

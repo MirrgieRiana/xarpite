@@ -580,6 +580,12 @@ $ { echo 123; echo 456; } | xa 'IN'
 
 ---
 
+In API version 5, only `IN` is no longer an alias of these, and reads the entire standard input as a single string.
+
+In this case, `IN` returns the input string as-is, without modifying any newline characters.
+
+---
+
 Because streams are sequential, even very large iterations can be performed with low memory consumption.
 
 ```shell

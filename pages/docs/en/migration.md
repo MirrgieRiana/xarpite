@@ -10,6 +10,19 @@ This guide explains how to rewrite existing notations and idioms into equivalent
 
 ## API Version 5
 
+### `IN` Now Reads the Entire Standard Input as a Single String
+
+Up to API version 4, `IN` was a stream that read standard input line by line.
+
+In API version 5, it reads the entire standard input as a single string.
+
+To preserve the previous behavior, replace `IN` with `INL` (or its alias `I`).
+
+```diff
+- IN
++ INL
+```
+
 ### `FILES` Now Returns Paths Including the Directory
 
 Up to API version 4, `FILES` returned only the filenames directly under the directory.

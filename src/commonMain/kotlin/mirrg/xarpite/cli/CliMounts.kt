@@ -1,5 +1,6 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -26,6 +27,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
+import mirrg.xarpite.readAllStringFromStdin
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -65,7 +67,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "IN" define inStream,
+                "IN" define if (context.apiVersion >= 5) LazyMount { context.io.readAllStringFromStdin().toFluoriteString() } else ConstantMount(inStream),
                 "I" define inStream,
                 "INL" define inStream,
             )
