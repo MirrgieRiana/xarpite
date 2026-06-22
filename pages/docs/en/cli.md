@@ -812,29 +812,23 @@ $ {
 # tmp/dir1/file1.txt
 ```
 
-### `READ`: Read from Text File
+### `READ` / `READL`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
-Like `READL`, reads the contents of the text file specified by `file` as a stream of lines decoded as UTF-8.
+Reads the contents of the text file specified by `file` line by line as strings.
 
----
+`READL` is an alias of `READ` and has the same behavior.
 
-In API version 5 and later, `READ` reads the entire file content as a single string decoded as UTF-8, without adjusting the trailing newline.
+Newline codes are removed.
 
-### `READL`: Read from Text File Line by Line
-
-`READL(file: STRING): STREAM<STRING>`
-
-Reads the contents of the text file specified by `file` as a stream of lines decoded as UTF-8.
-
-Newline codes are removed, and the presence or absence of a trailing newline is not distinguished.
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string. The trailing newline is not adjusted.
 
 ```shell
 $ {
   echo "apple" > tmp.txt
   echo "banana" >> tmp.txt
-  xa 'READL("tmp.txt")'
+  xa 'READ("tmp.txt")'
   rm tmp.txt
 }
 # apple

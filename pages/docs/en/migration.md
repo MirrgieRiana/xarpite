@@ -23,8 +23,15 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
-### `READ`
+### `READ` Now Returns a Single String
 
-`READ` now returns the entire file content as a single string instead of a stream of lines.
+Up to API version 4, `READ` was an alias of `READL` and returned the file content as a stream of lines.
 
-To read it as a stream of lines, use `READL`.
+In API version 5, it returns the entire file content as a single string.
+
+To preserve the previous behavior, replace calls to `READ` with `READL`.
+
+```diff
+- READ("file")
++ READL("file")
+```
