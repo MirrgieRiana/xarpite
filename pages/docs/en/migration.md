@@ -23,6 +23,19 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
+### `JSONS` Has Been Removed
+
+Up to API version 4, `JSONS` was an alias for `JSONL`.
+
+In API version 5, `JSONS` has been removed.
+
+To preserve the previous behavior, replace calls to `JSONS` with `JSONL`.
+
+```diff
+- JSONS
++ JSONL
+```
+
 ### `EXEC` Now Returns the Entire Standard Output as a Single String
 
 Up to API version 4, `EXEC` returned a stream that reads the standard output line by line.

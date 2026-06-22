@@ -241,10 +241,10 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                             values.toJsonsFluoriteValue(null, indent = indent)
                         }
                     }
-                    arrayOf(
-                        "JSONS" define create("JSONS"),
+                    listOfNotNull(
+                        if (context.apiVersion >= 5) null else "JSONS" define create("JSONS"),
                         "JSONL" define create("JSONL"),
-                    )
+                    ).toTypedArray()
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
