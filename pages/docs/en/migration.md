@@ -16,7 +16,7 @@ Up to API version 4, `IN` was a stream that read standard input line by line.
 
 In API version 5, it reads the entire standard input as a single string.
 
-To preserve the previous behavior, replace `IN` with `INL`.
+To preserve the previous behavior, replace `IN` with `INL` (or its alias `I`).
 
 ```diff
 - IN

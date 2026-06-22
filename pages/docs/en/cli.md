@@ -572,7 +572,7 @@ A stream that reads strings line by line from standard input.
 
 `I` and `INL` are aliases for `IN`.
 
-In API version 5, these are no longer aliases, and only `IN` reads the entire standard input as a single string.
+In API version 5, these are no longer aliases, and only `IN` reads the entire standard input as a single string. In this case, `IN` returns the input string as-is, without modifying any newline characters.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
