@@ -112,8 +112,8 @@ class DataConversionTest {
         // APIバージョン5でも、indentにNULLを明示するとインデント無しの出力になる
         assertEquals("""{"a":1,"b":2}""", eval(""" {a: 1; b: 2} >> JSON[indent: NULL] """, apiVersion = 5).string)
 
-        // APIバージョン5でも、JSONS関数のデフォルトはインデント無しのまま変わらない
-        assertEquals("""{"a":1},{"b":2}""", eval(""" {a: 1}, {b: 2} >> JSONS """, apiVersion = 5).stream())
+        // APIバージョン5でも、JSONL関数のデフォルトはインデント無しのまま変わらない
+        assertEquals("""{"a":1},{"b":2}""", eval(""" {a: 1}, {b: 2} >> JSONL """, apiVersion = 5).stream())
     }
 
     @Test

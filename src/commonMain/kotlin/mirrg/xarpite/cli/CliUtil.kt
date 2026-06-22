@@ -12,6 +12,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.readAllStringFromStdin
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
@@ -128,7 +129,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     if (scriptFile != null) {
         if (scriptFile == "-") {
             // -f - の場合は標準入力から読み込む
-            script = loadScriptFromStdin(ioContext)
+            script = ioContext.readAllStringFromStdin()
         } else {
             val fileSystem = getFileSystem().getOrThrow()
             script = fileSystem.read(scriptFile.toPath()) {
@@ -138,22 +139,6 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     }
 
     return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile, embedded)
-}
-
-private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
-    val chunks = mutableListOf<ByteArray>()
-    while (true) {
-        val chunk = ioContext.readBytesFromStdin() ?: break
-        chunks.add(chunk)
-    }
-    val totalSize = chunks.sumOf { it.size }
-    val result = ByteArray(totalSize)
-    var offset = 0
-    chunks.forEach { chunk ->
-        chunk.copyInto(result, offset)
-        offset += chunk.size
-    }
-    return result.decodeToString()
 }
 
 fun showUsage(ioContext: IoContext) {
@@ -197,6 +182,13 @@ fun RuntimeContext.addDefaultIncPaths() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        if (options.apiVersion != null) {
+            if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
+                context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
+                return@withEvaluator
+            }
+            context.apiVersion = options.apiVersion
+        }
         context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
@@ -207,7 +199,6 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
-            if (options.apiVersion != null) context.apiVersion = options.apiVersion
             if (options.quiet) {
                 evaluator.run(location, options.src, options.embedded)
             } else {

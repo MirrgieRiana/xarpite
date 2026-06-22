@@ -13,8 +13,6 @@ import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 
 class RuntimeContext(
@@ -23,12 +21,12 @@ class RuntimeContext(
     val io: IoContext,
 ) {
     companion object {
-        val PROVIDED_API_VERSIONS = 4..5
+        val SUPPORTED_API_VERSIONS = 4..5
     }
 
-    var apiVersion = PROVIDED_API_VERSIONS.first
+    var apiVersion = SUPPORTED_API_VERSIONS.first
         set(value) {
-            if (value !in PROVIDED_API_VERSIONS) throw FluoriteException("This environment does not provide API version $value".toFluoriteString())
+            check(value in SUPPORTED_API_VERSIONS) { "This environment does not support API version $value" }
             field = value
         }
 
@@ -133,4 +131,20 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = throw UnsupportedOperationException()
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
     override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
+}
+
+suspend fun IoContext.readAllStringFromStdin(): String {
+    val chunks = mutableListOf<ByteArray>()
+    while (true) {
+        val chunk = this.readBytesFromStdin() ?: break
+        chunks.add(chunk)
+    }
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    chunks.forEach { chunk ->
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
 }
