@@ -40,8 +40,14 @@ class ConstantMount(val value: FluoriteValue) : Mount {
 class LazyMount(private val initializer: suspend () -> FluoriteValue) : Mount {
     private var value: FluoriteValue? = null
     override suspend fun get(): FluoriteValue {
-        if (value == null) value = initializer()
-        return value!!
+        val oldValue = value
+        return if (oldValue != null) {
+            oldValue
+        } else {
+            val newValue = initializer()
+            value = newValue
+            newValue
+        }
     }
 }
 
