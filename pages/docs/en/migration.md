@@ -48,3 +48,16 @@ To preserve the previous behavior, replace calls to `JSONS` with `JSONL`.
 - JSONS
 + JSONL
 ```
+
+### `SLEEP` Now Takes Its Argument in Seconds
+
+Up to API version 4, `SLEEP` interpreted its argument as milliseconds.
+
+In API version 5, it interprets the argument as seconds.
+
+To preserve the previous behavior, divide the argument by 1000.
+
+```diff
+- SLEEP(1000)
++ SLEEP(1)
+```
