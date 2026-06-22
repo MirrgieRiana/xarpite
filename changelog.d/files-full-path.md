@@ -1,1 +1,1 @@
-!Changed `FILES` to return paths including the directory in API version 5, while `FILE_NAMES` continues to return file names only.
+Added the directory to the paths returned by `FILES` in API version 5.
