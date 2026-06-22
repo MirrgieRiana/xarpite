@@ -107,7 +107,7 @@ $ { sleep 0.5; echo stop; } | xa -q '
   )
   LOOP | i, _ => (
     stop::isCompleted() && break!!
-    SLEEP << 0.1
+    SLEEP << 100
   ) !: break
   OUT << "Stopped!"
 '
@@ -216,13 +216,15 @@ Returns whether the `PROMISE` is completed or completed as failed.
 
 ## `SLEEP`: Suspend Processing for a Specified Time
 
-`SLEEP([seconds: NUMBER]): NULL`
+`SLEEP([milliseconds: NUMBER]): NULL`
 
-Suspends processing for `seconds`.
+Suspends processing for `milliseconds`.
+
+In API version 5, the argument is interpreted as seconds instead of milliseconds, and fractional values can also be specified.
 
 This function does not block the thread but suspends the function.
 
-If `seconds` is 0 or omitted, the function suspends once and returns immediately.
+If `milliseconds` is 0 or omitted, the function suspends once and returns immediately.
 
 ---
 
@@ -230,7 +232,7 @@ In the following sample code, `Hello, World!` is output after 1 second from exec
 
 ```shell
 $ xa '
-  SLEEP(1)
+  SLEEP(1000)
   "Hello, World!"
 '
 # Hello, World!

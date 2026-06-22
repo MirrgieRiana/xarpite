@@ -166,7 +166,7 @@ This function allows you to explicitly generate async functions.
 
 ```
 AWAIT(JS("Promise")::new(ASYNC(callback -> (
-  SLEEP(0.1)
+  SLEEP(100)
   callback(123)
 ))))
 # 123
