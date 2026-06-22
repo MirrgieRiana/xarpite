@@ -822,8 +822,6 @@ Reads the contents of the text file specified by `file` line by line as strings.
 
 Newline codes are removed.
 
-In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string. The trailing newline is not adjusted.
-
 ```shell
 $ {
   echo "apple" > tmp.txt
@@ -834,6 +832,12 @@ $ {
 # apple
 # banana
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+The trailing newline is not adjusted.
 
 ### `READB`: Read from Binary File
 
