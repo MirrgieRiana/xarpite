@@ -162,12 +162,13 @@ $ xa ' "[$%+09.2f(123)]" '
 | 半角空白 | 符号のための半角空白を表示します。    |
 | `0`  | スペースの代わりに `0` で埋めます。 |
 
-| 変換 | 意味    |
-|----|-------|
-| d  | 10進整数 |
-| x  | 16進整数 |
-| f  | 10進小数 |
-| s  | 文字列   |
+| 変換 | 意味         |
+|----|------------|
+| d  | 10進整数      |
+| x  | 16進整数（小文字） |
+| X  | 16進整数（大文字） |
+| f  | 10進小数      |
+| s  | 文字列        |
 
 ## 文字コンテント `abcABC123`
 
@@ -184,6 +185,7 @@ $ xa ' "[$%+09.2f(123)]" '
 | CR           | LF         |
 | LF           | LF         |
 | `<%=` 式 `%>` | 埋め込み       |
+| `<%#` ... `%>` | コメント     |
 | `<%`         | 埋め込み文字列の終端 |
 | それ以外の文字      | その文字自身     |
 
@@ -243,6 +245,15 @@ $ xa '%>[ <%% ]<%'
 ```shell
 $ xa ' %>value is <%= 100 + 20 + 3 %><% '
 # value is 123
+```
+
+## コメントコンテント `<%# ... %>`
+
+`<%#` `%>` で囲うとコメントになります。コメントの内容は出力されません。
+
+```shell
+$ xa ' %>hello <%# this is a comment %>world<% '
+# hello world
 ```
 
 ## 文字コンテント `abcABC123`
@@ -361,6 +372,79 @@ $ xa '"abcde"[1..3]'
 # bcd
 ```
 
+# 先頭・末尾の部分文字列の取得と除去
+
+`STRING::take(count: INT): STRING`
+
+`STRING::taker(count: INT): STRING`
+
+`STRING::drop(count: INT): STRING`
+
+`STRING::dropr(count: INT): STRING`
+
+文字列の先頭または末尾の、 `count` 文字を取得または除去した文字列を返します。
+
+`count` は数値化し、四捨五入されます。
+
+各メソッドには同一の動作を持つ別名が存在します。
+
+| メソッド    | 別名          | 対象 | 操作 | `count` が文字列の長さを超える場合の動作 |
+|---------|-------------|----|----|--------------------------|
+| `take`  | `takeFirst` | 先頭 | 取得 | 文字列全体                    |
+| `taker` | `takeLast`  | 末尾 | 取得 | 文字列全体                    |
+| `drop`  | `dropFirst` | 先頭 | 除去 | 空文字列                     |
+| `dropr` | `dropLast`  | 末尾 | 除去 | 空文字列                     |
+
+```shell
+$ xa '"[" & "abcde"::take(2) & "]"'
+# [ab]
+
+$ xa '"[" & "abcde"::taker(2) & "]"'
+# [de]
+
+$ xa '"[" & "abcde"::take(0) & "]"'
+# []
+
+$ xa '"[" & "abcde"::take(10) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(2) & "]"'
+# [cde]
+
+$ xa '"[" & "abcde"::dropr(2) & "]"'
+# [abc]
+
+$ xa '"[" & "abcde"::drop(0) & "]"'
+# [abcde]
+
+$ xa '"[" & "abcde"::drop(10) & "]"'
+# []
+```
+
+# 先頭・末尾の文字の取得
+
+`STRING::first(): STRING | NULL`
+
+`STRING::last(): STRING | NULL`
+
+`first` `last` メソッドで先頭・末尾の1文字を取得します。
+
+文字列が空の場合は `NULL` を返します。
+
+```shell
+$ xa '"abcde"::first()'
+# a
+
+$ xa '"abcde"::last()'
+# e
+
+$ xa '""::first()'
+# NULL
+
+$ xa '""::last()'
+# NULL
+```
+
 # 文字列の置換
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
@@ -444,6 +528,57 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 # 文字列ユーティリティ関数
 
+## 文字と文字コードの相互変換
+
+`CHAR_CODE(char: STRING): INT`
+
+`CHAR_CODED(charCode: INT): STRING`
+
+`CHAR_CODES(string: STRING): STREAM<INT>`
+
+`CHAR_CODESD(charCodes: STREAM<INT>): STRING`
+
+文字列と文字コードを相互に変換します。
+
+`CHAR_CODE` 系はUTF-16コード単位を単位とします。
+
+末尾に `D` が付く関数はデコード、付かない関数はエンコードに対応します。
+
+| 関数          | デコード前の型 | デコード前の意味   | 変換方向   | デコード後の型 | デコード後の意味          |
+|---------------|----------------|--------------------|------------|----------------|---------------------------|
+| `CHAR_CODE`   | `INT`          | コード単位の数値   | ← コード化 | `STRING`       | 丁度1個のUTF-16コード単位 |
+| `CHAR_CODED`  | `INT`          | コード単位の数値   | → 文字列化 | `STRING`       | 丁度1個のUTF-16コード単位 |
+| `CHAR_CODES`  | `STREAM<INT>`  | 各コード単位の数値 | ← コード化 | `STRING`       | 文字列                    |
+| `CHAR_CODESD` | `STREAM<INT>`  | 各コード単位の数値 | → 文字列化 | `STRING`       | 文字列                    |
+
+次のいずれかに該当する入力に対しては、エラーになります。
+
+- `CHAR_CODED` `CHAR_CODESD`: 0以上65535以下でない数値を与えた場合
+- `CHAR_CODE`: コード単位が丁度1個でない文字列を与えた場合
+
+```shell
+$ xa 'CHAR_CODE("A")'
+# 65
+
+$ xa 'CHAR_CODE("あ")'
+# 12354
+
+$ xa 'CHAR_CODED(65)'
+# A
+
+$ xa 'CHAR_CODED(12354)'
+# あ
+
+$ xa 'CHAR_CODES("ABC") >> JOIN[","]'
+# 65,66,67
+
+$ xa 'CHAR_CODESD(65, 66, 67)'
+# ABC
+
+$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
+# Hello
+```
+
 ## `UC` 大文字に変換
 
 `UC(string: STRING): STRING`
@@ -499,3 +634,36 @@ $ xa '"Ab", "Cd" >> LC'
 $ xa '"Ab"::LC()'
 # ab
 ```
+
+## `RESOLVE` パス解決
+
+`RESOLVE(dir: STRING; file: STRING): STRING`
+
+`STRING::RESOLVE(file: STRING): STRING`
+
+`dir` を起点にして `file` へのパスを解決します。
+
+```shell
+$ xa 'RESOLVE("/home/apple"; "Apple.txt")'
+# /home/apple/Apple.txt
+```
+
+---
+
+出力パスは自動で正規化（ `.` や `..` の平坦化）が行われます。
+
+シンボリックリンクの解決は行われません。
+
+```shell
+$ xa 'RESOLVE("/"; "Banana.txt")'
+# /Banana.txt
+
+$ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+`"$PWD/file"` のような文字列連結を使うと、ルートディレクトリに対して `//file` のようなパスが生成されます。
+
+代わりに `PWD::RESOLVE("file")` のように `RESOLVE` 関数を使用してください。

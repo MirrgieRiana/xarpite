@@ -1,8 +1,66 @@
 ---
-title: "Range Operators"
+title: "Stream"
 ---
 
+# Stream
+
+A stream is a kind of primitive data processing mechanism in Xarpite—a reusable lazy iteration object.
+
+A stream is essentially just a single value, but in many places it receives special treatment as if it were a sequence of multiple values.
+
+Creating a stream of streams is impossible by ordinary means; it is always flattened into a one-dimensional stream.
+
+A single-element stream and its sole element are basically identified with each other.
+
+In Xarpite's type culture, any type `T` is interpreted as being implicitly castable to `STREAM<T>`.
+
+Because the generation of a stream's element sequence is lazy-evaluated, its handling of side effects follows special semantics.
+
 <!-- toc -->
+
+## Stream Basics
+
+The most basic stream is an enumeration of elements by the stream concatenation operator.
+
+In the CLI version of Xarpite, each element of a stream is output on its own line.
+
+```shell
+$ xa '1, 2, 3'
+# 1
+# 2
+# 3
+```
+
+---
+
+The range operators are also notable basic streams used in many places.
+
+```shell
+$ xa '1 .. 3'
+# 1
+# 2
+# 3
+```
+
+---
+
+The pipe operator is used in many places as a means of transforming each element of a stream.
+
+```shell
+$ xa '1 .. 3 | _ * 10'
+# 10
+# 20
+# 30
+```
+
+---
+
+The right execution pipe operator is used in many places to transform an entire stream with a function that takes it.
+
+```shell
+$ xa '1 .. 3 >> SUM'
+# 6
+```
 
 # Range Operators
 
@@ -720,6 +778,103 @@ $ xa '
 
 # Stream Functions
 
+## `TO_STREAM`: Convert Value to Stream
+
+`TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>`
+
+If `stream` is a stream, returns it as-is without resolving it.
+
+If `stream` is not a stream, converts it to a single-element stream that yields that value.
+
+```shell
+$ xa 'TO_STREAM(1)'
+# 1
+
+$ xa 'TO_STREAM(1, 2, 3)'
+# 1
+# 2
+# 3
+```
+
+## `GENERATE`: Generate a Stream from a Function
+
+`<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>`
+
+Executes `generator` and creates a stream that returns the items passed to the `yield` function inside it in order.
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    yield << 1
+    yield << 2
+    yield << 3
+  )
+'
+# 1
+# 2
+# 3
+```
+
+---
+
+This function does not resolve the returned stream, and the side effects of `generator` occur each time the returned stream of the `GENERATE` function is evaluated.
+
+The returned stream has no internal cache, so it can safely generate infinite streams.
+
+```shell
+$ xa -q '
+  stream := GENERATE ( yield =>
+    OUT << "Called"
+  )
+  OUT << "A"
+  stream
+  OUT << "B"
+  stream
+  OUT << "C"
+'
+# A
+# Called
+# B
+# Called
+# C
+```
+
+---
+
+If `item` is a stream, that stream is flattened and returned.
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    yield << 1 .. 3
+    yield << 4 .. 6
+  )
+'
+# 1
+# 2
+# 3
+# 4
+# 5
+# 6
+```
+
+---
+
+If the return value of `generator` is a stream, that stream is evaluated once, and as a result side effects occur once.
+
+Note that the output of elements via calls to the `yield` function is a "side effect".
+
+```shell
+$ xa '
+  GENERATE ( yield =>
+    1 .. 3 | yield << _
+  )
+'
+# 1
+# 2
+# 3
+```
+
 ## `PIPE`: Create Stream That Remembers Read Position
 
 `<T> PIPE(stream: STREAM<T>): STREAM<T>`
@@ -848,4 +1003,146 @@ $ xa '
 '
 # [0;1;2;3;4;5;6;7;8;9]
 # Finished
+```
+
+## `CACHE`: Resolve a Stream and Cache the Result
+
+`<T> CACHE(stream: STREAM<T>): STREAM<T>`
+
+Resolves `stream` and returns a stream with the result cached.
+
+Unlike the `VOID` function, the result can be received, but memory is consumed for the internal array caching the result.
+
+---
+
+For each call to `CACHE`, `stream` is iterated exactly once in its entirety, and side effects also occur exactly once.
+
+```shell
+$ xa -q '
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  CACHE(stream)
+  OUT << "Second"
+  CACHE(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
+```
+
+---
+
+On the other hand, the returned stream from `CACHE` produces no side effects no matter how many times it is evaluated.
+
+This behavior is equivalent to the array conversion and array stream conversion pair `[stream]()`.
+
+```shell
+$ xa -q '
+  stream := CACHE(1 .. 3 | OUT << _)
+  OUT << "First"
+  stream
+  OUT << "Second"
+  stream
+  OUT << "Done"
+'
+# 1
+# 2
+# 3
+# First
+# Second
+# Done
+```
+
+---
+
+If an infinite stream is passed to `CACHE`, the process may crash due to out of memory caused by an infinite loop and infinite growth of the internal array.
+
+## `VOID`: Resolve a Stream and Discard the Result
+
+`VOID(stream: STREAM): NULL`
+
+Resolves `stream` and discards its result, returning `NULL`.
+
+Unlike the `CACHE` function, it does not consume memory for an internal array to cache the result, but it cannot receive the result.
+
+---
+
+For each call to `VOID`, `stream` is iterated exactly once in its entirety, and side effects also occur exactly once.
+
+```shell
+$ xa -q '
+  stream := 1 .. 3 | OUT << _
+  OUT << "First"
+  VOID(stream)
+  OUT << "Second"
+  VOID(stream)
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# 1
+# 2
+# 3
+# Done
+```
+
+---
+
+`VOID` returns NULL and has no relation to the original stream.
+
+This behavior is equivalent to executing a stream in a statement (runner) context `(stream;)`.
+
+```shell
+$ xa -q '
+  null := VOID(1 .. 3 | OUT << _)
+  OUT << "First"
+  null
+  OUT << "Second"
+  null
+  OUT << "Done"
+'
+# 1
+# 2
+# 3
+# First
+# Second
+# Done
+```
+
+---
+
+If an infinite stream is passed to `VOID`, the process may become unresponsive due to an infinite loop.
+
+## `RANDOM`: Select a Random Element from a Stream
+
+`<T> RANDOM(stream: STREAM<T>): T | NULL`
+
+Selects and returns a random element from `stream`.
+
+---
+
+Returns `NULL` if the stream is empty.
+
+```shell
+$ xa 'RANDOM(,)'
+# NULL
+```
+
+---
+
+When a single-element stream or a non-stream value is passed, the value itself is returned.
+
+```shell
+$ xa 'RANDOM(42)'
+# 42
 ```

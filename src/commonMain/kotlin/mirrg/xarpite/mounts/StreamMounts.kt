@@ -1,12 +1,15 @@
 package mirrg.xarpite.mounts
 
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.plus
 import mirrg.xarpite.IterationAborted
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.StackTrace
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -22,27 +25,42 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
+import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
 import mirrg.xarpite.copy
+import mirrg.xarpite.define
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.random.Random
 
 context(context: RuntimeContext)
-fun createStreamMounts(): List<Map<String, FluoriteValue>> {
+fun createStreamMounts(): List<Map<String, Mount>> {
     return mapOf(
-        "GENERATE" to FluoriteFunction { arguments ->
+        "TO_STREAM" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    value
+                } else {
+                    FluoriteStream(value)
+                }
+            } else {
+                usage("TO_STREAM(stream: STREAM<VALUE>): STREAM<VALUE>")
+            }
+        },
+        "GENERATE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> GENERATE(generator: (yield: (item: STREAM<T>) -> NULL) -> NULL): STREAM<T>")
             val generator = arguments[0]
             FluoriteStream {
-                val yieldFunction = FluoriteFunction { arguments2 ->
+                val yieldFunction = FluoriteFunction.immediate { arguments2 ->
                     if (arguments2.size != 1) usage("yield: (item: STREAM<T>) -> NULL")
                     val value = arguments2[0]
                     if (value is FluoriteStream) {
@@ -54,10 +72,10 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                     }
                     FluoriteNull
                 }
-                generator.invoke(null, arrayOf(yieldFunction)).consume()
+                generator.invokeImmediate(null, arrayOf(yieldFunction)).consume()
             }
         },
-        "REVERSE" to FluoriteFunction { arguments ->
+        "REVERSE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 if (stream is FluoriteStream) {
@@ -71,7 +89,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("REVERSE(stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "SHUFFLE" to FluoriteFunction { arguments ->
+        "SHUFFLE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 if (stream is FluoriteStream) {
@@ -85,14 +103,33 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> SHUFFLE(stream: T,): T,")
             }
         },
+        "RANDOM" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val value = arguments[0]
+                if (value is FluoriteStream) {
+                    val list = value.toMutableList()
+                    if (list.isEmpty()) {
+                        FluoriteNull
+                    } else if (list.size == 1) {
+                        list.single()
+                    } else {
+                        list[Random.nextInt(list.size)]
+                    }
+                } else {
+                    value
+                }
+            } else {
+                usage("<T> RANDOM(stream: STREAM<T>): T | NULL")
+            }
+        },
         *run {
-            fun createDistinctFunction(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
                     run { // DISTINCT(stream: STREAM<VALUE>): STREAM<VALUE>
                         if (arguments.size != 1) return@run
                         val stream = arguments[0]
 
-                        return@FluoriteFunction if (stream is FluoriteStream) {
+                        return@immediate if (stream is FluoriteStream) {
                             FluoriteStream {
                                 val set = mutableSetOf<FluoriteValue>()
                                 stream.collect { item ->
@@ -114,11 +151,11 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                         val keyGetter = entry.values[1]
                         val stream = arguments[1]
 
-                        return@FluoriteFunction if (stream is FluoriteStream) {
+                        return@immediate if (stream is FluoriteStream) {
                             FluoriteStream {
                                 val set = mutableSetOf<FluoriteValue>()
                                 stream.collect { item ->
-                                    val key = keyGetter.invoke(null, arrayOf(item))
+                                    val key = keyGetter.invokeImmediate(null, arrayOf(item))
                                     if (set.add(key)) emit(item)
                                 }
                             }
@@ -133,11 +170,11 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "DISTINCT" to createDistinctFunction("DISTINCT"),
-                "UNIQ" to createDistinctFunction("UNIQ"),
+                "DISTINCT" define create("DISTINCT"),
+                "UNIQ" define create("UNIQ"),
             )
         },
-        "JOIN" to FluoriteFunction { arguments ->
+        "JOIN" define FluoriteFunction.immediate { arguments ->
             val separator: String
             val stream: FluoriteValue
             when (arguments.size) {
@@ -170,7 +207,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 stream.toFluoriteString(null)
             }
         },
-        "SPLIT" to FluoriteFunction { arguments ->
+        "SPLIT" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("SPLIT([separator: [by: ]STRING; ][limit: [limit: ]INT; ]string: STRING): STREAM<STRING>")
             val arguments2 = arguments.toMutableList()
 
@@ -186,7 +223,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             if (arguments3.isNotEmpty()) usage()
 
             if (limit != null && limit <= 0) throw FluoriteException("Limit must be positive or NULL".toFluoriteString())
-            if (limit == 1) return@FluoriteFunction string.toFluoriteString()
+            if (limit == 1) return@immediate string.toFluoriteString()
 
             val strings = if (separator.isEmpty()) {
                 if (limit == null || limit >= string.length) {
@@ -203,10 +240,10 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
 
             strings.map { it.toFluoriteString() }.toFluoriteStream()
         },
-        "LINES" to FluoriteFunction { arguments ->
+        "LINES" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val string = arguments[0].toFluoriteString(null).value
-                if (string.isEmpty()) return@FluoriteFunction FluoriteStream.EMPTY
+                if (string.isEmpty()) return@immediate FluoriteStream.EMPTY
                 val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
                 if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
                 lines.map { it.toFluoriteString() }.toFluoriteStream()
@@ -214,19 +251,52 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("LINES(string: STRING): STREAM<STRING>")
             }
         },
-        "KEYS" to FluoriteFunction { arguments ->
+        "LINESD" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
-                val obj = arguments[0]
-                if (obj is FluoriteObject) {
-                    obj.map.keys.map { it.toFluoriteString() }.toFluoriteStream()
+                val stream = arguments[0]
+                val sb = StringBuilder()
+                if (stream is FluoriteStream) {
+                    stream.collect { value ->
+                        sb.append(value.toFluoriteString(null).value)
+                        sb.append('\n')
+                    }
                 } else {
-                    usage("KEYS(object: OBJECT): STREAM<STRING>")
+                    sb.append(stream.toFluoriteString(null).value)
+                    sb.append('\n')
                 }
+                sb.toString().toFluoriteString()
             } else {
-                usage("KEYS(object: OBJECT): STREAM<STRING>")
+                usage("LINESD(lines: STREAM<STRING>): STRING")
             }
         },
-        "VALUES" to FluoriteFunction { arguments ->
+        "KEYS" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
+            if (arguments.size == 1) {
+                val obj = arguments[0]
+                if (obj is FluoriteStream) {
+                    FluoriteStream {
+                        obj.collect { item ->
+                            if (item is FluoriteObject) {
+                                item.map.keys.forEach {
+                                    emit(it.toFluoriteString())
+                                }
+                            } else {
+                                usage()
+                            }
+                        }
+                    }
+                } else {
+                    if (obj is FluoriteObject) {
+                        obj.map.keys.map { it.toFluoriteString() }.toFluoriteStream()
+                    } else {
+                        usage()
+                    }
+                }
+            } else {
+                usage()
+            }
+        },
+        "VALUES" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val obj = arguments[0]
                 if (obj is FluoriteObject) {
@@ -238,7 +308,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("VALUES(object: OBJECT): STREAM<VALUE>")
             }
         },
-        "INVERT" to FluoriteFunction { arguments ->
+        "INVERT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val obj = arguments[0]
                 if (obj is FluoriteObject) {
@@ -254,7 +324,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("INVERT(object: OBJECT<VALUE>): OBJECT<STRING>")
             }
         },
-        "SUM" to FluoriteFunction { arguments ->
+        "SUM" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 if (stream is FluoriteStream) {
@@ -274,45 +344,47 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("SUM(numbers: STREAM<NUMBER>): NUMBER")
             }
         },
-        "MIN" to FluoriteFunction { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                if (stream is FluoriteStream) {
-                    var result: FluoriteValue? = null
-                    stream.collect { item ->
+        "MIN" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size !in 1..2) usage("MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER")
+            var result: FluoriteValue? = null
+            arguments.forEach { argument ->
+                if (argument is FluoriteStream) {
+                    argument.collect { item ->
                         val result2 = result
                         if (result2 == null || item.compareTo(null, result2).value < 0) {
                             result = item
                         }
                     }
-                    result ?: FluoriteNull
                 } else {
-                    stream
+                    val result2 = result
+                    if (result2 == null || argument.compareTo(null, result2).value < 0) {
+                        result = argument
+                    }
                 }
-            } else {
-                usage("MIN(numbers: STREAM<NUMBER>): NUMBER")
             }
+            result ?: FluoriteNull
         },
-        "MAX" to FluoriteFunction { arguments ->
-            if (arguments.size == 1) {
-                val stream = arguments[0]
-                if (stream is FluoriteStream) {
-                    var result: FluoriteValue? = null
-                    stream.collect { item ->
+        "MAX" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size !in 1..2) usage("MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER")
+            var result: FluoriteValue? = null
+            arguments.forEach { argument ->
+                if (argument is FluoriteStream) {
+                    argument.collect { item ->
                         val result2 = result
                         if (result2 == null || item.compareTo(null, result2).value > 0) {
                             result = item
                         }
                     }
-                    result ?: FluoriteNull
                 } else {
-                    stream
+                    val result2 = result
+                    if (result2 == null || argument.compareTo(null, result2).value > 0) {
+                        result = argument
+                    }
                 }
-            } else {
-                usage("MAX(numbers: STREAM<NUMBER>): NUMBER")
             }
+            result ?: FluoriteNull
         },
-        "COUNT" to FluoriteFunction { arguments ->
+        "COUNT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 if (stream is FluoriteStream) {
@@ -328,7 +400,81 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("COUNT(stream: STREAM<VALUE>): INT")
             }
         },
-        "FIRST" to FluoriteFunction { arguments ->
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.create { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { argument ->
+                        val stream = argument()
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (!item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@create result
+                        } else {
+                            if (!stream.toBoolean(null)) return@create stream
+                        }
+                    }
+                    FluoriteBoolean.TRUE
+                }
+            }
+            arrayOf(
+                "AND" define create("AND"),
+                "ALL" define create("ALL"),
+            )
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.create { arguments ->
+                    if (arguments.size !in 1..2) usage("<T> $name(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN")
+                    arguments.forEach { argument ->
+                        val stream = argument()
+                        if (stream is FluoriteStream) {
+                            val result = flow {
+                                stream.collect { item ->
+                                    if (item.toBoolean(null)) emit(item)
+                                }
+                            }.firstOrNull()
+                            if (result != null) return@create result
+                        } else {
+                            if (stream.toBoolean(null)) return@create stream
+                        }
+                    }
+                    FluoriteBoolean.FALSE
+                }
+            }
+            arrayOf(
+                "OR" define create("OR"),
+                "ANY" define create("ANY"),
+            )
+        },
+        "GET" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> GET(index: INT; stream: STREAM<T>): T | NULL")
+            val index = arguments[0].toFluoriteNumber(null).roundToInt()
+            if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+            val stream = arguments[1]
+            if (stream is FluoriteStream) {
+                var result: FluoriteValue? = null
+                var position = 0
+                try {
+                    stream.collect { item ->
+                        if (position == index) {
+                            result = item
+                            throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切る
+                        }
+                        position++
+                    }
+                } catch (_: IterationAborted) {
+
+                }
+                result ?: FluoriteNull
+            } else {
+                if (index == 0) stream else FluoriteNull
+            }
+        },
+        "FIRST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]
                 if (value is FluoriteStream) {
@@ -349,7 +495,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("FIRST(stream: STREAM<VALUE>): VALUE")
             }
         },
-        "LAST" to FluoriteFunction { arguments ->
+        "LAST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]
                 if (value is FluoriteStream) {
@@ -365,7 +511,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("LAST(stream: STREAM<VALUE>): VALUE")
             }
         },
-        "SINGLE" to FluoriteFunction { arguments ->
+        "SINGLE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val value = arguments[0]
                 if (value is FluoriteStream) {
@@ -383,7 +529,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("SINGLE(stream: STREAM<VALUE>): VALUE")
             }
         },
-        "REDUCE" to FluoriteFunction { arguments ->
+        "REDUCE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val function = arguments[0]
                 val stream = arguments[1]
@@ -391,7 +537,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                     var result: FluoriteValue? = null
                     stream.collect { item ->
                         val result2 = result
-                        result = (if (result2 == null) item else function.invoke(null, arrayOf(result2, item)))
+                        result = (if (result2 == null) item else function.invokeImmediate(null, arrayOf(result2, item)))
                     }
                     result ?: FluoriteNull
                 } else {
@@ -401,9 +547,60 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE")
             }
         },
-        "SORT" to createSortFunction("SORT", false),
-        "SORTR" to createSortFunction("SORTR", true),
-        "CHUNK" to FluoriteFunction { arguments ->
+        *run {
+            fun create(name: String, isDescending: Boolean): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    run { // SORT(stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 1) return@run
+                        val stream = arguments[0]
+
+                        return@immediate if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> a.compareTo(null, b).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val entry = arguments[0]
+                        if (entry !is FluoriteArray) return@run
+                        if (entry.values.size != 2) return@run
+                        val parameterName = entry.values[0]
+                        if (parameterName !is FluoriteString) return@run
+                        if (parameterName.value != "by") return@run
+                        val keyGetter = entry.values[1]
+                        val stream = arguments[1]
+
+                        return@immediate if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> keyGetter.invokeImmediate(null, arrayOf(a)).compareTo(null, keyGetter.invokeImmediate(null, arrayOf(b))).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    run { // SORT(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>
+                        if (arguments.size != 2) return@run
+                        val comparator = arguments[0]
+                        val stream = arguments[1]
+
+                        return@immediate if (stream is FluoriteStream) {
+                            stream.toMutableList().mergeSort(isDescending) { a, b -> (comparator.invokeImmediate(null, arrayOf(a, b)) as FluoriteInt).value }.toFluoriteStream()
+                        } else {
+                            stream
+                        }
+                    }
+                    usage(
+                        "$name(stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>",
+                        "$name(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>",
+                    )
+                }
+            }
+            arrayOf(
+                "SORT" define create("SORT", false),
+                "SORTR" define create("SORTR", true),
+            )
+        },
+        "CHUNK" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val size = arguments[0].toFluoriteNumber(null).toInt()
                 require(size > 0)
@@ -427,26 +624,42 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
             }
         },
-        "TAKE" to FluoriteFunction { arguments ->
+        "SLIDE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 2) {
+                val size = arguments[0].toFluoriteNumber(null).toInt()
+                require(size > 0)
+                val stream = arguments[1]
+                FluoriteStream {
+                    val deque = ArrayDeque<FluoriteValue>()
+                    if (stream is FluoriteStream) {
+                        stream.collect { item ->
+                            deque += item
+                            if (deque.size == size) {
+                                emit(deque.toFluoriteArray())
+                                deque.removeFirst()
+                            }
+                        }
+                    } else {
+                        deque += stream
+                        if (deque.size == size) {
+                            emit(deque.toFluoriteArray())
+                        }
+                    }
+                }
+            } else {
+                usage("SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>")
+            }
+        },
+        "TAKE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     if (count <= 0) return@FluoriteStream
                     var remaining = count
                     try {
-                        flow.collect { item ->
+                        stream.toFlow().collect { item ->
                             emit(item)
                             remaining--
                             if (remaining <= 0) throw IterationAborted
@@ -459,24 +672,14 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "TAKER" to FluoriteFunction { arguments ->
+        "TAKER" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     val deque = ArrayDeque<FluoriteValue>()
-                    flow.collect { item -> // count == 0 の場合でもイテレーション自体はする
+                    stream.toFlow().collect { item -> // count == 0 の場合でもイテレーション自体はする
                         deque += item
                         if (deque.size > count) deque.removeFirst()
                     }
@@ -488,24 +691,14 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("TAKER(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "DROP" to FluoriteFunction { arguments ->
+        "DROP" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     var remaining = count
-                    flow.collect { item ->
+                    stream.toFlow().collect { item ->
                         if (remaining > 0) {
                             remaining--
                         } else {
@@ -517,24 +710,14 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("DROP(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>")
             }
         },
-        "DROPR" to FluoriteFunction { arguments ->
+        "DROPR" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 2) {
                 val count = arguments[0].toFluoriteNumber(null).roundToInt()
                 require(count >= 0)
                 val stream = arguments[1]
                 FluoriteStream {
-                    val flow = flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }
-
                     val deque = ArrayDeque<FluoriteValue>()
-                    flow.collect { item ->
+                    stream.toFlow().collect { item ->
                         deque += item
                         if (deque.size > count) {
                             emit(deque.removeFirst())
@@ -546,8 +729,8 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
             }
         },
         *run {
-            fun createFilterFunction(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     val arguments2 = arguments.toMutableList()
 
@@ -564,12 +747,12 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                     FluoriteStream {
                         if (stream is FluoriteStream) {
                             stream.collect { item ->
-                                if (predicate.invoke(null, arrayOf(item)).toBoolean(null)) {
+                                if (predicate.invokeImmediate(null, arrayOf(item)).toBoolean(null)) {
                                     emit(item)
                                 }
                             }
                         } else {
-                            if (predicate.invoke(null, arrayOf(stream)).toBoolean(null)) {
+                            if (predicate.invokeImmediate(null, arrayOf(stream)).toBoolean(null)) {
                                 emit(stream)
                             }
                         }
@@ -577,11 +760,83 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
             arrayOf(
-                "FILTER" to createFilterFunction("FILTER"),
-                "GREP" to createFilterFunction("GREP"),
+                "FILTER" define create("FILTER"),
+                "GREP" define create("GREP"),
             )
         },
-        "GROUP" to FluoriteFunction { arguments ->
+        "INDEXED" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>")
+            val arguments2 = arguments.toMutableList()
+
+            val stream = arguments2.removeFirstOrNull() ?: usage()
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            FluoriteStream {
+                var index = 0
+                if (stream is FluoriteStream) {
+                    stream.collect { item ->
+                        emit(FluoriteInt(index) colon item)
+                        index++
+                    }
+                } else {
+                    emit(FluoriteInt(0) colon stream)
+                }
+            }
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("<T> $name([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>")
+                    val arguments2 = arguments.toMutableList()
+
+                    if (arguments2.isEmpty()) usage()
+                    val table = arguments2.removeLast()
+
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
+
+                    val fillValue = entries.remove("fill") ?: arguments3.removeFirstOrNull()
+
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+
+                    val arrays = mutableListOf<List<FluoriteValue>>()
+                    table.toFlow().collect { item ->
+                        if (item is FluoriteArray) {
+                            arrays += item.values.toList()
+                        } else {
+                            throw FluoriteException("Expected array, got $item".toFluoriteString())
+                        }
+                    }
+
+                    if (arrays.isEmpty()) return@immediate FluoriteStream.EMPTY
+
+                    if (fillValue == null) {
+                        val firstLength = arrays.first().size
+                        val mismatchIndex = arrays.indexOfFirst { it.size != firstLength }
+                        if (mismatchIndex != -1) {
+                            throw FluoriteException("Arrays have different lengths: table[0]=$firstLength, table[$mismatchIndex]=${arrays[mismatchIndex].size}".toFluoriteString())
+                        }
+                    }
+
+                    val maxLength = arrays.maxOf { it.size }
+
+                    FluoriteStream {
+                        repeat(maxLength) { i ->
+                            emit(arrays.map { it.getOrNull(i) ?: fillValue!! }.toFluoriteArray())
+                        }
+                    }
+                }
+            }
+            arrayOf(
+                "TRANSPOSE" define create("TRANSPOSE"),
+                "ZIP" define create("ZIP"),
+            )
+        },
+        "GROUP" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("<T, K> GROUP([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; ARRAY<T>]>")
             val arguments2 = arguments.toMutableList()
 
@@ -599,7 +854,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 val groups = mutableMapOf<FluoriteValue, MutableList<FluoriteValue>>()
 
                 suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter?.invoke(null, arrayOf(value)) ?: value
+                    val key = keyGetter?.invokeImmediate(null, arrayOf(value)) ?: value
                     val list = groups.getOrPut(key) { mutableListOf() }
                     list += value
                 }
@@ -617,22 +872,12 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 }
             }
         },
-        "PIPE" to FluoriteFunction { arguments ->
+        "PIPE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
 
                 val stackTrace = coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext
-                val channel by lazy {
-                    flow {
-                        if (stream is FluoriteStream) {
-                            stream.collect { item ->
-                                emit(item)
-                            }
-                        } else {
-                            emit(stream)
-                        }
-                    }.produceIn(context.daemonScope + stackTrace)
-                }
+                val channel by lazy { stream.toFlow().produceIn(context.daemonScope + stackTrace) }
 
                 FluoriteStream {
                     for (item in channel) {
@@ -643,7 +888,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> PIPE(stream: STREAM<T>): STREAM<T>")
             }
         },
-        "CACHE" to FluoriteFunction { arguments ->
+        "CACHE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 stream.cache()
@@ -651,7 +896,7 @@ fun createStreamMounts(): List<Map<String, FluoriteValue>> {
                 usage("<T> CACHE(stream: STREAM<T>): STREAM<T>")
             }
         },
-        "VOID" to FluoriteFunction { arguments ->
+        "VOID" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
                 stream.consume()

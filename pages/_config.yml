@@ -2,6 +2,7 @@ title: Xarpite
 description: An interpreted language for one-liners
 baseurl: "/xarpite"
 url: "https://mirrgieriana.github.io"
+version: "Latest"
 
 # Build settings
 markdown: kramdown

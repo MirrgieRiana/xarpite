@@ -12,7 +12,7 @@ Xarpite supports handling numeric values.
 
 ### Numeric Types
 
-There are two numeric types: 32-bit integers `INT` and 64-bit floating-point numbers `DOUBLE`.
+There are three numeric types: 32-bit integers `INT`, arbitrary-precision integers `BIG`, and 64-bit floating-point numbers `DOUBLE`.
 
 ### Distinction from Strings Representing Numbers
 
@@ -79,6 +79,31 @@ Representation and operations with real numbers involve rounding errors.
 
 ```shell
 $ xa '1.5'
+# 1.5
+```
+
+### Numeric Literal Separators
+
+All numeric literals can include any number of `_` characters at any position except the beginning of the digit sequence.
+
+The `_` characters are simply ignored.
+
+This allows large numbers to be written more readably.
+
+```shell
+$ xa '1_000_000'
+# 1000000
+
+$ xa '1__2__3__'
+# 123
+
+$ xa 'H#FF_FF'
+# 65535
+
+$ xa '1_000.5'
+# 1000.5
+
+$ xa '1.5_0_0'
 # 1.5
 ```
 
@@ -152,6 +177,30 @@ $ xa '1, 2, 3 >> TO_NUMBER'
 
 $ xa 'TO_NUMBER(NULL)'
 # 0
+```
+
+## `BIG`: Arbitrary-Precision Integers
+
+The arbitrary-precision integer type `BIG` can also handle integers too large to fit within the range of `INT`.
+
+### Numeric Conversion of Integers Outside the INT Range
+
+Converting a string representing an integer that does not fit within the range of `INT` produces a `BIG` value without losing precision.
+
+```shell
+$ xa '+"123456789012345678901234567890"'
+# 123456789012345678901234567890
+```
+
+### `BIG.of`: Creating a BIG
+
+`BIG.of(value: STRING | NUMBER): BIG`
+
+Converts `value` to a `BIG` value.
+
+```shell
+$ xa 'BIG.of("123456789012345678901234567890")'
+# 123456789012345678901234567890
 ```
 
 ## Addition/Subtraction Operators
@@ -382,7 +431,7 @@ $ xa 'ABS(-10)'
 
 ### `FLOOR`: Round Down
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 Rounds the first argument down to the nearest integer toward negative infinity.
 

@@ -7,8 +7,8 @@ import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.collect
 
-class ObjectEntryVariable(private val map: MutableMap<String, FluoriteValue>, private val key: String, private val getter: Getter) : Variable {
-    override suspend fun get(env: Environment): FluoriteValue {
+class ObjectEntryVariable(private val env: Environment, private val map: MutableMap<String, FluoriteValue>, private val key: String, private val getter: Getter) : Variable {
+    override suspend fun get(): FluoriteValue {
         val value = map[key]
         return if (value == null) {
             val newValue = getter.evaluate(env)
@@ -19,14 +19,14 @@ class ObjectEntryVariable(private val map: MutableMap<String, FluoriteValue>, pr
         }
     }
 
-    override suspend fun set(env: Environment, value: FluoriteValue) {
+    override suspend fun set(value: FluoriteValue) {
         map[key] = value
     }
 }
 
 class VariableDefinitionObjectInitializer(private val key: String, private val frameIndex: Int, private val variableIndex: Int, private val getter: Getter) : ObjectInitializer {
     override suspend fun initializeVariable(env: Environment, map: MutableMap<String, FluoriteValue>) {
-        env.variableTable[frameIndex][variableIndex] = ObjectEntryVariable(map, key, getter)
+        env.variableTable[frameIndex][variableIndex] = ObjectEntryVariable(env, map, key, getter)
     }
 
     override suspend fun evaluate(env: Environment, map: MutableMap<String, FluoriteValue>) {

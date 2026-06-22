@@ -3,6 +3,7 @@ package mirrg.xarpite
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.operations.BuiltinMountRunner
 import mirrg.xarpite.operations.Runner
 
@@ -12,8 +13,6 @@ class Frame(val parent: Frame? = null) {
     val variableIndexTable = mutableMapOf<String, Int>()
     var nextVariableIndex = 0
     var mountCount = 0
-    val labelIndexTable = mutableMapOf<String, Int>()
-    var nextLabelIndex = 0
 }
 
 class Environment(val parent: Environment?, variableCount: Int, mountCount: Int) {
@@ -22,30 +21,53 @@ class Environment(val parent: Environment?, variableCount: Int, mountCount: Int)
     } else {
         arrayOf(arrayOfNulls(variableCount))
     }
-    val mountTable: Array<Array<Map<String, FluoriteValue>>> = if (parent != null) {
+    val mountTable: Array<Array<Map<String, Mount>>> = if (parent != null) {
         arrayOf(*parent.mountTable, Array(mountCount) { mapOf() })
     } else {
         arrayOf(Array(mountCount) { mapOf() })
     }
 }
 
+
+fun interface Mount {
+    suspend fun get(): FluoriteValue
+}
+
+class ConstantMount(val value: FluoriteValue) : Mount {
+    override suspend fun get() = value
+}
+
+class LazyMount(private val initializer: () -> FluoriteValue) : Mount {
+    private val value by lazy { initializer() }
+    override suspend fun get() = value
+}
+
+infix fun String.define(mount: Mount) = Pair(this, mount)
+infix fun String.define(value: FluoriteValue) = this define ConstantMount(value)
+
+
 interface Variable {
-    suspend fun get(env: Environment): FluoriteValue
-    suspend fun set(env: Environment, value: FluoriteValue)
+    suspend fun get(): FluoriteValue
+    suspend fun set(value: FluoriteValue)
 }
 
 class LocalVariable(var value: FluoriteValue) : Variable {
-    override suspend fun get(env: Environment) = value
-    override suspend fun set(env: Environment, value: FluoriteValue) {
+    override suspend fun get() = value
+    override suspend fun set(value: FluoriteValue) {
         this.value = value
     }
 }
 
 class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
-    override suspend fun get(env: Environment) = function.invoke(position, emptyArray())
-    override suspend fun set(env: Environment, value: FluoriteValue) {
-        function.invoke(position, arrayOf(value)).consume()
+    override suspend fun get() = function.invoke(position, emptyArray())
+    override suspend fun set(value: FluoriteValue) {
+        function.invokeImmediate(position, arrayOf(value)).consume()
     }
+}
+
+class Label(val name: String) : Variable {
+    override suspend fun get() = throw UnsupportedOperationException()
+    override suspend fun set(value: FluoriteValue) = throw UnsupportedOperationException()
 }
 
 
@@ -81,12 +103,12 @@ fun Frame.getMountCounts(): IntArray {
     return mountCounts.reversed().toIntArray()
 }
 
-fun Frame.defineBuiltinMount(map: Map<String, FluoriteValue>): Runner {
+fun Frame.defineBuiltinMount(map: Map<String, Mount>): Runner {
     val newMountIndex = mount()
     return BuiltinMountRunner(frameIndex, newMountIndex, map)
 }
 
-fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<FluoriteValue> {
+fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> {
     return sequence {
         var currentFrameIndex = mountCounts.size - 1
         while (currentFrameIndex >= 0) {
@@ -102,21 +124,5 @@ fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Fluorit
 
             currentFrameIndex--
         }
-    }
-}
-
-fun Frame.defineLabel(name: String): Int {
-    val labelIndex = nextLabelIndex
-    labelIndexTable[name] = labelIndex
-    nextLabelIndex++
-    return labelIndex
-}
-
-fun Frame.getLabel(name: String): Pair<Int, Int>? {
-    var currentFrame = this
-    while (true) {
-        val labelIndex = currentFrame.labelIndexTable[name]
-        if (labelIndex != null) return Pair(currentFrame.frameIndex, labelIndex)
-        currentFrame = currentFrame.parent ?: return null
     }
 }

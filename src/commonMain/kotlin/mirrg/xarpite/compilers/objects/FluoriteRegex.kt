@@ -8,7 +8,7 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    "new" to FluoriteFunction { arguments ->
+                    "new" to FluoriteFunction.immediate { arguments ->
                         when (arguments.size) {
                             1 -> {
                                 val pattern = arguments[0].toFluoriteString(null).value
@@ -24,7 +24,7 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
                             else -> throw FluoriteException("Usage: REGEX.new(pattern: STRING[; flags: STRING]): REGEX".toFluoriteString())
                         }
                     },
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
                         val key = arguments[1].toFluoriteString(null).value
                         when (key) {
@@ -33,17 +33,17 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
                             else -> throw FluoriteException("No such property: $key".toFluoriteString())
                         }
                     },
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
                         val string = arguments[1].toFluoriteString(null).value
                         regex.matchImpl(string)
                     },
-                    OperatorMethod.MATCH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MATCH.methodName to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
                         val string = arguments[1].toFluoriteString(null).value
                         regex.matchImpl(string)
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { (it[0] as FluoriteRegex).fluoriteStringCache },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { (it[0] as FluoriteRegex).fluoriteStringCache },
                 )
             )
         }

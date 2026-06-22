@@ -27,6 +27,7 @@ You can reference classes of various built-in objects.
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # Constants
 
@@ -77,7 +78,7 @@ $ xa 'ABS(-10)'
 
 ## `FLOOR` Round Down to Integer
 
-`FLOOR(number: NUMBER): INTEGER`
+`FLOOR(number: NUMBER): INT`
 
 Rounds the first argument down to the nearest smaller integer.
 
@@ -373,17 +374,60 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` Concatenate Line Stream into String
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+Returns a string by appending a newline to each element of `lines` and concatenating them.
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+An empty stream returns an empty string.
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT): STREAM<STRING>`
+`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
 
-Returns a stream of keys of the first argument object.
+Returns a stream of keys from `object`.
 
 ```shell
 $ xa 'KEYS({a: 1; b: 2; c: 3})'
 # a
 # b
 # c
+```
+
+---
+
+When `object` is a stream, returns a flattened stream that yields keys from each object element in sequence.
+
+```shell
+$ xa 'KEYS({a: 1; b: 2}, {c: 3; d: 4})'
+# a
+# b
+# c
+# d
 ```
 
 ## `VALUES` Get Stream of Object Values
@@ -457,11 +501,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` Minimum Value of Stream
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the minimum value of the first argument stream.
+Returns the minimum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -469,15 +513,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` Maximum Value of Stream
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the maximum value of the first argument stream.
+Returns the maximum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -485,6 +532,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` Number of Stream Elements
@@ -504,6 +554,137 @@ $ xa 'COUNT(1)'
 
 $ xa 'COUNT(,)'
 # 0
+```
+
+## `AND` / `ALL` Check if All are True
+
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
+
+Determines whether all passed elements evaluate to true.
+
+If there are no elements, returns true.
+
+`ALL` is an alias of `AND` and has the same behavior.
+
+```shell
+$ xa 'AND(TRUE; TRUE)'
+# TRUE
+
+$ xa 'AND(TRUE; FALSE)'
+# FALSE
+
+$ xa 'AND(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE AND FALSE'
+# FALSE
+
+$ xa 'AND(TRUE, FALSE; TRUE, FALSE)'
+# FALSE
+
+$ xa '1 .. 50 | _ != 39 >> AND'
+# FALSE
+```
+
+---
+
+More precisely, this function returns the first element whose booleanization is false, or `TRUE` if none is found.
+
+As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
+
+Like the `&&` operator, the second argument is not evaluated if the first argument already determines the result.
+
+```shell
+$ xa '1, "a", TRUE, 0, "b" >> AND'
+# 0
+
+$ xa '1, "a", TRUE, 2, "b" >> AND'
+# TRUE
+```
+
+```shell
+$ xa '
+  list := []
+
+  5 .. -5 | (
+    list += _
+    _
+  ) >> AND
+
+  list
+'
+# [5;4;3;2;1;0]
+```
+
+```shell
+$ xa '
+  list := []
+
+  (
+    list += "left"
+    FALSE
+  ) AND (
+    list += "right"
+    TRUE
+  )
+
+  list
+'
+# [left]
+```
+
+## `OR` / `ANY` Check if Any is True
+
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
+
+Determines whether any of the passed elements evaluate to true.
+
+If there are no elements, returns false.
+
+`ANY` is an alias of `OR` and has the same behavior.
+
+```shell
+$ xa 'OR(TRUE; TRUE)'
+# TRUE
+
+$ xa 'OR(TRUE; FALSE)'
+# TRUE
+
+$ xa 'OR(FALSE; FALSE)'
+# FALSE
+
+$ xa 'TRUE OR FALSE'
+# TRUE
+
+$ xa 'OR(TRUE, FALSE; TRUE, FALSE)'
+# TRUE
+
+$ xa '1 .. 50 | _ != 39 >> OR'
+# TRUE
+```
+
+---
+
+Other properties follow those of the `AND` function.
+
+## `GET` Get Element by Index
+
+`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+
+Returns the element of `stream` at the index corresponding to `index`.
+
+Indices start from 0.
+
+Throws an error if a negative index is passed.
+
+If the corresponding index does not exist, returns `NULL`.
+
+```shell
+$ xa 'GET(1; 10, 20, 30)'
+# 20
+
+$ xa 'GET(5; 10, 20, 30)'
+# NULL
 ```
 
 ## `FIRST` Get First Element of Stream
@@ -548,7 +729,7 @@ $ xa 'LAST(,)'
 
 `<T> SINGLE(stream: STREAM<T>): T`
 
-Returns the only element of the first argument stream. Throws an exception if the stream is empty or has multiple elements.
+Returns the only element of the first argument stream. Throws an error if the stream is empty or has multiple elements.
 
 If a non-stream is passed, returns that value as-is.
 
@@ -595,9 +776,9 @@ $ xa '1 .. 9 >> SORT[a, b -> a % 3 <=> b % 3] >> JOIN[" "]'
 
 ### Sort by Key Getter Function
 
-`SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If the first argument is a `by` parameter, applies the `key_getter` function to each element of the second argument, compares the results, and sorts.
+If the first argument is a `by` parameter, applies the `keyGetter` function to each element of the second argument, compares the results, and sorts.
 
 The following example sorts by the remainder when dividing each element by 3.
 
@@ -612,7 +793,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 
 `SORTR(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-`SORTR(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORTR(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Sorts a stream in descending order.
 
@@ -621,6 +802,69 @@ Except that the sort is in descending order, it is the same as the `SORT` functi
 ```shell
 $ xa '3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 >> SORTR >> JOIN[" "]'
 # 9 6 5 5 5 4 3 3 2 1 1
+```
+
+## `INDEXED` Convert to Stream with Indices
+
+`<T> INDEXED(stream: STREAM<T>): STREAM<[INT; T]>`
+
+Returns a stream of 2-element arrays with each element of `stream` paired with its 0-based index.
+
+```shell
+$ xa '"a", "b", "c" >> INDEXED'
+# [0;a]
+# [1;b]
+# [2;c]
+```
+
+## `TRANSPOSE` / `ZIP` Transpose Stream of Arrays
+
+`<T> TRANSPOSE([fill: [fill: ]T; ]table: STREAM<ARRAY<T>>): STREAM<ARRAY<T>>`
+
+Takes a stream of arrays and returns a stream of arrays with rows and columns swapped.
+
+`ZIP` is an alias of `TRANSPOSE` and has the same behavior.
+
+```shell
+$ xa '
+  TRANSPOSE(
+    [1;2;3],
+    [4;5;6],
+  )
+'
+# [1;4]
+# [2;5]
+# [3;6]
+```
+
+---
+
+With the `fill` parameter, shorter arrays are padded with `fill`.
+
+Without the `fill` parameter, an error is thrown if arrays have different lengths.
+
+```shell
+$ xa '
+  [1;2;3],
+  [4;5],
+  >> TRANSPOSE[fill: 0]
+'
+# [1;4]
+# [2;5]
+# [3;0]
+```
+
+---
+
+The following example constructs an object from two arrays called `keys` and `values`.
+
+```shell
+$ xa '
+  keys := ["name", "age", "city"]
+  values := ["Alice", 30, "Tokyo"]
+  ZIP(keys, values) >> TO_OBJECT
+'
+# {name:Alice;age:30;city:Tokyo}
 ```
 
 ## `GROUP` Group Stream by Key
@@ -681,6 +925,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
+## `SLIDE` Split Stream into Sliding Windows
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+Returns a stream of arrays formed by sliding a window of the size specified in the first argument over the elements of the second argument stream.
+If the number of elements is less than the size, the result is an empty stream.
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
+```
+
 ## `TAKE` Get Beginning of Stream
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
@@ -727,11 +985,13 @@ $ xa '1, 2, 3 >> DROPR[2]'
 # 1
 ```
 
-## `FILTER` Filter Stream by Condition
+## `FILTER` / `GREP` Filter Stream by Condition
 
 `FILTER(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is true.
+
+`GREP` is an alias of `FILTER` and has the same behavior.
 
 ```shell
 $ xa '1 .. 5 >> FILTER [ x => x % 2 == 1 ]'
@@ -744,10 +1004,6 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 3
 # 5
 ```
-
-## `GREP` Filter Stream by Condition
-
-An alias for `FILTER`.
 
 ## `REDUCE` Accumulate Stream Elements
 
@@ -854,7 +1110,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` Convert Stream of Entries to Object
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 Converts each element of the first argument stream into an object as entries.
 
@@ -940,7 +1196,7 @@ Useful for using or modifying values in the middle of method chains.
 ```shell
 $ xa '
   variable := ""
-  "apple"::ALSO ( s => 
+  "apple"::ALSO ( s =>
     variable = variable & s
   )
   variable
@@ -992,4 +1248,28 @@ $ xa -q '
 '
 # 100
 # 100
+```
+
+## `LAZY2` Lazy Evaluation and Caching Function
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+Returns a function that performs lazy evaluation and caching.
+
+Equivalent to `LAZY`, but receives the argument as a pass-by-formula argument.
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
 ```

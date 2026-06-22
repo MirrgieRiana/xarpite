@@ -11,8 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
-import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.operations.FluoriteException
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.errno
@@ -21,9 +19,9 @@ import platform.posix.fflush
 import platform.posix.fread
 import platform.posix.fwrite
 import platform.posix.set_posix_errno
+import platform.posix.stderr
 import platform.posix.stdin
 import platform.posix.stdout
-import platform.posix.stderr
 import platform.posix.strerror
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -31,7 +29,7 @@ import kotlin.experimental.ExperimentalNativeApi
 actual fun getProgramName(): String? = Platform.programName
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun getEnv(): Map<String, String> {
+fun getEnv(): Map<String, String> {
     val result = mutableMapOf<String, String>()
     var index = 0
     while (true) {
@@ -50,10 +48,10 @@ actual fun getEnv(): Map<String, String> {
 
 actual fun hasFreeze() = true
 
-actual suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
+suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
+suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO) {
     memScoped {
         val buffer = allocArray<ByteVar>(INB_MAX_BUFFER_SIZE)
         set_posix_errno(0)
@@ -69,7 +67,7 @@ actual suspend fun readBytesFromStdin(): ByteArray? = withContext(Dispatchers.IO
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stdout)
@@ -91,7 +89,7 @@ actual suspend fun writeBytesToStdout(bytes: ByteArray) = withContext(Dispatcher
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
+suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatchers.IO) {
     memScoped {
         if (bytes.isEmpty()) {
             fflush(stderr)
@@ -110,4 +108,10 @@ actual suspend fun writeBytesToStderr(bytes: ByteArray) = withContext(Dispatcher
         }
         fflush(stderr)
     }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+fun exit(code: Int): Nothing {
+    platform.posix.exit(code)
+    throw IllegalStateException("Unreachable")
 }

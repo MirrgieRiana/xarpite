@@ -106,7 +106,7 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 Decodes `blobLike` as a byte sequence encoded in UTF-8 into a single string.
 
-For `BLOB_LIKE`, see [BLOB](./blob.md).
+For `BLOB_LIKE`, see BLOB.
 
 This function does not normalize newline characters.
 
@@ -123,6 +123,48 @@ This function works correctly even when the input byte sequence boundaries are s
 $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 '
 # αβγ
+```
+
+## `BASE64` Convert String to Base64 String
+
+`BASE64(string: STRING): STRING`
+
+Returns a string with `string` encoded in Base64 format.
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+The output is wrapped at 76 characters.
+
+```shell
+$ xa ' "Hello, World!" * 10 >> BASE64 '
+# SGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxv
+# LCBXb3JsZCFIZWxsbywgV29ybGQhSGVsbG8sIFdvcmxkIUhlbGxvLCBXb3JsZCFIZWxsbywgV29y
+# bGQhSGVsbG8sIFdvcmxkIQ==
+```
+
+## `BASE64D` Convert Base64 String to String
+
+`BASE64D(string: STRING): STRING`
+
+Decodes the Base64-encoded string `string` and returns a string.
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+```
+
+---
+
+Newline and whitespace characters are ignored.
+
+```shell
+$ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
+# Hello, World!
 ```
 
 ## `URL` Encode String to URL Format
@@ -220,11 +262,54 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 # こんにちは
 ```
 
+## `SHELL_ESCAPE` / `BASH_ESCAPE` Shell Escaping
+
+`SHELL_ESCAPE(string: STRING): STRING`
+
+Escapes `string` into a form that can be safely passed to a shell.
+
+Specifically, it replaces `'` with `'\''` and encloses the entire string in single quotes.
+
+`BASH_ESCAPE` is an alias of `SHELL_ESCAPE` and has the same behavior.
+
+```shell
+$ xa 'SHELL_ESCAPE("Hello, World!")'
+# 'Hello, World!'
+
+$ xa "SHELL_ESCAPE(%>Don't ask<%)"
+# 'Don'\''t ask'
+```
+
+## `REGEX_ESCAPE` Regex Escaping
+
+`REGEX_ESCAPE(string: STRING): STRING`
+
+Escapes `string` into a form that can be treated as a literal outside of a character class within a regular expression.
+
+Specifically, it inserts a backslash before each of the regex metacharacters `\ ^ $ . | ? * + ( ) [ ] { }`.
+
+```shell
+$ xa 'REGEX_ESCAPE("a.b")'
+# a\.b
+
+$ xa 'REGEX_ESCAPE("1+1=2")'
+# 1\+1=2
+```
+
 ## `JSON` Convert Value to JSON String
 
-`JSON(["indent": indent: STRING; ]value: VALUE): STRING`
+`JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`
 
 Converts `value` to a JSON-formatted string.
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON'
+# {"a":1,"b":2}
+```
+
+---
+
+If you pass a string to `indent`, that string is used for indentation.
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
@@ -232,6 +317,27 @@ $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 #   "a": 1,
 #   "b": 2
 # }
+```
+
+---
+
+If you pass a number to `indent`, that many spaces are used.
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: 2]'
+# {
+#   "a": 1,
+#   "b": 2
+# }
+```
+
+---
+
+If you pass `NULL` to `indent`, no indentation is used and the output is compact.
+
+```shell
+$ xa '{a: 1; b: 2} >> JSON[indent: NULL]'
+# {"a":1,"b":2}
 ```
 
 ## `JSOND` Convert JSON String to Value
@@ -245,11 +351,13 @@ $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` Convert Stream of Values to Stream of JSON Strings
+## `JSONS` / `JSONL` Convert Stream of Values to Stream of JSON Strings
 
-`JSONS(["indent": indent: STRING; ]values: STREAM<VALUE>): STREAM<STRING>`
+`JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
 Returns a stream that converts each element of `values` to a JSON-formatted string.
+
+`JSONL` is an alias of `JSONS` and has the same behavior.
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -257,11 +365,15 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-## `JSONSD` Convert Stream of JSON Strings to Stream of Values
+The `indent` specification is the same as for `JSON`.
+
+## `JSONSD` / `JSONLD` Convert Stream of JSON Strings to Stream of Values
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
 Returns a stream that converts each element of `jsons` to the corresponding value.
+
+`JSONLD` is an alias of `JSONSD` and has the same behavior.
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
@@ -288,7 +400,7 @@ $ xa '
 
 ## `CSV` Convert Array to CSV String
 
-`CSV(["separator": separator: STRING; ]["quote": quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
 
 Encodes an array of strings or a stream thereof into a CSV row string or a stream thereof.
 
@@ -344,7 +456,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` Convert CSV String to Array
 
-`CSVD(["separator": separator: STRING; ]["quote": quote: STRING; ]csv: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
 
 Decodes a CSV row string or a stream thereof into an array of strings or a stream thereof.
 
@@ -380,3 +492,15 @@ Half-width spaces and tab characters at the beginning/end of lines or before/aft
 $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
+
+## `TSV` Convert Array to TSV String
+
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+
+Has the same behavior as the `CSV` function, but the default separator is the tab character `\t`.
+
+## `TSVD` Convert TSV String to Array
+
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+
+Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.

@@ -1,49 +1,171 @@
 package mirrg.xarpite.cli
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.takeFrom
+import mirrg.kotlin.helium.join
+import mirrg.kotlin.helium.notBlankOrNull
 import mirrg.xarpite.Evaluator
+import mirrg.xarpite.LazyMount
+import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
-import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
-import mirrg.xarpite.getFileSystem
+import mirrg.xarpite.define
+import mirrg.xarpite.isUrl
+import mirrg.xarpite.map
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
-import okio.Path
+import mirrg.xarpite.partitionIfEntry
 import okio.Path.Companion.toPath
 
 private const val MODULE_EXTENSION = ".xa1"
+private const val MODULE_DEFAULT_FILE_NAME = "main$MODULE_EXTENSION"
 
 context(context: RuntimeContext)
-fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, FluoriteValue>>): List<Map<String, FluoriteValue>> {
+fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<String, Mount>>): List<Map<String, Mount>> {
     return mapOf(
-        "USE" to run {
-            val moduleCache = mutableMapOf<Path, FluoriteValue>()
-            val baseDir by lazy {
-                location.toPath().parent?.normalized() ?: throw FluoriteException("Cannot determine base directory.".toFluoriteString())
-            }
-            FluoriteFunction { arguments ->
-                if (arguments.size != 1) usage("USE(file: STRING): VALUE")
-                val file = arguments[0].toFluoriteString(null).value
-                val modulePath = resolveModulePath(baseDir, file) ?: throw FluoriteException("Module file not found: $file".toFluoriteString())
-                moduleCache.getOrPut(modulePath) {
-                    val src = context.getModuleSrc(modulePath.toString())
+        "LOCATION" define LazyMount { location.toFluoriteString() },
+        "USE" define run {
+            FluoriteFunction.immediate { arguments ->
+                if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
+                val reference = arguments[0].toFluoriteString(null).value
+                val (moduleLocation, src) = resolveModuleLocation(context.inc, location, reference)
+                context.moduleResults.getOrPut(moduleLocation) {
                     val evaluator = Evaluator()
-                    evaluator.defineMounts(mountsFactory(modulePath.toString()))
-                    evaluator.get(modulePath.toString(), src).cache()
+                    evaluator.defineMounts(mountsFactory(moduleLocation))
+                    evaluator.get(moduleLocation, src, false).cache()
                 }
             }
+        },
+        "XA" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("XA(script: STRING[; reference: reference: STRING]): VALUE")
+
+            val (entries, arguments2) = arguments.toList().partitionIfEntry()
+            val referenceArgument = entries.remove("reference")
+            val script = (arguments2.removeFirstOrNull() ?: usage()).toFluoriteString(null).value
+            if (entries.isNotEmpty()) usage()
+            if (arguments2.isNotEmpty()) usage()
+
+            val reference = referenceArgument?.toFluoriteString(null)?.value ?: "./-"
+            val scriptLocation = resolveScriptLocation(location, reference)
+
+            val evaluator = Evaluator()
+            evaluator.defineMounts(mountsFactory(scriptLocation))
+            evaluator.get(scriptLocation, script, false)
         },
     ).let { listOf(it) }
 }
 
-private fun resolveModulePath(baseDir: Path, file: String): Path? {
-    if (!file.startsWith("./")) throw FluoriteException("""Module file path must start with "./".""".toFluoriteString())
-    val modulePath1 = baseDir.resolve(file.drop(2).toPath()).normalized()
-    if (getFileSystem().getOrThrow().exists(modulePath1)) return modulePath1
-    if (!file.endsWith(MODULE_EXTENSION)) {
-        val modulePath2 = baseDir.resolve((file.drop(2) + MODULE_EXTENSION).toPath()).normalized()
-        if (getFileSystem().getOrThrow().exists(modulePath2)) return modulePath2
+context(context: RuntimeContext)
+private suspend inline fun tryToLoad(locations: MutableList<String>, location: String, onFound: (Pair<String, String>) -> Unit) {
+    locations += location
+    val src = context.getModuleSrc(location)
+    if (src != null) onFound(Pair(location, src))
+}
+
+context(context: RuntimeContext)
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: String, reference: String): Pair<String, String> {
+    val locations = mutableListOf<String>()
+
+    val (directoryPathInc, urlInc) = inc.values
+        .map { it.toFluoriteString(null).value }
+        .reversed()
+        .partition { !isUrl(it) }
+
+    fun fail(message: String): Nothing {
+        val lines = mutableListOf<String>()
+        lines += message
+        if (locations.isNotEmpty()) {
+            lines += "Tried locations:"
+            locations.forEach {
+                lines += "- $it"
+            }
+        }
+        throw FluoriteException(lines.join("\n").toFluoriteString())
     }
-    return null
+
+    // ファイルパス
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        if (isUrl(baseLocation)) {
+            val url = URLBuilder(baseLocation).takeFrom(reference).buildString()
+            tryToLoad(locations, url) { return it }
+            fail("Module file not found: $reference")
+        } else {
+            val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+            val path = parentPath.resolve(reference).normalized()
+            tryToLoad(locations, path.toString()) { return it }
+            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
+            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
+            fail("Module file not found: $reference")
+        }
+    }
+
+    // URL
+    if (isUrl(reference)) {
+        tryToLoad(locations, reference) { return it }
+        fail("Failed to load module: $reference")
+    }
+
+    // Maven座標
+    run {
+        val segments = reference.split(":")
+        if (segments.size != 3) return@run
+        val group = segments[0].notBlankOrNull ?: return@run
+        val artifact = segments[1].notBlankOrNull ?: return@run
+        val version = segments[2].notBlankOrNull ?: return@run
+
+        val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
+
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(suffix).normalized()
+            tryToLoad(locations, path.toString()) { return it }
+        }
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
+            val url = "$normalizedIncPath/$suffix"
+            tryToLoad(locations, url) { return it }
+        }
+
+        fail("Maven artifact not found: $reference")
+    }
+
+    // INCを起点とした相対パス
+    run {
+        directoryPathInc.forEach { string ->
+            val path = string.toPath().resolve(reference).normalized()
+            tryToLoad(locations, path.toString()) { return it }
+            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
+            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
+        }
+        urlInc.forEach { string ->
+            val normalizedIncPath = string.trimEnd('/')
+            val url = "$normalizedIncPath/$reference"
+            tryToLoad(locations, url) { return it }
+        }
+
+        fail("Module file not found in INC paths: $reference")
+    }
+
+}
+
+private fun resolveScriptLocation(baseLocation: String, reference: String): String {
+
+    // ファイルパス
+    if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
+        if (isUrl(baseLocation)) {
+            return URLBuilder(baseLocation).takeFrom(reference).buildString()
+        } else {
+            val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
+            return parentPath.resolve(reference).normalized().toString()
+        }
+    }
+
+    // URL
+    if (isUrl(reference)) {
+        return reference
+    }
+
+    throw FluoriteException("Location must be a URL, an absolute path, or a relative path beginning with \"./\" or \"../\": $reference".toFluoriteString())
 }

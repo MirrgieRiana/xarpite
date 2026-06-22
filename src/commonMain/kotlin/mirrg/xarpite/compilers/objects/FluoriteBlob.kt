@@ -12,14 +12,14 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    "of" to FluoriteFunction { arguments ->
+                    "of" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size == 1) {
                             arguments[0].toBlobAsBlobLike()
                         } else {
                             usage("BLOB.of(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB")
                         }
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val byteArray = (arguments[0] as FluoriteBlob).value
                         val sb = StringBuilder()
@@ -32,13 +32,13 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                         sb.append("])")
                         sb.toString().toFluoriteString()
                     },
-                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val blob = arguments[0] as FluoriteBlob
                         FluoriteInt(blob.value.size)
                     },
                     // BLOB::toArray(): ARRAY<INT>
-                    "toArray" to FluoriteFunction { arguments ->
+                    "toArray" to FluoriteFunction.immediate { arguments ->
                         @OptIn(ExperimentalUnsignedTypes::class)
                         val byteArray = (arguments[0] as FluoriteBlob).value
                         @OptIn(ExperimentalUnsignedTypes::class)
@@ -70,8 +70,7 @@ suspend fun FluoriteValue.toByteArrayAsBlobLike(): ByteArray {
 
                 is FluoriteArray -> {
                     item.values.forEach { value ->
-                        value as? FluoriteNumber ?: throw FluoriteException("Invalid element for BLOB: ${"$value".truncate(20)}".toFluoriteString())
-                        buffer.writeByte(value.roundToInt())
+                        processItem(value)
                     }
                 }
 
