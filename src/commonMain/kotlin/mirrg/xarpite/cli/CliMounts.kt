@@ -260,7 +260,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     transform(output)
                 }
             }
-            fun toStringValue(output: ByteArray): FluoriteString {
+            fun toString(output: ByteArray): FluoriteString {
                 return output.decodeToString().toFluoriteString()
             }
             fun toLineStream(output: ByteArray): FluoriteStream {
@@ -276,7 +276,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 return listOf(output.asFluoriteBlob()).toFluoriteStream()
             }
             arrayOf(
-                "EXEC" define if (context.apiVersion >= 5) create("EXEC", "STRING", ::toStringValue) else create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXEC" define if (context.apiVersion >= 5) create("EXEC", "STRING", ::toString) else create("EXEC", "STREAM<STRING>", ::toLineStream),
                 "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
                 "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
             )
