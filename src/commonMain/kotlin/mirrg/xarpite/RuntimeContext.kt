@@ -132,3 +132,19 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
     override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
 }
+
+suspend fun IoContext.readAllStringFromStdin(): String {
+    val chunks = mutableListOf<ByteArray>()
+    while (true) {
+        val chunk = this.readBytesFromStdin() ?: break
+        chunks.add(chunk)
+    }
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    chunks.forEach { chunk ->
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
+}
