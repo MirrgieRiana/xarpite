@@ -64,8 +64,6 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     emit(line.toFluoriteString())
                 }
             }
-            // APIバージョン5以上では IN は標準入力全体を1個の文字列として読み取る。
-            // それより前では IN は INL の別名（1行ずつのストリーム）として振る舞う。
             var inString: FluoriteValue? = null
             val inMount = Mount {
                 if (context.apiVersion >= 5) {

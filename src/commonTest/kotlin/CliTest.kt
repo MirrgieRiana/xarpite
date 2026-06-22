@@ -182,21 +182,21 @@ class CliTest {
     }
 
     @Test
-    fun inl() = runTest {
+    fun inlAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は1行ずつのストリーム
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
     }
 
     @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "I").stream()) // I は INL の別名
+        assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
     }
 
     @Test
     fun inIsLineStreamInApi4() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は INL の別名
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は1行ずつのストリーム
     }
 
     @Test
