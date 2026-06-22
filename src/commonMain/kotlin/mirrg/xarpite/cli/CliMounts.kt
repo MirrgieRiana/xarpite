@@ -65,22 +65,24 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     emit(line.toFluoriteString())
                 }
             }
+            suspend fun getInString(): String {
+                val chunks = mutableListOf<ByteArray>()
+                while (true) {
+                    val chunk = context.io.readBytesFromStdin() ?: break
+                    chunks.add(chunk)
+                }
+                val totalSize = chunks.sumOf { it.size }
+                val result = ByteArray(totalSize)
+                var offset = 0
+                chunks.forEach { chunk ->
+                    chunk.copyInto(result, offset)
+                    offset += chunk.size
+                }
+                return result.decodeToString()
+            }
             arrayOf(
                 "IN" define if (context.apiVersion >= 5) {
-                    LazyMount {
-                        val chunks = mutableListOf<ByteArray>()
-                        while (true) {
-                            val chunk = context.io.readBytesFromStdin() ?: break
-                            chunks += chunk
-                        }
-                        val bytes = ByteArray(chunks.sumOf { it.size })
-                        var offset = 0
-                        chunks.forEach {
-                            it.copyInto(bytes, offset)
-                            offset += it.size
-                        }
-                        bytes.decodeToString().toFluoriteString()
-                    }
+                    LazyMount { getInString().toFluoriteString() }
                 } else {
                     ConstantMount(inStream)
                 },
