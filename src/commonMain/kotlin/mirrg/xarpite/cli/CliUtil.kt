@@ -199,7 +199,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
     withEvaluator(ioContext) { context, evaluator ->
         if (options.apiVersion != null) {
             if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
-                context.io.err("This runtime does not support API version $value")
+                context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
                 return@withEvaluator
             }
             context.apiVersion = options.apiVersion

@@ -6,18 +6,32 @@ title: "Migration Guide"
 
 # Migration Guide
 
-This guide explains how to rewrite existing scripts so that they follow a new API version.
-
----
-
-This guide provides a section for each API version, and for each breaking change introduced in that generation, it explains how to rewrite existing notations and idioms.
-
----
+This guide explains how to rewrite existing notations and idioms into equivalent new ones so that scripts follow a new API version.
 
 ## API Version 5
 
-### Change to the Behavior of `IN`
+### `IN` Now Reads the Entire Standard Input as a Single String
 
-On API version 5, `IN` now reads the entire standard input as a single string.
+Up to API version 4, `IN` was a stream that read standard input line by line.
 
-To read the standard input as a stream of lines, rewrite `IN` to `INL`.
+In API version 5, it reads the entire standard input as a single string.
+
+To preserve the previous behavior, replace `IN` with `INL`.
+
+```diff
+- IN
++ INL
+```
+
+### `FILES` Now Returns Paths Including the Directory
+
+Up to API version 4, `FILES` returned only the filenames directly under the directory.
+
+In API version 5, it returns paths that include the specified directory itself at the beginning.
+
+To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
+
+```diff
+- FILES("dir")
++ FILE_NAMES("dir")
+```
