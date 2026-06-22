@@ -67,11 +67,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "IN" define if (context.apiVersion >= 5) {
-                    LazyMount { context.io.readAllStringFromStdin().toFluoriteString() }
-                } else {
-                    ConstantMount(inStream)
-                },
+                "IN" define if (context.apiVersion >= 5) LazyMount { context.io.readAllStringFromStdin().toFluoriteString() } else ConstantMount(inStream),
                 "I" define inStream,
                 "INL" define inStream,
             )
