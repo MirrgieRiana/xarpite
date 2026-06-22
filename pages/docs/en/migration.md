@@ -23,6 +23,19 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
+### `READ` Now Returns a Single String
+
+Up to API version 4, `READ` was an alias of `READL` and returned the file content as a stream of lines.
+
+In API version 5, it returns the entire file content as a single string.
+
+To preserve the previous behavior, replace calls to `READ` with `READL`.
+
+```diff
+- READ("file")
++ READL("file")
+```
+
 ### `JSONS` Has Been Removed
 
 Up to API version 4, `JSONS` was an alias for `JSONL`.

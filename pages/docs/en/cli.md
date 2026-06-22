@@ -833,6 +833,12 @@ $ {
 # banana
 ```
 
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+Newlines are not adjusted.
+
 ### `READB`: Read from Binary File
 
 `READB(file: STRING): STREAM<BLOB>`

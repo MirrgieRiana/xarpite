@@ -103,7 +103,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun create(name: String): FluoriteFunction {
+            fun createLineStream(name: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
@@ -118,9 +118,19 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
+            fun createString(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STRING")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.read(file.toPath()) { // TODO charset
+                        readUtf8()
+                    }.toFluoriteString()
+                }
+            }
             arrayOf(
-                "READ" define create("READ"),
-                "READL" define create("READL"),
+                "READ" define if (context.apiVersion >= 5) createString("READ") else createLineStream("READ"),
+                "READL" define createLineStream("READL"),
             )
         },
         "READB" define FluoriteFunction.immediate { arguments ->
