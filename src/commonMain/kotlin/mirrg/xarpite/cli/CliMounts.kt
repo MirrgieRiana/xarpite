@@ -1,5 +1,6 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -64,23 +65,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     emit(line.toFluoriteString())
                 }
             }
-            var inString: FluoriteValue? = null
-            val inMount = Mount {
-                if (context.apiVersion >= 5) {
-                    inString ?: run {
-                        val lines = mutableListOf<String>()
+            arrayOf(
+                "IN" define if (context.apiVersion >= 5) {
+                    LazyMount {
+                        val chunks = mutableListOf<ByteArray>()
                         while (true) {
-                            val line = context.io.readLineFromStdin() ?: break
-                            lines += line
+                            val chunk = context.io.readBytesFromStdin() ?: break
+                            chunks += chunk
                         }
-                        lines.joinToString("\n").toFluoriteString().also { inString = it }
+                        val bytes = ByteArray(chunks.sumOf { it.size })
+                        var offset = 0
+                        chunks.forEach {
+                            it.copyInto(bytes, offset)
+                            offset += it.size
+                        }
+                        bytes.decodeToString().toFluoriteString()
                     }
                 } else {
-                    inStream
-                }
-            }
-            arrayOf(
-                "IN" define inMount,
+                    ConstantMount(inStream)
+                },
                 "I" define inStream,
                 "INL" define inStream,
             )
