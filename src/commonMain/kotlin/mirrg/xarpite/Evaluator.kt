@@ -34,7 +34,7 @@ class Evaluator {
     }
 
     suspend fun get(location: String, src: String, embedded: Boolean): FluoriteValue {
-        val parseResult = XarpiteGrammar(location)
+        val parseResult = XarpiteGrammar(location, RuntimeContext.SUPPORTED_API_VERSIONS.first)
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
             .parseAll(src) { XarpiteParseContext(it) }
             .getOrThrow()
@@ -55,7 +55,7 @@ class Evaluator {
     }
 
     suspend fun run(location: String, src: String, embedded: Boolean) {
-        val parseResult = XarpiteGrammar(location)
+        val parseResult = XarpiteGrammar(location, RuntimeContext.SUPPORTED_API_VERSIONS.first)
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
             .parseAll(src) { XarpiteParseContext(it) }
             .getOrThrow()
