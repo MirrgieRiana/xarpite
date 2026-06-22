@@ -242,7 +242,6 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                         }
                     }
                     listOfNotNull(
-                        // JSONS はAPIバージョン5で削除された。同等の機能は JSONL が提供する。
                         if (context.apiVersion < 5) "JSONS" define create("JSONS") else null,
                         "JSONL" define create("JSONL"),
                     ).toTypedArray()

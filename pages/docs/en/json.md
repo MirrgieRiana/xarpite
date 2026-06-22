@@ -12,7 +12,7 @@ Several functions are provided to convert between JSON strings and values:
 
 - `JSON`
 - `JSOND`
-- `JSONL` / `JSONS`
+- `JSONS` / `JSONL`
 - `JSONSD` / `JSONLD`
 
 See Data Conversion Functions for details.

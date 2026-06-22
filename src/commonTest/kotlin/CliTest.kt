@@ -2034,29 +2034,15 @@ class CliTest {
     }
 
     @Test
-    fun jsonsFunctionIsAvailableInApiVersion4() = runTest {
+    fun jsons() = runTest {
+        val context = TestIoContext()
         // APIバージョン4では JSONS を利用できる
-        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << ({a: 1} >> JSONS)"), context)
-        cliEvalImpl(context, options)
-        assertEquals("{\"a\":1}\n", context.stdoutBytes.toUtf8String())
-    }
-
-    @Test
-    fun jsonsFunctionIsRemovedInApiVersion5() = runTest {
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 4).stream())
         // APIバージョン5では JSONS は削除されており、参照するとエラーとなる
-        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "5", "-e", "{a: 1} >> JSONS"), context)
-        assertFailsWith<IllegalArgumentException> { cliEvalImpl(context, options) }
-    }
-
-    @Test
-    fun jsonlFunctionRemainsAvailableInApiVersion5() = runTest {
-        // APIバージョン5でも JSONL は引き続き利用できる
-        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
-        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << ({a: 1} >> JSONL)"), context)
-        cliEvalImpl(context, options)
-        assertEquals("{\"a\":1}\n", context.stdoutBytes.toUtf8String())
+        assertFailsWith<IllegalArgumentException> { cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 5) }
+        // JSONL はAPIバージョンに依らず常に利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 4).stream())
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 5).stream())
     }
 
     // EXEC/BASHテスト用のヘルパー関数
