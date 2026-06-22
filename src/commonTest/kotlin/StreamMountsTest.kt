@@ -225,6 +225,17 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("LAST(GET(0 .. 300; 10, 20, 30))")) // 上限を超えた添字ストリームでも末尾の範囲外は NULL になる
         assertEquals("NULL,NULL,NULL", eval("TAKE(3; GET(0 .. 300; ,))").stream()) // 上限超過かつ値が空ストリームでもすべて NULL になる
         assertEquals("10,NULL", eval("TAKE(2; GET(0 .. 300; 10))").stream()) // 上限超過かつ値が非ストリームの場合、位置0だけが対応する
+
+        assertEquals("0,1", eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            TAKE(2; GET(0 .. 300; nat))
+        """).stream()) // 上限を超えた添字でも無限の値ストリームを高々1回・必要な位置まで読むだけで、ハングしない
+        assertEquals("[1]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            (GET((0 .. 256) | 0; stream)) >> VOID
+            array
+        """).array()) // 上限を超えても、同じ位置を繰り返し参照するだけなら値ストリームはその位置を1回しか読まない
     }
 
     @Test

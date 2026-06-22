@@ -696,6 +696,10 @@ $ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5] >> TO_ARRAY'
 # [40;10;30;30;NULL]
 ```
 
+---
+
+`stream` is iterated at most once, and only the positions required for the output are read. Therefore, `stream` can be an infinite stream.
+
 ## `FIRST` Get First Element of Stream
 
 `FIRST(stream: STREAM<VALUE>): VALUE`
