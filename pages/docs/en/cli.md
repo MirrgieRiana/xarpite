@@ -731,7 +731,7 @@ Gets a stream of filenames directly under the directory specified by `dir`.
 
 Filenames do not include directory paths.
 
-In API version 5, `FILES` returns paths that include `dir` at the beginning.
+In API version 5, these are no longer aliases, and only `FILES` returns paths that include `dir` at the beginning.
 
 Returned files do not include `.` or `..`, but do include directories and other special files.
 
