@@ -1,1 +1,1 @@
-Added support for `IN` to read the entire standard input as a single `STRING` in API version 5.
+!Changed `IN` to read the entire standard input as a single `STRING` in API version 5.
