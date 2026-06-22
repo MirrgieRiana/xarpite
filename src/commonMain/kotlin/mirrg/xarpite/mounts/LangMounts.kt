@@ -27,6 +27,7 @@ import mirrg.xarpite.copy
 import mirrg.xarpite.define
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.math.roundToLong
 
 private var nextCoroutineId = 1
 
@@ -53,7 +54,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
 
                 1 -> {
                     val time = arguments[0] as FluoriteNumber
-                    val millis = time.toInt().toLong()
+                    val millis = if (context.apiVersion >= 5) (time.toDouble() * 1000.0).roundToLong() else time.toInt().toLong()
                     if (millis == 0L) {
                         yield()
                     } else {
@@ -61,7 +62,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
                     }
                 }
 
-                else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
+                else -> usage(if (context.apiVersion >= 5) "SLEEP([seconds: NUMBER]): NULL" else "SLEEP([milliseconds: NUMBER]): NULL")
             }
             FluoriteNull
         },
