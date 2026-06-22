@@ -2060,6 +2060,18 @@ class CliTest {
         assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
     }
 
+    @Test
+    fun jsons() = runTest {
+        val context = TestIoContext()
+        // APIバージョン4では JSONS を利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 4).stream())
+        // APIバージョン5では JSONS は削除されており、参照するとエラーとなる
+        assertFailsWith<IllegalArgumentException> { cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 5) }
+        // JSONL はAPIバージョンに依らず常に利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 4).stream())
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 5).stream())
+    }
+
     // EXEC/BASHテスト用のヘルパー関数
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,

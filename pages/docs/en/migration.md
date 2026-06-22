@@ -35,3 +35,16 @@ To preserve the previous behavior, replace calls to `READ` with `READL`.
 - READ("file")
 + READL("file")
 ```
+
+### `JSONS` Has Been Removed
+
+Up to API version 4, `JSONS` was an alias for `JSONL`.
+
+In API version 5, `JSONS` has been removed.
+
+To preserve the previous behavior, replace calls to `JSONS` with `JSONL`.
+
+```diff
+- JSONS
++ JSONL
+```
