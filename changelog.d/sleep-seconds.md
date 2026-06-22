@@ -1,1 +1,1 @@
-Added support for specifying the `SLEEP` duration in seconds in API version 5.
+Changed the `SLEEP` function to interpret its argument as seconds in API version 5.
