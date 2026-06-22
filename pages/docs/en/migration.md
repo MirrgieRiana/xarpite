@@ -23,6 +23,19 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
+### `JSONS` Has Been Removed
+
+Up to API version 4, `JSONS` was an alias for `JSONL`.
+
+In API version 5, `JSONS` has been removed.
+
+To preserve the previous behavior, replace calls to `JSONS` with `JSONL`.
+
+```diff
+- JSONS
++ JSONL
+```
+
 ### `SLEEP` Now Takes Its Argument in Seconds
 
 Up to API version 4, `SLEEP` interpreted its argument as milliseconds.
