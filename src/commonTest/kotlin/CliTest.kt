@@ -424,15 +424,19 @@ class CliTest {
         fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
         fileSystem.createDirectory(dir.resolve("banana"))
 
-        // FILES 関数でファイル一覧を取得
-        val filesResult = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+        // APIバージョン4では FILES はファイル名のみを返す
+        val filesResultV4 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", filesResultV4)
 
-        // アルファベット順にソートされ、ファイル名のみが返される
-        assertEquals("apple.txt,banana,zebra.txt", filesResult)
+        // APIバージョン5では FILES は dir を先頭に含むパスを返す
+        val filesResultV5 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("$dir/apple.txt,$dir/banana,$dir/zebra.txt", filesResultV5)
 
-        // FILE_NAMES 関数でも同じ結果が得られることを確認（エイリアスの配線を検証）
-        val fileNamesResult = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
-        assertEquals(filesResult, fileNamesResult)
+        // FILE_NAMES はAPIバージョンに依らず常にファイル名のみを返す
+        val fileNamesResultV4 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV4)
+        val fileNamesResultV5 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV5)
 
         // クリーンアップ
         fileSystem.deleteRecursively(dir)
@@ -3028,8 +3032,9 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, apiVersion: Int? = null): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
+        if (apiVersion != null) context.apiVersion = apiVersion
         context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>

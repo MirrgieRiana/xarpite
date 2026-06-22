@@ -6,12 +6,19 @@ title: "Migration Guide"
 
 # Migration Guide
 
-This guide explains how to rewrite existing scripts so that they follow a new API version.
+This guide explains how to rewrite existing notations and idioms into equivalent new ones so that scripts follow a new API version.
 
----
+## API Version 5
 
-This guide provides a section for each API version, and for each breaking change introduced in that generation, it explains how to rewrite existing notations and idioms.
+### `FILES` Now Returns Paths Including the Directory
 
----
+Up to API version 4, `FILES` returned only the filenames directly under the directory.
 
-There are currently no breaking changes that require rewriting to follow.
+In API version 5, it returns paths that include the specified directory itself at the beginning.
+
+To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
+
+```diff
+- FILES("dir")
++ FILE_NAMES("dir")
+```
