@@ -114,26 +114,26 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
-            arrayOf(
-                "READ" define FluoriteFunction.immediate { arguments ->
-                    if (context.apiVersion >= 5) {
-                        if (arguments.size != 1) usage("READ(file: STRING): STRING")
-                        val file = arguments[0].toFluoriteString(null).value
-                        val fileSystem = getFileSystem().getOrThrow()
-                        fileSystem.read(file.toPath()) { // TODO charset
-                            readUtf8()
-                        }.toFluoriteString()
-                    } else {
-                        if (arguments.size != 1) usage("READ(file: STRING): STREAM<STRING>")
-                        val file = arguments[0].toFluoriteString(null).value
-                        readLineStream(file)
-                    }
-                },
-                "READL" define FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 1) usage("READL(file: STRING): STREAM<STRING>")
+            fun createLineStream(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
                     readLineStream(file)
-                },
+                }
+            }
+            fun createSingleString(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STRING")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.read(file.toPath()) { // TODO charset
+                        readUtf8()
+                    }.toFluoriteString()
+                }
+            }
+            arrayOf(
+                "READ" define if (context.apiVersion >= 5) createSingleString("READ") else createLineStream("READ"),
+                "READL" define createLineStream("READL"),
             )
         },
         "READB" define FluoriteFunction.immediate { arguments ->
