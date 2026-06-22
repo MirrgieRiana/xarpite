@@ -23,11 +23,11 @@ To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
 + FILE_NAMES("dir")
 ```
 
-### A `#` Line Comment Now Begins Only at the Start of a Line or After Whitespace
+### A `#` Line Comment Can No Longer Begin Except at the Start of a Line or After Whitespace
 
 Up to API version 4, a `#` line comment could begin regardless of the preceding character.
 
-In API version 5, a `#` line comment can begin only at the start of a line or immediately after a space or tab.
+In API version 5, a `#` line comment can no longer begin except at the start of a line or immediately after a space or tab.
 
 To preserve the previous behavior, insert a space before any `#` that previously began a line comment without a preceding space.
 
