@@ -538,23 +538,37 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 `CHAR_CODESD(charCodes: STREAM<INT>): STRING`
 
+`CODE_POINT(char: STRING): INT`
+
+`CODE_POINTD(codePoint: INT): STRING`
+
+`CODE_POINTS(string: STRING): STREAM<INT>`
+
+`CODE_POINTSD(codePoints: STREAM<INT>): STRING`
+
 These functions convert between strings and character codes.
 
-The `CHAR_CODE` family works in UTF-16 code units.
+The `CHAR_CODE` family works in UTF-16 code units, whereas the `CODE_POINT` family treats a character represented by a surrogate pair (U+10000 and above) as a single Unicode code point.
 
 Functions with the `D` suffix decode, while those without it encode.
 
-| Function      | Pre-decode type | Pre-decode meaning      | Direction   | Post-decode type | Post-decode meaning          |
-|---------------|-----------------|-------------------------|-------------|------------------|------------------------------|
-| `CHAR_CODE`   | `INT`           | code unit value         | ← to code   | `STRING`         | exactly one UTF-16 code unit |
-| `CHAR_CODED`  | `INT`           | code unit value         | → to string | `STRING`         | exactly one UTF-16 code unit |
-| `CHAR_CODES`  | `STREAM<INT>`   | value of each code unit | ← to code   | `STRING`         | string                       |
-| `CHAR_CODESD` | `STREAM<INT>`   | value of each code unit | → to string | `STRING`         | string                       |
+| Function       | Pre-decode type | Pre-decode meaning       | Direction   | Post-decode type | Post-decode meaning            |
+|----------------|-----------------|--------------------------|-------------|------------------|--------------------------------|
+| `CHAR_CODE`    | `INT`           | code unit value          | ← to code   | `STRING`         | exactly one UTF-16 code unit   |
+| `CHAR_CODED`   | `INT`           | code unit value          | → to string | `STRING`         | exactly one UTF-16 code unit   |
+| `CHAR_CODES`   | `STREAM<INT>`   | value of each code unit  | ← to code   | `STRING`         | string                         |
+| `CHAR_CODESD`  | `STREAM<INT>`   | value of each code unit  | → to string | `STRING`         | string                         |
+| `CODE_POINT`   | `INT`           | code point value         | ← to code   | `STRING`         | exactly one Unicode code point |
+| `CODE_POINTD`  | `INT`           | code point value         | → to string | `STRING`         | exactly one Unicode code point |
+| `CODE_POINTS`  | `STREAM<INT>`   | value of each code point | ← to code   | `STRING`         | string                         |
+| `CODE_POINTSD` | `STREAM<INT>`   | value of each code point | → to string | `STRING`         | string                         |
 
 An error is raised for inputs that fall under any of the following:
 
 - `CHAR_CODED` `CHAR_CODESD`: given a value that is not between 0 and 65535
-- `CHAR_CODE`: given a string that does not consist of exactly one code unit
+- `CODE_POINTD` `CODE_POINTSD`: given a value that is not between 0 and 1114111, or a surrogate code point (U+D800 to U+DFFF)
+- `CHAR_CODE` `CODE_POINT`: given a string that does not consist of exactly one code unit or code point, respectively
+- `CODE_POINT` `CODE_POINTS`: given a string that contains an isolated surrogate
 
 ```shell
 $ xa 'CHAR_CODE("A")'
@@ -577,6 +591,27 @@ $ xa 'CHAR_CODESD(65, 66, 67)'
 
 $ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
 # Hello
+
+$ xa 'CODE_POINT("A")'
+# 65
+
+$ xa 'CODE_POINT("🍰")'
+# 127856
+
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(127856)'
+# 🍰
+
+$ xa 'CODE_POINTS("🍰") >> JOIN[","]'
+# 127856
+
+$ xa 'CODE_POINTSD(127856)'
+# 🍰
+
+$ xa '"🍰" >> CODE_POINTS >> CODE_POINTSD'
+# 🍰
 ```
 
 ## `UC` Convert to Uppercase

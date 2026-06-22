@@ -175,4 +175,59 @@ class StringMountsTest {
         // サロゲートペアも往復できる
         assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CHAR_CODES >> CHAR_CODESD").string)
     }
+
+    @Test
+    fun codePoint() = runTest {
+        // CODE_POINT: Unicodeコードポイントを返す
+        assertEquals(65, eval("CODE_POINT('A')").int) // 'A' のコードポイントは65
+        assertEquals(12354, eval("CODE_POINT('\u3042')").int) // 'あ' のコードポイントは12354
+        // サロゲートペアの文字（U+1F370 🍰 = 0x1F370 = 127856）
+        assertEquals(127856, eval("CODE_POINT('\uD83C\uDF70')").int) // 🍰 のコードポイント
+
+        // CODE_POINT: 1コードポイントでない場合はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('')") } // 空文字列はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('AB')") } // 2文字はエラー
+        // 孤立サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800')") } // 孤立上位サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
+        // 長さ2でも正しいサロゲートペアでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800A')") } // 上位サロゲートの後ろが下位サロゲートでないとエラー
+
+        // CODE_POINTD: コードポイントから文字列を返す
+        assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
+        assertEquals("\u3042", eval("CODE_POINTD(12354)").string) // 12354 は 'あ'
+        assertEquals("\uD83C\uDF70", eval("CODE_POINTD(127856)").string) // 127856 は 🍰
+
+        // CODE_POINTD: 範囲外の場合はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(-1)") } // 負数はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(1114112)") } // U+110000はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(55296)") } // サロゲートはエラー（U+D800）
+
+        // CODE_POINTS: 文字列からUnicodeコードポイントのストリームを返す
+        assertEquals("65,66,67", eval("CODE_POINTS('ABC')").stream()) // 'ABC'のコードポイント列
+        assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
+        assertEquals("127856", eval("CODE_POINTS('\uD83C\uDF70')").stream()) // 🍰 のコードポイント
+        assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
+        // 孤立サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uDC00')").stream() } // 孤立下位サロゲートはエラー
+        // 上位サロゲートの直後が下位サロゲートでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD83CA')").stream() } // 上位サロゲート＋非下位サロゲートはエラー
+
+        // CODE_POINTSD: コードポイントのストリームから文字列を返す
+        assertEquals("ABC", eval("CODE_POINTSD(65, 66, 67)").string) // コードポイント列から文字列
+        assertEquals("\u3042\u3044", eval("CODE_POINTSD(12354, 12356)").string) // 日本語文字
+        assertEquals("\uD83C\uDF70", eval("CODE_POINTSD(127856)").string) // 🍰
+        assertEquals("A", eval("CODE_POINTSD(65)").string) // 単一のコードポイント
+
+        // CODE_POINTSD: 範囲外の場合はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTSD(-1)") } // 負数はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTSD(1114112)") } // U+110000はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTSD(55296)") } // サロゲートはエラー
+
+        // CODE_POINTSとCODE_POINTSDは逆変換
+        assertEquals("Hello", eval("'Hello' >> CODE_POINTS >> CODE_POINTSD").string)
+        // サロゲートペアも往復できる
+        assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CODE_POINTS >> CODE_POINTSD").string)
+    }
 }

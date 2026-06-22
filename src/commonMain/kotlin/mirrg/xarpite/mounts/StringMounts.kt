@@ -68,6 +68,91 @@ fun createStringMounts(): List<Map<String, Mount>> {
             sb.toString().toFluoriteString()
         },
 
+        "CODE_POINT" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINT(char: STRING): INT")
+            val string = arguments[0].toFluoriteString(null).value
+            val codePoint = when {
+                string.isEmpty() -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
+                string.length == 1 -> {
+                    val char = string[0]
+                    if (char.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                    char.code
+                }
+                string.length == 2 -> {
+                    val high = string[0]
+                    val low = string[1]
+                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                    0x10000 + ((high.code - 0xD800) shl 10) + (low.code - 0xDC00)
+                }
+                else -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+            }
+            FluoriteInt(codePoint)
+        },
+        "CODE_POINTD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTD(codePoint: INT): STRING")
+            val codePoint = arguments[0].toFluoriteNumber(null).roundToInt()
+            if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Argument must be between 0 and 1114111, got $codePoint".toFluoriteString())
+            if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
+            val string = if (codePoint < 0x10000) {
+                codePoint.toChar().toString()
+            } else {
+                val offset = codePoint - 0x10000
+                val high = 0xD800 + (offset shr 10)
+                val low = 0xDC00 + (offset and 0x3FF)
+                "${high.toChar()}${low.toChar()}"
+            }
+            string.toFluoriteString()
+        },
+        "CODE_POINTS" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTS(string: STRING): STREAM<INT>")
+            val string = arguments[0].toFluoriteString(null).value
+            FluoriteStream {
+                var i = 0
+                while (i < string.length) {
+                    val char = string[i]
+                    if (char.isHighSurrogate()) {
+                        if (i + 1 < string.length && string[i + 1].isLowSurrogate()) {
+                            val codePoint = 0x10000 + ((char.code - 0xD800) shl 10) + (string[i + 1].code - 0xDC00)
+                            emit(FluoriteInt(codePoint))
+                            i += 2
+                        } else {
+                            throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
+                        }
+                    } else if (char.isLowSurrogate()) {
+                        throw FluoriteException("String must not contain an isolated surrogate".toFluoriteString())
+                    } else {
+                        emit(FluoriteInt(char.code))
+                        i++
+                    }
+                }
+            }
+        },
+        "CODE_POINTSD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTSD(codePoints: STREAM<INT>): STRING")
+            val value = arguments[0]
+            val sb = StringBuilder()
+            suspend fun appendCodePoint(item: FluoriteValue) {
+                val codePoint = item.toFluoriteNumber(null).roundToInt()
+                if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element must be between 0 and 1114111, got $codePoint".toFluoriteString())
+                if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
+                if (codePoint < 0x10000) {
+                    sb.append(codePoint.toChar())
+                } else {
+                    val offset = codePoint - 0x10000
+                    sb.append((0xD800 + (offset shr 10)).toChar())
+                    sb.append((0xDC00 + (offset and 0x3FF)).toChar())
+                }
+            }
+            if (value is FluoriteStream) {
+                value.collect { item ->
+                    appendCodePoint(item)
+                }
+            } else {
+                appendCodePoint(value)
+            }
+            sb.toString().toFluoriteString()
+        },
+
         *run {
             fun create(signature: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
