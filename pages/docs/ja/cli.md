@@ -50,6 +50,7 @@ $ xarpite -h | tail -n +2
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -99,6 +100,7 @@ $ xa -h | tail -n +2
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -258,12 +260,6 @@ $ xa -q '
 
 ## APIバージョン
 
-Xarpiteには、Xarpite自身のバージョンとは別に、APIバージョンという概念があります。
-
-APIバージョンは文法や組み込みマウント等の動作に影響を与え、ランタイム全体に対して適用されます。
-
-スクリプトが想定するAPIバージョンとランタイムのAPIバージョンが完全に一致しない限り、動作は保証されません。
-
 ### `-A`: APIバージョンの指定
 
 `-A <apiversion>`
@@ -368,6 +364,30 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 `-f` オプションと `-e` オプションは排他的であり、同時に指定することはできません。
+
+## 埋め込み文字列リテラルとしての解釈
+
+### `-E`: スクリプト全体を埋め込み文字列リテラルとして解釈
+
+`-E` オプションを指定すると、エントリポイントであるスクリプト全体を埋め込み文字列リテラル `%>` `<%` の中身として解釈します。
+
+これにより、テンプレートエンジンのように、テキストの中にXarpiteの式を埋め込んだスクリプトを記述できます。
+
+スクリプトの先頭行が `#!` で開始する場合は、末尾の改行ごと無視されます。
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
 
 ## その他のコマンド
 
@@ -511,11 +531,11 @@ $ xa 'MAJOR ?= INT'
 
 バージョン番号を取得できない場合や、 `メジャー.マイナー.パッチ` の数値形式で解釈できない場合は、参照時にエラーが発生します。
 
-### `API_VERSION`: APIバージョンを取得
+### `API_VERSION`: 現在提供されているAPIバージョンを取得
 
 `API_VERSION: INT`
 
-現在のランタイムのAPIバージョンが整数で格納されています。
+現在のランタイムが提供しているAPIバージョンが整数で格納されています。
 
 ```shell
 $ xa -A 4 'API_VERSION'
@@ -710,6 +730,8 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 `FILE_NAMES` は `FILES` の別名であり、同一の動作を持ちます。
 
 ファイル名にはディレクトリのパスは含まれません。
+
+APIバージョン5からは、これらは別名ではなくなり、 `FILES` の方のみ、 `dir` を先頭に含むパスを返すようになります。
 
 返されるファイルには `.` や `..` は含まれず、ディレクトリやその他の特殊なファイルは含まれます。
 
@@ -1124,6 +1146,37 @@ $ {
   rm -r .xarpite
 }
 # Apple
+```
+
+### `XA`: Xarpiteスクリプトの実行
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+`script` で与えられたXarpiteスクリプトを評価した結果を返します。
+
+`USE` と異なり、同じ入力に対しても評価結果は再利用されず、ストリームの解決も行われません。
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` 引数
+
+`reference` 引数は、 `script` のロケーションに使われます。
+
+`reference` は、URL、絶対パス、または `.` か `..` の階層で始まる相対パスで指定できます。
+
+相対パスは `XA` 関数を呼び出したスクリプトのロケーションを起点として解決されます。
+
+`reference` を省略した場合、 `XA` 関数を呼び出したスクリプトのロケーションのディレクトリ直下の `-` という名前のファイルとして扱われます。
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
 ```
 
 ### `EXEC` / `EXECL`: 外部コマンドを実行 [EXPERIMENTAL]
