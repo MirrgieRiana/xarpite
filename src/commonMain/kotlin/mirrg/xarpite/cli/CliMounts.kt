@@ -261,14 +261,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             fun toStringValue(output: ByteArray): FluoriteString {
-                val text = output.decodeToString()
-                val result = when {
-                    text.endsWith("\r\n") -> text.dropLast(2)
-                    text.endsWith("\r") -> text.dropLast(1)
-                    text.endsWith("\n") -> text.dropLast(1)
-                    else -> text
-                }
-                return result.toFluoriteString()
+                return output.decodeToString().toFluoriteString()
             }
             fun toLineStream(output: ByteArray): FluoriteStream {
                 val lines = output.decodeToString().lines()

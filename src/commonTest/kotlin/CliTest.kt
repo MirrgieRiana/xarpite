@@ -2203,7 +2203,7 @@ class CliTest {
     }
 
     @Test
-    fun execRemovesTrailingNewline() = runTest {
+    fun execPreservesTrailingNewlineInApiVersion5() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
@@ -2211,16 +2211,16 @@ class CliTest {
                 "test\n"
             }
         )
-        // APIバージョン5の EXEC では末尾の改行が除去されることを確認
+        // APIバージョン5の EXEC では標準出力全体がそのまま返り、末尾の改行も残ることを確認
         val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"), apiVersion = 5)
         val output = result.toFluoriteString(null).value
-        assertEquals("test", output)
+        assertEquals("test\n", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
     @Test
-    fun execRemovesOnlyOneTrailingNewline() = runTest {
+    fun execPreservesMultipleTrailingNewlinesInApiVersion5() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
             executeProcessHandler = { process, args, env ->
@@ -2228,10 +2228,10 @@ class CliTest {
                 "test\n\n\n"
             }
         )
-        // APIバージョン5の EXEC では複数の末尾改行があっても末尾の改行が1つだけ除去されることを確認
+        // APIバージョン5の EXEC では複数の末尾改行もそのまま残ることを確認
         val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), apiVersion = 5)
         val output = result.toFluoriteString(null).value
-        assertEquals("test\n\n", output)
+        assertEquals("test\n\n\n", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }

@@ -1191,8 +1191,6 @@ In `command`, specify the process and its arguments one element at a time.
 
 The return value is a stream that reads the standard output of that process line by line.
 
-In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string. In that case, trailing newlines in the output are removed.
-
 ```shell
 $ xa 'EXEC("echo", "Hello, World!")'
 # Hello, World!
@@ -1205,6 +1203,10 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 23
 # 30
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string.
 
 ---
 
