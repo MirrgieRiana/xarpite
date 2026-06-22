@@ -1,1 +1,1 @@
-Added the removal of the `JSONS` function in API version 5; the `JSONL` function provides the same behavior.
+!Changed the `JSONS` function to be removed in API version 5.

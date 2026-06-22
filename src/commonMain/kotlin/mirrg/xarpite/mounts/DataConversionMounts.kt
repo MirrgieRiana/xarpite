@@ -242,7 +242,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                         }
                     }
                     listOfNotNull(
-                        if (context.apiVersion < 5) "JSONS" define create("JSONS") else null,
+                        if (context.apiVersion >= 5) null else "JSONS" define create("JSONS"),
                         "JSONL" define create("JSONL"),
                     ).toTypedArray()
                 },
