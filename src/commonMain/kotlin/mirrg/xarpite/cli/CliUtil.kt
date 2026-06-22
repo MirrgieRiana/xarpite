@@ -197,6 +197,13 @@ fun RuntimeContext.addDefaultIncPaths() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
     withEvaluator(ioContext) { context, evaluator ->
+        if (options.apiVersion != null) {
+            if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
+                context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
+                return@withEvaluator
+            }
+            context.apiVersion = options.apiVersion
+        }
         context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
@@ -207,7 +214,6 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         }
         evaluator.defineMounts(mountsFactory(location))
         try {
-            if (options.apiVersion != null) context.apiVersion = options.apiVersion
             if (options.quiet) {
                 evaluator.run(location, options.src, options.embedded, context.apiVersion)
             } else {

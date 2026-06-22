@@ -24,7 +24,7 @@ import io.github.mirrgieriana.xarpeg.text
 import mirrg.kotlin.helium.join
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-class XarpiteGrammar(val location: String, val apiVersion: Int = RuntimeContext.PROVIDED_API_VERSIONS.first) {
+class XarpiteGrammar(val location: String, val apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first) {
 
     val lineComment: Parser<Tuple0> = if (apiVersion >= 5) {
         // APIバージョン5以降では、# による行コメントは行頭または空白文字の直後でのみ開始できる

@@ -6,16 +6,32 @@ title: "Migration Guide"
 
 # Migration Guide
 
-This guide explains how to rewrite existing scripts so that they follow a new API version.
-
----
-
-This guide provides a section for each API version, and for each breaking change introduced in that generation, it explains how to rewrite existing notations and idioms.
+This guide explains how to rewrite existing notations and idioms into equivalent new ones so that scripts follow a new API version.
 
 ## API Version 5
 
-### Where a `#` line comment can begin
+### `FILES` Now Returns Paths Including the Directory
 
-From API version 5 onwards, a `#` line comment can begin only at the start of a line or immediately after a space or tab.
+Up to API version 4, `FILES` returned only the filenames directly under the directory.
 
-If you previously began a `#` line comment without a preceding space in API version 4 or earlier, insert a space before the `#`.
+In API version 5, it returns paths that include the specified directory itself at the beginning.
+
+To preserve the previous behavior, replace calls to `FILES` with `FILE_NAMES`.
+
+```diff
+- FILES("dir")
++ FILE_NAMES("dir")
+```
+
+### A `#` Line Comment Now Begins Only at the Start of a Line or After Whitespace
+
+Up to API version 4, a `#` line comment could begin regardless of the preceding character.
+
+In API version 5, a `#` line comment can begin only at the start of a line or immediately after a space or tab.
+
+To preserve the previous behavior, insert a space before any `#` that previously began a line comment without a preceding space.
+
+```diff
+- 1#comment
++ 1 #comment
+```
