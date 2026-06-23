@@ -37,12 +37,5 @@ fun createClassMounts(): List<Map<String, Mount>> {
         "STREAM" define FluoriteStream.fluoriteClass,
         "PROMISE" define FluoritePromise.fluoriteClass,
         "ERROR" define FluoriteError.fluoriteClass,
-        "PARENT" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size == 1) {
-                arguments[0].parent ?: FluoriteNull
-            } else {
-                usage("PARENT(value: VALUE): OBJECT | NULL")
-            }
-        },
     ).let { listOf(it) }
 }
