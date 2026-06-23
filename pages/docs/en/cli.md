@@ -1218,6 +1218,10 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 
 ---
 
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string.
+
+---
+
 The `env` argument lets you specify environment variables for the process.
 
 Environment variables are inherited from the calling Xarpite process and then added or overwritten.
