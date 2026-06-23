@@ -520,15 +520,22 @@ $ xa '"$%.3f(  EXP(2)  )"'
 # 7.389
 ```
 
-### `LOG`: Natural Logarithm
+### `LOG`: Logarithm
 
 `LOG(number: NUMBER): NUMBER`
 
-Returns the natural logarithm (base e) of the first argument.
+`LOG(base: NUMBER; number: NUMBER): NUMBER`
+
+When called with one argument, returns the natural logarithm (base e) of the first argument.
+
+When called with two arguments, returns the logarithm of the second argument with the first argument as the base.
 
 ```shell
 $ xa '"$%.3f(  LOG(MATH.E)  )"'
 # 1.000
+
+$ xa '"$%.3f(  LOG(2; 8)  )"'
+# 3.000
 ```
 
 ### `RAND`: Get Random Number
