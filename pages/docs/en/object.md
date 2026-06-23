@@ -278,10 +278,13 @@ $ xa '
 
 ---
 
-For built-in values, it returns the corresponding class constant. `PARENT(1)` returns `INT`, and `PARENT(INT)` returns `VALUE`.
+For built-in values, it returns the corresponding class constant.
 
 ```shell
-$ xa 'PARENT(1) ?= INT'
+$ xa 'PARENT(1) == INT'
+# TRUE
+
+$ xa 'PARENT(INT) == VALUE'
 # TRUE
 ```
 
@@ -296,9 +299,9 @@ $ xa 'PARENT(VALUE)'
 
 ---
 
-When a stream is passed, it is not applied element-wise; it returns `STREAM`, the parent of the stream itself.
+If `value` is a stream, it is not applied element-wise but returns `STREAM`, the parent of the stream itself.
 
 ```shell
-$ xa 'PARENT(1, 2, 3) ?= STREAM'
+$ xa 'PARENT(1, 2, 3) == STREAM'
 # TRUE
 ```
