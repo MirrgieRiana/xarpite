@@ -522,13 +522,11 @@ $ xa '"$%.3f(  EXP(2)  )"'
 
 ### `LOG`: Logarithm
 
-`LOG(number: NUMBER): NUMBER`
+`LOG([base: NUMBER; ]number: NUMBER): NUMBER`
 
-`LOG(base: NUMBER; number: NUMBER): NUMBER`
+Returns the logarithm of `number` with `base` as the base.
 
-When called with one argument, returns the natural logarithm (base e) of the first argument.
-
-When called with two arguments, returns the logarithm of the second argument with the first argument as the base.
+When `base` is omitted, returns the natural logarithm with base e.
 
 ```shell
 $ xa '"$%.3f(  LOG(MATH.E)  )"'

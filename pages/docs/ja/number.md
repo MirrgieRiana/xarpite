@@ -522,13 +522,11 @@ $ xa '"$%.3f(  EXP(2)  )"'
 
 ### `LOG`: 対数
 
-`LOG(number: NUMBER): NUMBER`
+`LOG([base: NUMBER; ]number: NUMBER): NUMBER`
 
-`LOG(base: NUMBER; number: NUMBER): NUMBER`
+`base` を底とした `number` の対数を返します。
 
-1引数で呼び出された場合、第1引数の自然対数（底 e）を返します。
-
-2引数で呼び出された場合、第1引数を底とした第2引数の対数を返します。
+`base` が省略された場合は、 e が底の自然対数を返します。
 
 ```shell
 $ xa '"$%.3f(  LOG(MATH.E)  )"'
