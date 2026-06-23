@@ -62,19 +62,29 @@ To preserve the previous behavior, replace calls to `EXEC` with `EXECL`.
 + EXECL("command")
 ```
 
-### The `JSON` Function and the `$&` Operator Now Indent by Default
+### The `$&` Operator Now Indents Its Output
 
-Up to API version 4, the `JSON` function (with `indent` omitted) and the `$&` operator returned compact output without indentation.
+Up to API version 4, the `$&` operator returned compact output without indentation.
 
-In API version 5, they return output indented with two spaces.
+In API version 5, it returns output indented with two spaces.
 
-To preserve the previous behavior, explicitly pass `NULL` to `indent`. Since the `$&` operator cannot take `indent`, replace it with `JSON[indent: NULL]`.
+To preserve the previous behavior, replace the `$&` operator with `JSON[indent: NULL]`.
+
+```diff
+- $&value
++ value >> JSON[indent: NULL]
+```
+
+### The `JSON` Function Now Indents Its Output by Default
+
+Up to API version 4, the `JSON` function returned compact output without indentation when `indent` was omitted.
+
+In API version 5, it returns output indented with two spaces.
+
+To preserve the previous behavior, explicitly pass `NULL` to `indent`.
 
 ```diff
 - value >> JSON
-+ value >> JSON[indent: NULL]
-
-- $&value
 + value >> JSON[indent: NULL]
 ```
 
