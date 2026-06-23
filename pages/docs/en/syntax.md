@@ -1,5 +1,5 @@
 ---
-title: "Factors and Operators"
+title: "Factors"
 ---
 
 Within this document, operators are listed in order from highest to lowest binding precedence.
