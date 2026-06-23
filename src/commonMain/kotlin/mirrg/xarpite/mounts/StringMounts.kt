@@ -81,7 +81,10 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 string.length == 2 -> {
                     val high = string[0]
                     val low = string[1]
-                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) {
+                        if (high.isSurrogate() || low.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                        throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                    }
                     0x10000 + ((high.code - 0xD800) shl 10) + (low.code - 0xDC00)
                 }
                 else -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())

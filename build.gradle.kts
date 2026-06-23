@@ -31,7 +31,13 @@ kotlin {
 
     jvm()
     js {
-        nodejs()
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "10s"
+                }
+            }
+        }
         binaries.library()
         outputModuleName = "xarpite-core"
         compilerOptions {

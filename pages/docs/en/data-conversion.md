@@ -359,6 +359,8 @@ Returns a stream that converts each element of `values` to a JSON-formatted stri
 
 `JSONL` is an alias of `JSONS` and has the same behavior.
 
+In API version 5, `JSONS` has been removed, and only `JSONL` is available.
+
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"a":1}

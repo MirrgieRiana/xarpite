@@ -182,15 +182,53 @@ class CliTest {
     }
 
     @Test
+    fun inlAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
     }
 
     @Test
-    fun inlAlias() = runTest {
+    fun inIsLineStreamInApi4() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は1行ずつのストリーム
+    }
+
+    @Test
+    fun inReadsWholeStringInApi5() = runTest {
+        // APIバージョン5では IN は標準入力全体を1個の文字列として読み取る
+        val context = TestIoContext(stdinBytes = "abc\ndef\n".encodeToByteArray())
+        val result = cliEval(context, "IN", apiVersion = 5)
+        assertTrue(result is FluoriteString)
+        assertEquals("abc\ndef\n", result.toFluoriteString(null).value) // 末尾の改行も改変されずそのまま保持される
+    }
+
+    @Test
+    fun inPreservesNewlinesInApi5() = runTest {
+        // APIバージョン5の IN は改行文字を一切改変せず入力をそのまま返す
+        val context = TestIoContext(stdinBytes = "a\r\nb\n\n".encodeToByteArray())
+        assertEquals("a\r\nb\n\n", cliEval(context, "IN", apiVersion = 5).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun inlIsLineStreamInApi5() = runTest {
+        // APIバージョン5でも INL は1行ずつのストリームのまま
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL", apiVersion = 5).stream())
+    }
+
+    @Test
+    fun inWholeStringThroughApiVersionOption() = runTest {
+        // -A 5 を通して IN が標準入力全体の文字列になる
+        val context = TestIoContext(stdinBytes = "abc\ndef".encodeToByteArray())
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << IN"), context)
+        cliEvalImpl(context, options)
+        assertEquals("abc\ndef\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -198,6 +236,13 @@ class CliTest {
         val context = TestIoContext()
         cliEval(context, """O("test")""")
         assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
+    }
+
+    @Test
+    fun outlAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """OUTL("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // OUTL は OUT の別名
     }
 
     @Test
@@ -210,20 +255,47 @@ class CliTest {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream()) // API バージョン 4 では READ は行ストリーム
+    }
+
+    @Test
+    fun readReturnsSingleStringOnApiVersion5() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("read_api5.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456" + "\n")
+        }
+        val fileWithoutTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // API バージョン 5 では READ はファイル全体を単一の文字列として返し、末尾改行の調整を行わない
+        assertEquals("123\n456\n", cliEval(context, "READ(ARGS.0)", fileWithTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
+        assertEquals("123\n456", cliEval(context, "READ(ARGS.0)", fileWithoutTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
     }
 
     @Test
     fun readl() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
-        val file = baseDir.resolve("readl.test_file.tmp.txt")
-        getFileSystem().getOrThrow().createDirectory(file.parent!!)
-        getFileSystem().getOrThrow().write(file) {
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("readl.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("readl.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", file.toString()).stream()) // READL は READ の別名
+        val fileWithoutTrailingNewline = baseDir.resolve("readl.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // READL は行ストリームとして読み取り、末尾改行の有無は区別されない
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithTrailingNewline.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithoutTrailingNewline.toString()).stream())
     }
 
     @Test
@@ -424,15 +496,19 @@ class CliTest {
         fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
         fileSystem.createDirectory(dir.resolve("banana"))
 
-        // FILES 関数でファイル一覧を取得
-        val filesResult = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+        // APIバージョン4では FILES はファイル名のみを返す
+        val filesResultV4 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", filesResultV4)
 
-        // アルファベット順にソートされ、ファイル名のみが返される
-        assertEquals("apple.txt,banana,zebra.txt", filesResult)
+        // APIバージョン5では FILES は dir を先頭に含むパスを返す
+        val filesResultV5 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("$dir/apple.txt,$dir/banana,$dir/zebra.txt", filesResultV5)
 
-        // FILE_NAMES 関数でも同じ結果が得られることを確認（エイリアスの配線を検証）
-        val fileNamesResult = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString()).stream()
-        assertEquals(filesResult, fileNamesResult)
+        // FILE_NAMES はAPIバージョンに依らず常にファイル名のみを返す
+        val fileNamesResultV4 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV4)
+        val fileNamesResultV5 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV5)
 
         // クリーンアップ
         fileSystem.deleteRecursively(dir)
@@ -2029,6 +2105,18 @@ class CliTest {
         assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
     }
 
+    @Test
+    fun jsons() = runTest {
+        val context = TestIoContext()
+        // APIバージョン4では JSONS を利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 4).stream())
+        // APIバージョン5では JSONS は削除されており、参照するとエラーとなる
+        assertFailsWith<IllegalArgumentException> { cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 5) }
+        // JSONL はAPIバージョンに依らず常に利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 4).stream())
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 5).stream())
+    }
+
     // EXEC/BASHテスト用のヘルパー関数
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
@@ -2065,6 +2153,40 @@ class CliTest {
             }
         )
         val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execReturnsStringInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC は標準出力全体を単一の文字列で返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("3\n13\n23\n30", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlReturnsLineStreamInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC と別名でなくなった EXECL は行ストリームを返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"), apiVersion = 5)
         val lines = result.stream()
         assertEquals("3,13,23,30", lines)
 
@@ -2148,6 +2270,40 @@ class CliTest {
         assertFailsWith<Exception> {
             cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
         }
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesTrailingNewlineInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n"
+            }
+        )
+        // APIバージョン5の EXEC では標準出力全体がそのまま返り、末尾の改行も残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesMultipleTrailingNewlinesInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n\n\n"
+            }
+        )
+        // APIバージョン5の EXEC では複数の末尾改行もそのまま残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n\n\n", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -2994,8 +3150,9 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, apiVersion: Int? = null): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
+        if (apiVersion != null) context.apiVersion = apiVersion
         context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
@@ -3003,6 +3160,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
     }
 }

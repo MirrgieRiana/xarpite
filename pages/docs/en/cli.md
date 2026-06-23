@@ -580,6 +580,12 @@ $ { echo 123; echo 456; } | xa 'IN'
 
 ---
 
+In API version 5, only `IN` is no longer an alias of these, and reads the entire standard input as a single string.
+
+In this case, `IN` returns the input string as-is, without modifying any newline characters.
+
+---
+
 Because streams are sequential, even very large iterations can be performed with low memory consumption.
 
 ```shell
@@ -624,13 +630,13 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`, `O`: Output to Console
+### `OUT`, `O`, `OUTL`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
 Outputs to standard output.
 
-`O` is an alias for `OUT`.
+`O` and `OUTL` are aliases for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
@@ -731,6 +737,8 @@ Gets a stream of filenames directly under the directory specified by `dir`.
 
 Filenames do not include directory paths.
 
+In API version 5, these are no longer aliases, and only `FILES` returns paths that include `dir` at the beginning.
+
 Returned files do not include `.` or `..`, but do include directories and other special files.
 
 Returned filenames are sorted in lexicographic order.
@@ -830,6 +838,12 @@ $ {
 # apple
 # banana
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+Newlines are not adjusted.
 
 ### `READB`: Read from Binary File
 
@@ -1201,6 +1215,10 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 23
 # 30
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string.
 
 ---
 
