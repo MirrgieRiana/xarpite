@@ -200,9 +200,9 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         evaluator.defineMounts(mountsFactory(location))
         try {
             if (options.quiet) {
-                evaluator.run(location, options.src, options.embedded, context.apiVersion)
+                evaluator.run(location, options.src, options.embedded)
             } else {
-                val result = evaluator.get(location, options.src, options.embedded, context.apiVersion)
+                val result = evaluator.get(location, options.src, options.embedded)
                 if (options.embedded) {
                     context.io.writeBytesToStdout(result.toFluoriteString(null).value.encodeToByteArray())
                 } else if (result is FluoriteStream) {

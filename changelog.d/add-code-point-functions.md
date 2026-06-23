@@ -1,1 +1,1 @@
-Added `CODE_POINTD`, `CODE_POINTS`, and `CODE_POINTSD` functions for converting between strings and Unicode code point values.
+Added `CODE_POINT` function that returns the Unicode code point value of a string consisting of exactly one code point.

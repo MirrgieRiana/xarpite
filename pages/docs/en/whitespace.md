@@ -10,6 +10,8 @@ title: "Comments"
 
 Line comments can be written following `#` or `//`.
 
+In API version 5, a `#` line comment can begin only at the start of a line or immediately after a space or tab.
+
 ```shell
 $ xa '
   [

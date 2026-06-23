@@ -26,8 +26,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 
-fun parse(src: String): String {
-    val parseResult = XarpiteGrammar("test", RuntimeContext.SUPPORTED_API_VERSIONS.first).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+fun parse(src: String, apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first): String {
+    val parseResult = XarpiteGrammar("test", apiVersion).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code
@@ -48,11 +48,11 @@ suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = Unsu
     }
 }
 
-suspend fun Evaluator.get(src: String) = this.get("test", src, false, RuntimeContext.SUPPORTED_API_VERSIONS.first)
+suspend fun Evaluator.get(src: String) = this.get("test", src, false)
 
-suspend fun Evaluator.getEmbedded(src: String) = this.get("test", src, true, RuntimeContext.SUPPORTED_API_VERSIONS.first)
+suspend fun Evaluator.getEmbedded(src: String) = this.get("test", src, true)
 
-suspend fun Evaluator.run(src: String) = this.run("test", src, false, RuntimeContext.SUPPORTED_API_VERSIONS.first)
+suspend fun Evaluator.run(src: String) = this.run("test", src, false)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
 val FluoriteValue.big get() = (this as FluoriteBig).value
