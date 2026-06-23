@@ -520,15 +520,20 @@ $ xa '"$%.3f(  EXP(2)  )"'
 # 7.389
 ```
 
-### `LOG`: 自然対数
+### `LOG`: 対数
 
-`LOG(number: NUMBER): NUMBER`
+`LOG([base: NUMBER; ]number: NUMBER): NUMBER`
 
-第1引数の自然対数（底 e）を返します。
+`base` を底とした `number` の対数を返します。
+
+`base` が省略された場合は、 e が底の自然対数を返します。
 
 ```shell
 $ xa '"$%.3f(  LOG(MATH.E)  )"'
 # 1.000
+
+$ xa '"$%.3f(  LOG(2; 8)  )"'
+# 3.000
 ```
 
 ### `RAND`: 乱数の取得

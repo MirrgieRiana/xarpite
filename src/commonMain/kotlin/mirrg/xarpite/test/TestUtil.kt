@@ -26,8 +26,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 
-fun parse(src: String): String {
-    val parseResult = XarpiteGrammar("test", RuntimeContext.SUPPORTED_API_VERSIONS.first).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+fun parse(src: String, apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first): String {
+    val parseResult = XarpiteGrammar("test", apiVersion).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code

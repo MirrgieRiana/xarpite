@@ -26,7 +26,25 @@ import mirrg.kotlin.helium.join
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
-    val lineComment: Parser<Tuple0> = -Regex("""(?:#|//)[^\r\n]*""")
+    val sharpLineCommentBody: Parser<Tuple0> = -Regex("""#[^\r\n]*""")
+    val sharpLineComment: Parser<Tuple0> = if (apiVersion >= 5) {
+        Parser { context, start ->
+            if (start == 0) {
+                context.parseOrNull(sharpLineCommentBody, start)
+            } else {
+                val previousCharacter = context.src[start - 1]
+                if (previousCharacter == ' ' || previousCharacter == '\t' || previousCharacter == '\n' || previousCharacter == '\r') {
+                    context.parseOrNull(sharpLineCommentBody, start)
+                } else {
+                    null
+                }
+            }
+        }
+    } else {
+        sharpLineCommentBody
+    }
+    val slashLineComment: Parser<Tuple0> = -Regex("""//[^\r\n]*""")
+    val lineComment: Parser<Tuple0> = sharpLineComment + slashLineComment
 
     val blockCommentContent: Parser<Tuple0> = or(
         ref { blockComment },

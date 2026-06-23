@@ -175,4 +175,22 @@ class StringMountsTest {
         // サロゲートペアも往復できる
         assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CHAR_CODES >> CHAR_CODESD").string)
     }
+
+    @Test
+    fun codePoint() = runTest {
+        // CODE_POINT: Unicodeコードポイントを返す
+        assertEquals(65, eval("CODE_POINT('A')").int) // 'A' のコードポイントは65
+        assertEquals(12354, eval("CODE_POINT('\u3042')").int) // 'あ' のコードポイントは12354
+        // サロゲートペアの文字（U+1F370 🍰 = 0x1F370 = 127856）
+        assertEquals(127856, eval("CODE_POINT('\uD83C\uDF70')").int) // 🍰 のコードポイント
+
+        // CODE_POINT: 1コードポイントでない場合はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('')") } // 空文字列はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('AB')") } // 2文字はエラー
+        // 孤立サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800')") } // 孤立上位サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
+        // 長さ2でも正しいサロゲートペアでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800A')") } // 上位サロゲートの後ろが下位サロゲートでないとエラー
+    }
 }

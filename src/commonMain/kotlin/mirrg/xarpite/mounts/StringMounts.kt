@@ -68,6 +68,30 @@ fun createStringMounts(): List<Map<String, Mount>> {
             sb.toString().toFluoriteString()
         },
 
+        "CODE_POINT" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINT(char: STRING): INT")
+            val string = arguments[0].toFluoriteString(null).value
+            val codePoint = when {
+                string.isEmpty() -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got an empty string".toFluoriteString())
+                string.length == 1 -> {
+                    val char = string[0]
+                    if (char.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                    char.code
+                }
+                string.length == 2 -> {
+                    val high = string[0]
+                    val low = string[1]
+                    if (!high.isHighSurrogate() || !low.isLowSurrogate()) {
+                        if (high.isSurrogate() || low.isSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                        throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+                    }
+                    0x10000 + ((high.code - 0xD800) shl 10) + (low.code - 0xDC00)
+                }
+                else -> throw FluoriteException("Argument must be a string of exactly 1 Unicode code point, got ${string.length} code units".toFluoriteString())
+            }
+            FluoriteInt(codePoint)
+        },
+
         *run {
             fun create(signature: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
