@@ -1,1 +1,2 @@
-Added `ASIN`, `ACOS`, and `ATAN` functions that return inverse trigonometric values. The `ATAN` function also accepts two arguments to compute the angle of a coordinate.
+Added `ASIN`, `ACOS`, and `ATAN` functions that return inverse trigonometric values.
+Added `ATAN2` function that computes the angle of a coordinate.

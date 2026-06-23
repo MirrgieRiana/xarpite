@@ -521,17 +521,21 @@ $ xa '"$%.3f(  ACOS(0)  )"'
 
 `ATAN(number: NUMBER): NUMBER`
 
-`ATAN(y: NUMBER; x: NUMBER): NUMBER`
-
-1引数で呼び出された場合、第1引数の逆正接をラジアンで返します。
-
-2引数で呼び出された場合、座標 `(x, y)` の偏角をラジアンで返します。
+第1引数の逆正接をラジアンで返します。
 
 ```shell
 $ xa '"$%.3f(  ATAN(1)  )"'
 # 0.785
+```
 
-$ xa '"$%.3f(  ATAN(1; 1)  )"'
+### `ATAN2`: 座標の偏角
+
+`ATAN2(y: NUMBER; x: NUMBER): NUMBER`
+
+座標 `(x, y)` の偏角をラジアンで返します。
+
+```shell
+$ xa '"$%.3f(  ATAN2(1; 1)  )"'
 # 0.785
 ```
 

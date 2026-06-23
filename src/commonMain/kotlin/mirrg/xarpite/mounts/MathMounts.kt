@@ -123,11 +123,13 @@ fun createMathMounts(): List<Map<String, Mount>> {
         "ATAN" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(atan((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ATAN(number: NUMBER): NUMBER")
+            }
+        },
+        "ATAN2" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
                 2 -> FluoriteDouble(atan2((arguments[0] as FluoriteNumber).toDouble(), (arguments[1] as FluoriteNumber).toDouble()))
-                else -> usage(
-                    "ATAN(number: NUMBER): NUMBER",
-                    "ATAN(y: NUMBER; x: NUMBER): NUMBER",
-                )
+                else -> usage("ATAN2(y: NUMBER; x: NUMBER): NUMBER")
             }
         },
         "POW" define FluoriteFunction.immediate { arguments ->

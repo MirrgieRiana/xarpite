@@ -521,17 +521,21 @@ $ xa '"$%.3f(  ACOS(0)  )"'
 
 `ATAN(number: NUMBER): NUMBER`
 
-`ATAN(y: NUMBER; x: NUMBER): NUMBER`
-
-When called with one argument, returns the arctangent of the first argument in radians.
-
-When called with two arguments, returns the angle of the coordinate `(x, y)` in radians.
+Returns the arctangent of the first argument in radians.
 
 ```shell
 $ xa '"$%.3f(  ATAN(1)  )"'
 # 0.785
+```
 
-$ xa '"$%.3f(  ATAN(1; 1)  )"'
+### `ATAN2`: Angle of a coordinate
+
+`ATAN2(y: NUMBER; x: NUMBER): NUMBER`
+
+Returns the angle of the coordinate `(x, y)` in radians.
+
+```shell
+$ xa '"$%.3f(  ATAN2(1; 1)  )"'
 # 0.785
 ```
 

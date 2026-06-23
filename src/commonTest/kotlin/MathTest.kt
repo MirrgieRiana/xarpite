@@ -99,14 +99,14 @@ class MathTest {
         assertEquals(1.5707963267948966, eval("ACOS(0)").double, 0.001) // PI / 2
         assertEquals(0.0, eval("ACOS(1)").double, 0.001)
 
-        // ATAN (1引数版)
+        // ATAN
         assertEquals(0.0, eval("ATAN(0)").double, 0.001)
         assertEquals(0.7853981633974483, eval("ATAN(1)").double, 0.001) // PI / 4
 
-        // ATAN (2引数版, atan2)
-        assertEquals(0.7853981633974483, eval("ATAN(1; 1)").double, 0.001) // 点(1, 1)の偏角 PI / 4
-        assertEquals(2.356194490192345, eval("ATAN(1; -1)").double, 0.001) // 点(-1, 1)の偏角 3 * PI / 4
-        assertEquals(0.0, eval("ATAN(0; 1)").double, 0.001) // 点(1, 0)の偏角
+        // ATAN2
+        assertEquals(0.7853981633974483, eval("ATAN2(1; 1)").double, 0.001) // 点(1, 1)の偏角 PI / 4
+        assertEquals(2.356194490192345, eval("ATAN2(1; -1)").double, 0.001) // 点(-1, 1)の偏角 3 * PI / 4
+        assertEquals(0.0, eval("ATAN2(0; 1)").double, 0.001) // 点(1, 0)の偏角
 
         // POW
         assertEquals(8.0, eval("POW(2; 3)").double, 0.001)
