@@ -239,6 +239,13 @@ class CliTest {
     }
 
     @Test
+    fun outlAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """OUTL("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // OUTL は OUT の別名
+    }
+
+    @Test
     fun read() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest

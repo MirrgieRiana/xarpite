@@ -630,13 +630,13 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`, `O`: Output to Console
+### `OUT`, `O`, `OUTL`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
 Outputs to standard output.
 
-`O` is an alias for `OUT`.
+`O` and `OUTL` are aliases for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
