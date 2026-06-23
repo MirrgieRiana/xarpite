@@ -601,8 +601,8 @@ $ xa 'CODE_POINTD(65)'
 $ xa 'CODE_POINTD(127856)'
 # 🍰
 
-$ xa 'CODE_POINTS("🍰") >> JOIN[","]'
-# 127856
+$ xa 'CODE_POINTS("A🍰B") >> JOIN[","]'
+# 65,127856,66
 ```
 
 ## `UC` Convert to Uppercase

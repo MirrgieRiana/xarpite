@@ -211,7 +211,7 @@ class StringMountsTest {
         // CODE_POINTS: 文字列からUnicodeコードポイントのストリームを返す
         assertEquals("65,66,67", eval("CODE_POINTS('ABC')").stream()) // 'ABC'のコードポイント列
         assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
-        assertEquals("127856", eval("CODE_POINTS('\uD83C\uDF70')").stream()) // 🍰 のコードポイント
+        assertEquals("65,127856,66", eval("CODE_POINTS('A\uD83C\uDF70B')").stream()) // サロゲートペア（🍰）を含む並びのコードポイント列
         assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
         // 孤立サロゲートはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
