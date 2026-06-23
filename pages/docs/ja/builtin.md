@@ -29,6 +29,45 @@ title: "組み込みオブジェクトのクラス定数"
 - `BLOB`
 - `ERROR`
 
+# 親オブジェクトの取得
+
+## `PARENT` 値の親オブジェクトを取得
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+`value` の親オブジェクトを返します。
+
+Xarpite ではすべての値が親オブジェクトを持ち、それが継承チェーンを形作っています。`PARENT` はそのチェーンを一つ上に辿ります。
+
+オブジェクトの継承 `parent{...}` で作られた子オブジェクトに対しては、その親オブジェクトを返します。
+
+```shell
+$ xa '
+  Animal := {legs: 4}
+  socrates := Animal{}
+  PARENT(socrates).legs
+'
+# 4
+```
+
+---
+
+組み込みの値に対しては、対応するクラス定数を返します。`PARENT(1)` は `INT` を、`PARENT(INT)` は `VALUE` を返します。
+
+```shell
+$ xa 'PARENT(1) ?= INT'
+# TRUE
+```
+
+---
+
+親を持たない値に対しては `NULL` を返します。
+
+```shell
+$ xa 'PARENT(VALUE)'
+# NULL
+```
+
 # 定数
 
 各種、特別な値を表す定数です。

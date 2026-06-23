@@ -29,6 +29,45 @@ You can reference classes of various built-in objects.
 - `BLOB`
 - `ERROR`
 
+# Getting the Parent Object
+
+## `PARENT` Get the Parent Object of a Value
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+Returns the parent object of `value`.
+
+In Xarpite, every value has a parent object, which forms the inheritance chain. `PARENT` walks one step up this chain.
+
+For a child object created with object inheritance `parent{...}`, it returns the parent object.
+
+```shell
+$ xa '
+  Animal := {legs: 4}
+  socrates := Animal{}
+  PARENT(socrates).legs
+'
+# 4
+```
+
+---
+
+For built-in values, it returns the corresponding class constant. `PARENT(1)` returns `INT`, and `PARENT(INT)` returns `VALUE`.
+
+```shell
+$ xa 'PARENT(1) ?= INT'
+# TRUE
+```
+
+---
+
+For a value that has no parent, it returns `NULL`.
+
+```shell
+$ xa 'PARENT(VALUE)'
+# NULL
+```
+
 # Constants
 
 Various constants representing special values.
