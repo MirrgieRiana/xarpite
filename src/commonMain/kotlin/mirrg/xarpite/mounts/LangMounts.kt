@@ -139,6 +139,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
             arrayOf(
                 "OUT" define create(),
                 "O" define create(),
+                "OUTL" define create(),
             )
         },
         *run {
