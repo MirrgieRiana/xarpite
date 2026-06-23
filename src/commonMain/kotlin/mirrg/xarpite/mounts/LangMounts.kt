@@ -186,13 +186,6 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 arguments[0].contains(null, arguments[1])
             },
         ),
-        "PARENT" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size == 1) {
-                arguments[0].parent ?: FluoriteNull
-            } else {
-                usage("PARENT(value: VALUE): OBJECT | NULL")
-            }
-        },
         "LAZY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
             val initializer = arguments[0]
