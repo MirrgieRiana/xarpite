@@ -84,8 +84,8 @@ In API version 5, it interprets the argument as seconds.
 To preserve the previous behavior, divide the argument by 1000.
 
 ```diff
-- SLEEP(1000)
-+ SLEEP(1)
+- SLEEP(1500)
++ SLEEP(1.5)
 ```
 
 ### A `#` Line Comment Can No Longer Begin Except at the Start of a Line or After a Space or Tab

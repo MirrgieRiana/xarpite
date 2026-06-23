@@ -62,92 +62,100 @@ $ xa '1 .. 3 >> SUM'
 # 6
 ```
 
-# Range Operators
+## Stream Resolution
 
-## Closed Interval `start .. end`
+Operators and functions that return streams as return values may perform stream resolution to ensure stream side effects.
 
-The closed interval operator creates a stream of integers ranging from the left operand to the right operand.
+Stream resolution means returning a cached stream that reproduces the element sequence instead of the original stream.
 
-The end value itself is included in the stream.
+The original stream is evaluated exactly once in its entirety at the time of resolution, and side effects also occur exactly once at that time.
+
+---
+
+This behavior is due to the fact that a stream value is essentially a lazy-evaluated chunk of instructions.
+
+For example, in the following example, the actual iteration start of `stream` is delayed until the actual output of the result of the entire program.
 
 ```shell
-$ xa '1 .. 3'
+$ xa '
+  array := [1, 2, 3]
+  stream := array()
+  array::push << 4, 5
+  stream
+'
 # 1
 # 2
 # 3
+# 4
+# 5
+```
+
+This property can be a hindrance in programs that expect side effect effects.
+
+In the following example, we expect to add elements to the array using the pipe operator, but the second example does not cause side effects.
+
+```shell
+$ xa '
+  array := [1, 2, 3]
+  4, 5 | *array::push
+  array
+'
+# [1;2;3;4;5]
+
+$ xa '
+  array := [1, 2, 3]
+  dummy := 4, 5 | *array::push
+  array
+'
+# [1;2;3]
+```
+
+An easy way to perform stream resolution and cause side effects on the spot is to execute it as a statement (runner) by a compound statement.
+
+```shell
+$ xa '
+  array := [1, 2, 3]
+  dummy := (4, 5 | *array::push;)
+  array
+'
+# [1;2;3;4;5]
 ```
 
 ---
 
-If the left side is greater than the right side, it counts down.
+Holding the cache array may be omitted for memory savings when the result of the resolved stream is not used anywhere.
+
+---
+
+If you attempt to resolve an infinite stream, unless you exit midway with errors or return operators, the program will fall into an infinite loop at that location.
+
+As a result, the program may stop progressing or crash due to out of memory.
+
+For example, the expression `LOOP !? "Error"` falls into an infinite loop.
+
+This is because the catch operator `!?` tries to check if something is thrown somewhere in the infinite NULLs contained in `LOOP`.
+
+To avoid stream resolution, there is a method of exchanging in the state of functions that return streams instead of the streams themselves.
+
+However, in this case the effect of the catch operator does not extend into the function.
 
 ```shell
-$ xa '3 .. 1'
-# 3
-# 2
+$ xa '
+  getStream := (() -> LOOP | i, _ => i) !? "Error"
+  getStream() >> TAKE[3]
+'
+# 0
 # 1
-```
-
----
-
-When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
-
-```shell
-$ xa '"a" .. "c"'
-# a
-# b
-# c
-
-$ xa '"α" .. "γ"'
-# α
-# β
-# γ
-```
-
-## Half-Open Interval `start ~ end`
-
-The half-open interval operator creates a stream of integers from the left operand up to (but not including) the right operand.
-
-The end value itself is not included in the stream.
-
-```shell
-$ xa '1 ~ 3'
-# 1
 # 2
 ```
 
----
+## Stream Concatenation
 
-Unlike the closed interval operator, the half-open interval operator creates an empty stream when the right operand is less than the left operand.
+### `item, ...`: Stream Concatenation Operator
 
-```shell
-$ xa '[3 ~ 1]'
-# []
-```
+The stream concatenation operator `,` creates a stream that concatenates left and right elements or streams.
 
----
-
-When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
-
-```shell
-$ xa '"a" ~ "d"'
-# a
-# b
-# c
-
-$ xa '"α" ~ "δ"'
-# α
-# β
-# γ
-```
-
-# Stream Concatenation Operators
-
-## Stream Concatenation `items, ...`
-
-The operator `,` creates a stream that concatenates left and right elements or streams.
-
-In Xarpite, unless in special places like the left side of lambda operators, `,` is interpreted as a stream concatenation operator, not as a separator for arguments or array elements.
+In Xarpite, unless in special places like the argument list of lambda operators, `,` is interpreted as a stream concatenation operator, not as a separator for arguments or array elements.
 
 ```shell
 $ xa '1, 2 .. 4, 5'
@@ -183,6 +191,101 @@ The xa command outputs the return value of the given source code by default, but
 
 ```shell
 $ xa '"Some processing with side effects"; ,'
+```
+
+## Range Operators
+
+### `start .. end`: Closed Interval Operator
+
+The closed interval operator creates a stream of integers ranging from `start` to `end`.
+
+`end` itself is included in the stream.
+
+```shell
+$ xa '1 .. 3'
+# 1
+# 2
+# 3
+```
+
+---
+
+If `end` is greater than `start`, it counts down.
+
+```shell
+$ xa '3 .. 1'
+# 3
+# 2
+# 1
+```
+
+---
+
+When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
+
+```shell
+$ xa '"a" .. "c"'
+# a
+# b
+# c
+
+$ xa '"α" .. "γ"'
+# α
+# β
+# γ
+```
+
+### `start ~ end`: Half-Open Interval Operator
+
+The half-open interval operator creates a stream of integers from `start` up to (but not including) `end`.
+
+`end` itself is not included in the stream.
+
+```shell
+$ xa '[1 ~ 3]'
+# [1;2]
+```
+
+---
+
+Unlike the closed interval operator, the half-open interval operator creates an empty stream when `end` is less than `start`.
+
+```shell
+$ xa '[3 ~ 1]'
+# []
+```
+
+---
+
+When both `start` and `end` are single-character strings, it creates a stream of characters in the character code range.
+
+```shell
+$ xa '"a" ~ "d"'
+# a
+# b
+# c
+
+$ xa '"α" ~ "δ"'
+# α
+# β
+# γ
+```
+
+## Stream Property Access
+
+When you do property access on a stream, it returns a stream that concatenates the results of property access for each element.
+
+```shell
+$ xa '
+  (
+    {a: 1},
+    {a: 2 .. 4},
+  ).a
+'
+# 1
+# 2
+# 3
+# 4
 ```
 
 # Stream Operators
@@ -529,91 +632,6 @@ $ xa '"1+2+3" >> SPLIT["+"] | +_ * 2 >> JOIN["-"]'
 # 2-4-6
 ```
 
-## Object Inheritance `parent{entry; ...}`
-
-Postfixing `{` `}` to an object creates a child object with that object as parent.
-
-Object inheritance is mainly used for method lookup and entry inheritance does not occur.
-
-The method of creating objects is shared with object literals.
-
-```shell
-$ xa '{a: 1; m: this -> 3}{b: 2}'
-# {b:2}
-
-$ xa '{a: 1; m: this -> 3}{b: 2}.a'
-# NULL
-
-$ xa '{a: 1; m: this -> 3}{b: 2}::m()'
-# 3
-```
-
-## Object Element Access `object.key`
-
-You can access object elements with the `.` operator.
-
-```shell
-$ xa '{x: 123}.x'
-# 123
-```
-
----
-
-Even if the object has a parent object, the parent object's elements are not inherited.
-
-```shell
-$ xa '{x: 123}{}.x'
-# NULL
-```
-
----
-
-By placing parentheses on the right side of `.`, you can reference with arbitrary expressions.
-
-```shell
-$ xa '
-  obj := {item1: 123; item2: 456}
-  index := 2
-  obj.("item$index")
-'
-# 456
-```
-
----
-
-`.` has the property that when the right side is an identifier, it interprets it as a key rather than a variable.
-
-Therefore, there is a difference in the entry referenced depending on the presence or absence of parentheses.
-
-```shell
-$ xa '
-  key := "item1"
-  obj := {key: 123; item1: 456}
-  [obj.key; obj.(key)]
-'
-# [123;456]
-```
-
----
-
-Keys are automatically stringified.
-
-```shell
-$ xa '{1: 123}.1'
-# 123
-```
-
-## Null-Safe Element Access `object?.key`
-
-The `?.` operator returns `NULL` instead of attempting to get the element when the left side is `NULL`.
-
-```shell
-$ xa '{x: 1}, NULL, {x: 3} | _?.x'
-# 1
-# NULL
-# 3
-```
-
 # Best Practices for Pipe and Execution Pipe Indentation
 
 The pipe operator `|` and execution pipe operator `>>` can be newlined on either the left or right side, and can be written with some freedom.
@@ -672,108 +690,6 @@ a | b =>
   g |
     h
 >> i
-```
-
-# Stream Property Access
-
-When you do property access on a stream, it returns a stream that concatenates the results of property access for each element.
-
-```shell
-$ xa '
-  (
-    {a: 1},
-    {a: 2 .. 4},
-  ).a
-'
-# 1
-# 2
-# 3
-# 4
-```
-
-# Stream Resolution
-
-Operators and functions that return streams as return values may perform stream resolution to ensure stream side effects.
-
-Stream resolution means returning a cached stream that reproduces the element sequence instead of the original stream.
-
-The original stream is evaluated exactly once in its entirety at the time of resolution, and side effects also occur exactly once at that time.
-
----
-
-This behavior is due to the fact that a stream value is essentially a lazy-evaluated chunk of instructions.
-
-For example, in the following example, the actual iteration start of `stream` is delayed until the actual output of the result of the entire program.
-
-```shell
-$ xa '
-  array := [1, 2, 3]
-  stream := array()
-  array::push << 4, 5
-  stream
-'
-# 1
-# 2
-# 3
-# 4
-# 5
-```
-
-This property can be a hindrance in programs that expect side effect effects.
-
-In the following example, we expect to add elements to the array using the pipe operator, but the second example does not cause side effects.
-
-```shell
-$ xa '
-  array := [1, 2, 3]
-  4, 5 | *array::push
-  array
-'
-# [1;2;3;4;5]
-
-$ xa '
-  array := [1, 2, 3]
-  dummy := 4, 5 | *array::push
-  array
-'
-# [1;2;3]
-```
-
-An easy way to perform stream resolution and cause side effects on the spot is to execute it as a statement (runner) by a compound statement.
-
-```shell
-$ xa '
-  array := [1, 2, 3]
-  dummy := (4, 5 | *array::push;)
-  array
-'
-# [1;2;3;4;5]
-```
-
----
-
-Holding the cache array may be omitted for memory savings when the result of the resolved stream is not used anywhere.
-
----
-
-If you attempt to resolve an infinite stream, unless you exit midway with errors or return operators, the program will fall into an infinite loop at that location.
-
-As a result, the program may stop progressing or crash due to out of memory.
-
-For example, the expression `LOOP !? "Error"` falls into an infinite loop.
-
-This is because the catch operator `!?` tries to check if something is thrown somewhere in the infinite NULLs contained in `LOOP`.
-
-To avoid stream resolution, there is a method of exchanging in the state of functions that return streams instead of the streams themselves.
-
-```shell
-$ xa '
-  getStream := (() -> LOOP | i, _ => i) !? "Error"
-  getStream() >> TAKE[3]
-'
-# 0
-# 1
-# 2
 ```
 
 # Stream Functions
