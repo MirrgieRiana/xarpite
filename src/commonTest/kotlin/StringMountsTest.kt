@@ -202,5 +202,10 @@ class StringMountsTest {
         assertFailsWith<FluoriteException> { eval("CODE_POINTD(-1)") } // 負数はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTD(1114112)") } // U+110000はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINTD(55296)") } // サロゲートはエラー（U+D800）
+
+        // CODE_POINTとCODE_POINTDは逆変換
+        assertEquals("A", eval("'A' >> CODE_POINT >> CODE_POINTD").string)
+        // サロゲートペアも往復できる
+        assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CODE_POINT >> CODE_POINTD").string)
     }
 }
