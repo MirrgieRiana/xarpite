@@ -26,7 +26,7 @@ class Evaluator(private val context: RuntimeContext) {
         val runners = maps.map {
             frame.defineBuiltinMount(it)
         }
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         runners.forEach {
             it.evaluate(env)
@@ -41,7 +41,7 @@ class Evaluator(private val context: RuntimeContext) {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         return withStackTrace(Position(location, 0)) {
             try {
@@ -62,7 +62,7 @@ class Evaluator(private val context: RuntimeContext) {
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount, context)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         withStackTrace(Position(location, 0)) {
             try {
@@ -84,8 +84,8 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
     try {
         return coroutineScope main@{
             withContext(StackTrace()) {
-                val runtimeContext = RuntimeContext(this, daemonScope, ioContext)
-                block(runtimeContext, Evaluator(runtimeContext))
+                val context = RuntimeContext(this, daemonScope, ioContext)
+                block(context, Evaluator(context))
             }
         }
     } finally {

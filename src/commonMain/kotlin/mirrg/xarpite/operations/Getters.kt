@@ -88,7 +88,7 @@ class StringConcatenationGetter(private val stringGetters: List<StringGetter>) :
 }
 
 class NewEnvironmentGetter(private val variableCount: Int, private val mountCount: Int, private val getter: Getter) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(Environment(env, variableCount, mountCount))
+    override suspend fun evaluate(env: Environment) = getter.evaluate(Environment(env.context, env, variableCount, mountCount))
     override val code get() = "NewEnvironmentGetter[$variableCount;$mountCount;${getter.code}]"
 }
 
@@ -130,7 +130,7 @@ class ObjectFromStreamGetter(private val getter: Getter) : Getter {
 class ObjectCreationGetter(private val parentGetter: Getter?, private val variableCount: Int, private val objectInitializers: List<ObjectInitializer>) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val parent = parentGetter?.let { it.evaluate(env) as FluoriteObject } ?: FluoriteObject.fluoriteClass
-        val newEnv = Environment(env, variableCount, 0)
+        val newEnv = Environment(env.context, env, variableCount, 0)
         val map = mutableMapOf<String, FluoriteValue>()
         objectInitializers.forEach {
             it.initializeVariable(newEnv, map)
@@ -699,7 +699,7 @@ class EntryGetter(private val leftGetter: Getter, private val rightGetter: Gette
 class FunctionGetter(private val newFrameIndex: Int, private val argumentsVariableIndex: Int, private val variableIndices: List<Int>, private val isLazy: List<Boolean>, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         return FluoriteFunction.create { arguments ->
-            val newEnv = Environment(env, 1 + variableIndices.size, 0)
+            val newEnv = Environment(env.context, env, 1 + variableIndices.size, 0)
             val evaluatedArguments = arguments.mapIndexed { i, argument ->
                 if (isLazy.getOrNull(i) ?: false) {
                     FluoriteFunction.immediate { argument() }
@@ -876,7 +876,7 @@ class TryCatchWithVariableGetter(private val leftGetter: Getter, private val new
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
-            val newEnv = Environment(env, 1, 0)
+            val newEnv = Environment(env.context, env, 1, 0)
             newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightGetter.evaluate(newEnv)
         }
@@ -904,7 +904,7 @@ class TryCatchGetter(private val leftGetter: Getter, private val rightGetter: Ge
 class LabelGetter(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val getter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val label = Label(name)
-        val newEnv = Environment(env, 1, 0)
+        val newEnv = Environment(env.context, env, 1, 0)
         newEnv.variableTable[frameIndex][variableIndex] = label
         try {
             return getter.evaluate(newEnv).cache()
@@ -929,7 +929,7 @@ class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: In
             FluoriteStream {
                 var index = 0
                 stream.collect { value ->
-                    val newEnv = Environment(env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
+                    val newEnv = Environment(env.context, env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
                     if (indexVariableIndex != null) {
                         newEnv.variableTable[newFrameIndex][indexVariableIndex] = LocalVariable(FluoriteInt(index))
                     }
@@ -944,7 +944,7 @@ class PipeGetter(private val streamGetter: Getter, private val newFrameIndex: In
                 }
             }
         } else {
-            val newEnv = Environment(env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
+            val newEnv = Environment(env.context, env, (indexVariableIndex?.let { 1 } ?: 0) + 1, 0)
             if (indexVariableIndex != null) {
                 newEnv.variableTable[newFrameIndex][indexVariableIndex] = LocalVariable(FluoriteInt(0))
             }
