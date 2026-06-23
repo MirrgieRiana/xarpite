@@ -290,6 +290,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         or * -b * (-"?:").result * -b * ref { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
         or * -b * (-"!?").result * -b * ref { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
         or,
+        -':' * !':' * !'=' * -b * ref { condition }, // 前置コロン（恒等）
     )
 
     val commasPart: Parser<List<Node>> = or(

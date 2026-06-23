@@ -209,6 +209,23 @@ $ xa '
 # Princess
 ```
 
+## Leading Colon
+
+You can place a colon `:` at the beginning of a conditional expression. The leading colon `: value` returns `value` as-is.
+
+Since this works the same as the `else` part of the ternary operator, you can align the beginning of every branch of a chained ternary operator with a colon.
+
+```shell
+$ xa '
+  score := 85
+  : score >= 90 ? "A"
+  : score >= 80 ? "B"
+  : score >= 70 ? "C"
+  : "F"
+'
+# B
+```
+
 ## Elvis Operator
 
 The Elvis operator `value ?: default` returns `default` if `value` is `NULL`, otherwise returns `value`.
