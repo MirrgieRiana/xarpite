@@ -100,6 +100,10 @@ class MathTest {
 
         // LOG (自然対数)
         assertEquals(1.0, eval("LOG(MATH.E)").double, 0.001)
+
+        // LOG (底指定)
+        assertEquals(3.0, eval("LOG(2; 8)").double, 0.001) // 2を底とした8の対数
+        assertEquals(2.0, eval("LOG(10; 100)").double, 0.001) // 10を底とした100の対数
     }
 
     @Test
