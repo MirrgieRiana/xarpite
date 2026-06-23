@@ -495,6 +495,46 @@ $ xa '"$%.3f(  TAN(PI / 4)  )"'
 # 1.000
 ```
 
+### `ASIN`: Arcsine
+
+`ASIN(number: NUMBER): NUMBER`
+
+Returns the arcsine of the first argument in radians.
+
+```shell
+$ xa '"$%.3f(  ASIN(1)  )"'
+# 1.571
+```
+
+### `ACOS`: Arccosine
+
+`ACOS(number: NUMBER): NUMBER`
+
+Returns the arccosine of the first argument in radians.
+
+```shell
+$ xa '"$%.3f(  ACOS(0)  )"'
+# 1.571
+```
+
+### `ATAN`: Arctangent
+
+`ATAN(number: NUMBER): NUMBER`
+
+`ATAN(y: NUMBER; x: NUMBER): NUMBER`
+
+When called with one argument, returns the arctangent of the first argument in radians.
+
+When called with two arguments, returns the angle of the coordinate `(x, y)` in radians.
+
+```shell
+$ xa '"$%.3f(  ATAN(1)  )"'
+# 0.785
+
+$ xa '"$%.3f(  ATAN(1; 1)  )"'
+# 0.785
+```
+
 ### `POW`: Power
 
 `POW(base: NUMBER; exponent: NUMBER): NUMBER`

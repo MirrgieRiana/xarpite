@@ -10,6 +10,10 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.define
 import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.asin
+import kotlin.math.atan
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.floor
@@ -102,6 +106,28 @@ fun createMathMounts(): List<Map<String, Mount>> {
             when (arguments.size) {
                 1 -> FluoriteDouble(tan((arguments[0] as FluoriteNumber).toDouble()))
                 else -> usage("TAN(number: NUMBER): NUMBER")
+            }
+        },
+        "ASIN" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(asin((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ASIN(number: NUMBER): NUMBER")
+            }
+        },
+        "ACOS" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(acos((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ACOS(number: NUMBER): NUMBER")
+            }
+        },
+        "ATAN" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(atan((arguments[0] as FluoriteNumber).toDouble()))
+                2 -> FluoriteDouble(atan2((arguments[0] as FluoriteNumber).toDouble(), (arguments[1] as FluoriteNumber).toDouble()))
+                else -> usage(
+                    "ATAN(number: NUMBER): NUMBER",
+                    "ATAN(y: NUMBER; x: NUMBER): NUMBER",
+                )
             }
         },
         "POW" define FluoriteFunction.immediate { arguments ->
