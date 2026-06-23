@@ -2106,6 +2106,34 @@ class CliTest {
     }
 
     @Test
+    fun lineCommentPrefixRequiredFromApiVersion5() = runTest {
+        // APIバージョン5以降では、# の直前に空白があれば行コメントになる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << \"ok\" # comment"), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun lineCommentWithoutPrefixFailsFromApiVersion5() = runTest {
+        // APIバージョン5以降では、# の直前に空白が無いと行コメントにならず、構文エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << \"ok\"# comment"), context)
+        assertFailsWith<Exception> { cliEvalImpl(context, options) }
+    }
+
+    @Test
+    fun lineCommentWithoutPrefixAllowedBeforeApiVersion5() = runTest {
+        // APIバージョン4以前では、# の直前に空白が無くても行コメントになる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << \"ok\"# comment"), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
     fun jsons() = runTest {
         val context = TestIoContext()
         // APIバージョン4では JSONS を利用できる
