@@ -33,9 +33,9 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 val reference = arguments[0].toFluoriteString(null).value
                 val (moduleLocation, src) = resolveModuleLocation(context.inc, location, reference)
                 context.moduleResults.getOrPut(moduleLocation) {
-                    val evaluator = Evaluator()
+                    val evaluator = Evaluator(context)
                     evaluator.defineMounts(mountsFactory(moduleLocation))
-                    evaluator.get(moduleLocation, src, false, context.apiVersion).cache()
+                    evaluator.get(moduleLocation, src, false).cache()
                 }
             }
         },
@@ -51,9 +51,9 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             val reference = referenceArgument?.toFluoriteString(null)?.value ?: "./-"
             val scriptLocation = resolveScriptLocation(location, reference)
 
-            val evaluator = Evaluator()
+            val evaluator = Evaluator(context)
             evaluator.defineMounts(mountsFactory(scriptLocation))
-            evaluator.get(scriptLocation, script, false, context.apiVersion)
+            evaluator.get(scriptLocation, script, false)
         },
     ).let { listOf(it) }
 }

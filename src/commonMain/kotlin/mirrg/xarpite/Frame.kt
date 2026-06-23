@@ -15,7 +15,7 @@ class Frame(val parent: Frame? = null) {
     var mountCount = 0
 }
 
-class Environment(val parent: Environment?, variableCount: Int, mountCount: Int) {
+class Environment(val context: RuntimeContext, val parent: Environment?, variableCount: Int, mountCount: Int) {
     val variableTable: Array<Array<Variable?>> = if (parent != null) {
         arrayOf(*parent.variableTable, arrayOfNulls(variableCount))
     } else {
