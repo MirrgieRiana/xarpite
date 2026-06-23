@@ -540,9 +540,11 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 
 `CODE_POINT(char: STRING): INT`
 
+`CODE_POINTD(codePoint: INT): STRING`
+
 文字列と文字コードを相互に変換します。
 
-`CHAR_CODE` 系はUTF-16コード単位を単位とし、`CODE_POINT` はサロゲートペアで表される文字（U+10000以上）を1個のUnicodeコードポイントとして扱います。
+`CHAR_CODE` 系はUTF-16コード単位を単位とし、`CODE_POINT` 系はサロゲートペアで表される文字（U+10000以上）を1個のUnicodeコードポイントとして扱います。
 
 末尾に `D` が付く関数はデコード、付かない関数はエンコードに対応します。
 
@@ -553,10 +555,12 @@ $ xa '"-ab--ab-"::replace(/[a-z]{2}/g; m -> m.0 * 2)'
 | `CHAR_CODES`  | `STREAM<INT>`  | 各コード単位の数値   | ← コード化 | `STRING`       | 文字列                         |
 | `CHAR_CODESD` | `STREAM<INT>`  | 各コード単位の数値   | → 文字列化 | `STRING`       | 文字列                         |
 | `CODE_POINT`  | `INT`          | コードポイントの数値 | ← コード化 | `STRING`       | 丁度1個のUnicodeコードポイント |
+| `CODE_POINTD` | `INT`          | コードポイントの数値 | → 文字列化 | `STRING`       | 丁度1個のUnicodeコードポイント |
 
 次のいずれかに該当する入力に対しては、エラーになります。
 
 - `CHAR_CODED` `CHAR_CODESD`: 0以上65535以下でない数値を与えた場合
+- `CODE_POINTD`: 0以上1114111以下でない数値、またはサロゲートコードポイント（U+D800～U+DFFF）を与えた場合
 - `CHAR_CODE` `CODE_POINT`: コード単位またはコードポイントが丁度1個でない文字列を与えた場合
 - `CODE_POINT`: 孤立サロゲートを含む文字列を与えた場合
 
@@ -587,6 +591,12 @@ $ xa 'CODE_POINT("A")'
 
 $ xa 'CODE_POINT("🍰")'
 # 127856
+
+$ xa 'CODE_POINTD(65)'
+# A
+
+$ xa 'CODE_POINTD(127856)'
+# 🍰
 ```
 
 ## `UC` 大文字に変換

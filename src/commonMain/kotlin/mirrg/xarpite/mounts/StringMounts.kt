@@ -91,6 +91,21 @@ fun createStringMounts(): List<Map<String, Mount>> {
             }
             FluoriteInt(codePoint)
         },
+        "CODE_POINTD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTD(codePoint: INT): STRING")
+            val codePoint = arguments[0].toFluoriteNumber(null).roundToInt()
+            if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Argument must be between 0 and 1114111, got $codePoint".toFluoriteString())
+            if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Surrogate code points are not allowed, got $codePoint".toFluoriteString())
+            val string = if (codePoint < 0x10000) {
+                codePoint.toChar().toString()
+            } else {
+                val offset = codePoint - 0x10000
+                val high = 0xD800 + (offset shr 10)
+                val low = 0xDC00 + (offset and 0x3FF)
+                "${high.toChar()}${low.toChar()}"
+            }
+            string.toFluoriteString()
+        },
 
         *run {
             fun create(signature: String): FluoriteFunction {

@@ -192,5 +192,15 @@ class StringMountsTest {
         assertFailsWith<FluoriteException> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
         // 長さ2でも正しいサロゲートペアでない並びはエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800A')") } // 上位サロゲートの後ろが下位サロゲートでないとエラー
+
+        // CODE_POINTD: コードポイントから文字列を返す
+        assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
+        assertEquals("\u3042", eval("CODE_POINTD(12354)").string) // 12354 は 'あ'
+        assertEquals("\uD83C\uDF70", eval("CODE_POINTD(127856)").string) // 127856 は 🍰
+
+        // CODE_POINTD: 範囲外の場合はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(-1)") } // 負数はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(1114112)") } // U+110000はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTD(55296)") } // サロゲートはエラー（U+D800）
     }
 }
