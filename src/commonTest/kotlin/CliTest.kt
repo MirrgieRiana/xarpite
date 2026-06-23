@@ -182,15 +182,53 @@ class CliTest {
     }
 
     @Test
+    fun inlAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
     }
 
     @Test
-    fun inlAlias() = runTest {
+    fun inIsLineStreamInApi4() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
-        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は1行ずつのストリーム
+    }
+
+    @Test
+    fun inReadsWholeStringInApi5() = runTest {
+        // APIバージョン5では IN は標準入力全体を1個の文字列として読み取る
+        val context = TestIoContext(stdinBytes = "abc\ndef\n".encodeToByteArray())
+        val result = cliEval(context, "IN", apiVersion = 5)
+        assertTrue(result is FluoriteString)
+        assertEquals("abc\ndef\n", result.toFluoriteString(null).value) // 末尾の改行も改変されずそのまま保持される
+    }
+
+    @Test
+    fun inPreservesNewlinesInApi5() = runTest {
+        // APIバージョン5の IN は改行文字を一切改変せず入力をそのまま返す
+        val context = TestIoContext(stdinBytes = "a\r\nb\n\n".encodeToByteArray())
+        assertEquals("a\r\nb\n\n", cliEval(context, "IN", apiVersion = 5).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun inlIsLineStreamInApi5() = runTest {
+        // APIバージョン5でも INL は1行ずつのストリームのまま
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL", apiVersion = 5).stream())
+    }
+
+    @Test
+    fun inWholeStringThroughApiVersionOption() = runTest {
+        // -A 5 を通して IN が標準入力全体の文字列になる
+        val context = TestIoContext(stdinBytes = "abc\ndef".encodeToByteArray())
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << IN"), context)
+        cliEvalImpl(context, options)
+        assertEquals("abc\ndef\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -210,20 +248,47 @@ class CliTest {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream()) // API バージョン 4 では READ は行ストリーム
+    }
+
+    @Test
+    fun readReturnsSingleStringOnApiVersion5() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("read_api5.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456" + "\n")
+        }
+        val fileWithoutTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // API バージョン 5 では READ はファイル全体を単一の文字列として返し、末尾改行の調整を行わない
+        assertEquals("123\n456\n", cliEval(context, "READ(ARGS.0)", fileWithTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
+        assertEquals("123\n456", cliEval(context, "READ(ARGS.0)", fileWithoutTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
     }
 
     @Test
     fun readl() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
-        val file = baseDir.resolve("readl.test_file.tmp.txt")
-        getFileSystem().getOrThrow().createDirectory(file.parent!!)
-        getFileSystem().getOrThrow().write(file) {
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("readl.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("readl.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", file.toString()).stream()) // READL は READ の別名
+        val fileWithoutTrailingNewline = baseDir.resolve("readl.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // READL は行ストリームとして読み取り、末尾改行の有無は区別されない
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithTrailingNewline.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithoutTrailingNewline.toString()).stream())
     }
 
     @Test
@@ -3048,6 +3113,7 @@ private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, va
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
     }
 }

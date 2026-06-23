@@ -37,9 +37,18 @@ class ConstantMount(val value: FluoriteValue) : Mount {
     override suspend fun get() = value
 }
 
-class LazyMount(private val initializer: () -> FluoriteValue) : Mount {
-    private val value by lazy { initializer() }
-    override suspend fun get() = value
+class LazyMount(private val initializer: suspend () -> FluoriteValue) : Mount {
+    private var value: FluoriteValue? = null
+    override suspend fun get(): FluoriteValue {
+        val oldValue = value
+        return if (oldValue != null) {
+            oldValue
+        } else {
+            val newValue = initializer()
+            value = newValue
+            newValue
+        }
+    }
 }
 
 infix fun String.define(mount: Mount) = Pair(this, mount)

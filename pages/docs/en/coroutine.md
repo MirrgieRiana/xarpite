@@ -220,6 +220,8 @@ Returns whether the `PROMISE` is completed or completed as failed.
 
 Suspends processing for `milliseconds`.
 
+In API version 5, the argument is interpreted as seconds instead of milliseconds, and fractional values can also be specified.
+
 This function does not block the thread but suspends the function.
 
 If `milliseconds` is 0 or omitted, the function suspends once and returns immediately.

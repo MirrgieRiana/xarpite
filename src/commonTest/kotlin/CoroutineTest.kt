@@ -212,9 +212,17 @@ class CoroutineTest {
 
     @Test
     fun sleep() = runTest {
-        // runTestを使うとdelayが即終了するので待機時間のテストは行わない
+        // runTestの仮想時間でdelayが進むため、待機したミリ秒数を currentTime の差分で検証する
 
-        assertEquals(FluoriteNull, eval("SLEEP(1000)")) // SLEEP で一定時間待つ
+        // APIバージョン4では引数をミリ秒として扱う
+        val before4 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(1000)", apiVersion = 4))
+        assertEquals(1000L, testScheduler.currentTime - before4)
+
+        // APIバージョン5では引数を秒として扱い、小数も指定できる
+        val before5 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(0.5)", apiVersion = 5))
+        assertEquals(500L, testScheduler.currentTime - before5)
     }
 
     @Test
