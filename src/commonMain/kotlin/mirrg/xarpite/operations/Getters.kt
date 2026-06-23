@@ -40,9 +40,9 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteValue
 import mirrg.xarpite.compilers.objects.toThrowable
 import mirrg.xarpite.escapeJsonString
+import mirrg.xarpite.getJsonDefaultIndent
 import mirrg.xarpite.getMounts
 import mirrg.xarpite.hasFreeze
-import mirrg.xarpite.jsonDefaultIndent
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
@@ -332,7 +332,7 @@ class GetLengthGetter(private val getter: Getter, private val position: Position
 }
 
 class ToJsonGetter(private val getter: Getter, private val position: Position) : Getter {
-    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toSingleJsonFluoriteValue(position, jsonDefaultIndent(env.context.apiVersion))
+    override suspend fun evaluate(env: Environment) = getter.evaluate(env).toSingleJsonFluoriteValue(position, getJsonDefaultIndent(env.context.apiVersion))
     override val code get() = "ToJsonGetter[${getter.code}]"
 }
 

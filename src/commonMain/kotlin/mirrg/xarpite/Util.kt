@@ -34,7 +34,7 @@ fun String.escapeJsonString() = this
     .replace("\n", "\\n")
     .replace("\"", "\\\"")
 
-fun jsonDefaultIndent(apiVersion: Int): String? = if (apiVersion >= 5) "  " else null
+fun getJsonDefaultIndent(apiVersion: Int): String? = if (apiVersion >= 5) "  " else null
 
 
 private val jsons = mutableMapOf<String, Json>()

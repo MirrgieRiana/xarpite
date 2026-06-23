@@ -17,7 +17,7 @@ import mirrg.xarpite.compilers.objects.toByteArrayAsBlobLike
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
-import mirrg.xarpite.jsonDefaultIndent
+import mirrg.xarpite.getJsonDefaultIndent
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
 import mirrg.xarpite.pop
@@ -215,7 +215,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     if (entries.isNotEmpty()) usage()
                     if (arguments3.isNotEmpty()) usage()
 
-                    val indent = if (indentArgument != null) parseIndent(indentArgument) else jsonDefaultIndent(context.apiVersion)
+                    val indent = if (indentArgument != null) parseIndent(indentArgument) else getJsonDefaultIndent(context.apiVersion)
 
                     value.toSingleJsonFluoriteValue(null, indent = indent)
                 },
