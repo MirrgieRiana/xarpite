@@ -24,7 +24,7 @@ import io.github.mirrgieriana.xarpeg.text
 import mirrg.kotlin.helium.join
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-class XarpiteGrammar(val location: String, val apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first) {
+class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
     val sharpLineComment: Parser<Tuple0> = if (apiVersion >= 5) {
         val sharpLineCommentBody = -Regex("""#[^\r\n]*""")

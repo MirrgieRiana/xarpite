@@ -2181,6 +2181,40 @@ class CliTest {
     }
 
     @Test
+    fun execReturnsStringInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC は標準出力全体を単一の文字列で返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("3\n13\n23\n30", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlReturnsLineStreamInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC と別名でなくなった EXECL は行ストリームを返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"), apiVersion = 5)
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
     fun execThrowsOnNonZeroExitCode() = runTest {
         val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
         val context = TestIoContext(
@@ -2257,6 +2291,40 @@ class CliTest {
         assertFailsWith<Exception> {
             cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
         }
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesTrailingNewlineInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n"
+            }
+        )
+        // APIバージョン5の EXEC では標準出力全体がそのまま返り、末尾の改行も残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesMultipleTrailingNewlinesInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n\n\n"
+            }
+        )
+        // APIバージョン5の EXEC では複数の末尾改行もそのまま残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n\n\n", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }

@@ -49,6 +49,19 @@ To preserve the previous behavior, replace calls to `READ` with `READL`.
 + READL("file")
 ```
 
+### `EXEC` Now Returns the Entire Standard Output as a Single String
+
+Up to API version 4, `EXEC` returned a stream that reads the standard output line by line.
+
+In API version 5, it returns the entire standard output decoded as UTF-8 as a single string.
+
+To preserve the previous behavior, replace calls to `EXEC` with `EXECL`.
+
+```diff
+- EXEC("command")
++ EXECL("command")
+```
+
 ### `JSONS` Has Been Removed
 
 Up to API version 4, `JSONS` was an alias for `JSONL`.
