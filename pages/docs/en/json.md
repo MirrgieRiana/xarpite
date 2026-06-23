@@ -32,7 +32,7 @@ $ xa '$&{a: 1; b: 2}'
 # {"a":1,"b":2}
 ```
 
-From API version 5 onward, an indentation of two spaces is used by default.
+From API version 5 onward, an indentation of two spaces is used.
 
 When an array or object is specified, internal elements are also recursively converted to JSON.
 
