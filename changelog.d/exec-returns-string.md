@@ -1,1 +1,1 @@
-Changed the `EXEC` function to return a single `STRING` in API version 5.
+Changed `EXEC` to return the entire standard output as a single `STRING` in API version 5.
