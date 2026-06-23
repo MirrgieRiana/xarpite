@@ -29,6 +29,40 @@ You can reference classes of various built-in objects.
 - `BLOB`
 - `ERROR`
 
+# Constants
+
+Various constants representing special values.
+
+| Constant    | Meaning                               |
+|-------------|---------------------------------------|
+| `NULL` `N`  | NULL value                            |
+| `TRUE` `T`  | True                                  |
+| `FALSE` `F` | False                                 |
+| `EMPTY` `E` | Empty stream                          |
+| `LOOP`      | Stream that infinitely generates NULL |
+
+---
+
+Mathematical built-in constants.
+
+| Constant  | Meaning         |
+|-----------|-----------------|
+| `MATH.PI` | Pi              |
+| `MATH.E`  | Napier's number |
+
+---
+
+String-related built-in constants.
+
+| Constant | Meaning                      |
+|----------|------------------------------|
+| `LT`     | `<`                          |
+| `GT`     | `>`                          |
+| `AMP`    | `&`                          |
+| `APOS`   | `'`                          |
+| `QUOT`   | `"`                          |
+| `BOM`    | `"\uFEFF"` (Byte Order Mark) |
+
 # Getting the Parent Object
 
 ## `PARENT` Get the Parent Object of a Value
@@ -68,39 +102,14 @@ $ xa 'PARENT(VALUE)'
 # NULL
 ```
 
-# Constants
-
-Various constants representing special values.
-
-| Constant    | Meaning                               |
-|-------------|---------------------------------------|
-| `NULL` `N`  | NULL value                            |
-| `TRUE` `T`  | True                                  |
-| `FALSE` `F` | False                                 |
-| `EMPTY` `E` | Empty stream                          |
-| `LOOP`      | Stream that infinitely generates NULL |
-
 ---
 
-Mathematical built-in constants.
+When a stream is passed, it is not applied element-wise; it returns `STREAM`, the parent of the stream itself.
 
-| Constant  | Meaning         |
-|-----------|-----------------|
-| `MATH.PI` | Pi              |
-| `MATH.E`  | Napier's number |
-
----
-
-String-related built-in constants.
-
-| Constant | Meaning                      |
-|----------|------------------------------|
-| `LT`     | `<`                          |
-| `GT`     | `>`                          |
-| `AMP`    | `&`                          |
-| `APOS`   | `'`                          |
-| `QUOT`   | `"`                          |
-| `BOM`    | `"\uFEFF"` (Byte Order Mark) |
+```shell
+$ xa 'PARENT(1, 2, 3) ?= STREAM'
+# TRUE
+```
 
 # Mathematical Functions
 

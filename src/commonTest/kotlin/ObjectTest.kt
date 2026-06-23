@@ -57,6 +57,7 @@ class ObjectTest {
         assertEquals(true, eval("PARENT({}) == OBJECT").boolean) // オブジェクトリテラルの親は OBJECT
         assertEquals(true, eval("A := {}; a := A{}; PARENT(a) == A").boolean) // インスタンスの親はそのクラス
         assertEquals(true, eval("Animal := {}; Human := Animal{}; PARENT(Human) == Animal").boolean) // クラスの親は親クラス
+        assertEquals(true, eval("PARENT(1, 2, 3) == STREAM").boolean) // ストリームを渡すとストリーム自身の親 STREAM を返す
     }
 
     @Test
