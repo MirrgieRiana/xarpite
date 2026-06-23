@@ -88,7 +88,7 @@ To preserve the previous behavior, divide the argument by 1000.
 + SLEEP(1)
 ```
 
-### A `#` Line Comment Can No Longer Begin Except at the Start of a Line or After Whitespace
+### A `#` Line Comment Can No Longer Begin Except at the Start of a Line or After a Space or Tab
 
 Up to API version 4, a `#` line comment could begin regardless of the preceding character.
 
