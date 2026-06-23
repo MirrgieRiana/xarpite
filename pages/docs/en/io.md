@@ -6,7 +6,7 @@ title: "IO"
 
 # IO
 
-Provides functionality related to data input/output with the exterior of the program.
+Provides functionality related to data input/output with the outside of the program.
 
 ## Built-in Functions
 

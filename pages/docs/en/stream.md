@@ -90,7 +90,7 @@ $ xa '
 # 5
 ```
 
-This property can be a hindrance in programs that expect side effect effects.
+This property can be a hindrance in programs that expect side effects to take effect.
 
 In the following example, we expect to add elements to the array using the pipe operator, but the second example does not cause side effects.
 
@@ -135,7 +135,7 @@ For example, the expression `LOOP !? "Error"` falls into an infinite loop.
 
 This is because the catch operator `!?` tries to check if something is thrown somewhere in the infinite NULLs contained in `LOOP`.
 
-To avoid stream resolution, there is a method of exchanging in the state of functions that return streams instead of the streams themselves.
+To avoid stream resolution, there is a method of passing around functions that return streams, rather than the streams themselves.
 
 However, in this case the effect of the catch operator does not extend into the function.
 

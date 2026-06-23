@@ -78,7 +78,7 @@ The following character escapes can be used within quoted identifiers:
 | String     | Meaning                                        |
 |------------|------------------------------------------------|
 | `\xXX`     | 1 character at specified code point U+0000~U+00FF |
-| `\uXXXX`   | 1 specified UTF-16 code unit                    |
+| `\uXXXX`   | 1 UTF-16 code unit with specified value         |
 
 ```shell
 $ xa '
