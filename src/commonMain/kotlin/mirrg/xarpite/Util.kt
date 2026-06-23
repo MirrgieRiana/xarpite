@@ -34,10 +34,10 @@ fun String.escapeJsonString() = this
     .replace("\n", "\\n")
     .replace("\"", "\\\"")
 
+fun jsonDefaultIndent(apiVersion: Int): String? = if (apiVersion >= 5) "  " else null
+
 
 private val jsons = mutableMapOf<String, Json>()
-
-fun jsonDefaultIndent(apiVersion: Int): String? = if (apiVersion >= 5) "  " else null
 
 suspend fun FluoriteValue.toSingleJson(position: Position?, indent: String?): String {
     @OptIn(ExperimentalSerializationApi::class)
