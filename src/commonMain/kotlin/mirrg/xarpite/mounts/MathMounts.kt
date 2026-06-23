@@ -126,10 +126,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             when (arguments.size) {
                 1 -> FluoriteDouble(ln((arguments[0] as FluoriteNumber).toDouble()))
                 2 -> FluoriteDouble(log((arguments[1] as FluoriteNumber).toDouble(), (arguments[0] as FluoriteNumber).toDouble()))
-                else -> usage(
-                    "LOG(number: NUMBER): NUMBER",
-                    "LOG(base: NUMBER; number: NUMBER): NUMBER",
-                )
+                else -> usage("LOG([base: NUMBER; ]number: NUMBER): NUMBER")
             }
         },
         "RAND" define FluoriteFunction.immediate { arguments ->
