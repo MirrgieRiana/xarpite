@@ -501,6 +501,8 @@ $ xa '"$%.3f(  TAN(PI / 4)  )"'
 
 Returns the arcsine of the first argument in radians.
 
+This function is the inverse of the `SIN` function.
+
 ```shell
 $ xa '"$%.3f(  ASIN(1)  )"'
 # 1.571
@@ -512,6 +514,8 @@ $ xa '"$%.3f(  ASIN(1)  )"'
 
 Returns the arccosine of the first argument in radians.
 
+This function is the inverse of the `COS` function.
+
 ```shell
 $ xa '"$%.3f(  ACOS(0)  )"'
 # 1.571
@@ -522,6 +526,8 @@ $ xa '"$%.3f(  ACOS(0)  )"'
 `ATAN(number: NUMBER): NUMBER`
 
 Returns the arctangent of the first argument in radians.
+
+This function is the inverse of the `TAN` function.
 
 ```shell
 $ xa '"$%.3f(  ATAN(1)  )"'
