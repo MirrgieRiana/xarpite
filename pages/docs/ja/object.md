@@ -256,3 +256,49 @@ $ xa '
 '
 # {b:banana}
 ```
+
+# 親オブジェクトの取得 `PARENT`
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+`value` の親オブジェクトを返します。
+
+Xarpite の値は親オブジェクトへの参照によって継承チェーンを形作っており、`PARENT` はそのチェーンを一つ上に辿ります。
+
+親オブジェクトを前置して `Animal{...}` のように作った子オブジェクトに対しては、その親オブジェクトを返します。
+
+```shell
+$ xa '
+  Animal := {legs: 4}
+  socrates := Animal{}
+  PARENT(socrates).legs
+'
+# 4
+```
+
+---
+
+組み込みの値に対しては、対応するクラス定数を返します。`PARENT(1)` は `INT` を、`PARENT(INT)` は `VALUE` を返します。
+
+```shell
+$ xa 'PARENT(1) ?= INT'
+# TRUE
+```
+
+---
+
+親を持たない値に対しては `NULL` を返します。
+
+```shell
+$ xa 'PARENT(VALUE)'
+# NULL
+```
+
+---
+
+ストリームを渡した場合は、要素ごとではなく、ストリームそのものの親である `STREAM` を返します。
+
+```shell
+$ xa 'PARENT(1, 2, 3) ?= STREAM'
+# TRUE
+```

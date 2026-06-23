@@ -256,3 +256,49 @@ $ xa '
 '
 # {b:banana}
 ```
+
+# Getting the Parent Object `PARENT`
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+Returns the parent object of `value`.
+
+Values in Xarpite form an inheritance chain through references to their parent objects, and `PARENT` walks one step up this chain.
+
+For a child object created by prefixing a parent object, such as `Animal{...}`, it returns the parent object.
+
+```shell
+$ xa '
+  Animal := {legs: 4}
+  socrates := Animal{}
+  PARENT(socrates).legs
+'
+# 4
+```
+
+---
+
+For built-in values, it returns the corresponding class constant. `PARENT(1)` returns `INT`, and `PARENT(INT)` returns `VALUE`.
+
+```shell
+$ xa 'PARENT(1) ?= INT'
+# TRUE
+```
+
+---
+
+For a value that has no parent, it returns `NULL`.
+
+```shell
+$ xa 'PARENT(VALUE)'
+# NULL
+```
+
+---
+
+When a stream is passed, it is not applied element-wise; it returns `STREAM`, the parent of the stream itself.
+
+```shell
+$ xa 'PARENT(1, 2, 3) ?= STREAM'
+# TRUE
+```
