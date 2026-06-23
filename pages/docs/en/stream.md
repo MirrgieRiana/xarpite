@@ -210,7 +210,7 @@ $ xa '1 .. 3'
 
 ---
 
-If `end` is greater than `start`, it counts down.
+If `end` is less than `start`, it counts down.
 
 ```shell
 $ xa '3 .. 1'
