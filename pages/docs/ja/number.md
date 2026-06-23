@@ -495,6 +495,56 @@ $ xa '"$%.3f(  TAN(PI / 4)  )"'
 # 1.000
 ```
 
+### `ASIN`: 逆正弦
+
+`ASIN(number: NUMBER): NUMBER`
+
+第1引数の逆正弦をラジアンで返します。
+
+この関数は `SIN` 関数の逆変換です。
+
+```shell
+$ xa '"$%.3f(  ASIN(1)  )"'
+# 1.571
+```
+
+### `ACOS`: 逆余弦
+
+`ACOS(number: NUMBER): NUMBER`
+
+第1引数の逆余弦をラジアンで返します。
+
+この関数は `COS` 関数の逆変換です。
+
+```shell
+$ xa '"$%.3f(  ACOS(0)  )"'
+# 1.571
+```
+
+### `ATAN`: 逆正接
+
+`ATAN(number: NUMBER): NUMBER`
+
+第1引数の逆正接をラジアンで返します。
+
+この関数は `TAN` 関数の逆変換です。
+
+```shell
+$ xa '"$%.3f(  ATAN(1)  )"'
+# 0.785
+```
+
+### `ATAN2`: 座標の偏角
+
+`ATAN2(y: NUMBER; x: NUMBER): NUMBER`
+
+座標 `(x, y)` の偏角をラジアンで返します。
+
+```shell
+$ xa '"$%.3f(  ATAN2(1; 1)  )"'
+# 0.785
+```
+
 ### `POW`: べき乗
 
 `POW(base: NUMBER; exponent: NUMBER): NUMBER`
