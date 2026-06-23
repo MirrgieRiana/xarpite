@@ -29,11 +29,16 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
     val sharpLineCommentBody: Parser<Tuple0> = -Regex("""#[^\r\n]*""")
     val sharpLineComment: Parser<Tuple0> = if (apiVersion >= 5) {
         Parser { context, start ->
-            if (start > 0) {
+            if (start == 0) {
+                context.parseOrNull(sharpLineCommentBody, start)
+            } else {
                 val previousCharacter = context.src[start - 1]
-                if (previousCharacter != ' ' && previousCharacter != '\t' && previousCharacter != '\n' && previousCharacter != '\r') return@Parser null
+                if (previousCharacter == ' ' || previousCharacter == '\t' || previousCharacter == '\n' || previousCharacter == '\r') {
+                    context.parseOrNull(sharpLineCommentBody, start)
+                } else {
+                    null
+                }
             }
-            context.parseOrNull(sharpLineCommentBody, start)
         }
     } else {
         sharpLineCommentBody
