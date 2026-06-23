@@ -51,12 +51,19 @@ To preserve the previous behavior, replace calls to `READ` with `READL`.
 
 ### The `JSON` Function and the `$&` Operator Now Indent by Default
 
-The default output of the `JSON` function with `indent` omitted, and of the `$&` operator, has changed to indented output using two spaces.
+Up to API version 4, the `JSON` function (with `indent` omitted) and the `$&` operator returned compact output without indentation.
 
-To keep compact output without indentation, explicitly pass `NULL` to `indent`.
+In API version 5, they return output indented with two spaces.
 
-- Rewrite `value >> JSON` as `value >> JSON[indent: NULL]`.
-- Rewrite `$&value` as `value >> JSON[indent: NULL]`.
+To preserve the previous behavior, explicitly pass `NULL` to `indent`. Since the `$&` operator cannot take `indent`, replace it with `JSON[indent: NULL]`.
+
+```diff
+- value >> JSON
++ value >> JSON[indent: NULL]
+
+- $&value
++ value >> JSON[indent: NULL]
+```
 
 ### `JSONS` Has Been Removed
 
