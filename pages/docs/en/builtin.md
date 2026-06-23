@@ -43,15 +43,6 @@ Various constants representing special values.
 
 ---
 
-Mathematical built-in constants.
-
-| Constant  | Meaning         |
-|-----------|-----------------|
-| `MATH.PI` | Pi              |
-| `MATH.E`  | Napier's number |
-
----
-
 String-related built-in constants.
 
 | Constant | Meaning                      |
