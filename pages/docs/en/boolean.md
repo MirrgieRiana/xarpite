@@ -209,21 +209,24 @@ $ xa '
 # Princess
 ```
 
-## Leading Colon
+## Prefix Colon
 
-You can place a colon `:` at the beginning of a conditional expression. The leading colon `: value` returns `value` as-is.
+The prefix colon `: formula` is a prefix operator that does nothing.
 
-Since this works the same as the `else` part of the ternary operator, you can align the beginning of every branch of a chained ternary operator with a colon.
+Since this works identically to the `: else` part of the ternary operator `condition ? then : else`, it can contribute to the readability of chained ternary operators depending on how it is used.
 
 ```shell
 $ xa '
   score := 85
+
   : score >= 90 ? "A"
   : score >= 80 ? "B"
-  : score >= 70 ? "C"
-  : "F"
+  : "C"
 '
 # B
+
+$ xa ': "C"'
+# C
 ```
 
 ## Elvis Operator

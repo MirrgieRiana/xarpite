@@ -181,6 +181,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         (-':' * indentBlockBody * indentBlockEnd).result map { IndentBlockNode(it.value, it.position) },
         (-':' * indentBlockEnd).result map { IndentBlockNode(EmptyNode, it.position) },
     )
+    val prefixColon: Parser<Node> = -':' * !':' * !'=' * -b * ref { condition } // 前置コロン（恒等）
 
     val jump: Parser<Node> = or(
         (-"!!").result * -s * ref { commas } map { ThrowNode(it.b, it.a.position) },
@@ -290,7 +291,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         or * -b * (-"?:").result * -b * ref { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
         or * -b * (-"!?").result * -b * ref { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
         or,
-        -':' * !':' * !'=' * -b * ref { condition }, // 前置コロン（恒等）
+        prefixColon,
     )
 
     val commasPart: Parser<List<Node>> = or(
