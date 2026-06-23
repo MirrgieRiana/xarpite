@@ -35,7 +35,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                 context.moduleResults.getOrPut(moduleLocation) {
                     val evaluator = Evaluator(context)
                     evaluator.defineMounts(mountsFactory(moduleLocation))
-                    evaluator.get(moduleLocation, src, false).cache()
+                    evaluator.get(moduleLocation, src, false, context.apiVersion).cache()
                 }
             }
         },
@@ -53,7 +53,7 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
 
             val evaluator = Evaluator(context)
             evaluator.defineMounts(mountsFactory(scriptLocation))
-            evaluator.get(scriptLocation, script, false)
+            evaluator.get(scriptLocation, script, false, context.apiVersion)
         },
     ).let { listOf(it) }
 }
