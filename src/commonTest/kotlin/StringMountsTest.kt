@@ -207,5 +207,16 @@ class StringMountsTest {
         assertEquals("A", eval("'A' >> CODE_POINT >> CODE_POINTD").string)
         // サロゲートペアも往復できる
         assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CODE_POINT >> CODE_POINTD").string)
+
+        // CODE_POINTS: 文字列からUnicodeコードポイントのストリームを返す
+        assertEquals("65,66,67", eval("CODE_POINTS('ABC')").stream()) // 'ABC'のコードポイント列
+        assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
+        assertEquals("65,127856,66", eval("CODE_POINTS('A\uD83C\uDF70B')").stream()) // サロゲートペア（🍰）を含む並びのコードポイント列
+        assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
+        // 孤立サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uDC00')").stream() } // 孤立下位サロゲートはエラー
+        // 上位サロゲートの直後が下位サロゲートでない並びはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD83CA')").stream() } // 上位サロゲート＋非下位サロゲートはエラー
     }
 }

@@ -101,6 +101,28 @@ fun createStringMounts(): List<Map<String, Mount>> {
             }
             string.toFluoriteString()
         },
+        "CODE_POINTS" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTS(string: STRING): STREAM<INT>")
+            val string = arguments[0].toFluoriteString(null).value
+            FluoriteStream {
+                var i = 0
+                while (i < string.length) {
+                    val high = string[i]
+                    if (high.isHighSurrogate()) {
+                        if (i + 1 >= string.length) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                        val low = string[i + 1]
+                        if (!low.isLowSurrogate()) throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                        emit(FluoriteInt(0x10000 + ((high.code - 0xD800) shl 10) + (low.code - 0xDC00)))
+                        i += 2
+                    } else if (high.isLowSurrogate()) {
+                        throw FluoriteException("Argument must not contain an isolated surrogate".toFluoriteString())
+                    } else {
+                        emit(FluoriteInt(high.code))
+                        i++
+                    }
+                }
+            }
+        },
 
         *run {
             fun create(signature: String): FluoriteFunction {
