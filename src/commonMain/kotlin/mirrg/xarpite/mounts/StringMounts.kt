@@ -122,6 +122,33 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 }
             }
         },
+        "CODE_POINTSD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("CODE_POINTSD(codePoints: STREAM<INT>): STRING")
+            val value = arguments[0]
+            val sb = StringBuilder()
+            suspend fun appendCodePoint(item: FluoriteValue) {
+                val codePoint = item.toFluoriteNumber(null).roundToInt()
+                if (codePoint < 0 || codePoint > 0x10FFFF) throw FluoriteException("Each element must be between 0 and 1114111, got $codePoint".toFluoriteString())
+                if (codePoint in 0xD800..0xDFFF) throw FluoriteException("Each element must not be a surrogate code point, got $codePoint".toFluoriteString())
+                if (codePoint < 0x10000) {
+                    sb.append(codePoint.toChar())
+                } else {
+                    val offset = codePoint - 0x10000
+                    val high = 0xD800 + (offset shr 10)
+                    val low = 0xDC00 + (offset and 0x3FF)
+                    sb.append(high.toChar())
+                    sb.append(low.toChar())
+                }
+            }
+            if (value is FluoriteStream) {
+                value.collect { item ->
+                    appendCodePoint(item)
+                }
+            } else {
+                appendCodePoint(value)
+            }
+            sb.toString().toFluoriteString()
+        },
 
         *run {
             fun create(signature: String): FluoriteFunction {
