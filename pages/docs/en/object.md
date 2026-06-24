@@ -1,8 +1,14 @@
 ---
-title: "Object Literal `{entry; ...}`"
+title: "Object"
 ---
 
 <!-- toc -->
+
+# Object
+
+In Xarpite, every value forms an inheritance chain through a reference to its parent object.
+
+Some values, such as the `VALUE` class object, have no parent object, and they sit at the root of the inheritance chain.
 
 # Object Literal `{entry; ...}`
 
@@ -263,30 +269,29 @@ $ xa '
 
 `PARENT(value: VALUE): OBJECT | NULL`
 
-Returns the parent object of `value`.
-
-In Xarpite, every value forms an inheritance chain through a reference to its parent object.
-
-Some values, such as the `VALUE` class object, have no parent object, and they sit at the root of the inheritance chain.
+Returns the parent object of `value`, or NULL.
 
 ---
 
 For an object created by specifying a parent object, it returns that parent object.
 
+For a value at the root of the inheritance chain, it returns NULL.
+
+For any other value, it returns the corresponding class constant.
+
+If `value` is a stream, it is not applied element-wise but returns `STREAM`, the parent object of the stream itself.
+
 ```shell
 $ xa '
   parent := {name: "Parent"}
-  child := parent{}
+  child := parent{name: "Child"}
   PARENT(child).name
 '
 # Parent
-```
 
----
+$ xa 'PARENT(VALUE)'
+# NULL
 
-For an object not created by specifying a parent object, or for a value that is not of object type, it returns the corresponding class constant.
-
-```shell
 $ xa 'PARENT({}) == OBJECT'
 # TRUE
 
@@ -295,22 +300,7 @@ $ xa 'PARENT(1) == INT'
 
 $ xa 'PARENT(INT) == VALUE'
 # TRUE
-```
 
----
-
-For a value that has no parent object, it returns `NULL`.
-
-```shell
-$ xa 'PARENT(VALUE)'
-# NULL
-```
-
----
-
-If `value` is a stream, it is not applied element-wise but returns `STREAM`, the parent of the stream itself.
-
-```shell
 $ xa 'PARENT(1, 2, 3) == STREAM'
 # TRUE
 ```
