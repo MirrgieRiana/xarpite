@@ -200,9 +200,9 @@ The global match flag is effectively meaningless.
 
 `string./regex/` is equivalent to `string =~ regex`.
 
-When the right-hand side of a period access is a regular expression literal, it behaves as the match operator.
+When the right-hand side of a property access is a regular expression literal, it behaves as the match operator.
 
-Because the period is left-associative, a match and its subsequent group references can be written as a single chain without parentheses.
+Because the period has left-associative binding, a match and its subsequent group references can be written as a single chain without parentheses.
 
 ```shell
 $ xa ' "1abc1"./1(.*)1/.1 '
