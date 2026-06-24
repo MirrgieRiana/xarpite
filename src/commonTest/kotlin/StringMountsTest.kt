@@ -172,6 +172,8 @@ class StringMountsTest {
 
         // CHAR_CODESとCHAR_CODESDは逆変換
         assertEquals("Hello", eval("'Hello' >> CHAR_CODES >> CHAR_CODESD").string)
+        // 空文字列も往復できる
+        assertEquals("", eval("'' >> CHAR_CODES >> CHAR_CODESD").string)
         // サロゲートペアも往復できる
         assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CHAR_CODES >> CHAR_CODESD").string)
     }
@@ -232,6 +234,8 @@ class StringMountsTest {
 
         // CODE_POINTSとCODE_POINTSDは逆変換
         assertEquals("Hello", eval("'Hello' >> CODE_POINTS >> CODE_POINTSD").string)
+        // 空文字列も往復できる
+        assertEquals("", eval("'' >> CODE_POINTS >> CODE_POINTSD").string)
         // サロゲートペアも往復できる
         assertEquals("\uD83C\uDF70", eval("'\uD83C\uDF70' >> CODE_POINTS >> CODE_POINTSD").string)
     }
