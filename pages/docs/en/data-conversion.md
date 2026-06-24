@@ -8,7 +8,7 @@ title: "Data Conversion Functions"
 
 ## `BASE` Convert Integer to String in Arbitrary Radix
 
-`BASE[radix: NUMBER](number: NUMBER): STRING`
+`BASE(radix: NUMBER; number: NUMBER): STRING`
 
 Converts `number` to a string representation in base `radix`.
 
@@ -59,7 +59,7 @@ $ xa '248 >> BASE[16] >> BASED[16]'
 
 ## `BASED` Convert String in Arbitrary Radix to Integer
 
-`BASED[radix: NUMBER](string: STRING): NUMBER`
+`BASED(radix: NUMBER; string: STRING): NUMBER`
 
 Converts the string `string` represented in base `radix` to an integer.
 

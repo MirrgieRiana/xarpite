@@ -134,7 +134,7 @@ $ xa '
 
 `<T> TRY(block: () -> T): PROMISE<T>`
 
-Executes `block` and returns the result as a `PROMISE`.
+Executes `block` on the spot and returns the result as a `PROMISE`.
 
 If an exception is thrown within `block`, returns a rejected `PROMISE` with that exception.
 
@@ -213,7 +213,7 @@ $ xa '
 
 `<T> TRY2(block(): T): PROMISE<T>`
 
-Executes `block` and returns the result as a `PROMISE`.
+Executes `block` on the spot and returns the result as a `PROMISE`.
 
 Equivalent to `TRY`, but receives the argument as a pass-by-formula argument.
 
