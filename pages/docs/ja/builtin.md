@@ -529,9 +529,9 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 ## `GET` インデックスによる要素の取得
 
-`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
 
-`index` に対応するインデックスの、`stream` の要素を返します。
+`indices` のインデックスに対応する、`stream` の要素を返します。
 
 インデックスは0から始まります。
 
@@ -539,12 +539,21 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 該当するインデックスが存在しない場合は、`NULL` を返します。
 
+`indices` が非ストリームの場合、戻り値も非ストリームになります。
+
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
 # 20
 
 $ xa 'GET(5; 10, 20, 30)'
 # NULL
+
+$ xa 'GET(0, 2; 10, 20, 30)'
+# 10
+# 30
+
+$ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5] >> TO_ARRAY'
+# [40;10;30;30;NULL]
 ```
 
 ## `FIRST` ストリームの先頭要素を取得
