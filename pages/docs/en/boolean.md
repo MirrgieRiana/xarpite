@@ -215,6 +215,8 @@ The prefix colon `: formula` is an operator that does nothing.
 
 Since this works identically to the `: else` part of the ternary operator `condition ? then : else`, it can contribute to the readability of chained ternary operators depending on how it is used.
 
+You cannot put a line break between `:` and `formula`.
+
 ```shell
 $ xa '
   score := 85
