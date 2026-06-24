@@ -196,6 +196,19 @@ $ xa ' "apple" !~ /xy/ '
 
 The global match flag is effectively meaningless.
 
+## Shorthand with a Period
+
+`string./regex/` is equivalent to `string =~ regex`.
+
+When the right-hand side of a period access is a regular expression literal, it behaves as the match operator.
+
+Because the period is left-associative, a match and its subsequent group references can be written as a single chain without parentheses.
+
+```shell
+$ xa ' "1abc1"./1(.*)1/.1 '
+# abc
+```
+
 ## Calling Regular Expression Objects as Functions
 
 When a regular expression object is called as a function, it behaves the same as the match operator.
