@@ -209,6 +209,32 @@ $ xa '
 # Princess
 ```
 
+## 前置コロン
+
+前置コロン `: formula` は、何もしない演算子です。
+
+これは三項演算子 `condition ? then : else` の `: else` の部分と同一の働きを持つため、使い方によっては三項演算子の連鎖の可読性に寄与します。
+
+`:` と `formula` の間に改行を入れることはできません。
+
+```shell
+$ xa '
+  score := 85
+
+  : score >= 90 ? "A"
+  : score >= 80 ? "B"
+  : "C"
+'
+# B
+
+$ xa '
+  score := 85
+
+  : "C"
+'
+# C
+```
+
 ## エルビス演算子
 
 エルビス演算子 `value ?: default` は、 `value` が `NULL` である場合に `default` 、そうでなければ `value` を返す演算子です。

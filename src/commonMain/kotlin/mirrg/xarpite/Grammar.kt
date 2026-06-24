@@ -181,6 +181,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         (-':' * indentBlockBody * indentBlockEnd).result map { IndentBlockNode(it.value, it.position) },
         (-':' * indentBlockEnd).result map { IndentBlockNode(EmptyNode, it.position) },
     )
+    val prefixColon: Parser<Node> = -':' * !':' * -s * ref { condition }
 
     val jump: Parser<Node> = or(
         (-"!!").result * -s * ref { commas } map { ThrowNode(it.b, it.a.position) },
@@ -189,8 +190,8 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
-    val nonFloatFactor: Parser<Node> = indentBlock + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
-    val factor: Parser<Node> = indentBlock + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
+    val nonFloatFactor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
+    val factor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side, Position) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },
