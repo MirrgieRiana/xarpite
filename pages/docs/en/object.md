@@ -257,30 +257,39 @@ $ xa '
 # {b:banana}
 ```
 
-# Getting the Parent Object `PARENT`
+# Built-in Function `PARENT`
+
+## `PARENT`: Getting the Parent Object
 
 `PARENT(value: VALUE): OBJECT | NULL`
 
 Returns the parent object of `value`.
 
-Values in Xarpite form an inheritance chain through references to their parent objects, and `PARENT` walks one step up this chain.
+In Xarpite, every value forms an inheritance chain through a reference to its parent object.
 
-For a child object created by prefixing a parent object, such as `Animal{...}`, it returns the parent object.
+Some values, such as the `VALUE` class object, have no parent object, and they sit at the root of the inheritance chain.
+
+---
+
+For an object created by specifying a parent object, it returns that parent object.
 
 ```shell
 $ xa '
-  Animal := {legs: 4}
-  socrates := Animal{}
-  PARENT(socrates).legs
+  parent := {name: "Parent"}
+  child := parent{}
+  PARENT(child).name
 '
-# 4
+# Parent
 ```
 
 ---
 
-For built-in values, it returns the corresponding class constant.
+For an object not created by specifying a parent object, or for a value that is not of object type, it returns the corresponding class constant.
 
 ```shell
+$ xa 'PARENT({}) == OBJECT'
+# TRUE
+
 $ xa 'PARENT(1) == INT'
 # TRUE
 
@@ -290,7 +299,7 @@ $ xa 'PARENT(INT) == VALUE'
 
 ---
 
-For a value that has no parent, it returns `NULL`.
+For a value that has no parent object, it returns `NULL`.
 
 ```shell
 $ xa 'PARENT(VALUE)'

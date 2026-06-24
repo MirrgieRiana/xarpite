@@ -257,30 +257,39 @@ $ xa '
 # {b:banana}
 ```
 
-# 親オブジェクトの取得 `PARENT`
+# 組み込み関数 `PARENT`
+
+## `PARENT`: 親オブジェクトの取得
 
 `PARENT(value: VALUE): OBJECT | NULL`
 
 `value` の親オブジェクトを返します。
 
-Xarpite の値は親オブジェクトへの参照によって継承チェーンを形作っており、 `PARENT` はそのチェーンを一つ上に辿ります。
+Xarpiteでは、すべての値は親オブジェクトへの参照によって継承チェーンを作っています。
 
-親オブジェクトを前置して `Animal{...}` のように作った子オブジェクトに対しては、その親オブジェクトを返します。
+`VALUE` クラスオブジェクトのように、親オブジェクトが無い値もあり、それは継承チェーンの根元に位置します。
+
+---
+
+親オブジェクトを指定して作られたオブジェクトに対しては、その親オブジェクトを返します。
 
 ```shell
 $ xa '
-  Animal := {legs: 4}
-  socrates := Animal{}
-  PARENT(socrates).legs
+  parent := {name: "Parent"}
+  child := parent{}
+  PARENT(child).name
 '
-# 4
+# Parent
 ```
 
 ---
 
-組み込みの値に対しては、対応するクラス定数を返します。
+親オブジェクトを指定して作られていないオブジェクトや、オブジェクト型以外の値に対しては、対応するクラス定数を返します。
 
 ```shell
+$ xa 'PARENT({}) == OBJECT'
+# TRUE
+
 $ xa 'PARENT(1) == INT'
 # TRUE
 
@@ -290,7 +299,7 @@ $ xa 'PARENT(INT) == VALUE'
 
 ---
 
-親を持たない値に対しては `NULL` を返します。
+親オブジェクトを持たない値に対しては `NULL` を返します。
 
 ```shell
 $ xa 'PARENT(VALUE)'
