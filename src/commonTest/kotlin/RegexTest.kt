@@ -58,6 +58,9 @@ class RegexTest {
 
         assertEquals("A,B,C", eval(""" "ABC"././g | _.0 """).stream()) // 全件抽出
         assertEquals("B,E,H", eval(""" "ABC,DEF,GHI"./\w(\w)\w/g | _.1 """).stream()) // 全件グループ抽出
+
+        assertEquals("abc", eval(""" r := /1(.*)1/; "1abc1".(r).1 """).string) // キーは正規表現リテラルに限らない
+        assertEquals("2", eval(""" Obj := {`_._`: this, regex -> this("value") =~ regex}; Obj{value: "a2c"}./\w(\d)\w/.1 """).string) // カスタム型の _._ オーバーライドが尊重される
     }
 
     @Test

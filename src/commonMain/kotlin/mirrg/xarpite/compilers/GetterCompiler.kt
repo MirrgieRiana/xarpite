@@ -426,8 +426,6 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
                     ObjectFromStreamGetter(streamGetter)
                 }
 
-                node.right is RegexNode -> MatchGetter(compileToGetter(node.left), compileToGetter(node.right), node.position) // string./regex/
-
                 else -> {
                     val receiverGetter = compileToGetter(node.left)
                     val nameGetter = when (node.right) {
