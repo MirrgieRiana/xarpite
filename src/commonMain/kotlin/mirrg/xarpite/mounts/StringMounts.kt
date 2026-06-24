@@ -135,8 +135,10 @@ fun createStringMounts(): List<Map<String, Mount>> {
                     sb.append(codePoint.toChar())
                 } else {
                     val offset = codePoint - 0x10000
-                    sb.append((0xD800 + (offset shr 10)).toChar())
-                    sb.append((0xDC00 + (offset and 0x3FF)).toChar())
+                    val high = 0xD800 + (offset shr 10)
+                    val low = 0xDC00 + (offset and 0x3FF)
+                    sb.append(high.toChar())
+                    sb.append(low.toChar())
                 }
             }
             if (value is FluoriteStream) {
