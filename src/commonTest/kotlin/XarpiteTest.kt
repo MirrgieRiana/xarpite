@@ -879,8 +879,10 @@ class XarpiteTest {
         // 三項の then 枝の位置にも前置コロンを書ける（condition の再帰なので到達する）
         assertEquals(1, eval("TRUE ? : 1 : 2").int)
 
-        // `::`（メソッドアクセス）と `:=`（宣言）は前置コロンに化けず、従来どおり構文エラーのまま
+        // `::` は将来の予約のため拒否し、前置コロンを2連したいときはスペースで分ける
+        assertEquals(5, eval(": : 5").int)
         assertFails { eval("::FOO") }
+        // `:=`（宣言）も前置コロンに化けず、従来どおり構文エラーのまま
         assertFails { eval(":= 1") }
     }
 
