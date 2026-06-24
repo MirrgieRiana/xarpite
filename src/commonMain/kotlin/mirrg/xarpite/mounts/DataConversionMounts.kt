@@ -268,7 +268,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>""")
                     if (arguments.isEmpty()) usage()
                     val parameters = arguments.dropLast(1)
                         .associate {
@@ -341,7 +341,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>""")
                     if (arguments.isEmpty()) usage()
                     val parameters = arguments.dropLast(1)
                         .associate {

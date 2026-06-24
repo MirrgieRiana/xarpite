@@ -267,7 +267,7 @@ $ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
 
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
+`KEYS(object: STREAM<OBJECT>): STREAM<STRING>`
 
 Returns a stream of keys from `object`.
 
