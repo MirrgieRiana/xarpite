@@ -583,14 +583,14 @@ $ xa 'CHAR_CODED(65)'
 $ xa 'CHAR_CODED(12354)'
 # あ
 
-$ xa 'CHAR_CODES("ABC") >> JOIN[","]'
-# 65,66,67
+$ xa 'CHAR_CODES("ABC🍰") >> JOIN[","]'
+# 65,66,67,55356,57200
 
-$ xa 'CHAR_CODESD(65, 66, 67)'
-# ABC
+$ xa 'CHAR_CODESD(65, 66, 67, 55356, 57200)'
+# ABC🍰
 
-$ xa '"Hello" >> CHAR_CODES >> CHAR_CODESD'
-# Hello
+$ xa '"ABC🍰" >> CHAR_CODES >> CHAR_CODESD'
+# ABC🍰
 
 $ xa 'CODE_POINT("A")'
 # 65
@@ -604,14 +604,14 @@ $ xa 'CODE_POINTD(65)'
 $ xa 'CODE_POINTD(127856)'
 # 🍰
 
-$ xa 'CODE_POINTS("🍰") >> JOIN[","]'
-# 127856
+$ xa 'CODE_POINTS("ABC🍰") >> JOIN[","]'
+# 65,66,67,127856
 
-$ xa 'CODE_POINTSD(127856)'
-# 🍰
+$ xa 'CODE_POINTSD(65, 66, 67, 127856)'
+# ABC🍰
 
-$ xa '"🍰" >> CODE_POINTS >> CODE_POINTSD'
-# 🍰
+$ xa '"ABC🍰" >> CODE_POINTS >> CODE_POINTSD'
+# ABC🍰
 ```
 
 ## `UC` 大文字に変換

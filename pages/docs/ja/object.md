@@ -1,8 +1,14 @@
 ---
-title: "オブジェクトリテラル `{entry; ...}`"
+title: "オブジェクト"
 ---
 
 <!-- toc -->
+
+# オブジェクト
+
+Xarpiteでは、すべての値は親オブジェクトへの参照によって継承チェーンを作っています。
+
+`VALUE` クラスオブジェクトのように親オブジェクトが無い値もあり、それは継承チェーンの根元に位置します。
 
 # オブジェクトリテラル `{entry; ...}`
 
@@ -255,4 +261,46 @@ $ xa '
   object
 '
 # {b:banana}
+```
+
+# 組み込み関数 `PARENT`
+
+## `PARENT`: 親オブジェクトの取得
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+`value` の親オブジェクト、もしくはNULLを返します。
+
+---
+
+親オブジェクトを指定して作られたオブジェクトに対しては、その親オブジェクトを返します。
+
+継承チェーンの根元である値に対しては、NULLを返します。
+
+それ以外の値に対しては、対応するクラス定数を返します。
+
+`value` がストリームの場合も、要素ごとではなく、ストリームそのものの親オブジェクトである `STREAM` を返します。
+
+```shell
+$ xa '
+  parent := {name: "Parent"}
+  child := parent{name: "Child"}
+  PARENT(child).name
+'
+# Parent
+
+$ xa 'PARENT(VALUE)'
+# NULL
+
+$ xa 'PARENT({}) == OBJECT'
+# TRUE
+
+$ xa 'PARENT(1) == INT'
+# TRUE
+
+$ xa 'PARENT(INT) == VALUE'
+# TRUE
+
+$ xa 'PARENT(1, 2, 3) == STREAM'
+# TRUE
 ```

@@ -6,7 +6,7 @@ title: "IO"
 
 # IO
 
-Provides I/O-related functionality for accessing external resources over HTTP.
+Provides functionality related to data input/output between the program and the outside world.
 
 ## Built-in Functions
 

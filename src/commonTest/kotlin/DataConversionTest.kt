@@ -100,6 +100,23 @@ class DataConversionTest {
     }
 
     @Test
+    fun jsonDefaultIndentApiVersion5() = runTest {
+        // APIバージョン4では、indentを省略したJSON関数と$&演算子はインデント無しの出力になる
+        assertEquals("""{"a":1,"b":2}""", eval(""" {a: 1; b: 2} >> JSON """, apiVersion = 4).string)
+        assertEquals("""{"a":1,"b":2}""", eval("$&{a: 1; b: 2}", apiVersion = 4).string)
+
+        // APIバージョン5では、indentを省略したJSON関数と$&演算子は2スペースのインデント付きの出力になる
+        assertEquals("{\n  \"a\": 1,\n  \"b\": 2\n}", eval(""" {a: 1; b: 2} >> JSON """, apiVersion = 5).string)
+        assertEquals("{\n  \"a\": 1,\n  \"b\": 2\n}", eval("$&{a: 1; b: 2}", apiVersion = 5).string)
+
+        // APIバージョン5でも、indentにNULLを明示するとインデント無しの出力になる
+        assertEquals("""{"a":1,"b":2}""", eval(""" {a: 1; b: 2} >> JSON[indent: NULL] """, apiVersion = 5).string)
+
+        // APIバージョン5でも、JSONL関数のデフォルトはインデント無しのまま変わらない
+        assertEquals("""{"a":1},{"b":2}""", eval(""" {a: 1}, {b: 2} >> JSONL """, apiVersion = 5).stream())
+    }
+
+    @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
         assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
