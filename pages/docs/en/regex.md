@@ -196,13 +196,9 @@ $ xa ' "apple" !~ /xy/ '
 
 The global match flag is effectively meaningless.
 
-## Shorthand with a Period
+## Matching via Property Access
 
-`string./regex/` is equivalent to `string =~ regex`.
-
-When the key of a property access is a regular expression, it behaves as the match operator.
-
-Because the period has left-associative binding, a match and its subsequent group references can be written as a single chain without parentheses.
+Property access on a string performs a match equivalent to `string =~ regex` when the key is a regular expression.
 
 ```shell
 $ xa ' "1abc1"./1(.*)1/.1 '
