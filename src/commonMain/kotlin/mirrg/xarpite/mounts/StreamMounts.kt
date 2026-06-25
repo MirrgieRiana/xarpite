@@ -270,7 +270,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "KEYS" define FluoriteFunction.immediate { arguments ->
-            fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
+            fun usage(): Nothing = usage("KEYS(object: STREAM<OBJECT>): STREAM<STRING>")
             if (arguments.size == 1) {
                 val obj = arguments[0]
                 if (obj is FluoriteStream) {

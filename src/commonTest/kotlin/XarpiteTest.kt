@@ -850,6 +850,43 @@ class XarpiteTest {
     }
 
     @Test
+    fun prefixColonTest() = runTest {
+        // 前置コロン `: x` は中身をそのまま返す恒等（三項の else 枝を式の先頭に開放したもの）
+        assertEquals(1, eval(": 1").int)
+        assertEquals(2, eval(": 1 + 1").int)
+
+        // 前置コロンは後続の三項全体を掴む（else 枝と同じ結合）
+        assertEquals(1, eval(": TRUE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : TRUE ? 2 : 3").int)
+
+        // 連鎖三項の行頭を `:` で揃えた when 風の記法が書ける
+        assertEquals(2, eval(": FALSE ? 1\n: TRUE ? 2\n: 3").int)
+        assertEquals(3, eval(": FALSE ? 1\n: FALSE ? 2\n: 3").int)
+        assertEquals("zero", eval("a := 0\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("pos", eval("a := 7\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("neg", eval("a := -5\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+
+        // エルビス演算子とも混ぜられる
+        assertEquals(5, eval(": NULL ?: 5").int)
+
+        // 前置コロンは恒等なので独自スコープを作らない（インデントブロックとの違い）
+        assertEquals(2, eval("a := 1; : a = 2; a").int)
+
+        // `: ` の直後が改行の場合は、従来どおりインデントブロックが優先される
+        assertEquals(10, eval(":\n  10").int)
+
+        // 三項の then 枝の位置にも前置コロンを書ける（condition の再帰なので到達する）
+        assertEquals(1, eval("TRUE ? : 1 : 2").int)
+
+        // `::` は将来の予約のため拒否し、前置コロンを2連したいときはスペースで分ける
+        assertEquals(5, eval(": : 5").int)
+        assertFails { eval("::FOO") }
+        // `:=`（宣言）も前置コロンに化けず、従来どおり構文エラーのまま
+        assertFails { eval(":= 1") }
+    }
+
+    @Test
     fun pipeTest() = runTest {
         // パイプ
         assertEquals("10,20,30", eval("1 .. 3 | _ * 10").stream()) // 左辺のストリームを変換する
