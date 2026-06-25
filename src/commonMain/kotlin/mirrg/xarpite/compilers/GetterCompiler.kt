@@ -153,6 +153,8 @@ import mirrg.xarpite.operations.RangeGetter
 import mirrg.xarpite.operations.ReturnGetter
 import mirrg.xarpite.operations.SpaceshipGetter
 import mirrg.xarpite.operations.StreamConcatenationGetter
+import mirrg.xarpite.operations.StrictEqualComparator
+import mirrg.xarpite.operations.StrictNotEqualComparator
 import mirrg.xarpite.operations.StringConcatenationGetter
 import mirrg.xarpite.operations.ThrowGetter
 import mirrg.xarpite.operations.TimesGetter
@@ -296,6 +298,8 @@ fun Frame.compileToGetter(node: Node): Getter {
                 when (it.first) {
                     ComparisonOperatorType.EQUAL -> EqualComparator(it.second)
                     ComparisonOperatorType.EXCLAMATION_EQUAL -> NotEqualComparator(it.second)
+                    ComparisonOperatorType.TRIPLE_EQUAL -> StrictEqualComparator(it.second)
+                    ComparisonOperatorType.EXCLAMATION_DOUBLE_EQUAL -> StrictNotEqualComparator(it.second)
                     ComparisonOperatorType.GREATER -> GreaterComparator(it.second)
                     ComparisonOperatorType.LESS -> LessComparator(it.second)
                     ComparisonOperatorType.GREATER_EQUAL -> GreaterEqualComparator(it.second)

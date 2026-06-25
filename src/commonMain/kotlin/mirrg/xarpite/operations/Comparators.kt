@@ -6,6 +6,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.instanceOf
+import mirrg.xarpite.compilers.objects.strictEquals
 
 // TODO
 class EqualComparator(private val position: Position) : Comparator {
@@ -17,6 +18,16 @@ class EqualComparator(private val position: Position) : Comparator {
 class NotEqualComparator(private val position: Position) : Comparator {
     override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a != b }
     override val code get() = "NotEqualComparator"
+}
+
+class StrictEqualComparator(private val position: Position) : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a.strictEquals(b) }
+    override val code get() = "StrictEqualComparator"
+}
+
+class StrictNotEqualComparator(private val position: Position) : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> !a.strictEquals(b) }
+    override val code get() = "StrictNotEqualComparator"
 }
 
 class GreaterComparator(private val position: Position) : Comparator {

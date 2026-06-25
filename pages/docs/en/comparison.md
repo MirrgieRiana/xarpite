@@ -31,7 +31,7 @@ $ xa '3 <= 10 <= 5'
 
 The following operators follow this specification:
 
-- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
+- `>` `<` `>=` `<=` `==` `!=` `===` `!==` `@` `!@` `?=`
 
 # Comparison Operators
 
@@ -86,6 +86,32 @@ This is the negation of the equality operator.
 ```shell
 $ xa '[1 != 2, 2 != 2, 3 != 2]'
 # [TRUE;FALSE;TRUE]
+```
+
+## Strict Equality Operator
+
+The strict equality operator `left === right` returns whether both sides are strictly equal.
+
+When the types of the two sides differ, they are always judged to be unequal.
+When the types are the same, immutable types such as numbers and strings are compared by their value contents, while mutable types such as objects and arrays are compared by instance identity.
+
+```shell
+$ xa '[1 === 1, 1 === 1.0, 1 === 2]'
+# [TRUE;FALSE;FALSE]
+
+$ xa 'a := [1, 2]; [a === a, [1, 2] === [1, 2]]'
+# [TRUE;FALSE]
+```
+
+## Strict Inequality Operator
+
+The strict inequality operator `left !== right` returns whether both sides are not strictly equal.
+
+This is the negation of the strict equality operator.
+
+```shell
+$ xa '[1 !== 1, 1 !== 1.0, 1 !== 2]'
+# [FALSE;TRUE;TRUE]
 ```
 
 # Containment Operators
