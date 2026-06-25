@@ -529,7 +529,7 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 
 ## `GET` インデックスによる要素の取得
 
-`<T> GET(indices: INT | STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
 
 `indices` のインデックスに対応する、`stream` の要素を返します。
 

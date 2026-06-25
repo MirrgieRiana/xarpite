@@ -529,7 +529,7 @@ Other properties follow those of the `AND` function.
 
 ## `GET` Get Element by Index
 
-`<T> GET(indices: INT | STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
 
 Returns the elements of `stream` at the indices corresponding to `indices`.
 
