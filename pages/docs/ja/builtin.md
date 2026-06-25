@@ -267,7 +267,7 @@ $ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
 
 ## `KEYS` オブジェクトのキーのストリームを取得
 
-`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
+`KEYS(object: STREAM<OBJECT>): STREAM<STRING>`
 
 `object` のキーのストリームを返します。
 
