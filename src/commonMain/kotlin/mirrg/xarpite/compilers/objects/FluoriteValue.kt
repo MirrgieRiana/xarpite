@@ -38,17 +38,15 @@ fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
 }
 
 // クラスが異なる場合は常に不一致とし、不変系の型は内容で、可変系の型はインスタンスで比較する
-fun FluoriteValue.strictEquals(other: FluoriteValue): Boolean {
-    return when (this) {
-        is FluoriteInt -> this == other
-        is FluoriteDouble -> this == other
-        is FluoriteBig -> this == other
-        is FluoriteString -> this == other
-        is FluoriteBoolean -> this == other
-        is FluoriteNull -> this == other
-        is FluoriteRegex -> this == other
-        else -> this === other
-    }
+fun FluoriteValue.strictEquals(other: FluoriteValue) = when (this) {
+    is FluoriteInt -> this == other
+    is FluoriteDouble -> this == other
+    is FluoriteBig -> this == other
+    is FluoriteString -> this == other
+    is FluoriteBoolean -> this == other
+    FluoriteNull -> this == other
+    is FluoriteRegex -> this == other
+    else -> this === other
 }
 
 fun interface Callable {
