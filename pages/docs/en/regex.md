@@ -201,8 +201,8 @@ The global match flag is effectively meaningless.
 Property access on a string performs a match equivalent to `string =~ regex` when the key is a regular expression.
 
 ```shell
-$ xa ' "1abc1"./1(.*)1/.1 '
-# abc
+$ xa ' "apple"./pp(.)/.1 '
+# l
 ```
 
 ## Calling Regular Expression Objects as Functions

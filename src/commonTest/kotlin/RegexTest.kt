@@ -49,6 +49,7 @@ class RegexTest {
 
     @Test
     fun match_period() = runTest {
+        assertEquals("l", eval(""" "apple"./pp(.)/.1 """).string) // プロパティアクセスによるマッチとグループ参照
         assertEquals("abc", eval(""" "1abc1"./1(.*)1/.1 """).string) // 括弧なしでマッチとグループ参照を連鎖
         assertNotEquals(FluoriteNull, eval(""" "ABC"./B/ """)) // 部分一致
         assertEquals(FluoriteNull, eval(""" "ABC"./D/ """)) // 部分一致しない
