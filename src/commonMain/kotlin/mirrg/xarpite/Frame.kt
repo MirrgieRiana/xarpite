@@ -44,9 +44,20 @@ class LazyMount(private val initializer: suspend () -> FluoriteValue) : Mount {
     private val mutex = Mutex()
     private var value: FluoriteValue? = null
     override suspend fun get(): FluoriteValue {
-        value?.let { return it }
-        return mutex.withLock {
-            value ?: initializer().also { value = it }
+        val oldValue = value
+        return if (oldValue != null) {
+            oldValue
+        } else {
+            mutex.withLock {
+                val lockedValue = value
+                if (lockedValue != null) {
+                    lockedValue
+                } else {
+                    val newValue = initializer()
+                    value = newValue
+                    newValue
+                }
+            }
         }
     }
 }
