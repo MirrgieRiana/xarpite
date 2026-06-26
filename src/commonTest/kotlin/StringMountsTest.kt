@@ -189,11 +189,11 @@ class StringMountsTest {
         // CODE_POINT: 1コードポイントでない場合はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINT('')") } // 空文字列はエラー
         assertFailsWith<FluoriteException> { eval("CODE_POINT('AB')") } // 2文字はエラー
-        // 孤立サロゲートはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800')") } // 孤立上位サロゲートはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uDC00')") } // 孤立下位サロゲートはエラー
+        // 孤立サロゲートはエラー（ソースに直書きするとJSバンドルへのコンパイルで`?`へ化けるため、実行時に CHAR_CODED で組み立てる）
+        assertFailsWith<FluoriteException> { eval("CODE_POINT(CHAR_CODED(55296))") } // 孤立上位サロゲート（U+D800）はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT(CHAR_CODED(56320))") } // 孤立下位サロゲート（U+DC00）はエラー
         // 長さ2でも正しいサロゲートペアでない並びはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINT('\uD800A')") } // 上位サロゲートの後ろが下位サロゲートでないとエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINT(CHAR_CODESD(55296, 65))") } // 上位サロゲート（U+D800）の後ろが下位サロゲートでないとエラー
 
         // CODE_POINTD: コードポイントから文字列を返す
         assertEquals("A", eval("CODE_POINTD(65)").string) // 65 は 'A'
@@ -215,11 +215,11 @@ class StringMountsTest {
         assertEquals("12354,12356", eval("CODE_POINTS('\u3042\u3044')").stream()) // 'あい'のコードポイント列
         assertEquals("65,127856,66", eval("CODE_POINTS('A\uD83C\uDF70B')").stream()) // サロゲートペア（🍰）を含む並びのコードポイント列
         assertEquals("", eval("CODE_POINTS('')").stream()) // 空文字列は空ストリーム
-        // 孤立サロゲートはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD800')").stream() } // 孤立上位サロゲートはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uDC00')").stream() } // 孤立下位サロゲートはエラー
+        // 孤立サロゲートはエラー（上と同じく実行時に CHAR_CODED / CHAR_CODESD で組み立てる）
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS(CHAR_CODED(55296))").stream() } // 孤立上位サロゲート（U+D800）はエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS(CHAR_CODED(56320))").stream() } // 孤立下位サロゲート（U+DC00）はエラー
         // 上位サロゲートの直後が下位サロゲートでない並びはエラー
-        assertFailsWith<FluoriteException> { eval("CODE_POINTS('\uD83CA')").stream() } // 上位サロゲート＋非下位サロゲートはエラー
+        assertFailsWith<FluoriteException> { eval("CODE_POINTS(CHAR_CODESD(55356, 65))").stream() } // 上位サロゲート（U+D83C）＋非下位サロゲートはエラー
 
         // CODE_POINTSD: コードポイントのストリームから文字列を返す
         assertEquals("ABC", eval("CODE_POINTSD(65, 66, 67)").string) // コードポイント列から文字列
