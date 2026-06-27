@@ -1,5 +1,10 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.LazyMount
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.mounts.createCommonMounts
@@ -166,6 +171,28 @@ class CoroutineTest {
             ) !? ( e => e)
         """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
+    }
+
+    @Test
+    fun lazyMountInitializesOnce() = runTest {
+        // initializer は suspend するため、直列化がないと初期化中の再入で initializer が二重に走る
+        var initializationCount = 0
+        val mount = LazyMount {
+            initializationCount++
+            delay(10) // 初期化の途中で中断し、別コルーチンの再入を誘発する
+            FluoriteInt(123)
+        }
+        val results = coroutineScope {
+            val job1 = async { mount.get() }
+            val job2 = async { mount.get() }
+            listOf(job1.await(), job2.await())
+        }
+
+        // 同時アクセスでも initializer は1度しか実行されない
+        assertEquals(1, initializationCount)
+        // どちらの get() も同一の初期化結果を返す
+        assertEquals(FluoriteInt(123), results[0])
+        assertEquals(FluoriteInt(123), results[1])
     }
 
     @Test

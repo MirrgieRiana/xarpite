@@ -294,7 +294,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val termGetters = node.nodes.map { compileToGetter(it) }
             val operators: List<Comparator> = node.operators.map {
                 when (it.first) {
-                    ComparisonOperatorType.EQUAL -> EqualComparator(it.second)
+                    ComparisonOperatorType.EQUAL_EQUAL -> EqualComparator(it.second)
                     ComparisonOperatorType.EXCLAMATION_EQUAL -> NotEqualComparator(it.second)
                     ComparisonOperatorType.GREATER -> GreaterComparator(it.second)
                     ComparisonOperatorType.LESS -> LessComparator(it.second)

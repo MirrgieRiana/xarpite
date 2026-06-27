@@ -196,6 +196,15 @@ $ xa ' "apple" !~ /xy/ '
 
 The global match flag is effectively meaningless.
 
+## Matching via Property Access
+
+Property access on a string performs a match equivalent to `string =~ regex` when the key is a regular expression.
+
+```shell
+$ xa ' "apple"./pp(.)/.1 '
+# l
+```
+
 ## Calling Regular Expression Objects as Functions
 
 When a regular expression object is called as a function, it behaves the same as the match operator.
