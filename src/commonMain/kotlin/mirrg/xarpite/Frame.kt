@@ -1,5 +1,7 @@
 package mirrg.xarpite
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
@@ -38,15 +40,19 @@ class ConstantMount(val value: FluoriteValue) : Mount {
 }
 
 class LazyMount(private val initializer: suspend () -> FluoriteValue) : Mount {
+    // initializer は suspend するため、ロックなしでは初期化中の再入で initializer が二重に走る
+    private val mutex = Mutex()
     private var value: FluoriteValue? = null
     override suspend fun get(): FluoriteValue {
-        val oldValue = value
-        return if (oldValue != null) {
-            oldValue
-        } else {
-            val newValue = initializer()
-            value = newValue
-            newValue
+        return mutex.withLock {
+            val oldValue = value
+            if (oldValue != null) {
+                oldValue
+            } else {
+                val newValue = initializer()
+                value = newValue
+                newValue
+            }
         }
     }
 }
