@@ -90,28 +90,61 @@ $ xa '[1 != 2, 2 != 2, 3 != 2]'
 
 ## Strict Equality Operator
 
-The strict equality operator `left === right` returns whether both sides are strictly equal.
+The strict equality operator `left === right` returns whether the values of both sides are strictly equal.
 
-When the types of the two sides differ, they are always judged to be unequal.
-When the types are the same, immutable types such as numbers and strings are compared by their value contents, while mutable types such as objects and arrays are compared by instance identity.
+When the types of the two sides differ, they are always judged to be not strictly equal.
+
+When the types are the same, whether they are strictly equal is judged per type, as shown in the following table.
+
+| Type | Name | Comparison |
+|---|---|---|
+| `INT` | Integer | Value contents |
+| `DOUBLE` | Float | Value contents |
+| `BIG` | Arbitrary-precision integer | Value contents |
+| `STRING` | String | Value contents |
+| `BOOLEAN` | Boolean | Value contents |
+| `NULL` | Null | Value contents |
+| `REGEX` | Regular expression | Value contents |
+| `OBJECT` | Object | Instance identity |
+| `ARRAY` | Array | Instance identity |
+| `BLOB` | Blob | Instance identity |
+| `STREAM` | Stream | Instance identity |
+| `PROMISE` | Promise | Instance identity |
+| `FUNCTION` | Function | Instance identity |
+| `ERROR` | Error | Instance identity |
 
 ```shell
-$ xa '[1 === 1, 1 === 1.0, 1 === 2]'
-# [TRUE;FALSE;FALSE]
+$ xa -q '
+  OUT << 1 === 1
+  OUT << 1 === 1.0
+  OUT << 1 === 2
+'
+# TRUE
+# FALSE
+# FALSE
 
-$ xa 'a := [1, 2]; [a === a, [1, 2] === [1, 2]]'
-# [TRUE;FALSE]
+$ xa -q '
+  OUT << (
+    a := [1, 2]
+    a === a
+  )
+'
+# TRUE
 ```
 
 ## Strict Inequality Operator
 
-The strict inequality operator `left !== right` returns whether both sides are not strictly equal.
-
-This is the negation of the strict equality operator.
+The strict inequality operator `left !== right` is the negation of the strict equality operator `left === right`.
 
 ```shell
-$ xa '[1 !== 1, 1 !== 1.0, 1 !== 2]'
-# [FALSE;TRUE;TRUE]
+$ xa -q '
+  OUT << 1 !== 1
+  OUT << 1 !== 1.0
+  OUT << 1 !== 2
+'
+# FALSE
+# TRUE
+# TRUE
 ```
 
 # Containment Operators
