@@ -298,8 +298,8 @@ fun Frame.compileToGetter(node: Node): Getter {
                 when (it.first) {
                     ComparisonOperatorType.EQUAL -> EqualComparator(it.second)
                     ComparisonOperatorType.EXCLAMATION_EQUAL -> NotEqualComparator(it.second)
-                    ComparisonOperatorType.TRIPLE_EQUAL -> StrictEqualComparator(it.second)
-                    ComparisonOperatorType.EXCLAMATION_DOUBLE_EQUAL -> StrictNotEqualComparator(it.second)
+                    ComparisonOperatorType.EQUAL_EQUAL_EQUAL -> StrictEqualComparator(it.second)
+                    ComparisonOperatorType.EXCLAMATION_EQUAL_EQUAL -> StrictNotEqualComparator(it.second)
                     ComparisonOperatorType.GREATER -> GreaterComparator(it.second)
                     ComparisonOperatorType.LESS -> LessComparator(it.second)
                     ComparisonOperatorType.GREATER_EQUAL -> GreaterEqualComparator(it.second)
