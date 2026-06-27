@@ -3171,6 +3171,63 @@ class CliTest {
         )
     }
 
+    @Test
+    fun errorExitsWithNonZeroCodeFromApiVersion5() = runTest {
+        // APIバージョン5以降では、!! や実行時例外でスクリプトが死んだとき、終了コード1で終了する
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = 5,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exception = assertFailsWith<ExitException> {
+            cliEvalImpl(context, options)
+        }
+        assertEquals(1, exception.code)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
+    @Test
+    fun errorExitsWithNonZeroCodeInRunnerModeFromApiVersion5() = runTest {
+        // runnerモード（-q）でも、APIバージョン5以降では終了コード1で終了する
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            apiVersion = 5,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exception = assertFailsWith<ExitException> {
+            cliEvalImpl(context, options)
+        }
+        assertEquals(1, exception.code)
+    }
+
+    @Test
+    fun errorDoesNotExitBeforeApiVersion5() = runTest {
+        // APIバージョン4以前では、!! や実行時例外でスクリプトが死んでも終了コードは設定されない
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = 4,
+            scriptFile = null,
+            embedded = false,
+        )
+        cliEvalImpl(context, options)
+        assertEquals(null, context.exitCode)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {

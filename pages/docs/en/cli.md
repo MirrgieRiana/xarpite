@@ -258,6 +258,24 @@ Strictly speaking, this option specifies interpreting the entire source code as 
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
 
+## Termination by Error
+
+When a value thrown by the `!!` operator or similar is not caught and the program terminates, that value is output to standard error with the `ERROR:` prefix.
+
+Up to API version 4, the process exit code was 0 even when terminating with an error in this way.
+
+In API version 5, when terminating with an error, the process exits with exit code 1.
+
+```shell
+$ xa -A 5 '
+  !! "error"
+'; echo $?
+# ERROR: error
+#   at -:2:3                !! "error"
+#   at -:1:1
+# 1
+```
+
 ## API Version
 
 ### `-A`: Set the API Version

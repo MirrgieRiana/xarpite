@@ -10,6 +10,19 @@ This guide explains how to rewrite existing notations and idioms into equivalent
 
 ## API Version 5
 
+### The Exit Code on Termination by Error Is Now Non-Zero
+
+Up to API version 4, the process exit code was 0 even when a script terminated with an error.
+
+In API version 5, when a script terminates with an error, the process exit code becomes 1.
+
+To preserve the previous behavior, catch errors with the `!?` operator so that the program does not terminate due to an error.
+
+```diff
+- !! "error"
++ !! "error" !? NULL
+```
+
 ### `IN` Now Reads the Entire Standard Input as a Single String
 
 Up to API version 4, `IN` was a stream that read standard input line by line.
