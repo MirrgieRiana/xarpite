@@ -76,6 +76,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
 
     override fun toString() = value.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 fun FluoriteFunction.toJsFunction(): dynamic {

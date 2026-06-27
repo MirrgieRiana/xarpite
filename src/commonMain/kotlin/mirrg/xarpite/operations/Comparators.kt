@@ -6,7 +6,6 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.instanceOf
-import mirrg.xarpite.compilers.objects.strictEquals
 
 // TODO
 class EqualComparator(private val position: Position) : Comparator {
