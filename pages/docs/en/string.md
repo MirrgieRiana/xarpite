@@ -43,7 +43,7 @@ def' "
 
 Characters other than the above are interpreted as written.
 
-This includes `$` and ` \ ` without exception.
+This includes `$` and `\` without exception.
 
 ```shell
 $ xa \''abc$def\nop'\'
@@ -58,13 +58,13 @@ Template string literals are strings enclosed in `"` `"` that support features l
 |-------------------------------------|-------------------------------------------------|
 | `\"`                                | `"`                                             |
 | `\$`                                | `$`                                             |
-| ` \\ `                              | ` \ `                                           |
+| `\\`                                | `\`                                             |
 | `\t`                                | Tab character                                   |
 | `\r`                                | CR                                              |
 | `\n`                                | LF                                              |
 | `\xXX`                              | 1 character at code point U+0000~U+00FF         |
 | `\uXXXX`                            | 1 UTF-16 code unit                              |
-| Other sequences starting with ` \ ` | Syntax error                                    |
+| Other sequences starting with `\`   | Syntax error                                    |
 | CRLF                                | LF                                              |
 | CR                                  | LF                                              |
 | LF                                  | LF                                              |
@@ -75,11 +75,11 @@ Template string literals are strings enclosed in `"` `"` that support features l
 
 ## Escape Sequence Content `\n`
 
-Escape sequence content consists of sequences starting with ` \ `, each representing a specific character.
+Escape sequence content consists of sequences starting with `\`, each representing a specific character.
 
 Refer to the table above for a complete list of escape sequences.
 
-Sequences starting with ` \ ` are reserved for future features, and invalid sequences result in syntax errors.
+Sequences starting with `\` are reserved for future features, and invalid sequences result in syntax errors.
 
 ```shell
 $ xa ' "abc\"def\\ghi\njkl" '
