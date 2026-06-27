@@ -539,7 +539,7 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
-If `indices` is a non-stream, the return value is also a non-stream.
+When `indices` is a stream, returns a stream of the elements corresponding to each index.
 
 ```shell
 $ xa 'GET(1; 10, 20, 30)'
@@ -552,8 +552,12 @@ $ xa 'GET(0, 2; 10, 20, 30)'
 # 10
 # 30
 
-$ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5] >> TO_ARRAY'
-# [40;10;30;30;NULL]
+$ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5]'
+# 40
+# 10
+# 30
+# 30
+# NULL
 ```
 
 ## `FIRST` Get First Element of Stream
