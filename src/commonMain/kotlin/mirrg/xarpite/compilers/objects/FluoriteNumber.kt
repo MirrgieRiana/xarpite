@@ -10,7 +10,7 @@ import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-interface FluoriteNumber : FluoriteValue {
+sealed interface FluoriteNumber : FluoriteValue {
     fun toInt(): Int
     fun toDouble(): Double
     fun negate(): FluoriteNumber

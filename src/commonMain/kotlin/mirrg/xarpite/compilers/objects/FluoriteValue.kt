@@ -5,7 +5,7 @@ import mirrg.xarpite.Position
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.withStackTrace
 
-interface FluoriteValue {
+sealed interface FluoriteValue {
     companion object {
         // fluoriteクラスはlazyにしなければJSで初期化順序によるエラーが出る
         // https://youtrack.jetbrains.com/issue/KT-25796

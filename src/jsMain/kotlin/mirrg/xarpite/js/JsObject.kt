@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
+import mirrg.xarpite.compilers.objects.FluoritePlatformObject
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.invokeImmediate
@@ -22,7 +23,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
 
-class FluoriteJsObject(val value: dynamic) : FluoriteValue {
+class FluoriteJsObject(val value: dynamic) : FluoritePlatformObject() {
     companion object {
         val fluoriteClass by lazy {
             FluoriteObject(
