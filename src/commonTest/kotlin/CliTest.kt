@@ -3172,8 +3172,9 @@ class CliTest {
     }
 
     @Test
-    fun errorExitsWithNonZeroCodeFromApiVersion5() = runTest {
-        // APIバージョン5以降では、!! や実行時例外でスクリプトが死んだとき、終了コード1で終了する
+    fun errorReturnsNonZeroExitCodeFromApiVersion5() = runTest {
+        // APIバージョン5以降では、!! や実行時例外でスクリプトが死んだとき、終了コード1を返す
+        // cliEval自身はexitを呼ばず、呼び出し側に終了コードを返すだけにする（REPL等での再利用のため）
         val context = TestIoContext()
         val options = Options(
             src = "!! 'test error'",
@@ -3184,16 +3185,15 @@ class CliTest {
             scriptFile = null,
             embedded = false,
         )
-        val exception = assertFailsWith<ExitException> {
-            cliEvalImpl(context, options)
-        }
-        assertEquals(1, exception.code)
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(1, exitCode)
+        assertEquals(null, context.exitCode)
         assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
     }
 
     @Test
-    fun errorExitsWithNonZeroCodeInRunnerModeFromApiVersion5() = runTest {
-        // runnerモード（-q）でも、APIバージョン5以降では終了コード1で終了する
+    fun errorReturnsNonZeroExitCodeInRunnerModeFromApiVersion5() = runTest {
+        // runnerモード（-q）でも、APIバージョン5以降では終了コード1を返す
         val context = TestIoContext()
         val options = Options(
             src = "!! 'test error'",
@@ -3204,15 +3204,14 @@ class CliTest {
             scriptFile = null,
             embedded = false,
         )
-        val exception = assertFailsWith<ExitException> {
-            cliEvalImpl(context, options)
-        }
-        assertEquals(1, exception.code)
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(1, exitCode)
+        assertEquals(null, context.exitCode)
     }
 
     @Test
-    fun errorDoesNotExitBeforeApiVersion5() = runTest {
-        // APIバージョン4以前では、!! や実行時例外でスクリプトが死んでも終了コードは設定されない
+    fun errorReturnsZeroExitCodeBeforeApiVersion5() = runTest {
+        // APIバージョン4以前では、!! や実行時例外でスクリプトが死んでも終了コード0を返す
         val context = TestIoContext()
         val options = Options(
             src = "!! 'test error'",
@@ -3223,7 +3222,8 @@ class CliTest {
             scriptFile = null,
             embedded = false,
         )
-        cliEvalImpl(context, options)
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
         assertEquals(null, context.exitCode)
         assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
     }
