@@ -97,7 +97,7 @@ enum class Side {
 }
 
 enum class ComparisonOperatorType {
-    EQUAL,
+    EQUAL_EQUAL,
     EXCLAMATION_EQUAL,
     GREATER,
     LESS,
