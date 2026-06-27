@@ -453,11 +453,11 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         "GET" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
             if (arguments[0] is FluoriteStream) return@immediate FluoriteStream {
-                // 添字をすべて汲み、参照される最大のインデックスまで値ストリームを1パスして要素を拾う
+                // インデックスをすべて汲み、参照される最大のインデックスまで値ストリームを1パスして要素を拾う
                 val indices = mutableListOf<Int>()
                 arguments[0].toFlow().collect { indices += it.toFluoriteNumber(null).roundToInt() }
                 indices.forEach { if (it < 0) throw FluoriteException("Index must be non-negative".toFluoriteString()) }
-                val maxIndex = indices.maxOrNull() ?: return@FluoriteStream // 添字が空なら値ストリームは読まない
+                val maxIndex = indices.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まない
                 val items = mutableListOf<FluoriteValue>()
                 try {
                     arguments[1].toFlow().collect { item ->
