@@ -180,12 +180,12 @@ fun RuntimeContext.addDefaultIncPaths() {
     inc.values += "./.xarpite/lib".toFluoriteString()
 }
 
-suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
-    withEvaluator(ioContext) { context, evaluator ->
+suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }): Int {
+    return withEvaluator(ioContext) { context, evaluator ->
         if (options.apiVersion != null) {
             if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
                 context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
-                return@withEvaluator
+                return@withEvaluator 0
             }
             context.apiVersion = options.apiVersion
         }
@@ -213,6 +213,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
                     println(result.toFluoriteString(null))
                 }
             }
+            0
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
@@ -221,6 +222,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             if (options.verbose) {
                 context.io.err(e.stackTraceToString().toFluoriteString())
             }
+            0
         }
     }
 }
