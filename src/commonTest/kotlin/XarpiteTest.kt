@@ -1290,6 +1290,35 @@ class XarpiteTest {
     }
 
     @Test
+    fun strictEquality() = runTest {
+        // 同じ型かつ同じ内容なら一致、異なる内容なら不一致
+        assertEquals("[TRUE;FALSE;TRUE]", eval("[1 === 1, 1 === 2, 'abc' === 'abc']").array())
+        assertEquals("[FALSE;TRUE;FALSE]", eval("[1 !== 1, 1 !== 2, 'abc' !== 'abc']").array())
+
+        // 型が異なる場合は常に不一致
+        assertEquals(false, eval("1 === 1.0").boolean) // INTとDOUBLE
+        assertEquals(false, eval("1 === '1'").boolean) // INTとSTRING
+        assertEquals(true, eval("1 !== 1.0").boolean)
+
+        // 不変系の型は、別経路で作っても内容が同じなら一致
+        assertEquals(true, eval("('ab' & 'c') === 'abc'").boolean) // 別経路で組み立てた文字列
+        assertEquals(true, eval("BIG.of('5') === BIG.of('5')").boolean) // 別インスタンスのBIG
+        assertEquals(false, eval("5 === BIG.of('5')").boolean) // INTとBIGは別の型
+        assertEquals(true, eval("1.5 === 1.5").boolean) // DOUBLE
+        assertEquals(true, eval("TRUE === TRUE").boolean) // BOOLEAN
+        assertEquals(true, eval("NULL === NULL").boolean) // NULL
+        assertEquals("[TRUE;FALSE]", eval("[/abc/ === /abc/, /abc/ === /abd/]").array()) // REGEXは別経路でも内容
+
+        // 可変系の型は、同じインスタンスの場合のみ一致
+        assertEquals("[TRUE;FALSE]", eval("a := [1, 2]\n[a === a, [1, 2] === [1, 2]]").array()) // 配列
+        assertEquals("[TRUE;FALSE]", eval("a := {x: 1}\n[a === a, {x: 1} === {x: 1}]").array()) // オブジェクト
+        assertEquals("[TRUE;FALSE]", eval("f := (a -> a)\n[f === f, (a -> a) === (a -> a)]").array()) // 関数
+
+        // ストリームはインスタンスで比較する
+        assertEquals(true, eval("a := LOOP\na === a").boolean)
+    }
+
+    @Test
     fun fallbackMethod() = runTest {
         withEvaluator(UnsupportedIoContext()) { context, evaluator ->
             evaluator.defineMounts(context.run { createCommonMounts() })

@@ -31,7 +31,7 @@ $ xa '3 <= 10 <= 5'
 
 The following operators follow this specification:
 
-- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
+- `>` `<` `>=` `<=` `==` `!=` `===` `!==` `@` `!@` `?=`
 
 # Comparison Operators
 
@@ -86,6 +86,65 @@ This is the negation of the equality operator.
 ```shell
 $ xa '[1 != 2, 2 != 2, 3 != 2]'
 # [TRUE;FALSE;TRUE]
+```
+
+## Strict Equality Operator
+
+The strict equality operator `left === right` returns whether the values of both sides are strictly equal.
+
+When the types of the two sides differ, they are always judged to be not strictly equal.
+
+When the types are the same, whether they are strictly equal is judged per type, as shown in the following table.
+
+| Type | Name | Comparison |
+|---|---|---|
+| `INT` | Integer | Value contents |
+| `DOUBLE` | Float | Value contents |
+| `BIG` | Arbitrary-precision integer | Value contents |
+| `STRING` | String | Value contents |
+| `BOOLEAN` | Boolean | Value contents |
+| `NULL` | Null | Value contents |
+| `REGEX` | Regular expression | Value contents |
+| `OBJECT` | Object | Instance identity |
+| `ARRAY` | Array | Instance identity |
+| `BLOB` | Blob | Instance identity |
+| `STREAM` | Stream | Instance identity |
+| `PROMISE` | Promise | Instance identity |
+| `FUNCTION` | Function | Instance identity |
+| `ERROR` | Error | Instance identity |
+
+```shell
+$ xa -q '
+  OUT << 1 === 1
+  OUT << 1 === 1.0
+  OUT << 1 === 2
+'
+# TRUE
+# FALSE
+# FALSE
+
+$ xa -q '
+  OUT << (
+    a := [1, 2]
+    a === a
+  )
+'
+# TRUE
+```
+
+## Strict Inequality Operator
+
+The strict inequality operator `left !== right` is the negation of the strict equality operator `left === right`.
+
+```shell
+$ xa -q '
+  OUT << 1 !== 1
+  OUT << 1 !== 1.0
+  OUT << 1 !== 2
+'
+# FALSE
+# TRUE
+# TRUE
 ```
 
 # Containment Operators

@@ -265,6 +265,8 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
     val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
+        -"===" map { ComparisonOperatorType.EQUAL_EQUAL_EQUAL }, // ===
+        -"!==" map { ComparisonOperatorType.EXCLAMATION_EQUAL_EQUAL }, // !==
         -"==" map { ComparisonOperatorType.EQUAL_EQUAL }, // ==
         -"!=" map { ComparisonOperatorType.EXCLAMATION_EQUAL }, // !=
         -">=" map { ComparisonOperatorType.GREATER_EQUAL }, // >=
