@@ -10,7 +10,7 @@ This guide explains how to rewrite existing notations and idioms into equivalent
 
 ## API Version 5
 
-### The Exit Code on Termination by Error Is Now Non-Zero
+### The Exit Code on Termination by a Non-Native Error Is Now 1
 
 Up to API version 4, the process exit code was 0 when terminating with a non-native error.
 

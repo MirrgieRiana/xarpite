@@ -399,10 +399,7 @@ $ {
 - 1 - それ以外の場合
 
 ```shell
-$ xa -A 5 ' !! "error" '; echo $?
-# ERROR: error
-#   at -:1:2                !! "error"
-#   at -:1:1                 !! "error"...
+$ xa -A 5 ' !! "error" ' 2>/dev/null; echo $?
 # 1
 
 $ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?

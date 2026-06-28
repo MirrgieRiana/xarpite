@@ -399,10 +399,7 @@ The process exit code on termination by error follows the rules below.
 - 1 - Otherwise
 
 ```shell
-$ xa -A 5 ' !! "error" '; echo $?
-# ERROR: error
-#   at -:1:2                !! "error"
-#   at -:1:1                 !! "error"...
+$ xa -A 5 ' !! "error" ' 2>/dev/null; echo $?
 # 1
 
 $ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?
