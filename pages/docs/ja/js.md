@@ -10,7 +10,7 @@ XarpiteはJavaScript上での動作をサポートしています。
 
 ## JavaScriptオブジェクトの扱い
 
-JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されます。
+JavaScript側のオブジェクトは、`JS_OBJECT`クラスで表現されます。
 
 ## 暗黙の型変換
 
@@ -31,8 +31,8 @@ JavaScript側のオブジェクトは、 `JS_OBJECT` クラスで表現されま
 | 変換元<br>JavaScript | 変換先<br>Xarpite |
 |-------------------|----------------|
 | そのままの値            | `JS_OBJECT`    |
-| 整数 `Number`       | `INT`          |
-| 小数 `Number`       | `DOUBLE`       |
+| 整数`Number`       | `INT`          |
+| 小数`Number`       | `DOUBLE`       |
 | `String`          | `STRING`       |
 | `Boolean`         | `BOOLEAN`      |
 | `Array`           | `ARRAY`        |
@@ -50,9 +50,9 @@ JavaScriptの関数は、Xarpiteの関数のように呼び出すことができ
 
 ## プロパティアクセス
 
-`js_object.property` によってJavaScriptのプロパティを取得できます。
+`js_object.property`によってJavaScriptのプロパティを取得できます。
 
-`js_object.property = value` によって代入もできます。
+`js_object.property = value`によって代入もできます。
 
 どちらも暗黙の型変換が行われます。
 
@@ -65,7 +65,7 @@ obj.b
 
 ## メソッド呼び出し
 
-`js_object::method(arguments)` によってJavaScriptオブジェクトのメソッドを呼び出すことができます。
+`js_object::method(arguments)`によってJavaScriptオブジェクトのメソッドを呼び出すことができます。
 
 引数および戻り値は暗黙の型変換が行われます。
 
@@ -81,7 +81,7 @@ JavaScript版Xarpiteでのみ利用可能な定数および関数です。
 
 ## `JS_OBJECT` JavaScriptオブジェクトのクラス
 
-`JS_OBJECT` はJavaScriptのオブジェクト全般を表すクラスです。
+`JS_OBJECT`はJavaScriptのオブジェクト全般を表すクラスです。
 
 ### `::new(arguments)` JavaScriptコンストラクターの呼び出し
 
@@ -105,7 +105,7 @@ Basket::new("apple")
 # Basket[apple]
 ```
 
-## `OUT` コンソールに出力
+## `OUT`コンソールに出力
 
 `OUT(value: VALUE): NULL`
 
@@ -117,7 +117,7 @@ Basket::new("apple")
 
 その実行環境から参照可能である場合、windowオブジェクトを返します。
 
-## `PWD` 現在のページのURLを取得
+## `PWD`現在のページのURLを取得
 
 `PWD: STRING`
 
@@ -154,7 +154,7 @@ JS('(function(a, b) {
 # 3
 ```
 
-## `ASYNC` 非同期関数の生成
+## `ASYNC`非同期関数の生成
 
 `ASYNC(function: FUNCTION): JS_OBJECT`
 
