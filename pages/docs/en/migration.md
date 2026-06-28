@@ -12,16 +12,13 @@ This guide explains how to rewrite existing notations and idioms into equivalent
 
 ### The Exit Code on Termination by Error Is Now Non-Zero
 
-Up to API version 4, the process exit code was 0 even when a script terminated with an error.
+Up to API version 4, the process exit code was 0 when terminating with a non-native error.
 
-In API version 5, when a script terminates with an error, the process exit code becomes 1.
+In API version 5, the process exit code becomes 1 even when terminating with a non-native error.
 
-To preserve the previous exit code, ignore the exit code on the command invocation side.
+There is no way to perform the migration while strictly preserving the behavior.
 
-```diff
-- xa script.xa1
-+ xa script.xa1 || true
-```
+In most cases nothing needs to be done, but the behavior may change for scripts that depend on the exit code on error.
 
 ### `IN` Now Reads the Entire Standard Input as a Single String
 

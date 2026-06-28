@@ -393,9 +393,10 @@ $ {
 
 When the program terminates due to an uncaught error, that value is output to standard error.
 
-Up to API version 4, the process exit code was 0 even when terminating with an error in this way.
+The process exit code on termination by error follows the rules below.
 
-In API version 5, when terminating with an error, the process exits with exit code 1.
+- 0 - When terminating with a non-native error in API version 4 or earlier
+- 1 - Otherwise
 
 ```shell
 $ xa -A 5 ' !! "error" '; echo $?
@@ -403,6 +404,9 @@ $ xa -A 5 ' !! "error" '; echo $?
 #   at -:1:2                !! "error"
 #   at -:1:1                 !! "error"...
 # 1
+
+$ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?
+# 0
 ```
 
 ## Other Commands
