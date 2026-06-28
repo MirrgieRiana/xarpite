@@ -166,21 +166,21 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
 
         assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
-        assertFails { eval("GET(-1, 0; 10, 20, 30)") } // インデックスがストリームでも負のインデックスが混入すればエラーになる
+        assertFails { eval("GET(-1, 0; 10, 20, 30)") } // インデックスがストリームでも負のインデックスが混入すればエラーになるのだ
 
-        assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになる
-        assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できる
-        assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream()) // 範囲外のインデックスはその位置だけ NULL になる
-        assertEquals("", eval("GET(,; 10, 20, 30)").stream()) // インデックスが空ストリームの場合、空ストリームになる
+        assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになるのだ
+        assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できるのだ
+        assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream()) // 範囲外のインデックスはその位置だけ NULL になるのだ
+        assertEquals("", eval("GET(,; 10, 20, 30)").stream()) // インデックスが空ストリームの場合、空ストリームになるのだ
 
         assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
         assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
 
-        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームかつインデックスが非ストリームの場合、NULL になる
-        assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream()) // 値が空ストリームかつインデックスがストリームの場合、NULL のストリームになる
+        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームかつインデックスが非ストリームの場合、NULL になるのだ
+        assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream()) // 値が空ストリームかつインデックスがストリームの場合、NULL のストリームになるのだ
 
         assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
-        assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスストリームでも部分適用できる
+        assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスストリームでも部分適用できるのだ
 
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -193,7 +193,7 @@ class StreamMountsTest {
             stream := 1 .. 100 | ( array::push << _ ; _ )
             (GET(0, 2; stream)) >> VOID
             array
-        """).array()) // インデックスがストリームの場合も最大のインデックスまでしか読まない
+        """).array()) // インデックスがストリームの場合も最大のインデックスまでしか読まないのだ
 
         assertEquals(2, eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
