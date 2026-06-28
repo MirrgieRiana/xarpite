@@ -180,6 +180,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
 
     override fun toString() = "[${values.joinToString(";") { "$it" }}]"
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 fun FluoriteArray() = FluoriteArray(mutableListOf())

@@ -52,6 +52,7 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun toString() = "FluoriteBlob(size=${value.size})"
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)

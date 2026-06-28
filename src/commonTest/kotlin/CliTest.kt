@@ -3171,6 +3171,43 @@ class CliTest {
         )
     }
 
+    @Test
+    fun cliEvalReturnsZeroExitCodeOnSuccess() = runTest {
+        // cliEval は正常終了時に終了コード0を返す
+        val context = TestIoContext()
+        val options = Options(
+            src = "OUT('ok')",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
+        assertEquals(null, context.exitCode)
+    }
+
+    @Test
+    fun cliEvalReturnsExitCodeWithoutCallingExitOnError() = runTest {
+        // cliEval はエラー終了時も終了コードを返すだけで、自身では exit を呼ばない（REPL 等での再利用のため）
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
+        assertEquals(null, context.exitCode)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {
