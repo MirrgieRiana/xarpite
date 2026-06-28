@@ -455,14 +455,14 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             val indices = arguments[0]
             if (indices is FluoriteStream) {
                 FluoriteStream {
-                    // インデックスをすべて走査し、参照される最大のインデックスまで値ストリームをイテレートして要素を回収するのだ
+                    // インデックスをすべて走査し、参照される最大のインデックスまで値ストリームをイテレートして要素を回収するのだ。
                     val indexList = mutableListOf<Int>()
                     indices.toFlow().collect { item ->
                         val index = item.toFluoriteNumber(null).roundToInt()
                         if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
                         indexList += index
                     }
-                    val maxIndex = indexList.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まないのだ
+                    val maxIndex = indexList.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まないのだ。
                     val items = mutableListOf<FluoriteValue>()
                     var position = 0
                     try {
@@ -470,7 +470,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             items += item
                             position++
                             if (position > maxIndex) {
-                                throw IterationAborted // 参照される最大のインデックスまで読めば先読みせず打ち切るのだ
+                                throw IterationAborted // 参照される最大のインデックスまで読めば先読みせず打ち切るのだ。
                             }
                         }
                     } catch (_: IterationAborted) {
@@ -491,7 +491,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         stream.collect { item ->
                             if (position == index) {
                                 result = item
-                                throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切るのだ
+                                throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切るのだ。
                             }
                             position++
                         }
