@@ -95,6 +95,7 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
 
     override fun toString() = stringCache
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
 }
 
 fun String.toFluoriteRegex(flags: String? = null) = FluoriteRegex(this, flags)

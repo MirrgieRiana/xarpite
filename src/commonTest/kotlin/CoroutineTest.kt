@@ -1,5 +1,10 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.LazyMount
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.mounts.createCommonMounts
@@ -169,6 +174,28 @@ class CoroutineTest {
     }
 
     @Test
+    fun lazyMountInitializesOnce() = runTest {
+        // initializer は suspend するため、直列化がないと初期化中の再入で initializer が二重に走る
+        var initializationCount = 0
+        val mount = LazyMount {
+            initializationCount++
+            delay(10) // 初期化の途中で中断し、別コルーチンの再入を誘発する
+            FluoriteInt(123)
+        }
+        val results = coroutineScope {
+            val job1 = async { mount.get() }
+            val job2 = async { mount.get() }
+            listOf(job1.await(), job2.await())
+        }
+
+        // 同時アクセスでも initializer は1度しか実行されない
+        assertEquals(1, initializationCount)
+        // どちらの get() も同一の初期化結果を返す
+        assertEquals(FluoriteInt(123), results[0])
+        assertEquals(FluoriteInt(123), results[1])
+    }
+
+    @Test
     fun streamLaunch() = runTest {
 
         // LAUNCH ラムダの戻り値のストリームは、awaitされなくても1度だけイテレートされる
@@ -212,9 +239,17 @@ class CoroutineTest {
 
     @Test
     fun sleep() = runTest {
-        // runTestを使うとdelayが即終了するので待機時間のテストは行わない
+        // runTestの仮想時間でdelayが進むため、待機したミリ秒数を currentTime の差分で検証する
 
-        assertEquals(FluoriteNull, eval("SLEEP(1000)")) // SLEEP で一定時間待つ
+        // APIバージョン4では引数をミリ秒として扱う
+        val before4 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(1000)", apiVersion = 4))
+        assertEquals(1000L, testScheduler.currentTime - before4)
+
+        // APIバージョン5では引数を秒として扱い、小数も指定できる
+        val before5 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(0.5)", apiVersion = 5))
+        assertEquals(500L, testScheduler.currentTime - before5)
     }
 
     @Test

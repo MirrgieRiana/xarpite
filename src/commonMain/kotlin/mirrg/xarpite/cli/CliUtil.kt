@@ -12,10 +12,11 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.getProgramName
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.readAllStringFromStdin
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
 
-class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val scriptFile: String?)
+class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int?, val scriptFile: String?, val embedded: Boolean)
 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
@@ -25,8 +26,10 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     val arguments = mutableListOf<String>()
     var quiet = false
     var verbose = false
+    var apiVersion: Int? = null
     var scriptFile: String? = null
     var script: String? = null
+    var embedded = false
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
 
     // オプションセクションのパース
@@ -63,6 +66,14 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     continue
                 }
 
+                "-A" -> { // APIバージョンの指定
+                    if (apiVersion != null) throw ShowUsage
+                    list.removeFirst()
+                    if (list.isEmpty()) throw ShowUsage
+                    apiVersion = list.removeFirst().toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowUsage
+                    continue
+                }
+
                 "-f" -> { // スクリプトファイルの指定
                     if (scriptFile != null) throw ShowUsage
                     if (script != null) throw ShowUsage
@@ -78,6 +89,13 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
                     list.removeFirst()
                     if (list.isEmpty()) throw ShowUsage
                     script = list.removeFirst()
+                    continue
+                }
+
+                "-E" -> { // embeddedモード
+                    if (embedded) throw ShowUsage
+                    list.removeFirst()
+                    embedded = true
                     continue
                 }
 
@@ -111,7 +129,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     if (scriptFile != null) {
         if (scriptFile == "-") {
             // -f - の場合は標準入力から読み込む
-            script = loadScriptFromStdin(ioContext)
+            script = ioContext.readAllStringFromStdin()
         } else {
             val fileSystem = getFileSystem().getOrThrow()
             script = fileSystem.read(scriptFile.toPath()) {
@@ -120,23 +138,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
-    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, scriptFile)
-}
-
-private suspend fun loadScriptFromStdin(ioContext: IoContext): String {
-    val chunks = mutableListOf<ByteArray>()
-    while (true) {
-        val chunk = ioContext.readBytesFromStdin() ?: break
-        chunks.add(chunk)
-    }
-    val totalSize = chunks.sumOf { it.size }
-    val result = ByteArray(totalSize)
-    var offset = 0
-    chunks.forEach { chunk ->
-        chunk.copyInto(result, offset)
-        offset += chunk.size
-    }
-    return result.decodeToString()
+    return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile, embedded)
 }
 
 fun showUsage(ioContext: IoContext) {
@@ -156,11 +158,13 @@ fun showUsage(ioContext: IoContext) {
     println("  -v, --version            Show version")
     println("  -q                       Run script as a runner")
     println("  --verbose                Display Kotlin stack traces")
+    println("  -A <apiversion>          Set the API version")
     println("  -f <scriptfile>          Read script from file")
     println("                           Use '-' to read from stdin")
     println("                           Omit [$firstArgName]")
     println("  -e <script>              Evaluate script directly")
     println("                           Omit [$firstArgName]")
+    println("  -E                       Interpret the entire script as an embedded string literal")
     println("")
     println("Repository: https://github.com/MirrgieRiana/xarpite")
 }
@@ -176,8 +180,15 @@ fun RuntimeContext.addDefaultIncPaths() {
     inc.values += "./.xarpite/lib".toFluoriteString()
 }
 
-suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }) {
-    withEvaluator(ioContext) { context, evaluator ->
+suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }): Int {
+    return withEvaluator(ioContext) { context, evaluator ->
+        if (options.apiVersion != null) {
+            if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
+                context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
+                return@withEvaluator 0
+            }
+            context.apiVersion = options.apiVersion
+        }
         context.addDefaultIncPaths()
         val location = ioContext.getPwd().toPath().resolve(options.scriptFile ?: "-").normalized().toString()
         context.setSrc(location, options.src)
@@ -189,10 +200,12 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
         evaluator.defineMounts(mountsFactory(location))
         try {
             if (options.quiet) {
-                evaluator.run(location, options.src)
+                evaluator.run(location, options.src, options.embedded)
             } else {
-                val result = evaluator.get(location, options.src)
-                if (result is FluoriteStream) {
+                val result = evaluator.get(location, options.src, options.embedded)
+                if (options.embedded) {
+                    context.io.writeBytesToStdout(result.toFluoriteString(null).value.encodeToByteArray())
+                } else if (result is FluoriteStream) {
                     result.collect {
                         println(it.toFluoriteString(null))
                     }
@@ -200,6 +213,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
                     println(result.toFluoriteString(null))
                 }
             }
+            0
         } catch (e: FluoriteException) {
             context.io.err("ERROR: ${e.message}".toFluoriteString())
             e.stackTrace?.reversed()?.forEach { position ->
@@ -208,6 +222,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             if (options.verbose) {
                 context.io.err(e.stackTraceToString().toFluoriteString())
             }
+            if (context.apiVersion >= 5) 1 else 0
         }
     }
 }

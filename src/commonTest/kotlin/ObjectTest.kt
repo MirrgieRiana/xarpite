@@ -50,6 +50,17 @@ class ObjectTest {
     }
 
     @Test
+    fun parent() = runTest {
+        assertEquals(true, eval("PARENT(1) == INT").boolean) // PARENT で値の親オブジェクトを得る
+        assertEquals(true, eval("PARENT(INT) == VALUE").boolean) // クラスの親はその親クラス
+        assertEquals(true, eval("PARENT(VALUE) == NULL").boolean) // 親を持たない値は NULL を返す
+        assertEquals(true, eval("PARENT({}) == OBJECT").boolean) // オブジェクトリテラルの親は OBJECT
+        assertEquals(true, eval("A := {}; a := A{}; PARENT(a) == A").boolean) // インスタンスの親はそのクラス
+        assertEquals(true, eval("Animal := {}; Human := Animal{}; PARENT(Human) == Animal").boolean) // クラスの親は親クラス
+        assertEquals(true, eval("PARENT(1, 2, 3) == STREAM").boolean) // ストリームを渡すとストリーム自身の親 STREAM を返す
+    }
+
+    @Test
     fun invert() = runTest {
         // 基本的な反転
         assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)

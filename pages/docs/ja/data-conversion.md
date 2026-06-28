@@ -6,11 +6,11 @@ title: "データ変換系関数"
 
 # データ変換系関数
 
-## `BASE` 整数を任意の基数の文字列に変換
+## `BASE`整数を任意の基数の文字列に変換
 
 `BASE(radix: NUMBER; number: NUMBER): STRING`
 
-`number` を `radix` 進数の文字列に変換します。
+`number`を`radix`進数の文字列に変換します。
 
 ```shell
 $ xa 'BASE(16; 248)'
@@ -21,7 +21,7 @@ $ xa 'BASE(16; 248)'
 
 ---
 
-逆変換の `BASED` 関数もあります。
+逆変換の`BASED`関数もあります。
 
 ```shell
 $ xa 'BASED(16; "F8")'
@@ -57,11 +57,11 @@ $ xa '248 >> BASE[16] >> BASED[16]'
 # 248
 ```
 
-## `BASED` 任意の基数の文字列を整数に変換
+## `BASED`任意の基数の文字列を整数に変換
 
 `BASED(radix: NUMBER; string: STRING): NUMBER`
 
-`radix` 進数で表記された文字列 `string` を整数に変換します。
+`radix`進数で表記された文字列`string`を整数に変換します。
 
 ```shell
 $ xa 'BASED(16; "F8")'
@@ -70,9 +70,9 @@ $ xa 'BASED(16; "F8")'
 
 ---
 
-この関数は `BASE` 関数の逆変換です。
+この関数は`BASE`関数の逆変換です。
 
-基本的なことは `BASE` 関数を参照してください。
+基本的なことは`BASE`関数を参照してください。
 
 ---
 
@@ -89,11 +89,11 @@ $ xa '"fF" >> BASED[16]'
 # 255
 ```
 
-## `UTF8` 文字列をUTF-8でエンコードされたBLOBに変換
+## `UTF8`文字列をUTF-8でエンコードされたBLOBに変換
 
 `UTF8(string: STRING): BLOB`
 
-`string` をUTF-8でエンコードしたBLOBを返します。
+`string`をUTF-8でエンコードしたBLOBを返します。
 
 ```shell
 $ xa ' "abc123αβγ" >> UTF8 '
@@ -104,9 +104,9 @@ $ xa ' "abc123αβγ" >> UTF8 '
 
 `UTF8D(blobLike: BLOB_LIKE): STRING`
 
-`blobLike` をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
+`blobLike`をUTF-8でエンコードされたバイト列とみなして単一の文字列にデコードします。
 
-`BLOB_LIKE` についてはBLOBを参照してください。
+`BLOB_LIKE`についてはBLOBを参照してください。
 
 この関数は改行文字の正規化を行いません。
 
@@ -125,11 +125,11 @@ $ xa 'BLOB.of([206, 177, 206]), BLOB.of([178, 206, 179]) >> UTF8D
 # αβγ
 ```
 
-## `BASE64` 文字列をBase64文字列に変換
+## `BASE64`文字列をBase64文字列に変換
 
 `BASE64(string: STRING): STRING`
 
-`string` をBase64形式でエンコードした文字列を返します。
+`string`をBase64形式でエンコードした文字列を返します。
 
 ```shell
 $ xa ' "Hello, World!" >> BASE64 '
@@ -151,7 +151,7 @@ $ xa ' "Hello, World!" * 10 >> BASE64 '
 
 `BASE64D(string: STRING): STRING`
 
-Base64形式でエンコードされた文字列 `string` をデコードした文字列を返します。
+Base64形式でエンコードされた文字列`string`をデコードした文字列を返します。
 
 ```shell
 $ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
@@ -167,11 +167,11 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
-## `URL` 文字列をURLエンコード
+## `URL`文字列をURLエンコード
 
 `URL(string: STRING): STRING`
 
-`string` を `application/x-www-form-urlencoded` 形式でエンコードします。
+`string`を`application/x-www-form-urlencoded`形式でエンコードします。
 
 ```shell
 $ xa ' "Hello World" >> URL '
@@ -192,15 +192,15 @@ $ xa ' "こんにちは" >> URL '
 |-----------------------------------|-----------------------------|
 | `A-Z` `a-z` `0-9` `-` `_` `.` `~` | その文字自体                      |
 | 半角スペース                            | `+`                         |
-| 上記を除く文字                           | `%XX` 形式の16進数表記によるUTF-8バイト列 |
+| 上記を除く文字                           | `%XX`形式の16進数表記によるUTF-8バイト列 |
 
 ## `URLD` URLエンコードされた文字列をデコード
 
 `URLD(string: STRING): STRING`
 
-`application/x-www-form-urlencoded` 形式でエンコードされた文字列である `string` をデコードします。
+`application/x-www-form-urlencoded`形式でエンコードされた文字列である`string`をデコードします。
 
-この関数は `URL` 関数の逆変換です。
+この関数は`URL`関数の逆変換です。
 
 ```shell
 $ xa ' "Hello+World" >> URLD '
@@ -213,15 +213,15 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> URLD '
 # こんにちは
 ```
 
-## `PERCENT` 文字列をパーセントエンコード
+## `PERCENT`文字列をパーセントエンコード
 
 `PERCENT(string: STRING): STRING`
 
-`string` をパーセントエンコードします。
+`string`をパーセントエンコードします。
 
-`URL` 関数と異なり、半角スペースを含むすべての英数字以外の文字が `%XX` 方式でエンコードされます。
+`URL`関数と異なり、半角スペースを含むすべての英数字以外の文字が`%XX`方式でエンコードされます。
 
-その結果、エンコードされた文字列には `%` 以外の記号が一切出現しません。
+その結果、エンコードされた文字列には`%`以外の記号が一切出現しません。
 
 ```shell
 $ xa ' "Hello World" >> PERCENT '
@@ -241,15 +241,15 @@ $ xa ' "こんにちは" >> PERCENT '
 | 文字                | エンコード方法                     |
 |-------------------|-----------------------------|
 | `A-Z` `a-z` `0-9` | その文字自体                      |
-| 上記を除く文字           | `%XX` 形式の16進数表記によるUTF-8バイト列 |
+| 上記を除く文字           | `%XX`形式の16進数表記によるUTF-8バイト列 |
 
-## `PERCENTD` パーセントエンコードされた文字列をデコード
+## `PERCENTD`パーセントエンコードされた文字列をデコード
 
 `PERCENTD(string: STRING): STRING`
 
-パーセントエンコードされた文字列である `string` をデコードします。
+パーセントエンコードされた文字列である`string`をデコードします。
 
-この関数は `PERCENT` 関数の逆変換です。
+この関数は`PERCENT`関数の逆変換です。
 
 ```shell
 $ xa ' "Hello%20World" >> PERCENTD '
@@ -262,15 +262,15 @@ $ xa ' "%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" >> PERCENTD '
 # こんにちは
 ```
 
-## `SHELL_ESCAPE` / `BASH_ESCAPE` シェル用エスケープ
+## `SHELL_ESCAPE` / `BASH_ESCAPE`シェル用エスケープ
 
 `SHELL_ESCAPE(string: STRING): STRING`
 
-`string` をシェルに安全に渡せる形式にエスケープします。
+`string`をシェルに安全に渡せる形式にエスケープします。
 
-具体的には `'` を `'\''` に置換し、全体をシングルクォートで囲みます。
+具体的には`'`を`'\''`に置換し、全体をシングルクォートで囲みます。
 
-`BASH_ESCAPE` は `SHELL_ESCAPE` の別名であり、同一の動作を持ちます。
+`BASH_ESCAPE`は`SHELL_ESCAPE`の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa 'SHELL_ESCAPE("Hello, World!")'
@@ -280,13 +280,13 @@ $ xa "SHELL_ESCAPE(%>Don't ask<%)"
 # 'Don'\''t ask'
 ```
 
-## `REGEX_ESCAPE` 正規表現用エスケープ
+## `REGEX_ESCAPE`正規表現用エスケープ
 
 `REGEX_ESCAPE(string: STRING): STRING`
 
-`string` を正規表現内の文字クラスの外でリテラルとして扱える形式にエスケープします。
+`string`を正規表現内の文字クラスの外でリテラルとして扱える形式にエスケープします。
 
-具体的には、正規表現のメタ文字 `\ ^ $ . | ? * + ( ) [ ] { }` の直前にバックスラッシュを付加します。
+具体的には、正規表現のメタ文字`\ ^ $ . | ? * + ( ) [ ] { }`の直前にバックスラッシュを付加します。
 
 ```shell
 $ xa 'REGEX_ESCAPE("a.b")'
@@ -296,20 +296,22 @@ $ xa 'REGEX_ESCAPE("1+1=2")'
 # 1\+1=2
 ```
 
-## `JSON` 値をJSON文字列に変換
+## `JSON`値をJSON文字列に変換
 
 `JSON([indent: [indent: ]STRING | NUMBER | NULL; ]value: VALUE): STRING`
 
-`value` をJSON形式の文字列に変換します。
+`value`をJSON形式の文字列に変換します。
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON'
 # {"a":1,"b":2}
 ```
 
+APIバージョン5以降では、`indent`を省略した場合、デフォルトで2個の半角空白によるインデントが使用されます。
+
 ---
 
-`indent` に文字列を指定した場合、その文字列がインデントとして使用されます。
+`indent`に文字列を指定した場合、その文字列がインデントとして使用されます。
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
@@ -321,7 +323,7 @@ $ xa '{a: 1; b: 2} >> JSON[indent: "  "]'
 
 ---
 
-`indent` に数値を指定した場合、その個数の半角空白がインデントとして使用されます。
+`indent`に数値を指定した場合、その個数の半角空白がインデントとして使用されます。
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: 2]'
@@ -333,7 +335,7 @@ $ xa '{a: 1; b: 2} >> JSON[indent: 2]'
 
 ---
 
-`indent` に `NULL` を指定した場合、インデントは使用されず、コンパクトな出力になります。
+`indent`に`NULL`を指定した場合、インデントは使用されず、コンパクトな出力になります。
 
 ```shell
 $ xa '{a: 1; b: 2} >> JSON[indent: NULL]'
@@ -344,20 +346,22 @@ $ xa '{a: 1; b: 2} >> JSON[indent: NULL]'
 
 `JSOND(json: STRING): VALUE`
 
-`json` を対応する値に変換します。
+`json`を対応する値に変換します。
 
 ```shell
 $ xa ' "{\"a\": 1, \"b\": 2}" >> JSOND '
 # {a:1;b:2}
 ```
 
-## `JSONS` / `JSONL` 値のストリームをJSON文字列のストリームに変換
+## `JSONS` / `JSONL`値のストリームをJSON文字列のストリームに変換
 
 `JSONS([indent: [indent: ]STRING | NUMBER | NULL; ]values: STREAM<VALUE>): STREAM<STRING>`
 
-`values` の各要素をJSON形式の文字列に変換するストリームを返します。
+`values`の各要素をJSON形式の文字列に変換するストリームを返します。
 
-`JSONL` は `JSONS` の別名であり、同一の動作を持ちます。
+`JSONL`は`JSONS`の別名であり、同一の動作を持ちます。
+
+APIバージョン5からは、`JSONS`関数は削除され、`JSONL`関数のみが利用できます。
 
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
@@ -365,15 +369,15 @@ $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"b":2}
 ```
 
-`indent` に関する仕様は `JSON` 関数と同様です。
+`indent`に関する仕様は`JSON`関数と同様です。
 
 ## `JSONSD` / `JSONLD` JSON文字列のストリームを値のストリームに変換
 
 `JSONSD(jsons: STREAM<STRING>): STREAM<VALUE>`
 
-`jsons` の各要素を対応する値に変換するストリームを返します。
+`jsons`の各要素を対応する値に変換するストリームを返します。
 
-`JSONLD` は `JSONSD` の別名であり、同一の動作を持ちます。
+`JSONLD`は`JSONSD`の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa ' "{\"a\": 1}", "{\"b\": 2}" >> JSONSD '
@@ -398,9 +402,9 @@ $ xa '
 # {b:2}
 ```
 
-## `CSV` 配列をCSV文字列に変換
+## `CSV`配列をCSV文字列に変換
 
-`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`
 
 文字列の配列やそのストリームを、CSV行の文字列やそのストリームにエンコードします。
 
@@ -422,9 +426,9 @@ $ xa '
 
 ---
 
-区切り文字は `separator` パラメータで指定できます。
+区切り文字は`separator`パラメータで指定できます。
 
-デフォルトはカンマ `,` です。
+デフォルトはカンマ`,`です。
 
 ```shell
 $ xa ' [1;2;3] >> CSV[separator: "|"] '
@@ -435,9 +439,9 @@ $ xa ' [1;2;3] >> CSV[separator: "|"] '
 
 前後に半角空白やタブ文字を含むか、区切り文字か引用符か改行文字を含むセルは、引用符で囲むことで表現します。
 
-引用符は `quote` パラメータで指定できます。
+引用符は`quote`パラメータで指定できます。
 
-デフォルトはダブルクォート `"` です。
+デフォルトはダブルクォート`"`です。
 
 ```shell
 $ xa ' [1;" 2 ";3] >> CSV '
@@ -456,11 +460,11 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` CSV文字列を配列に変換
 
-`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>`
 
 CSV行の文字列やそのストリームを、文字列の配列やそのストリームにデコードします。
 
-多くの仕様は `CSV` と共通です。
+多くの仕様は`CSV`と共通です。
 
 ```shell
 $ xa '
@@ -493,14 +497,14 @@ $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 # ["","1","","3",""]
 ```
 
-## `TSV` 配列をTSV文字列に変換
+## `TSV`配列をTSV文字列に変換
 
-`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`
 
-`CSV` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
+`CSV`関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字`\t`です。
 
 ## `TSVD` TSV文字列を配列に変換
 
-`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>`
 
-`CSVD` 関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字 `\t` です。
+`CSVD`関数と同一の動作を持ちますが、区切り文字のデフォルトがタブ文字`\t`です。

@@ -54,6 +54,7 @@ fun main(args: Array<String>) {
             showVersion(ioContext)
             return@runBlocking
         }
-        cliEval(ioContext, options)
+        val exitCode = cliEval(ioContext, options)
+        if (exitCode != 0) ioContext.exit(exitCode)
     }
 }

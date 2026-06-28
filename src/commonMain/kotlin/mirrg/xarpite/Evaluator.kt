@@ -15,7 +15,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.operations.Returner
 
-class Evaluator {
+class Evaluator(private val context: RuntimeContext) {
 
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
@@ -26,19 +26,22 @@ class Evaluator {
         val runners = maps.map {
             frame.defineBuiltinMount(it)
         }
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         runners.forEach {
             it.evaluate(env)
         }
     }
 
-    suspend fun get(location: String, src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun get(location: String, src: String, embedded: Boolean): FluoriteValue {
+        val parseResult = XarpiteGrammar(location, context.apiVersion)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         return withStackTrace(Position(location, 0)) {
             try {
@@ -51,12 +54,15 @@ class Evaluator {
         }
     }
 
-    suspend fun run(location: String, src: String) {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
+    suspend fun run(location: String, src: String, embedded: Boolean) {
+        val parseResult = XarpiteGrammar(location, context.apiVersion)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         withStackTrace(Position(location, 0)) {
             try {
@@ -78,7 +84,8 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
     try {
         return coroutineScope main@{
             withContext(StackTrace()) {
-                block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
+                val context = RuntimeContext(this, daemonScope, ioContext)
+                block(context, Evaluator(context))
             }
         }
     } finally {

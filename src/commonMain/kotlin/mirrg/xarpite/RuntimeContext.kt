@@ -20,6 +20,16 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+    companion object {
+        val SUPPORTED_API_VERSIONS = 4..5
+    }
+
+    var apiVersion = SUPPORTED_API_VERSIONS.first
+        set(value) {
+            check(value in SUPPORTED_API_VERSIONS) { "This environment does not support API version $value" }
+            field = value
+        }
+
 
     val httpClient by lazy {
         val httpClient = HttpClient()
@@ -121,4 +131,20 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = throw UnsupportedOperationException()
     override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
     override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
+}
+
+suspend fun IoContext.readAllStringFromStdin(): String {
+    val chunks = mutableListOf<ByteArray>()
+    while (true) {
+        val chunk = this.readBytesFromStdin() ?: break
+        chunks.add(chunk)
+    }
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    chunks.forEach { chunk ->
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
 }

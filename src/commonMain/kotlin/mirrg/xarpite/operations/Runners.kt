@@ -39,7 +39,7 @@ class TryCatchWithVariableRunner(private val leftRunners: List<Runner>, private 
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
-            val newEnv = Environment(env, 1, 0)
+            val newEnv = Environment(env.context, env, 1, 0)
             newEnv.variableTable[newFrameIndex][argumentVariableIndex] = LocalVariable(e.toFluoriteValue())
             rightRunners.forEach {
                 it.evaluate(newEnv)
@@ -73,7 +73,7 @@ class TryCatchRunner(private val leftRunners: List<Runner>, private val rightRun
 class LabelRunner(private val frameIndex: Int, private val variableIndex: Int, private val name: String, private val runners: List<Runner>) : Runner {
     override suspend fun evaluate(env: Environment) {
         val label = Label(name)
-        val newEnv = Environment(env, 1, 0)
+        val newEnv = Environment(env.context, env, 1, 0)
         newEnv.variableTable[frameIndex][variableIndex] = label
         try {
             runners.forEach {

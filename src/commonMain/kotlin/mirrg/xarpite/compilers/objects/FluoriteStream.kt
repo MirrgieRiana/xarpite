@@ -81,6 +81,7 @@ class FluoriteStream(val flowProvider: suspend FlowCollector<FluoriteValue>.() -
     }
 
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 fun FluoriteStream(vararg values: FluoriteValue) = FluoriteStream {

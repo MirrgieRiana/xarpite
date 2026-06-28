@@ -44,11 +44,13 @@ $ xarpite -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -92,11 +94,13 @@ $ xa -h | tail -n +2
 #   -v, --version            Show version
 #   -q                       Run script as a runner
 #   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
 #
 # Repository: https://github.com/MirrgieRiana/xarpite
 ```
@@ -254,6 +258,27 @@ Strictly speaking, this option specifies interpreting the entire source code as 
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
 
+## API Version
+
+### `-A`: Set the API Version
+
+`-A <apiversion>`
+
+Specifies the API version of the runtime.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
+
 ## Script Specification
 
 There are 6 ways to specify the Xarpite script to execute, divided by launch command and specification method.
@@ -339,6 +364,47 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 ---
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
+
+## Interpretation as an Embedded String Literal
+
+### `-E`: Interpret the Entire Script as an Embedded String Literal
+
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
+
+## Termination by Error
+
+When the program terminates due to an uncaught error, that value is output to standard error.
+
+The process exit code on termination by error follows the rules below.
+
+- 0 - When terminating with a non-native error in API version 4 or earlier
+- 1 - Otherwise
+
+```shell
+$ xa -A 5 ' !! "error" ' 2>/dev/null; echo $?
+# 1
+
+$ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?
+# 0
+```
 
 ## Other Commands
 
@@ -465,6 +531,56 @@ $ {
 # Apple
 ```
 
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
+
+### `API_VERSION`: Get the Currently Provided API Version
+
+`API_VERSION: INT`
+
+The API version currently provided by the runtime is stored as an integer.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: Check the API Version
+
+`API(apiVersion: INT): NULL`
+
+If the API version of the current runtime does not exactly match `apiVersion`, an error is thrown.
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
+
 ### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
@@ -478,6 +594,12 @@ $ { echo 123; echo 456; } | xa 'IN'
 # 123
 # 456
 ```
+
+---
+
+In API version 5, only `IN` is no longer an alias of these, and reads the entire standard input as a single string.
+
+In this case, `IN` returns the input string as-is, without modifying any newline characters.
 
 ---
 
@@ -525,13 +647,13 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`, `O`: Output to Console
+### `OUT`, `O`, `OUTL`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
 Outputs to standard output.
 
-`O` is an alias for `OUT`.
+`O` and `OUTL` are aliases for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
@@ -632,6 +754,8 @@ Gets a stream of filenames directly under the directory specified by `dir`.
 
 Filenames do not include directory paths.
 
+In API version 5, these are no longer aliases, and only `FILES` returns paths that include `dir` at the beginning.
+
 Returned files do not include `.` or `..`, but do include directories and other special files.
 
 Returned filenames are sorted in lexicographic order.
@@ -731,6 +855,12 @@ $ {
 # apple
 # banana
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+Newlines are not adjusted.
 
 ### `READB`: Read from Binary File
 
@@ -1047,6 +1177,37 @@ $ {
 # Apple
 ```
 
+### `XA`: Execute Xarpite Script
+
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
+
+Returns the result of evaluating the Xarpite script given by `script`.
+
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
+
+```shell
+$ xa 'XA("8 * 100 + 77")'
+# 877
+```
+
+#### `reference` Argument
+
+The `reference` argument is used as the location of `script`.
+
+`reference` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from the location of the script that called the `XA` function.
+
+If `reference` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
 ### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
@@ -1071,6 +1232,10 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 23
 # 30
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string.
 
 ---
 

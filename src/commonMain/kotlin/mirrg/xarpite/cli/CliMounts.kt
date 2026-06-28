@@ -1,10 +1,12 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -25,6 +27,7 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
+import mirrg.xarpite.readAllStringFromStdin
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -37,6 +40,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        "API_VERSION" define LazyMount { FluoriteInt(context.apiVersion) },
+        "API" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("API(version: INT): NULL")
+            val version = arguments[0]
+            if (version !is FluoriteInt) throw FluoriteException("API version must be an integer, got $version".toFluoriteString())
+            if (version.value != context.apiVersion) throw FluoriteException("Script requires API version ${version.value}, but the environment API version is ${context.apiVersion}".toFluoriteString())
+            FluoriteNull
+        },
+        *run {
+            val versionMatchResult by lazy {
+                val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""
+                """^(\d+)\.(\d+)\.(\d+)""".toRegex().find(version) ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
+            }
+            arrayOf(
+                "MAJOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[1].toInt()) },
+                "MINOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[2].toInt()) },
+                "PATCH" define LazyMount { FluoriteInt(versionMatchResult.groupValues[3].toInt()) },
+            )
+        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {
@@ -45,7 +67,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "IN" define inStream,
+                "IN" define if (context.apiVersion >= 5) LazyMount { context.io.readAllStringFromStdin().toFluoriteString() } else ConstantMount(inStream),
                 "I" define inStream,
                 "INL" define inStream,
             )
@@ -83,7 +105,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun create(name: String): FluoriteFunction {
+            fun createLineStream(name: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
@@ -98,9 +120,19 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
+            fun createString(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STRING")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.read(file.toPath()) { // TODO charset
+                        readUtf8()
+                    }.toFluoriteString()
+                }
+            }
             arrayOf(
-                "READ" define create("READ"),
-                "READL" define create("READL"),
+                "READ" define if (context.apiVersion >= 5) createString("READ") else createLineStream("READ"),
+                "READL" define createLineStream("READL"),
             )
         },
         "READB" define FluoriteFunction.immediate { arguments ->
@@ -155,17 +187,17 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun create(name: String): FluoriteFunction {
+            fun create(name: String, fullPath: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
                     val dir = arguments[0].toFluoriteString(null).value
                     val fileSystem = getFileSystem().getOrThrow()
-                    fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+                    fileSystem.list(dir.toPath()).map { (if (fullPath) it.toString() else it.name).toFluoriteString() }.toFluoriteStream()
                 }
             }
             arrayOf(
-                "FILES" define create("FILES"),
-                "FILE_NAMES" define create("FILE_NAMES"),
+                "FILES" define create("FILES", context.apiVersion >= 5),
+                "FILE_NAMES" define create("FILE_NAMES", false),
             )
         },
         *run {
@@ -240,6 +272,9 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     transform(output)
                 }
             }
+            fun toString(output: ByteArray): FluoriteString {
+                return output.decodeToString().toFluoriteString()
+            }
             fun toLineStream(output: ByteArray): FluoriteStream {
                 val lines = output.decodeToString().lines()
                 val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
@@ -253,7 +288,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 return listOf(output.asFluoriteBlob()).toFluoriteStream()
             }
             arrayOf(
-                "EXEC" define create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXEC" define if (context.apiVersion >= 5) create("EXEC", "STRING", ::toString) else create("EXEC", "STREAM<STRING>", ::toLineStream),
                 "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
                 "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
             )

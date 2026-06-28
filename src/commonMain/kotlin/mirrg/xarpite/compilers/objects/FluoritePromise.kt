@@ -61,4 +61,5 @@ class FluoritePromise : FluoriteValue {
 
     override fun toString() = "PROMISE[state=${if (deferred.isCompleted) "completed" else "pending"}]"
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }

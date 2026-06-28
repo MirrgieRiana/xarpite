@@ -24,6 +24,7 @@ fun createCommonMounts(): List<Map<String, Mount>> {
         createMathMounts(),
         createConvertMounts(),
         createArrayMounts(),
+        createObjectMounts(),
         createStreamMounts(),
         createDataConversionMounts(),
         createStringMounts(),

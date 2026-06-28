@@ -8,7 +8,7 @@ title: "Data Conversion Functions"
 
 ## `BASE` Convert Integer to String in Arbitrary Radix
 
-`BASE[radix: NUMBER](number: NUMBER): STRING`
+`BASE(radix: NUMBER; number: NUMBER): STRING`
 
 Converts `number` to a string representation in base `radix`.
 
@@ -59,7 +59,7 @@ $ xa '248 >> BASE[16] >> BASED[16]'
 
 ## `BASED` Convert String in Arbitrary Radix to Integer
 
-`BASED[radix: NUMBER](string: STRING): NUMBER`
+`BASED(radix: NUMBER; string: STRING): NUMBER`
 
 Converts the string `string` represented in base `radix` to an integer.
 
@@ -307,6 +307,8 @@ $ xa '{a: 1; b: 2} >> JSON'
 # {"a":1,"b":2}
 ```
 
+From API version 5 onward, when `indent` is omitted, an indentation of two spaces is used by default.
+
 ---
 
 If you pass a string to `indent`, that string is used for indentation.
@@ -359,6 +361,8 @@ Returns a stream that converts each element of `values` to a JSON-formatted stri
 
 `JSONL` is an alias of `JSONS` and has the same behavior.
 
+In API version 5, `JSONS` has been removed, and only `JSONL` is available.
+
 ```shell
 $ xa '{a: 1}, {b: 2} >> JSONS'
 # {"a":1}
@@ -400,7 +404,7 @@ $ xa '
 
 ## `CSV` Convert Array to CSV String
 
-`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`
 
 Encodes an array of strings or a stream thereof into a CSV row string or a stream thereof.
 
@@ -456,7 +460,7 @@ $ xa ' [1;" \"2\" ",3] >> CSV '
 
 ## `CSVD` Convert CSV String to Array
 
-`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`CSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>`
 
 Decodes a CSV row string or a stream thereof into an array of strings or a stream thereof.
 
@@ -495,12 +499,12 @@ $ xa ' " , 1 , , 3 , " >> CSVD >> JSON '
 
 ## `TSV` Convert Array to TSV String
 
-`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>`
+`TSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`
 
 Has the same behavior as the `CSV` function, but the default separator is the tab character `\t`.
 
 ## `TSVD` Convert TSV String to Array
 
-`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>`
+`TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>`
 
 Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.
