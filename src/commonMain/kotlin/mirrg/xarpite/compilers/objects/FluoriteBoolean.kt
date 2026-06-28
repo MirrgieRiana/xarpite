@@ -20,6 +20,7 @@ enum class FluoriteBoolean(val value: Boolean) : FluoriteValue {
 
     override fun toString() = if (value) "TRUE" else "FALSE"
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
     fun not() = if (value) FALSE else TRUE
 }
 

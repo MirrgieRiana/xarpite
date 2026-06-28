@@ -219,6 +219,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
 
     override fun toString() = value
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
 }
 
 fun String.toFluoriteString() = if (this.isEmpty()) FluoriteString.EMPTY else FluoriteString(this)

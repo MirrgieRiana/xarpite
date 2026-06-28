@@ -26,6 +26,11 @@ interface FluoriteValue {
     }
 
     val parent: FluoriteObject?
+
+    /**
+     * クラスが異なる場合は常に不一致とし、そうでない場合、不変系の型は内容で、可変系の型はインスタンスで比較するのだ。
+     */
+    fun strictEquals(other: FluoriteValue): Boolean
 }
 
 fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
