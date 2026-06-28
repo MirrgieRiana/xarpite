@@ -16,11 +16,11 @@ Up to API version 4, the process exit code was 0 even when a script terminated w
 
 In API version 5, when a script terminates with an error, the process exit code becomes 1.
 
-To preserve the previous behavior, catch errors with the `!?` operator so that the program does not terminate due to an error.
+To preserve the previous exit code, ignore the exit code on the command invocation side.
 
 ```diff
-- !! "error"
-+ !! "error" !? NULL
+- xa script.xa1
++ xa script.xa1 || true
 ```
 
 ### `IN` Now Reads the Entire Standard Input as a Single String
