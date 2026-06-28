@@ -18,13 +18,16 @@ import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
 import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.copy
 import mirrg.xarpite.define
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.math.roundToLong
 
 private var nextCoroutineId = 1
 
@@ -45,13 +48,13 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 emit(FluoriteNull)
             }
         },
-        "SLEEP" define FluoriteFunction { arguments ->
+        "SLEEP" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 0 -> yield()
 
                 1 -> {
                     val time = arguments[0] as FluoriteNumber
-                    val millis = time.toInt().toLong()
+                    val millis = if (context.apiVersion >= 5) (time.toDouble() * 1000.0).roundToLong() else time.toInt().toLong()
                     if (millis == 0L) {
                         yield()
                     } else {
@@ -59,17 +62,26 @@ fun createLangMounts(): List<Map<String, Mount>> {
                     }
                 }
 
-                else -> usage("SLEEP([milliseconds: NUMBER]): NULL")
+                else -> usage(if (context.apiVersion >= 5) "SLEEP([seconds: NUMBER]): NULL" else "SLEEP([milliseconds: NUMBER]): NULL")
             }
             FluoriteNull
         },
-        "CALL" define FluoriteFunction { arguments ->
-            if (arguments.size != 2) usage("CALL(function: FUNCTION; arguments: ARRAY<VALUE>): VALUE")
+        "NOP" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 0) usage("NOP(): NULL")
+            FluoriteNull
+        },
+        "RUN" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("<T> RUN(function: () -> T): T")
+            val function = arguments[0]
+            function.invokeImmediate(null, emptyArray())
+        },
+        "CALL" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<A..., T> CALL(function: (A) -> T; arguments: [A]): T")
             val function = arguments[0]
             val argumentsArray = arguments[1] as FluoriteArray
-            function.invoke(null, argumentsArray.values.toTypedArray())
+            function.invokeImmediate(null, argumentsArray.values.toTypedArray())
         },
-        "LAUNCH" define FluoriteFunction { arguments ->
+        "LAUNCH" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
             val function = arguments[0]
             val promise = FluoritePromise()
@@ -89,9 +101,29 @@ fun createLangMounts(): List<Map<String, Mount>> {
             nextCoroutineId++
             promise
         },
+        "LAUNCH2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 1) usage("<T> LAUNCH2(function(): T): PROMISE<T>")
+            val function = arguments[0]
+            val promise = FluoritePromise()
+            val coroutineId = nextCoroutineId
+            context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
+                try {
+                    promise.deferred.complete(function().cache())
+                } catch (e: Throwable) {
+                    try {
+                        context.io.err("COROUTINE[$coroutineId]: ${e.message ?: e.toString()}".toFluoriteString())
+                    } catch (_: Throwable) {
+                        // stderrへの出力に失敗しても、元の例外処理は継続する
+                    }
+                    promise.deferred.completeExceptionally(e)
+                }
+            }
+            nextCoroutineId++
+            promise
+        },
         *run {
             fun create(): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     arguments.forEach {
                         if (it is FluoriteStream) {
                             it.collect { item ->
@@ -107,15 +139,16 @@ fun createLangMounts(): List<Map<String, Mount>> {
             arrayOf(
                 "OUT" define create(),
                 "O" define create(),
+                "OUTL" define create(),
             )
         },
         *run {
             fun create(signature: String): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size == 2) {
                         val self = arguments[0]
                         val block = arguments[1]
-                        block.invoke(null, arrayOf(self))
+                        block.invokeImmediate(null, arrayOf(self))
                     } else {
                         usage(signature)
                     }
@@ -130,11 +163,11 @@ fun createLangMounts(): List<Map<String, Mount>> {
         },
         *run {
             fun create(signature: String): FluoriteValue {
-                return FluoriteFunction { arguments ->
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size == 2) {
                         val self = arguments[0]
                         val block = arguments[1]
-                        block.invoke(null, arrayOf(self)).consume()
+                        block.invokeImmediate(null, arrayOf(self)).consume()
                         self
                     } else {
                         usage(signature)
@@ -148,13 +181,33 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
-        "LAZY" define FluoriteFunction { arguments ->
+        "::CONTAINS" define fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction.immediate { arguments ->
+                if (arguments.size != 2) usage("VALUE::CONTAINS(content: VALUE): BOOLEAN")
+                arguments[0].contains(null, arguments[1])
+            },
+        ),
+        "LAZY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
             val initializer = arguments[0]
             var value: FluoriteValue? = null
-            FluoriteFunction {
+            FluoriteFunction.immediate {
                 if (value == null) {
                     val value2 = initializer.invoke(null, emptyArray()).cache()
+                    value = value2
+                    value2
+                } else {
+                    value
+                }
+            }
+        },
+        "LAZY2" define FluoriteFunction.create { arguments ->
+            if (arguments.size != 1) usage("<T> LAZY2(initializer(): T): () -> T")
+            val initializer = arguments[0]
+            var value: FluoriteValue? = null
+            FluoriteFunction.immediate {
+                if (value == null) {
+                    val value2 = initializer().cache()
                     value = value2
                     value2
                 } else {

@@ -250,7 +250,7 @@ class IncrementDecrementTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションが ++ 演算子の位置（index 3）を指していることを確認
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
@@ -267,7 +267,7 @@ class IncrementDecrementTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションが -- 演算子の位置（index 3）を指していることを確認
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")
@@ -284,7 +284,7 @@ class IncrementDecrementTest {
         val stackTrace = exception.stackTrace
         assertNotNull(stackTrace, "Stack trace should be set")
         assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
-        
+
         // 最後のポジションが ++ 演算子の位置（index 2）を指していることを確認
         val lastPosition = stackTrace.last()
         assertNotNull(lastPosition, "Last position should not be null")

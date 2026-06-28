@@ -5,11 +5,13 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamMountsTest {
@@ -22,6 +24,16 @@ class StreamMountsTest {
         assertEquals("[1;2]", eval("CHUNK(4; 1, 2)").stream()) // 全体の要素数が足りない場合、その配列になる
         assertEquals("[1]", eval("CHUNK(2; 1)").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
         assertEquals("", eval("CHUNK(2; ,)").stream()) // 空ストリームの場合、空ストリームになる
+    }
+
+    @Test
+    fun slide() = runTest {
+        assertEquals("[1;2;3],[2;3;4],[3;4;5]", eval("SLIDE(3; 1, 2, 3, 4, 5)").stream()) // SLIDE でスライディングウィンドウに分割する
+        assertEquals("[1;2],[2;3],[3;4],[4;5]", eval("SLIDE(2; 1, 2, 3, 4, 5)").stream()) // サイズ2の場合
+        assertEquals("[1;2]", eval("SLIDE(2; 1, 2)").stream()) // 全体の要素数が一致している場合、1個の配列になる
+        assertEquals("", eval("SLIDE(2; 1)").stream()) // 要素数がサイズに満たない場合、空ストリームになる
+        assertEquals("[1]", eval("SLIDE(1; 1)").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
+        assertEquals("", eval("SLIDE(2; ,)").stream()) // 空ストリームの場合、空ストリームになる
     }
 
     @Test
@@ -101,6 +113,16 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("MIN(,)")) // 空ストリームの場合、NULL
         assertEquals(3.0, eval("MAX(1.0, 2.0, 3.0)").double) // MAX で最大値を得る
         assertEquals(FluoriteNull, eval("MAX(,)")) // 空ストリームの場合、NULL
+        assertEquals(1, eval("1 MIN 2").int) // 中置 MIN で2値の小さい方を得る（左が小さい）
+        assertEquals(1, eval("2 MIN 1").int) // 中置 MIN で2値の小さい方を得る（右が小さい）
+        assertEquals(5, eval("5 MIN 5").int) // 中置 MIN で2値が等しい場合はその値を得る
+        assertEquals(2, eval("1 MAX 2").int) // 中置 MAX で2値の大きい方を得る（右が大きい）
+        assertEquals(2, eval("2 MAX 1").int) // 中置 MAX で2値の大きい方を得る（左が大きい）
+        assertEquals(5, eval("5 MAX 5").int) // 中置 MAX で2値が等しい場合はその値を得る
+        assertEquals(1, eval("(1, 3) MIN (2, 4)").int) // 2引数をストリームとして MIN できる
+        assertEquals(4, eval("(1, 3) MAX (2, 4)").int) // 2引数をストリームとして MAX できる
+        assertEquals(FluoriteNull, eval("MIN(,; ,)")) // 両引数が空ストリームの場合、NULL
+        assertEquals(FluoriteNull, eval("MAX(,; ,)")) // 両引数が空ストリームの場合、NULL
     }
 
     @Test
@@ -135,6 +157,44 @@ class StreamMountsTest {
     }
 
     @Test
+    fun get() = runTest {
+        assertEquals(10, eval("GET(0; 10, 20, 30)").int) // インデックスは0から始まる
+        assertEquals(20, eval("GET(1; 10, 20, 30)").int) // GET でインデックスに対応する要素を取得する
+        assertEquals(30, eval("GET(2; 10, 20, 30)").int) // 末尾の要素も取得できる
+
+        assertEquals(FluoriteNull, eval("GET(3; 10, 20, 30)")) // 範囲外のインデックスは NULL になる
+        assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
+
+        assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
+
+        assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
+        assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
+
+        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームの場合は NULL になる
+
+        assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
+
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            GET(2; stream)
+            array
+        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
+
+        assertEquals(2, eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            GET(2; nat)
+        """).int) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
+
+        assertFails {
+            eval("""
+                nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+                GET(-1; nat)
+            """)
+        } // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングせずエラーになる
+    }
+
+    @Test
     fun single() = runTest {
         // SINGLE with multiple elements should throw error
         assertFails { eval("SINGLE(4, 5, 6)") }
@@ -159,6 +219,20 @@ class StreamMountsTest {
     }
 
     @Test
+    fun transpose() = runTest {
+        assertEquals("[1;4],[2;5],[3;6]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6])").stream()) // TRANSPOSE で配列のストリームを転置する
+        assertEquals("[1;4],[2;5],[3;6]", eval("ZIP([1, 2, 3], [4, 5, 6])").stream()) // ZIP は TRANSPOSE の別名
+        assertEquals("[a;x],[b;y],[c;z]", eval("TRANSPOSE([\"a\", \"b\", \"c\"], [\"x\", \"y\", \"z\"])").stream()) // 文字列でも動作する
+        assertEquals("[1;4;7],[2;5;8],[3;6;9]", eval("TRANSPOSE([1, 2, 3], [4, 5, 6], [7, 8, 9])").stream()) // 3つ以上の配列でも動作する
+        assertEquals("[1;4]", eval("TRANSPOSE([1], [4])").stream()) // 要素が1つでも動作する
+        assertEquals("", eval("TRANSPOSE(,)").stream()) // 空ストリームの場合、空ストリームになる
+        assertFails { eval("TRANSPOSE([1, 2, 3], [4, 5])").stream() } // 長さが異なる場合、エラーになる
+        assertEquals("[1;4],[2;5],[3;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5])").stream()) // fill を指定すると、短い配列をパディングする
+        assertEquals("[1;4;7],[2;5;0],[3;0;0]", eval("TRANSPOSE[fill: 0]([1, 2, 3], [4, 5], [7])").stream()) // 複数の配列が短い場合でもパディングする
+        assertEquals("{name:Alice;age:30;city:Tokyo}", eval("keys := [\"name\", \"age\", \"city\"]; values := [\"Alice\", 30, \"Tokyo\"]; ZIP(keys, values) >> TO_OBJECT").obj) // keys と values からオブジェクトを構成できる
+    }
+
+    @Test
     fun group() = runTest {
         assertEquals("[1;[14]],[2;[25]]", eval("14, 25 >> GROUP[by: _ -> _.&.0]").stream()) // GROUPでグループのストリームになる
         assertEquals("[1;[14]]", eval("14 >> GROUP[by: _ -> _.&.0]").stream()) // 要素が1個でもよい
@@ -180,6 +254,15 @@ class StreamMountsTest {
         assertEquals("1", eval("1, >> SHUFFLE").stream()) // 1要素のストリームはその要素だけのストリームを返す
         assertEquals(1, eval("1 >> SHUFFLE").int) // 非ストリームはその要素を返す
         assertEquals("", eval(", >> SHUFFLE").stream()) // 空ストリームは空ストリームを返す
+    }
+
+    @Test
+    fun random() = runTest {
+        assertTrue(eval("1, 2, 3 >> RANDOM").int in 1..3) // RANDOMでストリームからランダムな要素を1つ選ぶ
+        assertEquals(1, eval("1 >> RANDOM").int) // 非ストリームはその要素を返す
+        assertEquals(FluoriteNull, eval(", >> RANDOM")) // 空ストリームの場合、NULLを返す
+        assertEquals(42, eval("42, >> RANDOM").int) // 1要素のストリームはその要素を返す
+        assertFails { eval("RANDOM()") } // 引数なしの場合、エラーを返す
     }
 
     @Test
@@ -286,6 +369,16 @@ class StreamMountsTest {
 
         // 空ストリームも正しくキャッシュする
         assertEquals("", eval("CACHE(,)").stream())
+    }
+
+    @Test
+    fun toStream() = runTest {
+        // ストリーム入力 → そのまま返す
+        assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())
+        // 非ストリーム入力 → ストリームに変換
+        assertEquals("1", eval("TO_STREAM(1)").stream())
+        // 空ストリーム入力 → そのまま返す
+        assertEquals("", eval("TO_STREAM(,)").stream())
     }
 
 

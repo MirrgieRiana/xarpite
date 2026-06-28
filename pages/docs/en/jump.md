@@ -240,6 +240,8 @@ In Xarpite, value throwing is done with the throw operator `!! value`.
 
 The value to throw can be of any type.
 
+When you throw a value of type `ERROR`, the native error it represents is rethrown, rather than the value itself.
+
 The thrown value is passed to the right side of the catch operator `try !? catch`.
 
 ```shell
@@ -260,7 +262,7 @@ The throw operator can also be written simply as `!!` with the `value` clause om
 In this case, `NULL` is thrown.
 
 ```shell
-$ xa '(!!) !? (e => "Error: $e")'
+$ xa '(!!) !? ( e => "Error: $e" )'
 # Error: NULL
 ```
 
@@ -280,7 +282,7 @@ $ xa '(!! "Error") !? "Failed"'
 
 ### Receiving Thrown Values
 
-With the catch operator with argument `try !? (error => catch)`, you can receive the thrown value.
+With the catch operator with argument `try !? ( error => catch )`, you can receive the thrown value.
 
 ```shell
 $ xa '
@@ -291,6 +293,17 @@ $ xa '
   )
 '
 # ERROR: Error, world!
+```
+
+### Catching Native Errors
+
+The catch operator also catches native errors originating from the host language.
+
+A caught native error is passed to the `catch` clause as an instance of the native error class `ERROR`.
+
+```shell
+$ xa 'ERROR.throwNativeError("boom") !? ( e => e ?= ERROR )'
+# TRUE
 ```
 
 ### Stream Resolution
@@ -395,7 +408,7 @@ $ xa '
     value := 10
     value > 5 && !! "Larger than 5:", value
     "Not larger than 5:", value
-  ) !? (e => e)
+  ) !? ( e => e )
 '
 # Larger than 5:
 # 10
@@ -416,7 +429,7 @@ $ xa '
   evenOrThrow := x -> x % 2 == 0 || !! "Not even: $x"
 
   x := 5
-  "Number: $x", evenOrThrow(x) !? (e => "Caught error: $e"), "Mod 2: $(x % 2)"
+  "Number: $x", evenOrThrow(x) !? ( e => "Caught error: $e" ), "Mod 2: $(x % 2)"
 '
 # Number: 5
 # Caught error: Not even: 5
@@ -428,3 +441,26 @@ $ xa '
 The `try` in the catch operator `try !? catch` can include up to logical operators but cannot include pipe operators.
 
 To include pipe operators, you need to enclose them in parentheses.
+
+# `ERROR`: Native Errors
+
+`ERROR` is a class representing native errors originating from the host language.
+
+You can determine whether a value is a native error with `value ?= ERROR`.
+
+## `message`: Error Message
+
+The `message` property retrieves the message of the native error.
+
+It becomes `NULL` if there is no message.
+
+## `throwNativeError`: Throwing a Native Error
+
+`ERROR.throwNativeError(message: STRING): NOTHING`
+
+Throws a native error with the given message.
+
+```shell
+$ xa 'ERROR.throwNativeError("Something went wrong") !? ( e => e.message )'
+# Something went wrong
+```

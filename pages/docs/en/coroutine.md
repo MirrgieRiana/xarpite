@@ -22,8 +22,6 @@ The launched coroutine is executed when the thread that called `LAUNCH` next sus
 
 This function returns a `PROMISE` that stores the return value of `function` or the value thrown within `function`.
 
-If any value is thrown within `function`, that value is also output to standard error output.
-
 ```shell
 $ xa '
   promise := LAUNCH ( =>
@@ -47,6 +45,15 @@ $ xa '
   result::await()
 '
 # apple
+```
+
+---
+
+If any value is thrown within `function`, that value is also output to standard error output.
+
+```shell
+$ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
+# COROUTINE[1]: Error!
 ```
 
 ---
@@ -115,6 +122,24 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: Launch a New Coroutine
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+Launches `function` asynchronously as a coroutine.
+
+Equivalent to `LAUNCH`, but receives the argument as a pass-by-formula argument.
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: Asynchronous Result Container
 
 `PROMISE` is a container whose contents are determined with delay.
@@ -139,6 +164,8 @@ If `value` is omitted, the `PROMISE` is completed with `NULL` as its contents.
 
 Completes the `PROMISE` as failed with `error`.
 
+When `error` is a value of type `ERROR`, the native error it represents becomes the cause of the failure, rather than the value itself.
+
 ### `await`: Wait for `PROMISE` Completion and Retrieve Contents
 
 `<T> PROMISE<T>::await(): T`
@@ -153,9 +180,39 @@ If the `PROMISE` is completed as failed, `await` throws that exception value.
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? (e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
+```
+
+### `awaitException`: Wait for `PROMISE` Completion and Retrieve Exception Value
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+Waits until the contents of the `PROMISE` are complete.
+
+If the `PROMISE` is completed as failed, returns the exception value.
+
+If the cause of the failure is a native error, the exception value becomes a value of the `ERROR` type.
+
+If the `PROMISE` is completed successfully, returns `NULL`.
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
 ```
 
 ### `isCompleted`: Check `PROMISE` Completion Status
@@ -169,6 +226,8 @@ Returns whether the `PROMISE` is completed or completed as failed.
 `SLEEP([milliseconds: NUMBER]): NULL`
 
 Suspends processing for `milliseconds`.
+
+In API version 5, the argument is interpreted as seconds instead of milliseconds, and fractional values can also be specified.
 
 This function does not block the thread but suspends the function.
 
@@ -184,27 +243,4 @@ $ xa '
   "Hello, World!"
 '
 # Hello, World!
-```
-
-## `GENERATE`: Generate Stream from Function
-
-`GENERATE(generator: (yield: (value: VALUE) -> NULL) -> NULL | STREAM): STREAM<VALUE>`
-
-Executes the generator function of the first argument and returns the values passed to the `yield` function within that function as a stream.
-
-If the `yield` function returns a stream, that stream is iterated only once.
-
-The `yield` function suspends when called.
-
-```shell
-$ xa '
-  GENERATE ( yield =>
-    yield << 1
-    yield << 2
-    yield << 3
-  )
-'
-# 1
-# 2
-# 3
 ```

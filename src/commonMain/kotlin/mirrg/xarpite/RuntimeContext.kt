@@ -2,8 +2,12 @@ package mirrg.xarpite
 
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
@@ -16,6 +20,16 @@ class RuntimeContext(
     val daemonScope: CoroutineScope,
     val io: IoContext,
 ) {
+    companion object {
+        val SUPPORTED_API_VERSIONS = 4..5
+    }
+
+    var apiVersion = SUPPORTED_API_VERSIONS.first
+        set(value) {
+            check(value in SUPPORTED_API_VERSIONS) { "This environment does not support API version $value" }
+            field = value
+        }
+
 
     val httpClient by lazy {
         val httpClient = HttpClient()
@@ -23,23 +37,35 @@ class RuntimeContext(
             try {
                 awaitCancellation()
             } finally {
-                httpClient.close()
+                withContext(NonCancellable) {
+                    httpClient.close()
+                    httpClient.coroutineContext.job.join()
+                }
             }
         }
         httpClient
     }
 
 
-    private val srcs = mutableMapOf<String, String>()
+    private val srcs = mutableMapOf<String, Single<String?>>()
 
-    fun setSrc(location: String, src: String) {
-        srcs[location] = src
+    fun setSrc(location: String, src: String?) {
+        srcs[location] = Single(src)
     }
 
-    fun getModuleSrc(location: String): String {
+    suspend fun getModuleSrc(location: String): String? {
         return srcs.getOrPut(location) {
-            getFileSystem().getOrThrow().read(location.toPath()) { readUtf8() }
-        }
+            if (isUrl(location)) {
+                Single(io.fetch(this, location).getOrNull()?.decodeToString())
+            } else {
+                val fileSystem = getFileSystem().getOrThrow()
+                if (fileSystem.metadataOrNull(location.toPath())?.isRegularFile ?: false) {
+                    Single(fileSystem.read(location.toPath()) { readUtf8() })
+                } else {
+                    Single(null)
+                }
+            }
+        }.first
     }
 
 
@@ -54,7 +80,7 @@ class RuntimeContext(
         } else {
             position.location
         }
-        val src = srcs[position.location] ?: return position.location
+        val src = srcs[position.location]?.first ?: return position.location
         val matrixPositionCalculator = matrixPositionCalculatorCache.getOrPut(position.location) {
             MatrixPositionCalculator(src)
         }
@@ -75,7 +101,7 @@ class RuntimeContext(
 
 
     val inc = FluoriteArray()
-    val moduleResult = mutableMapOf<String, FluoriteValue>()
+    val moduleResults = mutableMapOf<String, FluoriteValue>()
 
 }
 
@@ -88,8 +114,9 @@ interface IoContext {
     suspend fun readBytesFromStdin(): ByteArray?
     suspend fun writeBytesToStdout(bytes: ByteArray)
     suspend fun writeBytesToStderr(bytes: ByteArray)
-    suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String
-    suspend fun fetch(context: RuntimeContext, url: String): ByteArray
+    suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray
+    suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray>
+    fun exit(code: Int): Nothing
 }
 
 open class UnsupportedIoContext : IoContext {
@@ -101,6 +128,23 @@ open class UnsupportedIoContext : IoContext {
     override suspend fun readBytesFromStdin(): ByteArray? = throw UnsupportedOperationException()
     override suspend fun writeBytesToStdout(bytes: ByteArray): Unit = throw UnsupportedOperationException()
     override suspend fun writeBytesToStderr(bytes: ByteArray): Unit = throw UnsupportedOperationException()
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = throw UnsupportedOperationException()
-    override suspend fun fetch(context: RuntimeContext, url: String): ByteArray = throw UnsupportedOperationException()
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = throw UnsupportedOperationException()
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> = throw UnsupportedOperationException()
+    override fun exit(code: Int): Nothing = throw UnsupportedOperationException()
+}
+
+suspend fun IoContext.readAllStringFromStdin(): String {
+    val chunks = mutableListOf<ByteArray>()
+    while (true) {
+        val chunk = this.readBytesFromStdin() ?: break
+        chunks.add(chunk)
+    }
+    val totalSize = chunks.sumOf { it.size }
+    val result = ByteArray(totalSize)
+    var offset = 0
+    chunks.forEach { chunk ->
+        chunk.copyInto(result, offset)
+        offset += chunk.size
+    }
+    return result.decodeToString()
 }

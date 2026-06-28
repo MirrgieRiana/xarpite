@@ -1,5 +1,10 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.LazyMount
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.mounts.createCommonMounts
@@ -13,6 +18,7 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -90,12 +96,63 @@ class CoroutineTest {
                 (
                     trigger::await()
                     !!"Fail"
-                ) !? (e => e)
+                ) !? ( e => e)
             )
             SLEEP()
             trigger::fail("ERROR")
             job::await()
         """.let { assertEquals("ERROR", eval(it).string) }
+
+        // fail() に ERROR 型の値を渡すと、await() 時に元のネイティブ例外がそのまま再スローされる
+        val nativeError = assertFails { eval("""ERROR.throwNativeError("boom")""") } // throwNativeError はネイティブ例外を送出する
+        val rethrownError = assertFails {
+            eval(
+                """
+                    error := TRY ( => ERROR.throwNativeError("boom") )::awaitException()
+                    trigger := PROMISE.new()
+                    trigger::fail(error)
+                    trigger::await()
+                """
+            )
+        } // ERROR を fail で渡して await で投げ直す
+        assertEquals(nativeError::class, rethrownError::class) // FluoriteException で包まれず、元のネイティブ例外と同じクラスで再スローされる
+
+        // awaitException() は fail() された場合に例外値を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail("ERROR")
+            trigger::awaitException()
+        """.let { assertEquals("ERROR", eval(it).string) }
+
+        // awaitException() は fail() で値が省略された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() された場合に NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete("OK")
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は complete() で値が省略された場合にも NULL を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete()
+            trigger::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() は LAUNCH 内の例外値も取得できる
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            job::awaitException()
+        """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
         // isCompleted
         assertEquals(false, eval("promise := PROMISE.new(); promise::isCompleted()").boolean) // 初期状態では未完了
@@ -111,9 +168,31 @@ class CoroutineTest {
             (
                 job::await()
                 !!"Should not reach here"
-            ) !? (e => e)
+            ) !? ( e => e)
         """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
+    }
+
+    @Test
+    fun lazyMountInitializesOnce() = runTest {
+        // initializer は suspend するため、直列化がないと初期化中の再入で initializer が二重に走る
+        var initializationCount = 0
+        val mount = LazyMount {
+            initializationCount++
+            delay(10) // 初期化の途中で中断し、別コルーチンの再入を誘発する
+            FluoriteInt(123)
+        }
+        val results = coroutineScope {
+            val job1 = async { mount.get() }
+            val job2 = async { mount.get() }
+            listOf(job1.await(), job2.await())
+        }
+
+        // 同時アクセスでも initializer は1度しか実行されない
+        assertEquals(1, initializationCount)
+        // どちらの get() も同一の初期化結果を返す
+        assertEquals(FluoriteInt(123), results[0])
+        assertEquals(FluoriteInt(123), results[1])
     }
 
     @Test
@@ -160,9 +239,17 @@ class CoroutineTest {
 
     @Test
     fun sleep() = runTest {
-        // runTestを使うとdelayが即終了するので待機時間のテストは行わない
+        // runTestの仮想時間でdelayが進むため、待機したミリ秒数を currentTime の差分で検証する
 
-        assertEquals(FluoriteNull, eval("SLEEP(1000)")) // SLEEP で一定時間待つ
+        // APIバージョン4では引数をミリ秒として扱う
+        val before4 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(1000)", apiVersion = 4))
+        assertEquals(1000L, testScheduler.currentTime - before4)
+
+        // APIバージョン5では引数を秒として扱い、小数も指定できる
+        val before5 = testScheduler.currentTime
+        assertEquals(FluoriteNull, eval("SLEEP(0.5)", apiVersion = 5))
+        assertEquals(500L, testScheduler.currentTime - before5)
     }
 
     @Test
@@ -185,6 +272,77 @@ class CoroutineTest {
     }
 
     @Test
+    fun launch2Basic() = runTest {
+        // LAUNCH2 は式渡し引数を使って非同期にコルーチンを起動する
+        """
+            promise := LAUNCH2 ("apple")
+            promise::await()
+        """.let { assertEquals("apple", eval(it).string) }
+
+        // LAUNCH2 は LAUNCH と同様に動作する
+        """
+            result := PROMISE.new()
+            LAUNCH2 (result::complete("apple"))
+            result::await()
+        """.let { assertEquals("apple", eval(it).string) }
+    }
+
+    @Test
+    fun launch2ExceptionStderr() = runTest {
+        // LAUNCH2内で例外が発生した場合、stderrに出力されることを検証
+        val ioContext = TestIoContext()
+
+        withEvaluator(ioContext) { context, evaluator ->
+            evaluator.defineMounts(context.run { createCommonMounts() })
+
+            // 例外を発生させるLAUNCH2
+            val result = evaluator.get(
+                """
+                    job := LAUNCH2 (!!"Error in LAUNCH2")
+                    SLEEP()
+                    (
+                        job::await()
+                        !!"Should not reach here"
+                    ) !? ( e => e)
+                """
+            ).cache()
+
+            // 結果の検証：例外がキャッチされている
+            assertEquals("Error in LAUNCH2", result.string)
+
+            // stderrへの出力を検証
+            val stderrOutput = ioContext.stderrBytes.toUtf8String()
+            assertTrue(stderrOutput.contains("COROUTINE["), "stderr should contain 'COROUTINE[', but was: $stderrOutput")
+            assertTrue(stderrOutput.contains("Error in LAUNCH2"), "stderr should contain the error message, but was: $stderrOutput")
+        }
+    }
+
+    @Test
+    fun launch2StreamLaunch() = runTest {
+        // LAUNCH2 の式の評価結果がストリームの場合、awaitされなくても1度だけイテレートされる
+        """
+            promises := [PROMISE.new(), PROMISE.new()]
+            LAUNCH2 (0 .. 1 | promises(_)::complete())
+            promises(0)::await()
+            promises(1)::await()
+            TRUE
+        """.let { assertTrue(eval(it).boolean) }
+
+        // LAUNCH2 の式の評価結果がストリームの場合、何度awaitしても必ず1度だけ評価される
+        """
+            counter := 0
+            promise := LAUNCH2 (1 .. 10 | counter = counter + _)
+            promise::await()
+            promise::await()
+            promise::await()
+            promise::await()
+            promise::await()
+            counter
+        """.let { assertEquals(55, eval(it).int) }
+    }
+
+
+    @Test
     fun launchExceptionStderr() = runTest {
         // LAUNCH内で例外が発生した場合、stderrに出力されることを検証
         val ioContext = TestIoContext()
@@ -202,7 +360,7 @@ class CoroutineTest {
                     (
                         job::await()
                         !!"Should not reach here"
-                    ) !? (e => e)
+                    ) !? ( e => e)
                 """
             ).cache()
 

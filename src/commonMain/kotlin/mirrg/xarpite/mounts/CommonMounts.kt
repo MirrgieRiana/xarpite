@@ -23,6 +23,8 @@ fun createCommonMounts(): List<Map<String, Mount>> {
         createControlStructuresMounts(),
         createMathMounts(),
         createConvertMounts(),
+        createArrayMounts(),
+        createObjectMounts(),
         createStreamMounts(),
         createDataConversionMounts(),
         createStringMounts(),

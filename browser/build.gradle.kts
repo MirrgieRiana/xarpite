@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
+    kotlin("multiplatform") version "2.3.0"
 }
 
 kotlin {
@@ -47,7 +47,7 @@ kotlin {
         jsMain {
             dependencies {
                 implementation(rootProject)
-                implementation("io.ktor:ktor-client-js:3.0.3")
+                implementation("io.ktor:ktor-client-js:3.4.0")
             }
         }
         jsTest {

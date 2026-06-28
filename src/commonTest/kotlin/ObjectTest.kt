@@ -1,5 +1,6 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -7,6 +8,7 @@ import mirrg.xarpite.test.obj
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,6 +50,17 @@ class ObjectTest {
     }
 
     @Test
+    fun parent() = runTest {
+        assertEquals(true, eval("PARENT(1) == INT").boolean) // PARENT で値の親オブジェクトを得る
+        assertEquals(true, eval("PARENT(INT) == VALUE").boolean) // クラスの親はその親クラス
+        assertEquals(true, eval("PARENT(VALUE) == NULL").boolean) // 親を持たない値は NULL を返す
+        assertEquals(true, eval("PARENT({}) == OBJECT").boolean) // オブジェクトリテラルの親は OBJECT
+        assertEquals(true, eval("A := {}; a := A{}; PARENT(a) == A").boolean) // インスタンスの親はそのクラス
+        assertEquals(true, eval("Animal := {}; Human := Animal{}; PARENT(Human) == Animal").boolean) // クラスの親は親クラス
+        assertEquals(true, eval("PARENT(1, 2, 3) == STREAM").boolean) // ストリームを渡すとストリーム自身の親 STREAM を返す
+    }
+
+    @Test
     fun invert() = runTest {
         // 基本的な反転
         assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)
@@ -84,6 +97,23 @@ class ObjectTest {
             inverted.apple >> object
         """).toString()
         assertEquals("apple", finalResult)
+    }
+
+
+    @Test
+    fun toObject() = runTest {
+        assertEquals("{a:1;b:2;c:3}", eval("TO_OBJECT((a: 1), (b: 2), (c: 3))").obj) // TO_OBJECT はストリームをオブジェクトにする
+        assertEquals("{a:100}", eval("TO_OBJECT(a: 100)").obj) // ストリームでなくてもよい
+        assertEquals("{1:10;2:20;3:30}", eval("1 .. 3 | ((_): _ * 10) >> TO_OBJECT").obj) // TO_OBJECT はパイプ演算子と組み合わせて使うと便利
+        assertEquals("{a:1;b:2}", eval("((a: 1), (b: 2)).{}").obj) // .{} オブジェクト化演算子
+        assertEquals("{az:10;bz:20;cz:30}", eval("({a: 1; b: 2; c: 3}() | (_.0 & \"z\": _.1 * 10)).{}").obj) // .{} オブジェクト化演算子とパイプの組み合わせ
+        assertEquals("{a:100}", eval("(a: 100).{}").obj) // ストリームでなくてもよい
+    }
+
+    @Test
+    fun toObjectUsage() = runTest {
+        val exception = assertFailsWith<FluoriteException> { eval("TO_OBJECT(1; 2)") } // 引数の数が不正だと usage メッセージを出す
+        assertTrue(exception.message!!.contains("TO_OBJECT")) // usage メッセージの関数名が TO_OBJECT になっている
     }
 
 

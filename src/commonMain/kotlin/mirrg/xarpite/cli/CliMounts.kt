@@ -1,10 +1,12 @@
 package mirrg.xarpite.cli
 
+import mirrg.xarpite.ConstantMount
 import mirrg.xarpite.LazyMount
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteFunction
+import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -16,6 +18,7 @@ import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.compilers.objects.toMutableList
@@ -24,6 +27,8 @@ import mirrg.xarpite.getFileSystem
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
+import mirrg.xarpite.readAllStringFromStdin
+import okio.Path
 import okio.Path.Companion.toPath
 
 val INB_MAX_BUFFER_SIZE = 8192
@@ -35,6 +40,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         "PWD" define LazyMount { context.io.getPwd().toFluoriteString() },
         "ENV" define LazyMount { FluoriteObject(FluoriteObject.fluoriteClass, context.io.getEnv().mapValues { it.value.toFluoriteString() }.toMutableMap()) },
         "INC" define context.inc,
+        "API_VERSION" define LazyMount { FluoriteInt(context.apiVersion) },
+        "API" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("API(version: INT): NULL")
+            val version = arguments[0]
+            if (version !is FluoriteInt) throw FluoriteException("API version must be an integer, got $version".toFluoriteString())
+            if (version.value != context.apiVersion) throw FluoriteException("Script requires API version ${version.value}, but the environment API version is ${context.apiVersion}".toFluoriteString())
+            FluoriteNull
+        },
+        *run {
+            val versionMatchResult by lazy {
+                val version = context.io.getEnv()["XARPITE_VERSION"] ?: ""
+                """^(\d+)\.(\d+)\.(\d+)""".toRegex().find(version) ?: throw FluoriteException("XARPITE_VERSION is not in the major.minor.patch format: \"$version\"".toFluoriteString())
+            }
+            arrayOf(
+                "MAJOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[1].toInt()) },
+                "MINOR" define LazyMount { FluoriteInt(versionMatchResult.groupValues[2].toInt()) },
+                "PATCH" define LazyMount { FluoriteInt(versionMatchResult.groupValues[3].toInt()) },
+            )
+        },
         *run {
             val inStream = FluoriteStream {
                 while (true) {
@@ -43,8 +67,9 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "IN" define inStream,
+                "IN" define if (context.apiVersion >= 5) LazyMount { context.io.readAllStringFromStdin().toFluoriteString() } else ConstantMount(inStream),
                 "I" define inStream,
+                "INL" define inStream,
             )
         },
         "INB" define FluoriteStream {
@@ -53,7 +78,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 emit(bytes.asFluoriteBlob())
             }
         },
-        "ERR" define FluoriteFunction { arguments ->
+        "ERR" define FluoriteFunction.immediate { arguments ->
             arguments.forEach {
                 if (it is FluoriteStream) {
                     it.collect { item ->
@@ -65,14 +90,14 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "OUTB" define FluoriteFunction { arguments ->
+        "OUTB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStdout(bytes)
             }
             FluoriteNull
         },
-        "ERRB" define FluoriteFunction { arguments ->
+        "ERRB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("ERRB(blobLike: BLOB_LIKE): NULL")
             iterateBlobs(arguments[0]) { bytes ->
                 context.io.writeBytesToStderr(bytes)
@@ -80,8 +105,8 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             FluoriteNull
         },
         *run {
-            fun create(name: String): FluoriteFunction {
-                return FluoriteFunction { arguments ->
+            fun createLineStream(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STREAM<STRING>")
                     val file = arguments[0].toFluoriteString(null).value
                     val fileSystem = getFileSystem().getOrThrow()
@@ -95,12 +120,22 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
+            fun createString(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): STRING")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.read(file.toPath()) { // TODO charset
+                        readUtf8()
+                    }.toFluoriteString()
+                }
+            }
             arrayOf(
-                "READ" define create("READ"),
-                "READL" define create("READL"),
+                "READ" define if (context.apiVersion >= 5) createString("READ") else createLineStream("READ"),
+                "READL" define createLineStream("READL"),
             )
         },
-        "READB" define FluoriteFunction { arguments ->
+        "READB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("READB(file: STRING): STREAM<BLOB>")
             val file = arguments[0].toFluoriteString(null).value
             val fileSystem = getFileSystem().getOrThrow()
@@ -116,7 +151,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
         },
-        "WRITE" define FluoriteFunction { arguments ->
+        "WRITE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITE(file: STRING; string: STRING): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val string = arguments[1].toFluoriteString(null).value
@@ -126,7 +161,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "WRITEL" define FluoriteFunction { arguments ->
+        "WRITEL" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITEL(file: STRING; lines: STREAM<STRING>): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val lines = arguments[1].toFlow()
@@ -139,7 +174,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "WRITEB" define FluoriteFunction { arguments ->
+        "WRITEB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 2) usage("WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL")
             val file = arguments[0].toFluoriteString(null).value
             val blobLike = arguments[1]
@@ -151,57 +186,114 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             }
             FluoriteNull
         },
-        "FILES" define FluoriteFunction { arguments ->
-            if (arguments.size != 1) usage("FILES(dir: STRING): STREAM<STRING>")
-            val dir = arguments[0].toFluoriteString(null).value
-            val fileSystem = getFileSystem().getOrThrow()
-            fileSystem.list(dir.toPath()).map { it.name.toFluoriteString() }.toFluoriteStream()
+        *run {
+            fun create(name: String, fullPath: Boolean): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dir = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    fileSystem.list(dir.toPath()).map { (if (fullPath) it.toString() else it.name).toFluoriteString() }.toFluoriteStream()
+                }
+            }
+            arrayOf(
+                "FILES" define create("FILES", context.apiVersion >= 5),
+                "FILE_NAMES" define create("FILE_NAMES", false),
+            )
         },
-        "EXEC" define FluoriteFunction { arguments ->
-            fun usage(): Nothing = usage("EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>")
-            suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
-                val envEntry = argument as? FluoriteArray ?: usage()
-                if (envEntry.values.size != 2) usage()
-                val envKey = envEntry.values[0] as? FluoriteString ?: usage()
-                if (envKey.value != "env") usage()
-                val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
-                return envObject.map.mapValues { entry ->
-                    val value = entry.value
-                    if (value is FluoriteNull) {
-                        null
-                    } else {
-                        value.toFluoriteString(null).value
+        *run {
+            fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
+                    val dirPath = arguments[0].toFluoriteString(null).value.toPath()
+                    val fileSystem = getFileSystem().getOrThrow()
+
+                    FluoriteStream {
+                        suspend fun walkDirectory(relativePath: Path, depth: Int) {
+                            val fullPath = dirPath.resolve(relativePath)
+                            val metadata = fileSystem.metadata(fullPath)
+                            if (!metadata.isDirectory || includeDirectories && depth > 0) {
+                                emit(dirPath.resolve(relativePath).toString().toFluoriteString())
+                            }
+                            if (metadata.isDirectory) {
+                                fileSystem.list(fullPath).map { it.name }.sorted().forEach { childFileName ->
+                                    val childRelativePath = relativePath.resolve(childFileName)
+                                    walkDirectory(childRelativePath, depth + 1)
+                                }
+                            }
+                        }
+
+                        walkDirectory("".toPath(), 0)
                     }
                 }
             }
-            val (commandArg, env) = when (arguments.size) {
-                1 -> Pair(arguments[0], emptyMap())
-                2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
-                else -> usage()
-            }
-            val commandList = if (commandArg is FluoriteStream) {
-                commandArg.toMutableList().map { it.toFluoriteString(null).value }
-            } else {
-                listOf(commandArg.toFluoriteString(null).value)
-            }
-
-            if (commandList.isEmpty()) {
-                throw FluoriteException("EXEC requires at least one argument (the command to execute)".toFluoriteString())
-            }
-
-            val process = commandList[0]
-            val processArgs = commandList.drop(1)
-            val output = context.io.executeProcess(process, processArgs, env)
-
-            val lines = output.lines()
-            val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
-                lines.dropLast(1)
-            } else {
-                lines
-            }
-            nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+            arrayOf(
+                "TREE" define create("TREE", true),
+                "FILE_TREE" define create("FILE_TREE", false),
+            )
         },
-        "BASH" define FluoriteFunction { arguments ->
+        *run {
+            fun create(name: String, returnType: String, transform: (ByteArray) -> FluoriteValue): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("$name(command: STREAM<STRING>[; env: OBJECT<STRING>]): $returnType")
+                    suspend fun parseEnvOverrides(argument: FluoriteValue): Map<String, String?> {
+                        val envEntry = argument as? FluoriteArray ?: usage()
+                        if (envEntry.values.size != 2) usage()
+                        val envKey = envEntry.values[0] as? FluoriteString ?: usage()
+                        if (envKey.value != "env") usage()
+                        val envObject = envEntry.values[1] as? FluoriteObject ?: usage()
+                        return envObject.map.mapValues { entry ->
+                            val value = entry.value
+                            if (value is FluoriteNull) {
+                                null
+                            } else {
+                                value.toFluoriteString(null).value
+                            }
+                        }
+                    }
+                    val (commandArg, env) = when (arguments.size) {
+                        1 -> Pair(arguments[0], emptyMap())
+                        2 -> Pair(arguments[0], parseEnvOverrides(arguments[1]))
+                        else -> usage()
+                    }
+                    val commandList = if (commandArg is FluoriteStream) {
+                        commandArg.toMutableList().map { it.toFluoriteString(null).value }
+                    } else {
+                        listOf(commandArg.toFluoriteString(null).value)
+                    }
+
+                    if (commandList.isEmpty()) {
+                        throw FluoriteException("$name requires at least one argument (the command to execute)".toFluoriteString())
+                    }
+
+                    val process = commandList[0]
+                    val processArgs = commandList.drop(1)
+                    val output = context.io.executeProcess(process, processArgs, env)
+
+                    transform(output)
+                }
+            }
+            fun toString(output: ByteArray): FluoriteString {
+                return output.decodeToString().toFluoriteString()
+            }
+            fun toLineStream(output: ByteArray): FluoriteStream {
+                val lines = output.decodeToString().lines()
+                val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
+                    lines.dropLast(1)
+                } else {
+                    lines
+                }
+                return nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
+            }
+            fun toBlobStream(output: ByteArray): FluoriteStream {
+                return listOf(output.asFluoriteBlob()).toFluoriteStream()
+            }
+            arrayOf(
+                "EXEC" define if (context.apiVersion >= 5) create("EXEC", "STRING", ::toString) else create("EXEC", "STREAM<STRING>", ::toLineStream),
+                "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),
+                "EXECB" define create("EXECB", "STREAM<BLOB>", ::toBlobStream),
+            )
+        },
+        "BASH" define FluoriteFunction.immediate { arguments ->
             fun usage(): Nothing = usage("BASH(script: STRING[; args: STREAM<STRING>]): STRING")
             val arguments2 = arguments.toMutableList()
 
@@ -217,7 +309,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
 
             // bash -c script arg0 arg1 ... の場合、arg0が$0、arg1が$1になるため、
             // ダミーの$0として"bash"を挿入
-            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap())
+            val output = context.io.executeProcess("bash", listOf("-c", script, "bash", *args), emptyMap()).decodeToString()
 
             val result = when {
                 output.endsWith("\r\n") -> output.dropLast(2)
@@ -226,6 +318,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 else -> output
             }
             result.toFluoriteString()
+        },
+        "EXIT" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("EXIT(code: INT): NOTHING")
+            val code = arguments[0].toFluoriteNumber(null).toInt()
+            context.io.exit(code)
         },
     ).let { listOf(it) }
 }

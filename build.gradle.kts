@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("multiplatform") version "2.3.0"
+    kotlin("plugin.serialization") version "2.3.0"
     id("com.dorongold.task-tree") version "4.0.1"
     id("build-logic")
     `maven-publish`
@@ -31,7 +31,13 @@ kotlin {
 
     jvm()
     js {
-        nodejs()
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "10s"
+                }
+            }
+        }
         binaries.library()
         outputModuleName = "xarpite-core"
         compilerOptions {
@@ -59,29 +65,36 @@ kotlin {
                 implementation("com.squareup.okio:okio:3.10.2")
                 implementation("com.ionspin.kotlin:bignum:0.3.10")
                 implementation("mirrg.kotlin:mirrg.kotlin.helium-kotlin-2-2:4.4.0")
-                implementation("io.github.mirrgieriana:xarpeg:5.1.0")
-                implementation("io.ktor:ktor-client-core:3.0.3")
+                implementation("io.github.mirrgieriana:xarpeg:6.2.0")
+                implementation("io.ktor:ktor-client-core:3.4.0")
             }
         }
         jvmMain {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:3.0.3")
+                implementation("io.ktor:ktor-client-cio:3.4.0")
             }
         }
         jsMain {
             dependencies {
-                implementation("io.ktor:ktor-client-js:3.0.3")
+                implementation("io.ktor:ktor-client-js:3.4.0")
             }
         }
-        nativeMain {
+        linuxX64Main {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:3.0.3")
+                implementation("io.ktor:ktor-client-curl:3.4.0")
             }
         }
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation("io.ktor:ktor-server-core:3.0.3")
+                implementation("io.ktor:ktor-server-cio:3.0.3")
+                implementation("io.ktor:ktor-server-test-host:3.0.3")
             }
         }
     }

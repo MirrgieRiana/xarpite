@@ -1,16 +1,21 @@
 package mirrg.xarpite
 
-import io.github.mirrgieriana.xarpeg.parseAllOrThrow
+import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.compileToRunner
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.operations.Returner
 
-class Evaluator {
+class Evaluator(private val context: RuntimeContext) {
 
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
@@ -21,35 +26,53 @@ class Evaluator {
         val runners = maps.map {
             frame.defineBuiltinMount(it)
         }
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         runners.forEach {
             it.evaluate(env)
         }
     }
 
-    suspend fun get(location: String, src: String): FluoriteValue {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAllOrThrow(src)
+    suspend fun get(location: String, src: String, embedded: Boolean): FluoriteValue {
+        val parseResult = XarpiteGrammar(location, context.apiVersion)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         return withStackTrace(Position(location, 0)) {
-            getter.evaluate(env)
+            try {
+                getter.evaluate(env)
+            } catch (returner: Returner) {
+                val name = returner.label!!.name
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
+            }
         }
     }
 
-    suspend fun run(location: String, src: String) {
-        val parseResult = XarpiteGrammar(location).rootParser.parseAllOrThrow(src)
+    suspend fun run(location: String, src: String, embedded: Boolean) {
+        val parseResult = XarpiteGrammar(location, context.apiVersion)
+            .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
+            .parseAll(src) { XarpiteParseContext(it) }
+            .getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
-        val env = Environment(currentEnv, frame.nextVariableIndex, frame.mountCount)
+        val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         withStackTrace(Position(location, 0)) {
-            runners.forEach {
-                it.evaluate(env)
+            try {
+                runners.forEach {
+                    it.evaluate(env)
+                }
+            } catch (returner: Returner) {
+                val name = returner.label!!.name
+                Returner.recycle(returner)
+                throw FluoriteException(FluoriteString("Unmatched return: $name"))
             }
         }
     }
@@ -61,10 +84,13 @@ suspend fun <T> CoroutineScope.withEvaluator(ioContext: IoContext, block: suspen
     try {
         return coroutineScope main@{
             withContext(StackTrace()) {
-                block(RuntimeContext(this, daemonScope, ioContext), Evaluator())
+                val context = RuntimeContext(this, daemonScope, ioContext)
+                block(context, Evaluator(context))
             }
         }
     } finally {
-        daemonScope.cancel()
+        withContext(NonCancellable) {
+            daemonScope.coroutineContext.job.cancelAndJoin()
+        }
     }
 }

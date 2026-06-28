@@ -7,19 +7,19 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         val index = arguments[1].toFluoriteNumber(null).roundToInt()
                         array.values.getOrNull(index) ?: FluoriteNull
                     },
-                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         val index = arguments[1].toFluoriteNumber(null).roundToInt()
                         val value = arguments[2]
                         array.values[index] = value
                         FluoriteNull
                     },
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         when (arguments.size) {
                             1 -> array.values.toFluoriteStream()
@@ -45,7 +45,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                             else -> throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         }
                     },
-                    OperatorMethod.SET_CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         when (arguments.size) {
                             3 -> {
@@ -59,7 +59,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                             else -> throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         }
                     },
-                    OperatorMethod.BIND.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.BIND.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         when (arguments.size) {
                             1 -> array.values.toFluoriteArray()
@@ -85,7 +85,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                             else -> throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         }
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                         val sb = StringBuilder()
                         sb.append('[')
                         (arguments[0] as FluoriteArray).values.forEachIndexed { i, value ->
@@ -95,12 +95,12 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         sb.append(']')
                         sb.toString().toFluoriteString()
                     },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction { (it[0] as FluoriteArray).values.isNotEmpty().toFluoriteBoolean() },
-                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { (it[0] as FluoriteArray).values.isNotEmpty().toFluoriteBoolean() },
+                    OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         FluoriteInt(array.values.size)
                     },
-                    OperatorMethod.PLUS.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteArray
                         val right = arguments[1] as FluoriteArray
                         val list = mutableListOf<FluoriteValue>()
@@ -108,8 +108,8 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         list += right.values
                         list.asFluoriteArray()
                     },
-                    OperatorMethod.CONTAINS.methodName to FluoriteFunction { (it[1] in (it[0] as FluoriteArray).values).toFluoriteBoolean() }, // TODO EQUALSメソッドの使用
-                    OperatorMethod.PLUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CONTAINS.methodName to FluoriteFunction.immediate { (it[1] in (it[0] as FluoriteArray).values).toFluoriteBoolean() }, // TODO EQUALSメソッドの使用
+                    OperatorMethod.PLUS_ASSIGN.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         val value = arguments[1]
                         if (value is FluoriteStream) {
@@ -121,7 +121,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
-                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.MINUS_ASSIGN.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
                         val value = arguments[1]
                         if (value is FluoriteStream) {
@@ -135,7 +135,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
-                    "push" to FluoriteFunction { arguments ->
+                    "push" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         val value = arguments[1]
@@ -148,12 +148,12 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
-                    "pop" to FluoriteFunction { arguments ->
+                    "pop" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeLast()
                     },
-                    "unshift" to FluoriteFunction { arguments ->
+                    "unshift" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         val value = arguments[1]
@@ -168,7 +168,7 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         }
                         FluoriteNull
                     },
-                    "shift" to FluoriteFunction { arguments ->
+                    "shift" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeFirst()

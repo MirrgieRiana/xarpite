@@ -2,12 +2,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.evalEmbedded
 import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.obj
@@ -18,6 +20,8 @@ import mirrg.xarpite.test.string
 import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -100,6 +104,26 @@ class XarpiteTest {
                 2
             ]
         """.let { assertEquals("[1;2]", eval(it).array()) }
+
+    }
+
+    @Test
+    fun lineCommentPrefixTest() = runTest {
+
+        // APIバージョン4以前では、# の直前に空白文字が無くても行コメントになる
+        assertEquals(parse("1", 4), parse("1#comment", 4))
+
+        // APIバージョン5以降では、# の直前が行頭または空白文字の場合のみ行コメントになる
+        assertEquals(parse("1", 5), parse("1 #comment", 5)) // スペースの直後
+        assertEquals(parse("1", 5), parse("1\t#comment", 5)) // タブの直後
+        assertEquals(parse("1", 5), parse("1\n#comment", 5)) // 改行の直後（行頭）
+        assertEquals(parse("1", 5), parse("#comment\n1", 5)) // 入力の先頭（行頭）
+
+        // APIバージョン5以降では、# の直前に空白文字が無いと行コメントにならず、構文エラーとなる
+        assertFails { parse("1#comment", 5) }
+
+        // // による行コメントはAPIバージョン5以降でも直前の空白文字を要求しない
+        assertEquals(parse("1", 5), parse("1//comment", 5))
 
     }
 
@@ -312,6 +336,26 @@ class XarpiteTest {
              %> <%
         """.let { assertEquals("123", eval(it).string.trim()) } // <%= の後で改行しても正しくパースされる
 
+        assertEquals("hello world", eval(" %>hello <%# this is a comment %>world<% ").string) // <%# ... %> はコメント
+        assertEquals("hello world", eval(" %>hello <%#%>world<% ").string) // 空コメント
+        assertEquals("hello world", eval(" %>hello <%# comment % with percent %>world<% ").string) // コメント内に % を含む
+        assertEquals("hello world", eval(" %>hello <%# comment\nwith newline\n%>world<% ").string) // コメント内に改行を含む
+
+    }
+
+    @Test
+    fun embeddedRootTest() = runTest {
+        assertEquals("abcABC123", evalEmbedded("abcABC123").string) // 最外部が埋め込み文字列の本体として解釈される
+        assertEquals("123", evalEmbedded("<%= 100 + 20 + 3 %>").string) // 式の埋め込み
+        assertEquals("<%", evalEmbedded("<%%").string) // <%% で <% になる
+        assertEquals("\n \n \n", evalEmbedded("\n \r \r\n").string) // 改行は \n に統一される
+        assertEquals("", evalEmbedded("").string) // 空のソースは空文字列になる
+
+        assertEquals("a", evalEmbedded("#!/usr/bin/env -S xarpite -E\na").string) // 先頭のシバン行は末尾の改行ごと取り除かれる
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E\n").string) // 本文が無くてもシバン行を受理する
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E").string) // 末尾に改行が無くてもシバン行を受理する
+        assertEquals("a", evalEmbedded("a").string) // シバン行が無くても本文として解釈される
+        assertEquals("a\n#!b", evalEmbedded("a\n#!b").string) // 先頭以外の #! はリテラルとして扱われる
     }
 
     @Test
@@ -433,8 +477,41 @@ class XarpiteTest {
 
         assertEquals("b", eval("(!!'a') !? 'b'").string) // !? で例外をキャッチできる
         assertEquals("b", eval("1 + [2 + !!'a'] !? 'b'").string) // !! は深い階層にあってもよい
-        assertEquals("a", eval("(!!'a') !? (e => e)").string) // => でスローされた値を受け取れる
+        assertEquals("a", eval("(!!'a') !? ( e => e)").string) // => でスローされた値を受け取れる
         assertEquals(1, eval("a := 1; 1 !? (a = 2); a").int) // !? の右辺は実行されなければ評価自体が行われない
+        assertEquals(true, eval("ERROR.throwNativeError('boom') !? ( e => e ?= ERROR )").boolean) // !? は FluoriteException だけでなくネイティブエラーも捕捉し、ERROR として受け取れる
+        assertEquals(false, eval("(!!'a') !? ( e => e ?= ERROR )").boolean) // スロー演算子でスローされた値は ERROR に包まれず、その値のまま渡される
+        assertEquals("caught", eval("ERROR.throwNativeError('boom') !? 'caught'").string) // catch 変数を取らない形の !? でもネイティブエラーを捕捉できる
+        assertEquals(2, eval("a := 1; ERROR.throwNativeError('boom') !? (a = 2); a").int) // 文の位置の !? もネイティブエラーを捕捉して catch 節を実行する
+
+        // !? は Returner（ラベルリターン）を捕捉せず素通しさせる
+        """
+            (
+                (label!! 'escaped') !? 'caught'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 式の位置の catch 変数を取る !?
+        """
+            (
+                (label!! 'escaped') !? 'caught'
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取らない !?
+        """
+            (
+                (label!! 'escaped') !? ( e => 'caught' )
+                'unreached'
+            ) !: label
+        """.let { assertEquals("escaped", eval(it).string) } // 文の位置の catch 変数を取る !?
+
+        // !! で ERROR をスローすると、包んでいたネイティブ例外がそのまま再スローされる
+        val nativeError = assertFails { eval("""ERROR.throwNativeError("boom")""") } // throwNativeError はネイティブ例外を送出する
+        val rethrownError = assertFails { eval("""!! ( TRY ( => ERROR.throwNativeError("boom") )::awaitException() )""") } // ERROR を !! で投げ直す
+        assertEquals(nativeError::class, rethrownError::class) // FluoriteException で包まれず、元のネイティブ例外と同じクラスで再スローされる
 
         // !? は try 節のストリームを解決する（副作用が1度だけ生じる）
         // ストリームが複数回消費された場合でも、副作用は1回のみ
@@ -487,6 +564,13 @@ class XarpiteTest {
             assertEquals("[[ERROR: The last element error];2]", result)
         }
         */
+    }
+
+    @Test
+    fun throwNativeErrorTest() = runTest {
+        assertEquals(true, eval("ERROR.throwNativeError('boom') !? ( e => e ?= ERROR )").boolean) // throwNativeError はネイティブエラーを送出し、!? で ERROR として捕捉できる
+        assertEquals("boom", eval("ERROR.throwNativeError('boom') !? ( e => e.message )").string) // 送出したネイティブエラーは渡したメッセージを保持する
+        assertFails { eval("ERROR.throwNativeError('boom')") } // 捕捉しなければネイティブエラーがそのまま伝搬する
     }
 
     @Test
@@ -662,6 +746,18 @@ class XarpiteTest {
         // CONTAINSメソッドで上書きできる
         assertEquals(true, eval("'abc' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
         assertEquals(false, eval("'123' @ {`_@_`: this, value -> value @ '---abc---'}{}").boolean)
+
+        // ::CONTAINS拡張関数で含有チェックができる
+        assertEquals(true, eval("'---abc---'::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("'---abc---'::CONTAINS('123')").boolean)
+        assertEquals(true, eval("[10, 20, 30]::CONTAINS(30)").boolean)
+        assertEquals(false, eval("[10, 20, 30]::CONTAINS(40)").boolean)
+        assertEquals(true, eval("{a: 10; b: 20}::CONTAINS('a')").boolean)
+        assertEquals(false, eval("{a: 10; b: 20}::CONTAINS('c')").boolean)
+
+        // ::CONTAINS拡張関数はカスタム_@_メソッドでも動作する
+        assertEquals(true, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('abc')").boolean)
+        assertEquals(false, eval("{`_@_`: this, value -> value @ '---abc---'}{}::CONTAINS('123')").boolean)
     }
 
     @Test
@@ -751,6 +847,43 @@ class XarpiteTest {
         assertEquals(2, eval("a := 1; FALSE ? 0 : (a = 2); a").int)
         assertEquals(2, eval("a := 1; NULL ?: (a = 2); a").int)
         assertEquals(1, eval("a := 1; 0 ?: (a = 2); a").int)
+    }
+
+    @Test
+    fun prefixColonTest() = runTest {
+        // 前置コロン `: x` は中身をそのまま返す恒等（三項の else 枝を式の先頭に開放したもの）
+        assertEquals(1, eval(": 1").int)
+        assertEquals(2, eval(": 1 + 1").int)
+
+        // 前置コロンは後続の三項全体を掴む（else 枝と同じ結合）
+        assertEquals(1, eval(": TRUE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : TRUE ? 2 : 3").int)
+
+        // 連鎖三項の行頭を `:` で揃えた when 風の記法が書ける
+        assertEquals(2, eval(": FALSE ? 1\n: TRUE ? 2\n: 3").int)
+        assertEquals(3, eval(": FALSE ? 1\n: FALSE ? 2\n: 3").int)
+        assertEquals("zero", eval("a := 0\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("pos", eval("a := 7\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("neg", eval("a := -5\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+
+        // エルビス演算子とも混ぜられる
+        assertEquals(5, eval(": NULL ?: 5").int)
+
+        // 前置コロンは恒等なので独自スコープを作らない（インデントブロックとの違い）
+        assertEquals(2, eval("a := 1; : a = 2; a").int)
+
+        // `: ` の直後が改行の場合は、従来どおりインデントブロックが優先される
+        assertEquals(10, eval(":\n  10").int)
+
+        // 三項の then 枝の位置にも前置コロンを書ける（condition の再帰なので到達する）
+        assertEquals(1, eval("TRUE ? : 1 : 2").int)
+
+        // `::` は将来の予約のため拒否し、前置コロンを2連したいときはスペースで分ける
+        assertEquals(5, eval(": : 5").int)
+        assertFails { eval("::FOO") }
+        // `:=`（宣言）も前置コロンに化けず、従来どおり構文エラーのまま
+        assertFails { eval(":= 1") }
     }
 
     @Test
@@ -971,7 +1104,7 @@ class XarpiteTest {
         // Runner で !? の右辺で例外オブジェクトを受け取れる（引数あり）
         """
             result := NULL
-            (!!'error_value') !? (e => result = e);
+            (!!'error_value') !? ( e => result = e);
             result
         """.let { assertEquals("error_value", eval(it).string) }
 
@@ -1423,6 +1556,42 @@ class XarpiteTest {
             result
         """.let { assertEquals("default", eval(it).string) }
 
+        // リターン文を含むラムダを別の場所で起動しても誤ったラベルにキャッチされない
+        // 別所で定義されたリターンが誤ったラベルにキャッチされるバグのテストケース
+        """
+            getFruit := (
+                () -> (
+                    vehicle!! "car"
+                    "apple"
+                )
+            ) !: vehicle
+            fruit := getFruit() !: fruit
+            "Fruit is: " + fruit
+        """.let {
+            try {
+                val result = eval(it)
+                fail("Expected FluoriteException but got: $result")
+            } catch (e: FluoriteException) {
+                // 正しい動作: 宛先のないリターンとしてエラーになる
+                // エラーメッセージにラベル名が含まれていることを確認
+                assertTrue(e.value is FluoriteString)
+                val message = (e.value as FluoriteString).string
+                assertTrue(message.contains("Unmatched return"), "Expected 'Unmatched return' in error message but got: $message")
+                assertTrue(message.contains("vehicle"), "Expected 'vehicle' in error message but got: $message")
+            }
+        }
+
+    }
+
+    @Test
+    fun runTest2() = runTest {
+        assertEquals(123, eval("RUN(() -> 123)").int) // RUN は引数なし関数を実行してその戻り値を返す
+        assertEquals(579, eval("RUN(() -> 456 + 123)").int) // RUN は関数の中で計算ができる
+    }
+
+    @Test
+    fun nopTest() = runTest {
+        assertEquals(FluoriteNull, eval("NOP()")) // NOP は何もせず NULL を返す
     }
 
 }
