@@ -29,6 +29,7 @@ class FluoriteError(val throwable: Throwable) : FluoriteValue {
 
     override fun toString() = throwable.message ?: throwable.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 fun Throwable.toFluoriteValue(): FluoriteValue = if (this is FluoriteException) this.value else FluoriteError(this)

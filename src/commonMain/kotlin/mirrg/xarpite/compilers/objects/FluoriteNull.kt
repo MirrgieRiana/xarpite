@@ -13,4 +13,5 @@ object FluoriteNull : FluoriteValue {
     }
     override val parent = fluoriteClass
     override fun toString() = "NULL"
+    override fun strictEquals(other: FluoriteValue) = this == other
 }

@@ -129,4 +129,5 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
     }
 
     override fun toString() = "{${map.entries.joinToString(";") { "${it.key}:${it.value}" }}}"
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
