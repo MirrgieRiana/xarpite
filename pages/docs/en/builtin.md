@@ -542,21 +542,21 @@ If the corresponding index does not exist, returns `NULL`.
 When `indices` is a stream, returns a stream of the elements corresponding to each index.
 
 ```shell
-$ xa 'GET(1; 10, 20, 30)'
-# 20
+$ xa 'GET(1; 0, 10, 20)'
+# 10
 
-$ xa 'GET(5; 10, 20, 30)'
+$ xa 'GET(5; 0, 10, 20)'
 # NULL
 
-$ xa 'GET(0, 2; 10, 20, 30)'
-# 10
-# 30
+$ xa 'GET(0, 2; 0, 10, 20)'
+# 0
+# 20
 
-$ xa '10, 20, 30, 40, 50 >> GET[3, 0, 2, 2, 5]'
-# 40
-# 10
+$ xa '0, 10, 20, 30, 40 >> GET[3, 0, 2, 2, 5]'
 # 30
-# 30
+# 0
+# 20
+# 20
 # NULL
 ```
 
