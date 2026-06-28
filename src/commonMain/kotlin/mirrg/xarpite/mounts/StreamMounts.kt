@@ -455,8 +455,12 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             if (arguments[0] is FluoriteStream) return@immediate FluoriteStream {
                 // インデックスをすべて汲み、参照される最大のインデックスまで値ストリームを1パスして要素を拾う
                 val indices = mutableListOf<Int>()
-                arguments[0].toFlow().collect { indices += it.toFluoriteNumber(null).roundToInt() }
-                indices.forEach { if (it < 0) throw FluoriteException("Index must be non-negative".toFluoriteString()) }
+                arguments[0].toFlow().collect { index ->
+                    indices += index.toFluoriteNumber(null).roundToInt()
+                }
+                indices.forEach { index ->
+                    if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                }
                 val maxIndex = indices.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まない
                 val items = mutableListOf<FluoriteValue>()
                 try {
@@ -467,7 +471,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 } catch (_: IterationAborted) {
 
                 }
-                indices.forEach { emit(items.getOrNull(it) ?: FluoriteNull) }
+                indices.forEach { index ->
+                    emit(items.getOrNull(index) ?: FluoriteNull)
+                }
             }
             val index = arguments[0].toFluoriteNumber(null).roundToInt()
             if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
