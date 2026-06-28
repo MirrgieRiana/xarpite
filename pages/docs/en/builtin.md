@@ -529,9 +529,9 @@ Other properties follow those of the `AND` function.
 
 ## `GET` Get Element by Index
 
-`<T> GET(index: INT; stream: STREAM<T>): T | NULL`
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
 
-Returns the element of `stream` at the index corresponding to `index`.
+Returns the elements of `stream` at the indices corresponding to `indices`.
 
 Indices start from 0.
 
@@ -539,11 +539,24 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
+When `indices` is a stream, returns a stream of the elements corresponding to each index.
+
 ```shell
-$ xa 'GET(1; 10, 20, 30)'
+$ xa 'GET(1; 0, 10, 20)'
+# 10
+
+$ xa 'GET(5; 0, 10, 20)'
+# NULL
+
+$ xa 'GET(0, 2; 0, 10, 20)'
+# 0
 # 20
 
-$ xa 'GET(5; 10, 20, 30)'
+$ xa '0, 10, 20, 30, 40 >> GET[3, 0, 2, 2, 5]'
+# 30
+# 0
+# 20
+# 20
 # NULL
 ```
 
