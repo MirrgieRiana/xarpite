@@ -117,9 +117,10 @@ suspend fun main() {
             showVersion(ioContext)
             return@coroutineScope
         }
-        cliEval(ioContext, options) {
+        val exitCode = cliEval(ioContext, options) {
             createJsMounts()
         }
+        if (exitCode != 0) ioContext.exit(exitCode)
     }
 }
 
