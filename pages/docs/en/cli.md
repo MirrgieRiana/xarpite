@@ -389,6 +389,23 @@ $ {
 # <h1>123</h1>
 ```
 
+## Termination by Error
+
+When the program terminates due to an uncaught error, that value is output to standard error.
+
+The process exit code on termination by error follows the rules below.
+
+- 0 - When terminating with a non-native error in API version 4 or earlier
+- 1 - Otherwise
+
+```shell
+$ xa -A 5 ' !! "error" ' 2>/dev/null; echo $?
+# 1
+
+$ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?
+# 0
+```
+
 ## Other Commands
 
 ### `xarpite-update`: Update Xarpite to Latest Version

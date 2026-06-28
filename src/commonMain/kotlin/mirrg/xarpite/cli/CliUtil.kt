@@ -222,7 +222,7 @@ suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, creat
             if (options.verbose) {
                 context.io.err(e.stackTraceToString().toFluoriteString())
             }
-            0
+            if (context.apiVersion >= 5) 1 else 0
         }
     }
 }
