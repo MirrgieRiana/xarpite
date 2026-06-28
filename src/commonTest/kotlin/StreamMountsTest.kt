@@ -158,40 +158,71 @@ class StreamMountsTest {
 
     @Test
     fun get() = runTest {
-        assertEquals(10, eval("GET(0; 10, 20, 30)").int) // インデックスは0から始まる
         assertEquals(20, eval("GET(1; 10, 20, 30)").int) // GET でインデックスに対応する要素を取得する
+        assertEquals(10, eval("GET(0; 10, 20, 30)").int) // インデックスは0から始まる
         assertEquals(30, eval("GET(2; 10, 20, 30)").int) // 末尾の要素も取得できる
 
+        assertEquals(30, eval("GET(-1; 10, 20, 30)").int) // 負のインデックスは末尾から数え、-1は最後の要素になる
+        assertEquals(20, eval("GET(-2; 10, 20, 30)").int) // -2は最後から2番目の要素になる
+        assertEquals(10, eval("GET(-3; 10, 20, 30)").int) // -3は最後から3番目の要素になる
+
         assertEquals(FluoriteNull, eval("GET(3; 10, 20, 30)")) // 範囲外のインデックスは NULL になる
+        assertEquals(FluoriteNull, eval("GET(-4; 10, 20, 30)")) // 末尾方向に範囲外のインデックスも NULL になる
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
 
-        assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
+        assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになる
+        assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できる
+
+        assertEquals("30,20", eval("GET(-1, -2; 10, 20, 30)").stream()) // 負のインデックスのストリームも扱える
+        assertEquals("10,30,20", eval("GET(0, -1, -2; 10, 20, 30)").stream()) // 正負のインデックスを混在できる
+
+        assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream()) // 範囲外のインデックスはその位置だけ NULL になる
+        assertEquals("NULL,30,NULL", eval("GET(-10, -1, 10; 10, 20, 30)").stream()) // 両方向の範囲外も NULL になる
+
+        assertEquals("", eval("GET(,; 10, 20, 30)").stream()) // インデックスが空ストリームの場合、空ストリームになる
+
+        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームかつ非ストリーム添字の場合、NULL になる
+        assertEquals(FluoriteNull, eval("GET(-1; ,)")) // 値が空ストリームなら負のインデックスでも NULL になる
+
+        assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream()) // 値が空ストリームかつストリーム添字の場合、NULL のストリームになる
+        assertEquals("NULL,NULL", eval("GET(-1, -2; ,)").stream()) // 負のインデックスのストリームでも NULL のストリームになる
 
         assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
         assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
+        assertEquals(10, eval("GET(-1; 10)").int) // 非ストリームの値に対する -1 はその値自身になる
+        assertEquals(FluoriteNull, eval("GET(-2; 10)")) // 非ストリームの値に対する末尾方向の範囲外は NULL になる
 
-        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームの場合は NULL になる
+        assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスが第1引数なので部分適用できる
 
-        assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
-
+        assertEquals("[1]", eval("""
+            array := []
+            stream := 1 .. 100 | ( array::push << _ ; _ )
+            GET(0; stream)
+            array
+        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
         assertEquals("[1;2;3]", eval("""
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
-            GET(2; stream)
+            (GET(0, 2; stream)) >> VOID
             array
-        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
+        """).array()) // 最大のインデックスまでしか元ストリームを読まず、先読みもしない
+
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            stream := 1 .. 3 | ( array::push << _ ; _ )
+            GET(-1; stream)
+            array
+        """).array()) // 負のインデックスがある場合は元ストリームを最後まで読み切る
 
         assertEquals(2, eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
             GET(2; nat)
-        """).int) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
+        """).int) // 添字が窓内なら、無限の値ストリームでも必要な位置まで読めば打ち切れる
 
-        assertFails {
-            eval("""
-                nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
-                GET(-1; nat)
-            """)
-        } // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングせずエラーになる
+        assertEquals("10,20,30,NULL,NULL", eval("""
+            nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
+            TAKE(5; GET(nat; 10, 20, 30))
+        """).stream()) // 添字が窓を超えても、無限の添字ストリームをハングせず遅延逐次で扱える
     }
 
     @Test
