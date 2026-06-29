@@ -15,7 +15,7 @@ Several functions are provided to convert between JSON strings and values:
 - `JSONS` / `JSONL`
 - `JSONSD` / `JSONLD`
 
-See [data-conversion.md](data-conversion.md) for details.
+See Data Conversion Functions for details.
 
 ## Conversion with Operators
 
@@ -31,6 +31,8 @@ The detailed specification is the same as the `JSON` function.
 $ xa '$&{a: 1; b: 2}'
 # {"a":1,"b":2}
 ```
+
+From API version 5 onward, an indentation of two spaces is used.
 
 When an array or object is specified, internal elements are also recursively converted to JSON.
 

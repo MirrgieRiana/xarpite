@@ -1,16 +1,20 @@
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.Options
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
+import mirrg.xarpite.cli.addDefaultIncPaths
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
@@ -27,6 +31,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.get
+import mirrg.xarpite.test.getEmbedded
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
@@ -34,7 +39,9 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import mirrg.xarpite.cli.cliEval as cliEvalImpl
 
 val baseDir = "build/test".toPath()
 
@@ -126,6 +133,46 @@ class CliTest {
     }
 
     @Test
+    fun versionMounts() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        // MAJOR / MINOR / PATCH で XARPITE_VERSION の各要素が数値で得られる
+        assertEquals("4", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("120", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+        // MAJOR / MINOR / PATCH は INT 型である
+        assertEquals("TRUE", cliEval(context, "MAJOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "MINOR ?= INT").toFluoriteString(null).value)
+        assertEquals("TRUE", cliEval(context, "PATCH ?= INT").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsIgnoresTrailingSuffix() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "0.0.0-SNAPSHOT"))
+        // 数値三つ組の後に続く接尾辞（"-SNAPSHOT" など）は無視される
+        assertEquals("0", cliEval(context, "MAJOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "MINOR").toFluoriteString(null).value)
+        assertEquals("0", cliEval(context, "PATCH").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun versionMountsThrowWhenUnset() = runTest {
+        val context = TestIoContext(env = emptyMap())
+        // XARPITE_VERSION が無い場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
+    }
+
+    @Test
+    fun versionMountsThrowWhenNotInTripleForm() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "5"))
+        // メジャー.マイナー.パッチ の数値形式に合致しない場合は参照時にエラーとなる
+        assertFailsWith<FluoriteException> { cliEval(context, "MAJOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "MINOR") }
+        assertFailsWith<FluoriteException> { cliEval(context, "PATCH") }
+    }
+
+    @Test
     fun locationIsDashInEvalMode() = runTest {
         val context = TestIoContext()
         // When code is executed via eval (not from a file), LOCATION should be "-"
@@ -135,9 +182,53 @@ class CliTest {
     }
 
     @Test
+    fun inlAlias() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL").stream()) // INL は IN の別名
+    }
+
+    @Test
     fun iAlias() = runTest {
         val context = TestIoContext(stdinLines = listOf("abc", "def"))
         assertEquals("abc,def", cliEval(context, "I").stream()) // I は IN の別名
+    }
+
+    @Test
+    fun inIsLineStreamInApi4() = runTest {
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "IN").stream()) // APIバージョン4では IN は1行ずつのストリーム
+    }
+
+    @Test
+    fun inReadsWholeStringInApi5() = runTest {
+        // APIバージョン5では IN は標準入力全体を1個の文字列として読み取る
+        val context = TestIoContext(stdinBytes = "abc\ndef\n".encodeToByteArray())
+        val result = cliEval(context, "IN", apiVersion = 5)
+        assertTrue(result is FluoriteString)
+        assertEquals("abc\ndef\n", result.toFluoriteString(null).value) // 末尾の改行も改変されずそのまま保持される
+    }
+
+    @Test
+    fun inPreservesNewlinesInApi5() = runTest {
+        // APIバージョン5の IN は改行文字を一切改変せず入力をそのまま返す
+        val context = TestIoContext(stdinBytes = "a\r\nb\n\n".encodeToByteArray())
+        assertEquals("a\r\nb\n\n", cliEval(context, "IN", apiVersion = 5).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun inlIsLineStreamInApi5() = runTest {
+        // APIバージョン5でも INL は1行ずつのストリームのまま
+        val context = TestIoContext(stdinLines = listOf("abc", "def"))
+        assertEquals("abc,def", cliEval(context, "INL", apiVersion = 5).stream())
+    }
+
+    @Test
+    fun inWholeStringThroughApiVersionOption() = runTest {
+        // -A 5 を通して IN が標準入力全体の文字列になる
+        val context = TestIoContext(stdinBytes = "abc\ndef".encodeToByteArray())
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << IN"), context)
+        cliEvalImpl(context, options)
+        assertEquals("abc\ndef\n", context.stdoutBytes.toUtf8String())
     }
 
     @Test
@@ -145,6 +236,13 @@ class CliTest {
         val context = TestIoContext()
         cliEval(context, """O("test")""")
         assertEquals("test\n", context.stdoutBytes.toUtf8String()) // O は OUT の別名
+    }
+
+    @Test
+    fun outlAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """OUTL("test")""")
+        assertEquals("test\n", context.stdoutBytes.toUtf8String()) // OUTL は OUT の別名
     }
 
     @Test
@@ -157,7 +255,47 @@ class CliTest {
             writeUtf8("123" + "\n")
             writeUtf8("456" + "\n")
         }
-        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READ(ARGS.0)", file.toString()).stream()) // API バージョン 4 では READ は行ストリーム
+    }
+
+    @Test
+    fun readReturnsSingleStringOnApiVersion5() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("read_api5.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456" + "\n")
+        }
+        val fileWithoutTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // API バージョン 5 では READ はファイル全体を単一の文字列として返し、末尾改行の調整を行わない
+        assertEquals("123\n456\n", cliEval(context, "READ(ARGS.0)", fileWithTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
+        assertEquals("123\n456", cliEval(context, "READ(ARGS.0)", fileWithoutTrailingNewline.toString(), apiVersion = 5).toFluoriteString(null).value)
+    }
+
+    @Test
+    fun readl() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        getFileSystem().getOrThrow().createDirectory(baseDir.resolve("readl.test_file.tmp"))
+        val fileWithTrailingNewline = baseDir.resolve("readl.test_file.tmp/with_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456" + "\n")
+        }
+        val fileWithoutTrailingNewline = baseDir.resolve("readl.test_file.tmp/without_newline.txt")
+        getFileSystem().getOrThrow().write(fileWithoutTrailingNewline) {
+            writeUtf8("123" + "\n")
+            writeUtf8("456")
+        }
+        // READL は行ストリームとして読み取り、末尾改行の有無は区別されない
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithTrailingNewline.toString()).stream())
+        assertEquals("123,456", cliEval(context, "READL(ARGS.0)", fileWithoutTrailingNewline.toString()).stream())
     }
 
     @Test
@@ -346,8 +484,11 @@ class CliTest {
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
-        val dir = baseDir.resolve("files.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("files.test_dir.tmp")
+
+        fileSystem.deleteRecursively(dir, mustExist = false)
 
         // ディレクトリとファイルを準備
         fileSystem.createDirectory(dir)
@@ -355,17 +496,98 @@ class CliTest {
         fileSystem.write(dir.resolve("apple.txt")) { writeUtf8("") }
         fileSystem.createDirectory(dir.resolve("banana"))
 
-        // FILES 関数でファイル一覧を取得
-        val result = cliEval(context, "FILES(ARGS.0)", dir.toString()).stream()
+        // APIバージョン4では FILES はファイル名のみを返す
+        val filesResultV4 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", filesResultV4)
 
-        // アルファベット順にソートされ、ファイル名のみが返される
-        assertEquals("apple.txt,banana,zebra.txt", result)
+        // APIバージョン5では FILES は dir を先頭に含むパスを返す
+        val filesResultV5 = cliEval(context, "FILES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("$dir/apple.txt,$dir/banana,$dir/zebra.txt", filesResultV5)
+
+        // FILE_NAMES はAPIバージョンに依らず常にファイル名のみを返す
+        val fileNamesResultV4 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 4).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV4)
+        val fileNamesResultV5 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV5)
 
         // クリーンアップ
-        fileSystem.delete(dir.resolve("zebra.txt"))
-        fileSystem.delete(dir.resolve("apple.txt"))
-        fileSystem.delete(dir.resolve("banana"))
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun tree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("dir1/dir2"))
+        fileSystem.write(dir.resolve("dir1/dir2/file2.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("dir1/file1.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("empty-dir"))
+
+        // TREE 関数でファイルとディレクトリの一覧を取得
+        val result = cliEval(context, "TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリとその内容が連続して返される（深さ優先順）
+        // パスには dir が含まれる
+        val expected = "${dir}/dir1,${dir}/dir1/dir2,${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt,${dir}/empty-dir"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun fileTree() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("file_tree.test_dir.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ構造とファイルを準備
+        fileSystem.createDirectories(dir.resolve("dir1/dir2"))
+        fileSystem.write(dir.resolve("dir1/dir2/file2.txt")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("dir1/file1.txt")) { writeUtf8("") }
+        fileSystem.createDirectory(dir.resolve("empty-dir"))
+
+        // FILE_TREE 関数でファイルのみの一覧を取得
+        val result = cliEval(context, "FILE_TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリを含まず、ファイルのみが深さ優先順で返される
+        // パスには dir が含まれる
+        val expected = "${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun treeDepthFirstOrder() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val dir = baseDir.resolve("tree.depth_first.tmp")
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ディレクトリ内のファイルがディレクトリの直後に報告されることを確認
+        fileSystem.createDirectory(dir)
+        fileSystem.createDirectory(dir.resolve("a"))
+        fileSystem.write(dir.resolve("a/z")) { writeUtf8("") }
+        fileSystem.write(dir.resolve("a-file")) { writeUtf8("") }
+
+        // TREE 関数でファイルとディレクトリの一覧を取得
+        val result = cliEval(context, "TREE(ARGS.0)", dir.toString()).stream()
+
+        // ディレクトリ "a" とその内容 "a/z" が連続し、その後に "a-file" が来る
+        // （単純な辞書順だと "a", "a-file", "a/z" になるが、深さ優先なので "a", "a/z", "a-file"）
+        // パスには dir が含まれる
+        val expected = "${dir}/a,${dir}/a/z,${dir}/a-file"
+        assertEquals(expected, result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -375,12 +597,11 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.evaluate.tmp")
-        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        fileSystem.createDirectories(dir)
         val file = dir.resolve("value.xa1")
         fileSystem.write(file) { writeUtf8("877") }
         assertEquals("877", cliEval(context, """USE(ARGS.0)""", "./$file").toFluoriteString(null).value)
-        fileSystem.delete(file)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -390,15 +611,13 @@ class CliTest {
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.relative.tmp")
-        if (fileSystem.metadataOrNull(dir) == null) fileSystem.createDirectory(dir)
+        fileSystem.createDirectories(dir)
         val banana = dir.resolve("banana.xa1")
         val apple = dir.resolve("apple.xa1")
         fileSystem.write(banana) { writeUtf8("877") }
         fileSystem.write(apple) { writeUtf8("""USE("./banana.xa1")""") }
         assertEquals("877", cliEval(context, """USE("./build/test/use.relative.tmp/apple.xa1")""").toFluoriteString(null).value)
-        fileSystem.delete(apple)
-        fileSystem.delete(banana)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -412,8 +631,21 @@ class CliTest {
         val module = dir.resolve("banana.xa1")
         fileSystem.write(module) { writeUtf8("877") }
         assertEquals("877", cliEval(context, """USE("./build/test/use.extension.tmp/banana")""").toFluoriteString(null).value)
-        fileSystem.delete(module)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun useResolvesMainXa1WhenExtensionOmitted() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        val dir = baseDir.resolve("use.main.tmp")
+        val moduleDir = dir.resolve("banana")
+        fileSystem.createDirectories(moduleDir)
+        val module = moduleDir.resolve("main.xa1")
+        fileSystem.write(module) { writeUtf8("877") }
+        assertEquals("877", cliEval(context, """USE("./build/test/use.main.tmp/banana")""").toFluoriteString(null).value)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -508,10 +740,7 @@ class CliTest {
         assertEquals("modified", result)
 
         // クリーンアップ
-        fileSystem.delete(file1)
-        fileSystem.delete(file2)
-        fileSystem.delete(sharedModule)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -567,11 +796,12 @@ class CliTest {
         val result = cliEval(
             context,
             """
-            a := USE("$absolutePath")
-            b := USE("$absolutePath")
+            a := USE(ARGS.0)
+            b := USE(ARGS.0)
             a.variables.fruit = "orange"
             b.variables.fruit
-            """.trimIndent()
+            """.trimIndent(),
+            absolutePath,
         ).toFluoriteString(null).value
         assertEquals("orange", result)
         fileSystem.delete(file)
@@ -582,18 +812,13 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/example/utils/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("utils-1.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("999") }
         assertEquals("999", cliEval(context, """USE("com.example:utils:1.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/example/utils".toPath())
-        fileSystem.delete(".xarpite/maven/com/example".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -601,19 +826,13 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib/2.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("lib-2.0.0.xa1")
         fileSystem.write(moduleFile) { writeUtf8("777") }
         assertEquals("777", cliEval(context, """USE("org.jetbrains.kotlin:lib:2.0.0")""").toFluoriteString(null).value)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin/lib".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains/kotlin".toPath())
-        fileSystem.delete(".xarpite/maven/org/jetbrains".toPath())
-        fileSystem.delete(".xarpite/maven/org".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -621,6 +840,7 @@ class CliTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/test/module/1.0.0".toPath()
         fileSystem.createDirectories(xarpiteDir)
         val moduleFile = xarpiteDir.resolve("module-1.0.0.xa1")
@@ -645,13 +865,7 @@ class CliTest {
             """.trimIndent()
         ).toFluoriteString(null).value
         assertEquals("changed", result)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(xarpiteDir)
-        fileSystem.delete(".xarpite/maven/com/test/module".toPath())
-        fileSystem.delete(".xarpite/maven/com/test".toPath())
-        fileSystem.delete(".xarpite/maven/com".toPath())
-        fileSystem.delete(".xarpite/maven".toPath())
-        fileSystem.delete(".xarpite".toPath())
+        fileSystem.deleteRecursively(".xarpite".toPath())
     }
 
     @Test
@@ -712,8 +926,7 @@ class CliTest {
         assertEquals("Banana", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -737,8 +950,7 @@ class CliTest {
         assertEquals("Cherry", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -763,9 +975,32 @@ class CliTest {
         assertEquals("Grape", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(subDir)
-        fileSystem.delete(incDir)
+        fileSystem.deleteRecursively(incDir)
+    }
+
+    @Test
+    fun useIncRelativePathResolvesMainXa1() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // INCディレクトリにディレクトリ形式のモジュールを配置
+        val incDir = "build/test/use.inc.main.tmp".toPath()
+        val moduleDir = incDir.resolve("lemon")
+        fileSystem.createDirectories(moduleDir)
+        val moduleFile = moduleDir.resolve("main.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"Lemon\"") }
+
+        // ディレクトリ名でモジュールをロード
+        val result = cliEval(context, """
+            INC::push("build/test/use.inc.main.tmp")
+            USE("lemon")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("Lemon", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(incDir)
     }
 
     @Test
@@ -794,9 +1029,8 @@ class CliTest {
         assertEquals("Orange", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(incDir1)
-        fileSystem.delete(incDir2)
+        fileSystem.deleteRecursively(incDir1)
+        fileSystem.deleteRecursively(incDir2)
     }
 
     @Test
@@ -830,20 +1064,18 @@ class CliTest {
         fileSystem.write(moduleFile1) { writeUtf8("\"First\"") }
         fileSystem.write(moduleFile2) { writeUtf8("\"Second\"") }
 
-        // INC配列内で先頭に近いパスが優先される
+        // INC配列内で末尾に近いパスが優先される
         val result = cliEval(context, """
             INC::push("build/test/use.inc.priority.1.tmp")
             INC::push("build/test/use.inc.priority.2.tmp")
             USE("same")
         """.trimIndent()).toFluoriteString(null).value
 
-        assertEquals("First", result)
+        assertEquals("Second", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile1)
-        fileSystem.delete(moduleFile2)
-        fileSystem.delete(incDir1)
-        fileSystem.delete(incDir2)
+        fileSystem.deleteRecursively(incDir1)
+        fileSystem.deleteRecursively(incDir2)
     }
 
     @Test
@@ -865,8 +1097,7 @@ class CliTest {
         assertEquals("DotRelative", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir)
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
@@ -893,19 +1124,206 @@ class CliTest {
         assertEquals("DotDotRelative", result)
 
         // クリーンアップ
-        fileSystem.delete(callerFile)
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(dir2)
-        fileSystem.delete(dir1)
+        fileSystem.deleteRecursively(dir1)
+    }
+
+    @Test
+    fun xaEvaluatesScript() = runTest {
+        val context = TestIoContext()
+        // XA は文字列を Xarpite スクリプトとして評価する
+        assertEquals("877", cliEval(context, """XA("8 * 100 + 77")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRequiresAtLeastOneArgument() = runTest {
+        val context = TestIoContext()
+        // 引数が無い場合は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA()""") }
+    }
+
+    @Test
+    fun xaReturnsStreamWithoutResolving() = runTest {
+        val context = TestIoContext()
+        // 戻り値がストリームの場合、USE と異なり解決されずそのまま素通りする
+        assertEquals("1,2,3", cliEval(context, """XA("1, 2, 3")""").stream())
+    }
+
+    @Test
+    fun xaDoesNotReuseEvaluationResult() = runTest {
+        val context = TestIoContext()
+        // USE と異なり、同じ入力に対しても評価結果は再利用されず、毎回まっさらに評価される
+        val result = cliEval(
+            context,
+            """
+            a := XA(%>{ variables: { fruit: "apple" } }<%)
+            b := XA(%>{ variables: { fruit: "apple" } }<%)
+            a.variables.fruit = "banana"
+            b.variables.fruit
+            """.trimIndent()
+        ).toFluoriteString(null).value
+        assertEquals("apple", result)
+    }
+
+    @Test
+    fun xaDefaultLocationIsDash() = runTest {
+        val context = TestIoContext()
+        // reference を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
+        assertEquals("-", cliEval(context, """XA("LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitRelativeLocationFromCallerLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ./ で始まる reference は、PWD ではなく XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/dir/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaResolvesExplicitParentRelativeLocationFromCallerLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // ../ で始まる reference も、XA を呼び出したスクリプトのロケーションを起点に正規化される
+        assertEquals(
+            "/caller/foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "../foo.xa1")<%; reference: "/caller/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaResolvesExplicitAbsoluteLocation() = runTest {
+        val context = TestIoContext(env = mapOf("PWD" to "/test/pwd"))
+        // 絶対パスの reference はそのまま正規化される
+        assertEquals("/other/bar.xa1", cliEval(context, """XA("LOCATION"; reference: "/other/baz/../bar.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaAcceptsUrlLocation() = runTest {
+        val context = TestIoContext()
+        // URL の reference はそのまま使用される
+        assertEquals("https://example.com/foo.xa1", cliEval(context, """XA("LOCATION"; reference: "https://example.com/foo.xa1")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaResolvesExplicitRelativeLocationFromUrlCallerLocation() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションが URL の場合、相対 reference は URL として解決される
+        assertEquals(
+            "https://example.com/dir/./foo.xa1",
+            cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "https://example.com/dir/mod.xa1")""").toFluoriteString(null).value,
+        )
+    }
+
+    @Test
+    fun xaAcceptsLocationBeforeScript() = runTest {
+        val context = TestIoContext()
+        // シグネチャの順序に反して reference を script より前に渡しても受領される
+        assertEquals("/caller/dir/mod.xa1", cliEval(context, """XA(reference: "/caller/dir/mod.xa1"; "LOCATION")""").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun xaRejectsBareRelativeLocation() = runTest {
+        val context = TestIoContext()
+        // ./ の付かない裸の相対パスは禁止される
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; reference: "foo.xa1")""") }
+    }
+
+    @Test
+    fun xaRejectsRelativeLocationWhenCallerLocationHasNoParent() = runTest {
+        val context = TestIoContext()
+        // 呼び出し元ロケーションに親ディレクトリが無い場合、相対 reference はエラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA(%>XA("LOCATION"; reference: "./foo.xa1")<%; reference: "/")""") }
+    }
+
+    @Test
+    fun xaRejectsUnknownNamedArgument() = runTest {
+        val context = TestIoContext()
+        // reference 以外の名前付き引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("LOCATION"; foo: "bar")""") }
+    }
+
+    @Test
+    fun xaRejectsExtraPositionalArgument() = runTest {
+        val context = TestIoContext()
+        // 余分な位置引数は使用法エラーになる
+        assertFailsWith<FluoriteException> { cliEval(context, """XA("1"; "2")""") }
+    }
+
+    @Test
+    fun xaInnerUseResolvesFromCallerDirectory() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // reference 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
+        val dir = "build/test/xa.use.tmp".toPath()
+        fileSystem.createDirectories(dir)
+        val moduleFile = dir.resolve("module.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"FromXa\"") }
+
+        val result = cliEval(
+            context,
+            """XA(%>USE("./build/test/xa.use.tmp/module")<%)""",
+        ).toFluoriteString(null).value
+
+        assertEquals("FromXa", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
     }
 
     @Test
     fun incContainsDefaultPaths() = runTest {
         val context = TestIoContext()
-        // デフォルトで ./.xarpite/maven が含まれている
+        // デフォルトで ./.xarpite/lib、./.xarpite/maven、Maven Central が含まれている
         val incArray = cliEval(context, "INC").array()
+        assertTrue("./.xarpite/lib" in incArray)
         assertTrue("./.xarpite/maven" in incArray)
+        assertTrue("https://repo1.maven.org/maven2" in incArray)
     }
+
+    @Test
+    fun cliEvalAddsDefaultIncPaths() = runTest {
+        val context = TestIoContext()
+        // 実装側の cliEval が INC にデフォルトパスを追加することを検証
+        val options = Options(src = "NULL", arguments = emptyList(), quiet = true, verbose = false, apiVersion = null, scriptFile = null, embedded = false)
+        var capturedInc: List<FluoriteValue>? = null
+        cliEvalImpl(context, options) {
+            capturedInc = inc.values.toList()
+            emptyList()
+        }
+        assertNotNull(capturedInc)
+        val incStrings = capturedInc!!.map { it.toFluoriteString(null).value }
+        assertTrue("./.xarpite/lib" in incStrings)
+        assertTrue("./.xarpite/maven" in incStrings)
+        assertTrue("https://repo1.maven.org/maven2" in incStrings)
+    }
+
+    @Test
+    fun useLoadsModuleFromXarpiteLib() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
+
+        // ./.xarpite/lib にモジュールを配置
+        val libDir = ".xarpite/lib".toPath()
+        fileSystem.createDirectories(libDir)
+        val moduleFile = libDir.resolve("mymodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LibModule\"") }
+
+        // ./.xarpite/lib からモジュールをロード
+        val result = cliEval(context, """
+            USE("mymodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LibModule", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(".xarpite".toPath())
+    }
+
     @Test
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
@@ -919,10 +1337,70 @@ class CliTest {
     }
 
     @Test
+    fun incSupportsUrlFormatDetection() = runTest {
+        val context = TestIoContext()
+        // INC に URL 形式のパスを追加できる
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules")
+            INC::push("https://example.com/secure")
+            INC::push("HTTP://UPPERCASE.COM/test")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+        assertTrue("http://example.com/modules" in arrayStr)
+        assertTrue("https://example.com/secure" in arrayStr)
+        assertTrue("HTTP://UPPERCASE.COM/test" in arrayStr)
+    }
+
+    @Test
+    fun incUrlFormatPrioritizesLocalPaths() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // ローカルパスにモジュールを配置
+        val localDir = "build/test/inc.url.priority.tmp".toPath()
+        fileSystem.createDirectories(localDir)
+        val moduleFile = localDir.resolve("testmodule.xa1")
+        fileSystem.write(moduleFile) { writeUtf8("\"LocalModule\"") }
+
+        // ローカルパスを先に追加し、URL形式のINCを後に追加
+        // 末尾優先の軸ではURLが上位だが、ローカルパスがURLよりも優先されることを確認
+        val result = cliEval(context, """
+            INC::push("build/test/inc.url.priority.tmp")
+            INC::push("http://example.com/modules")
+            USE("testmodule")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("LocalModule", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(localDir)
+    }
+
+    @Test
+    fun incUrlFormatWithTrailingSlash() = runTest {
+        val context = TestIoContext()
+
+        // URLの末尾スラッシュがあっても正しくINCに追加できることを確認
+        val result = cliEval(context, """
+            INC::push("http://example.com/modules/")
+            INC::push("https://test.org/libs/")
+            INC
+        """.trimIndent())
+        val arrayStr = result.array()
+
+        // URL形式がINCに追加されていることを確認
+        assertTrue("http://example.com/modules/" in arrayStr)
+        assertTrue("https://test.org/libs/" in arrayStr)
+    }
+
+    @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.deleteRecursively("build/test/custom-inc".toPath(), mustExist = false)
 
         // カスタムINCパスにモジュールを配置
         val customIncDir = "build/test/custom-inc".toPath()
@@ -940,15 +1418,220 @@ class CliTest {
         assertEquals("CustomModule", result)
 
         // クリーンアップ
-        fileSystem.delete(moduleFile)
-        fileSystem.delete(moduleDir)
-        fileSystem.delete(customIncDir.resolve("com/example/custom/mylib"))
-        fileSystem.delete(customIncDir.resolve("com/example/custom"))
-        fileSystem.delete(customIncDir.resolve("com/example"))
-        fileSystem.delete(customIncDir.resolve("com"))
-        fileSystem.delete(customIncDir)
+        fileSystem.deleteRecursively(customIncDir)
     }
 
+    @Test
+    fun useTopLevelErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.top.level.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // エラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("!!\"Test error from module\"")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.top.level.error.tmp/error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("error_module") == true
+        }
+        assertTrue(hasModuleLocation, "Stack trace should include the module location where the error occurred, but got: ${stackTrace.map { it?.location }}")
+
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        // スタックトレースは [呼び出し元, ..., エラー発生箇所] の順
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
+        assertTrue(
+            lastPosition.location.contains("error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun useModuleMethodErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.method.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // メソッド呼び出しエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("method_error_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("[].+")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.method.error.tmp/method_error_module.xa1")""")
+        }
+
+        // スタックトレースにモジュールのロケーションが含まれることを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+
+        // スタックトレースにモジュールファイルのパスが含まれることを確認
+        val hasModuleLocation = stackTrace.any { position ->
+            position?.location?.contains("method_error_module") == true
+        }
+        assertTrue(
+            hasModuleLocation,
+            "Stack trace should include the module location where the method error occurred, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // スタックトレースの最後の要素（エラー発生箇所）がモジュール内であることを確認
+        val lastPosition = stackTrace.lastOrNull()
+        assertNotNull(lastPosition, "Stack trace should have at least one position")
+        assertTrue(
+            lastPosition.location.contains("method_error_module"),
+            "Last position in stack trace should be in the error module, but was: ${lastPosition.location}. Full stack trace: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun useNestedErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.nested.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ネストした呼び出しでエラーを発生させるモジュールを作成
+        val innerModule = dir.resolve("inner.xa1")
+        fileSystem.write(innerModule) {
+            writeUtf8("!!\"Error from inner module\"")
+        }
+
+        val outerModule = dir.resolve("outer.xa1")
+        fileSystem.write(outerModule) {
+            writeUtf8("""USE("./inner.xa1")""")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """USE("./build/test/use.nested.error.tmp/outer.xa1")""")
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+
+        // スタックトレースには inner.xa1 が含まれるべき
+        val hasInnerLocation = stackTrace.any { position ->
+            position?.location?.contains("inner") == true
+        }
+        assertTrue(hasInnerLocation, "Stack trace should include inner module location, but got: ${stackTrace.map { it?.location }}")
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun useModuleReturningStreamWithErrorShowsCorrectStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.stream.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // ストリームを返し、イテレーション中にエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("stream_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("1, 2, [].+, 4")
+        }
+
+        // USEでモジュールを読み込んで例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                USE("./build/test/use.stream.error.tmp/stream_module.xa1")
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+
+        // ストリームのイテレーション中のエラーは、ストリームを呼び出した側（USE呼び出し元）に紐づけられる
+        // これは論理的に正しい挙動：ストリームの評価は遅延実行されるため、エラーはイテレーション時に発生する
+        // つまり、スタックトレースには呼び出し元（test）のみが含まれ、モジュールの位置は含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for stream iteration error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun useModuleFunctionErrorShowsModuleStackTrace() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("use.function.error.tmp")
+        fileSystem.createDirectory(dir)
+
+        // 関数を定義し、その関数内でエラーを発生させるモジュールを作成
+        val moduleFile = dir.resolve("function_module.xa1")
+        fileSystem.write(moduleFile) {
+            writeUtf8("""
+                {
+                    errorFunc: () -> [].+
+                }
+            """.trimIndent())
+        }
+
+        // USEでモジュールを読み込み、関数を呼び出して例外を確認
+        val exception = assertFailsWith<FluoriteException> {
+            cliEval(context, """
+                module := USE("./build/test/use.function.error.tmp/function_module.xa1")
+                module.errorFunc()
+            """.trimIndent())
+        }
+
+        // スタックトレースを確認
+        val stackTrace = exception.stackTrace
+        assertNotNull(stackTrace, "Exception should have a stack trace")
+
+        // 関数内で発生したエラーは、関数を呼び出した側に紐づけられる
+        // これは論理的に正しい挙動：関数のコールスタックは呼び出し元であり、
+        // 関数が定義されているソースコードのスタックは含まれない
+        assertTrue(stackTrace.isNotEmpty(), "Stack trace should not be empty")
+        assertTrue(
+            stackTrace.all { it?.location == "test" },
+            "Stack trace for function error should only contain caller location, but got: ${stackTrace.map { it?.location }}"
+        )
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dir)
+    }
 
     @Test
     fun inb() = runTest {
@@ -1161,6 +1844,85 @@ class CliTest {
     }
 
     @Test
+    fun embeddedOptionSetsFlag() = runTest {
+        // -E オプションを指定すると embedded フラグが true になる
+        val options = parseArguments(listOf("-E", "-e", "%>x<%"), TestIoContext())
+        assertEquals("%>x<%", options.src)
+        assertEquals(true, options.embedded)
+
+        // -E を指定しなければ embedded フラグは false である
+        val nonEmbeddedOptions = parseArguments(listOf("-e", "%>x<%"), TestIoContext())
+        assertEquals(false, nonEmbeddedOptions.embedded)
+    }
+
+    @Test
+    fun embeddedOptionCannotBeSpecifiedTwice() = runTest {
+        // -E を2回指定するとエラーになる
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-E", "-E", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun embeddedOptionInterpretsEntireScriptAsEmbeddedString() = runTest {
+        // -E モードではスクリプト全体が埋め込み文字列の本体として解釈される
+        val context = TestIoContext()
+        assertEquals("<h1>123</h1>", cliEvalEmbedded(context, "<h1><%= 100 + 20 + 3 %></h1>").toFluoriteString(null).value)
+    }
+
+    @Test
+    fun embeddedOptionDoesNotAffectModules() = runTest {
+        if (getFileSystem().isFailure) return@runTest
+        val context = TestIoContext()
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("embedded.module.tmp")
+        fileSystem.createDirectories(dir)
+        val module = dir.resolve("value.xa1")
+        fileSystem.write(module) { writeUtf8("100 + 20 + 3") }
+        // -E はスクリプト全体のみに作用し、USE で読み込むモジュールは通常のXarpiteコードとして解釈される
+        assertEquals(
+            "result: 123",
+            cliEvalEmbedded(context, """result: <%= USE("./build/test/embedded.module.tmp/value.xa1") %>""").toFluoriteString(null).value,
+        )
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun embeddedOptionWithQuietProducesNoOutput() = runTest {
+        // -q と -E を併用すると、スクリプト全体は runner として解釈されるため、埋め込み文字列の本体は出力されない
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun embeddedOptionOutputsResultWithoutAddingNewline() = runTest {
+        // -E の非 -q 出力では、戻り値の文字列を末尾に改行を足さずそのまま出力する
+        val context = TestIoContext()
+        val options = Options(
+            src = "<h1><%= 100 + 20 + 3 %></h1>",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = true,
+        )
+        cliEvalImpl(context, options)
+        assertEquals("<h1>123</h1>", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
     fun fileOptionWithStdinReadsFromStdin() = runTest {
         // -f - オプションで標準入力から読み込む
         val context = TestIoContext(stdinBytes = "1 + 2".encodeToByteArray())
@@ -1237,6 +1999,152 @@ class CliTest {
         }
     }
 
+    @Test
+    fun apiVersionOptionIsParsed() = runTest {
+        // -A オプションで API バージョンが指定される
+        val options = parseArguments(listOf("-A", "7", "-e", "1"), TestIoContext())
+        assertEquals(7, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionOptionRequiresValue() = runTest {
+        // -A オプションは値を伴わなければエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionOptionRejectsNonInteger() = runTest {
+        // -A オプションに整数でない値を指定するとエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A", "abc", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionDuplicateOptionThrows() = runTest {
+        // -A を重複して指定するとエラー
+        assertFailsWith<ShowUsage> {
+            parseArguments(listOf("-A", "5", "-A", "6", "-e", "1"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun apiVersionDefaultsToMajorVersion() = runTest {
+        // -A 無指定のとき API_VERSION はメジャーバージョン（床）になる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionDefaultsToProvidedVersionWhenVersionUnset() = runTest {
+        // XARPITE_VERSION が無くても、デフォルトの API_VERSION は提供バージョンになる
+        val context = TestIoContext(env = emptyMap())
+        val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionOptionAcceptsProvidedVersion() = runTest {
+        // -A で提供バージョンを指定すると API_VERSION に反映される
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("4\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionUnsupportedOptionFailsBeforeExecution() = runTest {
+        // -A で提供していないバージョンを指定すると、スクリプトの実行前にエラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "48", "-q", "-e", "OUT << \"executed\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("48"))
+    }
+
+    @Test
+    fun apiAssertionPassesOnExactMatch() = runTest {
+        // API バージョンが厳密一致するとき API は素通りする
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "API(4)\nOUT << \"ok\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiAssertionFailsOnMismatch() = runTest {
+        // API バージョンが厳密一致しないとき API はエラーをスローする
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(6)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
+    @Test
+    fun apiAssertionRejectsNonIntegerVersion() = runTest {
+        // API に整数でない値を渡すと型エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.5)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
+    }
+
+    @Test
+    fun apiAssertionRejectsDoubleVersion() = runTest {
+        // API に提供バージョンと等しい値でも小数（DOUBLE）を渡すと型エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-e", "API(4.0)"), context)
+        cliEvalImpl(context, options)
+        assertTrue(context.stderrBytes.toUtf8String().contains("API version must be an integer"))
+    }
+
+    @Test
+    fun lineCommentPrefixRequiredFromApiVersion5() = runTest {
+        // APIバージョン5以降では、# の直前に空白があれば行コメントになる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << \"ok\" # comment"), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun lineCommentWithoutPrefixFailsFromApiVersion5() = runTest {
+        // APIバージョン5以降では、# の直前に空白が無いと行コメントにならず、構文エラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "5", "-q", "-e", "OUT << \"ok\"# comment"), context)
+        assertFailsWith<Exception> { cliEvalImpl(context, options) }
+    }
+
+    @Test
+    fun lineCommentWithoutPrefixAllowedBeforeApiVersion5() = runTest {
+        // APIバージョン4以前では、# の直前に空白が無くても行コメントになる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
+        val options = parseArguments(listOf("-A", "4", "-q", "-e", "OUT << \"ok\"# comment"), context)
+        cliEvalImpl(context, options)
+        assertEquals("ok\n", context.stdoutBytes.toUtf8String())
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun jsons() = runTest {
+        val context = TestIoContext()
+        // APIバージョン4では JSONS を利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 4).stream())
+        // APIバージョン5では JSONS は削除されており、参照するとエラーとなる
+        assertFailsWith<IllegalArgumentException> { cliEval(context, "{a: 1}, {b: 2} >> JSONS", apiVersion = 5) }
+        // JSONL はAPIバージョンに依らず常に利用できる
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 4).stream())
+        assertEquals("{\"a\":1},{\"b\":2}", cliEval(context, "{a: 1}, {b: 2} >> JSONL", apiVersion = 5).stream())
+    }
+
     // EXEC/BASHテスト用のヘルパー関数
     private fun assertExecuteProcessHandlerCalled(
         capturedCommands: List<Triple<String, List<String>, Map<String, String?>>>,
@@ -1273,6 +2181,40 @@ class CliTest {
             }
         )
         val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execReturnsStringInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC は標準出力全体を単一の文字列で返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("3\n13\n23\n30", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlReturnsLineStreamInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        // APIバージョン5では EXEC と別名でなくなった EXECL は行ストリームを返す
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"), apiVersion = 5)
         val lines = result.stream()
         assertEquals("3,13,23,30", lines)
 
@@ -1353,14 +2295,43 @@ class CliTest {
             }
         )
         // 存在しないコマンドは例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, getExecSrcWrappingHexForShell("nonexistent_command_xyz_12345"))
-        } catch (e: Exception) {
-            // FluoriteExceptionまたはその他の例外が期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for non-existent command")
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesTrailingNewlineInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n"
+            }
+        )
+        // APIバージョン5の EXEC では標準出力全体がそのまま返り、末尾の改行も残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n", output)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execPreservesMultipleTrailingNewlinesInApiVersion5() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "test\n\n\n"
+            }
+        )
+        // APIバージョン5の EXEC では複数の末尾改行もそのまま残ることを確認
+        val result = cliEval(context, getExecSrcWrappingHexForShell("printf 'test\\n\\n\\n'"), apiVersion = 5)
+        val output = result.toFluoriteString(null).value
+        assertEquals("test\n\n\n", output)
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -1393,14 +2364,9 @@ class CliTest {
             }
         )
         // 終了コード2でテスト
-        var exceptionThrown = false
-        try {
+        assertFailsWith<FluoriteException> {
             cliEval(context, getExecSrcWrappingHexForShell("exit 2"))
-        } catch (e: FluoriteException) {
-            // FluoriteExceptionが期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "FluoriteException should be thrown for non-zero exit code")
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -1542,14 +2508,9 @@ class CliTest {
             }
         )
         // 空の引数リストは例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, """EXEC([])""")
-        } catch (e: Exception) {
-            // FluoriteExceptionまたはその他の例外が期待される
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for empty argument list")
     }
 
     @Test
@@ -1708,6 +2669,174 @@ class CliTest {
 
         // カスタムハンドラが正しい引数で呼ばれたことを確認
         assertExecuteProcessHandlerCalled(capturedCommands, "Custom handler should have been called")
+    }
+
+    @Test
+    fun execlRunsSimpleCommand() = runTest {
+        // EXECL は EXEC の別名であることをテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello from execl"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("echo hello", functionName = "EXECL"))
+        val lines = result.stream()
+        assertEquals("hello from execl", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execlRunsComplexCommand() = runTest {
+        // EXECL が EXEC と同じ動作を持つことをテスト
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "3\n13\n23\n30"
+            }
+        )
+        val result = cliEval(context, getExecSrcWrappingHexForShell("seq 1 30 | grep 3", functionName = "EXECL"))
+        val lines = result.stream()
+        assertEquals("3,13,23,30", lines)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbReturnsSingleBlob() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "hello"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("echo hello", functionName = "EXECB")).collectBlobs()
+        // 標準出力全体が単一のBLOBになる
+        assertEquals(1, blobs.size)
+        assertContentEquals("hello".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbDoesNotSplitLinesOrStripNewline() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                "a\nb\nc\n"
+            }
+        )
+        // EXEC と異なり、行分割や末尾改行の除去は行わず、生のバイト列をそのまま単一BLOBで返す
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("printf 'a\\nb\\nc\\n'", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("a\nb\nc\n".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEmptyOutput() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                ""
+            }
+        )
+        // 出力が空でも、長さ0のBLOBが1個だけ流れる
+        val blobs = cliEval(context, getExecSrcWrappingHexForShell("", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertEquals(0, blobs[0].value.size)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun execbWithEnvironmentOverrides() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                env["FOO"] ?: "not_set"
+            }
+        )
+        val blobs = cliEval(context, getExecSrcWrappingHexForShellWithEnv("printenv FOO", """{FOO: "BAR"}""", functionName = "EXECB")).collectBlobs()
+        assertEquals(1, blobs.size)
+        assertContentEquals("BAR".encodeToByteArray().toUByteArray(), blobs[0].value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+        assertEquals("BAR", capturedCommands[0].third["FOO"])
+    }
+
+    @Test
+    fun execbThrowsOnNonZeroExitCode() = runTest {
+        val capturedCommands = mutableListOf<Triple<String, List<String>, Map<String, String?>>>()
+        val context = TestIoContext(
+            executeProcessHandler = { process, args, env ->
+                capturedCommands.add(Triple(process, args, env))
+                throw FluoriteException("exit 1".toFluoriteString())
+            }
+        )
+        val result = cliEval(context, """${getExecSrcWrappingHexForShell("exit 1", functionName = "EXECB")} !? "ERROR"""")
+        assertEquals("ERROR", result.toFluoriteString(null).value)
+
+        assertExecuteProcessHandlerCalled(capturedCommands)
+    }
+
+    @Test
+    fun exitTerminatesWithCode0() = runTest {
+        // EXIT(0)で終了コード0で終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(0)")
+        }
+        assertEquals(0, exception.code)
+    }
+
+    @Test
+    fun exitTerminatesWithCode1() = runTest {
+        // EXIT(1)で終了コード1で終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(1)")
+        }
+        assertEquals(1, exception.code)
+    }
+
+    @Test
+    fun exitTerminatesWithCode42() = runTest {
+        // EXIT(42)で任意の終了コードで終了することをテスト
+        val context = TestIoContext()
+        val exception = assertFailsWith<ExitException> {
+            cliEval(context, "EXIT(42)")
+        }
+        assertEquals(42, exception.code)
+    }
+
+    @Test
+    fun exitRequiresOneArgument() = runTest {
+        // EXITが引数1個を必要とすることをテスト
+        val context = TestIoContext()
+        assertFailsWith<Exception> {
+            cliEval(context, "EXIT()")
+        }
+        assertFailsWith<Exception> {
+            cliEval(context, "EXIT(1, 2)")
+        }
+    }
+
+    @Test
+    fun exitRequiresIntegerArgument() = runTest {
+        // EXITが数値の引数を必要とすることをテスト
+        val context = TestIoContext()
+        assertFailsWith<Exception> {
+            cliEval(context, """EXIT("not a number")""")
+        }
     }
 
     @Test
@@ -1907,13 +3036,9 @@ class CliTest {
             }
         )
         // 0以外の終了コードで例外をスロー
-        var exceptionThrown = false
-        try {
+        assertFailsWith<Exception> {
             cliEval(context, getBashSrcWrappingHexForShell("exit 1"))
-        } catch (e: Exception) {
-            exceptionThrown = true
         }
-        assertTrue(exceptionThrown, "Exception should be thrown for non-zero exit code")
 
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
@@ -1969,6 +3094,177 @@ class CliTest {
         assertExecuteProcessHandlerCalled(capturedCommands)
     }
 
+    @Test
+    fun verboseOptionParsing() = runTest {
+        val context = TestIoContext()
+
+        // Test that --verbose option is parsed correctly with -e
+        val options = parseArguments(listOf("--verbose", "-e", "1+1"), context)
+        assertEquals(true, options.verbose)
+        assertEquals("1+1", options.src)
+
+        // Test without --verbose
+        val options2 = parseArguments(listOf("-e", "1+1"), context)
+        assertEquals(false, options2.verbose)
+    }
+
+    @Test
+    fun verboseOptionShowsKotlinStackTrace() = runTest {
+        // Test with verbose = true
+        val errMessagesVerbose = mutableListOf<String>()
+        val verboseContext = TestIoContext()
+        val ioContextVerbose = object : IoContext by verboseContext {
+            override suspend fun err(value: FluoriteValue) {
+                errMessagesVerbose.add(value.toFluoriteString(null).value)
+            }
+        }
+
+        val verboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = true,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        cliEvalImpl(ioContextVerbose, verboseOptions)
+
+        val verboseOutput = errMessagesVerbose.joinToString("\n")
+        assertTrue(verboseOutput.isNotEmpty(), "Error message should be captured when verbose=true")
+        assertTrue(verboseOutput.contains("ERROR:"), "Verbose error output should have ERROR prefix")
+        // When verbose=true, a Kotlin stack trace should be included.
+        // Check for FluoriteException in the output (appears in stackTraceToString)
+        assertTrue(
+            verboseOutput.contains("FluoriteException"),
+            "Verbose error output should contain Kotlin stack trace with exception class name",
+        )
+
+        // Test with verbose = false
+        val errMessagesNonVerbose = mutableListOf<String>()
+        val nonVerboseContext = TestIoContext()
+        val ioContextNonVerbose = object : IoContext by nonVerboseContext {
+            override suspend fun err(value: FluoriteValue) {
+                errMessagesNonVerbose.add(value.toFluoriteString(null).value)
+            }
+        }
+
+        val nonVerboseOptions = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        cliEvalImpl(ioContextNonVerbose, nonVerboseOptions)
+
+        val nonVerboseOutput = errMessagesNonVerbose.joinToString("\n")
+        assertTrue(nonVerboseOutput.isNotEmpty(), "Error message should be captured when verbose=false")
+        assertTrue(nonVerboseOutput.contains("ERROR:"), "Non-verbose error output should have ERROR prefix")
+        // When verbose=false, the detailed exception class name should not be in the output
+        // (only the user-friendly error message and Xarpite stack trace)
+        assertTrue(
+            !nonVerboseOutput.contains("FluoriteException"),
+            "Non-verbose error output should not contain Kotlin exception class name",
+        )
+    }
+
+    @Test
+    fun cliEvalReturnsZeroExitCodeOnSuccess() = runTest {
+        // cliEval は正常終了時に終了コード0を返す
+        val context = TestIoContext()
+        val options = Options(
+            src = "OUT('ok')",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
+        assertEquals(null, context.exitCode)
+    }
+
+    @Test
+    fun cliEvalReturnsExitCodeWithoutCallingExitOnError() = runTest {
+        // cliEval はエラー終了時も終了コードを返すだけで、自身では exit を呼ばない（REPL 等での再利用のため）
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = null,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
+        assertEquals(null, context.exitCode)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
+    @Test
+    fun errorReturnsNonZeroExitCodeFromApiVersion5() = runTest {
+        // APIバージョン5以降では、!! や実行時例外でスクリプトが死んだとき、終了コード1を返す
+        // cliEval自身はexitを呼ばず、呼び出し側に終了コードを返すだけにする（REPL等での再利用のため）
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = 5,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(1, exitCode)
+        assertEquals(null, context.exitCode)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
+    @Test
+    fun errorReturnsNonZeroExitCodeInRunnerModeFromApiVersion5() = runTest {
+        // runnerモード（-q）でも、APIバージョン5以降では終了コード1を返す
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = true,
+            verbose = false,
+            apiVersion = 5,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(1, exitCode)
+        assertEquals(null, context.exitCode)
+    }
+
+    @Test
+    fun errorReturnsZeroExitCodeBeforeApiVersion5() = runTest {
+        // APIバージョン4以前では、!! や実行時例外でスクリプトが死んでも終了コード0を返す
+        val context = TestIoContext()
+        val options = Options(
+            src = "!! 'test error'",
+            arguments = emptyList(),
+            quiet = false,
+            verbose = false,
+            apiVersion = 4,
+            scriptFile = null,
+            embedded = false,
+        )
+        val exitCode = cliEvalImpl(context, options)
+        assertEquals(0, exitCode)
+        assertEquals(null, context.exitCode)
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+    }
+
 }
 
 private suspend fun getAbsolutePath(file: okio.Path): String {
@@ -1976,16 +3272,31 @@ private suspend fun getAbsolutePath(file: okio.Path): String {
     return fileSystem.canonicalize(file).toString()
 }
 
-private suspend fun cliEval(ioContext: IoContext, src: String, vararg args: String): FluoriteValue = coroutineScope {
-    withEvaluator(ioContext) { context, evaluator ->
-        context.inc.values += "./.xarpite/maven".toFluoriteString()
+private suspend fun CoroutineScope.cliEval(ioContext: IoContext, src: String, vararg args: String, apiVersion: Int? = null): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        if (apiVersion != null) context.apiVersion = apiVersion
+        context.addDefaultIncPaths()
         val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
         lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
         mountsFactory = { location ->
             mounts + context.run { createModuleMounts(location, mountsFactory) }
         }
         evaluator.defineMounts(mountsFactory("-"))
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.get(src).cache()
+    }
+}
+
+private suspend fun CoroutineScope.cliEvalEmbedded(ioContext: IoContext, src: String, vararg args: String): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        context.addDefaultIncPaths()
+        val mounts = context.run { createCommonMounts() + createCliMounts(args.toList()) }
+        lateinit var mountsFactory: (String) -> List<Map<String, Mount>>
+        mountsFactory = { location ->
+            mounts + context.run { createModuleMounts(location, mountsFactory) }
+        }
+        evaluator.defineMounts(mountsFactory("-"))
+        evaluator.getEmbedded(src).cache()
     }
 }
 
@@ -1994,12 +3305,16 @@ internal class TestIoContext(
     private val stdinBytes: ByteArray = byteArrayOf(),
     private val currentLocation: String = "/test/location",
     private val env: Map<String, String> = emptyMap(),
-    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null
+    private val executeProcessHandler: (suspend (process: String, args: List<String>, env: Map<String, String?>) -> String)? = null,
+    private val fetchHandler: (suspend (context: RuntimeContext, url: String) -> Result<ByteArray>)? = null,
+    private val exitHandler: ((code: Int) -> Nothing)? = null
 ) : IoContext {
     private var stdinLineIndex = 0
     private var stdinBytesIndex = 0
     val stdoutBytes = TestByteArrayOutputStream()
     val stderrBytes = TestByteArrayOutputStream()
+    var exitCode: Int? = null
+        private set
 
     override suspend fun out(value: FluoriteValue) = writeBytesToStdout("${value.toFluoriteString(null).value}\n".encodeToByteArray())
 
@@ -2032,19 +3347,38 @@ internal class TestIoContext(
         stderrBytes.write(bytes)
     }
 
-    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")
+    override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) =
+        // ハンドラはプロセスの標準出力をStringとして模擬するため、実プラットフォームと同様にByteArrayへエンコードして返す
+        (executeProcessHandler?.invoke(process, args, env) ?: throw UnsupportedOperationException("executeProcessHandler is not set")).encodeToByteArray()
+
+    override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> =
+        // fetchHandler 未設定時は、デフォルトの INC に含まれる Maven Central のような URL の取得失敗を模擬する
+        fetchHandler?.invoke(context, url) ?: Result.failure(UnsupportedOperationException("fetchHandler is not set"))
 
     override fun getEnv(): Map<String, String> = env
 
     override fun getPlatformPwd(): String = currentLocation
+
+    override fun exit(code: Int): Nothing {
+        exitCode = code
+        if (exitHandler != null) {
+            exitHandler.invoke(code)
+        } else {
+            throw ExitException(code)
+        }
+    }
 
     fun clear() {
         stdoutBytes.reset()
         stderrBytes.reset()
         stdinLineIndex = 0
         stdinBytesIndex = 0
+        exitCode = null
     }
 }
+
+// EXIT関数のテスト用例外
+internal class ExitException(val code: Int) : Exception("Exit with code $code")
 
 internal class TestByteArrayOutputStream {
     private val buffer = mutableListOf<Byte>()
@@ -2072,15 +3406,15 @@ private suspend fun FluoriteValue.collectBlobs(): List<FluoriteBlob> {
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
-private fun getExecSrcWrappingHexForShell(script: String): String {
+private fun getExecSrcWrappingHexForShell(script: String, functionName: String = "EXEC"): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
+    return """$functionName("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */
-private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String): String {
+private fun getExecSrcWrappingHexForShellWithEnv(script: String, envObject: String, functionName: String = "EXEC"): String {
     val hex = script.encodeToByteArray().toHexString()
-    return """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
+    return """$functionName("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%; env: $envObject)"""
 }
 
 /** Windows環境では bash コマンドが余計な $ の置換をするので一旦シェルスクリプトを16進エンコードして渡す */

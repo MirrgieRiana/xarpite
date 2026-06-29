@@ -13,19 +13,24 @@ interface FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 null, mutableMapOf(
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0]
                         if (obj !is FluoriteObject) throw FluoriteException("Cannot get property: $obj".toFluoriteString())
                         val key = arguments[1].toFluoriteString(null).value
                         obj.map[key] ?: FluoriteNull
                     },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction { "${it[0]}".toFluoriteString() },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { "${it[0]}".toFluoriteString() },
                 )
             )
         }
     }
 
     val parent: FluoriteObject?
+
+    /**
+     * クラスが異なる場合は常に不一致とし、そうでない場合、不変系の型は内容で、可変系の型はインスタンスで比較するのだ。
+     */
+    fun strictEquals(other: FluoriteValue): Boolean
 }
 
 fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
@@ -38,8 +43,10 @@ fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
 }
 
 fun interface Callable {
-    suspend fun call(arguments: Array<FluoriteValue>): FluoriteValue
+    suspend fun call(arguments: Array<suspend () -> FluoriteValue>): FluoriteValue
 }
+
+suspend fun Callable.callImmediate(arguments: Array<FluoriteValue>) = this.call(arguments.map { suspend { it } }.toTypedArray())
 
 private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     var currentObject = this.parent
@@ -53,46 +60,52 @@ private fun FluoriteValue.getPureMethod(name: String): FluoriteValue? {
     }
 }
 
-suspend fun FluoriteValue.getMethod(position: Position?, name: String): Callable? {
-    val method = this.getPureMethod(name) ?: run {
-        val fallbackMethod = this.getPureMethod(OperatorMethod.METHOD.methodName) ?: return null
-        val actualMethod = this.callMethod(position, fallbackMethod, arrayOf(name.toFluoriteString()))
-        if (actualMethod == FluoriteNull) return null
-        return Callable { arguments ->
-            actualMethod.invoke(position, arguments)
-        }
-    }
-    return Callable { arguments ->
-        this.callMethod(position, method, arguments)
+suspend fun FluoriteValue.callAsMethod(position: Position?, method: FluoriteValue, arguments: Array<suspend () -> FluoriteValue> = arrayOf()): FluoriteValue {
+    return if (method is FluoriteFunction) {
+        method.call(arrayOf(suspend { this }, *arguments))
+    } else {
+        method.invoke(position, arrayOf(suspend { this }, *arguments))
     }
 }
 
-suspend fun FluoriteValue.callMethod(position: Position?, name: String, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
-    val callable = this.getMethod(position, name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
+suspend fun FluoriteValue.getSolvedMethod(position: Position?, name: String): Callable? {
+    val method = this.getPureMethod(name) ?: run {
+        val fallbackMethod = this.getPureMethod(OperatorMethod.METHOD.methodName) ?: return null
+        val actualMethod = this.callAsMethod(position, fallbackMethod, arrayOf(suspend { name.toFluoriteString() }))
+        if (actualMethod == FluoriteNull) return null
+        return Callable { arguments ->
+            actualMethod.invokeImmediate(position, arguments.map { it() }.toTypedArray())
+        }
+    }
+    return Callable { arguments ->
+        this.callAsMethod(position, method, arguments)
+    }
+}
+
+suspend fun FluoriteValue.callMethod(position: Position?, name: String, arguments: Array<suspend () -> FluoriteValue> = arrayOf()): FluoriteValue {
+    val callable = this.getSolvedMethod(position, name) ?: throw FluoriteException("Method not found: $this::$name".toFluoriteString())
     return withStackTrace(position) {
         callable.call(arguments)
     }
 }
 
-suspend fun FluoriteValue.callMethod(position: Position?, method: FluoriteValue, arguments: Array<FluoriteValue> = arrayOf()): FluoriteValue {
-    return if (method is FluoriteFunction) {
-        method.function(arrayOf(this, *arguments))
-    } else {
-        method.invoke(position, arrayOf(this, *arguments))
-    }
+suspend fun FluoriteValue.callMethodImmediate(position: Position?, name: String, arguments: Array<FluoriteValue>): FluoriteValue {
+    return this.callMethod(position, name, arguments.map { suspend { it } }.toTypedArray())
 }
 
-suspend fun FluoriteValue.invoke(position: Position?, arguments: Array<FluoriteValue>) = this.callMethod(position, OperatorMethod.CALL.methodName, arguments)
-suspend fun FluoriteValue.setInvoke(position: Position?, arguments: Array<FluoriteValue>) = run { this.callMethod(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
-suspend fun FluoriteValue.bind(position: Position?, arguments: Array<FluoriteValue>) = this.callMethod(position, OperatorMethod.BIND.methodName, arguments)
+suspend fun FluoriteValue.invoke(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = this.callMethod(position, OperatorMethod.CALL.methodName, arguments)
+suspend fun FluoriteValue.invokeImmediate(position: Position?, arguments: Array<FluoriteValue>) = this.callMethodImmediate(position, OperatorMethod.CALL.methodName, arguments)
+suspend fun FluoriteValue.setInvoke(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = run { this.callMethod(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
+suspend fun FluoriteValue.setInvokeImmediate(position: Position?, arguments: Array<FluoriteValue>) = run { this.callMethodImmediate(position, OperatorMethod.SET_CALL.methodName, arguments); Unit }
+suspend fun FluoriteValue.bind(position: Position?, arguments: Array<suspend () -> FluoriteValue>) = this.callMethod(position, OperatorMethod.BIND.methodName, arguments)
 suspend fun FluoriteValue.toFluoriteNumber(position: Position?): FluoriteNumber = this.callMethod(position, OperatorMethod.TO_NUMBER.methodName).let { if (it is FluoriteNumber) it else it.toFluoriteNumber(position) }
 suspend fun FluoriteValue.toFluoriteString(position: Position?): FluoriteString = this.callMethod(position, OperatorMethod.TO_STRING.methodName).let { if (it is FluoriteString) it else it.toFluoriteString(position) }
 suspend fun FluoriteValue.toFluoriteBoolean(position: Position?): FluoriteBoolean = this.callMethod(position, OperatorMethod.TO_BOOLEAN.methodName).let { if (it is FluoriteBoolean) it else it.toFluoriteBoolean(position) }
 suspend fun FluoriteValue.toBoolean(position: Position?) = this.toFluoriteBoolean(position).value
 suspend fun FluoriteValue.getLength(position: Position?) = this.callMethod(position, OperatorMethod.GET_LENGTH.methodName) as FluoriteNumber
-suspend fun FluoriteValue.contains(position: Position?, value: FluoriteValue) = this.callMethod(position, OperatorMethod.CONTAINS.methodName, arrayOf(value)).toFluoriteBoolean(position)
-suspend fun FluoriteValue.match(position: Position?, value: FluoriteValue) = this.callMethod(position, OperatorMethod.MATCH.methodName, arrayOf(value))
-suspend fun FluoriteValue.plus(position: Position?, value: FluoriteValue) = this.callMethod(position, OperatorMethod.PLUS.methodName, arrayOf(value))
-suspend fun FluoriteValue.minus(position: Position?, value: FluoriteValue) = this.callMethod(position, OperatorMethod.MINUS.methodName, arrayOf(value))
-suspend fun FluoriteValue.compareTo(position: Position?, value: FluoriteValue) = this.callMethod(position, OperatorMethod.COMPARE.methodName, arrayOf(value)) as FluoriteInt
+suspend fun FluoriteValue.contains(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.CONTAINS.methodName, arrayOf(value)).toFluoriteBoolean(position)
+suspend fun FluoriteValue.match(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.MATCH.methodName, arrayOf(value))
+suspend fun FluoriteValue.plus(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.PLUS.methodName, arrayOf(value))
+suspend fun FluoriteValue.minus(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.MINUS.methodName, arrayOf(value))
+suspend fun FluoriteValue.compareTo(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.COMPARE.methodName, arrayOf(value)) as FluoriteInt
 suspend fun FluoriteValue.fluoriteEquals(value: FluoriteValue) = this == value

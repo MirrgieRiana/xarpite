@@ -21,6 +21,7 @@ sealed class BracketsLiteralSimpleNode(body: Node, position: Position) : Bracket
 class BracketsLiteralSimpleRoundNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 class BracketsLiteralSimpleSquareNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 class BracketsLiteralSimpleCurlyNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
+class IndentBlockNode(body: Node, position: Position) : BracketsLiteralSimpleNode(body, position)
 sealed class BracketsRightNode(val receiver: Node, body: Node, position: Position) : BracketsNode(body, position)
 sealed class BracketsRightArrowedNode(receiver: Node, val arguments: Node, body: Node, position: Position) : BracketsRightNode(receiver, body, position)
 class BracketsRightArrowedRoundNode(receiver: Node, arguments: Node, body: Node, position: Position) : BracketsRightArrowedNode(receiver, arguments, body, position)
@@ -64,6 +65,7 @@ class InfixPercentNode(left: Node, right: Node, position: Position) : InfixNode(
 class InfixCircumflexNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixPeriodPeriodNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixEqualTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
+class InfixExclamationTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixLessEqualGreaterNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixTildeNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixAmpersandAmpersandNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
@@ -71,6 +73,7 @@ class InfixPipePipeNode(left: Node, right: Node, position: Position) : InfixNode
 class InfixQuestionColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
+class InfixEqualColonNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixMinusGreaterNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixPlusEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
 class InfixMinusEqualNode(left: Node, right: Node, position: Position) : InfixNode(left, right, position)
@@ -94,7 +97,7 @@ enum class Side {
 }
 
 enum class ComparisonOperatorType {
-    EQUAL,
+    EQUAL_EQUAL,
     EXCLAMATION_EQUAL,
     GREATER,
     LESS,

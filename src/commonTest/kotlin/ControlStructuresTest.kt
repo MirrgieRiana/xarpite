@@ -1,8 +1,11 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -46,6 +49,242 @@ class ControlStructuresTest {
             ) !: break
             i
         """.let { assertEquals(3, eval(it).int) }
+    }
+
+    @Test
+    fun while2Loop() = runTest {
+        // WHILE2 は条件がtrueの間、ブロックを繰り返し実行し、NULLを返す
+        """
+            i := 0
+            WHILE2 (i < 5; i = i + 1)
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // WHILE2の副作用でカウンタが正しく更新される
+        """
+            i := 0
+            WHILE2 (i < 5; i = i + 1)
+            i
+        """.let { assertEquals(5, eval(it).int) }
+
+        // 条件が初めからfalseの場合、ブロックは実行されずNULLを返す
+        """
+            i := 0
+            WHILE2 (FALSE; i = i + 1)
+            i
+        """.let { assertEquals(0, eval(it).int) }
+
+        // ラベル・リターンと組み合わせて途中で脱出できる
+        """
+            i := 0
+            WHILE2 (i < 100; (
+                i == 3 && break!!
+                i = i + 1
+            )) !: break
+            i
+        """.let { assertEquals(3, eval(it).int) }
+    }
+
+    @Test
+    fun trySuccess() = runTest {
+        // TRY は正常に実行された場合、解決済みのPROMISEを返す
+        """
+            TRY ( =>
+                "Success"
+            )::await()
+        """.let { assertEquals("Success", eval(it).string) }
+
+        // TRY ブロックの戻り値が正しくPROMISEに格納される
+        """
+            TRY ( =>
+                42
+            )::await()
+        """.let { assertEquals(42, eval(it).int) }
+
+        // PROMISEは完了状態になる
+        """
+            TRY ( =>
+                "Test"
+            )::isCompleted()
+        """.let { assertEquals(true, eval(it).boolean) }
+    }
+
+    @Test
+    fun tryFailure() = runTest {
+        // TRY は例外がスローされた場合、拒否されたPROMISEを返す
+        """
+            TRY ( =>
+                !! "Error occurred"
+            )::await() !? ( e => "Caught: ${"$"}e")
+        """.let { assertEquals("Caught: Error occurred", eval(it).string) }
+
+        // TRY 内の例外はPROMISEに格納され、外部には漏れない
+        """
+            TRY ( =>
+                !! "Failed"
+            )::isCompleted()
+        """.let { assertEquals(true, eval(it).boolean) }
+
+        // 例外の値が正しく伝達される
+        """
+            TRY ( =>
+                !! 12345
+            )::await() !? ( e => e)
+        """.let { assertEquals(12345, eval(it).int) }
+
+        // awaitException() で例外の値を取得できる
+        """
+            TRY ( =>
+                !! "Error"
+            )::awaitException()
+        """.let { assertEquals("Error", eval(it).string) }
+
+        // awaitException() は成功した場合に NULL を返す
+        """
+            TRY ( =>
+                "Success"
+            )::awaitException()
+        """.let { assertEquals(FluoriteNull, eval(it)) }
+
+        // awaitException() はネイティブ例外を ERROR に包んで返す
+        """
+            TRY ( =>
+                ERROR.throwNativeError("boom")
+            )::awaitException() ?= ERROR
+        """.let { assertEquals(true, eval(it).boolean) }
+    }
+
+    @Test
+    fun tryStreamResolution() = runTest {
+        // TRY ブロックがストリームを返す場合、自動的に解決される
+        """
+            counter := 0
+            promise := TRY ( =>
+                1 .. 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            promise::await()
+            promise::await()
+            promise::await()
+            counter
+        """.let {
+            val result = eval(it)
+            // ストリームが1度だけ評価され、counterが3になる
+            assertEquals(3, result.int)
+        }
+
+        // TRY ブロックのストリームは、何度awaitしても最初に評価されたときと同じシーケンスを返す
+        """
+            counter := 0
+            promise := TRY ( =>
+                1 .. 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            promise::await(), promise::await()
+        """.let {
+            // awaitの結果がストリームとして [1;2;3] を返し、2回のawaitの結果が連結される
+            assertEquals("1,2,3,1,2,3", eval(it).stream())
+        }
+    }
+
+    @Test
+    fun tryLabelReturn() = runTest {
+        // ラベルリターンはTRYブロックを貫通する
+        """
+            (
+                TRY ( =>
+                    label!! "returned"
+                )
+                "not returned"
+            ) !: label
+        """.let { assertEquals("returned", eval(it).string) }
+    }
+
+    @Test
+    fun try2Success() = runTest {
+        // TRY2 は正常に実行された場合、解決済みのPROMISEを返す
+        """
+            TRY2 ("Success")::await()
+        """.let { assertEquals("Success", eval(it).string) }
+
+        // TRY2 ブロックの戻り値が正しくPROMISEに格納される
+        """
+            TRY2 (42)::await()
+        """.let { assertEquals(42, eval(it).int) }
+
+        // PROMISEは完了状態になる
+        """
+            TRY2 ("Test")::isCompleted()
+        """.let { assertEquals(true, eval(it).boolean) }
+    }
+
+    @Test
+    fun try2Failure() = runTest {
+        // TRY2 は例外がスローされた場合、拒否されたPROMISEを返す
+        """
+            TRY2 (!! "Error occurred")::await() !? ( e => "Caught: ${"$"}e")
+        """.let { assertEquals("Caught: Error occurred", eval(it).string) }
+
+        // TRY2 内の例外はPROMISEに格納され、外部には漏れない
+        """
+            TRY2 (!! "Failed")::isCompleted()
+        """.let { assertEquals(true, eval(it).boolean) }
+
+        // 例外の値が正しく伝達される
+        """
+            TRY2 (!! 12345)::await() !? ( e => e)
+        """.let { assertEquals(12345, eval(it).int) }
+    }
+
+    @Test
+    fun try2StreamResolution() = runTest {
+        // TRY2 ブロックがストリームを返す場合、自動的に解決される
+        """
+            counter := 0
+            promise := TRY2 (
+                1 .. 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            promise::await()
+            promise::await()
+            promise::await()
+            counter
+        """.let {
+            val result = eval(it)
+            // ストリームが1度だけ評価され、counterが3になる
+            assertEquals(3, result.int)
+        }
+
+        // TRY2 ブロックのストリームは、何度awaitしても最初に評価されたときと同じシーケンスを返す
+        """
+            counter := 0
+            promise := TRY2 (
+                1 .. 3 | (
+                    counter = counter + 1
+                    counter
+                )
+            )
+            promise::await(), promise::await()
+        """.let {
+            // awaitの結果がストリームとして [1;2;3] を返し、2回のawaitの結果が連結される
+            assertEquals("1,2,3,1,2,3", eval(it).stream())
+        }
+    }
+
+    @Test
+    fun try2LabelReturn() = runTest {
+        // ラベルリターンはTRY2ブロックを貫通する
+        """
+            (
+                TRY2 (label!! "returned")
+                "not returned"
+            ) !: label
+        """.let { assertEquals("returned", eval(it).string) }
     }
 
 }

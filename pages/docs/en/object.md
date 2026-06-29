@@ -1,8 +1,14 @@
 ---
-title: "Object Literal `{entry; ...}`"
+title: "Object"
 ---
 
 <!-- toc -->
+
+# Object
+
+In Xarpite, every value forms an inheritance chain through a reference to its parent object.
+
+Some values, such as the `VALUE` class object, have no parent object, and they sit at the root of the inheritance chain.
 
 # Object Literal `{entry; ...}`
 
@@ -74,6 +80,33 @@ $ xa '
 ```
 
 In this example, at the time of calculating the value of `result`, no value has been set for `fruit` yet, so initialization occurs at the point of access.
+
+## `stream.{}`: Object Conversion Operator
+
+The object conversion operator converts a stream of 2-element arrays into an object.
+
+```shell
+$ xa '(["a", 1], ["b", 2]).{}'
+# {a:1;b:2}
+```
+
+---
+
+The object conversion operator is convenient for converting streams returned from variables or function calls to objects with the shortest notation.
+
+```shell
+$ xa '({a: 1; b: 2; c: 3}() | (_.0 & "z": _.1 * 10)).{}'
+# {az:10;bz:20;cz:30}
+```
+
+---
+
+A single 2-element array that is not a stream also works.
+
+```shell
+$ xa '["a", 100].{}'
+# {a:100}
+```
 
 # Streaming Objects `object()`
 
@@ -228,4 +261,46 @@ $ xa '
   object
 '
 # {b:banana}
+```
+
+# Built-in Function `PARENT`
+
+## `PARENT`: Getting the Parent Object
+
+`PARENT(value: VALUE): OBJECT | NULL`
+
+Returns the parent object of `value`, or NULL.
+
+---
+
+For an object created by specifying a parent object, it returns that parent object.
+
+For a value at the root of the inheritance chain, it returns NULL.
+
+For any other value, it returns the corresponding class constant.
+
+If `value` is a stream, it is not applied element-wise but returns `STREAM`, the parent object of the stream itself.
+
+```shell
+$ xa '
+  parent := {name: "Parent"}
+  child := parent{name: "Child"}
+  PARENT(child).name
+'
+# Parent
+
+$ xa 'PARENT(VALUE)'
+# NULL
+
+$ xa 'PARENT({}) == OBJECT'
+# TRUE
+
+$ xa 'PARENT(1) == INT'
+# TRUE
+
+$ xa 'PARENT(INT) == VALUE'
+# TRUE
+
+$ xa 'PARENT(1, 2, 3) == STREAM'
+# TRUE
 ```

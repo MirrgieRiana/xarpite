@@ -7,6 +7,32 @@ error() {
   exit 1
 }
 
+usage() {
+  echo "Usage: xarpite-update [-h] [-y]"
+  echo ""
+  echo "Options:"
+  echo "  -h    Show this help message and exit."
+  echo "  -y    Skip confirmation prompt and apply updates automatically."
+}
+
+# Parse arguments
+auto_yes=0
+for arg in "$@"; do
+  case "$arg" in
+    -h)
+      usage
+      exit 0
+      ;;
+    -y)
+      auto_yes=1
+      ;;
+    *)
+      usage >&2
+      error "Error: Unknown option: $arg"
+      ;;
+  esac
+done
+
 check() {
   command -v "$1" > /dev/null 2>&1 || error "Error: $1 is required but not installed."
 }
@@ -80,12 +106,15 @@ CLASSIFIER="$(cat "$CLASSIFIER_FILE")"
 
 file="xarpite-bin-$version-$CLASSIFIER.tar.gz"
 tmpdir=$(mktemp -d "/tmp/xarpite-update.XXXXXX") || error "Error: Failed to create temporary directory."
+# Create a subdirectory to avoid permission issues with the temporary directory itself
+workdir="$tmpdir/work"
+mkdir -p "$workdir"
 url="https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/$version/$file"
 
 echo "Downloading from: $url"
 
-curl -L -o - "$url" | tar -xzf - -C "$tmpdir"
-echo "Successfully downloaded and extracted to: $tmpdir"
+curl -L -o - "$url" | tar -xzf - -C "$workdir"
+echo "Successfully downloaded and extracted to: $workdir"
 
 echo
 
@@ -94,21 +123,34 @@ echo
 
 echo "Updating"
 
+# Match destination directory permissions to avoid spurious ./ diffs
+chmod --reference=. "$workdir"
+
 echo "--- Dry run (no changes) ---"
-rsync -n --itemize-changes -ac --delete "$tmpdir"/ ./
+{
+  lines="$(rsync -n -rlpgoDc --delete "$workdir"/ ./ --out-format='! %i %n%L' | tee >(cat >&3))"
+} 3>&1
+if ! printf "%s\n" "$lines" | grep -q '^! '; then
+  echo "No changes needed."
+  exit 0
+fi
 echo
-printf "Type Y to apply (otherwise cancel): " >&2
-read -r answer
-echo
-case "$answer" in
-  [Yy]*)
-    ;;
-  *)
+if (( ! auto_yes )); then
+  printf "Type Y to apply (otherwise cancel): " >&2
+  if ! read -r answer; then
     error "Cancelled."
-    ;;
-esac
+  fi
+  echo
+  case "$answer" in
+    [Yy]*)
+      ;;
+    *)
+      error "Cancelled."
+      ;;
+  esac
+fi
 echo "Syncing"
-rsync -ac --delete "$tmpdir"/ ./
+rsync --itemize-changes -rlpgoDc --delete "$workdir"/ ./
 
 echo
 

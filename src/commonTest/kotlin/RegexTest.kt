@@ -48,10 +48,44 @@ class RegexTest {
     }
 
     @Test
+    fun match_period() = runTest {
+        assertEquals("l", eval(""" "apple"./pp(.)/.1 """).string) // プロパティアクセスによるマッチとグループ参照
+        assertEquals("abc", eval(""" "1abc1"./1(.*)1/.1 """).string) // 括弧なしでマッチとグループ参照を連鎖
+        assertNotEquals(FluoriteNull, eval(""" "ABC"./B/ """)) // 部分一致
+        assertEquals(FluoriteNull, eval(""" "ABC"./D/ """)) // 部分一致しない
+        assertEquals("B", eval(""" "ABC"./B/.0 """).string) // 一致部分の全体
+        assertEquals("B", eval(""" "ABC"./A(\w)C/.1 """).string) // グループ
+        assertEquals("[ABCDE;B;D]", eval(""" "ABCDE"./A(B)C(D)E/[] """).array()) // 一致部分とグループの配列化
+
+        assertEquals("A,B,C", eval(""" "ABC"././g | _.0 """).stream()) // 全件抽出
+        assertEquals("B,E,H", eval(""" "ABC,DEF,GHI"./\w(\w)\w/g | _.1 """).stream()) // 全件グループ抽出
+
+        assertEquals("abc", eval(""" r := /1(.*)1/; "1abc1".(r).1 """).string) // キーは正規表現リテラルに限らない
+        assertEquals("2", eval(""" Obj := {`_._`: this, regex -> this("value") =~ regex}; Obj{value: "a2c"}./\w(\d)\w/.1 """).string) // カスタム型の _._ オーバーライドが尊重される
+    }
+
+    @Test
+    fun not_match() = runTest {
+        assertEquals(false, eval(""" "ABC" !~ /B/ """).boolean) // 部分一致
+        assertEquals(true, eval(""" "ABC" !~ /D/ """).boolean) // 部分一致しない
+        assertEquals(false, eval(""" "ABC" !~ /b/i """).boolean) // 大文字小文字を区別しない
+        assertEquals(false, eval(""" "ABC" !~ /B/g """).boolean) // グローバルマッチで一致
+        assertEquals(true, eval(""" "ABC" !~ /D/g """).boolean) // グローバルマッチで一致しない（空ストリームは偽）
+    }
+
+    @Test
     fun match_stream() = runTest {
         assertEquals(
             eval(""" ("1", "2", "3" =~ /\d/) | _.0 """).stream(),
             eval(""" ("1", "2", "3" | _ =~ /\d/) | _.0 """).stream(),
+        )
+    }
+
+    @Test
+    fun not_match_stream() = runTest {
+        assertEquals(
+            eval(""" ("ABC", "DEF", "GHI") | _ !~ /D/ """).stream(),
+            eval(""" ("ABC", "DEF", "GHI") !~ /D/ """).stream(),
         )
     }
 

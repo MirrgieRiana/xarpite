@@ -1,8 +1,11 @@
 package mirrg.xarpite
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.operations.BuiltinMountRunner
 import mirrg.xarpite.operations.Runner
 
@@ -12,11 +15,9 @@ class Frame(val parent: Frame? = null) {
     val variableIndexTable = mutableMapOf<String, Int>()
     var nextVariableIndex = 0
     var mountCount = 0
-    val labelIndexTable = mutableMapOf<String, Int>()
-    var nextLabelIndex = 0
 }
 
-class Environment(val parent: Environment?, variableCount: Int, mountCount: Int) {
+class Environment(val context: RuntimeContext, val parent: Environment?, variableCount: Int, mountCount: Int) {
     val variableTable: Array<Array<Variable?>> = if (parent != null) {
         arrayOf(*parent.variableTable, arrayOfNulls(variableCount))
     } else {
@@ -38,9 +39,22 @@ class ConstantMount(val value: FluoriteValue) : Mount {
     override suspend fun get() = value
 }
 
-class LazyMount(private val initializer: () -> FluoriteValue) : Mount {
-    private val value by lazy { initializer() }
-    override suspend fun get() = value
+class LazyMount(private val initializer: suspend () -> FluoriteValue) : Mount {
+    // initializer は suspend するため、ロックなしでは初期化中の再入で initializer が二重に走る
+    private val mutex = Mutex()
+    private var value: FluoriteValue? = null
+    override suspend fun get(): FluoriteValue {
+        return mutex.withLock {
+            val oldValue = value
+            if (oldValue != null) {
+                oldValue
+            } else {
+                val newValue = initializer()
+                value = newValue
+                newValue
+            }
+        }
+    }
 }
 
 infix fun String.define(mount: Mount) = Pair(this, mount)
@@ -62,8 +76,13 @@ class LocalVariable(var value: FluoriteValue) : Variable {
 class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
     override suspend fun get() = function.invoke(position, emptyArray())
     override suspend fun set(value: FluoriteValue) {
-        function.invoke(position, arrayOf(value)).consume()
+        function.invokeImmediate(position, arrayOf(value)).consume()
     }
+}
+
+class Label(val name: String) : Variable {
+    override suspend fun get() = throw UnsupportedOperationException()
+    override suspend fun set(value: FluoriteValue) = throw UnsupportedOperationException()
 }
 
 
@@ -120,21 +139,5 @@ fun Environment.getMounts(name: String, mountCounts: IntArray): Sequence<Mount> 
 
             currentFrameIndex--
         }
-    }
-}
-
-fun Frame.defineLabel(name: String): Int {
-    val labelIndex = nextLabelIndex
-    labelIndexTable[name] = labelIndex
-    nextLabelIndex++
-    return labelIndex
-}
-
-fun Frame.getLabel(name: String): Pair<Int, Int>? {
-    var currentFrame = this
-    while (true) {
-        val labelIndex = currentFrame.labelIndexTable[name]
-        if (labelIndex != null) return Pair(currentFrame.frameIndex, labelIndex)
-        currentFrame = currentFrame.parent ?: return null
     }
 }

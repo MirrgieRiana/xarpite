@@ -6,7 +6,8 @@ import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
-import mirrg.xarpite.compilers.objects.getMethod
+import mirrg.xarpite.compilers.objects.callImmediate
+import mirrg.xarpite.compilers.objects.getSolvedMethod
 import mirrg.xarpite.compilers.objects.minus
 import mirrg.xarpite.compilers.objects.plus
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -35,14 +36,18 @@ class IncrementGetter(
 
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val old = getter.evaluate(env)
-        val callable = old.getMethod(position, methodName)
+        val callable = old.getSolvedMethod(position, methodName)
         return if (callable != null) {
             val accessor = createAccessor(getter, setter, env)
             withStackTrace(position) {
-                callable.call(arrayOf(accessor)).cache()
+                callable.callImmediate(arrayOf(accessor)).cache()
             }
         } else {
-            if (setter == null) throw FluoriteException("Increment/decrement operation is not defined.".toFluoriteString())
+            if (setter == null) {
+                withStackTrace(position) {
+                    throw FluoriteException("Increment/decrement operation is not defined.".toFluoriteString())
+                }
+            }
             val setterFunction = setter.evaluate(env)
             val new = if (isIncrement) old.plus(position, FluoriteInt.ONE) else old.minus(position, FluoriteInt.ONE)
             setterFunction(new)

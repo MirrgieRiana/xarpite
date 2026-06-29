@@ -2,32 +2,38 @@ package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
 
-class FluoriteFunction(val function: suspend (Array<FluoriteValue>) -> FluoriteValue) : FluoriteValue {
+class FluoriteFunction private constructor(private val function: suspend (Array<suspend () -> FluoriteValue>) -> FluoriteValue) : FluoriteValue {
     companion object {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.CALL.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.function(arguments1)
+                        function.call(arguments1)
                     },
-                    OperatorMethod.SET_CALL.methodName to FluoriteFunction { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.SET_CALL.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        function.function(arguments1)
+                        function.call(arguments1)
                     },
-                    OperatorMethod.BIND.methodName to FluoriteFunction { arguments ->
-                        val function = arguments[0] as FluoriteFunction
+                    OperatorMethod.BIND.methodName to create { arguments ->
+                        val function = arguments[0]() as FluoriteFunction
                         val arguments1 = arguments.sliceArray(1 until arguments.size)
-                        FluoriteFunction { arguments2 ->
-                            function.function(arguments1 + arguments2)
+                        create { arguments2 ->
+                            function.call(arguments1 + arguments2)
                         }
                     },
                 )
             )
         }
+
+        fun create(function: suspend (Array<suspend () -> FluoriteValue>) -> FluoriteValue) = FluoriteFunction(function)
+        fun immediate(function: suspend (Array<FluoriteValue>) -> FluoriteValue) = FluoriteFunction { arguments -> function(arguments.map { it() }.toTypedArray()) }
     }
 
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
+
+    suspend fun call(arguments: Array<suspend () -> FluoriteValue>) = function(arguments)
 }

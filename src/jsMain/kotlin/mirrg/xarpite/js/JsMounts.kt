@@ -12,17 +12,17 @@ context(context: RuntimeContext)
 fun createJsMounts(): List<Map<String, Mount>> {
     return mapOf(
         "JS_OBJECT" define FluoriteJsObject.fluoriteClass,
-        "ASYNC" define FluoriteFunction { arguments ->
+        "ASYNC" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
             val function = arguments[0] as FluoriteFunction
             FluoriteJsObject(function.toJsAsyncFunction())
         },
-        "AWAIT" define FluoriteFunction { arguments ->
+        "AWAIT" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
             val promise = arguments[0] as FluoriteJsObject
             convertToFluoriteValue((promise.value as Promise<*>).await())
         },
-        "JS" define FluoriteFunction { arguments ->
+        "JS" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
             val js = arguments[0].toFluoriteString(null)
             convertToFluoriteValue(eval(js.value))

@@ -3,8 +3,10 @@ package mirrg.xarpite
 import io.github.mirrgieriana.xarpeg.ParseResult
 import io.github.mirrgieriana.xarpeg.Parser
 import io.github.mirrgieriana.xarpeg.Tuple0
+import io.github.mirrgieriana.xarpeg.parsers.endOfInput
 import io.github.mirrgieriana.xarpeg.parsers.fixed
 import io.github.mirrgieriana.xarpeg.parsers.leftAssociative
+import io.github.mirrgieriana.xarpeg.parsers.lookAhead
 import io.github.mirrgieriana.xarpeg.parsers.map
 import io.github.mirrgieriana.xarpeg.parsers.mapEx
 import io.github.mirrgieriana.xarpeg.parsers.normalize
@@ -22,9 +24,27 @@ import io.github.mirrgieriana.xarpeg.text
 import mirrg.kotlin.helium.join
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-class XarpiteGrammar(val location: String) {
+class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
-    val lineComment: Parser<Tuple0> = -Regex("""(?:#|//)[^\r\n]*""")
+    val sharpLineCommentBody: Parser<Tuple0> = -Regex("""#[^\r\n]*""")
+    val sharpLineComment: Parser<Tuple0> = if (apiVersion >= 5) {
+        Parser { context, start ->
+            if (start == 0) {
+                context.parseOrNull(sharpLineCommentBody, start)
+            } else {
+                val previousCharacter = context.src[start - 1]
+                if (previousCharacter == ' ' || previousCharacter == '\t' || previousCharacter == '\n' || previousCharacter == '\r') {
+                    context.parseOrNull(sharpLineCommentBody, start)
+                } else {
+                    null
+                }
+            }
+        }
+    } else {
+        sharpLineCommentBody
+    }
+    val slashLineComment: Parser<Tuple0> = -Regex("""//[^\r\n]*""")
+    val lineComment: Parser<Tuple0> = sharpLineComment + slashLineComment
 
     val blockCommentContent: Parser<Tuple0> = or(
         ref { blockComment },
@@ -34,7 +54,33 @@ class XarpiteGrammar(val location: String) {
 
     val br: Parser<Char> = +Regex("""\n|\r\n?""") map { '\n' }
     val s: Parser<Tuple0> = -(+Regex("""[ \t]+""") + lineComment + blockComment).zeroOrMore
-    val b: Parser<Tuple0> = s * -(br * s).zeroOrMore
+    val ws: Parser<Tuple0> = -Regex("""[ \t]*""")
+    val indent: Parser<Tuple0> = Parser { context, pos ->
+        context as XarpiteParseContext
+        val result = context.parseOrNull(ws, pos)!!
+        if (result.end - pos < context.currentIndent) return@Parser null
+        result
+    }
+    val b: Parser<Tuple0> = -((s * br).oneOrMore * indent).zeroOrMore * s
+
+    private fun <T : Any> withIndent(hasIndent: Boolean, body: Parser<T>): Parser<T> = Parser { context, start ->
+        context as XarpiteParseContext
+        val oldIndent = context.currentIndent
+        val newIndent = if (hasIndent) {
+            val indentResult = context.parseOrNull(ws, start) ?: return@Parser null
+            val newIndent = indentResult.end - indentResult.start
+            if (newIndent <= context.currentIndent) return@Parser null
+            newIndent
+        } else {
+            0
+        }
+        context.currentIndent = newIndent
+        try {
+            context.parseOrNull(body, start + newIndent)
+        } finally {
+            context.currentIndent = oldIndent
+        }
+    }
 
 
     // 通常文字　および　\r\n\t以外の制御文字、DEL、すべての2バイト文字、サロゲートペアの片方
@@ -103,13 +149,14 @@ class XarpiteGrammar(val location: String) {
         +Regex("""(?:<(?!%))+""") map { it.value.normalize() }, // 通常の < （ (?!<%)< を使うと一部の環境で非常に長い入力でStackOverflowになる）
         -"<%%" map { "<%" }, // <%% で <% になる
     )
-    val embeddedStringContent: Parser<StringContent> = or(
-        embeddedStringCharacter.oneOrMore map { LiteralStringContent(it.join("")) },
+    val embeddedStringContent: Parser<List<StringContent>> = or(
+        embeddedStringCharacter.oneOrMore map { listOf(LiteralStringContent(it.join(""))) },
         // %> が開始と埋め込みの終端を兼ねているため、expressionには出来ない
         // expressionが改行後の %> <% をリテラルとして消費することで終端がなくなってしまう
-        (-"<%=").result * -b * ref { stream } * -b * -"%>" map { NodeStringContent(it.b, it.a.position) },
+        (-"<%=").result * -b * ref { stream } * -b * -"%>" map { listOf(NodeStringContent(it.b, it.a.position)) },
+        -"<%#" * -Regex("""[^%]*(?:%(?!>)[^%]*)*""") * -"%>" map { emptyList() }, // <%# ... %> コメント
     )
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' map { EmbeddedStringNode(it) } // %>string<%
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' map { EmbeddedStringNode(it.flatten()) } // %>string<% ( <%=, <%# を除く)
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字
@@ -120,13 +167,21 @@ class XarpiteGrammar(val location: String) {
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
     val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) }
 
-    val arrowRound: Parser<Node> = (-'(').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
-    val arrowSquare: Parser<Node> = (-'[').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
-    val arrowCurly: Parser<Node> = (-'{').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -'}' map { BracketsLiteralArrowedCurlyNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
-    val round: Parser<Node> = (-'(').result * -b * (ref { expression } * -b).optional * -')' map { BracketsLiteralSimpleRoundNode(it.b ?: EmptyNode, it.a.position) }
-    val square: Parser<Node> = (-'[').result * -b * (ref { expression } * -b).optional * -']' map { BracketsLiteralSimpleSquareNode(it.b ?: EmptyNode, it.a.position) }
-    val curly: Parser<Node> = (-'{').result * -b * (ref { expression } * -b).optional * -'}' map { BracketsLiteralSimpleCurlyNode(it.b ?: EmptyNode, it.a.position) }
+    val arrowRound: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val arrowSquare: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val arrowCurly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' map { BracketsLiteralArrowedCurlyNode(it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) }
+    val round: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' map { BracketsLiteralSimpleRoundNode(it.b ?: EmptyNode, it.a.position) }
+    val square: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' map { BracketsLiteralSimpleSquareNode(it.b ?: EmptyNode, it.a.position) }
+    val curly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' map { BracketsLiteralSimpleCurlyNode(it.b ?: EmptyNode, it.a.position) }
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
+
+    val indentBlockBody: Parser<Node> = -(s * br).oneOrMore * withIndent(true, -s * ref { semicolons })
+    val indentBlockEnd: Parser<Tuple0> = -s * -(br.lookAhead + endOfInput)
+    val indentBlock: Parser<Node> = or(
+        (-':' * indentBlockBody * indentBlockEnd).result map { IndentBlockNode(it.value, it.position) },
+        (-':' * indentBlockEnd).result map { IndentBlockNode(EmptyNode, it.position) },
+    )
+    val prefixColon: Parser<Node> = -':' * !':' * -s * ref { condition }
 
     val jump: Parser<Node> = or(
         (-"!!").result * -s * ref { commas } map { ThrowNode(it.b, it.a.position) },
@@ -135,8 +190,8 @@ class XarpiteGrammar(val location: String) {
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
-    val nonFloatFactor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
-    val factor: Parser<Node> = jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
+    val nonFloatFactor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
+    val factor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side, Position) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },
@@ -154,12 +209,12 @@ class XarpiteGrammar(val location: String) {
         -'\\' map { ::UnaryBackslashNode },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * (-'(').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
-        -s * (-'[').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
-        -s * (-'{').result * -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
-        -s * (-'(').result * -b * (ref { expression } * -b).optional * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.b ?: EmptyNode, it.a.position) } },
-        -s * (-'[').result * -b * (ref { expression } * -b).optional * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode, it.a.position) } },
-        -s * (-'{').result * -b * (ref { expression } * -b).optional * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode, it.a.position) } },
+        -s * (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.b ?: EmptyNode, it.c ?: EmptyNode, it.a.position) } },
+        -s * (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.b ?: EmptyNode, it.a.position) } },
+        -s * (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode, it.a.position) } },
+        -s * (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode, it.a.position) } },
 
         -s * (-"++").result map { { main -> SuffixPlusPlusNode(main, it.position) } },
         -s * (-"--").result map { { main -> SuffixMinusMinusNode(main, it.position) } },
@@ -202,12 +257,15 @@ class XarpiteGrammar(val location: String) {
         (-'!').result * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it.b, right, it.a.position) } },
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
-    val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = -"=~" map { ::InfixEqualTildeNode }
+    val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
+        -"=~" map { ::InfixEqualTildeNode },
+        -"!~" map { ::InfixExclamationTildeNode },
+    )
     val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
-        -"==" map { ComparisonOperatorType.EQUAL }, // ==
+        -"==" map { ComparisonOperatorType.EQUAL_EQUAL }, // ==
         -"!=" map { ComparisonOperatorType.EXCLAMATION_EQUAL }, // !=
         -">=" map { ComparisonOperatorType.GREATER_EQUAL }, // >=
         -'>' * !'>' map { ComparisonOperatorType.GREATER }, // >
@@ -229,7 +287,7 @@ class XarpiteGrammar(val location: String) {
     val orOperator: Parser<(Node, Node, Position) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
     val or: Parser<Node> = leftAssociative(and, -s * orOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val condition: Parser<Node> = or(
-        or * -b * (-'?').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition } map { it -> ConditionNode(it.a, it.c, it.d, it.b.position) },
+        or * -b * (-'?' * !':').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition } map { it -> ConditionNode(it.a, it.c, it.d, it.b.position) },
         or * -b * (-"?:").result * -b * ref { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
         or * -b * (-"!?").result * -b * ref { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
         or,
@@ -252,7 +310,8 @@ class XarpiteGrammar(val location: String) {
         -"!:" map { ::InfixExclamationColonNode }, // !:
     )
     val assignmentOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -'=' * !'>' map { ::InfixEqualNode }, // =
+        -'=' * !'>' * !':' map { ::InfixEqualNode }, // =
+        -"=:" map { ::InfixEqualColonNode }, // =:
         -':' * !'=' * !':' map { ::InfixColonNode }, // :
         -":=" map { ::InfixColonEqualNode }, // :=
         -"<<" map { ::InfixLessLessNode }, // <<
@@ -284,7 +343,7 @@ class XarpiteGrammar(val location: String) {
     )
 
     val semicolonsPart: Parser<List<Node>> = or(
-        stream * -s * -br * -b * ref { semicolonsPart } map { listOf(it.a) + it.b },
+        stream * -(s * br).oneOrMore * -indent * -s * ref { semicolonsPart } map { listOf(it.a) + it.b },
         (stream * -s + fixed(EmptyNode)) * -';' * (-b * ref { semicolonsPart } + fixed(listOf(EmptyNode))) map { listOf(it.a) + it.b },
         stream map { listOf(it) },
     )
@@ -292,6 +351,9 @@ class XarpiteGrammar(val location: String) {
     val expression: Parser<Node> = semicolons
 
     val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode }
+
+    val shebang: Parser<Tuple0> = -Regex("""#![^\r\n]*(?:\n|\r\n?)?""") // 最外部の先頭限定のシバン行（末尾の改行ごと消費）
+    val rootEmbeddedParser: Parser<Node> = -shebang.optional * embeddedStringContent.zeroOrMore map { EmbeddedStringNode(it.flatten()) } // 最外部を埋め込み文字列の本体として解釈する
 
     private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
     private val ParseResult<*>.position get() = Position(location, start)

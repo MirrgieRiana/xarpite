@@ -101,7 +101,7 @@ private fun setNonBlocking(fd: Int, name: String) {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): String = withContext(Dispatchers.IO) {
+suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray = withContext(Dispatchers.IO) {
     memScoped {
         // パイプを作成（標準出力用と標準エラー出力用）
         val stdoutPipe = allocArray<IntVar>(2)
@@ -427,7 +427,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
                     }
                 }
 
-                // ByteArrayのchunkを連結して文字列に変換
+                // ByteArrayのchunkを連結
                 // 事前に総サイズを算出して1回だけByteArrayを確保し、copyIntoで詰めることでO(n^2)を回避
                 val outputSize = outputChunks.sumOf { it.size }
                 val outputBytes = ByteArray(outputSize)
@@ -436,7 +436,7 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
                     chunk.copyInto(outputBytes, outputOffset)
                     outputOffset += chunk.size
                 }
-                outputBytes.decodeToString()
+                outputBytes
             } finally {
                 // close()が失敗してもtryブロックの例外をマスクしないようにする
                 try {

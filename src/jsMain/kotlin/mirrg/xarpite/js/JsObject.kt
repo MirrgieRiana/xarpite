@@ -17,7 +17,7 @@ import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toFluoriteArray
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -27,12 +27,12 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.CALL.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val actualArguments = arguments.drop(1).map { it.toJsObject() }.toTypedArray()
                         convertToFluoriteValue(jsObject.value.apply(undefined, actualArguments))
                     },
-                    OperatorMethod.PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 2) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val jsObject = arguments[0] as FluoriteJsObject
                         val key: dynamic = run {
@@ -43,7 +43,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         }
                         convertToFluoriteValue(jsObject.value[key])
                     },
-                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 3) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val jsObject = arguments[0] as FluoriteJsObject
                         val key: dynamic = run {
@@ -56,15 +56,15 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
                         jsObject.value[key] = value
                         FluoriteNull
                     },
-                    OperatorMethod.METHOD.methodName to FluoriteFunction { arguments ->
+                    OperatorMethod.METHOD.methodName to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val method = arguments[1] as FluoriteString
-                        FluoriteFunction { arguments2 ->
+                        FluoriteFunction.immediate { arguments2 ->
                             val actualArguments = arguments2.map { it.toJsObject() }.toTypedArray()
                             convertToFluoriteValue(jsObject.value[method].apply(jsObject.value, actualArguments))
                         }
                     },
-                    "new" to FluoriteFunction { arguments ->
+                    "new" to FluoriteFunction.immediate { arguments ->
                         val jsObject = arguments[0] as FluoriteJsObject
                         val actualArguments = arguments.drop(1).map { it.toJsObject() }.toTypedArray()
                         convertToFluoriteValue(js("Reflect.construct")(jsObject.value, actualArguments))
@@ -76,6 +76,7 @@ class FluoriteJsObject(val value: dynamic) : FluoriteValue {
 
     override fun toString() = value.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 }
 
 fun FluoriteFunction.toJsFunction(): dynamic {
@@ -92,7 +93,7 @@ fun FluoriteFunction.toJsFunction(): dynamic {
         var finished = false
         var result: dynamic = undefined
         val job = CoroutineScope(Dispatchers.Main.immediate).launch {
-            val result2 = this@toJsFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            val result2 = this@toJsFunction.invokeImmediate(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
             finished = true
             result = result2
         }
@@ -117,7 +118,7 @@ fun FluoriteFunction.toJsAsyncFunction(): dynamic {
     )
     return functionCreator { arguments: Array<dynamic> ->
         GlobalScope.promise {
-            this@toJsAsyncFunction.invoke(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
+            this@toJsAsyncFunction.invokeImmediate(null, arguments.map { convertToFluoriteValue(it) }.toTypedArray()).toJsObject()
         }
     }
 }

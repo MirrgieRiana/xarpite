@@ -43,11 +43,16 @@ $ xarpite -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [scriptfile]
 #   -e <script>              Evaluate script directly
 #                            Omit [scriptfile]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -88,11 +93,16 @@ $ xa -h | tail -n +2
 #   -h, --help               Show this help
 #   -v, --version            Show version
 #   -q                       Run script as a runner
+#   --verbose                Display Kotlin stack traces
+#   -A <apiversion>          Set the API version
 #   -f <scriptfile>          Read script from file
 #                            Use '-' to read from stdin
 #                            Omit [script]
 #   -e <script>              Evaluate script directly
 #                            Omit [script]
+#   -E                       Interpret the entire script as an embedded string literal
+#
+# Repository: https://github.com/MirrgieRiana/xarpite
 ```
 
 ---
@@ -119,6 +129,16 @@ $ xa '100 + 20 + 3'
 On the other hand, the `xa` command is not intended for use described in files such as shell scripts.
 
 For that purpose, use the `xarpite` command instead.
+
+## Help Options
+
+### `-h`, `--help`: Display Help
+
+Specifying the `-h` or `--help` option displays the help message.
+
+### `-v`, `--version`: Display Version Information
+
+Specifying the `-v` or `--version` option displays the Xarpite version.
 
 ## Specifying Xarpite Engine
 
@@ -161,6 +181,22 @@ Uses the Xarpite engine running on the JVM.
 ### `--node`: Use Node.js Engine
 
 Uses the Xarpite engine running on Node.js.
+
+## Specifying Stack Size
+
+### `XARPITE_STACK_SIZE`: Environment Variable to Specify Stack Size
+
+The `XARPITE_STACK_SIZE` environment variable specifies the upper limit of the Xarpite execution stack size.
+
+Some runtimes respect this limit.
+
+---
+
+The value is specified as a number concatenated with a suffix representing the unit.
+
+- `K`: in kibibytes
+- `M`: in mebibytes
+- `G`: in gibibytes
 
 ## Return Value Output
 
@@ -221,6 +257,27 @@ $ xa -q '
 Strictly speaking, this option specifies interpreting the entire source code as a statement (runner) context.
 
 Therefore, statements such as variable declaration statements can be written in the trailing expression part.
+
+## API Version
+
+### `-A`: Set the API Version
+
+`-A <apiversion>`
+
+Specifies the API version of the runtime.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+---
+
+When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
@@ -308,6 +365,47 @@ $ xa -e 'ARGS()' '100 + 20 + 3' apple banana cherry
 
 The `-f` option and `-e` option are mutually exclusive and cannot be specified simultaneously.
 
+## Interpretation as an Embedded String Literal
+
+### `-E`: Interpret the Entire Script as an Embedded String Literal
+
+When the `-E` option is specified, it interprets the entire entry-point script as the contents of an embedded string literal `%>` `<%`.
+
+This allows you to write scripts that embed Xarpite expressions within text, like a template engine.
+
+If the first line of the script begins with `#!`, it is ignored along with its trailing line break.
+
+```shell
+$ {
+  touch script.xa1
+  echo '#!/usr/bin/env -S xarpite -E' >> script.xa1
+  echo '<h1><%= 100 + 20 + 3 %></h1>' >> script.xa1
+  chmod +x script.xa1
+
+  ./script.xa1
+
+  rm script.xa1
+}
+# <h1>123</h1>
+```
+
+## Termination by Error
+
+When the program terminates due to an uncaught error, that value is output to standard error.
+
+The process exit code on termination by error follows the rules below.
+
+- 0 - When terminating with a non-native error in API version 4 or earlier
+- 1 - Otherwise
+
+```shell
+$ xa -A 5 ' !! "error" ' 2>/dev/null; echo $?
+# 1
+
+$ xa -A 4 ' !! "error" ' 2>/dev/null; echo $?
+# 0
+```
+
 ## Other Commands
 
 ### `xarpite-update`: Update Xarpite to Latest Version
@@ -315,6 +413,10 @@ The `-f` option and `-e` option are mutually exclusive and cannot be specified s
 Updates the currently running Xarpite to the latest version.
 
 This command requires permission to write to the installation directory.
+
+Specifying the `-h` option shows the usage information and exits.
+
+Specifying the `-y` option skips the confirmation prompt and automatically applies the update.
 
 ## CLI-Exclusive Built-in Constants and Functions
 
@@ -401,47 +503,103 @@ If a non-existent variable is accessed, `NULL` is returned.
 
 `INC: ARRAY<STRING>`
 
-An array of directory paths that are searched when using `USE` with Maven coordinate format.
+An array of directory paths and URLs that are searched when loading modules with `USE`.
 
-When a relative path is specified, it is resolved based on `PWD`.
+Strings starting with `http://` or `https://` are interpreted as URLs.
 
-By default, `./.xarpite/maven` is included.
+When a relative directory path is specified, it is resolved based on `PWD`.
+
+By default, `./.xarpite/lib`, `./.xarpite/maven`, and Maven Central (`https://repo1.maven.org/maven2`) are included.
 
 ---
 
-You can add custom module search paths by adding values to `INC`.
+By modifying this array at runtime from a program, you can dynamically change the module search targets.
 
 ```shell
 $ {
-  mkdir -p maven-fruit/com/example/fruit/apple/1.0.0
+  mkdir module-fruits
 
-  echo ' "Apple" ' > maven-fruit/com/example/fruit/apple/1.0.0/apple-1.0.0.xa1
+  echo ' "Apple" ' > module-fruits/apple.xa1
 
   xa '
-    INC::push("maven-fruit")
-    USE("com.example.fruit:apple:1.0.0")
+    INC += "module-fruits"
+    USE("apple")
   '
 
-  rm -r maven-fruit
+  rm -r module-fruits
 }
 # Apple
 ```
 
-### `IN`, `I`: Read Strings Line by Line from Console
+### `MAJOR`, `MINOR`, `PATCH`: Get Xarpite Version Number
+
+`MAJOR: INT`
+
+`MINOR: INT`
+
+`PATCH: INT`
+
+Get the version number of the running Xarpite as a number for each of the major, minor, and patch components.
+
+```shell
+$ xa 'MAJOR ?= INT'
+# TRUE
+```
+
+If the version number cannot be obtained, or cannot be interpreted as the `major.minor.patch` numeric format, an error occurs when referenced.
+
+### `API_VERSION`: Get the Currently Provided API Version
+
+`API_VERSION: INT`
+
+The API version currently provided by the runtime is stored as an integer.
+
+```shell
+$ xa -A 4 'API_VERSION'
+# 4
+```
+
+### `API`: Check the API Version
+
+`API(apiVersion: INT): NULL`
+
+If the API version of the current runtime does not exactly match `apiVersion`, an error is thrown.
+
+```shell
+$ xa -A 4 -q '
+  API(4)
+  OUT << "Hello"
+'
+# Hello
+
+$ xa -A 4 -q '
+  API(5)
+  OUT << "Hello"
+'
+# ERROR: Script requires API version 5, but the environment API version is 4
+#   at -:2:6             API(5)
+#   at -:1:1
+```
+
+### `IN`, `I`, `INL`: Read Strings Line by Line from Console
 
 `IN: STREAM<STRING>`
 
-`I: STREAM<STRING>`
-
 A stream that reads strings line by line from standard input.
 
-`I` is an alias for `IN`.
+`I` and `INL` are aliases for `IN`.
 
 ```shell
 $ { echo 123; echo 456; } | xa 'IN'
 # 123
 # 456
 ```
+
+---
+
+In API version 5, only `IN` is no longer an alias of these, and reads the entire standard input as a single string.
+
+In this case, `IN` returns the input string as-is, without modifying any newline characters.
 
 ---
 
@@ -468,13 +626,6 @@ $ {
 # 2: 456
 ```
 
-Because streams are sequential, even very large iterations can be performed with low memory consumption.
-
-```shell
-$ xa '1 .. 10000 | "#" * 10000' | xa 'IN | $#_ >> SUM'
-# 100000000
-```
-
 ---
 
 If `IN` is used even once, `INB` cannot be used.
@@ -496,15 +647,13 @@ $ echo -n "abc" | xa 'INB'
 
 If `INB` is used even once, `IN` cannot be used.
 
-### `OUT`, `O`: Output to Console
+### `OUT`, `O`, `OUTL`: Output to Console
 
 `OUT(value: VALUE): NULL`
 
-`O(value: VALUE): NULL`
-
 Outputs to standard output.
 
-`O` is an alias for `OUT`.
+`O` and `OUTL` are aliases for `OUT`.
 
 This function is often called by the left-execution pipe `<<`.
 
@@ -558,7 +707,7 @@ Other parts generally follow the specification of the `OUT` function.
 
 **Note that Xarpite normally automatically outputs the return value of the entire program to standard output.**
 
-If you forget the `-q` option, garbage such as " `NULL` newline" will be attached at the beginning of the byte sequence.
+If you forget the `-q` option in the following cases, garbage such as " `NULL` newline" will be prepended to the byte sequence.
 
 ```shell
 $ xa -q '65, 66, 67, 10 >> OUTB'
@@ -568,8 +717,6 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # ABC
 # NULL
 ```
-
-When using `OUTB`, note that `OUTB` returns NULL, and remember to use the `-q` option.
 
 ### `ERR`: Output to Standard Error
 
@@ -581,7 +728,7 @@ This function operates similarly to the CLI version `OUT` function, but writes t
 
 ```shell
 $ xa -q 'ERR("Error!")' > /dev/null
-Error!
+# Error!
 ```
 
 ### `ERRB`: Output Byte Data to Standard Error
@@ -594,16 +741,20 @@ This function operates similarly to the `OUTB` function, but writes to standard 
 
 ```shell
 $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
-ABC
+# ABC
 ```
 
-### `FILES`: Get List of Files in Directory
+### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
 
+`FILE_NAMES` is an alias for `FILES` and has the same behavior.
+
 Filenames do not include directory paths.
+
+In API version 5, these are no longer aliases, and only `FILES` returns paths that include `dir` at the beginning.
 
 Returned files do not include `.` or `..`, but do include directories and other special files.
 
@@ -612,22 +763,85 @@ Returned filenames are sorted in lexicographic order.
 ```shell
 $ {
   mkdir tmp
-  touch tmp/file
+  touch tmp/file.txt
   mkdir tmp/dir
   xa 'FILES("tmp")'
-  rm tmp/file
-  rmdir tmp/dir
-  rmdir tmp
+  rm -r tmp
 }
 # dir
-# file
+# file.txt
 ```
 
-### `READ`: Read from Text File
+### `TREE`: Get All Files and Directories Under Directory
+
+`TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all directories and files under `dir`.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1
+# tmp/dir1/dir2
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+# tmp/empty-dir
+```
+
+### `FILE_TREE`: Get All Files Under Directory
+
+`FILE_TREE(dir: STRING): STREAM<STRING>`
+
+Returns a stream that recursively searches for all files under `dir`.
+
+Directory paths are not reported.
+
+Returned path strings include `dir` at the beginning.
+
+The returned paths do not include `dir` itself.
+
+Items within each directory are sorted by name.
+
+However, items within a directory are reported immediately after the parent directory.
+
+```shell
+$ {
+  mkdir tmp
+  mkdir tmp/dir1
+  mkdir tmp/dir1/dir2
+  touch tmp/dir1/dir2/file2.txt
+  touch tmp/dir1/file1.txt
+  mkdir tmp/empty-dir
+  xa 'FILE_TREE("tmp")'
+  rm -r tmp
+}
+# tmp/dir1/dir2/file2.txt
+# tmp/dir1/file1.txt
+```
+
+### `READ` / `READL`: Read from Text File
 
 `READ(file: STRING): STREAM<STRING>`
 
 Reads the contents of the text file specified by `file` line by line as strings.
+
+`READL` is an alias of `READ` and has the same behavior.
 
 Newline codes are removed.
 
@@ -641,6 +855,12 @@ $ {
 # apple
 # banana
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `READ` returns the entire file content as a single string.
+
+Newlines are not adjusted.
 
 ### `READB`: Read from Binary File
 
@@ -697,13 +917,29 @@ $ {
 # apple,banana,cherry,
 ```
 
+---
+
+The file is emptied before reading begins from the `lines` stream.
+
+For this reason, if you read from the same file you are writing to within `lines`, its contents will be lost.
+
+For such a self-reference, use `CACHE` to resolve the input first.
+
+```shell
+$ {
+  printf 'apple\nbanana\ncherry\n' > tmp.txt
+  xa -q 'WRITEL["tmp.txt"] << CACHE << READL("tmp.txt")'
+  printf '%s\n' "$(cat tmp.txt | tr '\n' ',')"
+  rm tmp.txt
+}
+# apple,banana,cherry,
+```
+
 ### `WRITEB`: Write to Binary File
 
 `WRITEB(file: STRING; blobLike: BLOB_LIKE): NULL`
 
 Writes `blobLike` to the file specified by `file`.
-
-`blobLike` can be any value that can be converted to a byte sequence, such as BLOB, STREAM<BLOB>, or ARRAY<NUMBER>.
 
 If the file already exists, it will be overwritten.
 
@@ -716,17 +952,35 @@ $ {
 # apple
 ```
 
-### `USE`: Get Result of External Xarpite File
+---
+
+The file is emptied before reading begins from `blobLike`.
+
+For this reason, if you read from the same file you are writing to within `blobLike`, its contents will be lost.
+
+For such a self-reference, use `CACHE` to resolve the input first.
+
+```shell
+$ {
+  printf 'apple' > tmp.bin
+  xa -q 'WRITEB["tmp.bin"] << CACHE << READB("tmp.bin")'
+  printf '%s\n' "$(cat tmp.bin | tr '\n' ',')"
+  rm tmp.bin
+}
+# apple
+```
+
+### `USE`: Module Invocation
 
 `USE(reference: STRING): VALUE`
 
 Returns the result of evaluating the Xarpite script specified by `reference`.
 
-There are several ways to specify `reference`.
+Xarpite scripts that are `USE`d are called modules.
 
----
+There are several ways to specify `reference`: absolute local file path, URL, relative path, relative path from `INC`, and Maven coordinates.
 
-Xarpite script files written on the premise of being `USE`d are called modules.
+#### Cultural Positioning of Modules
 
 Modules often expose APIs by returning objects for mounting, but not always.
 
@@ -734,13 +988,39 @@ APIs provided by modules may be written in uppercase like built-in mounts, or th
 
 ---
 
-The result of the `USE` function for the same absolute file path is reused.
+By mounting the return value of the `USE` function directly with `@USE("fruit")`, you can achieve a directive-like usage.
 
-The returned instance is always the same, and the side effects at load time also occur only once.
+#### Location Resolution Based on `INC`
+
+`reference` is resolved to an actual location based on the `INC` built-in constant, which provides the search paths.
+
+As a general rule, modules belonging to paths closer to the end of the `INC` array are given priority.
+
+However, `INC` entries that are local file paths are searched before entries that are URLs.
+
+---
+
+The directory separator character `/` can be used regardless of the OS on which it is executed.
+
+The `.xa1` or `/main.xa1` suffix at the end of local file paths can be omitted.
+
+In contexts launched by the `-e` command-line option, the location is treated as a file named `-` directly under `PWD`.
+
+---
+
+When the location is a URL, the script is fetched asynchronously via network communication, and execution is suspended during that time.
+
+When using many modules that are online, parallelization can be achieved by launching coroutines with the `LAUNCH` function or similar.
+
+#### Reuse of Scripts at the Same Location
+
+The result of the `USE` function for the same location is reused.
+
+The returned instance is always the same, and the side effects at load time occur only once.
 
 If the script result is a stream, that stream is resolved.
 
-Even if the file entity is the same, if it exists on a different absolute path due to symbolic links etc., it is considered a different file.
+If scripts are at different locations due to symbolic links or similar, each is evaluated separately even if the file content is the same.
 
 ```shell
 $ {
@@ -761,19 +1041,30 @@ $ {
 # [1;2;3]
 ```
 
----
+#### Specifying `reference` by Absolute Local File Path
 
-By mounting the return value of the `USE` function, you can achieve a directive-like usage.
+If `reference` is an absolute local file path, that file is called.
 
-#### Specification by Relative Path
+```shell
+$ {
+  echo ' "Apple" ' > fruit.xa1
 
-If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the file that called the `USE` function.
+  xa 'USE("$PWD/fruit.xa1")'
 
-In contexts launched by the `-e` command-line option, it is resolved as a relative path from the current directory.
+  rm fruit.xa1
+}
+# Apple
+```
 
-The directory separator character `/` can be used regardless of the OS on which it is executed.
+#### Specifying `reference` by URL
 
-The `.xa1` extension is optional.
+If `reference` is a URL, the script is fetched from that URL and called.
+
+A `reference` starting with `http://` or `https://` is interpreted as a URL.
+
+#### Specifying `reference` by Relative Path
+
+If `reference` is a relative path starting with `.` or `..`, it is resolved as a relative path from the location of the script that called the `USE` function.
 
 ---
 
@@ -789,6 +1080,23 @@ $ {
   rm fruit.xa1
 }
 # Apple
+# Apple
+```
+
+---
+
+Here is an example of calling a directory with a `main.xa1` file.
+
+```shell
+$ {
+  mkdir fruit
+
+  echo ' "Apple" ' > fruit/main.xa1
+
+  xa 'USE("./fruit")'
+
+  rm -r fruit
+}
 # Apple
 ```
 
@@ -822,34 +1130,39 @@ $ {
 # Apple
 ```
 
-#### Specification by Absolute Path
+#### Specifying `reference` by Relative Path from `INC`
 
-If `reference` is an absolute path, that file is called.
-
-The directory separator character `/` can be used regardless of the OS on which it is executed.
-
-The `.xa1` extension is optional.
+If `reference` is a relative path that does not start with `.` or `..`, the corresponding module is searched for in `INC`.
 
 ```shell
 $ {
-  echo ' "Apple" ' > fruit.xa1
+  mkdir -p modules/fruit
 
-  xa 'USE("$PWD/fruit.xa1")'
+  echo ' "Apple" ' > modules/fruit/main.xa1
 
-  rm fruit.xa1
+  xa -q '
+    INC += "modules"
+    OUT << USE("fruit/main.xa1")
+    OUT << USE("fruit/main")
+    OUT << USE("fruit")
+  '
+
+  rm -r modules
 }
+# Apple
+# Apple
 # Apple
 ```
 
-#### Specification by Maven Coordinates
+#### Specifying `reference` by Maven Coordinates
 
-If `reference` is in Maven coordinate format, the corresponding module file is searched for in directories registered in `INC`.
+If `reference` is in Maven coordinate format, the corresponding module is searched for in `INC`.
 
-Maven coordinate format is specified as `group:artifact:version`.
+Maven coordinates are specified in the format `group:artifact:version`.
 
 The `.xa1` extension is automatically appended.
 
-For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is resolved and searched for in each `INC` path.
+For example, for the Maven coordinate `com.example.fruit:apple:1.0.0`, the subpath `com/example/fruit/apple/1.0.0/apple-1.0.0.xa1` is searched for in each `INC` entry.
 
 ```shell
 $ {
@@ -864,37 +1177,44 @@ $ {
 # Apple
 ```
 
-#### Specification by Relative Path from `INC`
+### `XA`: Execute Xarpite Script
 
-If `reference` is a relative path that does not start with `.` or `..`, the corresponding module file is searched for in directories registered in `INC`.
+`XA(script: STRING[; reference: reference: STRING]): VALUE`
 
-Modules in paths closer to the beginning of the `INC` array are given priority.
+Returns the result of evaluating the Xarpite script given by `script`.
 
-The directory separator character `/` can be used regardless of the OS on which it is executed.
-
-The `.xa1` extension is optional.
+Unlike `USE`, the evaluation result is not reused even for the same input, and streams are not resolved.
 
 ```shell
-$ {
-  mkdir -p modules
-
-  echo ' "Apple" ' > modules/fruit.xa1
-
-  xa '
-    INC += "modules"
-    USE("fruit")
-  '
-
-  rm -r modules
-}
-# Apple
+$ xa 'XA("8 * 100 + 77")'
+# 877
 ```
 
-### `EXEC`: Execute External Command [EXPERIMENTAL]
+#### `reference` Argument
+
+The `reference` argument is used as the location of `script`.
+
+`reference` can be a URL, an absolute path, or a relative path beginning with a `.` or `..` level.
+
+Relative paths are resolved from the location of the script that called the `XA` function.
+
+If `reference` is omitted, it is treated as a file named `-` directly under the directory of the location of the script that called the `XA` function.
+
+```shell
+$ cd /usr/local/bin && xa 'XA("LOCATION"; reference: "./fruit.xa1")'
+# /usr/local/bin/fruit.xa1
+
+$ cd /usr/local/bin && xa 'XA("LOCATION")'
+# /usr/local/bin/-
+```
+
+### `EXEC` / `EXECL`: Execute External Command [EXPERIMENTAL]
 
 `EXEC(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<STRING>`
 
 Executes an external command.
+
+`EXECL` is an alias of `EXEC` and has the same behavior.
 
 In `command`, specify the process and its arguments one element at a time.
 
@@ -912,6 +1232,10 @@ $ xa 'EXEC("bash", "-c", "seq 1 30 | grep 3")'
 # 23
 # 30
 ```
+
+---
+
+In API version 5, these are no longer aliases, and only `EXEC` returns the entire standard output decoded as UTF-8 as a string.
 
 ---
 
@@ -970,7 +1294,22 @@ This function is an experimental feature and its specification may change in the
 
 The return value is not a stream that sequentially reads the process's standard output, but rather the process's standard output split into lines after the process terminates.
 
-**Also, this function is currently only provided in the JVM version.**
+**Also, this function is currently only provided in the JVM and Native versions.**
+
+### `EXECB`: Execute External Command and Return as a BLOB [EXPERIMENTAL]
+
+`EXECB(command: STREAM<STRING>[; env: OBJECT<STRING>]): STREAM<BLOB>`
+
+Executes an external command and returns the byte sequence of its standard output as a stream of BLOBs.
+
+There is currently no guarantee regarding the timing between the execution state of the external command and its output.
+
+Other behavior generally follows the specifications of the `EXEC` function.
+
+```shell
+$ xa 'EXECB("printf", "abc")'
+# BLOB.of([97;98;99])
+```
 
 ### `BASH`: Execute Bash scripts
 
@@ -1016,6 +1355,21 @@ An error will occur in environments where the `bash` command is not available.
 
 Other behavior generally follows the specifications of the `EXEC` function.
 
----
-
 **This function is currently only provided in the JVM and Native versions.**
+
+### `EXIT`: Exit the process with a specified exit code
+
+`EXIT(code: INT): NOTHING`
+
+Terminates the Xarpite process with the specified exit code.
+
+```shell
+$ xa 'EXIT(0)'; echo $?
+# 0
+
+$ xa 'EXIT(1)'; echo $?
+# 1
+
+$ xa 'EXIT(42)'; echo $?
+# 42
+```

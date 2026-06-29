@@ -10,17 +10,17 @@ title: "コルーチン"
 
 ## コルーチンの起動
 
-`LAUNCH` 関数を使用して新たなコルーチンを起動できます。
+`LAUNCH`関数を使用して新たなコルーチンを起動できます。
 
 ### `LAUNCH`: 新しいコルーチンを起動する
 
 `<T> LAUNCH(function: () -> T): PROMISE<T>`
 
-`function` をコルーチンとして非同期に起動します。
+`function`をコルーチンとして非同期に起動します。
 
-起動されたコルーチンは、 `LAUNCH` の呼び出し元のスレッドが次にサスペンドした際に実行されます。
+起動されたコルーチンは、`LAUNCH`の呼び出し元のスレッドが次にサスペンドした際に実行されます。
 
-この関数は `function` の戻り値もしくは `function` 内でスローされた値が格納される `PROMISE` を返します。
+この関数は`function`の戻り値もしくは`function`内でスローされた値が格納される`PROMISE`を返します。
 
 ```shell
 $ xa '
@@ -34,7 +34,7 @@ $ xa '
 
 ---
 
-`function` は呼び出し元とは独立して起動され、呼び出し元スレッドがサスペンドされ次第実行されます。
+`function`は呼び出し元とは独立して起動され、呼び出し元スレッドがサスペンドされ次第実行されます。
 
 ```shell
 $ xa '
@@ -49,7 +49,7 @@ $ xa '
 
 ---
 
-`function` 内で何らかの値がスローされた場合、その値は標準エラー出力にも出力されます。
+`function`内で何らかの値がスローされた場合、その値は標準エラー出力にも出力されます。
 
 ```shell
 $ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
@@ -58,9 +58,9 @@ $ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
 
 ---
 
-`function` の戻り値がストリームだった場合、自動的に1度だけイテレートし、その要素列のコピーを保持し、 `await` 時にはコピーされたストリームが返されます。
+`function`の戻り値がストリームだった場合、自動的に1度だけイテレートし、その要素列のコピーを保持し、`await`時にはコピーされたストリームが返されます。
 
-このため、 `LAUNCH` ブロックの末尾の処理はどのような状況でも必ず丁度1回だけ実行されます。
+このため、`LAUNCH`ブロックの末尾の処理はどのような状況でも必ず丁度1回だけ実行されます。
 
 ```shell
 $ xa '
@@ -96,9 +96,9 @@ $ xa '
 
 ---
 
-以下は `LAUNCH` を使って非同期的に標準入力からの命令を受け付けるサンプルです。
+以下は`LAUNCH`を使って非同期的に標準入力からの命令を受け付けるサンプルです。
 
-先頭のブロック部分を削除すれば、実際にユーザーからの `stop` 命令でプログラムが終了します。
+先頭のブロック部分を削除すれば、実際にユーザーからの`stop`命令でプログラムが終了します。
 
 ```shell
 $ { sleep 0.5; echo stop; } | xa -q '
@@ -122,68 +122,120 @@ $ { sleep 0.5; echo stop; } | xa -q '
 # Stopped!
 ```
 
+### `LAUNCH2`: 新しいコルーチンを起動する
+
+`<T> LAUNCH2(function(): T): PROMISE<T>`
+
+`function`をコルーチンとして非同期に起動します。
+
+`LAUNCH`と同等ですが、引数を式渡し引数として受け取ります。
+
+```shell
+$ xa '
+  promise := LAUNCH2 ((
+    "apple"
+  ))
+  promise::await()
+'
+# apple
+```
+
 ## `PROMISE`: 非同期結果コンテナ
 
-`PROMISE` は、遅延して内容が確定するコンテナです。
+`PROMISE`は、遅延して内容が確定するコンテナです。
 
-### `new`: 新しい `PROMISE` を生成する
+### `new`: 新しい`PROMISE`を生成する
 
 `<T> PROMISE.new(): PROMISE<T>`
 
-未完了の新しい `PROMISE` を生成します。
+未完了の新しい`PROMISE`を生成します。
 
-### `complete`: `PROMISE` を完了する
+### `complete`: `PROMISE`を完了する
 
 `<T> PROMISE<T>::complete([value: T]): NULL`
 
-`PROMISE` を `VALUE` の内容で完了します。
+`PROMISE`を`VALUE`の内容で完了します。
 
-`value` が省略された場合、 `NULL` を内容として `PROMISE` を完了します。
+`value`が省略された場合、`NULL`を内容として`PROMISE`を完了します。
 
-### `fail`: `PROMISE` を失敗として完了する
+### `fail`: `PROMISE`を失敗として完了する
 
 `<T> PROMISE<T>::fail([error: VALUE]): NULL`
 
-`PROMISE` を `error` で失敗として完了します。
+`PROMISE`を`error`で失敗として完了します。
 
-### `await`: `PROMISE` の完了を待機し、内容を取得する
+`error`が`ERROR`型の値である場合は、その値そのものではなく、それが表しているネイティブエラーが失敗の原因になります。
+
+### `await`: `PROMISE`の完了を待機し、内容を取得する
 
 `<T> PROMISE<T>::await(): T`
 
-`PROMISE` の内容が完了するまで待機し、その内容を返します。
+`PROMISE`の内容が完了するまで待機し、その内容を返します。
 
 ---
 
-`PROMISE` が失敗として完了した場合、 `await` はその例外値をスローします。
+`PROMISE`が失敗として完了した場合、`await`はその例外値をスローします。
 
 ```shell
 $ xa '
   promise := PROMISE.new()
   promise::fail("ERROR!!")
-  promise::await() !? (e => e)
+  promise::await() !? ( e => e )
 '
 # ERROR!!
 ```
 
-### `isCompleted`: `PROMISE` の完了状態を調べる
+### `awaitException`: `PROMISE`の完了を待機し、例外値を取得する
+
+`<T> PROMISE<T>::awaitException(): VALUE`
+
+`PROMISE`の内容が完了するまで待機します。
+
+`PROMISE`が失敗として完了した場合、その例外値を返します。
+
+失敗の原因がネイティブエラーである場合、その例外値は`ERROR`型の値になります。
+
+`PROMISE`が正常に完了した場合、`NULL`を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitException()
+'
+# ERROR!!
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitException()
+'
+# NULL
+```
+
+### `isCompleted`: `PROMISE`の完了状態を調べる
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`
 
-`PROMISE` が完了、もしくは失敗として完了しているかどうかを返します。
+`PROMISE`が完了、もしくは失敗として完了しているかどうかを返します。
 
 ## `SLEEP`: 指定時間の間処理を停止
 
 `SLEEP([milliseconds: NUMBER]): NULL`
 
-`milliseconds` だけ処理を停止します。
+`milliseconds`だけ処理を停止します。
+
+APIバージョン5からは、引数はミリ秒ではなく秒として解釈されるようになり、小数による指定も可能になります。
 
 この関数はスレッドをブロッキングせず、関数をサスペンドします。
 
-`milliseconds` が0もしくは省略された場合、関数を一度サスペンドし、即復帰します。
+`milliseconds`が0もしくは省略された場合、関数を一度サスペンドし、即復帰します。
 
 ---
 
-以下のサンプルコードでは、実行後1秒おいてから `Hello, World!` が出力されます。
+以下のサンプルコードでは、実行後1秒おいてから`Hello, World!`が出力されます。
 
 ```shell
 $ xa '

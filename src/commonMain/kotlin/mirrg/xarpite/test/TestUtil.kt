@@ -1,15 +1,19 @@
 package mirrg.xarpite.test
 
-import io.github.mirrgieriana.xarpeg.parseAllOrThrow
+import io.github.mirrgieriana.xarpeg.parseAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import mirrg.xarpite.Evaluator
 import mirrg.xarpite.Frame
+import mirrg.xarpite.IoContext
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.UnsupportedIoContext
 import mirrg.xarpite.XarpiteGrammar
+import mirrg.xarpite.XarpiteParseContext
 import mirrg.xarpite.compilers.compileToGetter
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -22,25 +26,36 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.withEvaluator
 
-fun parse(src: String): String {
-    val parseResult = XarpiteGrammar("test").rootParser.parseAllOrThrow(src)
+fun parse(src: String, apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first): String {
+    val parseResult = XarpiteGrammar("test", apiVersion).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
     val frame = Frame()
     val getter = frame.compileToGetter(parseResult)
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String): FluoriteValue {
-    return withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext(), apiVersion: Int? = null): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }
 }
 
-suspend fun Evaluator.get(src: String) = this.get("test", src)
+suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+    return withEvaluator(ioContext) { context, evaluator ->
+        evaluator.defineMounts(context.run { createCommonMounts() })
+        evaluator.getEmbedded(src).cache()
+    }
+}
 
-suspend fun Evaluator.run(src: String) = this.run("test", src)
+suspend fun Evaluator.get(src: String) = this.get("test", src, false)
+
+suspend fun Evaluator.getEmbedded(src: String) = this.get("test", src, true)
+
+suspend fun Evaluator.run(src: String) = this.run("test", src, false)
 
 val FluoriteValue.int get() = (this as FluoriteInt).value
+val FluoriteValue.big get() = (this as FluoriteBig).value
 val FluoriteValue.double get() = (this as FluoriteDouble).value
 val FluoriteValue.boolean get() = (this as FluoriteBoolean).value
 val FluoriteValue.string get() = (this as FluoriteString).value

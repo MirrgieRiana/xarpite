@@ -1,12 +1,14 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteInt
-import mirrg.xarpite.compilers.objects.invoke
+import mirrg.xarpite.compilers.objects.invokeImmediate
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -17,6 +19,14 @@ class MathTest {
         assertEquals(10, eval("FLOOR(10.1)").int) // FLOOR関数は小数点以下を切り捨てて内部的な型をINTにする
         assertEquals(10, eval("FLOOR(10)").int) // 整数はそのまま
         assertEquals(-11, eval("FLOOR(-10.1)").int) // 負の数も値が小さくなるように切り捨てる
+    }
+
+    @Test
+    fun roundToIntRejectsNaN() = runTest {
+        // 数値をINTに丸める箇所では、NaNを0として扱わずにエラーにする
+        assertFailsWith<FluoriteException> { eval("[10;20;30](+'NaN')") } // 配列のインデックス
+        assertFailsWith<FluoriteException> { eval("'abc'(+'NaN')") } // 文字列のインデックス
+        assertFailsWith<FluoriteException> { eval("BASE(10; +'NaN')") } // BASE関数の数値引数
     }
 
     @Test
@@ -81,6 +91,23 @@ class MathTest {
         // TAN
         assertEquals(1.0, eval("TAN(PI / 4)").double, 0.001)
 
+        // ASIN
+        assertEquals(0.0, eval("ASIN(0)").double, 0.001)
+        assertEquals(1.5707963267948966, eval("ASIN(1)").double, 0.001) // PI / 2
+
+        // ACOS
+        assertEquals(1.5707963267948966, eval("ACOS(0)").double, 0.001) // PI / 2
+        assertEquals(0.0, eval("ACOS(1)").double, 0.001)
+
+        // ATAN
+        assertEquals(0.0, eval("ATAN(0)").double, 0.001)
+        assertEquals(0.7853981633974483, eval("ATAN(1)").double, 0.001) // PI / 4
+
+        // ATAN2
+        assertEquals(0.7853981633974483, eval("ATAN2(1; 1)").double, 0.001) // 点(1, 1)の偏角 PI / 4
+        assertEquals(2.356194490192345, eval("ATAN2(1; -1)").double, 0.001) // 点(-1, 1)の偏角 3 * PI / 4
+        assertEquals(0.0, eval("ATAN2(0; 1)").double, 0.001) // 点(1, 0)の偏角
+
         // POW
         assertEquals(8.0, eval("POW(2; 3)").double, 0.001)
 
@@ -90,6 +117,10 @@ class MathTest {
 
         // LOG (自然対数)
         assertEquals(1.0, eval("LOG(MATH.E)").double, 0.001)
+
+        // LOG (底指定)
+        assertEquals(3.0, eval("LOG(2; 8)").double, 0.001) // 2を底とした8の対数
+        assertEquals(2.0, eval("LOG(10; 100)").double, 0.001) // 10を底とした100の対数
     }
 
     @Test
@@ -97,15 +128,15 @@ class MathTest {
         val random = eval("RAND")
 
         repeat(100) {
-            val d = random.invoke(null, arrayOf()).double
+            val d = random.invokeImmediate(null, arrayOf()).double
             assertTrue(d >= 0.0 && d < 1.0)
         }
         repeat(100) {
-            val i = random.invoke(null, arrayOf(FluoriteInt(4))).int
+            val i = random.invokeImmediate(null, arrayOf(FluoriteInt(4))).int
             assertTrue(i >= 0 && i < 4)
         }
         repeat(100) {
-            val i = random.invoke(null, arrayOf(FluoriteInt(4), FluoriteInt(10))).int
+            val i = random.invokeImmediate(null, arrayOf(FluoriteInt(4), FluoriteInt(10))).int
             assertTrue(i >= 4 && i < 10)
         }
     }

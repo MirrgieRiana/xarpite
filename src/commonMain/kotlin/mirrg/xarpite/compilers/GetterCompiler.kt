@@ -26,6 +26,7 @@ import mirrg.xarpite.FormattedStringContent
 import mirrg.xarpite.Frame
 import mirrg.xarpite.HexadecimalNode
 import mirrg.xarpite.IdentifierNode
+import mirrg.xarpite.IndentBlockNode
 import mirrg.xarpite.InfixAmpersandAmpersandNode
 import mirrg.xarpite.InfixAmpersandNode
 import mirrg.xarpite.InfixAsteriskNode
@@ -40,6 +41,7 @@ import mirrg.xarpite.InfixExclamationColonNode
 import mirrg.xarpite.InfixExclamationIdentifierNode
 import mirrg.xarpite.InfixExclamationPercentPercentNode
 import mirrg.xarpite.InfixExclamationQuestionNode
+import mirrg.xarpite.InfixExclamationTildeNode
 import mirrg.xarpite.InfixGreaterGreaterNode
 import mirrg.xarpite.InfixIdentifierNode
 import mirrg.xarpite.InfixLessEqualGreaterNode
@@ -90,9 +92,7 @@ import mirrg.xarpite.UnaryQuestionNode
 import mirrg.xarpite.compilers.objects.FluoriteRegex
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
-import mirrg.xarpite.defineLabel
 import mirrg.xarpite.defineVariable
-import mirrg.xarpite.getLabel
 import mirrg.xarpite.getMountCounts
 import mirrg.xarpite.getVariable
 import mirrg.xarpite.operations.AndGetter
@@ -139,8 +139,10 @@ import mirrg.xarpite.operations.NewEnvironmentGetter
 import mirrg.xarpite.operations.NotContainsComparator
 import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
+import mirrg.xarpite.operations.NotMatchGetter
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
+import mirrg.xarpite.operations.ObjectFromStreamGetter
 import mirrg.xarpite.operations.ObjectInitializer
 import mirrg.xarpite.operations.OrGetter
 import mirrg.xarpite.operations.PipeGetter
@@ -232,6 +234,12 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is BracketsLiteralSimpleCurlyNode -> compileObjectCreationToGetter(null, node.body)
 
+        is IndentBlockNode -> {
+            val frame = Frame(this)
+            val newNode = frame.compileToGetter(node.body)
+            NewEnvironmentGetter(frame.nextVariableIndex, frame.mountCount, newNode)
+        }
+
         is UnaryPlusNode -> ToNumberGetter(compileToGetter(node.main), node.position)
         is UnaryMinusNode -> compileUnaryMinusToGetter(node.main, node.position)
         is UnaryQuestionNode -> ToBooleanGetter(compileToGetter(node.main), node.position)
@@ -254,7 +262,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val argumentsVariableIndex = newFrame.defineVariable("__")
             val variableIndex = newFrame.defineVariable("_")
             val getter = newFrame.compileToGetter(node.main)
-            FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), getter)
+            FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), listOf(false), getter)
         }
 
         is SuffixPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isSuffix = true, node.position)
@@ -266,8 +274,8 @@ fun Frame.compileToGetter(node: Node): Getter {
 
         is ReturnNode -> {
             require(node.left is IdentifierNode)
-            val label = getLabel(node.left.string) ?: throw IllegalArgumentException("No such label: ${node.left.string}")
-            ReturnGetter(label.first, label.second, compileToGetter(node.right))
+            val variable = getVariable("!:${node.left.string}") ?: throw IllegalArgumentException("No such label: ${node.left.string}")
+            ReturnGetter(variable.first, variable.second, node.left.string, compileToGetter(node.right))
         }
 
         is BracketsRightArrowedRoundNode -> compileFunctionalAccessToGetter(node, false, ::createArrowedArgumentGetters, node.position)
@@ -286,7 +294,7 @@ fun Frame.compileToGetter(node: Node): Getter {
             val termGetters = node.nodes.map { compileToGetter(it) }
             val operators: List<Comparator> = node.operators.map {
                 when (it.first) {
-                    ComparisonOperatorType.EQUAL -> EqualComparator(it.second)
+                    ComparisonOperatorType.EQUAL_EQUAL -> EqualComparator(it.second)
                     ComparisonOperatorType.EXCLAMATION_EQUAL -> NotEqualComparator(it.second)
                     ComparisonOperatorType.GREATER -> GreaterComparator(it.second)
                     ComparisonOperatorType.LESS -> LessComparator(it.second)
@@ -349,13 +357,14 @@ private fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): 
     val functionNewFrame = Frame(this)
     val argumentsVariableIndex = functionNewFrame.defineVariable("__")
     val variables = parseArguments(node.arguments)
-    val variableIndices = variables.map { functionNewFrame.defineVariable(it) }
+    val variableIndices = variables.map { (name, _) -> functionNewFrame.defineVariable(name) }
+    val isLazy = variables.map { (_, lazy) -> lazy }
     val functionBodyGetter = run {
         val bracketsNewFrame = Frame(functionNewFrame)
         val bracketsBodyGetter = bracketsNewFrame.compileToGetter(node.body)
         NewEnvironmentGetter(bracketsNewFrame.nextVariableIndex, bracketsNewFrame.mountCount, bracketsBodyGetter)
     }
-    return listOf(FunctionGetter(functionNewFrame.frameIndex, argumentsVariableIndex, variableIndices, functionBodyGetter))
+    return listOf(FunctionGetter(functionNewFrame.frameIndex, argumentsVariableIndex, variableIndices, isLazy, functionBodyGetter))
 }
 
 fun Frame.createSimpleArgumentGetters(node: BracketsRightSimpleNode): List<Getter> {
@@ -406,12 +415,26 @@ fun <T : BracketsRightNode> Frame.compileFunctionalAccessToGetter(node: T, isBin
 private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
     return when (node) {
         is InfixPeriodNode -> {
-            val receiverGetter = compileToGetter(node.left)
-            val nameGetter = when (node.right) {
-                is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
-                else -> compileToGetter(node.right)
+            when {
+                node.right is BracketsLiteralSimpleSquareNode && node.right.body is EmptyNode -> { // stream.[]
+                    val streamGetter = compileToGetter(node.left)
+                    ArrayCreationGetter(listOf(streamGetter))
+                }
+
+                node.right is BracketsLiteralSimpleCurlyNode && node.right.body is EmptyNode -> { // stream.{}
+                    val streamGetter = compileToGetter(node.left)
+                    ObjectFromStreamGetter(streamGetter)
+                }
+
+                else -> {
+                    val receiverGetter = compileToGetter(node.left)
+                    val nameGetter = when (node.right) {
+                        is IdentifierNode -> LiteralGetter(FluoriteString(node.right.string))
+                        else -> compileToGetter(node.right)
+                    }
+                    ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
+                }
             }
-            ItemAccessGetter(receiverGetter, nameGetter, false, node.position)
         }
 
         is InfixQuestionPeriodNode -> {
@@ -437,6 +460,7 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixCircumflexNode -> PowerGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixPeriodPeriodNode -> RangeGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixEqualTildeNode -> MatchGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
+        is InfixExclamationTildeNode -> NotMatchGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
         is InfixLessEqualGreaterNode -> SpaceshipGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
         is InfixTildeNode -> ExclusiveRangeGetter(compileToGetter(node.left), compileToGetter(node.right))
         is InfixAmpersandAmpersandNode -> AndGetter(compileToGetter(node.left), compileToGetter(node.right), node.position)
@@ -462,8 +486,8 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
         is InfixExclamationColonNode -> {
             require(node.right is IdentifierNode)
             val newFrame = Frame(this)
-            val labelIndex = newFrame.defineLabel(node.right.string)
-            LabelGetter(newFrame.frameIndex, labelIndex, newFrame.compileToGetter(node.left))
+            val variableIndex = newFrame.defineVariable("!:${node.right.string}")
+            LabelGetter(newFrame.frameIndex, variableIndex, node.right.string, newFrame.compileToGetter(node.left))
         }
 
         is InfixColonNode -> {
@@ -489,9 +513,10 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
             val variables = parseArguments(commasNode)
             val newFrame = Frame(this)
             val argumentsVariableIndex = newFrame.defineVariable("__")
-            val variableIndices = variables.map { newFrame.defineVariable(it) }
+            val variableIndices = variables.map { (name, _) -> newFrame.defineVariable(name) }
+            val isLazy = variables.map { (_, lazy) -> lazy }
             val getter = newFrame.compileToGetter(node.right)
-            FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, getter)
+            FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, variableIndices, isLazy, getter)
         }
 
         is InfixPlusEqualNode -> {
@@ -556,19 +581,28 @@ private fun Frame.compileInfixOperatorToGetter(node: InfixNode): Getter {
     }
 }
 
-private fun parseArguments(argumentsNode: Node): List<String> {
-    val identifierNodes = when (argumentsNode) {
+private fun parseArguments(argumentsNode: Node): List<Pair<String, Boolean>> {
+    val nodes = when (argumentsNode) {
         is EmptyNode -> listOf()
         is CommasNode -> argumentsNode.nodes
         is SemicolonsNode -> argumentsNode.nodes
         else -> listOf(argumentsNode)
     }
-    val strings = identifierNodes.mapNotNull {
-        when (it) {
-            is IdentifierNode -> it.string
+    return nodes.mapNotNull { node ->
+        when (node) {
+            is IdentifierNode -> Pair(node.string, false)
             is EmptyNode -> null
-            else -> throw IllegalArgumentException("Invalid argument: $it")
+            is BracketsRightSimpleRoundNode -> {
+                val receiver = node.receiver
+                val body = node.body
+                if (receiver is IdentifierNode && body is EmptyNode) {
+                    Pair(receiver.string, true)
+                } else {
+                    throw IllegalArgumentException("Invalid pass-by-formula argument: $node")
+                }
+            }
+
+            else -> throw IllegalArgumentException("Invalid argument: $node")
         }
     }
-    return strings
 }
