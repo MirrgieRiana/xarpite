@@ -455,29 +455,52 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             val indices = arguments[0]
             if (indices is FluoriteStream) {
                 FluoriteStream {
-                    // インデックスをすべて走査し、参照される最大のインデックスまで値ストリームをイテレートして要素を回収するのだ。
-                    val indexList = mutableListOf<Int>()
-                    indices.toFlow().collect { item ->
-                        val index = item.toFluoriteNumber(null).roundToInt()
-                        if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
-                        indexList += index
-                    }
-                    val maxIndex = indexList.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まないのだ。
-                    val items = mutableListOf<FluoriteValue>()
-                    var position = 0
-                    try {
-                        arguments[1].toFlow().collect { item ->
-                            items += item
-                            position++
-                            if (position > maxIndex) {
-                                throw IterationAborted // 参照される最大のインデックスまで読めば先読みせず打ち切るのだ。
-                            }
-                        }
-                    } catch (_: IterationAborted) {
+                    // 添字を逐次バッファに溜める。要素数が256を超えたら添字ストリームを無限とみなして、最も古い添字から消費する
+                    val indexBuffer = ArrayDeque<Int>()
+                    // 値ストリームは高々1回だけ前方へ読み進め、因果的に必要な位置までしか読まない。
+                    // 読んだ要素のうち、今後参照されうる位置だけを疎な Map に保持してメモリを最小化する
+                    val values = mutableMapOf<Int, FluoriteValue>()
+                    var readCount = 0 // 値ストリームから読み取った要素数
+                    var ended = false // 値ストリームを末尾まで読み切ったか
 
+                    // 値ストリームを maxIndex の位置まで読み進める。既に読み終えていれば読み直さない
+                    suspend fun readUpTo(maxIndex: Int) {
+                        if (ended || maxIndex < readCount) return
+                        val targetIndices = indexBuffer.toSet() // 今後参照されうる位置
+                        var position = 0
+                        try {
+                            arguments[1].toFlow().collect { item ->
+                                if (position >= readCount && position in targetIndices) values[position] = item
+                                position++
+                                if (position > maxIndex) throw IterationAborted // 必要なインデックスまで読めば先読みせず打ち切る
+                            }
+                            ended = true
+                        } catch (_: IterationAborted) {
+
+                        }
+                        readCount = maxOf(readCount, position)
                     }
-                    indexList.forEach { index ->
-                        emit(items.getOrNull(index) ?: FluoriteNull)
+
+                    indices.collect { element ->
+                        val index = element.toFluoriteNumber(null).roundToInt()
+                        if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                        indexBuffer.addLast(index)
+                        if (indexBuffer.size > 256) {
+                            // 最も古い添字を消費する。未読ならバッファ内の最大添字まで一度に読み進める
+                            val oldest = indexBuffer.first()
+                            if (!ended && oldest >= readCount) readUpTo(indexBuffer.max())
+                            indexBuffer.removeFirst()
+                            emit(values[oldest] ?: FluoriteNull)
+                            if (oldest !in indexBuffer) values.remove(oldest) // もう参照されない位置は解放する
+                        }
+                    }
+
+                    // 添字ストリームが終了したので、最大のインデックスまで読み進めてバッファに残った添字を順に消費する
+                    if (indexBuffer.isNotEmpty()) {
+                        readUpTo(indexBuffer.max())
+                        indexBuffer.forEach { index ->
+                            emit(values[index] ?: FluoriteNull)
+                        }
                     }
                 }
             } else {

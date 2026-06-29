@@ -539,6 +539,8 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
+If `indices` is a non-stream, the return value is also a non-stream.
+
 When `indices` is a stream, returns a stream of the elements corresponding to each index.
 
 ```shell
@@ -559,6 +561,10 @@ $ xa '0, 10, 20, 30, 40 >> GET[3, 0, 2, 2, 5]'
 # 20
 # NULL
 ```
+
+---
+
+`stream` is iterated at most once, and only the positions required for the output are read.
 
 ## `FIRST` Get First Element of Stream
 
