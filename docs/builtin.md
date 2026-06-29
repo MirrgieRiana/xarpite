@@ -27,6 +27,7 @@ You can reference classes of various built-in objects.
 - `STREAM`
 - `PROMISE`
 - `BLOB`
+- `ERROR`
 
 # Constants
 
@@ -42,15 +43,6 @@ Various constants representing special values.
 
 ---
 
-Mathematical built-in constants.
-
-| Constant  | Meaning         |
-|-----------|-----------------|
-| `MATH.PI` | Pi              |
-| `MATH.E`  | Napier's number |
-
----
-
 String-related built-in constants.
 
 | Constant | Meaning                      |
@@ -61,137 +53,6 @@ String-related built-in constants.
 | `APOS`   | `'`                          |
 | `QUOT`   | `"`                          |
 | `BOM`    | `"\uFEFF"` (Byte Order Mark) |
-
-# Mathematical Functions
-
-## `ABS` Get Absolute Value
-
-`ABS(value: NUMBER): NUMBER`
-
-Returns the absolute value of the first argument.
-
-```shell
-$ xa 'ABS(-10)'
-# 10
-```
-
-## `FLOOR` Round Down to Integer
-
-`FLOOR(number: NUMBER): INT`
-
-Rounds the first argument down to the nearest smaller integer.
-
-```shell
-$ xa 'FLOOR(1.5)'
-# 1
-```
-
-## `DIV` Integer Part of Division
-
-`DIV(x: NUMBER; y: NUMBER): NUMBER`
-
-Divides `x` by `y` and returns the integer part of the result.
-
-```shell
-$ xa 'DIV(10; 3)'
-# 3
-```
-
-## `SQRT` Get Square Root
-
-`SQRT(number: NUMBER): NUMBER`
-
-Returns the positive square root of the first argument.
-
-`SQRT(number: NUMBER): NUMBER`
-
-Returns the positive square root of the first argument.
-
-```shell
-$ xa '"$%.3f(  SQRT(100.0)  )"'
-# 10.000
-```
-
-## `SIN` Sine
-
-`SIN(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its sine.
-
-```shell
-$ xa '"$%.3f(  SIN(PI / 2)  )"'
-# 1.000
-```
-
-## `COS` Cosine
-
-`COS(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its cosine.
-
-```shell
-$ xa '"$%.3f(  COS(0)  )"'
-# 1.000
-```
-
-## `TAN` Tangent
-
-`TAN(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its tangent.
-
-```shell
-$ xa '"$%.3f(  TAN(PI / 4)  )"'
-# 1.000
-```
-
-## `POW` Power
-
-`POW(base: NUMBER; exponent: NUMBER): NUMBER`
-
-Returns the result of raising the first argument to the power of the second argument.
-
-```shell
-$ xa 'POW(2; 3)'
-# 8.0
-```
-
-## `EXP` Exponential Function
-
-`EXP(number: NUMBER): NUMBER`
-
-Returns the exponential function (base e) of the first argument.
-
-```shell
-$ xa '"$%.3f(  EXP(1)  )"'
-# 2.718
-
-$ xa '"$%.3f(  EXP(2)  )"'
-# 7.389
-```
-
-## `LOG` Natural Logarithm
-
-`LOG(number: NUMBER): NUMBER`
-
-Returns the natural logarithm (base e) of the first argument.
-
-```shell
-$ xa '"$%.3f(  LOG(MATH.E)  )"'
-# 1.000
-```
-
-## `RAND` Get Random Number
-
-`RAND(): DOUBLE`
-
-`RAND([from: NUMBER; ]until: NUMBER): INT`
-
-When called without arguments, returns a decimal between 0 (inclusive) and 1 (exclusive).
-
-When called with 1 argument, returns an integer between 0 (inclusive) and `until` (exclusive).
-
-When called with 2 arguments, returns an integer between `from` (inclusive) and `until` (exclusive).
 
 # Stream Functions
 
@@ -373,9 +234,40 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # D
 ```
 
+## `LINESD` Concatenate Line Stream into String
+
+`LINESD(lines: STREAM<STRING>): STRING`
+
+Returns a string by appending a newline to each element of `lines` and concatenating them.
+
+```shell
+$ xa '"A", "B", "C" >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
+---
+
+An empty stream returns an empty string.
+
+```shell
+$ xa ', >> LINESD >> JSON'
+# ""
+```
+
+---
+
+`LINESD` conceptually performs the inverse operation of `LINES`.
+
+Splitting a string ending with a newline using `LINES` and then concatenating it with `LINESD` restores the original string, except for differences such as newline characters.
+
+```shell
+$ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
+# "A\nB\nC\n"
+```
+
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
+`KEYS(object: STREAM<OBJECT>): STREAM<STRING>`
 
 Returns a stream of keys from `object`.
 
@@ -469,11 +361,11 @@ $ xa 'SUM(1 .. 3)'
 
 ## `MIN` Minimum Value of Stream
 
-`MIN(numbers: STREAM<NUMBER>): NUMBER`
+`MIN(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the minimum value of the first argument stream.
+Returns the minimum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -481,15 +373,18 @@ $ xa 'MIN(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MIN(,)'
 # NULL
+
+$ xa '3 MIN 5'
+# 3
 ```
 
 ## `MAX` Maximum Value of Stream
 
-`MAX(numbers: STREAM<NUMBER>): NUMBER`
+`MAX(numbers1: STREAM<NUMBER>[; numbers2: STREAM<NUMBER>]): NUMBER`
 
-Returns the maximum value of the first argument stream.
+Returns the maximum value among the elements of `numbers1` and `numbers2`.
 
-If the stream is empty, returns `NULL`.
+If there are no elements, returns `NULL`.
 
 ```shell
 $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
@@ -497,6 +392,9 @@ $ xa 'MAX(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)'
 
 $ xa 'MAX(,)'
 # NULL
+
+$ xa '3 MAX 5'
+# 5
 ```
 
 ## `COUNT` Number of Stream Elements
@@ -520,7 +418,7 @@ $ xa 'COUNT(,)'
 
 ## `AND` / `ALL` Check if All are True
 
-`<T> AND(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> AND(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether all passed elements evaluate to true.
 
@@ -554,7 +452,7 @@ More precisely, this function returns the first element whose booleanization is 
 
 As soon as the first element whose booleanization is false is found, further stream iteration and element booleanization are skipped.
 
-Unlike the `&&` operator, which skips evaluation of the right-hand side itself based on the left-hand side value, each argument itself is evaluated before the function executes.
+Like the `&&` operator, the second argument is not evaluated if the first argument already determines the result.
 
 ```shell
 $ xa '1, "a", TRUE, 0, "b" >> AND'
@@ -592,12 +490,12 @@ $ xa '
 
   list
 '
-# [left;right]
+# [left]
 ```
 
 ## `OR` / `ANY` Check if Any is True
 
-`<T> OR(boolean1: STREAM<T>[; boolean2: STREAM<T>]): T | BOOLEAN`
+`<T> OR(boolean1: STREAM<T>[; boolean2(): STREAM<T>]): T | BOOLEAN`
 
 Determines whether any of the passed elements evaluate to true.
 
@@ -628,6 +526,39 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 ---
 
 Other properties follow those of the `AND` function.
+
+## `GET` Get Element by Index
+
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
+
+Returns the elements of `stream` at the indices corresponding to `indices`.
+
+Indices start from 0.
+
+Throws an error if a negative index is passed.
+
+If the corresponding index does not exist, returns `NULL`.
+
+When `indices` is a stream, returns a stream of the elements corresponding to each index.
+
+```shell
+$ xa 'GET(1; 0, 10, 20)'
+# 10
+
+$ xa 'GET(5; 0, 10, 20)'
+# NULL
+
+$ xa 'GET(0, 2; 0, 10, 20)'
+# 0
+# 20
+
+$ xa '0, 10, 20, 30, 40 >> GET[3, 0, 2, 2, 5]'
+# 30
+# 0
+# 20
+# 20
+# NULL
+```
 
 ## `FIRST` Get First Element of Stream
 
@@ -718,9 +649,9 @@ $ xa '1 .. 9 >> SORT[a, b -> a % 3 <=> b % 3] >> JOIN[" "]'
 
 ### Sort by Key Getter Function
 
-`SORT(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORT(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-If the first argument is a `by` parameter, applies the `key_getter` function to each element of the second argument, compares the results, and sorts.
+If the first argument is a `by` parameter, applies the `keyGetter` function to each element of the second argument, compares the results, and sorts.
 
 The following example sorts by the remainder when dividing each element by 3.
 
@@ -735,7 +666,7 @@ $ xa '1 .. 9 >> SORT[by: x -> x % 3] >> JOIN[" "]'
 
 `SORTR(comparator: VALUE, VALUE -> INT; stream: STREAM<VALUE>): STREAM<VALUE>`
 
-`SORTR(by: key_getter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
+`SORTR(by: keyGetter: VALUE -> VALUE; stream: STREAM<VALUE>): STREAM<VALUE>`
 
 Sorts a stream in descending order.
 
@@ -867,6 +798,20 @@ $ xa '1, 2, 3, 4, 5 >> CHUNK[2]'
 # [5]
 ```
 
+## `SLIDE` Split Stream into Sliding Windows
+
+`SLIDE(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
+
+Returns a stream of arrays formed by sliding a window of the size specified in the first argument over the elements of the second argument stream.
+If the number of elements is less than the size, the result is an empty stream.
+
+```shell
+$ xa '1, 2, 3, 4, 5 >> SLIDE[3]'
+# [1;2;3]
+# [2;3;4]
+# [3;4;5]
+```
+
 ## `TAKE` Get Beginning of Stream
 
 `TAKE(count: INT; stream: STREAM<VALUE>): STREAM<VALUE>`
@@ -987,25 +932,6 @@ $ xa '1, 2, 3 >> TO_STRING'
 # 123
 ```
 
-## `TO_NUMBER` Numericalization
-
-`TO_NUMBER(value: VALUE): NUMBER`
-
-Converts a value to a number.
-
-Has the same behavior as the `+value` operator.
-
-```shell
-$ xa 'TO_NUMBER("123")'
-# 123
-
-$ xa '1, 2, 3 >> TO_NUMBER'
-# 6
-
-$ xa 'TO_NUMBER(NULL)'
-# 0
-```
-
 ## `TO_BOOLEAN` Booleanization
 
 `TO_BOOLEAN(value: VALUE): BOOLEAN`
@@ -1038,7 +964,7 @@ $ xa 'TO_ARRAY(1 .. 3)'
 
 ## `TO_OBJECT` Convert Stream of Entries to Object
 
-`OBJECT(stream: STREAM<ARRAY<STRING; VALUE>>): OBJECT`
+`OBJECT(stream: STREAM<[STRING; VALUE]>): OBJECT`
 
 Converts each element of the first argument stream into an object as entries.
 
@@ -1176,4 +1102,28 @@ $ xa -q '
 '
 # 100
 # 100
+```
+
+## `LAZY2` Lazy Evaluation and Caching Function
+
+`<T> LAZY2(initializer(): T): () -> T`
+
+Returns a function that performs lazy evaluation and caching.
+
+Equivalent to `LAZY`, but receives the argument as a pass-by-formula argument.
+
+```shell
+$ xa -q '
+  counter := 1
+  lazy := LAZY2 ((
+    counter++
+    counter
+  ))
+  OUT << lazy()
+  OUT << lazy()
+  OUT << lazy()
+'
+# 2
+# 2
+# 2
 ```

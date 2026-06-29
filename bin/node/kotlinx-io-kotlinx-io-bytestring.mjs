@@ -40,10 +40,10 @@ function ByteString_init_$Create$(data, startIndex, endIndex) {
 }
 function Companion() {
   Companion_instance = this;
-  this.y2h_1 = new ByteString(new Int8Array(0), null);
-  this.z2h_1 = toCharArray('0123456789abcdef');
+  this.m2j_1 = new ByteString(new Int8Array(0), null);
+  this.n2j_1 = toCharArray('0123456789abcdef');
 }
-protoOf(Companion).a2i = function (byteArray) {
+protoOf(Companion).o2j = function (byteArray) {
   return new ByteString(byteArray, null);
 };
 var Companion_instance;
@@ -54,11 +54,11 @@ function Companion_getInstance() {
 }
 function ByteString(data, dummy) {
   Companion_getInstance();
-  this.b2i_1 = data;
-  this.c2i_1 = 0;
+  this.p2j_1 = data;
+  this.q2j_1 = 0;
 }
 protoOf(ByteString).l1 = function () {
-  return this.b2i_1.length;
+  return this.p2j_1.length;
 };
 protoOf(ByteString).equals = function (other) {
   if (this === other)
@@ -67,43 +67,43 @@ protoOf(ByteString).equals = function (other) {
     return false;
   if (!(other instanceof ByteString))
     THROW_CCE();
-  if (!(other.b2i_1.length === this.b2i_1.length))
+  if (!(other.p2j_1.length === this.p2j_1.length))
     return false;
-  if (!(other.c2i_1 === 0) && !(this.c2i_1 === 0) && !(other.c2i_1 === this.c2i_1))
+  if (!(other.q2j_1 === 0) && !(this.q2j_1 === 0) && !(other.q2j_1 === this.q2j_1))
     return false;
-  return contentEquals(this.b2i_1, other.b2i_1);
+  return contentEquals(this.p2j_1, other.p2j_1);
 };
 protoOf(ByteString).hashCode = function () {
-  var hc = this.c2i_1;
+  var hc = this.q2j_1;
   if (hc === 0) {
-    hc = contentHashCode(this.b2i_1);
-    this.c2i_1 = hc;
+    hc = contentHashCode(this.p2j_1);
+    this.q2j_1 = hc;
   }
   return hc;
 };
 protoOf(ByteString).m1 = function (index) {
   if (index < 0 || index >= this.l1())
     throw IndexOutOfBoundsException_init_$Create$('index (' + index + ') is out of byte string bounds: [0..' + this.l1() + ')');
-  return this.b2i_1[index];
+  return this.p2j_1[index];
 };
 protoOf(ByteString).mc = function (startIndex, endIndex) {
   var tmp;
   if (startIndex === endIndex) {
-    tmp = Companion_getInstance().y2h_1;
+    tmp = Companion_getInstance().m2j_1;
   } else {
-    tmp = ByteString_init_$Create$(this.b2i_1, startIndex, endIndex);
+    tmp = ByteString_init_$Create$(this.p2j_1, startIndex, endIndex);
   }
   return tmp;
 };
-protoOf(ByteString).d2i = function (startIndex, endIndex, $super) {
+protoOf(ByteString).r2j = function (startIndex, endIndex, $super) {
   endIndex = endIndex === VOID ? this.l1() : endIndex;
   return $super === VOID ? this.mc(startIndex, endIndex) : $super.mc.call(this, startIndex, endIndex);
 };
-protoOf(ByteString).e2i = function (other) {
+protoOf(ByteString).s2j = function (other) {
   if (other === this)
     return 0;
-  var localData = this.b2i_1;
-  var otherData = other.b2i_1;
+  var localData = this.p2j_1;
+  var otherData = other.p2j_1;
   var inductionVariable = 0;
   var tmp0 = this.l1();
   // Inline function 'kotlin.math.min' call
@@ -132,7 +132,7 @@ protoOf(ByteString).e2i = function (other) {
   return compareTo(this.l1(), other.l1());
 };
 protoOf(ByteString).d = function (other) {
-  return this.e2i(other instanceof ByteString ? other : THROW_CCE());
+  return this.s2j(other instanceof ByteString ? other : THROW_CCE());
 };
 protoOf(ByteString).toString = function () {
   if (isEmpty(this)) {
@@ -145,7 +145,7 @@ protoOf(ByteString).toString = function () {
   $this$with.q('ByteString(size=');
   $this$with.q(sizeStr);
   $this$with.q(' hex=');
-  var localData = this.b2i_1;
+  var localData = this.p2j_1;
   var inductionVariable = 0;
   var last = this.l1();
   if (inductionVariable < last)
@@ -153,35 +153,35 @@ protoOf(ByteString).toString = function () {
       var i = inductionVariable;
       inductionVariable = inductionVariable + 1 | 0;
       var b = localData[i];
-      $this$with.s(Companion_getInstance().z2h_1[(b >>> 4 | 0) & 15]);
-      $this$with.s(Companion_getInstance().z2h_1[b & 15]);
+      $this$with.s(Companion_getInstance().n2j_1[(b >>> 4 | 0) & 15]);
+      $this$with.s(Companion_getInstance().n2j_1[b & 15]);
     }
      while (inductionVariable < last);
   return $this$with.s(_Char___init__impl__6a9atx(41)).toString();
 };
-protoOf(ByteString).f2i = function () {
-  return this.b2i_1;
+protoOf(ByteString).t2j = function () {
+  return this.p2j_1;
 };
 function ByteString_0(bytes) {
   var tmp;
   // Inline function 'kotlin.collections.isEmpty' call
   if (bytes.length === 0) {
-    tmp = Companion_getInstance().y2h_1;
+    tmp = Companion_getInstance().m2j_1;
   } else {
-    tmp = Companion_getInstance().a2i(bytes);
+    tmp = Companion_getInstance().o2j(bytes);
   }
   return tmp;
 }
 function decodeToString_0(_this__u8e3s4) {
-  return decodeToString(_this__u8e3s4.f2i());
+  return decodeToString(_this__u8e3s4.t2j());
 }
 function isEmpty(_this__u8e3s4) {
   return _this__u8e3s4.l1() === 0;
 }
 function UnsafeByteStringOperations() {
 }
-protoOf(UnsafeByteStringOperations).g2i = function (array) {
-  return Companion_getInstance().a2i(array);
+protoOf(UnsafeByteStringOperations).u2j = function (array) {
+  return Companion_getInstance().o2j(array);
 };
 var UnsafeByteStringOperations_instance;
 function UnsafeByteStringOperations_getInstance() {

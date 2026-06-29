@@ -17,20 +17,20 @@ import {
 initMetadataForClass(Single, 'Single');
 //endregion
 function Single(first) {
-  this.y50_1 = first;
+  this.m52_1 = first;
 }
 protoOf(Single).toString = function () {
-  return '(' + toString(this.y50_1) + ')';
+  return '(' + toString(this.m52_1) + ')';
 };
 protoOf(Single).hashCode = function () {
-  return this.y50_1 == null ? 0 : hashCode(this.y50_1);
+  return this.m52_1 == null ? 0 : hashCode(this.m52_1);
 };
 protoOf(Single).equals = function (other) {
   if (this === other)
     return true;
   if (!(other instanceof Single))
     return false;
-  if (!equals(this.y50_1, other.y50_1))
+  if (!equals(this.m52_1, other.m52_1))
     return false;
   return true;
 };

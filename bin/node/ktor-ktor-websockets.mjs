@@ -112,7 +112,7 @@ initMetadataForCompanion(Companion);
 initMetadataForClass(Codes, 'Codes', VOID, Enum);
 initMetadataForClass(CloseReason, 'CloseReason');
 function send(frame, $completion) {
-  return this.r3g().y27(frame, $completion);
+  return this.f3i().e28(frame, $completion);
 }
 initMetadataForInterface(WebSocketSession, 'WebSocketSession', VOID, VOID, [CoroutineScope], [1, 0]);
 initMetadataForInterface(DefaultWebSocketSession, 'DefaultWebSocketSession', VOID, VOID, [WebSocketSession], [1, 0]);
@@ -176,14 +176,14 @@ function Companion() {
   var _iterator__ex2g4s = this_0.t();
   while (_iterator__ex2g4s.u()) {
     var element = _iterator__ex2g4s.v();
-    var tmp$ret$0 = element.g3g_1;
+    var tmp$ret$0 = element.u3h_1;
     destination.v2(tmp$ret$0, element);
   }
-  tmp.h3g_1 = destination;
-  this.i3g_1 = Codes_INTERNAL_ERROR_getInstance();
+  tmp.v3h_1 = destination;
+  this.w3h_1 = Codes_INTERNAL_ERROR_getInstance();
 }
-protoOf(Companion).j3g = function (code) {
-  return this.h3g_1.d3(code);
+protoOf(Companion).x3h = function (code) {
+  return this.v3h_1.d3(code);
 };
 var Companion_instance;
 function Companion_getInstance() {
@@ -221,7 +221,7 @@ function Codes_initEntries() {
 }
 var $ENTRIES;
 function CloseReason_init_$Init$(code, message, $this) {
-  CloseReason.call($this, code.g3g_1, message);
+  CloseReason.call($this, code.u3h_1, message);
   return $this;
 }
 function CloseReason_init_$Create$(code, message) {
@@ -229,7 +229,7 @@ function CloseReason_init_$Create$(code, message) {
 }
 function Codes(name, ordinal, code) {
   Enum.call(this, name, ordinal);
-  this.g3g_1 = code;
+  this.u3h_1 = code;
 }
 function Codes_NORMAL_getInstance() {
   Codes_initEntries();
@@ -280,19 +280,19 @@ function Codes_TRY_AGAIN_LATER_getInstance() {
   return Codes_TRY_AGAIN_LATER_instance;
 }
 function CloseReason(code, message) {
-  this.k3g_1 = code;
-  this.l3g_1 = message;
+  this.y3h_1 = code;
+  this.z3h_1 = message;
 }
-protoOf(CloseReason).m3g = function () {
-  return Companion_getInstance().j3g(this.k3g_1);
+protoOf(CloseReason).a3i = function () {
+  return Companion_getInstance().x3h(this.y3h_1);
 };
 protoOf(CloseReason).toString = function () {
-  var tmp0_elvis_lhs = this.m3g();
-  return 'CloseReason(reason=' + toString(tmp0_elvis_lhs == null ? this.k3g_1 : tmp0_elvis_lhs) + ', message=' + this.l3g_1 + ')';
+  var tmp0_elvis_lhs = this.a3i();
+  return 'CloseReason(reason=' + toString(tmp0_elvis_lhs == null ? this.y3h_1 : tmp0_elvis_lhs) + ', message=' + this.z3h_1 + ')';
 };
 protoOf(CloseReason).hashCode = function () {
-  var result = this.k3g_1;
-  result = imul(result, 31) + getStringHashCode(this.l3g_1) | 0;
+  var result = this.y3h_1;
+  result = imul(result, 31) + getStringHashCode(this.z3h_1) | 0;
   return result;
 };
 protoOf(CloseReason).equals = function (other) {
@@ -300,9 +300,9 @@ protoOf(CloseReason).equals = function (other) {
     return true;
   if (!(other instanceof CloseReason))
     return false;
-  if (!(this.k3g_1 === other.k3g_1))
+  if (!(this.y3h_1 === other.y3h_1))
     return false;
-  if (!(this.l3g_1 === other.l3g_1))
+  if (!(this.z3h_1 === other.z3h_1))
     return false;
   return true;
 };
@@ -332,21 +332,21 @@ function DefaultWebSocketSession() {
 function DefaultWebSocketSession_0(session, pingIntervalMillis, timeoutMillis, channelsConfig) {
   pingIntervalMillis = pingIntervalMillis === VOID ? new Long(0, 0) : pingIntervalMillis;
   timeoutMillis = timeoutMillis === VOID ? new Long(15000, 0) : timeoutMillis;
-  channelsConfig = channelsConfig === VOID ? Companion_getInstance_2().t3g_1 : channelsConfig;
+  channelsConfig = channelsConfig === VOID ? Companion_getInstance_2().h3i_1 : channelsConfig;
   _init_properties_DefaultWebSocketSession_kt__469s0y();
   // Inline function 'kotlin.require' call
   if (!!isInterface(session, DefaultWebSocketSession)) {
     var message = 'Cannot wrap other DefaultWebSocketSession';
     throw IllegalArgumentException_init_$Create$(toString(message));
   }
-  return new DefaultWebSocketSessionImpl(session, pingIntervalMillis, timeoutMillis, channelsConfig.u3g_1, channelsConfig.v3g_1);
+  return new DefaultWebSocketSessionImpl(session, pingIntervalMillis, timeoutMillis, channelsConfig.i3i_1, channelsConfig.j3i_1);
 }
 function runIncomingProcessor($this, ponger) {
-  var tmp = get_IncomingProcessorCoroutineName().hh(Dispatchers_getInstance().n1x_1);
+  var tmp = get_IncomingProcessorCoroutineName().kh(Dispatchers_getInstance().r1x_1);
   return launch($this, tmp, VOID, DefaultWebSocketSessionImpl$runIncomingProcessor$slambda_0($this, ponger, null));
 }
 function runOutgoingProcessor($this) {
-  var tmp = get_OutgoingProcessorCoroutineName().hh(Dispatchers_getInstance().n1x_1);
+  var tmp = get_OutgoingProcessorCoroutineName().kh(Dispatchers_getInstance().r1x_1);
   var tmp_0 = CoroutineStart_UNDISPATCHED_getInstance();
   return launch($this, tmp, tmp_0, DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda_0($this, null));
 }
@@ -367,32 +367,32 @@ function sendCloseSequence$default($this, reason, exception, $completion, $super
   return sendCloseSequence($this, reason, exception, $completion);
 }
 function tryClose($this) {
-  return $this.a3i_1.atomicfu$compareAndSet(false, true);
+  return $this.o3j_1.atomicfu$compareAndSet(false, true);
 }
 function runOrCancelPinger($this) {
-  var interval = $this.d3i_1;
+  var interval = $this.r3j_1;
   var tmp;
-  if ($this.a3i_1.kotlinx$atomicfu$value) {
+  if ($this.o3j_1.kotlinx$atomicfu$value) {
     tmp = null;
   } else if (compare(interval, new Long(0, 0)) > 0) {
-    var tmp_0 = $this.t3h_1.r3g();
-    var tmp_1 = $this.e3i_1;
+    var tmp_0 = $this.h3j_1.f3i();
+    var tmp_1 = $this.s3j_1;
     tmp = pinger($this, tmp_0, interval, tmp_1, DefaultWebSocketSessionImpl$runOrCancelPinger$slambda_0($this, null));
   } else {
     tmp = null;
   }
   var newPinger = tmp;
-  var tmp0_safe_receiver = $this.u3h_1.atomicfu$getAndSet(newPinger);
+  var tmp0_safe_receiver = $this.i3j_1.atomicfu$getAndSet(newPinger);
   if (tmp0_safe_receiver == null)
     null;
   else
-    tmp0_safe_receiver.h28();
-  var tmp2_safe_receiver = newPinger == null ? null : new ChannelResult(newPinger.z27(Companion_getInstance_0().g3i_1));
+    tmp0_safe_receiver.n28();
+  var tmp2_safe_receiver = newPinger == null ? null : new ChannelResult(newPinger.f28(Companion_getInstance_0().u3j_1));
   if (tmp2_safe_receiver == null)
     null;
   else
-    _ChannelResult___get_isSuccess__impl__odq1z9(tmp2_safe_receiver.d25_1);
-  if ($this.a3i_1.kotlinx$atomicfu$value && !(newPinger == null)) {
+    _ChannelResult___get_isSuccess__impl__odq1z9(tmp2_safe_receiver.j25_1);
+  if ($this.o3j_1.kotlinx$atomicfu$value && !(newPinger == null)) {
     runOrCancelPinger($this);
   }
 }
@@ -405,28 +405,28 @@ function checkMaxFrameSize($this, packet, frame, $completion) {
 function processIncomingExtensions($this, frame) {
   // Inline function 'kotlin.collections.fold' call
   var accumulator = frame;
-  var _iterator__ex2g4s = $this.t3i().t();
+  var _iterator__ex2g4s = $this.h3k().t();
   while (_iterator__ex2g4s.u()) {
     var element = _iterator__ex2g4s.v();
     var current = accumulator;
-    accumulator = element.u3i(current);
+    accumulator = element.i3k(current);
   }
   return accumulator;
 }
 function processOutgoingExtensions($this, frame) {
   // Inline function 'kotlin.collections.fold' call
   var accumulator = frame;
-  var _iterator__ex2g4s = $this.t3i().t();
+  var _iterator__ex2g4s = $this.h3k().t();
   while (_iterator__ex2g4s.u()) {
     var element = _iterator__ex2g4s.v();
     var current = accumulator;
-    accumulator = element.v3i(current);
+    accumulator = element.j3k(current);
   }
   return accumulator;
 }
 function Companion_0() {
   Companion_instance_0 = this;
-  this.g3i_1 = new Pong(new Int8Array(0), NonDisposableHandle_instance);
+  this.u3j_1 = new Pong(new Int8Array(0), NonDisposableHandle_instance);
 }
 var Companion_instance_0;
 function Companion_getInstance_0() {
@@ -435,19 +435,19 @@ function Companion_getInstance_0() {
   return Companion_instance_0;
 }
 function DefaultWebSocketSessionImpl$start$slambda($incomingJob, $outgoingJob, this$0, resultContinuation) {
-  this.e3j_1 = $incomingJob;
-  this.f3j_1 = $outgoingJob;
-  this.g3j_1 = this$0;
+  this.s3k_1 = $incomingJob;
+  this.t3k_1 = $outgoingJob;
+  this.u3k_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(DefaultWebSocketSessionImpl$start$slambda).j2c = function ($this$launch, $completion) {
-  var tmp = this.k2c($this$launch, $completion);
+protoOf(DefaultWebSocketSessionImpl$start$slambda).p2c = function ($this$launch, $completion) {
+  var tmp = this.q2c($this$launch, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(DefaultWebSocketSessionImpl$start$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(DefaultWebSocketSessionImpl$start$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -458,7 +458,7 @@ protoOf(DefaultWebSocketSessionImpl$start$slambda).d9 = function () {
         case 0:
           this.w8_1 = 3;
           this.v8_1 = 1;
-          suspendResult = this.e3j_1.d1r(this);
+          suspendResult = this.s3k_1.g1r(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -466,14 +466,14 @@ protoOf(DefaultWebSocketSessionImpl$start$slambda).d9 = function () {
           continue $sm;
         case 1:
           this.v8_1 = 2;
-          suspendResult = this.f3j_1.d1r(this);
+          suspendResult = this.t3k_1.g1r(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
           continue $sm;
         case 2:
-          this.g3j_1.w3h_1.h1r();
+          this.u3k_1.k3j_1.k1r();
           return Unit_instance;
         case 3:
           throw this.y8_1;
@@ -489,32 +489,32 @@ protoOf(DefaultWebSocketSessionImpl$start$slambda).d9 = function () {
     }
    while (true);
 };
-protoOf(DefaultWebSocketSessionImpl$start$slambda).k2c = function ($this$launch, completion) {
-  var i = new DefaultWebSocketSessionImpl$start$slambda(this.e3j_1, this.f3j_1, this.g3j_1, completion);
-  i.h3j_1 = $this$launch;
+protoOf(DefaultWebSocketSessionImpl$start$slambda).q2c = function ($this$launch, completion) {
+  var i = new DefaultWebSocketSessionImpl$start$slambda(this.s3k_1, this.t3k_1, this.u3k_1, completion);
+  i.v3k_1 = $this$launch;
   return i;
 };
 function DefaultWebSocketSessionImpl$start$slambda_0($incomingJob, $outgoingJob, this$0, resultContinuation) {
   var i = new DefaultWebSocketSessionImpl$start$slambda($incomingJob, $outgoingJob, this$0, resultContinuation);
   var l = function ($this$launch, $completion) {
-    return i.j2c($this$launch, $completion);
+    return i.p2c($this$launch, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function DefaultWebSocketSessionImpl$runIncomingProcessor$slambda(this$0, $ponger, resultContinuation) {
-  this.q3j_1 = this$0;
-  this.r3j_1 = $ponger;
+  this.e3l_1 = this$0;
+  this.f3l_1 = $ponger;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).j2c = function ($this$launch, $completion) {
-  var tmp = this.k2c($this$launch, $completion);
+protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).p2c = function ($this$launch, $completion) {
+  var tmp = this.q2c($this$launch, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -524,10 +524,10 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
       switch (tmp) {
         case 0:
           this.w8_1 = 39;
-          this.c3k_1 = null;
-          this.v3j_1 = null;
-          this.u3j_1 = false;
-          this.w3j_1 = Unit_instance;
+          this.q3l_1 = null;
+          this.j3l_1 = null;
+          this.i3l_1 = false;
+          this.k3l_1 = Unit_instance;
           this.v8_1 = 1;
           continue $sm;
         case 1:
@@ -536,12 +536,12 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
         case 2:
           this.w8_1 = 33;
           this.w8_1 = 32;
-          this.g3k_1 = this.q3j_1.t3h_1.q3g();
+          this.u3l_1 = this.e3l_1.h3j_1.e3i();
           this.v8_1 = 3;
           continue $sm;
         case 3:
-          this.z3j_1 = this.g3k_1;
-          this.y3j_1 = null;
+          this.n3l_1 = this.u3l_1;
+          this.m3l_1 = null;
           this.v8_1 = 4;
           continue $sm;
         case 4:
@@ -553,12 +553,12 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
         case 6:
           this.w8_1 = 29;
           this.w8_1 = 28;
-          this.f3k_1 = this.z3j_1.t();
+          this.t3l_1 = this.n3l_1.t();
           this.v8_1 = 7;
           continue $sm;
         case 7:
           this.v8_1 = 8;
-          suspendResult = this.f3k_1.k25(this);
+          suspendResult = this.t3l_1.q25(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -570,24 +570,24 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
             continue $sm;
           }
 
-          var e = this.f3k_1.v();
-          this.e3k_1 = e;
+          var e = this.t3l_1.v();
+          this.s3l_1 = e;
           this.v8_1 = 9;
           continue $sm;
         case 9:
-          this.d3k_1 = this.e3k_1;
+          this.r3l_1 = this.s3l_1;
           var this_0 = get_LOGGER();
           if (get_isTraceEnabled(this_0)) {
-            this_0.k33('WebSocketSession(' + toString(this.s3j_1) + ') receiving frame ' + this.d3k_1.toString());
+            this_0.y34('WebSocketSession(' + toString(this.g3l_1) + ') receiving frame ' + this.r3l_1.toString());
           }
 
-          var tmp0_subject = this.d3k_1;
+          var tmp0_subject = this.r3l_1;
           if (tmp0_subject instanceof Close) {
-            if (!this.q3j_1.r3g().m25()) {
+            if (!this.e3l_1.f3i().s25()) {
               this.v8_1 = 18;
-              var tmp_0 = this.q3j_1.r3g();
-              var tmp1_elvis_lhs = readReason(this.d3k_1);
-              suspendResult = tmp_0.y27(Close_init_$Create$(tmp1_elvis_lhs == null ? get_NORMAL_CLOSE() : tmp1_elvis_lhs), this);
+              var tmp_0 = this.e3l_1.f3i();
+              var tmp1_elvis_lhs = readReason(this.r3l_1);
+              suspendResult = tmp_0.e28(Close_init_$Create$(tmp1_elvis_lhs == null ? get_NORMAL_CLOSE() : tmp1_elvis_lhs), this);
               if (suspendResult === get_COROUTINE_SUSPENDED()) {
                 return suspendResult;
               }
@@ -598,14 +598,14 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
             }
           } else {
             if (tmp0_subject instanceof Pong) {
-              var tmp2_safe_receiver = this.q3j_1.u3h_1.kotlinx$atomicfu$value;
+              var tmp2_safe_receiver = this.e3l_1.i3j_1.kotlinx$atomicfu$value;
               if (tmp2_safe_receiver == null) {
-                this.b3k_1 = null;
+                this.p3l_1 = null;
                 this.v8_1 = 17;
                 continue $sm;
               } else {
                 this.v8_1 = 16;
-                suspendResult = tmp2_safe_receiver.y27(this.d3k_1, this);
+                suspendResult = tmp2_safe_receiver.e28(this.r3l_1, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
@@ -614,14 +614,14 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
             } else {
               if (tmp0_subject instanceof Ping) {
                 this.v8_1 = 15;
-                suspendResult = this.r3j_1.y27(this.d3k_1, this);
+                suspendResult = this.f3l_1.e28(this.r3l_1, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
                 continue $sm;
               } else {
                 this.v8_1 = 10;
-                suspendResult = checkMaxFrameSize(this.q3j_1, this.v3j_1, this.d3k_1, this);
+                suspendResult = checkMaxFrameSize(this.e3l_1, this.j3l_1, this.r3l_1, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
@@ -631,14 +631,14 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           }
 
         case 10:
-          if (!this.d3k_1.h3k_1) {
-            if (this.c3k_1 == null) {
-              this.c3k_1 = this.d3k_1;
+          if (!this.r3l_1.v3l_1) {
+            if (this.q3l_1 == null) {
+              this.q3l_1 = this.r3l_1;
             }
-            if (this.v3j_1 == null) {
-              this.v3j_1 = BytePacketBuilder();
+            if (this.j3l_1 == null) {
+              this.j3l_1 = BytePacketBuilder();
             }
-            writeFully(this.v3j_1, this.d3k_1.j3k_1);
+            writeFully(this.j3l_1, this.r3l_1.x3l_1);
             this.v8_1 = 21;
             continue $sm;
           } else {
@@ -647,9 +647,9 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           }
 
         case 11:
-          if (this.c3k_1 == null) {
+          if (this.q3l_1 == null) {
             this.v8_1 = 14;
-            suspendResult = this.q3j_1.y3h_1.y27(processIncomingExtensions(this.q3j_1, this.d3k_1), this);
+            suspendResult = this.e3l_1.m3j_1.e28(processIncomingExtensions(this.e3l_1, this.r3l_1), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -660,11 +660,11 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           }
 
         case 12:
-          writeFully(ensureNotNull(this.v3j_1), this.d3k_1.j3k_1);
-          var defragmented = Companion_getInstance_5().p3k(true, this.c3k_1.i3k_1, readByteArray(build(this.v3j_1)), this.c3k_1.l3k_1, this.c3k_1.m3k_1, this.c3k_1.n3k_1);
-          this.c3k_1 = null;
+          writeFully(ensureNotNull(this.j3l_1), this.r3l_1.x3l_1);
+          var defragmented = Companion_getInstance_5().d3m(true, this.q3l_1.w3l_1, readByteArray(build(this.j3l_1)), this.q3l_1.z3l_1, this.q3l_1.a3m_1, this.q3l_1.b3m_1);
+          this.q3l_1 = null;
           this.v8_1 = 13;
-          suspendResult = this.q3j_1.y3h_1.y27(processIncomingExtensions(this.q3j_1, defragmented), this);
+          suspendResult = this.e3l_1.m3j_1.e28(processIncomingExtensions(this.e3l_1, defragmented), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -672,7 +672,7 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           continue $sm;
         case 13:
           var tmp_1 = this;
-          tmp_1.a3k_1 = Unit_instance;
+          tmp_1.o3l_1 = Unit_instance;
           this.v8_1 = 20;
           continue $sm;
         case 14:
@@ -680,23 +680,23 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           continue $sm;
         case 15:
           var tmp_2 = this;
-          tmp_2.a3k_1 = Unit_instance;
+          tmp_2.o3l_1 = Unit_instance;
           this.v8_1 = 20;
           continue $sm;
         case 16:
           var tmp_3 = this;
-          tmp_3.b3k_1 = Unit_instance;
+          tmp_3.p3l_1 = Unit_instance;
           this.v8_1 = 17;
           continue $sm;
         case 17:
-          this.a3k_1 = this.b3k_1;
+          this.o3l_1 = this.p3l_1;
           this.v8_1 = 20;
           continue $sm;
         case 18:
           this.v8_1 = 19;
           continue $sm;
         case 19:
-          this.u3j_1 = true;
+          this.i3l_1 = true;
           this.v8_1 = 22;
           var tmp_4 = this;
           continue $sm;
@@ -713,24 +713,24 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           continue $sm;
         case 22:
           this.w8_1 = 32;
-          cancelConsumed(this.z3j_1, this.y3j_1);
+          cancelConsumed(this.n3l_1, this.m3l_1);
           this.w8_1 = 39;
           this.v8_1 = 23;
           continue $sm;
         case 23:
           this.w8_1 = 39;
-          this.r3j_1.h28();
-          var tmp0_safe_receiver = this.v3j_1;
+          this.f3l_1.n28();
+          var tmp0_safe_receiver = this.j3l_1;
           if (tmp0_safe_receiver == null)
             null;
           else {
             tmp0_safe_receiver.g4();
           }
 
-          this.q3j_1.y3h_1.h28();
-          if (!this.u3j_1) {
+          this.e3l_1.m3j_1.n28();
+          if (!this.i3l_1) {
             this.v8_1 = 24;
-            suspendResult = close(this.q3j_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
+            suspendResult = close(this.e3l_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -752,7 +752,7 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           continue $sm;
         case 27:
           this.w8_1 = 32;
-          cancelConsumed(this.z3j_1, this.y3j_1);
+          cancelConsumed(this.n3l_1, this.m3l_1);
           this.v8_1 = 31;
           continue $sm;
         case 28:
@@ -761,7 +761,7 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           if (tmp_7 instanceof Error) {
             var e_0 = this.y8_1;
             var tmp_8 = this;
-            this.y3j_1 = e_0;
+            this.m3l_1 = e_0;
             throw e_0;
           } else {
             throw this.y8_1;
@@ -770,11 +770,11 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
         case 29:
           this.w8_1 = 32;
           var t = this.y8_1;
-          cancelConsumed(this.z3j_1, this.y3j_1);
+          cancelConsumed(this.n3l_1, this.m3l_1);
           throw t;
         case 30:
           this.w8_1 = 32;
-          cancelConsumed(this.z3j_1, this.y3j_1);
+          cancelConsumed(this.n3l_1, this.m3l_1);
           if (false) {
             this.v8_1 = 3;
             continue $sm;
@@ -783,7 +783,7 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           this.v8_1 = 31;
           continue $sm;
         case 31:
-          this.w3j_1 = Unit_instance;
+          this.k3l_1 = Unit_instance;
           this.w8_1 = 39;
           this.v8_1 = 36;
           continue $sm;
@@ -793,7 +793,7 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           if (tmp_9 instanceof ClosedSendChannelException) {
             var _unused_var__etf5q3 = this.y8_1;
             var tmp_10 = this;
-            tmp_10.w3j_1 = Unit_instance;
+            tmp_10.k3l_1 = Unit_instance;
             this.w8_1 = 39;
             this.v8_1 = 36;
             continue $sm;
@@ -802,8 +802,8 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
             if (tmp_11 instanceof Error) {
               var cause = this.y8_1;
               var tmp_12 = this;
-              this.r3j_1.h28();
-              tmp_12.w3j_1 = this.q3j_1.y3h_1.f28(cause);
+              this.f3l_1.n28();
+              tmp_12.k3l_1 = this.e3l_1.m3j_1.l28(cause);
               this.w8_1 = 39;
               this.v8_1 = 36;
               continue $sm;
@@ -814,19 +814,19 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
 
         case 33:
           this.w8_1 = 39;
-          this.x3j_1 = this.y8_1;
-          this.r3j_1.h28();
-          var tmp0_safe_receiver_0 = this.v3j_1;
+          this.l3l_1 = this.y8_1;
+          this.f3l_1.n28();
+          var tmp0_safe_receiver_0 = this.j3l_1;
           if (tmp0_safe_receiver_0 == null)
             null;
           else {
             tmp0_safe_receiver_0.g4();
           }
 
-          this.q3j_1.y3h_1.h28();
-          if (!this.u3j_1) {
+          this.e3l_1.m3j_1.n28();
+          if (!this.i3l_1) {
             this.v8_1 = 34;
-            suspendResult = close(this.q3j_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
+            suspendResult = close(this.e3l_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -840,22 +840,22 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
           this.v8_1 = 35;
           continue $sm;
         case 35:
-          throw this.x3j_1;
+          throw this.l3l_1;
         case 36:
-          this.t3j_1 = this.w3j_1;
+          this.h3l_1 = this.k3l_1;
           this.w8_1 = 39;
-          this.r3j_1.h28();
-          var tmp0_safe_receiver_1 = this.v3j_1;
+          this.f3l_1.n28();
+          var tmp0_safe_receiver_1 = this.j3l_1;
           if (tmp0_safe_receiver_1 == null)
             null;
           else {
             tmp0_safe_receiver_1.g4();
           }
 
-          this.q3j_1.y3h_1.h28();
-          if (!this.u3j_1) {
+          this.e3l_1.m3j_1.n28();
+          if (!this.i3l_1) {
             this.v8_1 = 37;
-            suspendResult = close(this.q3j_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
+            suspendResult = close(this.e3l_1, CloseReason_init_$Create$(Codes_CLOSED_ABNORMALLY_getInstance(), 'Connection was closed without close frame'), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -884,31 +884,31 @@ protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).d9 = function 
     }
    while (true);
 };
-protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).k2c = function ($this$launch, completion) {
-  var i = new DefaultWebSocketSessionImpl$runIncomingProcessor$slambda(this.q3j_1, this.r3j_1, completion);
-  i.s3j_1 = $this$launch;
+protoOf(DefaultWebSocketSessionImpl$runIncomingProcessor$slambda).q2c = function ($this$launch, completion) {
+  var i = new DefaultWebSocketSessionImpl$runIncomingProcessor$slambda(this.e3l_1, this.f3l_1, completion);
+  i.g3l_1 = $this$launch;
   return i;
 };
 function DefaultWebSocketSessionImpl$runIncomingProcessor$slambda_0(this$0, $ponger, resultContinuation) {
   var i = new DefaultWebSocketSessionImpl$runIncomingProcessor$slambda(this$0, $ponger, resultContinuation);
   var l = function ($this$launch, $completion) {
-    return i.j2c($this$launch, $completion);
+    return i.p2c($this$launch, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda(this$0, resultContinuation) {
-  this.y3k_1 = this$0;
+  this.m3m_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).j2c = function ($this$launch, $completion) {
-  var tmp = this.k2c($this$launch, $completion);
+protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).p2c = function ($this$launch, $completion) {
+  var tmp = this.q2c($this$launch, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -927,7 +927,7 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
           this.w8_1 = 9;
           this.w8_1 = 4;
           this.v8_1 = 3;
-          suspendResult = outgoingProcessorLoop(this.y3k_1, this);
+          suspendResult = outgoingProcessorLoop(this.m3m_1, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -957,7 +957,7 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
               if (tmp_2 instanceof CancellationException) {
                 var _unused_var__etf5q3_1 = this.y8_1;
                 this.v8_1 = 5;
-                suspendResult = sendCloseSequence$default(this.y3k_1, CloseReason_init_$Create$(Codes_NORMAL_getInstance(), ''), VOID, this);
+                suspendResult = sendCloseSequence$default(this.m3m_1, CloseReason_init_$Create$(Codes_NORMAL_getInstance(), ''), VOID, this);
                 if (suspendResult === get_COROUTINE_SUSPENDED()) {
                   return suspendResult;
                 }
@@ -973,9 +973,9 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
                   var tmp_4 = this.y8_1;
                   if (tmp_4 instanceof Error) {
                     var cause = this.y8_1;
-                    this.y3k_1.z3h_1.g1r(CancellationException_init_$Create$('Failed to send frame', cause));
+                    this.m3m_1.n3j_1.j1r(CancellationException_init_$Create$('Failed to send frame', cause));
                     this.v8_1 = 6;
-                    suspendResult = closeExceptionally(this.y3k_1.t3h_1, cause, this);
+                    suspendResult = closeExceptionally(this.m3m_1.h3j_1, cause, this);
                     if (suspendResult === get_COROUTINE_SUSPENDED()) {
                       return suspendResult;
                     }
@@ -998,9 +998,9 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
           continue $sm;
         case 7:
           this.w8_1 = 13;
-          this.y3k_1.z3h_1.j28();
+          this.m3m_1.n3j_1.p28();
           this.v8_1 = 8;
-          suspendResult = close(this.y3k_1.t3h_1, VOID, this);
+          suspendResult = close(this.m3m_1.h3j_1, VOID, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1010,22 +1010,22 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
           return Unit_instance;
         case 9:
           this.w8_1 = 13;
-          this.a3l_1 = this.y8_1;
-          this.y3k_1.z3h_1.j28();
+          this.o3m_1 = this.y8_1;
+          this.m3m_1.n3j_1.p28();
           this.v8_1 = 10;
-          suspendResult = close(this.y3k_1.t3h_1, VOID, this);
+          suspendResult = close(this.m3m_1.h3j_1, VOID, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
           continue $sm;
         case 10:
-          throw this.a3l_1;
+          throw this.o3m_1;
         case 11:
           this.w8_1 = 13;
-          this.y3k_1.z3h_1.j28();
+          this.m3m_1.n3j_1.p28();
           this.v8_1 = 12;
-          suspendResult = close(this.y3k_1.t3h_1, VOID, this);
+          suspendResult = close(this.m3m_1.h3j_1, VOID, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1047,31 +1047,31 @@ protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).d9 = function 
     }
    while (true);
 };
-protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).k2c = function ($this$launch, completion) {
-  var i = new DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda(this.y3k_1, completion);
-  i.z3k_1 = $this$launch;
+protoOf(DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda).q2c = function ($this$launch, completion) {
+  var i = new DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda(this.m3m_1, completion);
+  i.n3m_1 = $this$launch;
   return i;
 };
 function DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda_0(this$0, resultContinuation) {
   var i = new DefaultWebSocketSessionImpl$runOutgoingProcessor$slambda(this$0, resultContinuation);
   var l = function ($this$launch, $completion) {
-    return i.j2c($this$launch, $completion);
+    return i.p2c($this$launch, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function DefaultWebSocketSessionImpl$runOrCancelPinger$slambda(this$0, resultContinuation) {
-  this.j3l_1 = this$0;
+  this.x3m_1 = this$0;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).l3l = function (it, $completion) {
-  var tmp = this.m3l(it, $completion);
+protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).z3m = function (it, $completion) {
+  var tmp = this.a3n(it, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).p9 = function (p1, $completion) {
-  return this.l3l(p1 instanceof CloseReason ? p1 : THROW_CCE(), $completion);
+  return this.z3m(p1 instanceof CloseReason ? p1 : THROW_CCE(), $completion);
 };
 protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1082,7 +1082,7 @@ protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).d9 = function () 
         case 0:
           this.w8_1 = 2;
           this.v8_1 = 1;
-          suspendResult = sendCloseSequence(this.j3l_1, this.k3l_1, IOException_init_$Create$('Ping timeout'), this);
+          suspendResult = sendCloseSequence(this.x3m_1, this.y3m_1, IOException_init_$Create$('Ping timeout'), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1104,22 +1104,22 @@ protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).d9 = function () 
     }
    while (true);
 };
-protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).m3l = function (it, completion) {
-  var i = new DefaultWebSocketSessionImpl$runOrCancelPinger$slambda(this.j3l_1, completion);
-  i.k3l_1 = it;
+protoOf(DefaultWebSocketSessionImpl$runOrCancelPinger$slambda).a3n = function (it, completion) {
+  var i = new DefaultWebSocketSessionImpl$runOrCancelPinger$slambda(this.x3m_1, completion);
+  i.y3m_1 = it;
   return i;
 };
 function DefaultWebSocketSessionImpl$runOrCancelPinger$slambda_0(this$0, resultContinuation) {
   var i = new DefaultWebSocketSessionImpl$runOrCancelPinger$slambda(this$0, resultContinuation);
   var l = function (it, $completion) {
-    return i.l3l(it, $completion);
+    return i.z3m(it, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function $outgoingProcessorLoopCOROUTINE$(_this__u8e3s4, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.e3h_1 = _this__u8e3s4;
+  this.s3i_1 = _this__u8e3s4;
 }
 protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1129,12 +1129,12 @@ protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
       switch (tmp) {
         case 0:
           this.w8_1 = 7;
-          this.g3h_1 = this.e3h_1.z3h_1.t();
+          this.u3i_1 = this.s3i_1.n3j_1.t();
           this.v8_1 = 1;
           continue $sm;
         case 1:
           this.v8_1 = 2;
-          suspendResult = this.g3h_1.k25(this);
+          suspendResult = this.u3i_1.q25(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1146,15 +1146,15 @@ protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
             continue $sm;
           }
 
-          var frame = this.g3h_1.v();
+          var frame = this.u3i_1.v();
           var this_0 = get_LOGGER();
           if (get_isTraceEnabled(this_0)) {
-            this_0.k33('Sending ' + frame.toString() + ' from session ' + toString(this.e3h_1));
+            this_0.y34('Sending ' + frame.toString() + ' from session ' + toString(this.s3i_1));
           }
 
           if (frame instanceof Close) {
             this.v8_1 = 3;
-            suspendResult = sendCloseSequence$default(this.e3h_1, readReason(frame), VOID, this);
+            suspendResult = sendCloseSequence$default(this.s3i_1, readReason(frame), VOID, this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -1167,11 +1167,11 @@ protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
               tmp_0 = frame instanceof Binary;
             }
             if (tmp_0) {
-              this.f3h_1 = processOutgoingExtensions(this.e3h_1, frame);
+              this.t3i_1 = processOutgoingExtensions(this.s3i_1, frame);
               this.v8_1 = 4;
               continue $sm;
             } else {
-              this.f3h_1 = frame;
+              this.t3i_1 = frame;
               this.v8_1 = 4;
               continue $sm;
             }
@@ -1182,9 +1182,9 @@ protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
           var tmp_1 = this;
           continue $sm;
         case 4:
-          var processedFrame = this.f3h_1;
+          var processedFrame = this.t3i_1;
           this.v8_1 = 5;
-          suspendResult = this.e3h_1.t3h_1.r3g().y27(processedFrame, this);
+          suspendResult = this.s3i_1.h3j_1.f3i().e28(processedFrame, this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1211,9 +1211,9 @@ protoOf($outgoingProcessorLoopCOROUTINE$).d9 = function () {
 };
 function $sendCloseSequenceCOROUTINE$(_this__u8e3s4, reason, exception, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.p3h_1 = _this__u8e3s4;
-  this.q3h_1 = reason;
-  this.r3h_1 = exception;
+  this.d3j_1 = _this__u8e3s4;
+  this.e3j_1 = reason;
+  this.f3j_1 = exception;
 }
 protoOf($sendCloseSequenceCOROUTINE$).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1223,25 +1223,25 @@ protoOf($sendCloseSequenceCOROUTINE$).d9 = function () {
       switch (tmp) {
         case 0:
           this.w8_1 = 6;
-          if (!tryClose(this.p3h_1))
+          if (!tryClose(this.d3j_1))
             return Unit_instance;
           var this_0 = get_LOGGER();
           if (get_isTraceEnabled(this_0)) {
-            this_0.k33('Sending Close Sequence for session ' + toString(this.p3h_1) + ' with reason ' + toString_0(this.q3h_1) + ' and exception ' + toString_0(this.r3h_1));
+            this_0.y34('Sending Close Sequence for session ' + toString(this.d3j_1) + ' with reason ' + toString_0(this.e3j_1) + ' and exception ' + toString_0(this.f3j_1));
           }
 
-          this.p3h_1.w3h_1.c1x();
+          this.d3j_1.k3j_1.g1x();
           var tmp_0 = this;
-          var tmp0_elvis_lhs = this.q3h_1;
-          tmp_0.s3h_1 = tmp0_elvis_lhs == null ? CloseReason_init_$Create$(Codes_NORMAL_getInstance(), '') : tmp0_elvis_lhs;
+          var tmp0_elvis_lhs = this.e3j_1;
+          tmp_0.g3j_1 = tmp0_elvis_lhs == null ? CloseReason_init_$Create$(Codes_NORMAL_getInstance(), '') : tmp0_elvis_lhs;
           this.v8_1 = 1;
           continue $sm;
         case 1:
           this.w8_1 = 5;
-          runOrCancelPinger(this.p3h_1);
-          if (!(this.s3h_1.k3g_1 === Codes_CLOSED_ABNORMALLY_getInstance().g3g_1)) {
+          runOrCancelPinger(this.d3j_1);
+          if (!(this.g3j_1.y3h_1 === Codes_CLOSED_ABNORMALLY_getInstance().u3h_1)) {
             this.v8_1 = 2;
-            suspendResult = this.p3h_1.t3h_1.r3g().y27(Close_init_$Create$(this.s3h_1), this);
+            suspendResult = this.d3j_1.h3j_1.f3i().e28(Close_init_$Create$(this.g3j_1), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -1260,20 +1260,20 @@ protoOf($sendCloseSequenceCOROUTINE$).d9 = function () {
           continue $sm;
         case 4:
           this.w8_1 = 6;
-          this.p3h_1.v3h_1.a1x(this.s3h_1);
-          if (!(this.r3h_1 == null)) {
-            this.p3h_1.z3h_1.f28(this.r3h_1);
-            this.p3h_1.y3h_1.f28(this.r3h_1);
+          this.d3j_1.j3j_1.e1x(this.g3j_1);
+          if (!(this.f3j_1 == null)) {
+            this.d3j_1.n3j_1.l28(this.f3j_1);
+            this.d3j_1.m3j_1.l28(this.f3j_1);
           }
 
           return Unit_instance;
         case 5:
           this.w8_1 = 6;
           var t = this.y8_1;
-          this.p3h_1.v3h_1.a1x(this.s3h_1);
-          if (!(this.r3h_1 == null)) {
-            this.p3h_1.z3h_1.f28(this.r3h_1);
-            this.p3h_1.y3h_1.f28(this.r3h_1);
+          this.d3j_1.j3j_1.e1x(this.g3j_1);
+          if (!(this.f3j_1 == null)) {
+            this.d3j_1.n3j_1.l28(this.f3j_1);
+            this.d3j_1.m3j_1.l28(this.f3j_1);
           }
 
           throw t;
@@ -1293,9 +1293,9 @@ protoOf($sendCloseSequenceCOROUTINE$).d9 = function () {
 };
 function $checkMaxFrameSizeCOROUTINE$(_this__u8e3s4, packet, frame, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.p3i_1 = _this__u8e3s4;
-  this.q3i_1 = packet;
-  this.r3i_1 = frame;
+  this.d3k_1 = _this__u8e3s4;
+  this.e3k_1 = packet;
+  this.f3k_1 = frame;
 }
 protoOf($checkMaxFrameSizeCOROUTINE$).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1306,19 +1306,19 @@ protoOf($checkMaxFrameSizeCOROUTINE$).d9 = function () {
         case 0:
           this.w8_1 = 3;
           var tmp_0 = this;
-          var tmp_1 = this.r3i_1.j3k_1.length;
-          var tmp0_safe_receiver = this.q3i_1;
+          var tmp_1 = this.f3k_1.x3l_1.length;
+          var tmp0_safe_receiver = this.e3k_1;
           var tmp1_elvis_lhs = tmp0_safe_receiver == null ? null : get_size(tmp0_safe_receiver);
-          tmp_0.s3i_1 = tmp_1 + (tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs) | 0;
-          if (compare(fromInt(this.s3i_1), this.p3i_1.p3g()) > 0) {
-            var tmp2_safe_receiver = this.q3i_1;
+          tmp_0.g3k_1 = tmp_1 + (tmp1_elvis_lhs == null ? 0 : tmp1_elvis_lhs) | 0;
+          if (compare(fromInt(this.g3k_1), this.d3k_1.d3i()) > 0) {
+            var tmp2_safe_receiver = this.e3k_1;
             if (tmp2_safe_receiver == null)
               null;
             else {
               tmp2_safe_receiver.g4();
             }
             this.v8_1 = 2;
-            suspendResult = close(this.p3i_1, CloseReason_init_$Create$(Codes_TOO_BIG_getInstance(), 'Frame is too big: ' + this.s3i_1 + '. Max size is ' + this.p3i_1.p3g().toString()), this);
+            suspendResult = close(this.d3k_1, CloseReason_init_$Create$(Codes_TOO_BIG_getInstance(), 'Frame is too big: ' + this.g3k_1 + '. Max size is ' + this.d3k_1.d3i().toString()), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -1331,7 +1331,7 @@ protoOf($checkMaxFrameSizeCOROUTINE$).d9 = function () {
         case 1:
           return Unit_instance;
         case 2:
-          throw new FrameTooBigException(fromInt(this.s3i_1));
+          throw new FrameTooBigException(fromInt(this.g3k_1));
         case 3:
           throw this.y8_1;
       }
@@ -1348,42 +1348,42 @@ protoOf($checkMaxFrameSizeCOROUTINE$).d9 = function () {
 };
 function DefaultWebSocketSessionImpl(raw, pingIntervalMillis, timeoutMillis, incomingFramesConfig, outgoingFramesConfig) {
   Companion_getInstance_0();
-  this.t3h_1 = raw;
-  this.u3h_1 = atomic$ref$1(null);
-  this.v3h_1 = CompletableDeferred();
-  this.w3h_1 = Job();
-  this.x3h_1 = this.t3h_1.x1p().fh(Key_instance).hh(this.w3h_1).hh(new CoroutineName('ws-default'));
-  this.y3h_1 = from(Factory_getInstance(), incomingFramesConfig);
-  this.z3h_1 = from(Factory_getInstance(), outgoingFramesConfig);
-  this.a3i_1 = atomic$boolean$1(false);
+  this.h3j_1 = raw;
+  this.i3j_1 = atomic$ref$1(null);
+  this.j3j_1 = CompletableDeferred();
+  this.k3j_1 = Job();
+  this.l3j_1 = this.h3j_1.a1q().ih(Key_instance).kh(this.k3j_1).kh(new CoroutineName('ws-default'));
+  this.m3j_1 = from(Factory_getInstance(), incomingFramesConfig);
+  this.n3j_1 = from(Factory_getInstance(), outgoingFramesConfig);
+  this.o3j_1 = atomic$boolean$1(false);
   var tmp = this;
   // Inline function 'kotlin.collections.mutableListOf' call
-  tmp.b3i_1 = ArrayList_init_$Create$();
-  this.c3i_1 = atomic$boolean$1(false);
-  this.d3i_1 = pingIntervalMillis;
-  this.e3i_1 = timeoutMillis;
-  this.f3i_1 = this.v3h_1;
+  tmp.p3j_1 = ArrayList_init_$Create$();
+  this.q3j_1 = atomic$boolean$1(false);
+  this.r3j_1 = pingIntervalMillis;
+  this.s3j_1 = timeoutMillis;
+  this.t3j_1 = this.j3j_1;
 }
-protoOf(DefaultWebSocketSessionImpl).x1p = function () {
-  return this.x3h_1;
+protoOf(DefaultWebSocketSessionImpl).a1q = function () {
+  return this.l3j_1;
 };
-protoOf(DefaultWebSocketSessionImpl).q3g = function () {
-  return this.y3h_1;
+protoOf(DefaultWebSocketSessionImpl).e3i = function () {
+  return this.m3j_1;
 };
-protoOf(DefaultWebSocketSessionImpl).r3g = function () {
-  return this.z3h_1;
+protoOf(DefaultWebSocketSessionImpl).f3i = function () {
+  return this.n3j_1;
 };
-protoOf(DefaultWebSocketSessionImpl).t3i = function () {
-  return this.b3i_1;
+protoOf(DefaultWebSocketSessionImpl).h3k = function () {
+  return this.p3j_1;
 };
-protoOf(DefaultWebSocketSessionImpl).o3g = function (value) {
-  this.t3h_1.o3g(value);
+protoOf(DefaultWebSocketSessionImpl).c3i = function (value) {
+  this.h3j_1.c3i(value);
 };
-protoOf(DefaultWebSocketSessionImpl).p3g = function () {
-  return this.t3h_1.p3g();
+protoOf(DefaultWebSocketSessionImpl).d3i = function () {
+  return this.h3j_1.d3i();
 };
-protoOf(DefaultWebSocketSessionImpl).n3g = function (negotiatedExtensions) {
-  if (!this.c3i_1.atomicfu$compareAndSet(false, true)) {
+protoOf(DefaultWebSocketSessionImpl).b3i = function (negotiatedExtensions) {
+  if (!this.q3j_1.atomicfu$compareAndSet(false, true)) {
     // Inline function 'kotlin.error' call
     var message = 'WebSocket session ' + toString(this) + ' is already started.';
     throw IllegalStateException_init_$Create$(toString(message));
@@ -1392,16 +1392,16 @@ protoOf(DefaultWebSocketSessionImpl).n3g = function (negotiatedExtensions) {
   var this_0 = get_LOGGER();
   if (get_isTraceEnabled(this_0)) {
     var tmp$ret$0 = 'Starting default WebSocketSession(' + toString(this) + ') ' + ('with negotiated extensions: ' + joinToString(negotiatedExtensions));
-    this_0.k33(tmp$ret$0);
+    this_0.y34(tmp$ret$0);
   }
-  this.b3i_1.o1(negotiatedExtensions);
+  this.p3j_1.o1(negotiatedExtensions);
   runOrCancelPinger(this);
-  var incomingJob = runIncomingProcessor(this, ponger(this, this.r3g()));
+  var incomingJob = runIncomingProcessor(this, ponger(this, this.f3i()));
   var outgoingJob = runOutgoingProcessor(this);
   launch(this, VOID, VOID, DefaultWebSocketSessionImpl$start$slambda_0(incomingJob, outgoingJob, this, null));
 };
-protoOf(DefaultWebSocketSessionImpl).c2n = function ($completion) {
-  return this.t3h_1.c2n($completion);
+protoOf(DefaultWebSocketSessionImpl).q2o = function ($completion) {
+  return this.h3j_1.q2o($completion);
 };
 var properties_initialized_DefaultWebSocketSession_kt_6cjlhc;
 function _init_properties_DefaultWebSocketSession_kt__469s0y() {
@@ -1423,20 +1423,20 @@ function _init_properties_DefaultWebSocketSession_kt__469s0y() {
   }
 }
 function readReason(_this__u8e3s4) {
-  if (_this__u8e3s4.j3k_1.length < 2) {
+  if (_this__u8e3s4.x3l_1.length < 2) {
     return null;
   }
   // Inline function 'io.ktor.utils.io.core.buildPacket' call
   var builder = new Buffer();
-  writeFully(builder, _this__u8e3s4.j3k_1);
+  writeFully(builder, _this__u8e3s4.x3l_1);
   var packet = builder;
-  var code = packet.u2i();
+  var code = packet.i2k();
   var message = readText(packet);
   return new CloseReason(code, message);
 }
 function NonDisposableHandle() {
 }
-protoOf(NonDisposableHandle).w1t = function () {
+protoOf(NonDisposableHandle).a1u = function () {
   return Unit_instance;
 };
 protoOf(NonDisposableHandle).toString = function () {
@@ -1459,15 +1459,15 @@ function NonDisposableHandle_getInstance() {
 function FrameTooBigException(frameSize) {
   Exception_init_$Init$(this);
   captureStack(this, FrameTooBigException);
-  this.n3l_1 = frameSize;
+  this.b3n_1 = frameSize;
   delete this.message;
 }
 protoOf(FrameTooBigException).e = function () {
-  return 'Frame is too big: ' + this.n3l_1.toString();
+  return 'Frame is too big: ' + this.b3n_1.toString();
 };
-protoOf(FrameTooBigException).r1x = function () {
+protoOf(FrameTooBigException).v1x = function () {
   // Inline function 'kotlin.also' call
-  var this_0 = new FrameTooBigException(this.n3l_1);
+  var this_0 = new FrameTooBigException(this.b3n_1);
   initCauseBridge(this_0, this);
   return this_0;
 };
@@ -1493,10 +1493,10 @@ function Companion_1() {
       tmp$ret$0 = maxElem;
       break $l$block_0;
     }
-    var maxValue = maxElem.r3l_1;
+    var maxValue = maxElem.f3n_1;
     do {
       var e = iterator.v();
-      var v = e.r3l_1;
+      var v = e.f3n_1;
       if (compareTo(maxValue, v) < 0) {
         maxElem = e;
         maxValue = v;
@@ -1505,10 +1505,10 @@ function Companion_1() {
      while (iterator.u());
     tmp$ret$0 = maxElem;
   }
-  tmp.s3l_1 = ensureNotNull(tmp$ret$0).r3l_1;
+  tmp.g3n_1 = ensureNotNull(tmp$ret$0).f3n_1;
   var tmp_0 = this;
   var tmp_1 = 0;
-  var tmp_2 = this.s3l_1 + 1 | 0;
+  var tmp_2 = this.g3n_1 + 1 | 0;
   // Inline function 'kotlin.arrayOfNulls' call
   var tmp_3 = Array(tmp_2);
   while (tmp_1 < tmp_2) {
@@ -1522,7 +1522,7 @@ function Companion_1() {
       var _iterator__ex2g4s = tmp0_0.t();
       while (_iterator__ex2g4s.u()) {
         var element = _iterator__ex2g4s.v();
-        if (element.r3l_1 === tmp_4) {
+        if (element.f3n_1 === tmp_4) {
           if (found) {
             tmp$ret$5 = null;
             break $l$block_2;
@@ -1540,7 +1540,7 @@ function Companion_1() {
     tmp_3[tmp_4] = tmp$ret$5;
     tmp_1 = tmp_1 + 1 | 0;
   }
-  tmp_0.t3l_1 = tmp_3;
+  tmp_0.h3n_1 = tmp_3;
 }
 var Companion_instance_1;
 function Companion_getInstance_1() {
@@ -1572,8 +1572,8 @@ function FrameType_initEntries() {
 var $ENTRIES_0;
 function FrameType(name, ordinal, controlFrame, opcode) {
   Enum.call(this, name, ordinal);
-  this.q3l_1 = controlFrame;
-  this.r3l_1 = opcode;
+  this.e3n_1 = controlFrame;
+  this.f3n_1 = opcode;
 }
 function FrameType_TEXT_getInstance() {
   FrameType_initEntries();
@@ -1616,25 +1616,25 @@ function pinger(_this__u8e3s4, outgoing, periodMillis, timeoutMillis, onTimeout)
   _init_properties_PingPong_kt__9aqxey();
   var actorJob = Job();
   var channel = Channel(2147483647);
-  var tmp = actorJob.hh(get_PingerCoroutineName());
+  var tmp = actorJob.kh(get_PingerCoroutineName());
   launch(_this__u8e3s4, tmp, VOID, pinger$slambda_0(periodMillis, timeoutMillis, onTimeout, channel, outgoing, null));
-  var tmp_0 = ensureNotNull(_this__u8e3s4.x1p().i9(Key_instance));
-  tmp_0.z1q(pinger$lambda(actorJob));
+  var tmp_0 = ensureNotNull(_this__u8e3s4.a1q().i9(Key_instance));
+  tmp_0.c1r(pinger$lambda(actorJob));
   return channel;
 }
 function ponger$slambda($channel, $outgoing, resultContinuation) {
-  this.c3m_1 = $channel;
-  this.d3m_1 = $outgoing;
+  this.q3n_1 = $channel;
+  this.r3n_1 = $outgoing;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(ponger$slambda).j2c = function ($this$launch, $completion) {
-  var tmp = this.k2c($this$launch, $completion);
+protoOf(ponger$slambda).p2c = function ($this$launch, $completion) {
+  var tmp = this.q2c($this$launch, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(ponger$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(ponger$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1645,12 +1645,12 @@ protoOf(ponger$slambda).d9 = function () {
         case 0:
           this.w8_1 = 14;
           this.w8_1 = 13;
-          this.i3m_1 = this.c3m_1;
+          this.w3n_1 = this.q3n_1;
           this.v8_1 = 1;
           continue $sm;
         case 1:
-          this.g3m_1 = this.i3m_1;
-          this.f3m_1 = null;
+          this.u3n_1 = this.w3n_1;
+          this.t3n_1 = null;
           this.v8_1 = 2;
           continue $sm;
         case 2:
@@ -1659,12 +1659,12 @@ protoOf(ponger$slambda).d9 = function () {
         case 3:
           this.w8_1 = 10;
           this.w8_1 = 9;
-          this.h3m_1 = this.g3m_1.t();
+          this.v3n_1 = this.u3n_1.t();
           this.v8_1 = 4;
           continue $sm;
         case 4:
           this.v8_1 = 5;
-          suspendResult = this.h3m_1.k25(this);
+          suspendResult = this.v3n_1.q25(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1676,10 +1676,10 @@ protoOf(ponger$slambda).d9 = function () {
             continue $sm;
           }
 
-          var e = this.h3m_1.v();
-          get_LOGGER().k33('Received ping message, sending pong message');
+          var e = this.v3n_1.v();
+          get_LOGGER().y34('Received ping message, sending pong message');
           this.v8_1 = 6;
-          suspendResult = this.d3m_1.y27(new Pong(e.j3k_1), this);
+          suspendResult = this.r3n_1.e28(new Pong(e.x3l_1), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1694,7 +1694,7 @@ protoOf(ponger$slambda).d9 = function () {
           continue $sm;
         case 8:
           this.w8_1 = 13;
-          cancelConsumed(this.g3m_1, this.f3m_1);
+          cancelConsumed(this.u3n_1, this.t3n_1);
           this.v8_1 = 12;
           continue $sm;
         case 9:
@@ -1703,7 +1703,7 @@ protoOf(ponger$slambda).d9 = function () {
           if (tmp_1 instanceof Error) {
             var e_0 = this.y8_1;
             var tmp_2 = this;
-            this.f3m_1 = e_0;
+            this.t3n_1 = e_0;
             throw e_0;
           } else {
             throw this.y8_1;
@@ -1712,11 +1712,11 @@ protoOf(ponger$slambda).d9 = function () {
         case 10:
           this.w8_1 = 13;
           var t = this.y8_1;
-          cancelConsumed(this.g3m_1, this.f3m_1);
+          cancelConsumed(this.u3n_1, this.t3n_1);
           throw t;
         case 11:
           this.w8_1 = 13;
-          cancelConsumed(this.g3m_1, this.f3m_1);
+          cancelConsumed(this.u3n_1, this.t3n_1);
           if (false) {
             this.v8_1 = 1;
             continue $sm;
@@ -1756,31 +1756,31 @@ protoOf(ponger$slambda).d9 = function () {
     }
    while (true);
 };
-protoOf(ponger$slambda).k2c = function ($this$launch, completion) {
-  var i = new ponger$slambda(this.c3m_1, this.d3m_1, completion);
-  i.e3m_1 = $this$launch;
+protoOf(ponger$slambda).q2c = function ($this$launch, completion) {
+  var i = new ponger$slambda(this.q3n_1, this.r3n_1, completion);
+  i.s3n_1 = $this$launch;
   return i;
 };
 function ponger$slambda_0($channel, $outgoing, resultContinuation) {
   var i = new ponger$slambda($channel, $outgoing, resultContinuation);
   var l = function ($this$launch, $completion) {
-    return i.j2c($this$launch, $completion);
+    return i.p2c($this$launch, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function pinger$slambda$slambda($channel, resultContinuation) {
-  this.r3m_1 = $channel;
+  this.f3o_1 = $channel;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(pinger$slambda$slambda).j2c = function ($this$withTimeoutOrNull, $completion) {
-  var tmp = this.k2c($this$withTimeoutOrNull, $completion);
+protoOf(pinger$slambda$slambda).p2c = function ($this$withTimeoutOrNull, $completion) {
+  var tmp = this.q2c($this$withTimeoutOrNull, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(pinger$slambda$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(pinger$slambda$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1799,7 +1799,7 @@ protoOf(pinger$slambda$slambda).d9 = function () {
           }
 
           this.v8_1 = 2;
-          suspendResult = this.r3m_1.c28(this);
+          suspendResult = this.f3o_1.i28(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1824,33 +1824,33 @@ protoOf(pinger$slambda$slambda).d9 = function () {
     }
    while (true);
 };
-protoOf(pinger$slambda$slambda).k2c = function ($this$withTimeoutOrNull, completion) {
-  var i = new pinger$slambda$slambda(this.r3m_1, completion);
-  i.s3m_1 = $this$withTimeoutOrNull;
+protoOf(pinger$slambda$slambda).q2c = function ($this$withTimeoutOrNull, completion) {
+  var i = new pinger$slambda$slambda(this.f3o_1, completion);
+  i.g3o_1 = $this$withTimeoutOrNull;
   return i;
 };
 function pinger$slambda$slambda_0($channel, resultContinuation) {
   var i = new pinger$slambda$slambda($channel, resultContinuation);
   var l = function ($this$withTimeoutOrNull, $completion) {
-    return i.j2c($this$withTimeoutOrNull, $completion);
+    return i.p2c($this$withTimeoutOrNull, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function pinger$slambda$slambda_1($outgoing, $pingMessage, $channel, resultContinuation) {
-  this.b3n_1 = $outgoing;
-  this.c3n_1 = $pingMessage;
-  this.d3n_1 = $channel;
+  this.p3o_1 = $outgoing;
+  this.q3o_1 = $pingMessage;
+  this.r3o_1 = $channel;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(pinger$slambda$slambda_1).j2c = function ($this$withTimeoutOrNull, $completion) {
-  var tmp = this.k2c($this$withTimeoutOrNull, $completion);
+protoOf(pinger$slambda$slambda_1).p2c = function ($this$withTimeoutOrNull, $completion) {
+  var tmp = this.q2c($this$withTimeoutOrNull, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(pinger$slambda$slambda_1).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(pinger$slambda$slambda_1).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1860,9 +1860,9 @@ protoOf(pinger$slambda$slambda_1).d9 = function () {
       switch (tmp) {
         case 0:
           this.w8_1 = 6;
-          get_LOGGER().k33('WebSocket Pinger: sending ping frame');
+          get_LOGGER().y34('WebSocket Pinger: sending ping frame');
           this.v8_1 = 1;
-          suspendResult = this.b3n_1.y27(new Ping(toByteArray(this.c3n_1, Charsets_getInstance().l2w_1)), this);
+          suspendResult = this.p3o_1.e28(new Ping(toByteArray(this.q3o_1, Charsets_getInstance().z2x_1)), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1878,16 +1878,16 @@ protoOf(pinger$slambda$slambda_1).d9 = function () {
           }
 
           this.v8_1 = 3;
-          suspendResult = this.d3n_1.c28(this);
+          suspendResult = this.r3o_1.i28(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
           continue $sm;
         case 3:
-          this.f3n_1 = suspendResult;
-          if (decodeToString(this.f3n_1.j3k_1, 0, 0 + this.f3n_1.j3k_1.length | 0) === this.c3n_1) {
-            get_LOGGER().k33('WebSocket Pinger: received valid pong frame ' + this.f3n_1.toString());
+          this.t3o_1 = suspendResult;
+          if (decodeToString(this.t3o_1.x3l_1, 0, 0 + this.t3o_1.x3l_1.length | 0) === this.q3o_1) {
+            get_LOGGER().y34('WebSocket Pinger: received valid pong frame ' + this.t3o_1.toString());
             this.v8_1 = 5;
             continue $sm;
           } else {
@@ -1896,7 +1896,7 @@ protoOf(pinger$slambda$slambda_1).d9 = function () {
           }
 
         case 4:
-          get_LOGGER().k33('WebSocket Pinger: received invalid pong frame ' + this.f3n_1.toString() + ', continue waiting');
+          get_LOGGER().y34('WebSocket Pinger: received invalid pong frame ' + this.t3o_1.toString() + ', continue waiting');
           this.v8_1 = 2;
           continue $sm;
         case 5:
@@ -1915,35 +1915,35 @@ protoOf(pinger$slambda$slambda_1).d9 = function () {
     }
    while (true);
 };
-protoOf(pinger$slambda$slambda_1).k2c = function ($this$withTimeoutOrNull, completion) {
-  var i = new pinger$slambda$slambda_1(this.b3n_1, this.c3n_1, this.d3n_1, completion);
-  i.e3n_1 = $this$withTimeoutOrNull;
+protoOf(pinger$slambda$slambda_1).q2c = function ($this$withTimeoutOrNull, completion) {
+  var i = new pinger$slambda$slambda_1(this.p3o_1, this.q3o_1, this.r3o_1, completion);
+  i.s3o_1 = $this$withTimeoutOrNull;
   return i;
 };
 function pinger$slambda$slambda_2($outgoing, $pingMessage, $channel, resultContinuation) {
   var i = new pinger$slambda$slambda_1($outgoing, $pingMessage, $channel, resultContinuation);
   var l = function ($this$withTimeoutOrNull, $completion) {
-    return i.j2c($this$withTimeoutOrNull, $completion);
+    return i.p2c($this$withTimeoutOrNull, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function pinger$slambda($periodMillis, $timeoutMillis, $onTimeout, $channel, $outgoing, resultContinuation) {
-  this.o3n_1 = $periodMillis;
-  this.p3n_1 = $timeoutMillis;
-  this.q3n_1 = $onTimeout;
-  this.r3n_1 = $channel;
-  this.s3n_1 = $outgoing;
+  this.c3p_1 = $periodMillis;
+  this.d3p_1 = $timeoutMillis;
+  this.e3p_1 = $onTimeout;
+  this.f3p_1 = $channel;
+  this.g3p_1 = $outgoing;
   CoroutineImpl.call(this, resultContinuation);
 }
-protoOf(pinger$slambda).j2c = function ($this$launch, $completion) {
-  var tmp = this.k2c($this$launch, $completion);
+protoOf(pinger$slambda).p2c = function ($this$launch, $completion) {
+  var tmp = this.q2c($this$launch, $completion);
   tmp.x8_1 = Unit_instance;
   tmp.y8_1 = null;
   return tmp.d9();
 };
 protoOf(pinger$slambda).p9 = function (p1, $completion) {
-  return this.j2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
+  return this.p2c((!(p1 == null) ? isInterface(p1, CoroutineScope) : false) ? p1 : THROW_CCE(), $completion);
 };
 protoOf(pinger$slambda).d9 = function () {
   var suspendResult = this.x8_1;
@@ -1953,9 +1953,9 @@ protoOf(pinger$slambda).d9 = function () {
       switch (tmp) {
         case 0:
           this.w8_1 = 9;
-          get_LOGGER().k33('Starting WebSocket pinger coroutine with period ' + this.o3n_1.toString() + ' ms and timeout ' + this.p3n_1.toString() + ' ms');
-          this.v3n_1 = Random(getTimeMillis());
-          this.u3n_1 = new Int8Array(32);
+          get_LOGGER().y34('Starting WebSocket pinger coroutine with period ' + this.c3p_1.toString() + ' ms and timeout ' + this.d3p_1.toString() + ' ms');
+          this.j3p_1 = Random(getTimeMillis());
+          this.i3p_1 = new Int8Array(32);
           this.w8_1 = 7;
           this.v8_1 = 1;
           continue $sm;
@@ -1966,17 +1966,17 @@ protoOf(pinger$slambda).d9 = function () {
           }
 
           this.v8_1 = 2;
-          suspendResult = withTimeoutOrNull(this.o3n_1, pinger$slambda$slambda_0(this.r3n_1, null), this);
+          suspendResult = withTimeoutOrNull(this.c3p_1, pinger$slambda$slambda_0(this.f3p_1, null), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
 
           continue $sm;
         case 2:
-          this.v3n_1.ej(this.u3n_1);
-          var pingMessage = '[ping ' + hex(this.u3n_1) + ' ping]';
+          this.j3p_1.hj(this.i3p_1);
+          var pingMessage = '[ping ' + hex(this.i3p_1) + ' ping]';
           this.v8_1 = 3;
-          suspendResult = withTimeoutOrNull(this.p3n_1, pinger$slambda$slambda_2(this.s3n_1, pingMessage, this.r3n_1, null), this);
+          suspendResult = withTimeoutOrNull(this.d3p_1, pinger$slambda$slambda_2(this.g3p_1, pingMessage, this.f3p_1, null), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -1985,9 +1985,9 @@ protoOf(pinger$slambda).d9 = function () {
         case 3:
           var rc = suspendResult;
           if (rc == null) {
-            get_LOGGER().k33('WebSocket pinger has timed out');
+            get_LOGGER().y34('WebSocket pinger has timed out');
             this.v8_1 = 5;
-            suspendResult = this.q3n_1(CloseReason_init_$Create$(Codes_INTERNAL_ERROR_getInstance(), 'Ping timeout'), this);
+            suspendResult = this.e3p_1(CloseReason_init_$Create$(Codes_INTERNAL_ERROR_getInstance(), 'Ping timeout'), this);
             if (suspendResult === get_COROUTINE_SUSPENDED()) {
               return suspendResult;
             }
@@ -2056,22 +2056,22 @@ protoOf(pinger$slambda).d9 = function () {
     }
    while (true);
 };
-protoOf(pinger$slambda).k2c = function ($this$launch, completion) {
-  var i = new pinger$slambda(this.o3n_1, this.p3n_1, this.q3n_1, this.r3n_1, this.s3n_1, completion);
-  i.t3n_1 = $this$launch;
+protoOf(pinger$slambda).q2c = function ($this$launch, completion) {
+  var i = new pinger$slambda(this.c3p_1, this.d3p_1, this.e3p_1, this.f3p_1, this.g3p_1, completion);
+  i.h3p_1 = $this$launch;
   return i;
 };
 function pinger$slambda_0($periodMillis, $timeoutMillis, $onTimeout, $channel, $outgoing, resultContinuation) {
   var i = new pinger$slambda($periodMillis, $timeoutMillis, $onTimeout, $channel, $outgoing, resultContinuation);
   var l = function ($this$launch, $completion) {
-    return i.j2c($this$launch, $completion);
+    return i.p2c($this$launch, $completion);
   };
   l.$arity = 1;
   return l;
 }
 function pinger$lambda($actorJob) {
   return function (it) {
-    $actorJob.h1r();
+    $actorJob.k1r();
     return Unit_instance;
   };
 }
@@ -2088,9 +2088,9 @@ function Companion_2() {
   var tmp = this;
   // Inline function 'kotlin.apply' call
   var this_0 = new WebSocketChannelsConfig();
-  this_0.u3g_1 = this_0.w3n();
-  this_0.v3g_1 = this_0.w3n();
-  tmp.t3g_1 = this_0;
+  this_0.i3i_1 = this_0.k3p();
+  this_0.j3i_1 = this_0.k3p();
+  tmp.h3i_1 = this_0;
 }
 var Companion_instance_2;
 function Companion_getInstance_2() {
@@ -2100,21 +2100,21 @@ function Companion_getInstance_2() {
 }
 function WebSocketChannelsConfig() {
   Companion_getInstance_2();
-  this.u3g_1 = Companion_getInstance_3().x3n_1;
-  this.v3g_1 = Companion_getInstance_3().x3n_1;
+  this.i3i_1 = Companion_getInstance_3().l3p_1;
+  this.j3i_1 = Companion_getInstance_3().l3p_1;
 }
-protoOf(WebSocketChannelsConfig).w3n = function () {
-  return Companion_getInstance_3().x3n_1;
+protoOf(WebSocketChannelsConfig).k3p = function () {
+  return Companion_getInstance_3().l3p_1;
 };
 function from(_this__u8e3s4, config) {
   // Inline function 'kotlin.with' call
   var tmp;
-  if (config.y3n_1 === 2147483647) {
+  if (config.m3p_1 === 2147483647) {
     tmp = Channel(2147483647);
-  } else if (config.z3n_1.equals(ChannelOverflow_SUSPEND_getInstance())) {
-    tmp = Channel(config.y3n_1, BufferOverflow_SUSPEND_getInstance());
-  } else if (config.z3n_1.equals(ChannelOverflow_CLOSE_getInstance())) {
-    tmp = new BoundedChannel(config.y3n_1);
+  } else if (config.n3p_1.equals(ChannelOverflow_SUSPEND_getInstance())) {
+    tmp = Channel(config.m3p_1, BufferOverflow_SUSPEND_getInstance());
+  } else if (config.n3p_1.equals(ChannelOverflow_CLOSE_getInstance())) {
+    tmp = new BoundedChannel(config.m3p_1);
   } else {
     var message = 'Unsupported channel config.';
     throw IllegalStateException_init_$Create$(toString(message));
@@ -2123,7 +2123,7 @@ function from(_this__u8e3s4, config) {
 }
 function Companion_3() {
   Companion_instance_3 = this;
-  this.x3n_1 = new ChannelConfig(2147483647, ChannelOverflow_SUSPEND_getInstance());
+  this.l3p_1 = new ChannelConfig(2147483647, ChannelOverflow_SUSPEND_getInstance());
 }
 var Companion_instance_3;
 function Companion_getInstance_3() {
@@ -2133,11 +2133,11 @@ function Companion_getInstance_3() {
 }
 function ChannelConfig(capacity, onOverflow) {
   Companion_getInstance_3();
-  this.y3n_1 = capacity;
-  this.z3n_1 = onOverflow;
+  this.m3p_1 = capacity;
+  this.n3p_1 = onOverflow;
 }
-protoOf(ChannelConfig).a3o = function () {
-  return this.z3n_1.equals(ChannelOverflow_SUSPEND_getInstance()) && !(this.y3n_1 === 2147483647);
+protoOf(ChannelConfig).o3p = function () {
+  return this.n3p_1.equals(ChannelOverflow_SUSPEND_getInstance()) && !(this.m3p_1 === 2147483647);
 };
 var ChannelOverflow_SUSPEND_instance;
 var ChannelOverflow_CLOSE_instance;
@@ -2161,14 +2161,14 @@ function BoundedChannel$Companion$createDelegate$lambda($channel) {
     } else {
       tmp_0 = $channel._v;
     }
-    if (!tmp_0.m25()) {
+    if (!tmp_0.s25()) {
       var tmp_1;
       if ($channel._v == null) {
         throwUninitializedPropertyAccessException('channel');
       } else {
         tmp_1 = $channel._v;
       }
-      tmp_1.f28(new ChannelOverflowException('Channel overflowed'));
+      tmp_1.l28(new ChannelOverflowException('Channel overflowed'));
       tmp = Unit_instance;
     }
     return Unit_instance;
@@ -2176,7 +2176,7 @@ function BoundedChannel$Companion$createDelegate$lambda($channel) {
 }
 function Companion_4() {
 }
-protoOf(Companion_4).b3o = function (capacity) {
+protoOf(Companion_4).p3p = function (capacity) {
   var channel = {_v: null};
   var tmp = BufferOverflow_DROP_OLDEST_getInstance();
   // Inline function 'kotlin.also' call
@@ -2189,51 +2189,51 @@ function Companion_getInstance_4() {
   return Companion_instance_4;
 }
 function BoundedChannel(capacity, delegate) {
-  delegate = delegate === VOID ? Companion_instance_4.b3o(capacity) : delegate;
-  this.c3o_1 = delegate;
+  delegate = delegate === VOID ? Companion_instance_4.p3p(capacity) : delegate;
+  this.q3p_1 = delegate;
 }
-protoOf(BoundedChannel).d3o = function (element) {
-  var result = this.c3o_1.z27(element);
+protoOf(BoundedChannel).r3p = function (element) {
+  var result = this.q3p_1.f28(element);
   if (!_ChannelResult___get_isSuccess__impl__odq1z9(result) && !_ChannelResult___get_isClosed__impl__mg7kuu(result)) {
-    this.f28(new ChannelOverflowException('Channel overflowed'));
+    this.l28(new ChannelOverflowException('Channel overflowed'));
   }
   return result;
 };
-protoOf(BoundedChannel).z27 = function (element) {
-  return this.d3o((element == null ? true : !(element == null)) ? element : THROW_CCE());
+protoOf(BoundedChannel).f28 = function (element) {
+  return this.r3p((element == null ? true : !(element == null)) ? element : THROW_CCE());
 };
-protoOf(BoundedChannel).e3o = function (element, $completion) {
-  return this.c3o_1.y27(element, $completion);
+protoOf(BoundedChannel).s3p = function (element, $completion) {
+  return this.q3p_1.e28(element, $completion);
 };
-protoOf(BoundedChannel).y27 = function (element, $completion) {
-  return this.e3o((element == null ? true : !(element == null)) ? element : THROW_CCE(), $completion);
+protoOf(BoundedChannel).e28 = function (element, $completion) {
+  return this.s3p((element == null ? true : !(element == null)) ? element : THROW_CCE(), $completion);
 };
-protoOf(BoundedChannel).f28 = function (cause) {
-  return this.c3o_1.f28(cause);
+protoOf(BoundedChannel).l28 = function (cause) {
+  return this.q3p_1.l28(cause);
 };
-protoOf(BoundedChannel).m25 = function () {
-  return this.c3o_1.m25();
+protoOf(BoundedChannel).s25 = function () {
+  return this.q3p_1.s25();
 };
-protoOf(BoundedChannel).f3o = function ($completion) {
-  return this.c3o_1.c28($completion);
+protoOf(BoundedChannel).t3p = function ($completion) {
+  return this.q3p_1.i28($completion);
 };
-protoOf(BoundedChannel).c28 = function ($completion) {
-  return this.f3o($completion);
+protoOf(BoundedChannel).i28 = function ($completion) {
+  return this.t3p($completion);
 };
-protoOf(BoundedChannel).g3o = function ($completion) {
-  var tmp = this.c3o_1.d28($completion);
+protoOf(BoundedChannel).u3p = function ($completion) {
+  var tmp = this.q3p_1.j28($completion);
   if (tmp === get_COROUTINE_SUSPENDED())
     return tmp;
   return tmp;
 };
-protoOf(BoundedChannel).d28 = function ($completion) {
-  return this.g3o($completion);
+protoOf(BoundedChannel).j28 = function ($completion) {
+  return this.u3p($completion);
 };
 protoOf(BoundedChannel).t = function () {
-  return this.c3o_1.t();
+  return this.q3p_1.t();
 };
-protoOf(BoundedChannel).g1r = function (cause) {
-  this.c3o_1.g1r(cause);
+protoOf(BoundedChannel).j1r = function (cause) {
+  this.q3p_1.j1r(cause);
 };
 function ChannelOverflowException(message) {
   RuntimeException_init_$Init$(message, this);
@@ -2252,16 +2252,16 @@ function WebSocketExtension() {
 function WebSocketExtensionsConfig() {
   var tmp = this;
   // Inline function 'kotlin.collections.mutableListOf' call
-  tmp.j3o_1 = ArrayList_init_$Create$();
+  tmp.x3p_1 = ArrayList_init_$Create$();
   var tmp_0 = this;
   // Inline function 'kotlin.arrayOf' call
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
-  tmp_0.k3o_1 = [false, false, false];
+  tmp_0.y3p_1 = [false, false, false];
 }
-protoOf(WebSocketExtensionsConfig).w35 = function () {
+protoOf(WebSocketExtensionsConfig).k37 = function () {
   // Inline function 'kotlin.collections.map' call
-  var this_0 = this.j3o_1;
+  var this_0 = this.x3p_1;
   // Inline function 'kotlin.collections.mapTo' call
   var destination = ArrayList_init_$Create$_0(collectionSizeOrDefault(this_0, 10));
   var _iterator__ex2g4s = this_0.t();
@@ -2273,14 +2273,14 @@ protoOf(WebSocketExtensionsConfig).w35 = function () {
   return destination;
 };
 function parametersToString($this) {
-  return $this.m3o_1.r() ? '' : '; ' + joinToString($this.m3o_1, ';');
+  return $this.a3q_1.r() ? '' : '; ' + joinToString($this.a3q_1, ';');
 }
 function WebSocketExtensionHeader(name, parameters) {
-  this.l3o_1 = name;
-  this.m3o_1 = parameters;
+  this.z3p_1 = name;
+  this.a3q_1 = parameters;
 }
 protoOf(WebSocketExtensionHeader).toString = function () {
-  return this.l3o_1 + ' ' + parametersToString(this);
+  return this.z3p_1 + ' ' + parametersToString(this);
 };
 function parseWebSocketExtensions(value) {
   // Inline function 'kotlin.collections.map' call
@@ -2332,8 +2332,8 @@ function closeExceptionally(_this__u8e3s4, cause, $completion) {
 }
 function $closeCOROUTINE$(_this__u8e3s4, reason, resultContinuation) {
   CoroutineImpl.call(this, resultContinuation);
-  this.v3o_1 = _this__u8e3s4;
-  this.w3o_1 = reason;
+  this.j3q_1 = _this__u8e3s4;
+  this.k3q_1 = reason;
 }
 protoOf($closeCOROUTINE$).d9 = function () {
   var suspendResult = this.x8_1;
@@ -2345,7 +2345,7 @@ protoOf($closeCOROUTINE$).d9 = function () {
           this.w8_1 = 4;
           this.w8_1 = 3;
           this.v8_1 = 1;
-          suspendResult = this.v3o_1.s3g(Close_init_$Create$(this.w3o_1), this);
+          suspendResult = this.j3q_1.g3i(Close_init_$Create$(this.k3q_1), this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -2353,7 +2353,7 @@ protoOf($closeCOROUTINE$).d9 = function () {
           continue $sm;
         case 1:
           this.v8_1 = 2;
-          suspendResult = this.v3o_1.c2n(this);
+          suspendResult = this.j3q_1.q2o(this);
           if (suspendResult === get_COROUTINE_SUSPENDED()) {
             return suspendResult;
           }
@@ -2412,8 +2412,8 @@ function Text_init_$Create$(text) {
 function Close_init_$Init$(reason, $this) {
   // Inline function 'io.ktor.utils.io.core.buildPacket' call
   var builder = new Buffer();
-  builder.y2j(reason.k3g_1);
-  writeText(builder, reason.l3g_1);
+  builder.m2l(reason.y3h_1);
+  writeText(builder, reason.z3h_1);
   Close_init_$Init$_0(builder, $this);
   return $this;
 }
@@ -2425,7 +2425,7 @@ function Close_init_$Init$_0(packet, $this) {
   return $this;
 }
 function Close_init_$Init$_1($this) {
-  Close.call($this, Companion_getInstance_5().o3k_1);
+  Close.call($this, Companion_getInstance_5().c3m_1);
   return $this;
 }
 function Close_init_$Create$_0() {
@@ -2455,9 +2455,9 @@ function Pong(data, disposableHandle) {
 }
 function Companion_5() {
   Companion_instance_5 = this;
-  this.o3k_1 = new Int8Array(0);
+  this.c3m_1 = new Int8Array(0);
 }
-protoOf(Companion_5).p3k = function (fin, frameType, data, rsv1, rsv2, rsv3) {
+protoOf(Companion_5).d3m = function (fin, frameType, data, rsv1, rsv2, rsv3) {
   var tmp;
   switch (frameType.a1_1) {
     case 1:
@@ -2493,28 +2493,28 @@ function Frame(fin, frameType, data, disposableHandle, rsv1, rsv2, rsv3) {
   rsv1 = rsv1 === VOID ? false : rsv1;
   rsv2 = rsv2 === VOID ? false : rsv2;
   rsv3 = rsv3 === VOID ? false : rsv3;
-  this.h3k_1 = fin;
-  this.i3k_1 = frameType;
-  this.j3k_1 = data;
-  this.k3k_1 = disposableHandle;
-  this.l3k_1 = rsv1;
-  this.m3k_1 = rsv2;
-  this.n3k_1 = rsv3;
+  this.v3l_1 = fin;
+  this.w3l_1 = frameType;
+  this.x3l_1 = data;
+  this.y3l_1 = disposableHandle;
+  this.z3l_1 = rsv1;
+  this.a3m_1 = rsv2;
+  this.b3m_1 = rsv3;
 }
 protoOf(Frame).toString = function () {
-  return 'Frame ' + this.i3k_1.toString() + ' (fin=' + this.h3k_1 + ', buffer len = ' + this.j3k_1.length + ')';
+  return 'Frame ' + this.w3l_1.toString() + ' (fin=' + this.v3l_1 + ', buffer len = ' + this.x3l_1.length + ')';
 };
 function get_OUTGOING_CHANNEL_CAPACITY() {
   return OUTGOING_CHANNEL_CAPACITY;
 }
 var OUTGOING_CHANNEL_CAPACITY;
 //region block: post-declaration
-protoOf(DefaultWebSocketSessionImpl).s3g = send;
+protoOf(DefaultWebSocketSessionImpl).g3i = send;
 defineProp(protoOf(FrameTooBigException), 'message', function () {
   return this.e();
 });
-protoOf(BoundedChannel).h28 = close$default;
-protoOf(BoundedChannel).j28 = cancel$default;
+protoOf(BoundedChannel).n28 = close$default;
+protoOf(BoundedChannel).p28 = cancel$default;
 //endregion
 //region block: init
 NonDisposableHandle_instance = new NonDisposableHandle();
