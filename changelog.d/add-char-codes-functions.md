@@ -1,1 +1,0 @@
-Added `CHAR_CODES` and `CHAR_CODESD` functions for converting between strings and UTF-16 code unit values.
