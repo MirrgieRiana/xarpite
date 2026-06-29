@@ -539,9 +539,9 @@ Throws an error if a negative index is passed.
 
 If the corresponding index does not exist, returns `NULL`.
 
-When `indices` is a stream, returns a stream of the elements corresponding to each index.
-
 If `indices` is a non-stream, the return value is also a non-stream.
+
+When `indices` is a stream, returns a stream of the elements corresponding to each index.
 
 ```shell
 $ xa 'GET(1; 0, 10, 20)'

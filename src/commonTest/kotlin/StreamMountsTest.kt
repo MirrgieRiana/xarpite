@@ -166,24 +166,24 @@ class StreamMountsTest {
         assertEquals(FluoriteNull, eval("GET(5; 10, 20, 30)")) // 大きく外れたインデックスも NULL になる
 
         assertFails { eval("GET(-1; 10, 20, 30)") } // 負のインデックスはエラーになる
-        assertFails { eval("GET(-1, 0; 10, 20, 30)") } // 添字ストリームに負のインデックスが混入してもエラーになる
+        assertFails { eval("GET(-1, 0; 10, 20, 30)") } // インデックスがストリームでも負のインデックスが混入すればエラーになるのだ
 
-        assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになる
-        assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できる
-        assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream()) // 範囲外のインデックスはその位置だけ NULL になる
-        assertEquals("20,20", eval("GET(1, 1; 10, 20, 30)").stream()) // 重複したインデックスはその回数だけ繰り返し返る
-        assertEquals("30,10,30,NULL", eval("GET(2, 0, 2, 9; 10, 20, 30)").stream()) // 順不同・重複・範囲外が混在しても各位置の要素を返す
-        assertEquals("", eval("GET(,; 10, 20, 30)").stream()) // インデックスが空ストリームの場合、空ストリームになる
+        assertEquals("10,30", eval("GET(0, 2; 10, 20, 30)").stream()) // インデックスがストリームの場合、戻り値もストリームになるのだ
+        assertEquals("20,30,40", eval("GET(1 .. 3; 10, 20, 30, 40, 50)").stream()) // 範囲指定で複数の要素を取得できるのだ
+        assertEquals("10,NULL,30", eval("GET(0, 5, 2; 10, 20, 30)").stream()) // 範囲外のインデックスはその位置だけ NULL になるのだ
+        assertEquals("20,20", eval("GET(1, 1; 10, 20, 30)").stream()) // 重複したインデックスはその回数だけ繰り返し返るのだ
+        assertEquals("30,10,30,NULL", eval("GET(2, 0, 2, 9; 10, 20, 30)").stream()) // 順不同・重複・範囲外が混在しても各位置の要素を返すのだ
+        assertEquals("", eval("GET(,; 10, 20, 30)").stream()) // インデックスが空ストリームの場合、空ストリームになるのだ
 
         assertEquals(10, eval("GET(0; 10)").int) // 値が非ストリームの場合でも要素を取得できる
         assertEquals(FluoriteNull, eval("GET(1; 10)")) // 非ストリームの値に対する範囲外は NULL になる
-        assertEquals("10,NULL", eval("GET(0, 1; 10)").stream()) // 添字がストリームで値が非ストリームの場合、位置0だけが対応する
+        assertEquals("10,NULL", eval("GET(0, 1; 10)").stream()) // 添字がストリームで値が非ストリームの場合、位置0だけが対応するのだ
 
-        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームかつ非ストリーム添字の場合、NULL になる
-        assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream()) // 値が空ストリームかつストリーム添字の場合、NULL のストリームになる
+        assertEquals(FluoriteNull, eval("GET(0; ,)")) // 値が空ストリームかつインデックスが非ストリームの場合、NULL になるのだ
+        assertEquals("NULL,NULL", eval("GET(0, 1; ,)").stream()) // 値が空ストリームかつインデックスがストリームの場合、NULL のストリームになるのだ
 
         assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
-        assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスストリームでも部分適用できる
+        assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスストリームでも部分適用できるのだ
 
         assertEquals("[1;2;3]", eval("""
             array := []
@@ -196,7 +196,7 @@ class StreamMountsTest {
             stream := 1 .. 100 | ( array::push << _ ; _ )
             (GET(0, 2; stream)) >> VOID
             array
-        """).array()) // 添字ストリームの場合も最大のインデックスまでしか読まない
+        """).array()) // インデックスがストリームの場合も最大のインデックスまでしか読まないのだ
 
         assertEquals(2, eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
@@ -213,29 +213,29 @@ class StreamMountsTest {
         assertEquals("10,20,30,NULL,NULL,NULL", eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
             GET(0 .. 5; GET(nat; 10, 20, 30))
-        """).stream()) // 添字ストリームが無限でも、先読みバッファで消費しながらストリームを生成できる
+        """).stream()) // 添字ストリームが無限でも、先読みバッファで消費しながらストリームを生成できるのだ
         assertEquals("10,20,30,NULL,NULL,NULL", eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
             TAKE(6; GET(nat; 10, 20, 30))
-        """).stream()) // 無限の添字ストリームでも、下流が打ち切れば途中で止まる
+        """).stream()) // 無限の添字ストリームでも、下流が打ち切れば途中で止まるのだ
 
-        assertEquals("10,20,30,NULL", eval("TAKE(4; GET(0 .. 255; 10, 20, 30))").stream()) // 添字が上限ちょうど256個なら最小読み取りで処理する
-        assertEquals("10,20,30,NULL", eval("TAKE(4; GET(0 .. 256; 10, 20, 30))").stream()) // 添字が上限を超えて257個でも同じ結果になる
-        assertEquals(301, eval("COUNT(GET(0 .. 300; 10, 20, 30))").int) // 添字が上限を超えてもストリーム性は保たれ添字の個数だけ出力される
-        assertEquals(FluoriteNull, eval("LAST(GET(0 .. 300; 10, 20, 30))")) // 上限を超えた添字ストリームでも末尾の範囲外は NULL になる
-        assertEquals("NULL,NULL,NULL", eval("TAKE(3; GET(0 .. 300; ,))").stream()) // 上限超過かつ値が空ストリームでもすべて NULL になる
-        assertEquals("10,NULL", eval("TAKE(2; GET(0 .. 300; 10))").stream()) // 上限超過かつ値が非ストリームの場合、位置0だけが対応する
+        assertEquals("10,20,30,NULL", eval("TAKE(4; GET(0 .. 255; 10, 20, 30))").stream()) // 添字が上限ちょうど256個なら最小読み取りで処理するのだ
+        assertEquals("10,20,30,NULL", eval("TAKE(4; GET(0 .. 256; 10, 20, 30))").stream()) // 添字が上限を超えて257個でも同じ結果になるのだ
+        assertEquals(301, eval("COUNT(GET(0 .. 300; 10, 20, 30))").int) // 添字が上限を超えてもストリーム性は保たれ添字の個数だけ出力されるのだ
+        assertEquals(FluoriteNull, eval("LAST(GET(0 .. 300; 10, 20, 30))")) // 上限を超えた添字ストリームでも末尾の範囲外は NULL になるのだ
+        assertEquals("NULL,NULL,NULL", eval("TAKE(3; GET(0 .. 300; ,))").stream()) // 上限超過かつ値が空ストリームでもすべて NULL になるのだ
+        assertEquals("10,NULL", eval("TAKE(2; GET(0 .. 300; 10))").stream()) // 上限超過かつ値が非ストリームの場合、位置0だけが対応するのだ
 
         assertEquals("0,1", eval("""
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
             TAKE(2; GET(0 .. 300; nat))
-        """).stream()) // 上限を超えた添字でも無限の値ストリームを高々1回・必要な位置まで読むだけで、ハングしない
+        """).stream()) // 上限を超えた添字でも無限の値ストリームを高々1回・必要な位置まで読むだけで、ハングしないのだ
         assertEquals("[1]", eval("""
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
             (GET((0 .. 256) | 0; stream)) >> VOID
             array
-        """).array()) // 上限を超えても、同じ位置を繰り返し参照するだけなら値ストリームはその位置を1回しか読まない
+        """).array()) // 上限を超えても、同じ位置を繰り返し参照するだけなら値ストリームはその位置を1回しか読まないのだ
     }
 
     @Test
