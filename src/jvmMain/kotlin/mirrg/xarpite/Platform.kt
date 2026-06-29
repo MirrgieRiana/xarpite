@@ -59,11 +59,12 @@ suspend fun executeProcess(process: String, args: List<String>, env: Map<String,
                 processInstance.inputStream.use { it.readBytes() }
             }
 
-            // 標準エラー出力を非同期で読み取り、Xarpiteのstderrに転送
+            // 標準エラー出力を非同期で読み取り、writeBytesToStderrを経由してstderrに転送
             val errorDeferred = async {
                 BufferedReader(processInstance.errorStream.reader()).use { reader ->
-                    reader.forEachLine { line ->
-                        System.err.println(line)
+                    while (true) {
+                        val line = reader.readLine() ?: break
+                        writeBytesToStderr((line + "\n").encodeToByteArray())
                     }
                 }
             }
