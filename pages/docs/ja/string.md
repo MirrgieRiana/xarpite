@@ -702,3 +702,68 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 `"$PWD/file"`のような文字列連結を使うと、ルートディレクトリに対して`//file`のようなパスが生成されます。
 
 代わりに`PWD::RESOLVE("file")`のように`RESOLVE`関数を使用してください。
+
+## `DIRNAME`ディレクトリ名の取得
+
+`DIRNAME(path: STRING): STRING | NULL`
+
+`STRING::DIRNAME(): STRING | NULL`
+
+`path`からディレクトリ部分を取り出します。
+
+```shell
+$ xa 'DIRNAME("/home/apple/Apple.txt")'
+# /home/apple
+
+$ xa '"/home/apple/Apple.txt"::DIRNAME()'
+# /home/apple
+```
+
+---
+
+パスの正規化（`.`や`..`の平坦化）は行われません。
+
+末尾のスラッシュは無視されます。
+
+```shell
+$ xa 'DIRNAME("/home/apple/")'
+# /home
+```
+
+---
+
+ディレクトリの区切りを含まないパスに対しては、カレントディレクトリを表す`.`を返します。
+
+```shell
+$ xa 'DIRNAME("Cherry.txt")'
+# .
+```
+
+---
+
+`/`や`.`、`..`のような、それ以上ディレクトリを辿れない末端のパスに対しては`NULL`を返します。
+
+## `FILENAME`ファイル名の取得
+
+`FILENAME(path: STRING): STRING`
+
+`STRING::FILENAME(): STRING`
+
+`path`からファイル名部分を取り出します。
+
+```shell
+$ xa 'FILENAME("/home/apple/Apple.txt")'
+# Apple.txt
+
+$ xa '"/home/apple/Apple.txt"::FILENAME()'
+# Apple.txt
+```
+
+---
+
+末尾のスラッシュは無視されます。
+
+```shell
+$ xa 'FILENAME("/home/apple/")'
+# apple
+```

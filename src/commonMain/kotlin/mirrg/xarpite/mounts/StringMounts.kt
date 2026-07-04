@@ -4,6 +4,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -216,6 +217,38 @@ fun createStringMounts(): List<Map<String, Mount>> {
                 "RESOLVE" define create("RESOLVE(dir: STRING; file: STRING): STRING"),
                 "::RESOLVE" define fluoriteArrayOf(
                     FluoriteString.fluoriteClass colon create("STRING::RESOLVE(file: STRING): STRING"),
+                ),
+            )
+        },
+
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage(signature)
+                    val path = arguments[0].toFluoriteString(null).value
+                    path.toPath().parent?.toString()?.toFluoriteString() ?: FluoriteNull
+                }
+            }
+            arrayOf(
+                "DIRNAME" define create("DIRNAME(path: STRING): STRING | NULL"),
+                "::DIRNAME" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::DIRNAME(): STRING | NULL"),
+                ),
+            )
+        },
+
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage(signature)
+                    val path = arguments[0].toFluoriteString(null).value
+                    path.toPath().name.toFluoriteString()
+                }
+            }
+            arrayOf(
+                "FILENAME" define create("FILENAME(path: STRING): STRING"),
+                "::FILENAME" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::FILENAME(): STRING"),
                 ),
             )
         },

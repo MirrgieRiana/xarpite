@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
@@ -127,6 +128,49 @@ class StringMountsTest {
 
         // 2段階の .. を含むパス
         assertEquals("/home/file.txt", eval("RESOLVE('/home/user/dir'; '../../file.txt')").string)
+    }
+
+    @Test
+    fun dirname() = runTest {
+        // 絶対パスのディレクトリ部分
+        assertEquals("/home/apple", eval("DIRNAME('/home/apple/Apple.txt')").string)
+
+        // 相対パスのディレクトリ部分
+        assertEquals("home/apple", eval("DIRNAME('home/apple/Apple.txt')").string)
+
+        // ルート直下のファイルはルートを返す
+        assertEquals("/", eval("DIRNAME('/Banana.txt')").string)
+
+        // 末尾のスラッシュは無視される
+        assertEquals("/home", eval("DIRNAME('/home/apple/')").string)
+
+        // ディレクトリの区切りを含まないパスはカレントディレクトリ . を返す
+        assertEquals(".", eval("DIRNAME('Cherry.txt')").string)
+
+        // 末端のパスは NULL を返す
+        assertEquals(true, eval("DIRNAME('/') == NULL").boolean)
+        assertEquals(true, eval("DIRNAME('..') == NULL").boolean)
+
+        // 拡張関数版
+        assertEquals("/home/apple", eval("'/home/apple/Apple.txt'::DIRNAME()").string)
+    }
+
+    @Test
+    fun filename() = runTest {
+        // 絶対パスのファイル名部分
+        assertEquals("Apple.txt", eval("FILENAME('/home/apple/Apple.txt')").string)
+
+        // 相対パスのファイル名部分
+        assertEquals("Apple.txt", eval("FILENAME('home/apple/Apple.txt')").string)
+
+        // 単一の要素はそのまま返す
+        assertEquals("Cherry.txt", eval("FILENAME('Cherry.txt')").string)
+
+        // 末尾のスラッシュは無視される
+        assertEquals("apple", eval("FILENAME('/home/apple/')").string)
+
+        // 拡張関数版
+        assertEquals("Apple.txt", eval("'/home/apple/Apple.txt'::FILENAME()").string)
     }
 
     @Test

@@ -702,3 +702,68 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
 
 Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
+
+## `DIRNAME` Getting the Directory Name
+
+`DIRNAME(path: STRING): STRING | NULL`
+
+`STRING::DIRNAME(): STRING | NULL`
+
+Extracts the directory portion from `path`.
+
+```shell
+$ xa 'DIRNAME("/home/apple/Apple.txt")'
+# /home/apple
+
+$ xa '"/home/apple/Apple.txt"::DIRNAME()'
+# /home/apple
+```
+
+---
+
+The path is not normalized (no flattening of `.` or `..`).
+
+Trailing slashes are ignored.
+
+```shell
+$ xa 'DIRNAME("/home/apple/")'
+# /home
+```
+
+---
+
+For a path that contains no directory separator, `.` (the current directory) is returned.
+
+```shell
+$ xa 'DIRNAME("Cherry.txt")'
+# .
+```
+
+---
+
+For terminal paths such as `/`, `.`, or `..`, from which no further directory can be traced, `NULL` is returned.
+
+## `FILENAME` Getting the File Name
+
+`FILENAME(path: STRING): STRING`
+
+`STRING::FILENAME(): STRING`
+
+Extracts the file name portion from `path`.
+
+```shell
+$ xa 'FILENAME("/home/apple/Apple.txt")'
+# Apple.txt
+
+$ xa '"/home/apple/Apple.txt"::FILENAME()'
+# Apple.txt
+```
+
+---
+
+Trailing slashes are ignored.
+
+```shell
+$ xa 'FILENAME("/home/apple/")'
+# apple
+```
