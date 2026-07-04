@@ -112,6 +112,49 @@ $ xa '13, 21, 24, 33, 31, 34 >> DISTINCT[by: x -> x % 10]'
 # 24
 ```
 
+## `INTERSPERSE` Insert Separator Between Stream Elements
+
+`<T> INTERSPERSE(separator: STREAM<T>; stream: STREAM<T>): STREAM<T>`
+
+Returns a stream with the first argument separator inserted between each element of the second argument stream. The separator is inserted only between elements, not at the beginning or end.
+
+```shell
+$ xa 'INTERSPERSE("-"; "a", "b", "c")'
+# a
+# -
+# b
+# -
+# c
+```
+
+---
+
+The separator can be a stream of multiple elements, in which case it is inserted between each pair of elements as a whole.
+
+```shell
+$ xa 'INTERSPERSE("-", "-"; "a", "b", "c")'
+# a
+# -
+# -
+# b
+# -
+# -
+# c
+```
+
+---
+
+When used with partial application, it becomes easier to incorporate into pipe chains.
+
+```shell
+$ xa '1 .. 3 | _ * 10 >> INTERSPERSE[0]'
+# 10
+# 0
+# 20
+# 0
+# 30
+```
+
 ## `JOIN` Concatenate Stream into String
 
 `JOIN([separator: STRING; ]stream: STREAM<STRING>): STRING`

@@ -6,6 +6,7 @@ import mirrg.xarpite.test.empty
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.stream
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -103,6 +104,19 @@ class StreamTest {
         } catch (e: FluoriteException) {
             // 期待通り
         }
+    }
+
+    @Test
+    fun intersperse() = runTest {
+        assertEquals("a,-,b,-,c", eval("""INTERSPERSE("-"; "a", "b", "c")""").stream()) // 各要素の間に区切りを挿入する
+        assertEquals("1,0,2,0,3", eval("INTERSPERSE(0; 1, 2, 3)").stream()) // 区切りは文字列以外の値でもよい
+        assertEquals("a,-,-,b,-,-,c", eval("""INTERSPERSE("-", "-"; "a", "b", "c")""").stream()) // 区切りは複数要素のストリームでもよい
+        assertEquals("a,b,c", eval("""INTERSPERSE(,; "a", "b", "c")""").stream()) // 区切りが空ストリームの場合は単純に連結する
+        assertEquals("a,-,b", eval("""INTERSPERSE("-"; "a", "b")""").stream()) // ストリームは2要素でもよい
+        assertEquals("a", eval("""INTERSPERSE("-"; "a",)""").stream()) // ストリームは1要素でもよい
+        assertEquals("", eval("""INTERSPERSE("-"; ,)""").stream()) // ストリームは空でもよい
+        assertEquals("a", eval("""INTERSPERSE("-"; "a")""").string) // ストリームは非ストリームでもよい
+        assertEquals("10,0,20,0,30", eval("1 .. 3 | _ * 10 >> INTERSPERSE[0]").stream()) // 部分適用でパイプチェーンに組み込める
     }
 
 }

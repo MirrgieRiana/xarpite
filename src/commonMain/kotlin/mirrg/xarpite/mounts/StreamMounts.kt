@@ -174,6 +174,28 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "UNIQ" define create("UNIQ"),
             )
         },
+        "INTERSPERSE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> INTERSPERSE(separator: STREAM<T>; stream: STREAM<T>): STREAM<T>")
+            val separator = arguments[0]
+            val stream = arguments[1]
+
+            if (stream is FluoriteStream) {
+                FluoriteStream {
+                    val separators = if (separator is FluoriteStream) separator.toMutableList() else mutableListOf(separator)
+                    var isFirst = true
+                    stream.collect { item ->
+                        if (isFirst) {
+                            isFirst = false
+                        } else {
+                            separators.forEach { emit(it) }
+                        }
+                        emit(item)
+                    }
+                }
+            } else {
+                stream
+            }
+        },
         "JOIN" define FluoriteFunction.immediate { arguments ->
             val separator: String
             val stream: FluoriteValue
