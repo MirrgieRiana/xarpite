@@ -38,6 +38,29 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
                         val string = arguments[1].toFluoriteString(null).value
                         regex.matchImpl(string)
                     },
+                    "withFlag" to FluoriteFunction.immediate { arguments ->
+                        val regex = arguments[0] as FluoriteRegex
+                        when (arguments.size) {
+                            2 -> regex.withFlag(arguments[1].toFluoriteString(null).value, true)
+                            3 -> regex.withFlag(arguments[1].toFluoriteString(null).value, arguments[2].toBoolean(null))
+                            else -> throw FluoriteException("Usage: REGEX::withFlag(flag: STRING[; enable: BOOLEAN]): REGEX".toFluoriteString())
+                        }
+                    },
+                    "withoutFlag" to FluoriteFunction.immediate { arguments ->
+                        val regex = arguments[0] as FluoriteRegex
+                        val flag = arguments[1].toFluoriteString(null).value
+                        regex.withFlag(flag, false)
+                    },
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
+                        val regex = arguments[0] as FluoriteRegex
+                        val flag = arguments[1].toFluoriteString(null).value
+                        regex.withFlag(flag, true)
+                    },
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
+                        val regex = arguments[0] as FluoriteRegex
+                        val flag = arguments[1].toFluoriteString(null).value
+                        regex.withFlag(flag, false)
+                    },
                     OperatorMethod.MATCH.methodName to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
                         val string = arguments[1].toFluoriteString(null).value
@@ -79,6 +102,23 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
         if (flagData.multiline) options += RegexOption.MULTILINE
         if (flagData.ignoreCase) options += RegexOption.IGNORE_CASE
         pattern.toRegex(options)
+    }
+
+    fun withFlag(flag: String, enable: Boolean): FluoriteRegex {
+        flag.forEach {
+            if (it != 'm' && it != 'i' && it != 'g') throw FluoriteException("Invalid flag: $it".toFluoriteString())
+        }
+        val oldFlags = flags ?: ""
+        val newFlags = if (enable) {
+            buildString {
+                append(oldFlags)
+                flag.forEach { if (it !in this) append(it) }
+            }
+        } else {
+            oldFlags.filter { it !in flag }
+        }
+        if (newFlags == oldFlags) return this
+        return FluoriteRegex(pattern, newFlags.ifEmpty { null })
     }
 
     private fun matchImpl(string: String): FluoriteValue {

@@ -2,6 +2,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteRegex
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
@@ -10,7 +11,9 @@ import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
+import kotlin.test.assertSame
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegexTest {
@@ -97,6 +100,41 @@ class RegexTest {
         assertEquals("ABC", eval(""" /ABC/gim.pattern """).string) // patternの取得
         assertEquals("gim", eval(""" /ABC/gim.flags """).string) // flagsの取得
         assertEquals(FluoriteNull, eval(""" /ABC/.flags """)) // nullのflagsの取得
+    }
+
+    @Test
+    fun withFlag() = runTest {
+        assertEquals(FluoriteRegex("abc", "g"), eval(""" /abc/::withFlag("g"; TRUE) """)) // 基本形でフラグを付与
+        assertEquals(FluoriteRegex("abc", null), eval(""" /abc/g::withFlag("g"; FALSE) """)) // 基本形でフラグを除去
+
+        assertEquals(FluoriteRegex("abc", "g"), eval(""" /abc/::withFlag("g") """)) // 第2引数省略で付与
+        assertEquals(FluoriteRegex("abc", null), eval(""" /abc/g::withoutFlag("g") """)) // withoutFlagで除去
+        assertEquals(FluoriteRegex("abc", "g"), eval(""" /abc/ + "g" """)) // +演算子で付与
+        assertEquals(FluoriteRegex("abc", null), eval(""" /abc/g - "g" """)) // -演算子で除去
+
+        assertEquals(FluoriteRegex("abc", "gi"), eval(""" /abc/gi::withFlag("g") """)) // 既にあるフラグの付与は結果を変えない
+        assertEquals(FluoriteRegex("abc", "gi"), eval(""" /abc/gi::withoutFlag("m") """)) // 無いフラグの除去は結果を変えない
+
+        assertEquals(FluoriteRegex("abc", "ig"), eval(""" /abc/i::withFlag("g") """)) // 正規化せず常に末尾に追記
+
+        assertEquals(FluoriteRegex("abc", "gi"), eval(""" /abc/::withFlag("gi") """)) // 複数文字をまとめて付与
+        assertEquals(FluoriteRegex("abc", "gi"), eval(""" /abc/g::withFlag("gi") """)) // 既存分は飛ばして残りのみ末尾に追記
+        assertEquals(FluoriteRegex("abc", null), eval(""" /abc/gm::withoutFlag("gm") """)) // 複数文字をまとめて除去
+        assertEquals(FluoriteRegex("abc", "g"), eval(""" /abc/ + "gi" - "i" """)) // 演算子でも複数文字が使える
+
+        assertEquals(FluoriteNull, eval(""" /abc/g::withoutFlag("g").flags """)) // 全フラグを除去するとflagsはNULL
+
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withFlag("x") """) } // 不正フラグはエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withoutFlag("x") """) } // 除去でも不正フラグはエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/ + "x" """) } // 演算子でも不正フラグはエラー
+    }
+
+    @Test
+    fun withFlagIdentity() = runTest {
+        val withG = FluoriteRegex("abc", "g")
+        assertSame(withG, withG.withFlag("g", true)) // 既に満たしていれば元のインスタンスをそのまま返す
+        val withoutG = FluoriteRegex("abc", null)
+        assertSame(withoutG, withoutG.withFlag("g", false)) // 既に満たしていれば元のインスタンスをそのまま返す
     }
 
 }
