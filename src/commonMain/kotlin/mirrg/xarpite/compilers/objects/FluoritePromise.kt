@@ -76,6 +76,11 @@ class FluoritePromise : FluoriteValue {
                         val promise = arguments[0] as FluoritePromise
                         promise.deferred.isCompleted.toFluoriteBoolean()
                     },
+                    "isFinished" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("<T> PROMISE<T>::isFinished(): BOOLEAN")
+                        val promise = arguments[0] as FluoritePromise
+                        promise.deferred.isCompleted.toFluoriteBoolean()
+                    },
                 )
             )
         }

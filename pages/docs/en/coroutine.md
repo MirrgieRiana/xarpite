@@ -267,11 +267,13 @@ $ xa '
 # FALSE
 ```
 
-### `isCompleted`: Check `PROMISE` Completion Status
+### `isCompleted` / `isFinished`: Check `PROMISE` Completion Status
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`
 
 Returns whether the `PROMISE` is completed or completed as failed.
+
+`isFinished` is an alias of `isCompleted` and has the same behavior.
 
 ## `SLEEP`: Suspend Processing for a Specified Time
 

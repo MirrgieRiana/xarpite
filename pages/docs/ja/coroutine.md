@@ -267,11 +267,13 @@ $ xa '
 # FALSE
 ```
 
-### `isCompleted`: `PROMISE`の完了状態を調べる
+### `isCompleted` / `isFinished`: `PROMISE`の完了状態を調べる
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`
 
 `PROMISE`が完了、もしくは失敗として完了しているかどうかを返します。
+
+`isFinished`は`isCompleted`の別名であり、同一の動作を持ちます。
 
 ## `SLEEP`: 指定時間の間処理を停止
 
