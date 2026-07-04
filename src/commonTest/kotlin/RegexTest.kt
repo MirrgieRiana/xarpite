@@ -126,7 +126,8 @@ class RegexTest {
 
         assertFailsWith<FluoriteException> { eval(""" /abc/::withFlag("x") """) } // 不正フラグはエラー
         assertFailsWith<FluoriteException> { eval(""" /abc/::withoutFlag("x") """) } // 除去でも不正フラグはエラー
-        assertFailsWith<FluoriteException> { eval(""" /abc/ + "x" """) } // 演算子でも不正フラグはエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/ + "x" """) } // +演算子でも不正フラグはエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/g - "x" """) } // -演算子でも不正フラグはエラー
     }
 
     @Test
