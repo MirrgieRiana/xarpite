@@ -215,6 +215,58 @@ $ xa '
 # NULL
 ```
 
+### `awaitIsSuccess`: `PROMISE`の完了を待機し、成功したかどうかを取得する
+
+`<T> PROMISE<T>::awaitIsSuccess(): BOOLEAN`
+
+`PROMISE`の内容が完了するまで待機します。
+
+`PROMISE`が正常に完了した場合は`TRUE`を、失敗として完了した場合は`FALSE`を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitIsSuccess()
+'
+# TRUE
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitIsSuccess()
+'
+# FALSE
+```
+
+### `awaitIsFailure`: `PROMISE`の完了を待機し、失敗したかどうかを取得する
+
+`<T> PROMISE<T>::awaitIsFailure(): BOOLEAN`
+
+`PROMISE`の内容が完了するまで待機します。
+
+`PROMISE`が失敗として完了した場合は`TRUE`を、正常に完了した場合は`FALSE`を返します。
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitIsFailure()
+'
+# TRUE
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitIsFailure()
+'
+# FALSE
+```
+
 ### `isCompleted`: `PROMISE`の完了状態を調べる
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`

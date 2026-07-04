@@ -154,6 +154,50 @@ class CoroutineTest {
             job::awaitException()
         """.let { assertEquals("Error in LAUNCH", eval(it).string) }
 
+        // awaitIsSuccess() は complete() された場合に TRUE を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete("OK")
+            trigger::awaitIsSuccess()
+        """.let { assertEquals(true, eval(it).boolean) }
+
+        // awaitIsSuccess() は fail() された場合に FALSE を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail("ERROR")
+            trigger::awaitIsSuccess()
+        """.let { assertEquals(false, eval(it).boolean) }
+
+        // awaitIsSuccess() は fail() で値が省略された場合にも FALSE を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail()
+            trigger::awaitIsSuccess()
+        """.let { assertEquals(false, eval(it).boolean) }
+
+        // awaitIsFailure() は fail() された場合に TRUE を返す
+        """
+            trigger := PROMISE.new()
+            trigger::fail("ERROR")
+            trigger::awaitIsFailure()
+        """.let { assertEquals(true, eval(it).boolean) }
+
+        // awaitIsFailure() は complete() された場合に FALSE を返す
+        """
+            trigger := PROMISE.new()
+            trigger::complete("OK")
+            trigger::awaitIsFailure()
+        """.let { assertEquals(false, eval(it).boolean) }
+
+        // awaitIsSuccess() は LAUNCH 内で例外が発生した場合に FALSE を返す
+        """
+            job := LAUNCH ( =>
+                !!"Error in LAUNCH"
+            )
+            SLEEP()
+            job::awaitIsSuccess()
+        """.let { assertEquals(false, eval(it).boolean) }
+
         // isCompleted
         assertEquals(false, eval("promise := PROMISE.new(); promise::isCompleted()").boolean) // 初期状態では未完了
         assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isCompleted()").boolean) // 完了すると完了になる

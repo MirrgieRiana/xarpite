@@ -47,6 +47,30 @@ class FluoritePromise : FluoriteValue {
                             e.toFluoriteValue()
                         }
                     },
+                    "awaitIsSuccess" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("<T> PROMISE<T>::awaitIsSuccess(): BOOLEAN")
+                        val promise = arguments[0] as FluoritePromise
+                        try {
+                            promise.deferred.await()
+                            true.toFluoriteBoolean()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Throwable) {
+                            false.toFluoriteBoolean()
+                        }
+                    },
+                    "awaitIsFailure" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("<T> PROMISE<T>::awaitIsFailure(): BOOLEAN")
+                        val promise = arguments[0] as FluoritePromise
+                        try {
+                            promise.deferred.await()
+                            false.toFluoriteBoolean()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Throwable) {
+                            true.toFluoriteBoolean()
+                        }
+                    },
                     "isCompleted" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) usage("<T> PROMISE<T>::isCompleted(): BOOLEAN")
                         val promise = arguments[0] as FluoritePromise

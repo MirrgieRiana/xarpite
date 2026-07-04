@@ -215,6 +215,58 @@ $ xa '
 # NULL
 ```
 
+### `awaitIsSuccess`: Wait for `PROMISE` Completion and Retrieve Whether It Succeeded
+
+`<T> PROMISE<T>::awaitIsSuccess(): BOOLEAN`
+
+Waits until the contents of the `PROMISE` are complete.
+
+Returns `TRUE` if the `PROMISE` is completed successfully, or `FALSE` if it is completed as failed.
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitIsSuccess()
+'
+# TRUE
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitIsSuccess()
+'
+# FALSE
+```
+
+### `awaitIsFailure`: Wait for `PROMISE` Completion and Retrieve Whether It Failed
+
+`<T> PROMISE<T>::awaitIsFailure(): BOOLEAN`
+
+Waits until the contents of the `PROMISE` are complete.
+
+Returns `TRUE` if the `PROMISE` is completed as failed, or `FALSE` if it is completed successfully.
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::fail("ERROR!!")
+  promise::awaitIsFailure()
+'
+# TRUE
+```
+
+```shell
+$ xa '
+  promise := PROMISE.new()
+  promise::complete("OK")
+  promise::awaitIsFailure()
+'
+# FALSE
+```
+
 ### `isCompleted`: Check `PROMISE` Completion Status
 
 `<T> PROMISE<T>::isCompleted(): BOOLEAN`
