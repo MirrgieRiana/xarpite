@@ -149,6 +149,7 @@ class StringMountsTest {
 
         // 末端のパスは NULL を返す
         assertEquals(true, eval("DIRNAME('/') == NULL").boolean)
+        assertEquals(true, eval("DIRNAME('.') == NULL").boolean)
         assertEquals(true, eval("DIRNAME('..') == NULL").boolean)
 
         // 拡張関数版
