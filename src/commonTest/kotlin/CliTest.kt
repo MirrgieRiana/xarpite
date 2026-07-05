@@ -2093,6 +2093,14 @@ class CliTest {
     }
 
     @Test
+    fun apiVersionEnvVarWhitespaceIsIgnored() = runTest {
+        // 空白のみの XARPITE_API_VERSION 環境変数は未指定として扱われる
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "  "))
+        val options = parseArguments(listOf("-e", "1"), context)
+        assertEquals(null, options.apiVersion)
+    }
+
+    @Test
     fun apiVersionEnvVarRejectsNonInteger() = runTest {
         // XARPITE_API_VERSION 環境変数に整数でない値を指定するとエラー
         val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "abc"))
