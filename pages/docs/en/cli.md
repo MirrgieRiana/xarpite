@@ -271,9 +271,22 @@ $ xa -A 4 'API_VERSION'
 # 4
 ```
 
+### `XARPITE_API_VERSION`: Environment Variable to Specify the API Version
+
+The `XARPITE_API_VERSION` environment variable specifies the API version of the runtime.
+
+```shell
+$ XARPITE_API_VERSION=4 xa 'API_VERSION'
+# 4
+```
+
 ---
 
-When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
+Specifying the API version via the `-A` option takes precedence over specification via the environment variable.
+
+---
+
+When neither the `-A` option nor the `XARPITE_API_VERSION` environment variable is specified, the API version becomes the same value as Xarpite's own major version.
 
 ---
 

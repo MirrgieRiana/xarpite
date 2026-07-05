@@ -271,9 +271,22 @@ $ xa -A 4 'API_VERSION'
 # 4
 ```
 
+### `XARPITE_API_VERSION`: APIバージョンを指定する環境変数
+
+`XARPITE_API_VERSION`環境変数はランタイムのAPIバージョンを指定します。
+
+```shell
+$ XARPITE_API_VERSION=4 xa 'API_VERSION'
+# 4
+```
+
 ---
 
-`-A`オプションを指定しない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
+`-A`オプションによるAPIバージョンの指定は環境変数による指定よりも優先されます。
+
+---
+
+`-A`オプションと`XARPITE_API_VERSION`環境変数のいずれも指定されていない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
 
 ---
 
