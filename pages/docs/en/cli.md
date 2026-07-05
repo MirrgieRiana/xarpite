@@ -744,6 +744,25 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
+### `EXISTS`: Check Whether a File Exists
+
+`EXISTS(file: STRING): BOOLEAN`
+
+Returns `TRUE` if a file exists at the path specified by `file`, and `FALSE` otherwise.
+
+It also returns `TRUE` when the path points to a directory.
+
+```shell
+$ {
+  touch tmp.txt
+  xa 'EXISTS("tmp.txt")'
+  xa 'EXISTS("no_such_file.txt")'
+  rm tmp.txt
+}
+# TRUE
+# FALSE
+```
+
 ### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`

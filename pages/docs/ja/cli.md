@@ -744,6 +744,25 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
 ```
 
+### `EXISTS`: ファイルの存在の確認
+
+`EXISTS(file: STRING): BOOLEAN`
+
+`file`で指定されたパスにファイルが存在する場合は`TRUE`を、存在しない場合は`FALSE`を返します。
+
+パスがディレクトリを指す場合も`TRUE`を返します。
+
+```shell
+$ {
+  touch tmp.txt
+  xa 'EXISTS("tmp.txt")'
+  xa 'EXISTS("no_such_file.txt")'
+  rm tmp.txt
+}
+# TRUE
+# FALSE
+```
+
 ### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`
