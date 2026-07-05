@@ -1039,6 +1039,32 @@ $ xa -q '
 
 `VOID`に対して無限ストリームを渡した場合、無限ループによりプロセスが応答不能になる可能性があります。
 
+## `ONCE`: ストリームのイテレーションを高々1回に制限する
+
+`<T> ONCE(stream: STREAM<T>): STREAM<T>`
+
+戻り値のストリームを通じて、`stream`が高々1回だけイテレートされることを保証します。
+
+戻り値のストリームが2回以上イテレートされようとすると、エラーが発生します。
+
+```shell
+$ xa -q '
+  stream := ONCE(1 .. 3 | OUT << _)
+  OUT << "First"
+  VOID(stream)
+  OUT << "Second"
+  VOID(stream) !? OUT << "Error"
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# Error
+# Done
+```
+
 ## `RANDOM`: ストリームからランダムな要素を選ぶ
 
 `<T> RANDOM(stream: STREAM<T>): T | NULL`
