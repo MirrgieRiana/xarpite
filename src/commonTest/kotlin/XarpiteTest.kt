@@ -939,6 +939,16 @@ class XarpiteTest {
         assertEquals(false, eval("(1, 2) ?= ARRAY").boolean)
         assertEquals(false, eval("1.2 ?= INT").boolean)
         assertEquals(false, eval("1 ?= DOUBLE").boolean)
+
+        // ::IS拡張関数でinstanceOf判定ができる
+        assertEquals(true, eval("1::IS(INT)").boolean)
+        assertEquals(true, eval("'a'::IS(STRING)").boolean)
+        assertEquals(false, eval("1::IS(STRING)").boolean)
+        assertEquals(false, eval("'10'::IS(INT)").boolean)
+
+        // ::IS拡張関数はユーザー定義の継承チェーンでも動作する
+        assertEquals(true, eval("Animal := {}; Human := Animal {}; Human{}::IS(Animal)").boolean)
+        assertEquals(false, eval("Animal := {}; Human := Animal {}; Animal{}::IS(Human)").boolean)
     }
 
     @Test
