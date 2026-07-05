@@ -208,6 +208,18 @@ class CoroutineTest {
         assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isFinished()").boolean) // 完了すると完了になる
         assertEquals(true, eval("promise := PROMISE.new(); promise::fail(); promise::isFinished()").boolean) // エラーで完了すると完了になる
 
+        // APIバージョン5では isCompleted が利用できる
+        assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isCompleted()", apiVersion = 5).boolean)
+
+        // APIバージョン6では isCompleted は削除され、呼び出すとメソッドが見つからない
+        val isCompletedError = assertFails { eval("promise := PROMISE.new(); promise::isCompleted()", apiVersion = 6) }
+        assertTrue(isCompletedError.message!!.contains("Method not found"))
+
+        // APIバージョン6でも isFinished は利用できる
+        assertEquals(false, eval("promise := PROMISE.new(); promise::isFinished()", apiVersion = 6).boolean) // 初期状態では未完了
+        assertEquals(true, eval("promise := PROMISE.new(); promise::complete(); promise::isFinished()", apiVersion = 6).boolean) // 完了すると完了になる
+        assertEquals(true, eval("promise := PROMISE.new(); promise::fail(); promise::isFinished()", apiVersion = 6).boolean) // エラーで完了すると完了になる
+
         // LAUNCH 内で例外が発生した場合、その例外は await() 時にスローされ、stderrにも出力される
         """
             job := LAUNCH ( =>

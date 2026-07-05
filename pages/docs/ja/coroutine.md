@@ -275,6 +275,8 @@ $ xa '
 
 `isFinished`は`isCompleted`の別名であり、同一の動作を持ちます。
 
+APIバージョン6からは、`isCompleted`メソッドは削除され、`isFinished`メソッドのみが利用できます。
+
 ## `SLEEP`: 指定時間の間処理を停止
 
 `SLEEP([milliseconds: NUMBER]): NULL`

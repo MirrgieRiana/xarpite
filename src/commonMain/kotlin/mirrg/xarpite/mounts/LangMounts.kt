@@ -84,7 +84,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
         "LAUNCH" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH(function: () -> T): PROMISE<T>")
             val function = arguments[0]
-            val promise = FluoritePromise()
+            val promise = FluoritePromise(FluoritePromise.getFluoriteClass(context.apiVersion))
             val coroutineId = nextCoroutineId
             context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
                 try {
@@ -104,7 +104,7 @@ fun createLangMounts(): List<Map<String, Mount>> {
         "LAUNCH2" define FluoriteFunction.create { arguments ->
             if (arguments.size != 1) usage("<T> LAUNCH2(function(): T): PROMISE<T>")
             val function = arguments[0]
-            val promise = FluoritePromise()
+            val promise = FluoritePromise(FluoritePromise.getFluoriteClass(context.apiVersion))
             val coroutineId = nextCoroutineId
             context.coroutineScope.launch(coroutineContext[StackTrace.Key]?.copy() ?: EmptyCoroutineContext) {
                 try {

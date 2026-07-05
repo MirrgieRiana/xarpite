@@ -275,6 +275,8 @@ Returns whether the `PROMISE` is completed or completed as failed.
 
 `isFinished` is an alias of `isCompleted` and has the same behavior.
 
+In API version 6, `isCompleted` has been removed, and only `isFinished` is available.
+
 ## `SLEEP`: Suspend Processing for a Specified Time
 
 `SLEEP([milliseconds: NUMBER]): NULL`
