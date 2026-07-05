@@ -245,7 +245,7 @@ $ xa 'FALSE <=> TRUE'
 
 Comparison is only possible between values belonging to the same category, such as numbers with numbers, strings with strings, or booleans with booleans. Ordering across categories is not defined.
 
-However, `NULL` is an exception: it can be compared with values of any category and is always treated as smaller than other values.
+However, `NULL` is an exception: it can be compared with values of any category. `NULL` is treated as smaller than any other value, and two `NULL` values are treated as equal.
 
 ```shell
 $ xa 'NULL <=> 1'

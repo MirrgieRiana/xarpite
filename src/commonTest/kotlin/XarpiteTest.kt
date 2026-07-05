@@ -1276,13 +1276,16 @@ class XarpiteTest {
 
         // 論理値
         assertEquals(-1, eval("FALSE <=> TRUE").int) // FALSE は TRUE より小さい
+        assertEquals(0, eval("FALSE <=> FALSE").int) // 等しい場合は0
         assertEquals(0, eval("TRUE <=> TRUE").int) // 等しい場合は0
         assertEquals(1, eval("TRUE <=> FALSE").int) // TRUE は FALSE より大きい
 
         // NULL はカテゴリ内で先頭に来る
         assertEquals(0, eval("NULL <=> NULL").int) // NULL 同士は等しい
-        assertEquals(-1, eval("NULL <=> 1").int) // NULL は数値より小さい
-        assertEquals(1, eval("1 <=> NULL").int) // 数値は NULL より大きい
+        assertEquals(-1, eval("NULL <=> 1").int) // NULL は整数より小さい
+        assertEquals(1, eval("1 <=> NULL").int) // 整数は NULL より大きい
+        assertEquals(-1, eval("NULL <=> 1.5").int) // NULL は小数より小さい
+        assertEquals(1, eval("1.5 <=> NULL").int) // 小数は NULL より大きい
         assertEquals(-1, eval(" NULL <=> 'a' ").int) // NULL は文字列より小さい
         assertEquals(1, eval(" 'a' <=> NULL ").int) // 文字列は NULL より大きい
         assertEquals(-1, eval("NULL <=> TRUE").int) // NULL は論理値より小さい
