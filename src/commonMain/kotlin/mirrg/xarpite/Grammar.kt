@@ -272,6 +272,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -"<=" map { ComparisonOperatorType.LESS_EQUAL }, // <=
         -'<' * !'<' map { ComparisonOperatorType.LESS }, // <
         -"?=" map { ComparisonOperatorType.QUESTION_EQUAL }, // ?=
+        -"!?=" map { ComparisonOperatorType.EXCLAMATION_QUESTION_EQUAL }, // !?=
         -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )

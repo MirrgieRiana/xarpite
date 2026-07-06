@@ -104,6 +104,7 @@ enum class ComparisonOperatorType {
     GREATER_EQUAL,
     LESS_EQUAL,
     QUESTION_EQUAL,
+    EXCLAMATION_QUESTION_EQUAL,
     AT,
     EXCLAMATION_AT,
 }
