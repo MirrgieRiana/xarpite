@@ -144,13 +144,16 @@ class StringMountsTest {
         // 末尾のスラッシュは無視される
         assertEquals("/home", eval("DIRNAME('/home/apple/')").string)
 
+        // 正規化は行われない
+        assertEquals("a/b/..", eval("DIRNAME('a/b/../c.txt')").string)
+
         // ディレクトリの区切りを含まないパスはカレントディレクトリ . を返す
         assertEquals(".", eval("DIRNAME('Cherry.txt')").string)
+        assertEquals(".", eval("DIRNAME('.')").string)
+        assertEquals(".", eval("DIRNAME('..')").string)
 
-        // 末端のパスは NULL を返す
-        assertEquals(true, eval("DIRNAME('/') == NULL").boolean)
-        assertEquals(true, eval("DIRNAME('.') == NULL").boolean)
-        assertEquals(true, eval("DIRNAME('..') == NULL").boolean)
+        // ルートディレクトリの親はルートディレクトリ自身
+        assertEquals("/", eval("DIRNAME('/')").string)
 
         // 拡張関数版
         assertEquals("/home/apple", eval("'/home/apple/Apple.txt'::DIRNAME()").string)
@@ -169,6 +172,9 @@ class StringMountsTest {
 
         // 末尾のスラッシュは無視される
         assertEquals("apple", eval("FILENAME('/home/apple/')").string)
+
+        // 正規化は行われない
+        assertEquals("..", eval("FILENAME('a/b/..')").string)
 
         // 拡張関数版
         assertEquals("Apple.txt", eval("'/home/apple/Apple.txt'::FILENAME()").string)

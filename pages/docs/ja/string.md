@@ -705,9 +705,9 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 
 ## `DIRNAME`ディレクトリ名の取得
 
-`DIRNAME(path: STRING): STRING | NULL`
+`DIRNAME(path: STRING): STRING`
 
-`STRING::DIRNAME(): STRING | NULL`
+`STRING::DIRNAME(): STRING`
 
 `path`からディレクトリ部分を取り出します。
 
@@ -741,7 +741,12 @@ $ xa 'DIRNAME("Cherry.txt")'
 
 ---
 
-`/`や`.`、`..`のような、それ以上ディレクトリを辿れない末端のパスに対しては`NULL`を返します。
+ルートディレクトリの親はルートディレクトリ自身になります。
+
+```shell
+$ xa 'DIRNAME("/")'
+# /
+```
 
 ## `FILENAME`ファイル名の取得
 
@@ -760,6 +765,8 @@ $ xa '"/home/apple/Apple.txt"::FILENAME()'
 ```
 
 ---
+
+パスの正規化（`.`や`..`の平坦化）は行われません。
 
 末尾のスラッシュは無視されます。
 

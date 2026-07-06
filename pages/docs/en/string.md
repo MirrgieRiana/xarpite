@@ -705,9 +705,9 @@ Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
 
 ## `DIRNAME` Getting the Directory Name
 
-`DIRNAME(path: STRING): STRING | NULL`
+`DIRNAME(path: STRING): STRING`
 
-`STRING::DIRNAME(): STRING | NULL`
+`STRING::DIRNAME(): STRING`
 
 Extracts the directory portion from `path`.
 
@@ -741,7 +741,12 @@ $ xa 'DIRNAME("Cherry.txt")'
 
 ---
 
-For terminal paths such as `/`, `.`, or `..`, from which no further directory can be traced, `NULL` is returned.
+The parent of the root directory is the root directory itself.
+
+```shell
+$ xa 'DIRNAME("/")'
+# /
+```
 
 ## `FILENAME` Getting the File Name
 
@@ -760,6 +765,8 @@ $ xa '"/home/apple/Apple.txt"::FILENAME()'
 ```
 
 ---
+
+The path is not normalized (no flattening of `.` or `..`).
 
 Trailing slashes are ignored.
 
