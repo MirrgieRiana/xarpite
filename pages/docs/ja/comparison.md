@@ -279,15 +279,20 @@ $ xa '
 
 # 比較系関数
 
-## `::CONTAINS`: 含有判定を行う拡張関数
+## `CONTAINS`: 含有判定を行う関数
+
+`CONTAINS(container: VALUE; content: VALUE): BOOLEAN`
 
 `VALUE::CONTAINS(content: VALUE): BOOLEAN`
 
-`::CONTAINS`拡張関数は含有演算子`@`を拡張関数の形式で呼び出すためのシンタックスシュガーです。
+`CONTAINS`関数は含有演算子`@`を関数の形式で呼び出すためのシンタックスシュガーです。
 
-`container::CONTAINS(content)`は`content @ container`と等価です。
+`CONTAINS(container; content)`および`container::CONTAINS(content)`は`content @ container`と等価です。
 
 ```shell
+$ xa ' CONTAINS("abcde"; "bcd") '
+# TRUE
+
 $ xa ' "abcde"::CONTAINS("bcd") '
 # TRUE
 ```

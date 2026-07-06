@@ -181,12 +181,20 @@ fun createLangMounts(): List<Map<String, Mount>> {
                 ),
             )
         },
-        "::CONTAINS" define fluoriteArrayOf(
-            FluoriteValue.fluoriteClass colon FluoriteFunction.immediate { arguments ->
-                if (arguments.size != 2) usage("VALUE::CONTAINS(content: VALUE): BOOLEAN")
-                arguments[0].contains(null, arguments[1])
-            },
-        ),
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 2) usage(signature)
+                    arguments[0].contains(null, arguments[1])
+                }
+            }
+            arrayOf(
+                "CONTAINS" define create("CONTAINS(container: VALUE; content: VALUE): BOOLEAN"),
+                "::CONTAINS" define fluoriteArrayOf(
+                    FluoriteValue.fluoriteClass colon create("VALUE::CONTAINS(content: VALUE): BOOLEAN"),
+                ),
+            )
+        },
         "LAZY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> LAZY(initializer: () -> T): () -> T")
             val initializer = arguments[0]
