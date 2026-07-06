@@ -25,6 +25,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFlow
@@ -181,13 +182,14 @@ fun createStreamMounts(): List<Map<String, Mount>> {
 
             if (stream is FluoriteStream) {
                 FluoriteStream {
-                    val separators = if (separator is FluoriteStream) separator.toMutableList() else mutableListOf(separator)
+                    var separators: List<FluoriteValue>? = null
                     var isFirst = true
                     stream.collect { item ->
                         if (isFirst) {
                             isFirst = false
                         } else {
-                            separators.forEach { emit(it) }
+                            val separators2 = separators ?: separator.consumeToMutableList().also { separators = it }
+                            separators2.forEach { emit(it) }
                         }
                         emit(item)
                     }
