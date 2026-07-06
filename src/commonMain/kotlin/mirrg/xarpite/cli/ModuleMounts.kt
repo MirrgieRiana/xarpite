@@ -31,12 +31,26 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
             FluoriteFunction.immediate { arguments ->
                 if (arguments.size != 1) usage("USE(reference: STRING): VALUE")
                 val reference = arguments[0].toFluoriteString(null).value
-                val (moduleLocation, src) = resolveModuleLocation(context.inc, location, reference)
-                context.moduleResults.getOrPut(moduleLocation) {
-                    val evaluator = Evaluator(context)
-                    evaluator.defineMounts(mountsFactory(moduleLocation))
-                    evaluator.get(moduleLocation, src, false).cache()
+                val candidates = resolveModuleLocation(context.inc, location, reference)
+
+                // APIバージョン6以降では、候補の中に既に読み込み済みのロケーションがあれば、ランナーを走らせずにそれを再利用する。
+                // これにより、INCの後付けや取得タイミングによらず、同一のreferenceが最初に読み込んだインスタンスに固定される。
+                if (context.apiVersion >= 6) {
+                    candidates.runners.forEach { (moduleLocation, _) ->
+                        if (moduleLocation in context.moduleResults) return@immediate context.moduleResults.getValue(moduleLocation)
+                    }
                 }
+
+                // 候補を優先順にランナーで取得し、最初に存在したロケーションを評価する
+                candidates.runners.forEach { (moduleLocation, load) ->
+                    val src = load() ?: return@forEach
+                    return@immediate context.moduleResults.getOrPut(moduleLocation) {
+                        val evaluator = Evaluator(context)
+                        evaluator.defineMounts(mountsFactory(moduleLocation))
+                        evaluator.get(moduleLocation, src, false).cache()
+                    }
+                }
+                candidates.fail()
             }
         },
         "XA" define FluoriteFunction.immediate { arguments ->
@@ -58,54 +72,56 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
     ).let { listOf(it) }
 }
 
-context(context: RuntimeContext)
-private suspend inline fun tryToLoad(locations: MutableList<String>, location: String, onFound: (Pair<String, String>) -> Unit) {
-    locations += location
-    val src = context.getModuleSrc(location)
-    if (src != null) onFound(Pair(location, src))
+// 優先順に並んだ候補ロケーションと、それぞれを取得する遅延ランナーの列。
+// runnersのランナーは、走らせるとそのロケーションのソースを取得し、存在しなければnullを返す。
+private class ModuleCandidates(
+    val runners: List<Pair<String, suspend () -> String?>>,
+    private val notFoundMessage: String,
+) {
+    fun fail(): Nothing {
+        val lines = mutableListOf<String>()
+        lines += notFoundMessage
+        if (runners.isNotEmpty()) {
+            lines += "Tried locations:"
+            runners.forEach { (location, _) ->
+                lines += "- $location"
+            }
+        }
+        throw FluoriteException(lines.join("\n").toFluoriteString())
+    }
 }
 
 context(context: RuntimeContext)
-private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: String, reference: String): Pair<String, String> {
-    val locations = mutableListOf<String>()
+private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: String, reference: String): ModuleCandidates {
+    val runners = mutableListOf<Pair<String, suspend () -> String?>>()
+
+    fun candidate(location: String) {
+        runners += location to suspend { context.getModuleSrc(location) }
+    }
 
     val (directoryPathInc, urlInc) = inc.values
         .map { it.toFluoriteString(null).value }
         .reversed()
         .partition { !isUrl(it) }
 
-    fun fail(message: String): Nothing {
-        val lines = mutableListOf<String>()
-        lines += message
-        if (locations.isNotEmpty()) {
-            lines += "Tried locations:"
-            locations.forEach {
-                lines += "- $it"
-            }
-        }
-        throw FluoriteException(lines.join("\n").toFluoriteString())
-    }
-
     // ファイルパス
     if (reference.toPath().isAbsolute || reference.startsWith("./") || reference.startsWith("../") || reference.startsWith(".\\") || reference.startsWith("..\\")) {
         if (isUrl(baseLocation)) {
-            val url = URLBuilder(baseLocation).takeFrom(reference).buildString()
-            tryToLoad(locations, url) { return it }
-            fail("Module file not found: $reference")
+            candidate(URLBuilder(baseLocation).takeFrom(reference).buildString())
         } else {
             val parentPath = baseLocation.toPath().parent ?: throw FluoriteException("Cannot determine parent path of $baseLocation.".toFluoriteString())
             val path = parentPath.resolve(reference).normalized()
-            tryToLoad(locations, path.toString()) { return it }
-            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
-            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
-            fail("Module file not found: $reference")
+            candidate(path.toString())
+            candidate(path.map { "$it$MODULE_EXTENSION" }.toString())
+            candidate(path.resolve(MODULE_DEFAULT_FILE_NAME).toString())
         }
+        return ModuleCandidates(runners, "Module file not found: $reference")
     }
 
     // URL
     if (isUrl(reference)) {
-        tryToLoad(locations, reference) { return it }
-        fail("Failed to load module: $reference")
+        candidate(reference)
+        return ModuleCandidates(runners, "Failed to load module: $reference")
     }
 
     // Maven座標
@@ -119,35 +135,27 @@ private suspend fun resolveModuleLocation(inc: FluoriteArray, baseLocation: Stri
         val suffix = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version$MODULE_EXTENSION"
 
         directoryPathInc.forEach { string ->
-            val path = string.toPath().resolve(suffix).normalized()
-            tryToLoad(locations, path.toString()) { return it }
+            candidate(string.toPath().resolve(suffix).normalized().toString())
         }
         urlInc.forEach { string ->
-            val normalizedIncPath = string.trimEnd('/')
-            val url = "$normalizedIncPath/$suffix"
-            tryToLoad(locations, url) { return it }
+            candidate("${string.trimEnd('/')}/$suffix")
         }
 
-        fail("Maven artifact not found: $reference")
+        return ModuleCandidates(runners, "Maven artifact not found: $reference")
     }
 
     // INCを起点とした相対パス
-    run {
-        directoryPathInc.forEach { string ->
-            val path = string.toPath().resolve(reference).normalized()
-            tryToLoad(locations, path.toString()) { return it }
-            tryToLoad(locations, path.map { "$it$MODULE_EXTENSION" }.toString()) { return it }
-            tryToLoad(locations, path.resolve(MODULE_DEFAULT_FILE_NAME).toString()) { return it }
-        }
-        urlInc.forEach { string ->
-            val normalizedIncPath = string.trimEnd('/')
-            val url = "$normalizedIncPath/$reference"
-            tryToLoad(locations, url) { return it }
-        }
-
-        fail("Module file not found in INC paths: $reference")
+    directoryPathInc.forEach { string ->
+        val path = string.toPath().resolve(reference).normalized()
+        candidate(path.toString())
+        candidate(path.map { "$it$MODULE_EXTENSION" }.toString())
+        candidate(path.resolve(MODULE_DEFAULT_FILE_NAME).toString())
+    }
+    urlInc.forEach { string ->
+        candidate("${string.trimEnd('/')}/$reference")
     }
 
+    return ModuleCandidates(runners, "Module file not found in INC paths: $reference")
 }
 
 private fun resolveScriptLocation(baseLocation: String, reference: String): String {

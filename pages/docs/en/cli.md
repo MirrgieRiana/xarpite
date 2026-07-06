@@ -1041,6 +1041,12 @@ $ {
 # [1;2;3]
 ```
 
+---
+
+In API version 6 and later, when resolving `reference`, if any of the searched locations has already been loaded, it is reused in preference to the priority order given by `INC`.
+
+As a result, even if `INC` is changed later, the same `reference` is fixed to the instance that was loaded first.
+
 #### Specifying `reference` by Absolute Local File Path
 
 If `reference` is an absolute local file path, that file is called.

@@ -979,6 +979,68 @@ class CliTest {
     }
 
     @Test
+    fun useDoesNotPinModuleLocationInApiVersion5() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // 同名モジュールを持つ2つのINCディレクトリを用意する
+        val dirA = "build/test/use.pin.a.tmp".toPath()
+        val dirB = "build/test/use.pin.b.tmp".toPath()
+        fileSystem.createDirectories(dirA)
+        fileSystem.createDirectories(dirB)
+        fileSystem.write(dirA.resolve("shared.xa1")) { writeUtf8("""{ state: { value: "fromA" } }""") }
+        fileSystem.write(dirB.resolve("shared.xa1")) { writeUtf8("""{ state: { value: "fromB" } }""") }
+
+        // APIバージョン5では、より優先度の高いINCパスを後から足すと、次のUSEはそちらへ解決し直す
+        val result = cliEval(context, """
+            INC::push("$dirA")
+            a := USE("shared")
+            INC::push("$dirB")
+            a.state.value = "mutated"
+            b := USE("shared")
+            b.state.value
+        """.trimIndent(), apiVersion = 5).toFluoriteString(null).value
+
+        assertEquals("fromB", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dirA)
+        fileSystem.deleteRecursively(dirB)
+    }
+
+    @Test
+    fun usePinsModuleLocationFromApiVersion6() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+
+        // 同名モジュールを持つ2つのINCディレクトリを用意する
+        val dirA = "build/test/use.pin.v6.a.tmp".toPath()
+        val dirB = "build/test/use.pin.v6.b.tmp".toPath()
+        fileSystem.createDirectories(dirA)
+        fileSystem.createDirectories(dirB)
+        fileSystem.write(dirA.resolve("shared.xa1")) { writeUtf8("""{ state: { value: "fromA" } }""") }
+        fileSystem.write(dirB.resolve("shared.xa1")) { writeUtf8("""{ state: { value: "fromB" } }""") }
+
+        // APIバージョン6では、より優先度の高いINCパスを後から足しても、既に読み込み済みのロケーションが再利用される
+        val result = cliEval(context, """
+            INC::push("$dirA")
+            a := USE("shared")
+            INC::push("$dirB")
+            a.state.value = "mutated"
+            b := USE("shared")
+            b.state.value
+        """.trimIndent(), apiVersion = 6).toFluoriteString(null).value
+
+        assertEquals("mutated", result)
+
+        // クリーンアップ
+        fileSystem.deleteRecursively(dirA)
+        fileSystem.deleteRecursively(dirB)
+    }
+
+    @Test
     fun useIncRelativePathResolvesMainXa1() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
