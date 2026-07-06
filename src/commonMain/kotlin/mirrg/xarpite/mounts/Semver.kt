@@ -11,9 +11,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 
-// SEMVER関数が返すオブジェクトのクラス。パース結果は `_core` と `_prerelease` の
-// private プロパティにのみ保持し、外部からは不透明な比較可能値として振る舞う。
-// 比較は SemVer 2.0.0 の precedence に従う。
+// SEMVER関数が返すオブジェクトの親クラス。パース結果は `_core` と `_prerelease` の
+// private プロパティにのみ保持され、比較は SemVer 2.0.0 の precedence に従う。
 private val semverClass: FluoriteObject by lazy {
     FluoriteObject(
         FluoriteObject.fluoriteClass, mutableMapOf(
@@ -62,8 +61,7 @@ private fun parsePrereleaseIdentifier(input: String, part: String): FluoriteValu
     }
 }
 
-// major.minor.patch[-prerelease][+build] をパースし、数値コアとプレリリース識別子の列を返す。
-// ビルドメタデータは precedence では無視するが、書式の妥当性は検証する。
+// 受け付ける書式は major.minor.patch[-prerelease][+build] で、ビルドメタデータは比較では無視するが書式の妥当性は検証する。
 private fun parseSemver(input: String): Pair<List<Int>, List<FluoriteValue>> {
     val buildIndex = input.indexOf('+')
     val withoutBuild = if (buildIndex >= 0) {
@@ -90,7 +88,7 @@ private fun parseSemver(input: String): Pair<List<Int>, List<FluoriteValue>> {
         prereleaseString.split('.').map { parsePrereleaseIdentifier(input, it) }
     }
 
-    return core to prerelease
+    return Pair(core, prerelease)
 }
 
 private fun compareSemver(left: FluoriteObject, right: FluoriteObject): Int {

@@ -457,8 +457,12 @@ class DataConversionTest {
         assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2") """) } // 要素が3個でない
         assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.3.4") """) } // 要素が3個でない
         assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.x") """) } // 数値でない
-        assertFailsWith<FluoriteException> { eval(""" SEMVER("01.2.3") """) } // 数値識別子の先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("01.2.3") """) } // メジャーの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.02.3") """) } // マイナーの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.03") """) } // パッチの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-01.1") """) } // 数値のプレリリース識別子の先頭ゼロは許されない
         assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-") """) } // プレリリースが空
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-alpha..beta") """) } // プレリリースに空の識別子がある
         assertFailsWith<FluoriteException> { eval(""" SEMVER("") """) } // 空文字列
 
         // SEMVER 同士でない比較はエラーになる
