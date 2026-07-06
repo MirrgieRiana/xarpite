@@ -23,9 +23,11 @@ BLOB composition is the rule for generating a single BLOB from `BLOB_LIKE`.
 - If `BLOB_LIKE` is an array, each element is recursively treated as `BLOB_LIKE`.
 - If `BLOB_LIKE` is a stream, each element is recursively treated as `BLOB_LIKE`.
 
-## `BLOB.of` Generating BLOB from Array
+## `BLOB.of` / `BLOB` Generating BLOB from Array
 
 `BLOB.of(blobLike: BLOB_LIKE): BLOB`
+
+`BLOB(blobLike: BLOB_LIKE): BLOB`
 
 Composes a new BLOB from `blobLike`.
 
