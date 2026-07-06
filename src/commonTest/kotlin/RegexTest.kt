@@ -128,6 +128,11 @@ class RegexTest {
         assertFailsWith<FluoriteException> { eval(""" /abc/::withoutFlag("x") """) } // 除去でも不正フラグはエラー
         assertFailsWith<FluoriteException> { eval(""" /abc/ + "x" """) } // +演算子でも不正フラグはエラー
         assertFailsWith<FluoriteException> { eval(""" /abc/g - "x" """) } // -演算子でも不正フラグはエラー
+
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withFlag() """) } // withFlagは引数不足でエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withFlag("g"; TRUE; TRUE) """) } // withFlagは引数過多でエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withoutFlag() """) } // withoutFlagは引数不足でエラー
+        assertFailsWith<FluoriteException> { eval(""" /abc/::withoutFlag("g"; TRUE) """) } // withoutFlagは引数過多でエラー
     }
 
     @Test

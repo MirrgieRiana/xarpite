@@ -48,8 +48,10 @@ data class FluoriteRegex(val pattern: String, val flags: String?) : FluoriteValu
                     },
                     "withoutFlag" to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
-                        val flag = arguments[1].toFluoriteString(null).value
-                        regex.withFlag(flag, false)
+                        when (arguments.size) {
+                            2 -> regex.withFlag(arguments[1].toFluoriteString(null).value, false)
+                            else -> throw FluoriteException("Usage: REGEX::withoutFlag(flag: STRING): REGEX".toFluoriteString())
+                        }
                     },
                     OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val regex = arguments[0] as FluoriteRegex
