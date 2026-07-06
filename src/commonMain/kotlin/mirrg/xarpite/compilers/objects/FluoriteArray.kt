@@ -108,6 +108,21 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         list += right.values
                         list.asFluoriteArray()
                     },
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
+                        val array = arguments[0] as FluoriteArray
+                        val value = arguments[1]
+                        val list = array.values.toMutableList()
+                        if (value is FluoriteStream) {
+                            value.collect { item ->
+                                val index = list.indexOf(item) // TODO EQUALSメソッドの使用
+                                if (index != -1) list.removeAt(index)
+                            }
+                        } else {
+                            val index = list.indexOf(value) // TODO EQUALSメソッドの使用
+                            if (index != -1) list.removeAt(index)
+                        }
+                        list.asFluoriteArray()
+                    },
                     OperatorMethod.CONTAINS.methodName to FluoriteFunction.immediate { (it[1] in (it[0] as FluoriteArray).values).toFluoriteBoolean() }, // TODO EQUALSメソッドの使用
                     OperatorMethod.PLUS_ASSIGN.methodName to FluoriteFunction.immediate { arguments ->
                         val array = arguments[0] as FluoriteArray
