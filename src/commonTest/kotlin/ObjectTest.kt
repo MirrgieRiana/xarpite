@@ -62,6 +62,7 @@ class ObjectTest {
         // TYPE は PARENT のシノニム
         assertEquals(true, eval("TYPE(1) == INT").boolean) // TYPE でも値の親オブジェクトを得る
         assertEquals(true, eval("TYPE(VALUE) == NULL").boolean) // TYPE でも親を持たない値は NULL を返す
+        assertEquals(true, eval("TYPE(1, 2, 3) == STREAM").boolean) // TYPE でもストリームを渡すとストリーム自身の親 STREAM を返す
     }
 
     @Test
