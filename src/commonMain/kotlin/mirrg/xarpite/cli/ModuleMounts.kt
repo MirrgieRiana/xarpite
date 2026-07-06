@@ -41,7 +41,6 @@ fun createModuleMounts(location: String, mountsFactory: (String) -> List<Map<Str
                     }
                 }
 
-                // 候補を優先順にランナーで取得し、最初に存在したロケーションを評価する
                 candidates.runners.forEach { (moduleLocation, load) ->
                     val src = load() ?: return@forEach
                     return@immediate context.moduleResults.getOrPut(moduleLocation) {
