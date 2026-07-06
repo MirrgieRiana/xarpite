@@ -89,6 +89,8 @@ class StringTest {
         assertEquals("abc  ", eval("'  abc  '::trimStart()").string) // 先頭の空白のみを除去し、末尾は保持する
         assertEquals("abc　　", eval("'　　abc　　'::trimStart()").string) // 全角空白も先頭のみ除去される
         assertEquals("", eval("'   '::trimStart()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimStart()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimStart()").string) // 先頭に空白が無ければそのまま返る
     }
 
     @Test
@@ -96,6 +98,8 @@ class StringTest {
         assertEquals("  abc", eval("'  abc  '::trimEnd()").string) // 末尾の空白のみを除去し、先頭は保持する
         assertEquals("　　abc", eval("'　　abc　　'::trimEnd()").string) // 全角空白も末尾のみ除去される
         assertEquals("", eval("'   '::trimEnd()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimEnd()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimEnd()").string) // 末尾に空白が無ければそのまま返る
     }
 
     @Test
