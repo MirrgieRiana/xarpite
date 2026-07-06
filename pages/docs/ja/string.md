@@ -421,6 +421,31 @@ $ xa '"[" & "abcde"::drop(10) & "]"'
 # []
 ```
 
+# 先頭・末尾の空白の除去
+
+`STRING::trim(): STRING`
+
+`STRING::trimStart(): STRING`
+
+`STRING::trimEnd(): STRING`
+
+文字列の先頭および末尾の空白を除去した文字列を返します。
+
+`trim`は両端、`trimStart`は先頭、`trimEnd`は末尾の空白を除去します。
+
+除去の対象となる空白は、半角スペースやタブ、改行のほか、全角空白などのUnicodeの空白文字を含みます。
+
+```shell
+$ xa '"[" & "  abc  "::trim() & "]"'
+# [abc]
+
+$ xa '"[" & "  abc  "::trimStart() & "]"'
+# [abc  ]
+
+$ xa '"[" & "  abc  "::trimEnd() & "]"'
+# [  abc]
+```
+
 # 先頭・末尾の文字の取得
 
 `STRING::first(): STRING | NULL`
