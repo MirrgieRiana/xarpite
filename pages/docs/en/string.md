@@ -436,13 +436,13 @@ Returns the string with the whitespace removed from the beginning and end of the
 The whitespace to be removed includes spaces, tabs, and newlines, as well as Unicode whitespace characters such as the ideographic space.
 
 ```shell
-$ xa '"[" & "  abc  "::trim() & "]"'
+$ xa '"[$(  "  abc  "::trim()  )]"'
 # [abc]
 
-$ xa '"[" & "  abc  "::trimStart() & "]"'
+$ xa '"[$(  "  abc  "::trimStart()  )]"'
 # [abc  ]
 
-$ xa '"[" & "  abc  "::trimEnd() & "]"'
+$ xa '"[$(  "  abc  "::trimEnd()  )]"'
 # [  abc]
 ```
 

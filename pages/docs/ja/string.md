@@ -436,13 +436,13 @@ $ xa '"[" & "abcde"::drop(10) & "]"'
 除去の対象となる空白は、半角スペースやタブ、改行のほか、全角空白などのUnicodeの空白文字を含みます。
 
 ```shell
-$ xa '"[" & "  abc  "::trim() & "]"'
+$ xa '"[$(  "  abc  "::trim()  )]"'
 # [abc]
 
-$ xa '"[" & "  abc  "::trimStart() & "]"'
+$ xa '"[$(  "  abc  "::trimStart()  )]"'
 # [abc  ]
 
-$ xa '"[" & "  abc  "::trimEnd() & "]"'
+$ xa '"[$(  "  abc  "::trimEnd()  )]"'
 # [  abc]
 ```
 
