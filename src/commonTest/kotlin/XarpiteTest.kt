@@ -780,6 +780,24 @@ class XarpiteTest {
     }
 
     @Test
+    fun notInstanceOfTest() = runTest {
+        // 継承チェーンに存在するクラスに対しては FALSE を返す
+        assertEquals(false, eval("A := {}; a := A {}; a !?= A").boolean)
+        assertEquals(false, eval("A := {}; B := A {}; b := B {}; b !?= A").boolean)
+
+        // 無関係なクラスに対しては TRUE を返す
+        assertEquals(true, eval("A := {}; B := {}; a := A {}; a !?= B").boolean)
+
+        // 組み込みクラスに対しても動作する
+        assertEquals(false, eval("1 !?= INT").boolean)
+        assertEquals(true, eval("'10' !?= INT").boolean)
+
+        // !(left ?= right) と等価であることを確認
+        assertEquals(true, eval("!(1 ?= INT) == (1 !?= INT)").boolean)
+        assertEquals(true, eval("!('10' ?= INT) == ('10' !?= INT)").boolean)
+    }
+
+    @Test
     fun andOrTest() = runTest {
         // && は左辺がTRUEの場合に右辺を、 || は左辺がFALSEの場合に右辺を返す
         assertEquals(0, eval("0 && 2").int)

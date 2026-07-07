@@ -139,6 +139,7 @@ import mirrg.xarpite.operations.NewEnvironmentGetter
 import mirrg.xarpite.operations.NotContainsComparator
 import mirrg.xarpite.operations.NotDivisibleGetter
 import mirrg.xarpite.operations.NotEqualComparator
+import mirrg.xarpite.operations.NotInstanceOfComparator
 import mirrg.xarpite.operations.NotMatchGetter
 import mirrg.xarpite.operations.NullGetter
 import mirrg.xarpite.operations.ObjectCreationGetter
@@ -301,6 +302,7 @@ fun Frame.compileToGetter(node: Node): Getter {
                     ComparisonOperatorType.GREATER_EQUAL -> GreaterEqualComparator(it.second)
                     ComparisonOperatorType.LESS_EQUAL -> LessEqualComparator(it.second)
                     ComparisonOperatorType.QUESTION_EQUAL -> InstanceOfComparator(it.second)
+                    ComparisonOperatorType.EXCLAMATION_QUESTION_EQUAL -> NotInstanceOfComparator(it.second)
                     ComparisonOperatorType.AT -> ContainsComparator(it.second)
                     ComparisonOperatorType.EXCLAMATION_AT -> NotContainsComparator(it.second)
                 }
