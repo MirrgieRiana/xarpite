@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -185,6 +186,12 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             FluoriteNull
+        },
+        "EXISTS" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("EXISTS(file: STRING): BOOLEAN")
+            val file = arguments[0].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.exists(file.toPath()).toFluoriteBoolean()
         },
         *run {
             fun create(name: String, fullPath: Boolean): FluoriteFunction {

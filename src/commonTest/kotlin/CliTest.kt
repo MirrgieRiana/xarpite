@@ -481,6 +481,30 @@ class CliTest {
     }
 
     @Test
+    fun exists() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("exists.test_dir.tmp")
+
+        fileSystem.deleteRecursively(dir, mustExist = false)
+
+        fileSystem.createDirectory(dir)
+        val file = dir.resolve("file.txt")
+        fileSystem.write(file) { writeUtf8("") }
+
+        // 存在するファイルには TRUE を返す
+        assertEquals("TRUE", cliEval(context, "EXISTS(ARGS.0)", file.toString()).toFluoriteString(null).value)
+        // 存在するディレクトリにも TRUE を返す
+        assertEquals("TRUE", cliEval(context, "EXISTS(ARGS.0)", dir.toString()).toFluoriteString(null).value)
+        // 存在しないパスには FALSE を返す
+        assertEquals("FALSE", cliEval(context, "EXISTS(ARGS.0)", dir.resolve("missing.txt").toString()).toFluoriteString(null).value)
+
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
