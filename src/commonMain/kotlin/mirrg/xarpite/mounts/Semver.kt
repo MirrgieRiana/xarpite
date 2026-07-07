@@ -40,52 +40,27 @@ fun String.toFluoriteSemver(): FluoriteObject {
 
 private fun invalid(input: String): Nothing = throw FluoriteException("Invalid semantic version: $input".toFluoriteString())
 
-private fun String.isNumericIdentifier() = this.isNotEmpty() && this.all { it in '0'..'9' }
+// 受け付ける書式は major.minor.patch[-prerelease][+build] で、SemVer 2.0.0 の公式正規表現に従う。
+// 数値識別子の先頭ゼロや空の識別子はこの正規表現が弾き、ビルドメタデータは書式のみ検証して比較では無視する。
+private val semverRegex = Regex(
+    """^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)""" +
+        """(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?""" +
+        """(?:\+[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)?$"""
+)
 
-private fun Char.isSemverIdentifierChar() = this in '0'..'9' || this in 'A'..'Z' || this in 'a'..'z' || this == '-'
-
-// 数値識別子（メジャー・マイナー・パッチや数値のプレリリース識別子）は、先頭ゼロを持ってはならない。
-private fun parseNumericIdentifier(input: String, part: String): Int {
-    if (!part.isNumericIdentifier()) invalid(input)
-    if (part.length > 1 && part[0] == '0') invalid(input)
-    return part.toIntOrNull() ?: invalid(input)
-}
-
-private fun parsePrereleaseIdentifier(input: String, part: String): FluoriteValue {
-    if (part.isEmpty()) invalid(input)
-    return if (part.isNumericIdentifier()) {
-        FluoriteInt(parseNumericIdentifier(input, part))
-    } else {
-        if (!part.all { it.isSemverIdentifierChar() }) invalid(input)
-        part.toFluoriteString()
-    }
-}
-
-// 受け付ける書式は major.minor.patch[-prerelease][+build] で、ビルドメタデータは比較では無視するが書式の妥当性は検証する。
 private fun parseSemver(input: String): Pair<List<Int>, List<FluoriteValue>> {
-    val buildIndex = input.indexOf('+')
-    val withoutBuild = if (buildIndex >= 0) {
-        input.substring(buildIndex + 1).split('.').forEach { identifier ->
-            if (identifier.isEmpty()) invalid(input)
-            if (!identifier.all { it.isSemverIdentifierChar() }) invalid(input)
-        }
-        input.substring(0, buildIndex)
-    } else {
-        input
-    }
+    val match = semverRegex.matchEntire(input) ?: invalid(input)
+    val (majorString, minorString, patchString, prereleaseString) = match.destructured
 
-    val prereleaseIndex = withoutBuild.indexOf('-')
-    val coreString = if (prereleaseIndex >= 0) withoutBuild.substring(0, prereleaseIndex) else withoutBuild
-    val prereleaseString = if (prereleaseIndex >= 0) withoutBuild.substring(prereleaseIndex + 1) else null
+    val core = listOf(majorString, minorString, patchString).map { it.toIntOrNull() ?: invalid(input) }
 
-    val coreParts = coreString.split('.')
-    if (coreParts.size != 3) invalid(input)
-    val core = coreParts.map { parseNumericIdentifier(input, it) }
-
-    val prerelease = if (prereleaseString == null) {
+    val prerelease = if (prereleaseString.isEmpty()) {
         emptyList()
     } else {
-        prereleaseString.split('.').map { parsePrereleaseIdentifier(input, it) }
+        prereleaseString.split('.').map { identifier ->
+            // 全て数字ならば数値識別子で、そうでなければ英数字識別子。先頭ゼロは正規表現が既に弾いている。
+            if (identifier.all { it in '0'..'9' }) FluoriteInt(identifier.toIntOrNull() ?: invalid(input)) else identifier.toFluoriteString()
+        }
     }
 
     return Pair(core, prerelease)
