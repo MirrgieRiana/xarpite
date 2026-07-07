@@ -10,10 +10,15 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.define
 import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.asin
+import kotlin.math.atan
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.floor
 import kotlin.math.ln
+import kotlin.math.log
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -104,6 +109,30 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 else -> usage("TAN(number: NUMBER): NUMBER")
             }
         },
+        "ASIN" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(asin((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ASIN(number: NUMBER): NUMBER")
+            }
+        },
+        "ACOS" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(acos((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ACOS(number: NUMBER): NUMBER")
+            }
+        },
+        "ATAN" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                1 -> FluoriteDouble(atan((arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("ATAN(number: NUMBER): NUMBER")
+            }
+        },
+        "ATAN2" define FluoriteFunction.immediate { arguments ->
+            when (arguments.size) {
+                2 -> FluoriteDouble(atan2((arguments[0] as FluoriteNumber).toDouble(), (arguments[1] as FluoriteNumber).toDouble()))
+                else -> usage("ATAN2(y: NUMBER; x: NUMBER): NUMBER")
+            }
+        },
         "POW" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 2 -> {
@@ -124,7 +153,8 @@ fun createMathMounts(): List<Map<String, Mount>> {
         "LOG" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> FluoriteDouble(ln((arguments[0] as FluoriteNumber).toDouble()))
-                else -> usage("LOG(number: NUMBER): NUMBER")
+                2 -> FluoriteDouble(log((arguments[1] as FluoriteNumber).toDouble(), (arguments[0] as FluoriteNumber).toDouble()))
+                else -> usage("LOG([base: NUMBER; ]number: NUMBER): NUMBER")
             }
         },
         "RAND" define FluoriteFunction.immediate { arguments ->

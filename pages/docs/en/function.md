@@ -569,7 +569,7 @@ Function calls with closures can also be written as method calls or partial appl
 
 # Pass-by-Formula Arguments
 
-Xarpite functions essentially receive arguments not as values but as arguments.
+Xarpite functions essentially receive arguments not as values but as unevaluated formulas.
 
 Most functions evaluate all arguments immediately upon being called, but some functions defer, skip, or evaluate arguments multiple times.
 

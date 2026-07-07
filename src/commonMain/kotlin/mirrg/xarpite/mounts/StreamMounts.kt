@@ -270,7 +270,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         "KEYS" define FluoriteFunction.immediate { arguments ->
-            fun usage(): Nothing = usage("KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>")
+            fun usage(): Nothing = usage("KEYS(object: STREAM<OBJECT>): STREAM<STRING>")
             if (arguments.size == 1) {
                 val obj = arguments[0]
                 if (obj is FluoriteStream) {
@@ -449,6 +449,60 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "OR" define create("OR"),
                 "ANY" define create("ANY"),
             )
+        },
+        "GET" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>")
+            val indices = arguments[0]
+            if (indices is FluoriteStream) {
+                FluoriteStream {
+                    // インデックスをすべて走査し、参照される最大のインデックスまで値ストリームをイテレートして要素を回収するのだ。
+                    val indexList = mutableListOf<Int>()
+                    indices.toFlow().collect { item ->
+                        val index = item.toFluoriteNumber(null).roundToInt()
+                        if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                        indexList += index
+                    }
+                    val maxIndex = indexList.maxOrNull() ?: return@FluoriteStream // インデックスが空なら値ストリームは読まないのだ。
+                    val items = mutableListOf<FluoriteValue>()
+                    var position = 0
+                    try {
+                        arguments[1].toFlow().collect { item ->
+                            items += item
+                            position++
+                            if (position > maxIndex) {
+                                throw IterationAborted // 参照される最大のインデックスまで読めば先読みせず打ち切るのだ。
+                            }
+                        }
+                    } catch (_: IterationAborted) {
+
+                    }
+                    indexList.forEach { index ->
+                        emit(items.getOrNull(index) ?: FluoriteNull)
+                    }
+                }
+            } else {
+                val index = indices.toFluoriteNumber(null).roundToInt()
+                if (index < 0) throw FluoriteException("Index must be non-negative".toFluoriteString())
+                val stream = arguments[1]
+                if (stream is FluoriteStream) {
+                    var result: FluoriteValue? = null
+                    var position = 0
+                    try {
+                        stream.collect { item ->
+                            if (position == index) {
+                                result = item
+                                throw IterationAborted // 目的のインデックスに達したら先読みせず打ち切るのだ。
+                            }
+                            position++
+                        }
+                    } catch (_: IterationAborted) {
+
+                    }
+                    result ?: FluoriteNull
+                } else {
+                    if (index == 0) stream else FluoriteNull
+                }
+            }
         },
         "FIRST" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {

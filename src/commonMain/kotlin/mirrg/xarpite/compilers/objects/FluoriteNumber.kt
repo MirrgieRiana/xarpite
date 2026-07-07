@@ -66,6 +66,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
 
     override fun toString() = value.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
     override fun toInt() = value
     override fun toDouble() = value.toDouble()
     override fun negate() = FluoriteInt(-value)
@@ -115,6 +116,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
 
     override fun toString() = value.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
     override fun toInt() = value.toBigDecimal().intValue(true)
     override fun toDouble() = value
     override fun negate() = FluoriteDouble(-value)
@@ -151,6 +153,7 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
 
     override fun toString() = value.toString()
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
     override fun toInt() = value.intValue(true)
     override fun toDouble() = value.doubleValue(false)
     override fun negate() = FluoriteBig(value.negate())

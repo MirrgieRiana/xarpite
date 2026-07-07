@@ -33,6 +33,7 @@ class FluoriteFunction private constructor(private val function: suspend (Array<
     }
 
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this === other
 
     suspend fun call(arguments: Array<suspend () -> FluoriteValue>) = function(arguments)
 }

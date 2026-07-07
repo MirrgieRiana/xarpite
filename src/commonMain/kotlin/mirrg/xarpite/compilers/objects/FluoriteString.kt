@@ -10,8 +10,13 @@ data class FluoriteString(val value: String) : FluoriteValue {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         val string = arguments[0] as FluoriteString
-                        val index = arguments[1].toFluoriteNumber(null).roundToInt()
-                        string.value.getOrNull(index)?.toString()?.toFluoriteString() ?: FluoriteNull
+                        when (val key = arguments[1]) {
+                            is FluoriteRegex -> key.match(null, string)
+                            else -> {
+                                val index = key.toFluoriteNumber(null).roundToInt()
+                                string.value.getOrNull(index)?.toString()?.toFluoriteString() ?: FluoriteNull
+                            }
+                        }
                     },
                     OperatorMethod.SET_PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                         throw IllegalArgumentException("Cannot set item to string") // TODO
@@ -214,6 +219,7 @@ data class FluoriteString(val value: String) : FluoriteValue {
 
     override fun toString() = value
     override val parent get() = fluoriteClass
+    override fun strictEquals(other: FluoriteValue) = this == other
 }
 
 fun String.toFluoriteString() = if (this.isEmpty()) FluoriteString.EMPTY else FluoriteString(this)

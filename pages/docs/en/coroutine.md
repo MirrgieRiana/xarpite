@@ -22,8 +22,6 @@ The launched coroutine is executed when the thread that called `LAUNCH` next sus
 
 This function returns a `PROMISE` that stores the return value of `function` or the value thrown within `function`.
 
-If any value is thrown within `function`, that value is also output to standard error output.
-
 ```shell
 $ xa '
   promise := LAUNCH ( =>
@@ -47,6 +45,15 @@ $ xa '
   result::await()
 '
 # apple
+```
+
+---
+
+If any value is thrown within `function`, that value is also output to standard error output.
+
+```shell
+$ xa -q 'LAUNCH ( => !!"Error!" )' > /dev/null
+# COROUTINE[1]: Error!
 ```
 
 ---
@@ -220,6 +227,8 @@ Returns whether the `PROMISE` is completed or completed as failed.
 
 Suspends processing for `milliseconds`.
 
+In API version 5, the argument is interpreted as seconds instead of milliseconds, and fractional values can also be specified.
+
 This function does not block the thread but suspends the function.
 
 If `milliseconds` is 0 or omitted, the function suspends once and returns immediately.
@@ -234,27 +243,4 @@ $ xa '
   "Hello, World!"
 '
 # Hello, World!
-```
-
-## `GENERATE`: Generate Stream from Function
-
-`GENERATE(generator: (yield: (value: VALUE) -> NULL) -> NULL | STREAM): STREAM<VALUE>`
-
-Executes the generator function of the first argument and returns the values passed to the `yield` function within that function as a stream.
-
-If the `yield` function returns a stream, that stream is iterated only once.
-
-The `yield` function suspends when called.
-
-```shell
-$ xa '
-  GENERATE ( yield =>
-    yield << 1
-    yield << 2
-    yield << 3
-  )
-'
-# 1
-# 2
-# 3
 ```

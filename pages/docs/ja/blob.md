@@ -14,20 +14,20 @@ BLOBが格納するバイト列は符号なし8bit整数として管理されま
 
 `BLOB_LIKE := NUMBER | BLOB | STREAM<BLOB_LIKE> | ARRAY<BLOB_LIKE>`
 
-BLOBの合成は、 `BLOB_LIKE` から単一のBLOBを生成する際の規則です。
+BLOBの合成は、`BLOB_LIKE`から単一のBLOBを生成する際の規則です。
 
-`BLOB_LIKE` は実際のクラスではなく、BLOBに変換することのできる型を表す便宜上の型です。
+`BLOB_LIKE`は実際のクラスではなく、BLOBに変換することのできる型を表す便宜上の型です。
 
-- `BLOB_LIKE` が数値の場合、小数点以下の四捨五入と下位8ビット以外のビットの削除が行われた状態で新しいBLOBに追加されます。
-- `BLOB_LIKE` がBLOBの場合、そのまま新しいBLOBインスタンスにコピーされます。
-- `BLOB_LIKE` が配列の場合、各要素が再帰的に `BLOB_LIKE` として処理されます。
-- `BLOB_LIKE` がストリームの場合、各要素が再帰的に `BLOB_LIKE` として処理されます。
+- `BLOB_LIKE`が数値の場合、小数点以下の四捨五入と下位8ビット以外のビットの削除が行われた状態で新しいBLOBに追加されます。
+- `BLOB_LIKE`がBLOBの場合、そのまま新しいBLOBインスタンスにコピーされます。
+- `BLOB_LIKE`が配列の場合、各要素が再帰的に`BLOB_LIKE`として処理されます。
+- `BLOB_LIKE`がストリームの場合、各要素が再帰的に`BLOB_LIKE`として処理されます。
 
-## `BLOB.of` 配列からのBLOBの生成
+## `BLOB.of`配列からのBLOBの生成
 
 `BLOB.of(blobLike: BLOB_LIKE): BLOB`
 
-`blobLike` から新しいBLOBを合成します。
+`blobLike`から新しいBLOBを合成します。
 
 ```shell
 $ xa '
@@ -42,13 +42,13 @@ $ xa '
 
 ## 長さの取得
 
-`$#` 演算子でBLOBのバイト数を取得できます。
+`$#`演算子でBLOBのバイト数を取得できます。
 
 詳細は長さの取得を参照してください。
 
 ## 配列への変換
 
-BLOBは `blob::toArray()` で直接配列に変換できます。
+BLOBは`blob::toArray()`で直接配列に変換できます。
 
 ```shell
 $ xa 'BLOB.of([1, 2, 3])::toArray()'

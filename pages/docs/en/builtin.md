@@ -43,15 +43,6 @@ Various constants representing special values.
 
 ---
 
-Mathematical built-in constants.
-
-| Constant  | Meaning         |
-|-----------|-----------------|
-| `MATH.PI` | Pi              |
-| `MATH.E`  | Napier's number |
-
----
-
 String-related built-in constants.
 
 | Constant | Meaning                      |
@@ -62,137 +53,6 @@ String-related built-in constants.
 | `APOS`   | `'`                          |
 | `QUOT`   | `"`                          |
 | `BOM`    | `"\uFEFF"` (Byte Order Mark) |
-
-# Mathematical Functions
-
-## `ABS` Get Absolute Value
-
-`ABS(value: NUMBER): NUMBER`
-
-Returns the absolute value of the first argument.
-
-```shell
-$ xa 'ABS(-10)'
-# 10
-```
-
-## `FLOOR` Round Down to Integer
-
-`FLOOR(number: NUMBER): INT`
-
-Rounds the first argument down to the nearest smaller integer.
-
-```shell
-$ xa 'FLOOR(1.5)'
-# 1
-```
-
-## `DIV` Integer Part of Division
-
-`DIV(x: NUMBER; y: NUMBER): NUMBER`
-
-Divides `x` by `y` and returns the integer part of the result.
-
-```shell
-$ xa 'DIV(10; 3)'
-# 3
-```
-
-## `SQRT` Get Square Root
-
-`SQRT(number: NUMBER): NUMBER`
-
-Returns the positive square root of the first argument.
-
-`SQRT(number: NUMBER): NUMBER`
-
-Returns the positive square root of the first argument.
-
-```shell
-$ xa '"$%.3f(  SQRT(100.0)  )"'
-# 10.000
-```
-
-## `SIN` Sine
-
-`SIN(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its sine.
-
-```shell
-$ xa '"$%.3f(  SIN(PI / 2)  )"'
-# 1.000
-```
-
-## `COS` Cosine
-
-`COS(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its cosine.
-
-```shell
-$ xa '"$%.3f(  COS(0)  )"'
-# 1.000
-```
-
-## `TAN` Tangent
-
-`TAN(number: NUMBER): NUMBER`
-
-Interprets the first argument as radians and returns its tangent.
-
-```shell
-$ xa '"$%.3f(  TAN(PI / 4)  )"'
-# 1.000
-```
-
-## `POW` Power
-
-`POW(base: NUMBER; exponent: NUMBER): NUMBER`
-
-Returns the result of raising the first argument to the power of the second argument.
-
-```shell
-$ xa 'POW(2; 3)'
-# 8.0
-```
-
-## `EXP` Exponential Function
-
-`EXP(number: NUMBER): NUMBER`
-
-Returns the exponential function (base e) of the first argument.
-
-```shell
-$ xa '"$%.3f(  EXP(1)  )"'
-# 2.718
-
-$ xa '"$%.3f(  EXP(2)  )"'
-# 7.389
-```
-
-## `LOG` Natural Logarithm
-
-`LOG(number: NUMBER): NUMBER`
-
-Returns the natural logarithm (base e) of the first argument.
-
-```shell
-$ xa '"$%.3f(  LOG(MATH.E)  )"'
-# 1.000
-```
-
-## `RAND` Get Random Number
-
-`RAND(): DOUBLE`
-
-`RAND([from: NUMBER; ]until: NUMBER): INT`
-
-When called without arguments, returns a decimal between 0 (inclusive) and 1 (exclusive).
-
-When called with 1 argument, returns an integer between 0 (inclusive) and `until` (exclusive).
-
-When called with 2 arguments, returns an integer between `from` (inclusive) and `until` (exclusive).
 
 # Stream Functions
 
@@ -407,7 +267,7 @@ $ xa '"A\nB\nC\n" >> LINES >> LINESD >> JSON'
 
 ## `KEYS` Get Stream of Object Keys
 
-`KEYS(object: OBJECT | STREAM<OBJECT>): STREAM<STRING>`
+`KEYS(object: STREAM<OBJECT>): STREAM<STRING>`
 
 Returns a stream of keys from `object`.
 
@@ -666,6 +526,39 @@ $ xa '1 .. 50 | _ != 39 >> OR'
 ---
 
 Other properties follow those of the `AND` function.
+
+## `GET` Get Element by Index
+
+`<T> GET(indices: STREAM<INT>; stream: STREAM<T>): STREAM<T | NULL>`
+
+Returns the elements of `stream` at the indices corresponding to `indices`.
+
+Indices start from 0.
+
+Throws an error if a negative index is passed.
+
+If the corresponding index does not exist, returns `NULL`.
+
+When `indices` is a stream, returns a stream of the elements corresponding to each index.
+
+```shell
+$ xa 'GET(1; 0, 10, 20)'
+# 10
+
+$ xa 'GET(5; 0, 10, 20)'
+# NULL
+
+$ xa 'GET(0, 2; 0, 10, 20)'
+# 0
+# 20
+
+$ xa '0, 10, 20, 30, 40 >> GET[3, 0, 2, 2, 5]'
+# 30
+# 0
+# 20
+# 20
+# NULL
+```
 
 ## `FIRST` Get First Element of Stream
 
@@ -1037,25 +930,6 @@ $ xa 'TO_STRING(123)'
 
 $ xa '1, 2, 3 >> TO_STRING'
 # 123
-```
-
-## `TO_NUMBER` Numericalization
-
-`TO_NUMBER(value: VALUE): NUMBER`
-
-Converts a value to a number.
-
-Has the same behavior as the `+value` operator.
-
-```shell
-$ xa 'TO_NUMBER("123")'
-# 123
-
-$ xa '1, 2, 3 >> TO_NUMBER'
-# 6
-
-$ xa 'TO_NUMBER(NULL)'
-# 0
 ```
 
 ## `TO_BOOLEAN` Booleanization

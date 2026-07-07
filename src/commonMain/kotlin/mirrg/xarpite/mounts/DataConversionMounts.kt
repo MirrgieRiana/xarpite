@@ -17,6 +17,7 @@ import mirrg.xarpite.compilers.objects.toByteArrayAsBlobLike
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
+import mirrg.xarpite.getJsonDefaultIndent
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
 import mirrg.xarpite.pop
@@ -209,10 +210,12 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
 
                     val (entries, arguments3) = arguments2.partitionIfEntry()
 
-                    val indent = (entries.remove("indent") ?: arguments3.removeFirstOrNull())?.let { parseIndent(it) }
+                    val indentArgument = entries.remove("indent") ?: arguments3.removeFirstOrNull()
 
                     if (entries.isNotEmpty()) usage()
                     if (arguments3.isNotEmpty()) usage()
+
+                    val indent = if (indentArgument != null) parseIndent(indentArgument) else getJsonDefaultIndent(context.apiVersion)
 
                     value.toSingleJsonFluoriteValue(null, indent = indent)
                 },
@@ -241,10 +244,10 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                             values.toJsonsFluoriteValue(null, indent = indent)
                         }
                     }
-                    arrayOf(
-                        "JSONS" define create("JSONS"),
+                    listOfNotNull(
+                        if (context.apiVersion >= 5) null else "JSONS" define create("JSONS"),
                         "JSONL" define create("JSONL"),
-                    )
+                    ).toTypedArray()
                 },
                 *run {
                     fun create(name: String): FluoriteFunction {
@@ -265,7 +268,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]value: ARRAY<STRING> | STREAM<ARRAY<STRING>>): STRING | STREAM<STRING>""")
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>""")
                     if (arguments.isEmpty()) usage()
                     val parameters = arguments.dropLast(1)
                         .associate {
@@ -338,7 +341,7 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]lines: STRING | STREAM<STRING>): ARRAY<STRING> | STREAM<ARRAY<STRING>>""")
+                    fun usage(): Nothing = usage("""$name([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>""")
                     if (arguments.isEmpty()) usage()
                     val parameters = arguments.dropLast(1)
                         .associate {

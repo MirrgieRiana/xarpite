@@ -153,16 +153,6 @@ $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ / ([a-z]+)
 # apple
 # banana
 # cherry
-```
-
-## Global Match
-
-Matching with a regular expression with the `g` flag returns a stream of all match results.
-
-```shell
-$ xa ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
-# apple
-# people
 
 $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]+)/g | _.1 '
 # Red
@@ -174,6 +164,16 @@ $ xa ' ("Red apple pie", "Yellow banana cake", "Pink cherry tart") =~ /([A-Za-z]
 # Pink
 # cherry
 # tart
+```
+
+## Global Match
+
+Matching with a regular expression with the `g` flag returns a stream of all match results.
+
+```shell
+$ xa ' "apple pebble people" =~ /(\w*pl\w*)/g | _.1 '
+# apple
+# people
 ```
 
 ## Negative Match
@@ -195,6 +195,15 @@ $ xa ' "apple" !~ /xy/ '
 ---
 
 The global match flag is effectively meaningless.
+
+## Matching via Property Access
+
+Property access on a string performs a match equivalent to `string =~ regex` when the key is a regular expression.
+
+```shell
+$ xa ' "apple"./pp(.)/.1 '
+# l
+```
 
 ## Calling Regular Expression Objects as Functions
 

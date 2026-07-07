@@ -24,9 +24,27 @@ import io.github.mirrgieriana.xarpeg.text
 import mirrg.kotlin.helium.join
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-class XarpiteGrammar(val location: String) {
+class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
-    val lineComment: Parser<Tuple0> = -Regex("""(?:#|//)[^\r\n]*""")
+    val sharpLineCommentBody: Parser<Tuple0> = -Regex("""#[^\r\n]*""")
+    val sharpLineComment: Parser<Tuple0> = if (apiVersion >= 5) {
+        Parser { context, start ->
+            if (start == 0) {
+                context.parseOrNull(sharpLineCommentBody, start)
+            } else {
+                val previousCharacter = context.src[start - 1]
+                if (previousCharacter == ' ' || previousCharacter == '\t' || previousCharacter == '\n' || previousCharacter == '\r') {
+                    context.parseOrNull(sharpLineCommentBody, start)
+                } else {
+                    null
+                }
+            }
+        }
+    } else {
+        sharpLineCommentBody
+    }
+    val slashLineComment: Parser<Tuple0> = -Regex("""//[^\r\n]*""")
+    val lineComment: Parser<Tuple0> = sharpLineComment + slashLineComment
 
     val blockCommentContent: Parser<Tuple0> = or(
         ref { blockComment },
@@ -163,6 +181,7 @@ class XarpiteGrammar(val location: String) {
         (-':' * indentBlockBody * indentBlockEnd).result map { IndentBlockNode(it.value, it.position) },
         (-':' * indentBlockEnd).result map { IndentBlockNode(EmptyNode, it.position) },
     )
+    val prefixColon: Parser<Node> = -':' * !':' * -s * ref { condition }
 
     val jump: Parser<Node> = or(
         (-"!!").result * -s * ref { commas } map { ThrowNode(it.b, it.a.position) },
@@ -171,8 +190,8 @@ class XarpiteGrammar(val location: String) {
         identifier * -s * -"!!" map { ReturnNode(it, EmptyNode) },
     )
 
-    val nonFloatFactor: Parser<Node> = indentBlock + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
-    val factor: Parser<Node> = indentBlock + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
+    val nonFloatFactor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
+    val factor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side, Position) -> Node> = or(
         -"++" map { ::UnaryPlusPlusNode },
@@ -246,13 +265,14 @@ class XarpiteGrammar(val location: String) {
     val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
-        -"==" map { ComparisonOperatorType.EQUAL }, // ==
+        -"==" map { ComparisonOperatorType.EQUAL_EQUAL }, // ==
         -"!=" map { ComparisonOperatorType.EXCLAMATION_EQUAL }, // !=
         -">=" map { ComparisonOperatorType.GREATER_EQUAL }, // >=
         -'>' * !'>' map { ComparisonOperatorType.GREATER }, // >
         -"<=" map { ComparisonOperatorType.LESS_EQUAL }, // <=
         -'<' * !'<' map { ComparisonOperatorType.LESS }, // <
         -"?=" map { ComparisonOperatorType.QUESTION_EQUAL }, // ?=
+        -"!?=" map { ComparisonOperatorType.EXCLAMATION_QUESTION_EQUAL }, // !?=
         -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )
@@ -332,6 +352,9 @@ class XarpiteGrammar(val location: String) {
     val expression: Parser<Node> = semicolons
 
     val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode }
+
+    val shebang: Parser<Tuple0> = -Regex("""#![^\r\n]*(?:\n|\r\n?)?""") // 最外部の先頭限定のシバン行（末尾の改行ごと消費）
+    val rootEmbeddedParser: Parser<Node> = -shebang.optional * embeddedStringContent.zeroOrMore map { EmbeddedStringNode(it.flatten()) } // 最外部を埋め込み文字列の本体として解釈する
 
     private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
     private val ParseResult<*>.position get() = Position(location, start)

@@ -495,6 +495,56 @@ $ xa '"$%.3f(  TAN(PI / 4)  )"'
 # 1.000
 ```
 
+### `ASIN`: Arcsine
+
+`ASIN(number: NUMBER): NUMBER`
+
+Returns the arcsine of the first argument in radians.
+
+This function is the inverse of the `SIN` function.
+
+```shell
+$ xa '"$%.3f(  ASIN(1)  )"'
+# 1.571
+```
+
+### `ACOS`: Arccosine
+
+`ACOS(number: NUMBER): NUMBER`
+
+Returns the arccosine of the first argument in radians.
+
+This function is the inverse of the `COS` function.
+
+```shell
+$ xa '"$%.3f(  ACOS(0)  )"'
+# 1.571
+```
+
+### `ATAN`: Arctangent
+
+`ATAN(number: NUMBER): NUMBER`
+
+Returns the arctangent of the first argument in radians.
+
+This function is the inverse of the `TAN` function.
+
+```shell
+$ xa '"$%.3f(  ATAN(1)  )"'
+# 0.785
+```
+
+### `ATAN2`: Angle of a coordinate
+
+`ATAN2(y: NUMBER; x: NUMBER): NUMBER`
+
+Returns the angle of the coordinate `(x, y)` in radians.
+
+```shell
+$ xa '"$%.3f(  ATAN2(1; 1)  )"'
+# 0.785
+```
+
 ### `POW`: Power
 
 `POW(base: NUMBER; exponent: NUMBER): NUMBER`
@@ -520,15 +570,20 @@ $ xa '"$%.3f(  EXP(2)  )"'
 # 7.389
 ```
 
-### `LOG`: Natural Logarithm
+### `LOG`: Logarithm
 
-`LOG(number: NUMBER): NUMBER`
+`LOG([base: NUMBER; ]number: NUMBER): NUMBER`
 
-Returns the natural logarithm (base e) of the first argument.
+Returns the logarithm of `number` with `base` as the base.
+
+When `base` is omitted, returns the natural logarithm with base e.
 
 ```shell
 $ xa '"$%.3f(  LOG(MATH.E)  )"'
 # 1.000
+
+$ xa '"$%.3f(  LOG(2; 8)  )"'
+# 3.000
 ```
 
 ### `RAND`: Get Random Number

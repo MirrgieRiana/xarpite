@@ -9,6 +9,7 @@ import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
+import mirrg.xarpite.test.evalEmbedded
 import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.obj
@@ -103,6 +104,26 @@ class XarpiteTest {
                 2
             ]
         """.let { assertEquals("[1;2]", eval(it).array()) }
+
+    }
+
+    @Test
+    fun lineCommentPrefixTest() = runTest {
+
+        // APIバージョン4以前では、# の直前に空白文字が無くても行コメントになる
+        assertEquals(parse("1", 4), parse("1#comment", 4))
+
+        // APIバージョン5以降では、# の直前が行頭または空白文字の場合のみ行コメントになる
+        assertEquals(parse("1", 5), parse("1 #comment", 5)) // スペースの直後
+        assertEquals(parse("1", 5), parse("1\t#comment", 5)) // タブの直後
+        assertEquals(parse("1", 5), parse("1\n#comment", 5)) // 改行の直後（行頭）
+        assertEquals(parse("1", 5), parse("#comment\n1", 5)) // 入力の先頭（行頭）
+
+        // APIバージョン5以降では、# の直前に空白文字が無いと行コメントにならず、構文エラーとなる
+        assertFails { parse("1#comment", 5) }
+
+        // // による行コメントはAPIバージョン5以降でも直前の空白文字を要求しない
+        assertEquals(parse("1", 5), parse("1//comment", 5))
 
     }
 
@@ -320,6 +341,21 @@ class XarpiteTest {
         assertEquals("hello world", eval(" %>hello <%# comment % with percent %>world<% ").string) // コメント内に % を含む
         assertEquals("hello world", eval(" %>hello <%# comment\nwith newline\n%>world<% ").string) // コメント内に改行を含む
 
+    }
+
+    @Test
+    fun embeddedRootTest() = runTest {
+        assertEquals("abcABC123", evalEmbedded("abcABC123").string) // 最外部が埋め込み文字列の本体として解釈される
+        assertEquals("123", evalEmbedded("<%= 100 + 20 + 3 %>").string) // 式の埋め込み
+        assertEquals("<%", evalEmbedded("<%%").string) // <%% で <% になる
+        assertEquals("\n \n \n", evalEmbedded("\n \r \r\n").string) // 改行は \n に統一される
+        assertEquals("", evalEmbedded("").string) // 空のソースは空文字列になる
+
+        assertEquals("a", evalEmbedded("#!/usr/bin/env -S xarpite -E\na").string) // 先頭のシバン行は末尾の改行ごと取り除かれる
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E\n").string) // 本文が無くてもシバン行を受理する
+        assertEquals("", evalEmbedded("#!/usr/bin/env -S xarpite -E").string) // 末尾に改行が無くてもシバン行を受理する
+        assertEquals("a", evalEmbedded("a").string) // シバン行が無くても本文として解釈される
+        assertEquals("a\n#!b", evalEmbedded("a\n#!b").string) // 先頭以外の #! はリテラルとして扱われる
     }
 
     @Test
@@ -744,6 +780,24 @@ class XarpiteTest {
     }
 
     @Test
+    fun notInstanceOfTest() = runTest {
+        // 継承チェーンに存在するクラスに対しては FALSE を返す
+        assertEquals(false, eval("A := {}; a := A {}; a !?= A").boolean)
+        assertEquals(false, eval("A := {}; B := A {}; b := B {}; b !?= A").boolean)
+
+        // 無関係なクラスに対しては TRUE を返す
+        assertEquals(true, eval("A := {}; B := {}; a := A {}; a !?= B").boolean)
+
+        // 組み込みクラスに対しても動作する
+        assertEquals(false, eval("1 !?= INT").boolean)
+        assertEquals(true, eval("'10' !?= INT").boolean)
+
+        // !(left ?= right) と等価であることを確認
+        assertEquals(true, eval("!(1 ?= INT) == (1 !?= INT)").boolean)
+        assertEquals(true, eval("!('10' ?= INT) == ('10' !?= INT)").boolean)
+    }
+
+    @Test
     fun andOrTest() = runTest {
         // && は左辺がTRUEの場合に右辺を、 || は左辺がFALSEの場合に右辺を返す
         assertEquals(0, eval("0 && 2").int)
@@ -811,6 +865,43 @@ class XarpiteTest {
         assertEquals(2, eval("a := 1; FALSE ? 0 : (a = 2); a").int)
         assertEquals(2, eval("a := 1; NULL ?: (a = 2); a").int)
         assertEquals(1, eval("a := 1; 0 ?: (a = 2); a").int)
+    }
+
+    @Test
+    fun prefixColonTest() = runTest {
+        // 前置コロン `: x` は中身をそのまま返す恒等（三項の else 枝を式の先頭に開放したもの）
+        assertEquals(1, eval(": 1").int)
+        assertEquals(2, eval(": 1 + 1").int)
+
+        // 前置コロンは後続の三項全体を掴む（else 枝と同じ結合）
+        assertEquals(1, eval(": TRUE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : 2").int)
+        assertEquals(2, eval(": FALSE ? 1 : TRUE ? 2 : 3").int)
+
+        // 連鎖三項の行頭を `:` で揃えた when 風の記法が書ける
+        assertEquals(2, eval(": FALSE ? 1\n: TRUE ? 2\n: 3").int)
+        assertEquals(3, eval(": FALSE ? 1\n: FALSE ? 2\n: 3").int)
+        assertEquals("zero", eval("a := 0\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("pos", eval("a := 7\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+        assertEquals("neg", eval("a := -5\n: a == 0 ? \"zero\"\n: a > 0 ? \"pos\"\n: \"neg\"").string)
+
+        // エルビス演算子とも混ぜられる
+        assertEquals(5, eval(": NULL ?: 5").int)
+
+        // 前置コロンは恒等なので独自スコープを作らない（インデントブロックとの違い）
+        assertEquals(2, eval("a := 1; : a = 2; a").int)
+
+        // `: ` の直後が改行の場合は、従来どおりインデントブロックが優先される
+        assertEquals(10, eval(":\n  10").int)
+
+        // 三項の then 枝の位置にも前置コロンを書ける（condition の再帰なので到達する）
+        assertEquals(1, eval("TRUE ? : 1 : 2").int)
+
+        // `::` は将来の予約のため拒否し、前置コロンを2連したいときはスペースで分ける
+        assertEquals(5, eval(": : 5").int)
+        assertFails { eval("::FOO") }
+        // `:=`（宣言）も前置コロンに化けず、従来どおり構文エラーのまま
+        assertFails { eval(":= 1") }
     }
 
     @Test
