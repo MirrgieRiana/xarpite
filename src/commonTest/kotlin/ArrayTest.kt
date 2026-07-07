@@ -114,6 +114,15 @@ class ArrayTest {
     }
 
     @Test
+    fun minus() = runTest {
+        assertEquals("[1;3]", eval("[1, 2, 3] - 2").array()) // 単一要素の削除
+        assertEquals("[1;2;3]", eval("[1, 2, 3] - 4").array()) // 存在しない要素を削除しても変化しない
+        assertEquals("[1;3;2]", eval("[1, 2, 3, 2] - 2").array()) // 最初の一致する要素のみ削除される
+        assertEquals("[3]", eval("[1, 2, 3, 2] - (1, 2, 2)").array()) // ストリームによる複数削除
+        assertEquals("[1;2;3]", eval("a := [1, 2, 3]; a - 2; a").array()) // 元の配列は改変されない
+    }
+
+    @Test
     fun times() = runTest {
         assertEquals("[1;2;1;2;1;2]", eval("[1; 2] * 3").array()) // 配列を繰り返した配列の取得
     }

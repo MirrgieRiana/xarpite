@@ -493,6 +493,23 @@ $ xa -q '
 # [cherry]
 ```
 
+## `array - item`: 要素を削除した配列の生成
+
+減算 `array - item` は、配列 `array` から要素 `item` を削除した配列を新たに生成して返します。
+
+`array -= item` と異なり、`array` 自体は改変されません。
+
+削除の規則は `array -= item` と同じです。
+
+```shell
+$ xa '
+  array := ["apple", "banana", "cherry", "banana"]
+
+  array - ("apple", "banana")
+'
+# [cherry;banana]
+```
+
 # 配列系関数
 
 ## `INTERCALATE`: 配列のストリームを配列に連結
