@@ -136,3 +136,15 @@ To preserve the previous behavior, insert a space before any `#` that previously
 - 1#comment
 + 1 #comment
 ```
+
+## API Version 6
+
+### `USE` Now Prefers an Already-Loaded Location
+
+Up to API version 5, `USE` resolved `reference` according to the `INC` priority order on every call.
+
+In API version 6, if any of the searched locations has already been loaded, it is reused in preference to the `INC` priority order.
+
+There is no way to perform the migration while strictly preserving the behavior.
+
+In most cases nothing needs to be done, but the behavior may change for scripts that repeatedly `USE` the same `reference` while changing `INC` and depend on the resolved location changing.

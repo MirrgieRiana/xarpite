@@ -1017,6 +1017,10 @@ As a general rule, modules belonging to paths closer to the end of the `INC` arr
 
 However, `INC` entries that are local file paths are searched before entries that are URLs.
 
+In API version 6 and later, in addition, an already-loaded `INC` entry is given priority regardless of whether it is a local file path or a URL.
+
+As a result, even if `INC` is changed later, the same `reference` is fixed to the instance that was loaded first.
+
 ---
 
 The directory separator character `/` can be used regardless of the OS on which it is executed.
