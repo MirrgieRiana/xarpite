@@ -287,12 +287,15 @@ $ xa '
 
 `CONTAINS`関数は含有演算子`@`を関数の形式で呼び出すためのシンタックスシュガーです。
 
-`CONTAINS(container; content)`および`container::CONTAINS(content)`は`content @ container`と等価です。
+`CONTAINS(container; content)`、`container::CONTAINS(content)`、および中置呼び出しの`container CONTAINS content`は`content @ container`と等価です。
 
 ```shell
 $ xa ' CONTAINS("abcde"; "bcd") '
 # TRUE
 
 $ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
+
+$ xa ' "abcde" CONTAINS "bcd" '
 # TRUE
 ```

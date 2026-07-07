@@ -287,12 +287,15 @@ $ xa '
 
 The `CONTAINS` function is syntactic sugar for calling the containment operator `@` in function form.
 
-`CONTAINS(container; content)` and `container::CONTAINS(content)` are equivalent to `content @ container`.
+`CONTAINS(container; content)`, `container::CONTAINS(content)`, and the infix call `container CONTAINS content` are equivalent to `content @ container`.
 
 ```shell
 $ xa ' CONTAINS("abcde"; "bcd") '
 # TRUE
 
 $ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
+
+$ xa ' "abcde" CONTAINS "bcd" '
 # TRUE
 ```
