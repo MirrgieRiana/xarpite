@@ -106,6 +106,14 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
+    // -A が指定されなかった場合、XARPITE_API_VERSION 環境変数があればそれを採用する
+    if (apiVersion == null) {
+        val envApiVersion = ioContext.getEnv()["XARPITE_API_VERSION"]?.notBlankOrNull
+        if (envApiVersion != null) {
+            apiVersion = envApiVersion.toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowUsage
+        }
+    }
+
     // 引数セクションのパース
     run {
 
