@@ -499,7 +499,7 @@ Subtraction `array - item` creates and returns a new array with element `item` r
 
 Unlike `array -= item`, the `array` itself is not modified.
 
-The removal rules are the same as `array -= item`: if there are multiple matching elements, the one closest to the beginning is removed; if no matching element exists, nothing happens; and if `item` is a stream, the removal operation is performed for each element of the stream.
+The removal rules are the same as `array -= item`.
 
 ```shell
 $ xa '
