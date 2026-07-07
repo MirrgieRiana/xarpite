@@ -282,11 +282,11 @@ $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 
 ---
 
-Specifying the API version via the `-A` option takes precedence over specification via the environment variable.
+The API version is determined based on the following priority:
 
----
-
-When neither the `-A` option nor the `XARPITE_API_VERSION` environment variable is specified, the API version becomes the same value as Xarpite's own major version.
+1. The `-A` option
+2. The `XARPITE_API_VERSION` environment variable
+3. Xarpite's own major version
 
 ---
 

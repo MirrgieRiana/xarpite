@@ -282,11 +282,11 @@ $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 
 ---
 
-`-A`オプションによるAPIバージョンの指定は環境変数による指定よりも優先されます。
+APIバージョンは以下の優先順位に基づいて決定されます。
 
----
-
-`-A`オプションと`XARPITE_API_VERSION`環境変数のいずれも指定されていない場合、APIバージョンはXarpite自身のメジャーバージョンと同じ値になります。
+1. `-A`オプション
+2. `XARPITE_API_VERSION`環境変数
+3. Xarpite自身のメジャーバージョン
 
 ---
 
