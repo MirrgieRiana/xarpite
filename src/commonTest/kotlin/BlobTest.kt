@@ -6,6 +6,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -129,8 +130,8 @@ class BlobTest {
     }
 
     @Test
-    fun callFromBlob() = runTest {
-        assertEquals("1,2,3", (eval("BLOB(BLOB([1,2,3]))").blob)) // BLOBからの生成
+    fun callToStream() = runTest {
+        assertEquals("1,2,3", (eval("BLOB([1,2,3])()").stream())) // 引数なし呼び出しで各バイトのストリームを得る
     }
 
     @Test

@@ -56,3 +56,14 @@ A BLOB can be directly converted to an array with `blob::toArray()`.
 $ xa 'BLOB.of([1, 2, 3])::toArray()'
 # [1;2;3]
 ```
+
+## Converting to Stream
+
+Calling a BLOB with no arguments returns a stream that iterates over each byte in order.
+
+```shell
+$ xa 'BLOB([1, 2, 3])()'
+# 1
+# 2
+# 3
+```

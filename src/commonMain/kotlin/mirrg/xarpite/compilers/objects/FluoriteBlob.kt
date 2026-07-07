@@ -15,8 +15,15 @@ class FluoriteBlob @OptIn(ExperimentalUnsignedTypes::class) constructor(val valu
                 FluoriteObject(
                     FluoriteValue.fluoriteClass, mutableMapOf(
                         OperatorMethod.CALL.methodName to FluoriteFunction.immediate { arguments ->
+                            val receiver = arguments[0]
                             if (arguments.size == 2) {
                                 arguments[1].toBlobAsBlobLike()
+                            } else if (arguments.size == 1 && receiver is FluoriteBlob) {
+                                // BLOBインスタンスの引数なし呼び出しで、各バイトのストリームを返すのだ
+                                FluoriteStream {
+                                    @OptIn(ExperimentalUnsignedTypes::class)
+                                    receiver.value.forEach { emit(FluoriteInt(it.toInt())) }
+                                }
                             } else {
                                 usage("BLOB(array: STREAM<NUMBER | ARRAY<NUMBER> | BLOB>): BLOB")
                             }
