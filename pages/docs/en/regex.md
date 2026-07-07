@@ -100,6 +100,57 @@ $ xa '/apple/.flags'
 # NULL
 ```
 
+# Flag Manipulation of Regular Expression Objects
+
+From a regular expression object, you can obtain a new regular expression object with a flag added or removed.
+
+`REGEX::withFlag(flag: STRING[; enable: BOOLEAN]): REGEX`
+
+`withFlag` returns a regular expression object with each flag character contained in `flag` added.
+
+If `enable` is `FALSE`, removal is performed instead of addition. `enable` defaults to `TRUE`.
+
+The following are all shorthands for the base form using `withFlag`:
+
+| Notation                   | Base Form                      |
+|----------------------------|--------------------------------|
+| `regex::withoutFlag(flag)` | `regex::withFlag(flag; FALSE)` |
+| `regex + flag`             | `regex::withFlag(flag; TRUE)`  |
+| `regex - flag`             | `regex::withFlag(flag; FALSE)` |
+
+These operations are idempotent. Adding a flag that is already present, or removing a flag that is not present, does not change the result.
+
+`flag` can contain multiple flag characters at once, such as `gi`.
+
+Added flags are not normalized and are always appended to the end of the existing flag sequence.
+
+When all flags are removed, `flags` becomes `NULL`.
+
+If `flag` contains a character that is invalid as a regular expression flag, an error occurs.
+
+```shell
+$ xa ' /apple/::withFlag("g") '
+# /apple/g
+
+$ xa ' /apple/g::withFlag("g"; FALSE) '
+# /apple/
+
+$ xa ' /apple/::withoutFlag("i") '
+# /apple/
+
+$ xa ' /apple/ + "i" '
+# /apple/i
+
+$ xa ' /apple/gi - "g" '
+# /apple/i
+
+$ xa ' /apple/i::withFlag("g") '
+# /apple/ig
+
+$ xa ' /apple/::withFlag("gi") '
+# /apple/gi
+```
+
 # Partial Match Determination
 
 The `regex @ string` operator can determine whether a regular expression partially matches a string.
