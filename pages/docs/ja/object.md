@@ -263,9 +263,9 @@ $ xa '
 # {b:banana}
 ```
 
-# 組み込み関数`PARENT`
+# 組み込み関数`PARENT` / `TYPE`
 
-## `PARENT`: 親オブジェクトの取得
+## `PARENT` / `TYPE`: 親オブジェクトの取得
 
 `PARENT(value: VALUE): OBJECT | NULL`
 
@@ -280,6 +280,8 @@ $ xa '
 それ以外の値に対しては、対応するクラス定数を返します。
 
 `value`がストリームの場合も、要素ごとではなく、ストリームそのものの親オブジェクトである`STREAM`を返します。
+
+`TYPE`は`PARENT`の別名であり、同一の動作を持ちます。
 
 ```shell
 $ xa '
