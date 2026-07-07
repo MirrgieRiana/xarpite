@@ -108,10 +108,10 @@ val xarpiteCode = """EXEC("bash", "-c", %>xxd -r -p <<<'$hex' | bash<%)"""
 
 ### 記述規約
 
-日本語版ドキュメント（`pages/docs/ja`）を記述する際の詳細な規範は、次の2つのファイルにまとめられています。
+以下は、ドキュメントの記述に関する慣例について AI が分析した資料です。
 
-`.github/docs-ja-writing-conventions.md` は、ファイル・章構造、文章スタイル、コード例、箇条書き、エントリの記述など、ドキュメント全体にわたる記述規約です。
-`.github/signature-orthography.md` は、API・演算子・関数のシグネチャ行の表記に特化した正書法です。
+- `.github/docs-ja-writing-conventions.md` - 日本語版ドキュメント全体にわたる記法の分析結果です。
+- `.github/signature-orthography.md` - シグネチャの記法に関する分析結果です。
 
 ## 破壊的変更
 
