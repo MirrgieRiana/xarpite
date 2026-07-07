@@ -1,6 +1,7 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.empty
@@ -11,6 +12,7 @@ import mirrg.xarpite.test.stream
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -402,6 +404,69 @@ class DataConversionTest {
         assertEquals("a.b", eval(""" ("a.b" =~ REGEX.new("a.b" >> REGEX_ESCAPE)).0 """).string) // エスケープ後の文字列は元の文字列に一致する
         assertEquals(FluoriteNull, eval(""" "aXb" =~ REGEX.new("a.b" >> REGEX_ESCAPE) """)) // . がリテラル化され、ワイルドカードとして別の文字には一致しない
         assertEquals("^a$|b", eval(""" ('^a$|b' =~ REGEX.new('^a$|b' >> REGEX_ESCAPE)).0 """).string) // メタ文字を多数含む文字列もリテラルとして一致する
+    }
+
+    @Test
+    fun semver() = runTest {
+        // SEMVER でパースした値同士は宇宙船演算子で比較できる
+        assertEquals(-1, eval(""" SEMVER("1.2.3") <=> SEMVER("1.10.0") """).int) // 数値コアは各要素を数値として比較するため 1.2.3 < 1.10.0
+        assertEquals(1, eval(""" SEMVER("1.10.0") <=> SEMVER("1.2.3") """).int)
+        assertEquals(0, eval(""" SEMVER("1.2.3") <=> SEMVER("1.2.3") """).int)
+        assertEquals(-1, eval(""" SEMVER("1.0.0") <=> SEMVER("2.0.0") """).int) // メジャーが優先される
+        assertEquals(-1, eval(""" SEMVER("1.2.0") <=> SEMVER("1.3.0") """).int) // 次にマイナー
+        assertEquals(-1, eval(""" SEMVER("1.2.3") <=> SEMVER("1.2.4") """).int) // 次にパッチ
+
+        // 比較演算子も使える
+        assertEquals(true, eval(""" SEMVER("1.2.3") < SEMVER("1.10.0") """).boolean)
+        assertEquals(true, eval(""" SEMVER("2.0.0") > SEMVER("1.9.9") """).boolean)
+        assertEquals(true, eval(""" SEMVER("1.2.3") <= SEMVER("1.2.3") """).boolean)
+
+        // SORT[by: SEMVER] でバージョン文字列を意味的に並べ替えられる
+        assertEquals("1.2.3,1.2.10,1.10.0", eval(""" "1.2.3", "1.10.0", "1.2.10" >> SORT[by: SEMVER] """).stream()) // 辞書順とは異なり数値として並ぶ
+        assertEquals("1.10.0,1.2.10,1.2.3", eval(""" "1.2.3", "1.10.0", "1.2.10" >> SORTR[by: SEMVER] """).stream()) // 降順ソートにも使える
+
+        // MAX / MIN でも使える
+        assertEquals(0, eval(""" MAX(SEMVER("1.9.9"), SEMVER("2.0.0")) <=> SEMVER("2.0.0") """).int) // MAX はより大きい方（2.0.0）を返す
+        assertEquals(0, eval(""" MIN(SEMVER("1.9.9"), SEMVER("2.0.0")) <=> SEMVER("1.9.9") """).int) // MIN はより小さい方（1.9.9）を返す
+
+        // プレリリースは、同じコアのプレリリース無しより precedence が低い
+        assertEquals(-1, eval(""" SEMVER("1.0.0-alpha") <=> SEMVER("1.0.0") """).int)
+        assertEquals(1, eval(""" SEMVER("1.0.0") <=> SEMVER("1.0.0-rc.1") """).int)
+        // プレリリース識別子は左から順に比較され、識別子数の少ない方が小さい
+        assertEquals(-1, eval(""" SEMVER("1.0.0-alpha") <=> SEMVER("1.0.0-alpha.1") """).int)
+        // 数値識別子は数値として比較される
+        assertEquals(-1, eval(""" SEMVER("1.0.0-beta.2") <=> SEMVER("1.0.0-beta.11") """).int)
+        // 数値識別子は英数字識別子より小さい
+        assertEquals(-1, eval(""" SEMVER("1.0.0-alpha.1") <=> SEMVER("1.0.0-alpha.beta") """).int)
+        // 英数字識別子は辞書順で比較される
+        assertEquals(-1, eval(""" SEMVER("1.0.0-alpha") <=> SEMVER("1.0.0-beta") """).int)
+        // SemVer 2.0.0 の仕様例どおりの順序で並ぶ
+        assertEquals(
+            "1.0.0-alpha,1.0.0-alpha.1,1.0.0-alpha.beta,1.0.0-beta,1.0.0-beta.2,1.0.0-beta.11,1.0.0-rc.1,1.0.0",
+            eval(""" "1.0.0", "1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.beta", "1.0.0-beta", "1.0.0-beta.2", "1.0.0-beta.11", "1.0.0-rc.1" >> SORT[by: SEMVER] """).stream()
+        )
+
+        // ビルドメタデータは precedence では無視される
+        assertEquals(0, eval(""" SEMVER("1.0.0+build.1") <=> SEMVER("1.0.0+build.2") """).int)
+        assertEquals(0, eval(""" SEMVER("1.0.0+build") <=> SEMVER("1.0.0") """).int)
+
+        // 内部構造は隠蔽されており、パース結果を公開プロパティとしては取得できない
+        assertEquals(FluoriteNull, eval(""" SEMVER("1.2.3").major """)) // major などの公開プロパティは存在しない
+
+        // SEMVER として解釈できない文字列はエラーになる
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2") """) } // 要素が3個でない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.3.4") """) } // 要素が3個でない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.x") """) } // 数値でない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("01.2.3") """) } // メジャーの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.02.3") """) } // マイナーの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.2.03") """) } // パッチの先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-01.1") """) } // 数値のプレリリース識別子の先頭ゼロは許されない
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-") """) } // プレリリースが空
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0-alpha..beta") """) } // プレリリースに空の識別子がある
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("") """) } // 空文字列
+
+        // SEMVER 同士でない比較はエラーになる
+        assertFailsWith<FluoriteException> { eval(""" SEMVER("1.0.0") <=> "1.0.0" """) }
     }
 
 }

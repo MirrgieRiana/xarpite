@@ -453,5 +453,10 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                 "TSVD" define create("TSVD", "\t"),
             )
         },
+        "SEMVER" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("SEMVER(version: STRING): OBJECT")
+            if (arguments.size != 1) usage()
+            arguments[0].toFluoriteString(null).value.toFluoriteSemver()
+        },
     ).let { listOf(it) }
 }

@@ -508,3 +508,43 @@ Has the same behavior as the `CSV` function, but the default separator is the ta
 `TSVD([separator: separator: STRING; ][quote: quote: STRING; ]lines: STREAM<STRING>): STREAM<ARRAY<STRING>>`
 
 Has the same behavior as the `CSVD` function, but the default separator is the tab character `\t`.
+
+## `SEMVER` Convert a Semantic Version String to a Comparable Value
+
+`SEMVER(version: STRING): OBJECT`
+
+Interprets `version` as a semantic version and returns a value that can be compared with the spaceship operator `<=>` and the comparison operators.
+
+The internal structure of the return value is hidden and is not intended for any use other than comparing versions.
+
+If `version` cannot be interpreted as a semantic version, an error occurs.
+
+The numeric core `major.minor.patch` is compared element by element as numbers, not in lexicographical order.
+
+```shell
+$ xa 'SEMVER("1.2.3") <=> SEMVER("1.10.0")'
+# -1
+
+$ xa '"1.2.3", "1.10.0", "1.2.10" >> SORT[by: SEMVER] >> JOIN[" "]'
+# 1.2.3 1.2.10 1.10.0
+```
+
+A version with a pre-release following `-` is considered smaller than a version with the same numeric core but without a pre-release.
+Pre-release identifiers are compared element by element, from left to right, on the parts separated by `.`.
+Identifiers consisting only of digits are compared as numbers, and other identifiers are compared in lexicographical order; identifiers consisting only of digits are considered smaller than other identifiers.
+If all preceding identifiers are equal, the version with the larger number of identifiers is considered greater.
+
+```shell
+$ xa 'SEMVER("1.0.0-alpha") <=> SEMVER("1.0.0")'
+# -1
+
+$ xa '"1.0.0", "1.0.0-beta.11", "1.0.0-beta.2", "1.0.0-alpha" >> SORT[by: SEMVER] >> JOIN[" "]'
+# 1.0.0-alpha 1.0.0-beta.2 1.0.0-beta.11 1.0.0
+```
+
+The build metadata following `+` is ignored in comparisons.
+
+```shell
+$ xa 'SEMVER("1.0.0+build.1") <=> SEMVER("1.0.0+build.2")'
+# 0
+```
