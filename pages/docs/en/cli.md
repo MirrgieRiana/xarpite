@@ -746,9 +746,11 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 
 ### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
-`FILES(dir: STRING): STREAM<STRING>`
+`FILES([dir: STRING]): STREAM<STRING>`
 
 Gets a stream of filenames directly under the directory specified by `dir`.
+
+If `dir` is omitted, `PWD` is used.
 
 `FILE_NAMES` is an alias for `FILES` and has the same behavior.
 
@@ -774,9 +776,11 @@ $ {
 
 ### `TREE`: Get All Files and Directories Under Directory
 
-`TREE(dir: STRING): STREAM<STRING>`
+`TREE([dir: STRING]): STREAM<STRING>`
 
 Returns a stream that recursively searches for all directories and files under `dir`.
+
+If `dir` is omitted, `PWD` is used.
 
 Returned path strings include `dir` at the beginning.
 
@@ -806,9 +810,11 @@ $ {
 
 ### `FILE_TREE`: Get All Files Under Directory
 
-`FILE_TREE(dir: STRING): STREAM<STRING>`
+`FILE_TREE([dir: STRING]): STREAM<STRING>`
 
 Returns a stream that recursively searches for all files under `dir`.
+
+If `dir` is omitted, `PWD` is used.
 
 Directory paths are not reported.
 

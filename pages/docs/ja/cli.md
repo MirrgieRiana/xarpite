@@ -746,9 +746,11 @@ $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 
 ### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
-`FILES(dir: STRING): STREAM<STRING>`
+`FILES([dir: STRING]): STREAM<STRING>`
 
 `dir`で指定されたディレクトリ直下のファイル名のストリームを取得します。
+
+`dir`を省略した場合は`PWD`が使用されます。
 
 `FILE_NAMES`は`FILES`の別名であり、同一の動作を持ちます。
 
@@ -774,9 +776,11 @@ $ {
 
 ### `TREE`: ディレクトリ配下のすべてのファイルとディレクトリを取得
 
-`TREE(dir: STRING): STREAM<STRING>`
+`TREE([dir: STRING]): STREAM<STRING>`
 
 `dir`の配下にあるすべてのディレクトリとファイルのパスを再帰的に検索するストリームを返します。
+
+`dir`を省略した場合は`PWD`が使用されます。
 
 返されるパス文字列の先頭には`dir`が含まれます。
 
@@ -806,9 +810,11 @@ $ {
 
 ### `FILE_TREE`: ディレクトリ配下のすべてのファイルを取得
 
-`FILE_TREE(dir: STRING): STREAM<STRING>`
+`FILE_TREE([dir: STRING]): STREAM<STRING>`
 
 `dir`の配下にあるすべてのファイルのパスを再帰的に検索するストリームを返します。
+
+`dir`を省略した場合は`PWD`が使用されます。
 
 ディレクトリのパスは報告されません。
 

@@ -510,6 +510,13 @@ class CliTest {
         val fileNamesResultV5 = cliEval(context, "FILE_NAMES(ARGS.0)", dir.toString(), apiVersion = 5).stream()
         assertEquals("apple.txt,banana,zebra.txt", fileNamesResultV5)
 
+        // ゼロ引数で呼び出すと PWD を基準にする
+        val pwdContext = TestIoContext(env = mapOf("XARPITE_PWD" to dir.toString()))
+        val filesResultPwd = cliEval(pwdContext, "FILES()", apiVersion = 5).stream()
+        assertEquals("$dir/apple.txt,$dir/banana,$dir/zebra.txt", filesResultPwd)
+        val fileNamesResultPwd = cliEval(pwdContext, "FILE_NAMES()").stream()
+        assertEquals("apple.txt,banana,zebra.txt", fileNamesResultPwd)
+
         // クリーンアップ
         fileSystem.deleteRecursively(dir)
     }
@@ -535,6 +542,11 @@ class CliTest {
         val expected = "${dir}/dir1,${dir}/dir1/dir2,${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt,${dir}/empty-dir"
         assertEquals(expected, result)
 
+        // ゼロ引数で呼び出すと PWD を基準にする
+        val pwdContext = TestIoContext(env = mapOf("XARPITE_PWD" to dir.toString()))
+        val resultPwd = cliEval(pwdContext, "TREE()").stream()
+        assertEquals(expected, resultPwd)
+
         // クリーンアップ
         fileSystem.deleteRecursively(dir)
     }
@@ -559,6 +571,11 @@ class CliTest {
         // パスには dir が含まれる
         val expected = "${dir}/dir1/dir2/file2.txt,${dir}/dir1/file1.txt"
         assertEquals(expected, result)
+
+        // ゼロ引数で呼び出すと PWD を基準にする
+        val pwdContext = TestIoContext(env = mapOf("XARPITE_PWD" to dir.toString()))
+        val resultPwd = cliEval(pwdContext, "FILE_TREE()").stream()
+        assertEquals(expected, resultPwd)
 
         // クリーンアップ
         fileSystem.deleteRecursively(dir)
