@@ -74,6 +74,35 @@ class StringTest {
     }
 
     @Test
+    fun trim() = runTest {
+        assertEquals("abc", eval("'  abc  '::trim()").string) // 前後の半角スペースを除去する
+        assertEquals("abc", eval("' \tabc\n '::trim()").string) // タブや改行も除去する
+        assertEquals("abc", eval("'　　abc　　'::trim()").string) // 全角空白 U+3000 も Unicode 空白として除去される
+        assertEquals("a b c", eval("'  a b c  '::trim()").string) // 内側の空白は保持される
+        assertEquals("", eval("'　 \t\n '::trim()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trim()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trim()").string) // 前後に空白が無ければそのまま返る
+    }
+
+    @Test
+    fun trimStart() = runTest {
+        assertEquals("abc  ", eval("'  abc  '::trimStart()").string) // 先頭の空白のみを除去し、末尾は保持する
+        assertEquals("abc　　", eval("'　　abc　　'::trimStart()").string) // 全角空白も先頭のみ除去される
+        assertEquals("", eval("'   '::trimStart()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimStart()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimStart()").string) // 先頭に空白が無ければそのまま返る
+    }
+
+    @Test
+    fun trimEnd() = runTest {
+        assertEquals("  abc", eval("'  abc  '::trimEnd()").string) // 末尾の空白のみを除去し、先頭は保持する
+        assertEquals("　　abc", eval("'　　abc　　'::trimEnd()").string) // 全角空白も末尾のみ除去される
+        assertEquals("", eval("'   '::trimEnd()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimEnd()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimEnd()").string) // 末尾に空白が無ければそのまま返る
+    }
+
+    @Test
     fun firstAndLast() = runTest {
         assertEquals("a", eval("'abc'::first()").string) // 先頭の 1 文字を取得する
         assertEquals("c", eval("'abc'::last()").string) // 末尾の 1 文字を取得する

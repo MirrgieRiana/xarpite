@@ -134,6 +134,20 @@ data class FluoriteString(val value: String) : FluoriteValue {
                             "dropLast" to create("dropLast") { string, count -> string.dropLast(count) },
                         )
                     },
+                    *run {
+                        fun create(name: String, transform: (String) -> String): FluoriteValue {
+                            return FluoriteFunction.immediate { arguments ->
+                                if (arguments.size != 1) throw IllegalArgumentException("STRING::$name(): STRING")
+                                val string = arguments[0] as FluoriteString
+                                transform(string.value).toFluoriteString()
+                            }
+                        }
+                        arrayOf(
+                            "trim" to create("trim") { it.trim() },
+                            "trimStart" to create("trimStart") { it.trimStart() },
+                            "trimEnd" to create("trimEnd") { it.trimEnd() },
+                        )
+                    },
                     "first" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) throw IllegalArgumentException("STRING::first(): STRING | NULL")
                         val string = arguments[0] as FluoriteString
