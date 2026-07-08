@@ -102,8 +102,10 @@ data class FluoriteString(val value: String) : FluoriteValue {
                     },
                     OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteString
-                        val right = arguments[1].toFluoriteString(null)
-                        left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                        when (val right = arguments[1]) {
+                            is FluoriteNull -> FluoriteInt.ONE
+                            else -> left.value.compareTo(right.toFluoriteString(null).value).toFluoriteIntAsCompared()
+                        }
                     },
                     OperatorMethod.CONTAINS.methodName to FluoriteFunction.immediate { arguments ->
                         val right = arguments[0] as FluoriteString

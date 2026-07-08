@@ -254,6 +254,29 @@ $ xa ' "aa" <=> "a" '
 # 1
 ```
 
+---
+
+When comparing booleans, `FALSE` is determined to be smaller than `TRUE`.
+
+```shell
+$ xa 'FALSE <=> TRUE'
+# -1
+```
+
+---
+
+Comparison is only possible between values belonging to the same category, such as numbers with numbers, strings with strings, or booleans with booleans. Ordering across categories is not defined.
+
+However, `NULL` is an exception: it can be compared with values of any category. `NULL` is treated as smaller than any other value, and two `NULL` values are treated as equal.
+
+```shell
+$ xa 'NULL <=> 1'
+# -1
+
+$ xa '1 <=> NULL'
+# 1
+```
+
 ## Overriding the Spaceship Operator
 
 The spaceship operator is actually an operator that calls the `_<=>_` method of the left-hand value and returns its return value.
