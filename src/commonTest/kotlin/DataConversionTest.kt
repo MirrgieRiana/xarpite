@@ -117,6 +117,31 @@ class DataConversionTest {
     }
 
     @Test
+    fun yamlFunction() = runTest {
+        // YAML
+        assertEquals("a:\n- 1\n- 2.5\n- '3'\n- true\n- false\n- null", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> YAML """).string) // YAML で値をYaml文字列に変換する
+        assertEquals("1", eval("1 >> YAML").string) // プリミティブを直接指定できる
+        assertEquals("a: 1\nb:\n  c: 2", eval(""" {a: 1; b: {c: 2}} >> YAML """).string) // 入れ子のオブジェクトはインデントで表現される
+        assertEquals("{}", eval(""" {} >> YAML """).string) // 空のオブジェクトはフロースタイルで出力される
+        assertEquals("[]", eval(""" [] >> YAML """).string) // 空の配列はフロースタイルで出力される
+        assertEquals("'3'", eval(""" "3" >> YAML """).string) // 数値に解釈されうる文字列は引用符で囲まれる
+        assertEquals(".inf", eval(""" (1 / 0) >> YAML """).string) // JSONと異なり、特殊な浮動小数点値も表現できる
+
+        // YAMLD
+        assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" "{a: [1, 2.5, '3', true, false, null]}" >> YAMLD """).obj) // YAMLD でYaml文字列を値に変換する
+        assertEquals("""{a:[1;2]}""", eval(""" "a:\n- 1\n- 2" >> YAMLD """).obj) // ブロックスタイルのYamlも解釈できる
+        assertEquals(1, eval(""" "1" >> YAMLD """).int) // プリミティブを直接指定できる
+        assertEquals(31, eval(""" "0x1F" >> YAMLD """).int) // 16進数表記の整数を解釈できる
+        assertEquals(FluoriteNull, eval(""" "" >> YAMLD """)) // 内容が空の場合、NULLになる
+        assertEquals("1718445872123456789", eval(""" "1718445872123456789" >> YAMLD >> YAML """).string) // INTの範囲を超える整数は精度を失わずデコードされる
+        assertEquals("123456789012345678901234567890", eval(""" "123456789012345678901234567890" >> YAMLD >> YAML """).string) // 任意の桁数の整数でも精度が保たれる
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ("a: [1, 2}" >> YAMLD) !? (e => e) """).string.startsWith("Invalid YAML")) // 不正なYAMLのデコードは "Invalid YAML" で始まる文字列のエラーになる
+        assertTrue(eval(""" ("a: 1\n---\nb: 2" >> YAMLD) !? (e => e) """).string.startsWith("Invalid YAML")) // 複数のドキュメントを含むYAMLのデコードは "Invalid YAML" で始まる文字列のエラーになる
+    }
+
+    @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
         assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
