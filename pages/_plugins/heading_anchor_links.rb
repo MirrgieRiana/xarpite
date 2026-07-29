@@ -2,7 +2,7 @@ require 'cgi'
 
 module Xarpite
   module HeadingAnchorLinks
-    # h1〜h4の見出しにアンカーリンクを追加するパターン
+    # h1～h4の見出しにアンカーリンクを追加するパターン
     # より厳密な正規表現を使用
     HEADING_PATTERN = /<(h[1-4])\s+([^>]*\bid=["']([^"']+)["'][^>]*)>(.*?)<\/\1>/im.freeze
     ANCHOR_LINK_CHECK = /<a[^>]+class=["'][^"']*heading-anchor-link[^"']*["']/i.freeze
