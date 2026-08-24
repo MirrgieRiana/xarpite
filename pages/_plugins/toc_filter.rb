@@ -6,11 +6,11 @@ module Xarpite
   module TocFilter
     SLUG_ALLOWED_CHARS_PATTERN = /[^a-z0-9ぁ-んァ-ヶ一-龠-]/.freeze
 
-    # h1〜h3の構造を辿りながら見出しIDの重複を避けて目次を構築するループ
+    # h1～h3の構造を辿りながら見出しIDの重複を避けて目次を構築するループ
     def generate_toc_from_html(html)
       return '' unless html
 
-      # htmlからh1〜h3の見出しを抽出する正規表現を用いて該当要素をまとめて取り出す
+      # htmlからh1～h3の見出しを抽出する正規表現を用いて該当要素をまとめて取り出す
       headings = html.scan(/<h([1-3])([^>]*)>(.*?)<\/h\1>/im)
       return '' if headings.empty?
 
