@@ -62,7 +62,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-                implementation("com.squareup.okio:okio:3.10.2")
+                implementation("com.squareup.okio:okio:3.16.0")
                 implementation("com.ionspin.kotlin:bignum:0.3.10")
                 implementation("it.krzeminski:snakeyaml-engine-kmp:4.0.1")
                 implementation("mirrg.kotlin:mirrg.kotlin.helium-kotlin-2-2:4.4.0")
