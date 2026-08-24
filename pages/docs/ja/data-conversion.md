@@ -402,7 +402,7 @@ $ xa '
 # {b:2}
 ```
 
-## `YAML`値をYAML文字列に変換
+## `YAML` 値をYAML文字列に変換
 
 `YAML(value: VALUE): STRING`
 
