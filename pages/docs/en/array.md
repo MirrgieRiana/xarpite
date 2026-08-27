@@ -493,6 +493,23 @@ $ xa -q '
 # [cherry]
 ```
 
+## `array - item`: Creating an Array with Elements Removed
+
+Subtraction `array - item` creates and returns a new array with element `item` removed from array `array`.
+
+Unlike `array -= item`, the `array` itself is not modified.
+
+The removal rules are the same as `array -= item`.
+
+```shell
+$ xa '
+  array := ["apple", "banana", "cherry", "banana"]
+
+  array - ("apple", "banana")
+'
+# [cherry;banana]
+```
+
 # Array Functions
 
 ## `INTERCALATE`: Concatenate Stream of Arrays into Array
