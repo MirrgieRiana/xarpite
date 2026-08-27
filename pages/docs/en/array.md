@@ -401,12 +401,12 @@ The `unshift` `shift` `push` `pop` methods add/remove elements at the beginning/
 
 These methods perform destructive operations.
 
-| Method    | Target | Operation      | Return Value      |
-|-----------|--------|----------------|-------------------|
-| `unshift` | Start  | Add element    | `NULL`            |
-| `shift`   | Start  | Remove element | Removed element   |
-| `push`    | End    | Add element    | `NULL`            |
-| `pop`     | End    | Remove element | Removed element   |
+| Method    | Target | Operation      | Return Value    |
+|-----------|--------|----------------|-----------------|
+| `unshift` | Start  | Add element    | `NULL`          |
+| `shift`   | Start  | Remove element | Removed element |
+| `push`    | End    | Add element    | `NULL`          |
+| `pop`     | End    | Remove element | Removed element |
 
 ```shell
 $ xa -q '
