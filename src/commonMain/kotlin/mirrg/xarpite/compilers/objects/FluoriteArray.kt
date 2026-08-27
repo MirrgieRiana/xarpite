@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.operations.FluoriteException
 
 class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
     companion object {
@@ -172,6 +173,46 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("Invalid number of arguments: ${arguments.size}")
                         val array = arguments[0] as FluoriteArray
                         array.values.removeFirst()
+                    },
+                    *run {
+                        fun create(name: String, transform: (List<FluoriteValue>, Int) -> List<FluoriteValue>): FluoriteValue {
+                            return FluoriteFunction.immediate { arguments ->
+                                if (arguments.size != 2) throw IllegalArgumentException("ARRAY::$name(count: INT): ARRAY")
+                                val array = arguments[0] as FluoriteArray
+                                val count = arguments[1].toFluoriteNumber(null).roundToInt()
+                                require(count >= 0) { "ARRAY::$name(count: INT): ARRAY <- count must be non-negative, got $count" }
+                                transform(array.values, count).toFluoriteArray()
+                            }
+                        }
+                        arrayOf(
+                            "take" to create("take") { values, count -> values.take(count) },
+                            "takeFirst" to create("takeFirst") { values, count -> values.take(count) },
+                            "taker" to create("taker") { values, count -> values.takeLast(count) },
+                            "takeLast" to create("takeLast") { values, count -> values.takeLast(count) },
+                            "drop" to create("drop") { values, count -> values.drop(count) },
+                            "dropFirst" to create("dropFirst") { values, count -> values.drop(count) },
+                            "dropr" to create("dropr") { values, count -> values.dropLast(count) },
+                            "dropLast" to create("dropLast") { values, count -> values.dropLast(count) },
+                        )
+                    },
+                    "first" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::first(): VALUE | NULL")
+                        val array = arguments[0] as FluoriteArray
+                        array.values.firstOrNull() ?: FluoriteNull
+                    },
+                    "last" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::last(): VALUE | NULL")
+                        val array = arguments[0] as FluoriteArray
+                        array.values.lastOrNull() ?: FluoriteNull
+                    },
+                    "single" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::single(): VALUE")
+                        val array = arguments[0] as FluoriteArray
+                        when (array.values.size) {
+                            0 -> throw FluoriteException("Array is empty".toFluoriteString())
+                            1 -> array.values[0]
+                            else -> throw FluoriteException("Array has multiple elements".toFluoriteString())
+                        }
                     },
                 )
             )

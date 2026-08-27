@@ -9,6 +9,7 @@ import mirrg.xarpite.test.parse
 import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -144,6 +145,73 @@ class ArrayTest {
         assertEquals("[1;2;3]", eval("a := [1, 2, 3]; a -= 4; a").array()) // 存在しない要素を削除しても変化しない
         assertEquals("[1;3;2]", eval("a := [1, 2, 3, 2]; a -= 2; a").array()) // 最初の一致する要素のみ削除される
         assertEquals("[3]", eval("a := [1, 2, 3, 2]; a -= 1, 2, 2; a").array()) // ストリームによる複数削除
+    }
+
+    @Test
+    fun take() = runTest {
+        assertEquals("[1;2]", eval("[1; 2; 3; 4; 5]::take(2)").array()) // 先頭の n 要素を取得する
+        assertEquals("[1;2]", eval("[1; 2; 3; 4; 5]::takeFirst(2)").array()) // takeFirst は take のシノニム
+        assertEquals("[]", eval("[1; 2; 3; 4; 5]::take(0)").array()) // 0 要素は空配列になる
+        assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::take(10)").array()) // 長さを超える場合は配列全体になる
+        assertEquals("[]", eval("[]::take(2)").array()) // 空配列からの取得
+        assertEquals("[1;2]", eval("[1; 2; 3; 4; 5]::take('1.5')").array()) // 要素数は数値化し、四捨五入される
+        assertEquals("[1;2;3;4;5]", eval("a := [1; 2; 3; 4; 5]; a::take(2); a").array()) // 元の配列は変化しない
+        assertFails { eval("[1; 2; 3]::take(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun taker() = runTest {
+        assertEquals("[4;5]", eval("[1; 2; 3; 4; 5]::taker(2)").array()) // 末尾の n 要素を取得する
+        assertEquals("[4;5]", eval("[1; 2; 3; 4; 5]::takeLast(2)").array()) // takeLast は taker のシノニム
+        assertEquals("[]", eval("[1; 2; 3; 4; 5]::taker(0)").array()) // 0 要素は空配列になる
+        assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::taker(10)").array()) // 長さを超える場合は配列全体になる
+        assertEquals("[]", eval("[]::taker(2)").array()) // 空配列からの取得
+        assertFails { eval("[1; 2; 3]::taker(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun drop() = runTest {
+        assertEquals("[3;4;5]", eval("[1; 2; 3; 4; 5]::drop(2)").array()) // 先頭の n 要素を除く
+        assertEquals("[3;4;5]", eval("[1; 2; 3; 4; 5]::dropFirst(2)").array()) // dropFirst は drop のシノニム
+        assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::drop(0)").array()) // 0 要素は配列全体になる
+        assertEquals("[]", eval("[1; 2; 3; 4; 5]::drop(10)").array()) // 長さを超える場合は空配列になる
+        assertEquals("[]", eval("[]::drop(2)").array()) // 空配列からの除去
+        assertEquals("[1;2;3;4;5]", eval("a := [1; 2; 3; 4; 5]; a::drop(2); a").array()) // 元の配列は変化しない
+        assertFails { eval("[1; 2; 3]::drop(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun dropr() = runTest {
+        assertEquals("[1;2;3]", eval("[1; 2; 3; 4; 5]::dropr(2)").array()) // 末尾の n 要素を除く
+        assertEquals("[1;2;3]", eval("[1; 2; 3; 4; 5]::dropLast(2)").array()) // dropLast は dropr のシノニム
+        assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::dropr(0)").array()) // 0 要素は配列全体になる
+        assertEquals("[]", eval("[1; 2; 3; 4; 5]::dropr(10)").array()) // 長さを超える場合は空配列になる
+        assertEquals("[]", eval("[]::dropr(2)").array()) // 空配列からの除去
+        assertFails { eval("[1; 2; 3]::dropr(-1)") } // 負の count はエラーになる
+    }
+
+    @Test
+    fun firstAndLast() = runTest {
+        assertEquals(1, eval("[1; 2; 3]::first()").int) // 先頭の 1 要素を取得する
+        assertEquals(3, eval("[1; 2; 3]::last()").int) // 末尾の 1 要素を取得する
+        assertEquals(1, eval("[1]::first()").int) // 1 要素の配列では先頭が唯一の要素になる
+        assertEquals(1, eval("[1]::last()").int) // 1 要素の配列では末尾が唯一の要素になる
+        assertEquals(FluoriteNull, eval("[]::first()")) // 空配列の先頭は NULL が返る
+        assertEquals(FluoriteNull, eval("[]::last()")) // 空配列の末尾は NULL が返る
+        assertEquals(FluoriteNull, eval("[NULL; 1]::first()")) // 要素が NULL の場合も NULL が返る
+        assertFails { eval("[1; 2; 3]::first(123)") } // 余分な引数はエラーになる
+        assertFails { eval("[1; 2; 3]::last(123)") } // 余分な引数はエラーになる
+    }
+
+    @Test
+    fun single() = runTest {
+        assertEquals(1, eval("[1]::single()").int) // 唯一の要素を取得する
+        assertEquals(FluoriteNull, eval("[NULL]::single()")) // 唯一の要素が NULL の場合も取得できる
+        val emptyException = assertFailsWith<FluoriteException> { eval("[]::single()") } // 空配列はエラーになる
+        assertTrue(emptyException.message!!.contains("empty")) // エラーメッセージが空であることを伝える
+        val multipleException = assertFailsWith<FluoriteException> { eval("[1; 2]::single()") } // 複数要素の配列はエラーになる
+        assertTrue(multipleException.message!!.contains("multiple")) // エラーメッセージが複数要素であることを伝える
+        assertFails { eval("[1]::single(123)") } // 余分な引数はエラーになる
     }
 
     @Test
