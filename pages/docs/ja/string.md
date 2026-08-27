@@ -445,6 +445,25 @@ $ xa '""::last()'
 # NULL
 ```
 
+# 唯一の文字の取得
+
+`STRING::single(): STRING`
+
+`single`メソッドで文字列の唯一の文字を取得します。
+
+文字列が空であるか、複数の文字を持つ場合はエラーをスローします。
+
+```shell
+$ xa '"a"::single()'
+# a
+
+$ xa '"abcde"::single() !? "Error"'
+# Error
+
+$ xa '""::single() !? "Error"'
+# Error
+```
+
 # 文字列の置換
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`

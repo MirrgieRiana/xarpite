@@ -1,11 +1,14 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringTest {
@@ -84,6 +87,18 @@ class StringTest {
         assertEquals(1, eval("'😀x'::first()").string.length) // first はコードユニット単位なのでサロゲートペアの片方を返す（既存の添字演算子と同じ挙動）
         assertFails { eval("'abc'::first(123)") } // 余分な引数はエラーになる
         assertFails { eval("'abc'::last(123)") } // 余分な引数はエラーになる
+    }
+
+    @Test
+    fun single() = runTest {
+        assertEquals("a", eval("'a'::single()").string) // 唯一の文字を取得する
+        assertEquals("あ", eval("'あ'::single()").string) // マルチバイト文字の取得
+        val emptyException = assertFailsWith<FluoriteException> { eval("''::single()") } // 空文字列はエラーになる
+        assertTrue(emptyException.message!!.contains("empty")) // エラーメッセージが空であることを伝える
+        val multipleException = assertFailsWith<FluoriteException> { eval("'ab'::single()") } // 複数文字の文字列はエラーになる
+        assertTrue(multipleException.message!!.contains("multiple")) // エラーメッセージが複数文字であることを伝える
+        assertFails { eval("'😀'::single()") } // サロゲートペアはコードユニット 2 つ分なのでエラーになる（既存の添字演算子と同じ挙動）
+        assertFails { eval("'a'::single(123)") } // 余分な引数はエラーになる
     }
 
     @Test
