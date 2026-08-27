@@ -251,7 +251,7 @@ suspend fun FluoriteValue.toSingleYaml(position: Position?): String {
     } catch (e: YamlEngineException) {
         throw FluoriteException("Failed to encode to YAML: ${e.message ?: e.toString()}".toFluoriteString())
     }
-    return writer.toString().removeSuffix("\n") // YAMLの出力は必ず改行で終わるため、他の変換関数と揃えます
+    return writer.toString()
 }
 
 suspend fun FluoriteValue.toSingleYamlFluoriteValue(position: Position?) = this.toSingleYaml(position).toFluoriteString()

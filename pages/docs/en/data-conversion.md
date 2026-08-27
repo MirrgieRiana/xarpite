@@ -408,10 +408,13 @@ $ xa '
 
 Converts `value` to a YAML-formatted string.
 
+Unlike the `JSON` function, the output ends with a line break.
+
 ```shell
 $ xa '{a: 1; b: 2} >> YAML'
 # a: 1
 # b: 2
+#
 ```
 
 ## `YAMLD` Convert YAML String to Value
