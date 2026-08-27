@@ -402,6 +402,34 @@ $ xa '
 # {b:2}
 ```
 
+## `YAML` 値をYAML文字列に変換
+
+`YAML(value: VALUE): STRING`
+
+`value`をYAML形式の文字列に変換します。
+
+`JSON`関数と異なり、出力は改行で終わります。
+
+```shell
+$ xa '{a: 1; b: 2} >> YAML'
+# a: 1
+# b: 2
+#
+```
+
+## `YAMLD` YAML文字列を値に変換
+
+`YAMLD(yaml: STRING): VALUE`
+
+`yaml`を対応する値に変換します。
+
+```shell
+$ xa ' "{a: 1, b: 2}" >> YAMLD '
+# {a:1;b:2}
+```
+
+複数のドキュメントを含むYAMLを与えた場合、エラーになります。
+
 ## `CSV`配列をCSV文字列に変換
 
 `CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`

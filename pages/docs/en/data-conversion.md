@@ -402,6 +402,34 @@ $ xa '
 # {b:2}
 ```
 
+## `YAML` Convert Value to YAML String
+
+`YAML(value: VALUE): STRING`
+
+Converts `value` to a YAML-formatted string.
+
+Unlike the `JSON` function, the output ends with a line break.
+
+```shell
+$ xa '{a: 1; b: 2} >> YAML'
+# a: 1
+# b: 2
+#
+```
+
+## `YAMLD` Convert YAML String to Value
+
+`YAMLD(yaml: STRING): VALUE`
+
+Converts `yaml` to the corresponding value.
+
+```shell
+$ xa ' "{a: 1, b: 2}" >> YAMLD '
+# {a:1;b:2}
+```
+
+If you pass a YAML containing multiple documents, an error occurs.
+
 ## `CSV` Convert Array to CSV String
 
 `CSV([separator: separator: STRING; ][quote: quote: STRING; ]value: STREAM<ARRAY<STRING>>): STREAM<STRING>`

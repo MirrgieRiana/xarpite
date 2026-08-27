@@ -23,8 +23,10 @@ import mirrg.xarpite.partitionIfEntry
 import mirrg.xarpite.pop
 import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
+import mirrg.xarpite.toFluoriteValueAsSingleYaml
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import mirrg.xarpite.toSingleYamlFluoriteValue
 import okio.Buffer
 import kotlin.io.encoding.Base64
 
@@ -264,6 +266,18 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     )
                 },
             )
+        },
+        "YAML" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("YAML(value: VALUE): STRING")
+            if (arguments.size != 1) usage()
+            val value = arguments[0]
+            value.toSingleYamlFluoriteValue(null)
+        },
+        "YAMLD" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("YAMLD(yaml: STRING): VALUE")
+            if (arguments.size != 1) usage()
+            val value = arguments[0]
+            value.toFluoriteValueAsSingleYaml(null)
         },
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {
