@@ -177,10 +177,10 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                     *run {
                         fun create(name: String, transform: (List<FluoriteValue>, Int) -> List<FluoriteValue>): FluoriteValue {
                             return FluoriteFunction.immediate { arguments ->
-                                if (arguments.size != 2) throw IllegalArgumentException("ARRAY::$name(count: INT): ARRAY")
+                                if (arguments.size != 2) throw IllegalArgumentException("<T> ARRAY<T>::$name(count: INT): ARRAY<T>")
                                 val array = arguments[0] as FluoriteArray
                                 val count = arguments[1].toFluoriteNumber(null).roundToInt()
-                                require(count >= 0) { "ARRAY::$name(count: INT): ARRAY <- count must be non-negative, got $count" }
+                                require(count >= 0) { "count must be non-negative, got $count" }
                                 transform(array.values, count).toFluoriteArray()
                             }
                         }
@@ -196,17 +196,17 @@ class FluoriteArray(val values: MutableList<FluoriteValue>) : FluoriteValue {
                         )
                     },
                     "first" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::first(): VALUE | NULL")
+                        if (arguments.size != 1) throw IllegalArgumentException("<T> ARRAY<T>::first(): T | NULL")
                         val array = arguments[0] as FluoriteArray
                         array.values.firstOrNull() ?: FluoriteNull
                     },
                     "last" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::last(): VALUE | NULL")
+                        if (arguments.size != 1) throw IllegalArgumentException("<T> ARRAY<T>::last(): T | NULL")
                         val array = arguments[0] as FluoriteArray
                         array.values.lastOrNull() ?: FluoriteNull
                     },
                     "single" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 1) throw IllegalArgumentException("ARRAY::single(): VALUE")
+                        if (arguments.size != 1) throw IllegalArgumentException("<T> ARRAY<T>::single(): T")
                         val array = arguments[0] as FluoriteArray
                         when (array.values.size) {
                             0 -> throw FluoriteException("Array is empty".toFluoriteString())
