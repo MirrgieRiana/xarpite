@@ -166,6 +166,7 @@ class ArrayTest {
         assertEquals("[]", eval("[1; 2; 3; 4; 5]::taker(0)").array()) // 0 要素は空配列になる
         assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::taker(10)").array()) // 長さを超える場合は配列全体になる
         assertEquals("[]", eval("[]::taker(2)").array()) // 空配列からの取得
+        assertEquals("[1;2;3;4;5]", eval("a := [1; 2; 3; 4; 5]; a::taker(2); a").array()) // 元の配列は変化しない
         assertFails { eval("[1; 2; 3]::taker(-1)") } // 負の count はエラーになる
     }
 
@@ -187,6 +188,7 @@ class ArrayTest {
         assertEquals("[1;2;3;4;5]", eval("[1; 2; 3; 4; 5]::dropr(0)").array()) // 0 要素は配列全体になる
         assertEquals("[]", eval("[1; 2; 3; 4; 5]::dropr(10)").array()) // 長さを超える場合は空配列になる
         assertEquals("[]", eval("[]::dropr(2)").array()) // 空配列からの除去
+        assertEquals("[1;2;3;4;5]", eval("a := [1; 2; 3; 4; 5]; a::dropr(2); a").array()) // 元の配列は変化しない
         assertFails { eval("[1; 2; 3]::dropr(-1)") } // 負の count はエラーになる
     }
 
@@ -198,7 +200,7 @@ class ArrayTest {
         assertEquals(1, eval("[1]::last()").int) // 1 要素の配列では末尾が唯一の要素になる
         assertEquals(FluoriteNull, eval("[]::first()")) // 空配列の先頭は NULL が返る
         assertEquals(FluoriteNull, eval("[]::last()")) // 空配列の末尾は NULL が返る
-        assertEquals(FluoriteNull, eval("[NULL; 1]::first()")) // 要素が NULL の場合も NULL が返る
+        assertEquals(FluoriteNull, eval("[NULL; 1]::first()")) // 先頭の要素自体が NULL でも NULL が返るため、空配列と区別が付かない
         assertFails { eval("[1; 2; 3]::first(123)") } // 余分な引数はエラーになる
         assertFails { eval("[1; 2; 3]::last(123)") } // 余分な引数はエラーになる
     }
