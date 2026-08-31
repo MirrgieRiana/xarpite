@@ -263,6 +263,30 @@ class StreamMountsTest {
     }
 
     @Test
+    fun tally() = runTest {
+        assertEquals("[1;1],[2;1]", eval("14, 25 >> TALLY[by: _ -> _.&.0]").stream()) // TALLYでキーと個数のストリームになる
+        assertEquals("[1;1]", eval("14 >> TALLY[by: _ -> _.&.0]").stream()) // 要素が1個でもよい
+        assertEquals("", eval(", >> TALLY[by: _ -> _.&.0]").stream()) // 要素が0個でもよい
+        assertEquals("[1;2]", eval("14, 15 >> TALLY[by: _ -> _.&.0]").stream()) // すべてが同じキーになってもよい
+        assertEquals("[1;1],[2;1],[3;1]", eval("14, 25, 36 >> TALLY[by: _ -> _.&.0]").stream()) // 3要素でもよい
+        assertEquals("[1;2],[3;1]", eval("14, 15, 36 >> TALLY[by: _ -> _.&.0]").stream()) // 部分的に同じキーになってもよい
+
+        assertEquals("[1;1],[2;1]", eval("14, 25 >> TALLY[_ -> _.&.0]").stream()) // 第1引数でもキー取得関数を指定できる
+
+        assertEquals("[1;2],[2;2],[3;1]", eval("1, 2, 1, 3, 2 >> TALLY").stream()) // byを省略した場合、要素自身がキーになる
+        assertEquals("[1;1]", eval("1 >> TALLY").stream()) // 要素が1個でもよい
+        assertEquals("", eval(", >> TALLY").stream()) // 要素が0個でもよい
+
+        assertEquals("[apple;2],[cherry;1],[banana;2]", eval(""""apple", "cherry","banana", "banana", "apple" >> TALLY""").stream()) // 文字列の数え上げ
+        assertEquals("[c;1],[b;2],[a;3]", eval(""""c", "b", "b", "a", "a", "a" >> TALLY""").stream()) // 個数の順序ではなく、最初にキーが現れた順序になる
+
+        assertEquals("[a;3],[b;2],[c;1]", eval(""""c", "b", "b", "a", "a", "a" >> TALLY >> SORTR[by: _ -> _.1]""").stream()) // SORTRで個数の降順に並べ替えられる
+        assertEquals("{apple:2;cherry:1;banana:2}", eval(""""apple", "cherry","banana", "banana", "apple" >> TALLY >> TO_OBJECT""").obj) // TO_OBJECTでオブジェクトにまとめられる
+
+        assertFails { eval("TALLY()") } // 引数なしの場合、エラーになる
+    }
+
+    @Test
     fun shuffle() = runTest {
         assertEquals("1,2,3", eval("1, 2, 3 >> SHUFFLE >> SORT").stream()) // SHUFFLEでシャッフルする
         assertEquals("1", eval("1, >> SHUFFLE").stream()) // 1要素のストリームはその要素だけのストリームを返す

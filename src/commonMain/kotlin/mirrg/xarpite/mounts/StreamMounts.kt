@@ -902,6 +902,41 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
         },
+        "TALLY" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>")
+            val arguments2 = arguments.toMutableList()
+
+            if (arguments2.isEmpty()) usage()
+            val stream = arguments2.removeLast()
+
+            val (entries, arguments3) = arguments2.partitionIfEntry()
+
+            val keyGetter = entries.remove("by") ?: arguments3.removeFirstOrNull()
+
+            if (entries.isNotEmpty()) usage()
+            if (arguments3.isNotEmpty()) usage()
+
+            FluoriteStream {
+                val counts = mutableMapOf<FluoriteValue, Int>()
+
+                suspend fun add(value: FluoriteValue) {
+                    val key = keyGetter?.invokeImmediate(null, arrayOf(value)) ?: value
+                    counts[key] = (counts[key] ?: 0) + 1
+                }
+
+                if (stream is FluoriteStream) {
+                    stream.collect { item ->
+                        add(item)
+                    }
+                } else {
+                    add(stream)
+                }
+
+                counts.forEach { (key, count) ->
+                    emit(key colon FluoriteInt(count))
+                }
+            }
+        },
         "PIPE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
                 val stream = arguments[0]
