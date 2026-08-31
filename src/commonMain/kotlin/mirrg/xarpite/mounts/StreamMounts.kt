@@ -927,7 +927,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     if (width != null) {
                         val widthNumber = width.toFluoriteNumber(null)
                         val widthDouble = widthNumber.toDouble()
-                        require(widthDouble > 0)
+                        if (!(widthDouble > 0) || widthDouble.isInfinite()) throw FluoriteException("Expected a positive finite width, got $widthDouble".toFluoriteString())
 
                         FluoriteStream {
                             val counts = mutableMapOf<Int, Int>()

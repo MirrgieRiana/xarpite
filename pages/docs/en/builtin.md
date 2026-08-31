@@ -789,9 +789,9 @@ $ xa '
 
 Counts the elements of a stream.
 
-`HISTOGRAM` is an alias for `TALLY` and has the same behavior.
+`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
 
-`TALLY` has 2 ways of being called.
+`TALLY` can be called in 2 ways.
 
 ### Counting by Key
 
@@ -858,7 +858,7 @@ If the first argument is the `width` parameter, distributes each element of `str
 
 Entries are in ascending order of bin.
 
-`width` must be a positive number and cannot be specified together with `keyGetter`.
+`width` must be a positive finite number and cannot be specified together with `keyGetter`.
 
 ```shell
 $ xa '105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]'

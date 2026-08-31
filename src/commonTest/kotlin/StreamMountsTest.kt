@@ -297,7 +297,7 @@ class StreamMountsTest {
 
         assertEquals("[-200;1],[-100;1],[0;1]", eval("-150, -50, 50 >> TALLY[width: 100]").stream()) // 負の値でも階級の幅が保たれる
         assertEquals("[0;1],[100;1],[200;1]", eval("0, 100, 200 >> TALLY[width: 100]").stream()) // 階級の下限値そのものは、その階級に含まれる
-        assertEquals("[0.0;2],[0.5;1]", eval("0.1, 0.2, 0.5 >> TALLY[width: 0.5]").stream()) // widthが小数の場合、階級の下限値も小数になる
+        assertEquals("[0.25;2],[0.5;0],[0.75;1]", eval("0.3, 0.4, 0.8 >> TALLY[width: 0.25]").stream()) // widthが小数の場合、階級の下限値も小数になる
 
         assertEquals("[0;1]", eval("5 >> TALLY[width: 100]").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
         assertEquals("", eval(", >> TALLY[width: 100]").stream()) // 空ストリームの場合、空ストリームになる
@@ -305,7 +305,8 @@ class StreamMountsTest {
         assertEquals("[0;2],[100;3],[200;2]", eval("105, 230, 187, 42, 299, 150, 88 >> HISTOGRAM[width: 100]").stream()) // HISTOGRAMはTALLYの別名
 
         assertFails { eval("1, 2 >> TALLY[width: 100; by: _ -> _]").stream() } // widthとbyを同時に指定した場合、エラーになる
-        assertFails { eval("1, 2 >> TALLY[width: 0]").stream() } // widthが0以下の場合、エラーになる
+        assertFails { eval("1, 2 >> TALLY[width: 0]").stream() } // widthが0の場合、エラーになる
+        assertFails { eval("1, 2 >> TALLY[width: 0 - 1]").stream() } // widthが負の場合、エラーになる
     }
 
     @Test
