@@ -39,6 +39,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.partitionIfEntry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.math.floor
 import kotlin.random.Random
 
 context(context: RuntimeContext)
@@ -902,40 +903,92 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
         },
-        "TALLY" define FluoriteFunction.immediate { arguments ->
-            fun usage(): Nothing = usage("<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>")
-            val arguments2 = arguments.toMutableList()
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage(
+                        "<T, K> $name([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>",
+                        "$name(width: NUMBER; stream: STREAM<NUMBER>): STREAM<[NUMBER; INT]>",
+                    )
+                    val arguments2 = arguments.toMutableList()
 
-            if (arguments2.isEmpty()) usage()
-            val stream = arguments2.removeLast()
+                    if (arguments2.isEmpty()) usage()
+                    val stream = arguments2.removeLast()
 
-            val (entries, arguments3) = arguments2.partitionIfEntry()
+                    val (entries, arguments3) = arguments2.partitionIfEntry()
 
-            val keyGetter = entries.remove("by") ?: arguments3.removeFirstOrNull()
+                    val width = entries.remove("width")
+                    val keyGetter = entries.remove("by") ?: arguments3.removeFirstOrNull()
 
-            if (entries.isNotEmpty()) usage()
-            if (arguments3.isNotEmpty()) usage()
+                    if (entries.isNotEmpty()) usage()
+                    if (arguments3.isNotEmpty()) usage()
+                    if (width != null && keyGetter != null) usage()
 
-            FluoriteStream {
-                val counts = mutableMapOf<FluoriteValue, Int>()
+                    if (width != null) {
+                        val widthNumber = width.toFluoriteNumber(null)
+                        val widthDouble = widthNumber.toDouble()
+                        require(widthDouble > 0)
 
-                suspend fun add(value: FluoriteValue) {
-                    val key = keyGetter?.invokeImmediate(null, arrayOf(value)) ?: value
-                    counts[key] = (counts[key] ?: 0) + 1
-                }
+                        FluoriteStream {
+                            val counts = mutableMapOf<Int, Int>()
+                            var minBin = 0
+                            var maxBin = 0
 
-                if (stream is FluoriteStream) {
-                    stream.collect { item ->
-                        add(item)
+                            suspend fun add(value: FluoriteValue) {
+                                val bin = floor(value.toFluoriteNumber(null).toDouble() / widthDouble).toInt()
+                                if (counts.isEmpty()) {
+                                    minBin = bin
+                                    maxBin = bin
+                                } else {
+                                    if (bin < minBin) minBin = bin
+                                    if (bin > maxBin) maxBin = bin
+                                }
+                                counts[bin] = (counts[bin] ?: 0) + 1
+                            }
+
+                            if (stream is FluoriteStream) {
+                                stream.collect { item ->
+                                    add(item)
+                                }
+                            } else {
+                                add(stream)
+                            }
+
+                            if (counts.isNotEmpty()) {
+                                (minBin..maxBin).forEach { bin ->
+                                    val lowerBound = if (widthNumber is FluoriteInt) FluoriteInt(bin * widthNumber.value) else FluoriteDouble(bin * widthDouble)
+                                    emit(lowerBound colon FluoriteInt(counts[bin] ?: 0))
+                                }
+                            }
+                        }
+                    } else {
+                        FluoriteStream {
+                            val counts = mutableMapOf<FluoriteValue, Int>()
+
+                            suspend fun add(value: FluoriteValue) {
+                                val key = keyGetter?.invokeImmediate(null, arrayOf(value)) ?: value
+                                counts[key] = (counts[key] ?: 0) + 1
+                            }
+
+                            if (stream is FluoriteStream) {
+                                stream.collect { item ->
+                                    add(item)
+                                }
+                            } else {
+                                add(stream)
+                            }
+
+                            counts.forEach { (key, count) ->
+                                emit(key colon FluoriteInt(count))
+                            }
+                        }
                     }
-                } else {
-                    add(stream)
-                }
-
-                counts.forEach { (key, count) ->
-                    emit(key colon FluoriteInt(count))
                 }
             }
+            arrayOf(
+                "TALLY" define create("TALLY"),
+                "HISTOGRAM" define create("HISTOGRAM"),
+            )
         },
         "PIPE" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {

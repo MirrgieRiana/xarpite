@@ -785,7 +785,15 @@ $ xa '
 # banana
 ```
 
-## `TALLY` Count Stream Elements by Key
+## `TALLY` / `HISTOGRAM` Count Stream Elements by Key
+
+Counts the elements of a stream.
+
+`HISTOGRAM` is an alias for `TALLY` and has the same behavior.
+
+`TALLY` has 2 ways of being called.
+
+### Counting by Key
 
 `<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
 
@@ -840,6 +848,48 @@ $ xa '
   object.banana
 '
 # 2
+```
+
+### Counting by Bin
+
+`TALLY(width: NUMBER; stream: STREAM<NUMBER>): STREAM<[NUMBER; INT]>`
+
+If the first argument is the `width` parameter, distributes each element of `stream` into bins of width `width`, collects the lower bound of the bin and its frequency into entries, and returns them as a stream.
+
+Entries are in ascending order of bin.
+
+`width` must be a positive number and cannot be specified together with `keyGetter`.
+
+```shell
+$ xa '105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]'
+# [0;2]
+# [100;3]
+# [200;2]
+```
+
+---
+
+The range of bins to be output is from the smallest bin to the largest bin in which an element exists.
+
+Bins with a frequency of 0 inside this range are also output, but bins outside the range are not.
+
+```shell
+$ xa '105, 187, 420, 450 >> TALLY[width: 100]'
+# [100;2]
+# [200;0]
+# [300;0]
+# [400;2]
+```
+
+---
+
+Since the floor function is used to distribute elements into bins, the width of a bin is preserved even for negative values.
+
+```shell
+$ xa '-150, -50, 50 >> TALLY[width: 100]'
+# [-200;1]
+# [-100;1]
+# [0;1]
 ```
 
 ## `CHUNK` Split Stream into Fixed-Size Arrays

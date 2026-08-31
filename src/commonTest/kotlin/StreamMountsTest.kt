@@ -284,6 +284,28 @@ class StreamMountsTest {
         assertEquals("{apple:2;cherry:1;banana:2}", eval(""""apple", "cherry","banana", "banana", "apple" >> TALLY >> TO_OBJECT""").obj) // TO_OBJECTでオブジェクトにまとめられる
 
         assertFails { eval("TALLY()") } // 引数なしの場合、エラーになる
+
+        assertEquals("[1;2],[2;2],[3;1]", eval("1, 2, 1, 3, 2 >> HISTOGRAM").stream()) // HISTOGRAMはTALLYの別名
+    }
+
+    @Test
+    fun tallyWidth() = runTest {
+        assertEquals("[0;2],[100;3],[200;2]", eval("105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]").stream()) // widthを指定すると、階級の下限値と度数のエントリーになる
+        assertEquals("[100;2],[200;0],[300;0],[400;2]", eval("105, 187, 420, 450 >> TALLY[width: 100]").stream()) // 度数0の階級も含まれるが、値のある範囲の外側の階級は含まれない
+        assertEquals("[999999900;1],[1000000000;1],[1000000100;1]", eval("999999900, 1000000000, 1000000100 >> TALLY[width: 100]").stream()) // 値が0から遠くても、0付近の階級は含まれない
+        assertEquals("[200;1],[100;0],[0;1]", eval("250, 50 >> TALLY[width: 100] >> SORTR[by: _ -> _.0]").stream()) // 出力は階級の昇順であり、SORTRで降順に並べ替えられる
+
+        assertEquals("[-200;1],[-100;1],[0;1]", eval("-150, -50, 50 >> TALLY[width: 100]").stream()) // 負の値でも階級の幅が保たれる
+        assertEquals("[0;1],[100;1],[200;1]", eval("0, 100, 200 >> TALLY[width: 100]").stream()) // 階級の下限値そのものは、その階級に含まれる
+        assertEquals("[0.0;2],[0.5;1]", eval("0.1, 0.2, 0.5 >> TALLY[width: 0.5]").stream()) // widthが小数の場合、階級の下限値も小数になる
+
+        assertEquals("[0;1]", eval("5 >> TALLY[width: 100]").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
+        assertEquals("", eval(", >> TALLY[width: 100]").stream()) // 空ストリームの場合、空ストリームになる
+
+        assertEquals("[0;2],[100;3],[200;2]", eval("105, 230, 187, 42, 299, 150, 88 >> HISTOGRAM[width: 100]").stream()) // HISTOGRAMはTALLYの別名
+
+        assertFails { eval("1, 2 >> TALLY[width: 100; by: _ -> _]").stream() } // widthとbyを同時に指定した場合、エラーになる
+        assertFails { eval("1, 2 >> TALLY[width: 0]").stream() } // widthが0以下の場合、エラーになる
     }
 
     @Test
