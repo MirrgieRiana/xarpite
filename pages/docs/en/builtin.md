@@ -785,6 +785,63 @@ $ xa '
 # banana
 ```
 
+## `TALLY` Count Stream Elements by Key
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+Applies `keyGetter` to each element of `stream`, collects the number of elements that share the same key into entries, and returns them as a stream.
+
+If `keyGetter` is omitted, counts using the elements themselves as keys.
+
+Entries are in the order in which that key first appeared.
+
+Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
+---
+
+If a result ordered by count is required, apply the `SORT` function or the `SORTR` function.
+
+These sorts are stable, so keys with equal counts keep the order in which that key first appeared.
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
+# [apple;2]
+# [banana;2]
+# [cherry;1]
+```
+
+---
+
+If the keys can be stringified, they can be easily grouped into objects by the `TO_OBJECT` function.
+
+```shell
+$ xa '
+  object := (
+    "apple", "cherry","banana", "banana", "apple"
+    >> TALLY
+    >> TO_OBJECT
+  )
+  object.banana
+'
+# 2
+```
+
 ## `CHUNK` Split Stream into Fixed-Size Arrays
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
