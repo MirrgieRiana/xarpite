@@ -445,6 +445,25 @@ $ xa '""::last()'
 # NULL
 ```
 
+# Taking the Single Character
+
+`STRING::single(): STRING`
+
+The `single` method gets the single character of the string.
+
+If the string is empty or has multiple characters, an error is thrown.
+
+```shell
+$ xa '"a"::single()'
+# a
+
+$ xa '"abcde"::single() !? "Error"'
+# Error
+
+$ xa '""::single() !? "Error"'
+# Error
+```
+
 # String Replacement
 
 `STRING::replace(old: STRING | REGEX; new: STRING | (match: VALUE) -> STRING): STRING`
