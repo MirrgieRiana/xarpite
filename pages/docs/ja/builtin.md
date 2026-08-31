@@ -789,7 +789,7 @@ $ xa '
 
 `<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
 
-`stream`の各要素に対して`keyGetter`を適用し、同一のキーとなった要素の個数をエントリーにまとめてストリームで返します。
+`stream`の各要素に対して`keyGetter`を適用し、同一のキーとなる要素の個数をエントリーにまとめてストリームで返します。
 
 `keyGetter`を省略した場合は要素そのものをキーとして数え上げます。
 

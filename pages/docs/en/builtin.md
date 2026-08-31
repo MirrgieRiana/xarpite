@@ -817,7 +817,7 @@ $ xa '
 
 If a result ordered by count is required, apply the `SORT` function or the `SORTR` function.
 
-These sorts are stable, so keys with equal counts keep the order in which that key first appeared.
+These sorts are stable, so keys with equal counts keep the order in which they first appeared.
 
 ```shell
 $ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
