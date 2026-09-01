@@ -930,12 +930,12 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                         if (!(widthDouble > 0) || widthDouble.isInfinite()) throw FluoriteException("Expected a positive finite width, got $widthDouble".toFluoriteString())
 
                         FluoriteStream {
-                            val counts = mutableMapOf<Int, Int>()
-                            var minBin = 0
-                            var maxBin = 0
+                            val counts = mutableMapOf<Double, Int>()
+                            var minBin = 0.0
+                            var maxBin = 0.0
 
                             suspend fun add(value: FluoriteValue) {
-                                val bin = floor(value.toFluoriteNumber(null).toDouble() / widthDouble).toInt()
+                                val bin = floor(value.toFluoriteNumber(null).toDouble() / widthDouble) + 0.0 // 0.0を足さないと、-0.0と0.0がマップ上で別のキーになる
                                 if (counts.isEmpty()) {
                                     minBin = bin
                                     maxBin = bin
@@ -955,8 +955,9 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                             }
 
                             if (counts.isNotEmpty()) {
-                                (minBin..maxBin).forEach { bin ->
-                                    val lowerBound = if (widthNumber is FluoriteInt) FluoriteInt(bin * widthNumber.value) else FluoriteDouble(bin * widthDouble)
+                                generateSequence(minBin) { it + 1 }.takeWhile { it <= maxBin }.forEach { bin ->
+                                    val lowerBoundDouble = bin * widthDouble
+                                    val lowerBound = if (widthNumber is FluoriteInt) FluoriteInt(lowerBoundDouble.toInt()) else FluoriteDouble(lowerBoundDouble)
                                     emit(lowerBound colon FluoriteInt(counts[bin] ?: 0))
                                 }
                             }

@@ -298,6 +298,7 @@ class StreamMountsTest {
         assertEquals("[-200;1],[-100;1],[0;1]", eval("-150, -50, 50 >> TALLY[width: 100]").stream()) // 負の値でも階級の幅が保たれる
         assertEquals("[0;1],[100;1],[200;1]", eval("0, 100, 200 >> TALLY[width: 100]").stream()) // 階級の下限値そのものは、その階級に含まれる
         assertEquals("[0.25;2],[0.5;0],[0.75;1]", eval("0.3, 0.4, 0.8 >> TALLY[width: 0.25]").stream()) // widthが小数の場合、階級の下限値も小数になる
+        assertEquals("1,0,1", eval("3000000000.3, 3000000000.8 >> TALLY[width: 0.25] | _.1").stream()) // 階級の番号がINTの範囲を超えても、階級の振り分けは保たれる
 
         assertEquals("[0;1]", eval("5 >> TALLY[width: 100]").stream()) // 第2引数が非ストリームの場合でもストリームの場合と同様に動作する
         assertEquals("", eval(", >> TALLY[width: 100]").stream()) // 空ストリームの場合、空ストリームになる
@@ -307,6 +308,8 @@ class StreamMountsTest {
         assertFails { eval("1, 2 >> TALLY[width: 100; by: _ -> _]").stream() } // widthとbyを同時に指定した場合、エラーになる
         assertFails { eval("1, 2 >> TALLY[width: 0]").stream() } // widthが0の場合、エラーになる
         assertFails { eval("1, 2 >> TALLY[width: 0 - 1]").stream() } // widthが負の場合、エラーになる
+        assertFails { eval("1, 2 >> TALLY[width: 1 / 0]").stream() } // widthが無限大の場合、エラーになる
+        assertEquals("caught", eval("""(1, 2 >> TALLY[width: 0] >> JOIN) !? "caught"""").string) // widthの検証のエラーは、キャッチ演算子で捕捉できる
     }
 
     @Test
