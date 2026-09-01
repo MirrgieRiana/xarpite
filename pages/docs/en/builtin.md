@@ -785,6 +785,113 @@ $ xa '
 # banana
 ```
 
+## `TALLY` / `HISTOGRAM` Count Stream Elements by Key
+
+Counts the elements of a stream.
+
+`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
+
+`TALLY` can be called in 2 ways.
+
+### Counting by Key
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+Applies `keyGetter` to each element of `stream`, collects the number of elements that share the same key into entries, and returns them as a stream.
+
+If `keyGetter` is omitted, counts using the elements themselves as keys.
+
+Entries are in the order in which that key first appeared.
+
+Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
+---
+
+If a result ordered by count is required, apply the `SORT` function or the `SORTR` function.
+
+These sorts are stable, so keys with equal counts keep the order in which they first appeared.
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
+# [apple;2]
+# [banana;2]
+# [cherry;1]
+```
+
+---
+
+If the keys can be stringified, they can be easily grouped into objects by the `TO_OBJECT` function.
+
+```shell
+$ xa '
+  object := (
+    "apple", "cherry","banana", "banana", "apple"
+    >> TALLY
+    >> TO_OBJECT
+  )
+  object.banana
+'
+# 2
+```
+
+### Counting by Bin
+
+`TALLY(width: NUMBER; stream: STREAM<NUMBER>): STREAM<[NUMBER; INT]>`
+
+If the first argument is the `width` parameter, distributes each element of `stream` into bins of width `width`, collects the lower bound of the bin and its frequency into entries, and returns them as a stream.
+
+Entries are in ascending order of bin.
+
+`width` must be a positive finite number and cannot be specified together with `keyGetter`.
+
+```shell
+$ xa '105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]'
+# [0;2]
+# [100;3]
+# [200;2]
+```
+
+---
+
+The range of bins to be output is from the smallest bin to the largest bin in which an element exists.
+
+Bins with a frequency of 0 inside this range are also output, but bins outside the range are not.
+
+```shell
+$ xa '105, 187, 420, 450 >> TALLY[width: 100]'
+# [100;2]
+# [200;0]
+# [300;0]
+# [400;2]
+```
+
+---
+
+Since the floor function is used to distribute elements into bins, the width of a bin is preserved even for negative values.
+
+```shell
+$ xa '-150, -50, 50 >> TALLY[width: 100]'
+# [-200;1]
+# [-100;1]
+# [0;1]
+```
+
 ## `CHUNK` Split Stream into Fixed-Size Arrays
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`

@@ -785,6 +785,113 @@ $ xa '
 # banana
 ```
 
+## `TALLY` / `HISTOGRAM`ストリームをキーで数え上げ
+
+ストリームの要素を数え上げます。
+
+`HISTOGRAM`は`TALLY`の別名であり、同一の動作を持ちます。
+
+`TALLY`は、2種類の呼び出し方があります。
+
+### キーごとの数え上げ
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+`stream`の各要素に対して`keyGetter`を適用し、同一のキーとなる要素の個数をエントリーにまとめてストリームで返します。
+
+`keyGetter`を省略した場合は要素そのものをキーとして数え上げます。
+
+エントリーは、最初にそのキーが現れた順序になります。
+
+`GROUP`関数と異なり、エントリーの値は要素の配列ではなく要素の個数です。
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
+---
+
+個数の順に並んだ結果が必要な場合は、`SORT`関数または`SORTR`関数を適用します。
+
+これらのソートは安定であるため、個数が等しいキーどうしは、最初にそのキーが現れた順序を保ちます。
+
+```shell
+$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
+# [apple;2]
+# [banana;2]
+# [cherry;1]
+```
+
+---
+
+キーが文字列化可能な場合、`TO_OBJECT`関数によって簡単にオブジェクトにまとめることができます。
+
+```shell
+$ xa '
+  object := (
+    "apple", "cherry","banana", "banana", "apple"
+    >> TALLY
+    >> TO_OBJECT
+  )
+  object.banana
+'
+# 2
+```
+
+### 階級ごとの数え上げ
+
+`TALLY(width: NUMBER; stream: STREAM<NUMBER>): STREAM<[NUMBER; INT]>`
+
+第1引数が`width`パラメータである場合、`stream`の各要素を幅`width`の階級に振り分け、階級の下限値と度数をエントリーにまとめてストリームで返します。
+
+エントリーは階級の昇順になります。
+
+`width`は正の有限の数でなければならず、`keyGetter`と同時に指定することはできません。
+
+```shell
+$ xa '105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]'
+# [0;2]
+# [100;3]
+# [200;2]
+```
+
+---
+
+出力される階級の範囲は、要素が存在する最小の階級から最大の階級までです。
+
+この範囲の内側にある度数0の階級も出力されますが、範囲の外側の階級は出力されません。
+
+```shell
+$ xa '105, 187, 420, 450 >> TALLY[width: 100]'
+# [100;2]
+# [200;0]
+# [300;0]
+# [400;2]
+```
+
+---
+
+階級の振り分けには床関数が使用されるため、負の値であっても階級の幅が保たれます。
+
+```shell
+$ xa '-150, -50, 50 >> TALLY[width: 100]'
+# [-200;1]
+# [-100;1]
+# [0;1]
+```
+
 ## `CHUNK`ストリームを一定サイズの配列に分割
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
