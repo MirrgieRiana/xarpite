@@ -386,6 +386,43 @@ class StreamMountsTest {
     }
 
     @Test
+    fun once() = runTest {
+        // 戻り値のストリームは1回はイテレートできる
+        assertEquals("1,2,3", eval("ONCE(1, 2, 3)").stream())
+
+        // 非ストリームは1要素のストリームになる
+        assertEquals("42", eval("ONCE(42)").stream())
+
+        // 空ストリームでも動作する
+        assertEquals("", eval("ONCE(,)").stream())
+
+        // streamは丁度1回だけイテレートされ、副作用も丁度1回発生する
+        assertEquals("[1;2;3]", eval("""
+            array := []
+            stream := ONCE(1 .. 3 | (
+                array::push << _
+                _
+            ))
+            VOID(stream)
+            array
+        """).array())
+
+        // 2回イテレートしようとするとエラーになる
+        assertFails { eval("""
+            stream := ONCE(1, 2, 3)
+            VOID(stream)
+            VOID(stream)
+        """) }
+
+        // 途中で打ち切ったイテレーションも1回とみなされ、次のイテレーションはエラーになる
+        assertFails { eval("""
+            stream := ONCE(1 .. 100)
+            FIRST(stream)
+            FIRST(stream)
+        """) }
+    }
+
+    @Test
     fun toStream() = runTest {
         // ストリーム入力 → そのまま返す
         assertEquals("1,2,3", eval("TO_STREAM(1, 2, 3)").stream())

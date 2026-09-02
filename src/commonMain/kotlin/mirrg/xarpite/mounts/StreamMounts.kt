@@ -935,5 +935,20 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("VOID(stream: STREAM): NULL")
             }
         },
+        "ONCE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 1) {
+                val stream = arguments[0]
+                var iterated = false
+                FluoriteStream {
+                    if (iterated) throw FluoriteException("Stream has already been iterated".toFluoriteString())
+                    iterated = true
+                    stream.toFlow().collect { item ->
+                        emit(item)
+                    }
+                }
+            } else {
+                usage("<T> ONCE(stream: STREAM<T>): STREAM<T>")
+            }
+        },
     ).let { listOf(it) }
 }
