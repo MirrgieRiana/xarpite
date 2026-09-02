@@ -421,6 +421,31 @@ $ xa '"[" & "abcde"::drop(10) & "]"'
 # []
 ```
 
+# Removing Whitespace from the Ends
+
+`STRING::trim(): STRING`
+
+`STRING::trimStart(): STRING`
+
+`STRING::trimEnd(): STRING`
+
+Returns the string with the whitespace removed from the beginning and end of the string.
+
+`trim` removes whitespace from both ends, `trimStart` from the beginning, and `trimEnd` from the end.
+
+The whitespace to be removed includes spaces, tabs, and newlines, as well as Unicode whitespace characters such as the ideographic space.
+
+```shell
+$ xa '"[$(  "  abc  "::trim()  )]"'
+# [abc]
+
+$ xa '"[$(  "  abc  "::trimStart()  )]"'
+# [abc  ]
+
+$ xa '"[$(  "  abc  "::trimEnd()  )]"'
+# [  abc]
+```
+
 # Taking Characters from the Ends
 
 `STRING::first(): STRING | NULL`
