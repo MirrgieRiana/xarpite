@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.toFluoriteIntAsCompared
 
 enum class FluoriteBoolean(val value: Boolean) : FluoriteValue {
     TRUE(true),
@@ -13,6 +14,14 @@ enum class FluoriteBoolean(val value: Boolean) : FluoriteValue {
                 FluoriteValue.fluoriteClass, mutableMapOf(
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { if ((it[0] as FluoriteBoolean).value) FluoriteInt.ONE else FluoriteInt.ZERO },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { it[0] as FluoriteBoolean },
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
+                        val left = arguments[0] as FluoriteBoolean
+                        when (val right = arguments[1]) {
+                            is FluoriteBoolean -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteNull -> FluoriteInt.ONE
+                            else -> throw IllegalArgumentException("Can not compare boolean with: ${right::class}")
+                        }
+                    },
                 )
             )
         }

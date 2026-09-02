@@ -20,6 +20,13 @@ interface FluoriteValue {
                         obj.map[key] ?: FluoriteNull
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { "${it[0]}".toFluoriteString() },
+                    // 独自の比較を持たない型でも、NULLとは比較でき、NULLはいずれの値よりも小さい
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
+                        when (val right = arguments[1]) {
+                            is FluoriteNull -> FluoriteInt.ONE
+                            else -> throw IllegalArgumentException("Can not compare: ${arguments[0]} <=> $right")
+                        }
+                    },
                 )
             )
         }

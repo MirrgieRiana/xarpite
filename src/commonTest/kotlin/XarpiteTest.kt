@@ -1292,6 +1292,34 @@ class XarpiteTest {
         assertEquals(1, eval(" 'b' <=> 'a' ").int) // 左辺が大きい場合は1
         assertEquals(true, eval(" 'aa' > 'a' ").boolean) // 末尾に付け足した場合は大きい扱い
 
+        // 論理値
+        assertEquals(-1, eval("FALSE <=> TRUE").int) // FALSE は TRUE より小さい
+        assertEquals(0, eval("FALSE <=> FALSE").int) // 等しい場合は0
+        assertEquals(0, eval("TRUE <=> TRUE").int) // 等しい場合は0
+        assertEquals(1, eval("TRUE <=> FALSE").int) // TRUE は FALSE より大きい
+
+        // NULL はカテゴリ内で先頭に来る
+        assertEquals(0, eval("NULL <=> NULL").int) // NULL 同士は等しい
+        assertEquals(-1, eval("NULL <=> 1").int) // NULL は整数より小さい
+        assertEquals(1, eval("1 <=> NULL").int) // 整数は NULL より大きい
+        assertEquals(-1, eval("NULL <=> 1.5").int) // NULL は小数より小さい
+        assertEquals(1, eval("1.5 <=> NULL").int) // 小数は NULL より大きい
+        assertEquals(-1, eval(" NULL <=> 'a' ").int) // NULL は文字列より小さい
+        assertEquals(1, eval(" 'a' <=> NULL ").int) // 文字列は NULL より大きい
+        assertEquals(-1, eval("NULL <=> TRUE").int) // NULL は論理値より小さい
+        assertEquals(1, eval("TRUE <=> NULL").int) // 論理値は NULL より大きい
+
+        // 独自の比較を持たない型でも NULL とは比較できる
+        assertEquals(1, eval("[1, 2] <=> NULL").int) // 配列は NULL より大きい
+        assertEquals(-1, eval("NULL <=> [1, 2]").int) // NULL は配列より小さい
+        assertEquals(1, eval("{a: 1} <=> NULL").int) // オブジェクトは NULL より大きい
+        assertEquals(-1, eval("NULL <=> {a: 1}").int) // NULL はオブジェクトより小さい
+
+        // 各カテゴリ内で NULL を含めてソートできる
+        assertEquals("NULL,1,2,3", eval("(2, NULL, 1, 3) >> SORT").stream()) // 数値と NULL
+        assertEquals("NULL,a,b", eval("('b', NULL, 'a') >> SORT").stream()) // 文字列と NULL
+        assertEquals("NULL,FALSE,TRUE", eval("(TRUE, NULL, FALSE) >> SORT").stream()) // 論理値と NULL
+
         // 宇宙船演算子のオーバーライド
         """
             LengthComparing := {
