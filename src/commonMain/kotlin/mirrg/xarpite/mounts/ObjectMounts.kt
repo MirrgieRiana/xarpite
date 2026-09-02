@@ -8,10 +8,14 @@ import mirrg.xarpite.define
 
 context(context: RuntimeContext)
 fun createObjectMounts(): List<Map<String, Mount>> {
-    return mapOf(
-        "PARENT" define FluoriteFunction.immediate { arguments ->
-            if (arguments.size != 1) usage("PARENT(value: VALUE): OBJECT | NULL")
+    fun createParent(name: String): FluoriteFunction {
+        return FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("$name(value: VALUE): OBJECT | NULL")
             arguments[0].parent ?: FluoriteNull
-        },
+        }
+    }
+    return mapOf(
+        "PARENT" define createParent("PARENT"),
+        "TYPE" define createParent("TYPE"),
     ).let { listOf(it) }
 }

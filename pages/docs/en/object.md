@@ -263,9 +263,9 @@ $ xa '
 # {b:banana}
 ```
 
-# Built-in Function `PARENT`
+# Built-in Function `PARENT` / `TYPE`
 
-## `PARENT`: Getting the Parent Object
+## `PARENT` / `TYPE`: Getting the Parent Object
 
 `PARENT(value: VALUE): OBJECT | NULL`
 
@@ -280,6 +280,8 @@ For a value at the root of the inheritance chain, it returns NULL.
 For any other value, it returns the corresponding class constant.
 
 If `value` is a stream, it is not applied element-wise but returns `STREAM`, the parent object of the stream itself.
+
+`TYPE` is an alias of `PARENT` and has the same behavior.
 
 ```shell
 $ xa '
