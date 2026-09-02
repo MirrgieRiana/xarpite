@@ -6,6 +6,7 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.stream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -105,6 +106,43 @@ class BlobTest {
                 1.6,
                 2.4,
                 3.5,
+            )
+        """).blob))
+    }
+
+    @Test
+    fun call() = runTest {
+        // BLOB() は BLOB.of() と等価に動作する
+        assertEquals("1,2,3", (eval("BLOB([1,2,3])").blob)) // 配列からの生成
+        assertEquals("", (eval("BLOB([])").blob)) // 空配列の場合は空BLOB
+        assertEquals("1", (eval("BLOB([1])").blob)) // 1要素のBLOB
+        assertEquals("0", (eval("BLOB([256])").blob)) // 256で0にオーバーフローする
+        assertEquals("255", (eval("BLOB([-1])").blob)) // -1でも255にオーバーフローする
+    }
+
+    @Test
+    fun callFromNumber() = runTest {
+        // 数値が直接渡された場合：小数点以下の四捨五入と下位8ビット以外のビットの削除
+        assertEquals("123", (eval("BLOB(123)").blob)) // 整数
+        assertEquals("1", (eval("BLOB(1.4)").blob)) // 1.4 -> 1 (四捨五入)
+        assertEquals("2", (eval("BLOB(1.6)").blob)) // 1.6 -> 2 (四捨五入)
+        assertEquals("255", (eval("BLOB(-1)").blob)) // -1でも255にオーバーフローする
+    }
+
+    @Test
+    fun callToStream() = runTest {
+        assertEquals("1,2,3", (eval("BLOB([1,2,3])()").stream())) // 引数なし呼び出しで各バイトのストリームを得る
+    }
+
+    @Test
+    fun callFromStream() = runTest {
+        // ストリームから生成：数値、配列、BLOBの混在
+        assertEquals("10,20,30,40,50,60", (eval("""
+            BLOB(
+                10,
+                [20, 30],
+                BLOB([40, 50]),
+                60,
             )
         """).blob))
     }
