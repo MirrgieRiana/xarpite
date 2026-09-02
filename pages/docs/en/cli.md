@@ -418,6 +418,14 @@ Specifying the `-h` option shows the usage information and exits.
 
 Specifying the `-y` option skips the confirmation prompt and automatically applies the update.
 
+By default, only minor updates within the same major version are applied.
+
+If a new version with a different major version is available, you will be notified.
+
+#### `-f`: Allow Major Version Updates
+
+When the `-f` option is specified, updates including major version changes will be applied.
+
 ## CLI-Exclusive Built-in Constants and Functions
 
 ### `ARGS`: Get Command-Line Arguments

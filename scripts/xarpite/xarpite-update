@@ -2,6 +2,19 @@
 
 set -euo pipefail
 
+# Parse command-line options
+force_major=false
+if [ "${1:-}" = "-f" ]; then
+  force_major=true
+  shift
+fi
+
+if [ $# -gt 0 ]; then
+  echo "Usage: xarpite-update [-f]" >&2
+  echo "  -f  Allow major version updates" >&2
+  exit 1
+fi
+
 error() {
   echo "$1" >&2
   exit 1
@@ -52,21 +65,54 @@ trap on_term TERM
 
 # Determine the downloading version
 
+current_version="$(cat "$(pwd)/version")"
+current_major="${current_version%%.*}"
+
+echo "Current version: $current_version"
 echo "Fetching metadata"
 
 export metadata=$(curl -s 'https://repo1.maven.org/maven2/io/github/mirrgieriana/xarpite-bin/maven-metadata.xml')
 
-version=$(
+# Parse versions from metadata
+parse_versions() {
   perl -E '
     $ENV{metadata} =~ /<versions>(.*?)<\/versions>/s or die;
     my $versions = $1;
     while ($versions =~ /<version>(\d+\.\d+\.\d+(?:\+[^<]*)?)<\/version>/g) {
         say $1;
     }
-  ' | sort -Vr | head -n 1
-)
+  ' | sort -Vr
+}
+
+# Filter function: pass through all versions or only same major version
+filter_versions() {
+  if [ "$force_major" = true ]; then
+    cat
+  else
+    grep "^$current_major\." || true
+  fi
+}
+
+version=$(parse_versions | filter_versions | head -n 1)
 [ -z "$version" ] && error "Error: Failed to determine latest version."
-echo "Latest version: $version"
+
+# Check if already up-to-date
+if [ "$version" = "$current_version" ]; then
+  echo "Already up-to-date: $version"
+  exit 0
+fi
+
+# Notify about major version updates if -f not specified
+if [ "$force_major" = false ]; then
+  latest_version=$(parse_versions | head -n 1)
+  if ! echo "$latest_version" | grep -q "^$current_major\."; then
+    echo "Note: Major version update available: $latest_version" >&2
+    echo "      Use -f flag to update to major versions" >&2
+    echo >&2
+  fi
+fi
+
+echo "Target version: $version"
 
 echo
 
