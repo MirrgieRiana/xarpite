@@ -105,6 +105,9 @@ class RuntimeContext(
 
 }
 
+/**
+ * すべてのメソッドはスレッドセーフです。
+ */
 interface IoContext {
     fun getEnv(): Map<String, String>
     fun getPlatformPwd(): String
