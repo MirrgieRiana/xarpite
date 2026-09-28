@@ -136,3 +136,18 @@ To preserve the previous behavior, insert a space before any `#` that previously
 - 1#comment
 + 1 #comment
 ```
+
+## API Version 6
+
+### `PROMISE::isCompleted` Has Been Removed
+
+Up to API version 5, `PROMISE::isCompleted` was an alias for `PROMISE::isFinished`.
+
+In API version 6, `PROMISE::isCompleted` has been removed.
+
+To preserve the previous behavior, replace calls to `isCompleted` with `isFinished`.
+
+```diff
+- promise::isCompleted()
++ promise::isFinished()
+```
