@@ -53,6 +53,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteNull -> FluoriteInt.ONE
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
@@ -105,6 +106,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteNull -> FluoriteInt.ONE
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
