@@ -196,8 +196,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         *run {
             fun create(name: String, fullPath: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
-                    val dir = arguments[0].toFluoriteString(null).value
+                    val dir = when (arguments.size) {
+                        0 -> context.io.getPwd()
+                        1 -> arguments[0].toFluoriteString(null).value
+                        else -> usage("$name([dir: STRING]): STREAM<STRING>")
+                    }
                     val fileSystem = getFileSystem().getOrThrow()
                     fileSystem.list(dir.toPath()).map { (if (fullPath) it.toString() else it.name).toFluoriteString() }.toFluoriteStream()
                 }
@@ -210,8 +213,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
         *run {
             fun create(name: String, includeDirectories: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
-                    val dirPath = arguments[0].toFluoriteString(null).value.toPath()
+                    val dirPath = when (arguments.size) {
+                        0 -> context.io.getPwd()
+                        1 -> arguments[0].toFluoriteString(null).value
+                        else -> usage("$name([dir: STRING]): STREAM<STRING>")
+                    }.toPath()
                     val fileSystem = getFileSystem().getOrThrow()
 
                     FluoriteStream {
