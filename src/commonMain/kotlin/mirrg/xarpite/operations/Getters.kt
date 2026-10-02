@@ -535,7 +535,7 @@ class ModGetter(private val leftGetter: Getter, private val rightGetter: Getter)
         val right = rightGetter.evaluate(env)
         return when (left) {
             is FluoriteInt -> when (right) {
-                // % だと左辺の符号に結果が付いてくるから、右辺の符号に揃う mod を使うのだ～🌱
+                // % だと左辺の符号に結果が付いてくるから、右辺の符号に揃う mod を使うのだ。
                 is FluoriteInt -> FluoriteInt(left.value.mod(right.value))
                 is FluoriteDouble -> FluoriteDouble(left.value.toDouble().mod(right.value))
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
