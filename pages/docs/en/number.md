@@ -330,6 +330,21 @@ $ xa '7 % 4'
 
 ---
 
+The remainder is either 0 or has the same sign as the right operand.
+
+```shell
+$ xa '-7 % 3'
+# 2
+
+$ xa '7 % -3'
+# -2
+
+$ xa '-7 % -3'
+# -1
+```
+
+---
+
 It can also handle decimals.
 
 ```shell
