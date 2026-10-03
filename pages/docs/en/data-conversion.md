@@ -167,6 +167,66 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
+## `BASE64B` Convert BLOB to Base64 String
+
+`BASE64B(blobLike: BLOB_LIKE): STRING`
+
+Returns a string with `blobLike` encoded in Base64 format.
+
+For `BLOB_LIKE`, see BLOB.
+
+```shell
+$ xa ' BLOB.of([72, 101, 108, 108, 111]) >> BASE64B '
+# SGVsbG8=
+```
+
+---
+
+The difference from the `BASE64` function is that the input is a raw byte sequence that does not go through UTF-8 conversion.
+
+The `BASE64` function is equivalent to combining the `UTF8` function and the `BASE64B` function.
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+
+$ xa ' "Hello, World!" >> UTF8 >> BASE64B '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+The output is wrapped at 76 characters, just like the `BASE64` function.
+
+## `BASE64BD` Convert Base64 String to BLOB
+
+`BASE64BD(string: STRING): BLOB`
+
+Decodes the Base64-encoded string `string` and returns a BLOB.
+
+```shell
+$ xa ' "SGVsbG8=" >> BASE64BD >> TO_STRING '
+# BLOB.of([72;101;108;108;111])
+```
+
+---
+
+The difference from the `BASE64D` function is that the output is a raw byte sequence that does not go through conversion from UTF-8.
+
+The `BASE64D` function is equivalent to combining the `BASE64BD` function and the `UTF8D` function.
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64BD >> UTF8D '
+# Hello, World!
+```
+
+---
+
+Newline and whitespace characters are ignored, just like the `BASE64D` function.
+
 ## `URL` Encode String to URL Format
 
 `URL(string: STRING): STRING`
