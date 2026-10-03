@@ -718,11 +718,13 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-### `ERR`: Output to Standard Error
+### `ERR`, `ERRL`: Output to Standard Error
 
 `ERR(value: VALUE): NULL`
 
 Outputs to standard error output.
+
+`ERRL` is an alias for `ERR`.
 
 This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
 

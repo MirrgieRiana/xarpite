@@ -2883,6 +2883,13 @@ class CliTest {
     }
 
     @Test
+    fun errlAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """ERRL("test")""")
+        assertEquals("test\n", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
     fun errb() = runTest {
         val context = TestIoContext()
         // ERRB がNULLを返すことを確認
