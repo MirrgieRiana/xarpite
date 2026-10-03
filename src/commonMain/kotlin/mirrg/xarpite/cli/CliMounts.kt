@@ -79,17 +79,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 emit(bytes.asFluoriteBlob())
             }
         },
-        "ERR" define FluoriteFunction.immediate { arguments ->
-            arguments.forEach {
-                if (it is FluoriteStream) {
-                    it.collect { item ->
-                        context.io.err(item)
+        *run {
+            fun create(): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    arguments.forEach {
+                        if (it is FluoriteStream) {
+                            it.collect { item ->
+                                context.io.err(item)
+                            }
+                        } else {
+                            context.io.err(it)
+                        }
                     }
-                } else {
-                    context.io.err(it)
+                    FluoriteNull
                 }
             }
-            FluoriteNull
+            arrayOf(
+                "ERR" define create(),
+                "ERRL" define create(),
+            )
         },
         "OUTB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
