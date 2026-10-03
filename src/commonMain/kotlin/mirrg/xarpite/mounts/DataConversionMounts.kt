@@ -76,6 +76,18 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     val string = arguments[0].toFluoriteString(null).value
                     base64.decode(string).decodeToString().toFluoriteString()
                 },
+                "BASE64B" define FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("BASE64B(blobLike: BLOB_LIKE): STRING")
+                    if (arguments.size != 1) usage()
+                    val bytes = arguments[0].toByteArrayAsBlobLike()
+                    base64.encode(bytes).replace("\r\n", "\n").toFluoriteString()
+                },
+                "BASE64BD" define FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("BASE64BD(string: STRING): BLOB")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    base64.decode(string).asFluoriteBlob()
+                },
             )
         },
         "URL" define FluoriteFunction.immediate { arguments ->
