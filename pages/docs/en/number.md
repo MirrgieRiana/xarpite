@@ -345,6 +345,18 @@ $ xa '-7 % -3'
 
 ---
 
+When the division is exact, the result is 0 regardless of the signs of the operands.
+
+```shell
+$ xa '-6 % 3'
+# 0
+
+$ xa '6 % -3'
+# 0
+```
+
+---
+
 It can also handle decimals.
 
 ```shell
