@@ -655,8 +655,17 @@ class XarpiteTest {
         assertEquals(0.5, eval("2 % 0.75").double) // 右側だけが浮動小数点数でもよい
         assertEquals(0.25, eval("10.25 % 5").double) // 左側だけが浮動小数点数でもよい
 
-        // 負の余りは正になるまで割る数を足したものの余りと同じ（-1 + 3 = 2） % 3
-        // そのため同じ余りがループする
+        // 余りは、0 であるか、割る数と同じ符号になる
+        assertEquals(2, eval("-7 % 3").int) // 割られる数が負でも、割る数が正なら余りは正
+        assertEquals(-2, eval("7 % -3").int) // 割る数が負なら余りも負
+        assertEquals(-1, eval("-7 % -3").int) // 両方負でも割る数の符号に揃う
+        assertEquals(0, eval("-6 % 3").int) // 割り切れる場合は 0
+        assertEquals(0, eval("6 % -3").int) // 割る数が負で割り切れる場合も 0
+        assertEquals(-0.25, eval("1.75 % -0.5").double) // 浮動小数点数でも割る数の符号に揃う
+        assertEquals(2.0, eval("-7 % 3.0").double) // 右側だけが浮動小数点数でもよい
+        assertEquals(2.0, eval("-7.0 % 3").double) // 左側だけが浮動小数点数でもよい
+
+        // 余りが割られる数の符号によらないため、同じ余りがループする
         assertEquals("[0;1;2;3;4;0;1;2;3;4;0;1;2;3;4;0;1;2;3;4;0]", eval("&[-10 .. 10 | _ % 5]").string)
 
         assertEquals(false, eval("10 %% 3").boolean) // %% は割り切れる場合にTRUE
