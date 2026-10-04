@@ -220,5 +220,37 @@ fun createStringMounts(): List<Map<String, Mount>> {
             )
         },
 
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage(signature)
+                    val path = arguments[0].toFluoriteString(null).value.toPath()
+                    (path.parent?.toString() ?: if (path.isAbsolute) path.toString() else ".").toFluoriteString()
+                }
+            }
+            arrayOf(
+                "DIRNAME" define create("DIRNAME(path: STRING): STRING"),
+                "::DIRNAME" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::DIRNAME(): STRING"),
+                ),
+            )
+        },
+
+        *run {
+            fun create(signature: String): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage(signature)
+                    val path = arguments[0].toFluoriteString(null).value
+                    path.toPath().name.toFluoriteString()
+                }
+            }
+            arrayOf(
+                "FILENAME" define create("FILENAME(path: STRING): STRING"),
+                "::FILENAME" define fluoriteArrayOf(
+                    FluoriteString.fluoriteClass colon create("STRING::FILENAME(): STRING"),
+                ),
+            )
+        },
+
         ).let { listOf(it) }
 }
