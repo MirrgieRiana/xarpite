@@ -130,6 +130,24 @@ class StringMountsTest {
     }
 
     @Test
+    fun resolveBySlash() = runTest {
+        // 文字列同士の / は、RESOLVE と同じパスの解決になる
+        assertEquals("/home/apple/Apple.txt", eval("'/home/apple' / 'Apple.txt'").string)
+
+        // ルートディレクトリとの結合
+        assertEquals("/Banana.txt", eval("'/' / 'Banana.txt'").string)
+
+        // .. と . を含むパスの正規化
+        assertEquals("/home/cherry/Cherry.txt", eval("'/home/apple/' / '../cherry/./Cherry.txt'").string)
+
+        // 相対パス同士の結合
+        assertEquals("a/b/c.txt", eval("'a/b' / 'c.txt'").string)
+
+        // RESOLVE と同じ結果になる
+        assertEquals(eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string, eval("'/home/user/dir' / '../../../file.txt'").string)
+    }
+
+    @Test
     fun charCode() = runTest {
         // CHAR_CODE: UTF-16コード単位を返す
         assertEquals(65, eval("CHAR_CODE('A')").int) // 'A' のコードは65

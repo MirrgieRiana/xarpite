@@ -48,6 +48,7 @@ import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
+import okio.Path.Companion.toPath
 
 object NullGetter : Getter {
     override suspend fun evaluate(env: Environment) = FluoriteNull
@@ -471,6 +472,8 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
                 is FluoriteDouble -> FluoriteDouble(left.value / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
+
+            is FluoriteString -> left.value.toPath().resolve((right as FluoriteString).value).normalized().toString().toFluoriteString()
 
             else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
         }
