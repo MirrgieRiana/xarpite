@@ -387,11 +387,11 @@ $ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
 
 ---
 
-右辺は文字列化されます。
+右辺が絶対パスの場合は、左辺が無視されます。
 
 ```shell
-$ xa '"/home/apple" / 123'
-# /home/apple/123
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
 ```
 
 # 部分文字列の取得

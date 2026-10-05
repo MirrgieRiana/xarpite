@@ -387,11 +387,11 @@ $ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
 
 ---
 
-The right operand is converted into a string.
+If the right operand is an absolute path, the left operand is ignored.
 
 ```shell
-$ xa '"/home/apple" / 123'
-# /home/apple/123
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
 ```
 
 # Getting Substring
