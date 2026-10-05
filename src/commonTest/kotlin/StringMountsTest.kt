@@ -145,6 +145,10 @@ class StringMountsTest {
 
         // RESOLVE と同じ結果になる
         assertEquals(eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string, eval("'/home/user/dir' / '../../../file.txt'").string)
+
+        // 右辺は文字列化される
+        assertEquals("/home/apple/123", eval("'/home/apple' / 123").string)
+        assertEquals("/home/apple/4.5", eval("'/home/apple' / 4.5").string)
     }
 
     @Test

@@ -721,3 +721,28 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 Using string concatenation like `"$PWD/file"` generates paths like `//file` for the root directory.
 
 Instead, use the `RESOLVE` function like `PWD::RESOLVE("file")`.
+
+## `string / string`Path Resolution Operator
+
+`string / string`
+
+Division of a string by a string resolves the path on the right, treating the left as a directory.
+
+This behaves the same as `RESOLVE`.
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+The right operand is converted into a string.
+
+```shell
+$ xa '"/home/apple" / 123'
+# /home/apple/123
+```

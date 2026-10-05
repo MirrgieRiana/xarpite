@@ -721,3 +721,28 @@ $ xa '"/home/apple/"::RESOLVE("../cherry/./Cherry.txt")'
 `"$PWD/file"`のような文字列連結を使うと、ルートディレクトリに対して`//file`のようなパスが生成されます。
 
 代わりに`PWD::RESOLVE("file")`のように`RESOLVE`関数を使用してください。
+
+## `string / string`パス解決演算子
+
+`string / string`
+
+文字列同士の除算は、左辺をディレクトリとして、右辺のパスを解決します。
+
+`RESOLVE`と同じ動作です。
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+右辺は文字列化されます。
+
+```shell
+$ xa '"/home/apple" / 123'
+# /home/apple/123
+```

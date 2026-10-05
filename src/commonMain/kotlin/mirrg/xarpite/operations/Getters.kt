@@ -473,7 +473,7 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
-            is FluoriteString -> left.value.toPath().resolve((right as FluoriteString).value).normalized().toString().toFluoriteString()
+            is FluoriteString -> left.value.toPath().resolve(right.toFluoriteString(null).value).normalized().toString().toFluoriteString()
 
             else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
         }
