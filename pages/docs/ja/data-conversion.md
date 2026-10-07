@@ -167,6 +167,66 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
+## `BASE64B` バイト列をBase64文字列に変換
+
+`BASE64B(blobLike: BLOB_LIKE): STRING`
+
+`blobLike`をBase64形式でエンコードした文字列を返します。
+
+`BLOB_LIKE`についてはBLOBを参照してください。
+
+```shell
+$ xa ' BLOB.of([72, 101, 108, 108, 111]) >> BASE64B '
+# SGVsbG8=
+```
+
+---
+
+`BASE64`関数と異なり、入力はUTF-8への変換を経由しない生のバイト列です。
+
+`BASE64`関数は、`UTF8`関数と`BASE64B`関数を組み合わせた処理と同等です。
+
+```shell
+$ xa ' "Hello, World!" >> BASE64 '
+# SGVsbG8sIFdvcmxkIQ==
+
+$ xa ' "Hello, World!" >> UTF8 >> BASE64B '
+# SGVsbG8sIFdvcmxkIQ==
+```
+
+---
+
+出力は`BASE64`関数と同様に76文字ごとに改行されます。
+
+## `BASE64BD` Base64文字列をバイト列に変換
+
+`BASE64BD(string: STRING): BLOB`
+
+Base64形式でエンコードされた文字列`string`をデコードしたBLOBを返します。
+
+```shell
+$ xa ' "SGVsbG8=" >> BASE64BD >> TO_STRING '
+# BLOB.of([72;101;108;108;111])
+```
+
+---
+
+`BASE64D`関数と異なり、出力はUTF-8からの変換を経由しない生のバイト列です。
+
+`BASE64D`関数は、`BASE64BD`関数と`UTF8D`関数を組み合わせた処理と同等です。
+
+```shell
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64D '
+# Hello, World!
+
+$ xa ' "SGVsbG8sIFdvcmxkIQ==" >> BASE64BD >> UTF8D '
+# Hello, World!
+```
+
+---
+
+改行文字や空白文字は`BASE64D`関数と同様に無視されます。
+
 ## `URL`文字列をURLエンコード
 
 `URL(string: STRING): STRING`
