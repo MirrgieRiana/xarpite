@@ -167,7 +167,7 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
-## `BASE64B` Convert BLOB to Base64 String
+## `BASE64B` Convert Byte Sequence to Base64 String
 
 `BASE64B(blobLike: BLOB_LIKE): STRING`
 
@@ -198,7 +198,7 @@ $ xa ' "Hello, World!" >> UTF8 >> BASE64B '
 
 The output is wrapped at 76 characters, just like the `BASE64` function.
 
-## `BASE64BD` Convert Base64 String to BLOB
+## `BASE64BD` Convert Base64 String to Byte Sequence
 
 `BASE64BD(string: STRING): BLOB`
 

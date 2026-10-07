@@ -167,7 +167,7 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
-## `BASE64B` BLOBをBase64文字列に変換
+## `BASE64B` バイト列をBase64文字列に変換
 
 `BASE64B(blobLike: BLOB_LIKE): STRING`
 
@@ -198,7 +198,7 @@ $ xa ' "Hello, World!" >> UTF8 >> BASE64B '
 
 出力は`BASE64`関数と同様に76文字ごとに改行されます。
 
-## `BASE64BD` Base64文字列をBLOBに変換
+## `BASE64BD` Base64文字列をバイト列に変換
 
 `BASE64BD(string: STRING): BLOB`
 
