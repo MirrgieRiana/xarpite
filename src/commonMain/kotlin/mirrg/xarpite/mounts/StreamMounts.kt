@@ -242,13 +242,28 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         "LINES" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
-                val string = arguments[0].toFluoriteString(null).value
-                if (string.isEmpty()) return@immediate FluoriteStream.EMPTY
-                val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
-                if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
-                lines.map { it.toFluoriteString() }.toFluoriteStream()
+                suspend fun splitLines(value: FluoriteValue): List<FluoriteValue> {
+                    val string = value.toFluoriteString(null).value
+                    if (string.isEmpty()) return listOf()
+                    val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
+                    if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
+                    return lines.map { it.toFluoriteString() }
+                }
+
+                val stream = arguments[0]
+                if (stream is FluoriteStream) {
+                    FluoriteStream {
+                        stream.collect { value ->
+                            splitLines(value).forEach {
+                                emit(it)
+                            }
+                        }
+                    }
+                } else {
+                    splitLines(stream).toFluoriteStream()
+                }
             } else {
-                usage("LINES(string: STRING): STREAM<STRING>")
+                usage("LINES(string: STREAM<STRING>): STREAM<STRING>")
             }
         },
         "LINESD" define FluoriteFunction.immediate { arguments ->
