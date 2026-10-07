@@ -363,6 +363,37 @@ $ xa '"abc" & "def"'
 # abcdef
 ```
 
+# Path Resolution `string / string`
+
+To join paths, use the `/` operator.
+
+It resolves the path on the right, treating the left as a directory.
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+```
+
+---
+
+The output path is automatically normalized.
+
+This behaves the same as the `RESOLVE` function.
+
+```shell
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+If the right operand is an absolute path, the left operand is ignored.
+
+```shell
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
+```
+
 # Getting Substring
 
 `string[indices]` gets a substring.

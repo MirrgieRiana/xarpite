@@ -363,6 +363,37 @@ $ xa '"abc" & "def"'
 # abcdef
 ```
 
+# パスの解決`string / string`
+
+パスを結合するには`/`演算子を使います。
+
+左辺をディレクトリとして、右辺のパスを解決します。
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+```
+
+---
+
+出力パスは自動で正規化されます。
+
+`RESOLVE`関数と同じ動作です。
+
+```shell
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+右辺が絶対パスの場合は、左辺が無視されます。
+
+```shell
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
+```
+
 # 部分文字列の取得
 
 `string[indices]`で部分文字列を取得できます。
