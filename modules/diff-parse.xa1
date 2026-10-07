@@ -1,0 +1,142 @@
+diff_parse := text -> (
+  lines := [LINES(text)]
+  lineCount := $#lines
+  i := 0
+
+  nextLine := () -> i < lineCount ? lines(i) : NULL
+  consumeLine := () -> (
+    line := lines(i)
+    i++
+    line
+  )
+  dropFirst := s -> s[1 ~ $#s]
+
+  files := []
+
+  WHILE [ => i < lineCount ] ( => (
+    line := nextLine()
+
+    line =~ /^diff --git a\/(.*) b\/(.*)/ && (
+      match := line =~ /^diff --git a\/(.*) b\/(.*)/
+      oldName := match.1
+      newName := match.2
+      consumeLine()
+
+      deletedFileMode := NULL
+      newFileLineValue := NULL
+      renameFrom := NULL
+      renameTo := NULL
+      copyFrom := NULL
+      copyTo := NULL
+      isBinary := FALSE
+      blocks := []
+      addedLines := 0
+      deletedLines := 0
+
+      WHILE [ => i < lineCount && !(nextLine() =~ /^(diff --git |--- )/) ] ( => (
+        metaLine := nextLine()
+        metaLine =~ /^deleted file mode / && (deletedFileMode = metaLine)
+        metaLine =~ /^new file mode / && (newFileLineValue = metaLine)
+        metaLine =~ /^rename from (.*)/ && (renameFrom = (metaLine =~ /^rename from (.*)/).1)
+        metaLine =~ /^rename to (.*)/ && (renameTo = (metaLine =~ /^rename to (.*)/).1)
+        metaLine =~ /^copy from (.*)/ && (copyFrom = (metaLine =~ /^copy from (.*)/).1)
+        metaLine =~ /^copy to (.*)/ && (copyTo = (metaLine =~ /^copy to (.*)/).1)
+        metaLine =~ /^Binary files/ && (isBinary = TRUE)
+        consumeLine()
+      ))
+
+      renameFrom != NULL && (oldName = renameFrom)
+      renameTo != NULL && (newName = renameTo)
+      copyFrom != NULL && (oldName = copyFrom)
+      copyTo != NULL && (newName = copyTo)
+      newFileLineValue != NULL && (oldName = "/dev/null")
+      deletedFileMode != NULL && (newName = "/dev/null")
+
+      i < lineCount && nextLine() =~ /^--- / && (
+        srcLine := consumeLine()
+        srcLine =~ /^--- a\/(.*)/ && (oldName = (srcLine =~ /^--- a\/(.*)/).1)
+        srcLine =~ /^--- \/dev\/null/ && (oldName = "/dev/null")
+      )
+      i < lineCount && nextLine() =~ /^\+\+\+ / && (
+        dstLine := consumeLine()
+        dstLine =~ /^\+\+\+ b\/(.*)/ && (newName = (dstLine =~ /^\+\+\+ b\/(.*)/).1)
+        dstLine =~ /^\+\+\+ \/dev\/null/ && (newName = "/dev/null")
+      )
+
+      WHILE [ => i < lineCount && nextLine() =~ /^@@ / ] ( => (
+        hunkHeader := consumeLine()
+        hunkMatch := hunkHeader =~ /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)/
+        oldStartLine := +hunkMatch.1
+        newStartLine := +hunkMatch.3
+        header := hunkHeader
+
+        blockLines := []
+        oldLineNum := oldStartLine
+        newLineNum := newStartLine
+
+        WHILE [ => i < lineCount && !(nextLine() =~ /^(diff --git |@@ )/) ] ( => (
+          contentLine := nextLine()
+
+          contentLine =~ /^\\ / ? (
+            consumeLine()
+          ) : contentLine =~ /^\+/ ? (
+            blockLines += {
+              content: dropFirst(contentLine)
+              type: "insert"
+              oldNumber: NULL
+              newNumber: newLineNum
+            }
+            newLineNum++
+            addedLines++
+            consumeLine()
+          ) : contentLine =~ /^-/ ? (
+            blockLines += {
+              content: dropFirst(contentLine)
+              type: "delete"
+              oldNumber: oldLineNum
+              newNumber: NULL
+            }
+            oldLineNum++
+            deletedLines++
+            consumeLine()
+          ) : (
+            blockLines += {
+              content: contentLine =~ /^ / ? dropFirst(contentLine) : contentLine
+              type: "context"
+              oldNumber: oldLineNum
+              newNumber: newLineNum
+            }
+            oldLineNum++
+            newLineNum++
+            consumeLine()
+          )
+        ))
+
+        blocks += {
+          oldStartLine: oldStartLine
+          newStartLine: newStartLine
+          header: header
+          lines: blockLines
+        }
+      ))
+
+      files += {
+        oldName: oldName
+        newName: newName
+        addedLines: addedLines
+        deletedLines: deletedLines
+        isCombined: FALSE
+        isGitDiff: TRUE
+        isBinary: isBinary
+        blocks: blocks
+      }
+      TRUE
+    ) || (
+      consumeLine()
+    )
+  ))
+
+  files
+)
+
+{diff_parse: diff_parse}
