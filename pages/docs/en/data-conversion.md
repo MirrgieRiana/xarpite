@@ -182,7 +182,7 @@ $ xa ' BLOB.of([72, 101, 108, 108, 111]) >> BASE64B '
 
 ---
 
-The difference from the `BASE64` function is that the input is a raw byte sequence that does not go through UTF-8 conversion.
+Unlike the `BASE64` function, the input is a raw byte sequence that does not go through UTF-8 conversion.
 
 The `BASE64` function is equivalent to combining the `UTF8` function and the `BASE64B` function.
 
@@ -211,7 +211,7 @@ $ xa ' "SGVsbG8=" >> BASE64BD >> TO_STRING '
 
 ---
 
-The difference from the `BASE64D` function is that the output is a raw byte sequence that does not go through conversion from UTF-8.
+Unlike the `BASE64D` function, the output is a raw byte sequence that does not go through conversion from UTF-8.
 
 The `BASE64D` function is equivalent to combining the `BASE64BD` function and the `UTF8D` function.
 

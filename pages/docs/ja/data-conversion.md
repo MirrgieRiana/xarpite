@@ -167,7 +167,7 @@ $ xa ' "SGVsb \r G8sIF \n dvcmx \t kIQ==" >> BASE64D '
 # Hello, World!
 ```
 
-## `BASE64B`BLOBをBase64文字列に変換
+## `BASE64B` BLOBをBase64文字列に変換
 
 `BASE64B(blobLike: BLOB_LIKE): STRING`
 
@@ -182,7 +182,7 @@ $ xa ' BLOB.of([72, 101, 108, 108, 111]) >> BASE64B '
 
 ---
 
-`BASE64`関数との違いは、入力がUTF-8への変換を経由しない生のバイト列である点です。
+`BASE64`関数と異なり、入力はUTF-8への変換を経由しない生のバイト列です。
 
 `BASE64`関数は、`UTF8`関数と`BASE64B`関数を組み合わせた処理と同等です。
 
@@ -198,7 +198,7 @@ $ xa ' "Hello, World!" >> UTF8 >> BASE64B '
 
 出力は`BASE64`関数と同様に76文字ごとに改行されます。
 
-## `BASE64BD`Base64文字列をBLOBに変換
+## `BASE64BD` Base64文字列をBLOBに変換
 
 `BASE64BD(string: STRING): BLOB`
 
@@ -211,7 +211,7 @@ $ xa ' "SGVsbG8=" >> BASE64BD >> TO_STRING '
 
 ---
 
-`BASE64D`関数との違いは、出力がUTF-8からの変換を経由しない生のバイト列である点です。
+`BASE64D`関数と異なり、出力はUTF-8からの変換を経由しない生のバイト列です。
 
 `BASE64D`関数は、`BASE64BD`関数と`UTF8D`関数を組み合わせた処理と同等です。
 
