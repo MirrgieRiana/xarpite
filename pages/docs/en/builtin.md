@@ -191,7 +191,7 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 
 ## `LINES` Split String by Lines
 
-`LINES(string: STRING): STREAM<STRING>`
+`LINES(string: STREAM<STRING>): STREAM<STRING>`
 
 Splits `string` by line breaks and returns each line as a stream.
 
@@ -232,6 +232,15 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+---
+
+When `string` is a stream, returns a flattened stream that yields lines from each element in sequence.
+
+```shell
+$ xa '"A\nB", "C\nD" >> LINES >> TO_ARRAY >> JSONS'
+# ["A","B","C","D"]
 ```
 
 ## `LINESD` Concatenate Line Stream into String

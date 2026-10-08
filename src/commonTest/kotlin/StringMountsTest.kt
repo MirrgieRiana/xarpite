@@ -79,6 +79,21 @@ class StringMountsTest {
 
         // 空行を含む場合
         assertEquals("a,,b", eval("LINES(\"a\\n\\nb\")").stream())
+
+        // ストリームを渡すと、各要素が個別に分割される
+        assertEquals("a,b,c,d", eval("\"a\\nb\", \"c\\nd\" >> LINES").stream())
+
+        // 改行を含まない要素は、そのまま1行になる
+        assertEquals("a,b", eval("\"a\", \"b\" >> LINES").stream())
+
+        // 空文字列の要素は、行を生成しない
+        assertEquals("a,b", eval("\"a\", \"\", \"b\" >> LINES").stream())
+
+        // 要素ごとに、末尾の改行が1個だけ無視される
+        assertEquals("a,b,c,d", eval("\"a\\nb\\n\", \"c\\nd\\n\" >> LINES").stream())
+
+        // 空ストリームの場合
+        assertEquals("", eval("E >> LINES").stream())
     }
 
     @Test
