@@ -196,6 +196,7 @@ class XarpiteTest {
 
         assertEquals(""" " $ \ """, eval(""" " \" \$ \\ " """).string) // エスケープが必要な記号
         assertEquals(" \r \n \t ", eval(""" " \r \n \t " """).string) // 制御文字のエスケープ
+        assertEquals(" \u0000 ", eval(""" " \0 " """).string) // NULのエスケープ
 
         assertEquals("10", eval(""" "$10" """).string) // 数値の埋め込み
         assertEquals("10", eval(""" (a -> "${'$'}a")(10) """).string) // 変数の埋め込み
