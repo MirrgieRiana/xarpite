@@ -62,6 +62,7 @@ Template string literals are strings enclosed in `"` `"` that support features l
 | `\t`                                | Tab character                                   |
 | `\r`                                | CR                                              |
 | `\n`                                | LF                                              |
+| `\0`                                | NUL                                             |
 | `\xXX`                              | 1 character at code point U+0000~U+00FF         |
 | `\uXXXX`                            | 1 UTF-16 code unit                              |
 | Other sequences starting with `\`   | Syntax error                                    |
