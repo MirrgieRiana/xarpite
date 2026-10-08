@@ -242,10 +242,11 @@ fun createStreamMounts(): List<Map<String, Mount>> {
         },
         "LINES" define FluoriteFunction.immediate { arguments ->
             if (arguments.size == 1) {
+                val lineBreakRegex = Regex("""\r\n|\n|\r""")
                 suspend fun splitLines(value: FluoriteValue): List<FluoriteValue> {
                     val string = value.toFluoriteString(null).value
                     if (string.isEmpty()) return listOf()
-                    val lines = string.split(Regex("""\r\n|\n|\r""")).toMutableList()
+                    val lines = string.split(lineBreakRegex).toMutableList()
                     if (string.endsWith('\n') || string.endsWith('\r')) lines.removeLast()
                     return lines.map { it.toFluoriteString() }
                 }
