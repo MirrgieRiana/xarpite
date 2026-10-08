@@ -765,6 +765,30 @@ $ {
 # FALSE
 ```
 
+### `IS_DIRECTORY` / `IS_DIR`: Check Whether a Path Is a Directory
+
+`IS_DIRECTORY(file: STRING): BOOLEAN`
+
+Returns `TRUE` if the path specified by `file` is a directory, and `FALSE` otherwise.
+
+`IS_DIR` is an alias for `IS_DIRECTORY` and has the same behavior.
+
+It also returns `FALSE` when nothing exists at the path.
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp.txt
+  xa 'IS_DIRECTORY("tmp")'
+  xa 'IS_DIRECTORY("tmp.txt")'
+  xa 'IS_DIR("no_such_file.txt")'
+  rm -r tmp tmp.txt
+}
+# TRUE
+# FALSE
+# FALSE
+```
+
 ### `FILES` / `FILE_NAMES`: Get List of Files in Directory
 
 `FILES(dir: STRING): STREAM<STRING>`

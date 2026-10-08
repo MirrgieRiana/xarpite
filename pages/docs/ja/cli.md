@@ -765,6 +765,30 @@ $ {
 # FALSE
 ```
 
+### `IS_DIRECTORY` / `IS_DIR`: ディレクトリかどうかの確認
+
+`IS_DIRECTORY(file: STRING): BOOLEAN`
+
+`file`で指定されたパスがディレクトリである場合は`TRUE`を、そうでない場合は`FALSE`を返します。
+
+`IS_DIR`は`IS_DIRECTORY`の別名であり、同一の動作を持ちます。
+
+パスに何も存在しない場合も`FALSE`を返します。
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp.txt
+  xa 'IS_DIRECTORY("tmp")'
+  xa 'IS_DIRECTORY("tmp.txt")'
+  xa 'IS_DIR("no_such_file.txt")'
+  rm -r tmp tmp.txt
+}
+# TRUE
+# FALSE
+# FALSE
+```
+
 ### `FILES` / `FILE_NAMES`: ディレクトリ内のファイルの一覧を取得
 
 `FILES(dir: STRING): STREAM<STRING>`

@@ -202,6 +202,20 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
             fileSystem.exists(file.toPath()).toFluoriteBoolean()
         },
         *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): BOOLEAN")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    (fileSystem.metadataOrNull(file.toPath())?.isDirectory ?: false).toFluoriteBoolean()
+                }
+            }
+            arrayOf(
+                "IS_DIRECTORY" define create("IS_DIRECTORY"),
+                "IS_DIR" define create("IS_DIR"),
+            )
+        },
+        *run {
             fun create(name: String, fullPath: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(dir: STRING): STREAM<STRING>")
