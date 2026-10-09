@@ -313,3 +313,16 @@ $ xa '
 $ xa ' "abcde"::CONTAINS("bcd") '
 # TRUE
 ```
+
+## `::IS`: instanceOf判定を行う拡張関数
+
+`VALUE::IS(class: VALUE): BOOLEAN`
+
+`::IS`拡張関数はinstanceOf演算子`?=`を拡張関数の形式で呼び出すためのシンタックスシュガーです。
+
+`value::IS(class)`は`value ?= class`と等価です。
+
+```shell
+$ xa ' 1::IS(INT) '
+# TRUE
+```

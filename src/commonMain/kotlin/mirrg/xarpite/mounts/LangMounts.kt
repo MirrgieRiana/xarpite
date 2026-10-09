@@ -20,8 +20,10 @@ import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.consume
 import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.fluoriteArrayOf
+import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.invokeImmediate
+import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.copy
 import mirrg.xarpite.define
@@ -185,6 +187,12 @@ fun createLangMounts(): List<Map<String, Mount>> {
             FluoriteValue.fluoriteClass colon FluoriteFunction.immediate { arguments ->
                 if (arguments.size != 2) usage("VALUE::CONTAINS(content: VALUE): BOOLEAN")
                 arguments[0].contains(null, arguments[1])
+            },
+        ),
+        "::IS" define fluoriteArrayOf(
+            FluoriteValue.fluoriteClass colon FluoriteFunction.immediate { arguments ->
+                if (arguments.size != 2) usage("VALUE::IS(class: VALUE): BOOLEAN")
+                arguments[0].instanceOf(arguments[1]).toFluoriteBoolean()
             },
         ),
         "LAZY" define FluoriteFunction.immediate { arguments ->
