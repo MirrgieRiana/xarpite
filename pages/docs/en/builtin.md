@@ -800,13 +800,13 @@ $ xa '
 
 Applies `keyGetter` to each element of `stream`, collects the number of elements that share the same key into entries, and returns them as a stream.
 
+`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
+
 If `keyGetter` is omitted, counts using the elements themselves as keys.
 
 Entries are in the order in which that key first appeared.
 
 Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
-
-`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
 
 ```shell
 $ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
@@ -826,9 +826,7 @@ $ xa '
 
 ---
 
-If a result ordered by count is required, apply the `SORT` function or the `SORTR` function.
-
-These sorts are stable, so keys with equal counts keep the order in which they first appeared.
+If a result ordered by count is required, they can be reordered by the `SORT` function or the `SORTR` function.
 
 ```shell
 $ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
