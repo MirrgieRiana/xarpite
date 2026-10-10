@@ -794,6 +794,36 @@ $ xa '
 # banana
 ```
 
+## `TALLY` / `HISTOGRAM`ストリームをキーで数え上げ
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+`stream`の各要素に対して`keyGetter`を適用し、同一のキーとなる要素の個数をエントリーにまとめてストリームで返します。
+
+`HISTOGRAM`は`TALLY`の別名であり、同一の動作を持ちます。
+
+`keyGetter`を省略した場合は要素そのものをキーとして数え上げます。
+
+エントリーは、最初にそのキーが現れた順序になります。
+
+`GROUP`関数と異なり、エントリーの値は要素の配列ではなく要素の個数です。
+
+```shell
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
 ## `CHUNK`ストリームを一定サイズの配列に分割
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`

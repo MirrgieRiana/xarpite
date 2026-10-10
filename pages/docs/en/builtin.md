@@ -794,6 +794,36 @@ $ xa '
 # banana
 ```
 
+## `TALLY` / `HISTOGRAM` Count Stream Elements by Key
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+Applies `keyGetter` to each element of `stream`, collects the number of elements that share the same key into entries, and returns them as a stream.
+
+`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
+
+If `keyGetter` is omitted, counts using the elements themselves as keys.
+
+Entries are in the order in which that key first appeared.
+
+Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
+
+```shell
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
 ## `CHUNK` Split Stream into Fixed-Size Arrays
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
