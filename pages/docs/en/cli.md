@@ -718,11 +718,13 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-### `ERR`: Output to Standard Error
+### `ERR`, `ERRL`: Output to Standard Error
 
 `ERR(value: VALUE): NULL`
 
 Outputs to standard error output.
+
+`ERRL` is an alias for `ERR`.
 
 This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
 
@@ -760,6 +762,30 @@ $ {
   rm tmp.txt
 }
 # TRUE
+# FALSE
+```
+
+### `IS_DIRECTORY` / `IS_DIR`: Check Whether a Path Is a Directory
+
+`IS_DIRECTORY(file: STRING): BOOLEAN`
+
+Returns `TRUE` if the path specified by `file` is a directory, and `FALSE` otherwise.
+
+`IS_DIR` is an alias for `IS_DIRECTORY` and has the same behavior.
+
+It also returns `FALSE` when nothing exists at the path.
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp.txt
+  xa 'IS_DIRECTORY("tmp")'
+  xa 'IS_DIRECTORY("tmp.txt")'
+  xa 'IS_DIR("no_such_file.txt")'
+  rm -r tmp tmp.txt
+}
+# TRUE
+# FALSE
 # FALSE
 ```
 

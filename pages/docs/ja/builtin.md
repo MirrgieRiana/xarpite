@@ -191,7 +191,7 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 
 ## `LINES`文字列を行ごとに分割
 
-`LINES(string: STRING): STREAM<STRING>`
+`LINES(string: STREAM<STRING>): STREAM<STRING>`
 
 `string`を改行で分割し、各行をストリームとして返します。
 
@@ -232,6 +232,15 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+---
+
+`string`がストリームの場合、各要素の行を順番に返す平坦化されたストリームを返します。
+
+```shell
+$ xa '"A\nB", "C\nD" >> LINES >> TO_ARRAY >> JSONS'
+# ["A","B","C","D"]
 ```
 
 ## `LINESD`行ストリームを文字列に連結
@@ -621,6 +630,8 @@ $ xa 'SINGLE(,) !? "Error"'
 
 ストリームを昇順にソートします。
 
+ソートは安定であり、比較して等しい要素の並びは、元のストリームにおける順序が保たれます。
+
 `SORT`は、3種類の呼び出し方があります。
 
 ### 自然順序付けによるソート
@@ -787,17 +798,11 @@ $ xa '
 
 ## `TALLY` / `HISTOGRAM`ストリームをキーで数え上げ
 
-ストリームの要素を数え上げます。
-
-`HISTOGRAM`は`TALLY`の別名であり、同一の動作を持ちます。
-
-`TALLY`は、2種類の呼び出し方があります。
-
-### キーごとの数え上げ
-
 `<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
 
 `stream`の各要素に対して`keyGetter`を適用し、同一のキーとなる要素の個数をエントリーにまとめてストリームで返します。
+
+`HISTOGRAM`は`TALLY`の別名であり、同一の動作を持ちます。
 
 `keyGetter`を省略した場合は要素そのものをキーとして数え上げます。
 
@@ -806,7 +811,7 @@ $ xa '
 `GROUP`関数と異なり、エントリーの値は要素の配列ではなく要素の個数です。
 
 ```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
 # [apple;2]
 # [cherry;1]
 # [banana;2]
@@ -819,77 +824,6 @@ $ xa '
 '
 # [fruit;2]
 # [animal;1]
-```
-
----
-
-個数の順に並んだ結果が必要な場合は、`SORT`関数または`SORTR`関数を適用します。
-
-これらのソートは安定であるため、個数が等しいキーどうしは、最初にそのキーが現れた順序を保ちます。
-
-```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
-# [apple;2]
-# [banana;2]
-# [cherry;1]
-```
-
----
-
-キーが文字列化可能な場合、`TO_OBJECT`関数によって簡単にオブジェクトにまとめることができます。
-
-```shell
-$ xa '
-  object := (
-    "apple", "cherry","banana", "banana", "apple"
-    >> TALLY
-    >> TO_OBJECT
-  )
-  object.banana
-'
-# 2
-```
-
-### 階級ごとの数え上げ
-
-`TALLY(width: NUMBER; stream: STREAM<NUMBER>): STREAM<[NUMBER; INT]>`
-
-第1引数が`width`パラメータである場合、`stream`の各要素を幅`width`の階級に振り分け、階級の下限値と度数をエントリーにまとめてストリームで返します。
-
-エントリーは階級の昇順になります。
-
-`width`は正の有限の数でなければならず、`keyGetter`と同時に指定することはできません。
-
-```shell
-$ xa '105, 230, 187, 42, 299, 150, 88 >> TALLY[width: 100]'
-# [0;2]
-# [100;3]
-# [200;2]
-```
-
----
-
-出力される階級の範囲は、要素が存在する最小の階級から最大の階級までです。
-
-この範囲の内側にある度数0の階級も出力されますが、範囲の外側の階級は出力されません。
-
-```shell
-$ xa '105, 187, 420, 450 >> TALLY[width: 100]'
-# [100;2]
-# [200;0]
-# [300;0]
-# [400;2]
-```
-
----
-
-階級の振り分けには床関数が使用されるため、負の値であっても階級の幅が保たれます。
-
-```shell
-$ xa '-150, -50, 50 >> TALLY[width: 100]'
-# [-200;1]
-# [-100;1]
-# [0;1]
 ```
 
 ## `CHUNK`ストリームを一定サイズの配列に分割
@@ -983,6 +917,24 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 1
 # 3
 # 5
+```
+
+## `FILTERV` / `GREPV`ストリームを条件で除外
+
+`FILTERV(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+
+`stream`の各要素に`predicate`を適用し、偽となった要素のみを含むストリームを返します。
+
+`GREPV`は`FILTERV`の別名であり、同一の動作を持ちます。
+
+```shell
+$ xa '1 .. 5 >> FILTERV [ x => x % 2 == 1 ]'
+# 2
+# 4
+
+$ xa '1 .. 5 >> FILTERV[by: x -> x % 2 == 1]'
+# 2
+# 4
 ```
 
 ## `REDUCE`ストリームの要素を累積する

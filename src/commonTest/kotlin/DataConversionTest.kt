@@ -397,6 +397,50 @@ class DataConversionTest {
     }
 
     @Test
+    fun base64b() = runTest {
+        // BASE64B でBLOBをBase64文字列に変換
+        assertEquals("SGVsbG8=", eval(""" BLOB.of([72, 101, 108, 108, 111]) >> BASE64B """).string)
+        assertEquals("YWJj", eval(""" BLOB.of([97, 98, 99]) >> BASE64B """).string)
+        assertEquals("", eval(""" BLOB.of([]) >> BASE64B """).string) // 空BLOBは空文字列
+
+        // BASE64BD でBase64文字列をBLOBに変換
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" "SGVsbG8=" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([97;98;99])", eval(""" "YWJj" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([])", eval(""" "" >> BASE64BD >> TO_STRING """).string) // 空文字列は空BLOB
+
+        // BASE64BとBASE64BDは逆変換の関係
+        assertEquals("BLOB.of([1;2;3])", eval(""" [1, 2, 3] >> BASE64B >> BASE64BD >> TO_STRING """).string)
+
+        // BASE64B は76文字ごとに改行される (LF)
+        val encoded = eval(""" 0 .. 99 >> BASE64B """).string
+        val lines = encoded.split("\n")
+        // 最後の行以外は76文字
+        for (i in 0 until lines.size - 1) {
+            assertEquals(76, lines[i].length, "Line $i should be 76 characters")
+        }
+
+        // BASE64BD は改行や空白を無視する
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" "SGVsbG8=\n" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" " SGVsbG8= " >> BASE64BD >> TO_STRING """).string)
+
+        // BASE64はUTF8とBASE64Bを組み合わせた処理と同等
+        assertEquals(
+            eval(""" "Hello, World!" >> BASE64 """).string,
+            eval(""" "Hello, World!" >> UTF8 >> BASE64B """).string,
+        )
+        assertEquals(
+            eval(""" "こんにちは世界" >> BASE64 """).string,
+            eval(""" "こんにちは世界" >> UTF8 >> BASE64B """).string,
+        )
+
+        // BASE64DはBASE64BDとUTF8Dを組み合わせた処理と同等
+        assertEquals(
+            eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D """).string,
+            eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64BD >> UTF8D """).string,
+        )
+    }
+
+    @Test
     fun shellEscape() = runTest {
         // SHELL_ESCAPE で文字列をシェル用にエスケープ
         assertEquals("'Hello'", eval(""" "Hello" >> SHELL_ESCAPE """).string) // 通常の文字列はシングルクォートで囲まれる

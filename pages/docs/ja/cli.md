@@ -12,7 +12,7 @@ Xarpiteはコマンドラインインターフェース（CLI）を通じて実�
 
 ## ランチャーとランタイム
 
-CLI上でXarpiteを実行する際には、ランチャーとランタイムという2つのレイヤーが存在します。
+CLI上でXarpiteを実行する際には、ランチャーとランタイムという 2 つのレイヤーが存在します。
 
 ---
 
@@ -718,11 +718,13 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-### `ERR`: 標準エラー出力に出力
+### `ERR`, `ERRL`: 標準エラー出力に出力
 
 `ERR(value: VALUE): NULL`
 
 標準エラー出力に出力します。
+
+`ERRL`は`ERR`の別名です。
 
 この関数は概ねCLI版`OUT`関数と共通の動作をしますが、標準出力ではなく標準エラー出力に出力します。
 
@@ -760,6 +762,30 @@ $ {
   rm tmp.txt
 }
 # TRUE
+# FALSE
+```
+
+### `IS_DIRECTORY` / `IS_DIR`: ディレクトリかどうかの確認
+
+`IS_DIRECTORY(file: STRING): BOOLEAN`
+
+`file`で指定されたパスがディレクトリである場合は`TRUE`を、そうでない場合は`FALSE`を返します。
+
+`IS_DIR`は`IS_DIRECTORY`の別名であり、同一の動作を持ちます。
+
+パスに何も存在しない場合も`FALSE`を返します。
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp.txt
+  xa 'IS_DIRECTORY("tmp")'
+  xa 'IS_DIRECTORY("tmp.txt")'
+  xa 'IS_DIR("no_such_file.txt")'
+  rm -r tmp tmp.txt
+}
+# TRUE
+# FALSE
 # FALSE
 ```
 

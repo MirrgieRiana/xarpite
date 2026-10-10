@@ -330,6 +330,33 @@ $ xa '7 % 4'
 
 ---
 
+The remainder is either 0 or has the same sign as the right operand.
+
+```shell
+$ xa '-7 % 3'
+# 2
+
+$ xa '7 % -3'
+# -2
+
+$ xa '-7 % -3'
+# -1
+```
+
+---
+
+When the division is exact, the result is 0 regardless of the signs of the operands.
+
+```shell
+$ xa '-6 % 3'
+# 0
+
+$ xa '6 % -3'
+# 0
+```
+
+---
+
 It can also handle decimals.
 
 ```shell
