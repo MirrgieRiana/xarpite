@@ -630,6 +630,8 @@ $ xa 'SINGLE(,) !? "Error"'
 
 Sorts a stream in ascending order.
 
+The sort is stable, and the order of elements that compare as equal is preserved from the original stream.
+
 `SORT` has 3 ways of calling.
 
 ### Sort by Natural Ordering
