@@ -44,6 +44,11 @@ class InstanceOfComparator(private val position: Position) : Comparator {
     override val code get() = "InstanceOfComparator"
 }
 
+class NotInstanceOfComparator(private val position: Position) : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> !a.instanceOf(b) }
+    override val code get() = "NotInstanceOfComparator"
+}
+
 class ContainsComparator(private val position: Position) : Comparator {
     override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> b.contains(position, a).value }
     override val code get() = "ContainsComparator"

@@ -1,5 +1,21 @@
 package mirrg.xarpite
 
+import it.krzeminski.snakeyaml.engine.kmp.api.ConstructNode
+import it.krzeminski.snakeyaml.engine.kmp.api.Dump
+import it.krzeminski.snakeyaml.engine.kmp.api.DumpSettings
+import it.krzeminski.snakeyaml.engine.kmp.api.Load
+import it.krzeminski.snakeyaml.engine.kmp.api.LoadSettings
+import it.krzeminski.snakeyaml.engine.kmp.api.StreamDataWriter
+import it.krzeminski.snakeyaml.engine.kmp.api.copy
+import it.krzeminski.snakeyaml.engine.kmp.common.FlowStyle
+import it.krzeminski.snakeyaml.engine.kmp.common.ScalarStyle
+import it.krzeminski.snakeyaml.engine.kmp.exceptions.YamlEngineException
+import it.krzeminski.snakeyaml.engine.kmp.nodes.MappingNode
+import it.krzeminski.snakeyaml.engine.kmp.nodes.Node
+import it.krzeminski.snakeyaml.engine.kmp.nodes.NodeTuple
+import it.krzeminski.snakeyaml.engine.kmp.nodes.ScalarNode
+import it.krzeminski.snakeyaml.engine.kmp.nodes.SequenceNode
+import it.krzeminski.snakeyaml.engine.kmp.nodes.Tag
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -187,6 +203,105 @@ suspend fun FluoriteValue.toFluoriteValueAsJsons(position: Position?): FluoriteV
         }
     }
 }
+
+
+private val yamlDumpSettings by lazy { DumpSettings().copy { defaultFlowStyle = FlowStyle.BLOCK } }
+
+private class YamlStringWriter : StreamDataWriter {
+    private val sb = StringBuilder()
+    override fun write(str: String) {
+        sb.append(str)
+    }
+
+    override fun write(str: String, off: Int, len: Int) {
+        sb.append(str, off, off + len)
+    }
+
+    override fun toString() = sb.toString()
+}
+
+/**
+ * 非数と無限大は、KotlinとYAMLで表記が異なります。
+ */
+private fun Double.toYamlFloat(): String = when {
+    this.isNaN() -> ".nan"
+    this == Double.POSITIVE_INFINITY -> ".inf"
+    this == Double.NEGATIVE_INFINITY -> "-.inf"
+    else -> this.toString()
+}
+
+suspend fun FluoriteValue.toSingleYaml(position: Position?): String {
+    suspend fun FluoriteValue.toYamlNode(): Node = when (this) {
+        is FluoriteObject -> MappingNode(Tag.MAP, this.map.map { NodeTuple(ScalarNode(Tag.STR, it.key, ScalarStyle.PLAIN), it.value.toYamlNode()) }, FlowStyle.BLOCK)
+        is FluoriteArray -> SequenceNode(Tag.SEQ, this.values.map { it.toYamlNode() }, FlowStyle.BLOCK)
+        is FluoriteInt -> ScalarNode(Tag.INT, this.value.toString(), ScalarStyle.PLAIN)
+        is FluoriteBig -> ScalarNode(Tag.INT, this.value.toString(), ScalarStyle.PLAIN)
+        is FluoriteDouble -> ScalarNode(Tag.FLOAT, this.value.toYamlFloat(), ScalarStyle.PLAIN)
+        is FluoriteString -> ScalarNode(Tag.STR, this.value, ScalarStyle.PLAIN)
+        is FluoriteBoolean -> ScalarNode(Tag.BOOL, this.value.toString(), ScalarStyle.PLAIN)
+        FluoriteNull -> ScalarNode(Tag.NULL, "null", ScalarStyle.PLAIN)
+        is FluoriteStream -> throw IllegalArgumentException("Cannot convert FluoriteStream to single YAML")
+        else -> this.callMethod(position, "$&_").toYamlNode() // JSONと同じ変換フックを利用します
+    }
+
+    val node = this.toYamlNode()
+    val writer = YamlStringWriter()
+    try {
+        Dump(yamlDumpSettings).dumpNode(node, writer)
+    } catch (e: YamlEngineException) {
+        throw FluoriteException("Failed to encode to YAML: ${e.message ?: e.toString()}".toFluoriteString())
+    }
+    return writer.toString()
+}
+
+suspend fun FluoriteValue.toSingleYamlFluoriteValue(position: Position?) = this.toSingleYaml(position).toFluoriteString()
+
+
+private class YamlInt(val text: String)
+
+/**
+ * Kotlin/JSとネイティブのsnakeyaml-engine-kmpは任意精度整数を実装していないため、整数の構築を自前で行います。
+ * 桁数の制限を受けずに整数を扱うため、10進数の表記は文字列のまま持ち回ります。
+ */
+private object YamlIntConstructor : ConstructNode {
+    override fun construct(node: Node?): YamlInt {
+        val text = (node as ScalarNode).value
+        return YamlInt(
+            when {
+                text.startsWith("0x") -> text.drop(2).toLong(16).toString()
+                text.startsWith("0o") -> text.drop(2).toLong(8).toString()
+                else -> text
+            }
+        )
+    }
+}
+
+private val yamlLoadSettings by lazy { LoadSettings().copy { tagConstructors = mapOf(Tag.INT to YamlIntConstructor) } }
+
+fun String.toFluoriteValueAsSingleYaml(): FluoriteValue {
+    fun Any?.toFluoriteValue(): FluoriteValue = when (this) {
+        null -> FluoriteNull
+        is Map<*, *> -> FluoriteObject(FluoriteObject.fluoriteClass, this.entries.associate { it.key.toString() to it.value.toFluoriteValue() }.toMutableMap())
+        is Iterable<*> -> this.map { it.toFluoriteValue() }.toFluoriteArray()
+        is String -> this.toFluoriteString()
+        is Boolean -> if (this) FluoriteBoolean.TRUE else FluoriteBoolean.FALSE
+        is YamlInt -> this.text.toFluoriteNumber()
+        is Double -> FluoriteDouble(this)
+        is Number -> this.toString().toFluoriteNumber()
+        else -> throw FluoriteException("Unsupported YAML value: ${this::class.simpleName}".toFluoriteString())
+    }
+
+    val value = try {
+        Load(yamlLoadSettings).loadOne(this)
+    } catch (e: YamlEngineException) {
+        throw FluoriteException("Invalid YAML: ${e.message ?: e.toString()}".toFluoriteString())
+    } catch (e: NumberFormatException) {
+        throw FluoriteException("Invalid YAML: ${e.message ?: e.toString()}".toFluoriteString())
+    }
+    return value.toFluoriteValue()
+}
+
+suspend fun FluoriteValue.toFluoriteValueAsSingleYaml(position: Position?) = this.toFluoriteString(position).value.toFluoriteValueAsSingleYaml()
 
 
 /**

@@ -36,7 +36,7 @@ kotlin {
             dependencies {
                 implementation(rootProject)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-                implementation("com.squareup.okio:okio:3.10.2")
+                implementation("com.squareup.okio:okio:3.16.0")
             }
         }
         commonTest {
@@ -49,7 +49,7 @@ kotlin {
         jsMain {
             dependencies {
                 implementation(rootProject)
-                implementation("com.squareup.okio:okio-nodefilesystem:3.10.2")
+                implementation("com.squareup.okio:okio-nodefilesystem:3.16.0")
                 implementation("io.ktor:ktor-client-js:3.4.0")
             }
         }

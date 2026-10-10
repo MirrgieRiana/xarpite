@@ -117,6 +117,31 @@ class DataConversionTest {
     }
 
     @Test
+    fun yamlFunction() = runTest {
+        // YAML
+        assertEquals("a:\n- 1\n- 2.5\n- '3'\n- true\n- false\n- null\n", eval(""" {a: [1, 2.5, "3", TRUE, FALSE, NULL]} >> YAML """).string) // YAML で値をYaml文字列に変換する
+        assertEquals("1\n", eval("1 >> YAML").string) // プリミティブを直接指定でき、出力は改行で終わる
+        assertEquals("a: 1\nb:\n  c: 2\n", eval(""" {a: 1; b: {c: 2}} >> YAML """).string) // 入れ子のオブジェクトはインデントで表現される
+        assertEquals("{}\n", eval(""" {} >> YAML """).string) // 空のオブジェクトはフロースタイルで出力される
+        assertEquals("[]\n", eval(""" [] >> YAML """).string) // 空の配列はフロースタイルで出力される
+        assertEquals("'3'\n", eval(""" "3" >> YAML """).string) // 数値に解釈されうる文字列は引用符で囲まれる
+        assertEquals(".inf\n", eval(""" (1 / 0) >> YAML """).string) // JSONと異なり、特殊な浮動小数点値も表現できる
+
+        // YAMLD
+        assertEquals("""{a:[1;2.5;3;TRUE;FALSE;NULL]}""", eval(""" "{a: [1, 2.5, '3', true, false, null]}" >> YAMLD """).obj) // YAMLD でYaml文字列を値に変換する
+        assertEquals("""{a:[1;2]}""", eval(""" "a:\n- 1\n- 2" >> YAMLD """).obj) // ブロックスタイルのYamlも解釈できる
+        assertEquals(1, eval(""" "1" >> YAMLD """).int) // プリミティブを直接指定できる
+        assertEquals(31, eval(""" "0x1F" >> YAMLD """).int) // 16進数表記の整数を解釈できる
+        assertEquals(FluoriteNull, eval(""" "" >> YAMLD """)) // 内容が空の場合、NULLになる
+        assertEquals("1718445872123456789\n", eval(""" "1718445872123456789" >> YAMLD >> YAML """).string) // INTの範囲を超える整数は精度を失わずデコードされる
+        assertEquals("123456789012345678901234567890\n", eval(""" "123456789012345678901234567890" >> YAMLD >> YAML """).string) // 任意の桁数の整数でも精度が保たれる
+
+        // 不正な入力はネイティブ例外ではなく文字列のエラーになる
+        assertTrue(eval(""" ("a: [1, 2}" >> YAMLD) !? (e => e) """).string.startsWith("Invalid YAML")) // 不正なYAMLのデコードは "Invalid YAML" で始まる文字列のエラーになる
+        assertTrue(eval(""" ("a: 1\n---\nb: 2" >> YAMLD) !? (e => e) """).string.startsWith("Invalid YAML")) // 複数のドキュメントを含むYAMLのデコードは "Invalid YAML" で始まる文字列のエラーになる
+    }
+
+    @Test
     fun csv() = runTest {
         assertEquals("""a,b""", eval(""" ["a","b"] >> CSV """).string) // CSV で配列を文字列に変換できる
         assertEquals("""["a","b"]""", eval(""" "a,b" >> CSVD >> JSON """).string) // CSVD で文字列を配列に変換できる
@@ -369,6 +394,50 @@ class DataConversionTest {
         // BASE64D は改行や空白を無視する
         assertEquals("Hello, World!", eval(""" "SGVsbG8sIFdvcmxkIQ==\n" >> BASE64D """).string)
         assertEquals("Hello, World!", eval(""" " SGVsbG8sIFdvcmxkIQ== " >> BASE64D """).string)
+    }
+
+    @Test
+    fun base64b() = runTest {
+        // BASE64B でBLOBをBase64文字列に変換
+        assertEquals("SGVsbG8=", eval(""" BLOB.of([72, 101, 108, 108, 111]) >> BASE64B """).string)
+        assertEquals("YWJj", eval(""" BLOB.of([97, 98, 99]) >> BASE64B """).string)
+        assertEquals("", eval(""" BLOB.of([]) >> BASE64B """).string) // 空BLOBは空文字列
+
+        // BASE64BD でBase64文字列をBLOBに変換
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" "SGVsbG8=" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([97;98;99])", eval(""" "YWJj" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([])", eval(""" "" >> BASE64BD >> TO_STRING """).string) // 空文字列は空BLOB
+
+        // BASE64BとBASE64BDは逆変換の関係
+        assertEquals("BLOB.of([1;2;3])", eval(""" [1, 2, 3] >> BASE64B >> BASE64BD >> TO_STRING """).string)
+
+        // BASE64B は76文字ごとに改行される (LF)
+        val encoded = eval(""" 0 .. 99 >> BASE64B """).string
+        val lines = encoded.split("\n")
+        // 最後の行以外は76文字
+        for (i in 0 until lines.size - 1) {
+            assertEquals(76, lines[i].length, "Line $i should be 76 characters")
+        }
+
+        // BASE64BD は改行や空白を無視する
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" "SGVsbG8=\n" >> BASE64BD >> TO_STRING """).string)
+        assertEquals("BLOB.of([72;101;108;108;111])", eval(""" " SGVsbG8= " >> BASE64BD >> TO_STRING """).string)
+
+        // BASE64はUTF8とBASE64Bを組み合わせた処理と同等
+        assertEquals(
+            eval(""" "Hello, World!" >> BASE64 """).string,
+            eval(""" "Hello, World!" >> UTF8 >> BASE64B """).string,
+        )
+        assertEquals(
+            eval(""" "こんにちは世界" >> BASE64 """).string,
+            eval(""" "こんにちは世界" >> UTF8 >> BASE64B """).string,
+        )
+
+        // BASE64DはBASE64BDとUTF8Dを組み合わせた処理と同等
+        assertEquals(
+            eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64D """).string,
+            eval(""" "SGVsbG8sIFdvcmxkIQ==" >> BASE64BD >> UTF8D """).string,
+        )
     }
 
     @Test

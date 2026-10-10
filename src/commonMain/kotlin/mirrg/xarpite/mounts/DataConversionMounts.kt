@@ -23,8 +23,10 @@ import mirrg.xarpite.partitionIfEntry
 import mirrg.xarpite.pop
 import mirrg.xarpite.toFluoriteValueAsJsons
 import mirrg.xarpite.toFluoriteValueAsSingleJson
+import mirrg.xarpite.toFluoriteValueAsSingleYaml
 import mirrg.xarpite.toJsonsFluoriteValue
 import mirrg.xarpite.toSingleJsonFluoriteValue
+import mirrg.xarpite.toSingleYamlFluoriteValue
 import okio.Buffer
 import kotlin.io.encoding.Base64
 
@@ -73,6 +75,18 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 1) usage()
                     val string = arguments[0].toFluoriteString(null).value
                     base64.decode(string).decodeToString().toFluoriteString()
+                },
+                "BASE64B" define FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("BASE64B(blobLike: BLOB_LIKE): STRING")
+                    if (arguments.size != 1) usage()
+                    val bytes = arguments[0].toByteArrayAsBlobLike()
+                    base64.encode(bytes).replace("\r\n", "\n").toFluoriteString()
+                },
+                "BASE64BD" define FluoriteFunction.immediate { arguments ->
+                    fun usage(): Nothing = usage("BASE64BD(string: STRING): BLOB")
+                    if (arguments.size != 1) usage()
+                    val string = arguments[0].toFluoriteString(null).value
+                    base64.decode(string).asFluoriteBlob()
                 },
             )
         },
@@ -264,6 +278,18 @@ fun createDataConversionMounts(): List<Map<String, Mount>> {
                     )
                 },
             )
+        },
+        "YAML" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("YAML(value: VALUE): STRING")
+            if (arguments.size != 1) usage()
+            val value = arguments[0]
+            value.toSingleYamlFluoriteValue(null)
+        },
+        "YAMLD" define FluoriteFunction.immediate { arguments ->
+            fun usage(): Nothing = usage("YAMLD(yaml: STRING): VALUE")
+            if (arguments.size != 1) usage()
+            val value = arguments[0]
+            value.toFluoriteValueAsSingleYaml(null)
         },
         *run {
             fun create(name: String, defaultSeparator: String): FluoriteFunction {

@@ -31,7 +31,7 @@ $ xa '3 <= 10 <= 5'
 
 この仕様の対象となるのは、以下の演算子です。
 
-- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
+- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=` `!?=`
 
 # 比較演算子
 
@@ -158,7 +158,9 @@ $ xa -q '
 # apple is in basket
 ```
 
-# instanceOf演算子
+# instanceOf系演算子
+
+## instanceOf演算子
 
 instanceOf演算子`left ?= right`は、`left`が`right`のインスタンスであるか否かを返します。
 
@@ -195,6 +197,26 @@ $ xa -q '
 # Human is Animal
 # Socrates is Human
 # Socrates is Animal
+```
+
+## 否定instanceOf演算子
+
+否定instanceOf演算子`left !?= right`は、`left`が`right`のインスタンスでないか否かを返します。
+
+instanceOf演算子を使った`!(left ?= right)`という表現と等価な動作をします。
+
+```shell
+$ xa -q '
+  Animal := {}
+  Human := Animal {}
+  Dog := Animal {}
+  socrates := Human{}
+
+  socrates !?= Animal && (OUT << "Socrates is not Animal")
+  socrates !?= Human && (OUT << "Socrates is not Human")
+  socrates !?= Dog && (OUT << "Socrates is not Dog")
+'
+# Socrates is not Dog
 ```
 
 # 宇宙船演算子

@@ -114,6 +114,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -"\\t" map { "\t" },
         -"\\r" map { "\r" },
         -"\\n" map { "\n" },
+        -"\\0" map { "\u0000" },
         +Regex("""\\x[0-9a-fA-F]{2}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 16進1バイト参照
         +Regex("""\\u[0-9a-fA-F]{4}""") map { it.value.drop(2).toInt(16).toChar().toString() }, // 文字参照
     )
@@ -272,6 +273,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -"<=" map { ComparisonOperatorType.LESS_EQUAL }, // <=
         -'<' * !'<' map { ComparisonOperatorType.LESS }, // <
         -"?=" map { ComparisonOperatorType.QUESTION_EQUAL }, // ?=
+        -"!?=" map { ComparisonOperatorType.EXCLAMATION_QUESTION_EQUAL }, // !?=
         -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )

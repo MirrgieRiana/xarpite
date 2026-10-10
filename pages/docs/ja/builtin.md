@@ -191,7 +191,7 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 
 ## `LINES`文字列を行ごとに分割
 
-`LINES(string: STRING): STREAM<STRING>`
+`LINES(string: STREAM<STRING>): STREAM<STRING>`
 
 `string`を改行で分割し、各行をストリームとして返します。
 
@@ -232,6 +232,15 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+---
+
+`string`がストリームの場合、各要素の行を順番に返す平坦化されたストリームを返します。
+
+```shell
+$ xa '"A\nB", "C\nD" >> LINES >> TO_ARRAY >> JSONS'
+# ["A","B","C","D"]
 ```
 
 ## `LINESD`行ストリームを文字列に連結

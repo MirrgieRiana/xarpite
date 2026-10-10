@@ -481,6 +481,59 @@ class CliTest {
     }
 
     @Test
+    fun exists() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("exists.test_dir.tmp")
+
+        fileSystem.deleteRecursively(dir, mustExist = false)
+
+        fileSystem.createDirectory(dir)
+        val file = dir.resolve("file.txt")
+        fileSystem.write(file) { writeUtf8("") }
+
+        // 存在するファイルには TRUE を返す
+        assertEquals("TRUE", cliEval(context, "EXISTS(ARGS.0)", file.toString()).toFluoriteString(null).value)
+        // 存在するディレクトリにも TRUE を返す
+        assertEquals("TRUE", cliEval(context, "EXISTS(ARGS.0)", dir.toString()).toFluoriteString(null).value)
+        // 存在しないパスには FALSE を返す
+        assertEquals("FALSE", cliEval(context, "EXISTS(ARGS.0)", dir.resolve("missing.txt").toString()).toFluoriteString(null).value)
+
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
+    fun isDirectory() = runTest {
+        val context = TestIoContext()
+        if (getFileSystem().isFailure) return@runTest
+        val fileSystem = getFileSystem().getOrThrow()
+        fileSystem.createDirectories(baseDir)
+        val dir = baseDir.resolve("is_directory.test_dir.tmp")
+
+        fileSystem.deleteRecursively(dir, mustExist = false)
+
+        fileSystem.createDirectory(dir)
+        val file = dir.resolve("file.txt")
+        fileSystem.write(file) { writeUtf8("") }
+
+        // ディレクトリには TRUE を返す
+        assertEquals("TRUE", cliEval(context, "IS_DIRECTORY(ARGS.0)", dir.toString()).toFluoriteString(null).value)
+        // ファイルには FALSE を返す
+        assertEquals("FALSE", cliEval(context, "IS_DIRECTORY(ARGS.0)", file.toString()).toFluoriteString(null).value)
+        // 何も存在しないパスにも FALSE を返す
+        assertEquals("FALSE", cliEval(context, "IS_DIRECTORY(ARGS.0)", dir.resolve("missing").toString()).toFluoriteString(null).value)
+
+        // IS_DIR は IS_DIRECTORY と同一の結果を返す
+        assertEquals("TRUE", cliEval(context, "IS_DIR(ARGS.0)", dir.toString()).toFluoriteString(null).value)
+        assertEquals("FALSE", cliEval(context, "IS_DIR(ARGS.0)", file.toString()).toFluoriteString(null).value)
+        assertEquals("FALSE", cliEval(context, "IS_DIR(ARGS.0)", dir.resolve("missing").toString()).toFluoriteString(null).value)
+
+        fileSystem.deleteRecursively(dir)
+    }
+
+    @Test
     fun files() = runTest {
         val context = TestIoContext()
         if (getFileSystem().isFailure) return@runTest
@@ -2917,6 +2970,13 @@ class CliTest {
         context.clear()
         cliEval(context, "ERR(1 .. 3)")
         assertEquals("1\n2\n3\n", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun errlAlias() = runTest {
+        val context = TestIoContext()
+        cliEval(context, """ERRL("test")""")
+        assertEquals("test\n", context.stderrBytes.toUtf8String())
     }
 
     @Test

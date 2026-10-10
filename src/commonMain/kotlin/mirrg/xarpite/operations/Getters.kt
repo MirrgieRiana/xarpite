@@ -48,6 +48,7 @@ import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
+import okio.Path.Companion.toPath
 
 object NullGetter : Getter {
     override suspend fun evaluate(env: Environment) = FluoriteNull
@@ -472,6 +473,8 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
+            is FluoriteString -> left.value.toPath().resolve(right.toFluoriteString(null).value).normalized().toString().toFluoriteString()
+
             else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
         }
     }
@@ -535,34 +538,15 @@ class ModGetter(private val leftGetter: Getter, private val rightGetter: Getter)
         val right = rightGetter.evaluate(env)
         return when (left) {
             is FluoriteInt -> when (right) {
-                is FluoriteInt -> {
-                    val a = left.value
-                    val b = right.value
-                    FluoriteInt(if (a >= 0) a % b else (b - 1) + (a + 1) % b)
-                }
-
-                is FluoriteDouble -> {
-                    val a = left.value
-                    val b = right.value
-                    FluoriteDouble(if (a >= 0) a % b else (b - 1) + (a + 1) % b)
-                }
-
+                // % だと左辺の符号に結果が付いてくるから、右辺の符号に揃う mod を使うのだ。
+                is FluoriteInt -> FluoriteInt(left.value.mod(right.value))
+                is FluoriteDouble -> FluoriteDouble(left.value.toDouble().mod(right.value))
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
             is FluoriteDouble -> when (right) {
-                is FluoriteInt -> {
-                    val a = left.value
-                    val b = right.value
-                    FluoriteDouble(if (a >= 0) a % b else (b - 1) + (a + 1) % b)
-                }
-
-                is FluoriteDouble -> {
-                    val a = left.value
-                    val b = right.value
-                    FluoriteDouble(if (a >= 0) a % b else (b - 1) + (a + 1) % b)
-                }
-
+                is FluoriteInt -> FluoriteDouble(left.value.mod(right.value.toDouble()))
+                is FluoriteDouble -> FluoriteDouble(left.value.mod(right.value))
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 

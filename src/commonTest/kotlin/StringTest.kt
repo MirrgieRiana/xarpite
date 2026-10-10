@@ -1,11 +1,14 @@
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteNull
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StringTest {
@@ -74,6 +77,35 @@ class StringTest {
     }
 
     @Test
+    fun trim() = runTest {
+        assertEquals("abc", eval("'  abc  '::trim()").string) // 前後の半角スペースを除去する
+        assertEquals("abc", eval("' \tabc\n '::trim()").string) // タブや改行も除去する
+        assertEquals("abc", eval("'　　abc　　'::trim()").string) // 全角空白 U+3000 も Unicode 空白として除去される
+        assertEquals("a b c", eval("'  a b c  '::trim()").string) // 内側の空白は保持される
+        assertEquals("", eval("'　 \t\n '::trim()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trim()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trim()").string) // 前後に空白が無ければそのまま返る
+    }
+
+    @Test
+    fun trimStart() = runTest {
+        assertEquals("abc  ", eval("'  abc  '::trimStart()").string) // 先頭の空白のみを除去し、末尾は保持する
+        assertEquals("abc　　", eval("'　　abc　　'::trimStart()").string) // 全角空白も先頭のみ除去される
+        assertEquals("", eval("'   '::trimStart()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimStart()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimStart()").string) // 先頭に空白が無ければそのまま返る
+    }
+
+    @Test
+    fun trimEnd() = runTest {
+        assertEquals("  abc", eval("'  abc  '::trimEnd()").string) // 末尾の空白のみを除去し、先頭は保持する
+        assertEquals("　　abc", eval("'　　abc　　'::trimEnd()").string) // 全角空白も末尾のみ除去される
+        assertEquals("", eval("'   '::trimEnd()").string) // 空白のみの文字列は空文字列になる
+        assertEquals("", eval("''::trimEnd()").string) // 空文字列はそのまま空文字列になる
+        assertEquals("abc", eval("'abc'::trimEnd()").string) // 末尾に空白が無ければそのまま返る
+    }
+
+    @Test
     fun firstAndLast() = runTest {
         assertEquals("a", eval("'abc'::first()").string) // 先頭の 1 文字を取得する
         assertEquals("c", eval("'abc'::last()").string) // 末尾の 1 文字を取得する
@@ -84,6 +116,18 @@ class StringTest {
         assertEquals(1, eval("'😀x'::first()").string.length) // first はコードユニット単位なのでサロゲートペアの片方を返す（既存の添字演算子と同じ挙動）
         assertFails { eval("'abc'::first(123)") } // 余分な引数はエラーになる
         assertFails { eval("'abc'::last(123)") } // 余分な引数はエラーになる
+    }
+
+    @Test
+    fun single() = runTest {
+        assertEquals("a", eval("'a'::single()").string) // 唯一の文字を取得する
+        assertEquals("あ", eval("'あ'::single()").string) // マルチバイト文字の取得
+        val emptyException = assertFailsWith<FluoriteException> { eval("''::single()") } // 空文字列はエラーになる
+        assertTrue(emptyException.message!!.contains("empty")) // エラーメッセージが空であることを伝える
+        val multipleException = assertFailsWith<FluoriteException> { eval("'ab'::single()") } // 複数文字の文字列はエラーになる
+        assertTrue(multipleException.message!!.contains("multiple")) // エラーメッセージが複数文字であることを伝える
+        assertFails { eval("'😀'::single()") } // サロゲートペアはコードユニット 2 つ分なのでエラーになる（既存の添字演算子と同じ挙動）
+        assertFails { eval("'a'::single(123)") } // 余分な引数はエラーになる
     }
 
     @Test

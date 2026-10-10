@@ -196,6 +196,7 @@ class XarpiteTest {
 
         assertEquals(""" " $ \ """, eval(""" " \" \$ \\ " """).string) // エスケープが必要な記号
         assertEquals(" \r \n \t ", eval(""" " \r \n \t " """).string) // 制御文字のエスケープ
+        assertEquals(" \u0000 ", eval(""" " \0 " """).string) // NULのエスケープ
 
         assertEquals("10", eval(""" "$10" """).string) // 数値の埋め込み
         assertEquals("10", eval(""" (a -> "${'$'}a")(10) """).string) // 変数の埋め込み
@@ -655,8 +656,17 @@ class XarpiteTest {
         assertEquals(0.5, eval("2 % 0.75").double) // 右側だけが浮動小数点数でもよい
         assertEquals(0.25, eval("10.25 % 5").double) // 左側だけが浮動小数点数でもよい
 
-        // 負の余りは正になるまで割る数を足したものの余りと同じ（-1 + 3 = 2） % 3
-        // そのため同じ余りがループする
+        // 余りは、0 であるか、割る数と同じ符号になる
+        assertEquals(2, eval("-7 % 3").int) // 割られる数が負でも、割る数が正なら余りは正
+        assertEquals(-2, eval("7 % -3").int) // 割る数が負なら余りも負
+        assertEquals(-1, eval("-7 % -3").int) // 両方負でも割る数の符号に揃う
+        assertEquals(0, eval("-6 % 3").int) // 割り切れる場合は 0
+        assertEquals(0, eval("6 % -3").int) // 割る数が負で割り切れる場合も 0
+        assertEquals(-0.25, eval("1.75 % -0.5").double) // 浮動小数点数でも割る数の符号に揃う
+        assertEquals(2.0, eval("-7 % 3.0").double) // 右側だけが浮動小数点数でもよい
+        assertEquals(2.0, eval("-7.0 % 3").double) // 左側だけが浮動小数点数でもよい
+
+        // 余りが割られる数の符号によらないため、同じ余りがループする
         assertEquals("[0;1;2;3;4;0;1;2;3;4;0;1;2;3;4;0;1;2;3;4;0]", eval("&[-10 .. 10 | _ % 5]").string)
 
         assertEquals(false, eval("10 %% 3").boolean) // %% は割り切れる場合にTRUE
@@ -777,6 +787,24 @@ class XarpiteTest {
         // !(left @ right) と等価であることを確認
         assertEquals(true, eval("!('abc' @ '---abc---') == ('abc' !@ '---abc---')").boolean)
         assertEquals(true, eval("!('123' @ '---abc---') == ('123' !@ '---abc---')").boolean)
+    }
+
+    @Test
+    fun notInstanceOfTest() = runTest {
+        // 継承チェーンに存在するクラスに対しては FALSE を返す
+        assertEquals(false, eval("A := {}; a := A {}; a !?= A").boolean)
+        assertEquals(false, eval("A := {}; B := A {}; b := B {}; b !?= A").boolean)
+
+        // 無関係なクラスに対しては TRUE を返す
+        assertEquals(true, eval("A := {}; B := {}; a := A {}; a !?= B").boolean)
+
+        // 組み込みクラスに対しても動作する
+        assertEquals(false, eval("1 !?= INT").boolean)
+        assertEquals(true, eval("'10' !?= INT").boolean)
+
+        // !(left ?= right) と等価であることを確認
+        assertEquals(true, eval("!(1 ?= INT) == (1 !?= INT)").boolean)
+        assertEquals(true, eval("!('10' ?= INT) == ('10' !?= INT)").boolean)
     }
 
     @Test

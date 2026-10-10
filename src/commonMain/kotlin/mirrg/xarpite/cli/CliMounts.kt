@@ -18,6 +18,7 @@ import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.iterateBlobs
 import mirrg.xarpite.compilers.objects.toFlow
 import mirrg.xarpite.compilers.objects.toFluoriteArray
+import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.compilers.objects.toFluoriteStream
 import mirrg.xarpite.compilers.objects.toFluoriteString
@@ -78,17 +79,25 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 emit(bytes.asFluoriteBlob())
             }
         },
-        "ERR" define FluoriteFunction.immediate { arguments ->
-            arguments.forEach {
-                if (it is FluoriteStream) {
-                    it.collect { item ->
-                        context.io.err(item)
+        *run {
+            fun create(): FluoriteValue {
+                return FluoriteFunction.immediate { arguments ->
+                    arguments.forEach {
+                        if (it is FluoriteStream) {
+                            it.collect { item ->
+                                context.io.err(item)
+                            }
+                        } else {
+                            context.io.err(it)
+                        }
                     }
-                } else {
-                    context.io.err(it)
+                    FluoriteNull
                 }
             }
-            FluoriteNull
+            arrayOf(
+                "ERR" define create(),
+                "ERRL" define create(),
+            )
         },
         "OUTB" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("OUTB(blobLike: BLOB_LIKE): NULL")
@@ -185,6 +194,26 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
             }
             FluoriteNull
+        },
+        "EXISTS" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 1) usage("EXISTS(file: STRING): BOOLEAN")
+            val file = arguments[0].toFluoriteString(null).value
+            val fileSystem = getFileSystem().getOrThrow()
+            fileSystem.exists(file.toPath()).toFluoriteBoolean()
+        },
+        *run {
+            fun create(name: String): FluoriteFunction {
+                return FluoriteFunction.immediate { arguments ->
+                    if (arguments.size != 1) usage("$name(file: STRING): BOOLEAN")
+                    val file = arguments[0].toFluoriteString(null).value
+                    val fileSystem = getFileSystem().getOrThrow()
+                    (fileSystem.metadataOrNull(file.toPath())?.isDirectory ?: false).toFluoriteBoolean()
+                }
+            }
+            arrayOf(
+                "IS_DIRECTORY" define create("IS_DIRECTORY"),
+                "IS_DIR" define create("IS_DIR"),
+            )
         },
         *run {
             fun create(name: String, fullPath: Boolean): FluoriteFunction {

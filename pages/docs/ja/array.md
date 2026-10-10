@@ -493,6 +493,100 @@ $ xa -q '
 # [cherry]
 ```
 
+## `take` `taker` `drop` `dropr`: 先頭・末尾の部分配列の取得と除去
+
+`<T> ARRAY<T>::take(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::taker(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::drop(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::dropr(count: INT): ARRAY<T>`
+
+配列の先頭または末尾の、`count`要素を取得または除去した配列を新たに生成して返します。
+
+元の配列は変化しません。
+
+`count`は数値化し、四捨五入されます。
+
+各メソッドには同一の動作を持つ別名が存在します。
+
+| メソッド    | 別名          | 対象 | 操作 | `count`が配列の長さを超える場合の動作 |
+|---------|-------------|----|----|------------------------|
+| `take`  | `takeFirst` | 先頭 | 取得 | 配列全体                   |
+| `taker` | `takeLast`  | 末尾 | 取得 | 配列全体                   |
+| `drop`  | `dropFirst` | 先頭 | 除去 | 空配列                    |
+| `dropr` | `dropLast`  | 末尾 | 除去 | 空配列                    |
+
+```shell
+$ xa '["zero", "one", "two", "three", "four"]::take(2)'
+# [zero;one]
+
+$ xa '["zero", "one", "two", "three", "four"]::taker(2)'
+# [three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::take(0)'
+# []
+
+$ xa '["zero", "one", "two", "three", "four"]::take(10)'
+# [zero;one;two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(2)'
+# [two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::dropr(2)'
+# [zero;one;two]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(0)'
+# [zero;one;two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(10)'
+# []
+```
+
+## `first` `last`: 先頭・末尾の要素の取得
+
+`<T> ARRAY<T>::first(): T | NULL`
+
+`<T> ARRAY<T>::last(): T | NULL`
+
+`first` `last`メソッドで先頭・末尾の1要素を取得します。
+
+配列が空の場合は`NULL`を返します。
+
+```shell
+$ xa '["zero", "one", "two"]::first()'
+# zero
+
+$ xa '["zero", "one", "two"]::last()'
+# two
+
+$ xa '[]::first()'
+# NULL
+
+$ xa '[]::last()'
+# NULL
+```
+
+## `single`: 唯一の要素の取得
+
+`<T> ARRAY<T>::single(): T`
+
+`single`メソッドで配列の唯一の要素を取得します。
+
+配列が空であるか、複数の要素を持つ場合はエラーをスローします。
+
+```shell
+$ xa '["zero"]::single()'
+# zero
+
+$ xa '["zero", "one"]::single() !? "Error"'
+# Error
+
+$ xa '[]::single() !? "Error"'
+# Error
+```
+
 # 配列系関数
 
 ## `INTERCALATE`: 配列のストリームを配列に連結

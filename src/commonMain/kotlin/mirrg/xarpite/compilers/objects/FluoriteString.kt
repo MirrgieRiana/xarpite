@@ -1,6 +1,7 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 
 data class FluoriteString(val value: String) : FluoriteValue {
@@ -134,6 +135,20 @@ data class FluoriteString(val value: String) : FluoriteValue {
                             "dropLast" to create("dropLast") { string, count -> string.dropLast(count) },
                         )
                     },
+                    *run {
+                        fun create(name: String, transform: (String) -> String): FluoriteValue {
+                            return FluoriteFunction.immediate { arguments ->
+                                if (arguments.size != 1) throw IllegalArgumentException("STRING::$name(): STRING")
+                                val string = arguments[0] as FluoriteString
+                                transform(string.value).toFluoriteString()
+                            }
+                        }
+                        arrayOf(
+                            "trim" to create("trim") { it.trim() },
+                            "trimStart" to create("trimStart") { it.trimStart() },
+                            "trimEnd" to create("trimEnd") { it.trimEnd() },
+                        )
+                    },
                     "first" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) throw IllegalArgumentException("STRING::first(): STRING | NULL")
                         val string = arguments[0] as FluoriteString
@@ -143,6 +158,15 @@ data class FluoriteString(val value: String) : FluoriteValue {
                         if (arguments.size != 1) throw IllegalArgumentException("STRING::last(): STRING | NULL")
                         val string = arguments[0] as FluoriteString
                         string.value.lastOrNull()?.toString()?.toFluoriteString() ?: FluoriteNull
+                    },
+                    "single" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) throw IllegalArgumentException("STRING::single(): STRING")
+                        val string = arguments[0] as FluoriteString
+                        when (string.value.length) {
+                            0 -> throw FluoriteException("String is empty".toFluoriteString())
+                            1 -> string
+                            else -> throw FluoriteException("String has multiple characters".toFluoriteString())
+                        }
                     },
                     *run {
                         fun create(name: String, forceAllOrFirst: Boolean?): FluoriteValue {

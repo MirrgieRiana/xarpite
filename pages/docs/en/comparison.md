@@ -31,7 +31,7 @@ $ xa '3 <= 10 <= 5'
 
 The following operators follow this specification:
 
-- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
+- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=` `!?=`
 
 # Comparison Operators
 
@@ -158,7 +158,9 @@ $ xa -q '
 # apple is in basket
 ```
 
-# InstanceOf Operator
+# InstanceOf Operators
+
+## InstanceOf Operator
 
 The instanceOf operator `left ?= right` returns whether `left` is an instance of `right`.
 
@@ -195,6 +197,26 @@ $ xa -q '
 # Human is Animal
 # Socrates is Human
 # Socrates is Animal
+```
+
+## Negative InstanceOf Operator
+
+The negative instanceOf operator `left !?= right` returns whether `left` is not an instance of `right`.
+
+It behaves equivalently to the expression `!(left ?= right)` using the instanceOf operator.
+
+```shell
+$ xa -q '
+  Animal := {}
+  Human := Animal {}
+  Dog := Animal {}
+  socrates := Human{}
+
+  socrates !?= Animal && (OUT << "Socrates is not Animal")
+  socrates !?= Human && (OUT << "Socrates is not Human")
+  socrates !?= Dog && (OUT << "Socrates is not Dog")
+'
+# Socrates is not Dog
 ```
 
 # Spaceship Operator

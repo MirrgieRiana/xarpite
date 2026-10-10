@@ -62,6 +62,7 @@ $ xa \''abc$def\nop'\'
 | `\t`                  | タブ文字                         |
 | `\r`                  | CR                           |
 | `\n`                  | LF                           |
+| `\0`                  | NUL                          |
 | `\xXX`                | 指定したコードポイントU+0000～U+00FFの1文字 |
 | `\uXXXX`              | 指定したUTF-16のコード単位1個           |
 | 上記以外の`\`で始まるシーケンス   | 構文エラー                        |
@@ -363,6 +364,37 @@ $ xa '"abc" & "def"'
 # abcdef
 ```
 
+# パスの解決`string / string`
+
+パスを結合するには`/`演算子を使います。
+
+左辺をディレクトリとして、右辺のパスを解決します。
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+```
+
+---
+
+出力パスは自動で正規化されます。
+
+`RESOLVE`関数と同じ動作です。
+
+```shell
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+右辺が絶対パスの場合は、左辺が無視されます。
+
+```shell
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
+```
+
 # 部分文字列の取得
 
 `string[indices]`で部分文字列を取得できます。
@@ -389,11 +421,11 @@ $ xa '"abcde"[1..3]'
 各メソッドには同一の動作を持つ別名が存在します。
 
 | メソッド    | 別名          | 対象 | 操作 | `count`が文字列の長さを超える場合の動作 |
-|---------|-------------|----|----|--------------------------|
-| `take`  | `takeFirst` | 先頭 | 取得 | 文字列全体                    |
-| `taker` | `takeLast`  | 末尾 | 取得 | 文字列全体                    |
-| `drop`  | `dropFirst` | 先頭 | 除去 | 空文字列                     |
-| `dropr` | `dropLast`  | 末尾 | 除去 | 空文字列                     |
+|---------|-------------|----|----|-------------------------|
+| `take`  | `takeFirst` | 先頭 | 取得 | 文字列全体                   |
+| `taker` | `takeLast`  | 末尾 | 取得 | 文字列全体                   |
+| `drop`  | `dropFirst` | 先頭 | 除去 | 空文字列                    |
+| `dropr` | `dropLast`  | 末尾 | 除去 | 空文字列                    |
 
 ```shell
 $ xa '"[" & "abcde"::take(2) & "]"'
@@ -421,6 +453,31 @@ $ xa '"[" & "abcde"::drop(10) & "]"'
 # []
 ```
 
+# 先頭・末尾の空白の除去
+
+`STRING::trim(): STRING`
+
+`STRING::trimStart(): STRING`
+
+`STRING::trimEnd(): STRING`
+
+文字列の先頭および末尾の空白を除去した文字列を返します。
+
+`trim`は両端、`trimStart`は先頭、`trimEnd`は末尾の空白を除去します。
+
+除去の対象となる空白は、半角スペースやタブ、改行のほか、全角空白などのUnicodeの空白文字を含みます。
+
+```shell
+$ xa '"[$(  "  abc  "::trim()  )]"'
+# [abc]
+
+$ xa '"[$(  "  abc  "::trimStart()  )]"'
+# [abc  ]
+
+$ xa '"[$(  "  abc  "::trimEnd()  )]"'
+# [  abc]
+```
+
 # 先頭・末尾の文字の取得
 
 `STRING::first(): STRING | NULL`
@@ -443,6 +500,25 @@ $ xa '""::first()'
 
 $ xa '""::last()'
 # NULL
+```
+
+# 唯一の文字の取得
+
+`STRING::single(): STRING`
+
+`single`メソッドで文字列の唯一の文字を取得します。
+
+文字列が空であるか、複数の文字を持つ場合はエラーをスローします。
+
+```shell
+$ xa '"a"::single()'
+# a
+
+$ xa '"abcde"::single() !? "Error"'
+# Error
+
+$ xa '""::single() !? "Error"'
+# Error
 ```
 
 # 文字列の置換
