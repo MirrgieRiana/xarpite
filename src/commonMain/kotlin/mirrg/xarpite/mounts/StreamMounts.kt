@@ -775,7 +775,7 @@ fun createStreamMounts(): List<Map<String, Mount>> {
             }
         },
         *run {
-            fun create(name: String): FluoriteFunction {
+            fun create(name: String, isInverted: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     fun usage(): Nothing = usage("$name(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>")
                     val arguments2 = arguments.toMutableList()
@@ -793,12 +793,12 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                     FluoriteStream {
                         if (stream is FluoriteStream) {
                             stream.collect { item ->
-                                if (predicate.invokeImmediate(null, arrayOf(item)).toBoolean(null)) {
+                                if (predicate.invokeImmediate(null, arrayOf(item)).toBoolean(null) != isInverted) {
                                     emit(item)
                                 }
                             }
                         } else {
-                            if (predicate.invokeImmediate(null, arrayOf(stream)).toBoolean(null)) {
+                            if (predicate.invokeImmediate(null, arrayOf(stream)).toBoolean(null) != isInverted) {
                                 emit(stream)
                             }
                         }
@@ -806,8 +806,10 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "FILTER" define create("FILTER"),
-                "GREP" define create("GREP"),
+                "FILTER" define create("FILTER", false),
+                "GREP" define create("GREP", false),
+                "FILTERV" define create("FILTERV", true),
+                "GREPV" define create("GREPV", true),
             )
         },
         "INDEXED" define FluoriteFunction.immediate { arguments ->
