@@ -266,6 +266,10 @@ The API version is determined based on the following priority:
 2. The `XARPITE_API_VERSION` environment variable
 3. Xarpite's own major version
 
+---
+
+If the specified value cannot be interpreted as a non-negative integer, an error occurs.
+
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -289,10 +293,6 @@ $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 ---
 
 A value consisting only of whitespace is treated as unspecified.
-
----
-
-If the specified value cannot be interpreted as a non-negative integer, an error occurs.
 
 ---
 
