@@ -18,8 +18,11 @@ import okio.Path.Companion.toPath
 
 class Options(val src: String, val arguments: List<String>, val quiet: Boolean, val verbose: Boolean, val apiVersion: Int?, val scriptFile: String?, val embedded: Boolean)
 
+object ShowHelp : Throwable()
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
+
+class ShowMessage(override val message: String) : Throwable()
 
 suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Options {
     val list = args.toMutableList()
@@ -44,7 +47,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
 
                 "-h", "--help" -> { // ヘルプ表示
                     list.removeFirst()
-                    throw ShowUsage
+                    throw ShowHelp
                 }
 
                 "-v", "--version" -> { // バージョン表示
@@ -106,6 +109,14 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
         }
     }
 
+    // -A が指定されなかった場合、XARPITE_API_VERSION 環境変数があればそれを採用する
+    if (apiVersion == null) {
+        val envApiVersion = ioContext.getEnv()["XARPITE_API_VERSION"]?.notBlankOrNull
+        if (envApiVersion != null) {
+            apiVersion = envApiVersion.toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowMessage("XARPITE_API_VERSION must be a non-negative integer: $envApiVersion")
+        }
+    }
+
     // 引数セクションのパース
     run {
 
@@ -141,32 +152,43 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile, embedded)
 }
 
-fun showUsage(ioContext: IoContext) {
+suspend fun showMessage(ioContext: IoContext, message: String) {
+    ioContext.writeBytesToStderr("$message\n".encodeToByteArray())
+}
+
+// ヘルプの要求への応答であるため標準出力へ出す
+suspend fun showHelp(ioContext: IoContext) = printUsage(ioContext) { ioContext.writeBytesToStdout(it) }
+
+// 引数の誤りの通知であるため標準エラー出力へ出す
+suspend fun showUsage(ioContext: IoContext) = printUsage(ioContext) { ioContext.writeBytesToStderr(it) }
+
+private suspend fun printUsage(ioContext: IoContext, writeBytes: suspend (ByteArray) -> Unit) {
+    suspend fun printLine(line: String) = writeBytes("$line\n".encodeToByteArray())
     val programName = ioContext.getEnv()["XARPITE_PROGRAM_NAME"] ?: getProgramName() ?: "xarpite"
     val engine = ioContext.getEnv()["XARPITE_ENGINE"] ?: "native"
     val version = ioContext.getEnv()["XARPITE_VERSION"] ?: "0.0.0-SNAPSHOT"
     val isShortCommand = !ioContext.getEnv()["XARPITE_SHORT_COMMAND"].isNullOrEmpty()
     val firstArgName = if (isShortCommand) "script" else "scriptfile"
-    println("Xarpite (xa) $version $engine")
-    println("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
-    println("Launcher Options:")
-    println("  --native                 Use the native engine")
-    println("  --jvm                    Use the JVM engine")
-    println("  --node                   Use the Node.js engine")
-    println("Runtime Options:")
-    println("  -h, --help               Show this help")
-    println("  -v, --version            Show version")
-    println("  -q                       Run script as a runner")
-    println("  --verbose                Display Kotlin stack traces")
-    println("  -A <apiversion>          Set the API version")
-    println("  -f <scriptfile>          Read script from file")
-    println("                           Use '-' to read from stdin")
-    println("                           Omit [$firstArgName]")
-    println("  -e <script>              Evaluate script directly")
-    println("                           Omit [$firstArgName]")
-    println("  -E                       Interpret the entire script as an embedded string literal")
-    println("")
-    println("Repository: https://github.com/MirrgieRiana/xarpite")
+    printLine("Xarpite (xa) $version $engine")
+    printLine("Usage: $programName <Launcher Options> <Runtime Options> [--] [$firstArgName] <arguments>")
+    printLine("Launcher Options:")
+    printLine("  --native                 Use the native engine")
+    printLine("  --jvm                    Use the JVM engine")
+    printLine("  --node                   Use the Node.js engine")
+    printLine("Runtime Options:")
+    printLine("  -h, --help               Show this help")
+    printLine("  -v, --version            Show version")
+    printLine("  -q                       Run script as a runner")
+    printLine("  --verbose                Display Kotlin stack traces")
+    printLine("  -A <apiversion>          Set the API version")
+    printLine("  -f <scriptfile>          Read script from file")
+    printLine("                           Use '-' to read from stdin")
+    printLine("                           Omit [$firstArgName]")
+    printLine("  -e <script>              Evaluate script directly")
+    printLine("                           Omit [$firstArgName]")
+    printLine("  -E                       Interpret the entire script as an embedded string literal")
+    printLine("")
+    printLine("Repository: https://github.com/MirrgieRiana/xarpite")
 }
 
 fun showVersion(ioContext: IoContext) {

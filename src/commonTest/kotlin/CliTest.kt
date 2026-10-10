@@ -12,12 +12,17 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.Options
+import mirrg.xarpite.cli.ShowHelp
+import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.addDefaultIncPaths
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showHelp
+import mirrg.xarpite.cli.showMessage
+import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -2037,6 +2042,49 @@ class CliTest {
     // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
 
     @Test
+    fun helpOptionThrowsShowHelp() = runTest {
+        // -h オプションで ShowHelp がスローされる
+        assertFailsWith<ShowHelp> {
+            parseArguments(listOf("-h"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun helpLongOptionThrowsShowHelp() = runTest {
+        // --help オプションで ShowHelp がスローされる
+        assertFailsWith<ShowHelp> {
+            parseArguments(listOf("--help"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun showHelpWritesToStdout() = runTest {
+        // ヘルプは標準出力へ出る
+        val context = TestIoContext()
+        showHelp(context)
+        assertTrue(context.stdoutBytes.toUtf8String().contains("Usage:"))
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun showUsageWritesToStderr() = runTest {
+        // 引数の誤りを伝える Usage は標準エラー出力へ出る
+        val context = TestIoContext()
+        showUsage(context)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("Usage:"))
+    }
+
+    @Test
+    fun showMessageWritesToStderr() = runTest {
+        // エラーメッセージは標準エラー出力へ出る
+        val context = TestIoContext()
+        showMessage(context, "test message")
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertEquals("test message\n", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
     fun versionOptionThrowsShowVersion() = runTest {
         // -v オプションで ShowVersion がスローされる
         assertFailsWith<ShowVersion> {
@@ -2115,6 +2163,76 @@ class CliTest {
         // -A で提供していないバージョンを指定すると、スクリプトの実行前にエラーとなる
         val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0"))
         val options = parseArguments(listOf("-A", "48", "-q", "-e", "OUT << \"executed\""), context)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("48"))
+    }
+
+    @Test
+    fun apiVersionEnvVarIsUsedWhenOptionAbsent() = runTest {
+        // -A が無指定のとき XARPITE_API_VERSION 環境変数が採用される
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "5"))
+        val options = parseArguments(listOf("-e", "1"), context)
+        assertEquals(5, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionOptionTakesPrecedenceOverEnvVar() = runTest {
+        // -A の指定は XARPITE_API_VERSION 環境変数よりも優先される
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "5"))
+        val options = parseArguments(listOf("-A", "4", "-e", "1"), context)
+        assertEquals(4, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionEnvVarBlankIsIgnored() = runTest {
+        // 空文字の XARPITE_API_VERSION 環境変数は未指定として扱われる
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to ""))
+        val options = parseArguments(listOf("-e", "1"), context)
+        assertEquals(null, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionEnvVarWhitespaceIsIgnored() = runTest {
+        // 空白のみの XARPITE_API_VERSION 環境変数は未指定として扱われる
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "  "))
+        val options = parseArguments(listOf("-e", "1"), context)
+        assertEquals(null, options.apiVersion)
+    }
+
+    @Test
+    fun apiVersionEnvVarRejectsNonInteger() = runTest {
+        // XARPITE_API_VERSION 環境変数に整数でない値を指定するとエラー
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "abc"))
+        assertFailsWith<ShowMessage> {
+            parseArguments(listOf("-e", "1"), context)
+        }
+    }
+
+    @Test
+    fun apiVersionEnvVarRejectsNegativeInteger() = runTest {
+        // XARPITE_API_VERSION 環境変数に負の整数を指定するとエラー
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "-1"))
+        assertFailsWith<ShowMessage> {
+            parseArguments(listOf("-e", "1"), context)
+        }
+    }
+
+    @Test
+    fun apiVersionEnvVarReflectedInApiVersion() = runTest {
+        // XARPITE_API_VERSION 環境変数の値が API_VERSION に反映される
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0", "XARPITE_API_VERSION" to "5"))
+        val options = parseArguments(listOf("-q", "-e", "OUT << API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("5\n", context.stdoutBytes.toUtf8String())
+    }
+
+    @Test
+    fun apiVersionEnvVarUnsupportedFailsBeforeExecution() = runTest {
+        // XARPITE_API_VERSION 環境変数に提供していないバージョンを指定すると、スクリプトの実行前にエラーとなる
+        val context = TestIoContext(env = mapOf("XARPITE_VERSION" to "4.120.0", "XARPITE_API_VERSION" to "48"))
+        val options = parseArguments(listOf("-q", "-e", "OUT << \"executed\""), context)
         cliEvalImpl(context, options)
         assertEquals("", context.stdoutBytes.toUtf8String())
         assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
