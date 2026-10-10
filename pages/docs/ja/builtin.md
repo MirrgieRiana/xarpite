@@ -809,7 +809,7 @@ $ xa '
 `GROUP`関数と異なり、エントリーの値は要素の配列ではなく要素の個数です。
 
 ```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
 # [apple;2]
 # [cherry;1]
 # [banana;2]
@@ -822,26 +822,6 @@ $ xa '
 '
 # [fruit;2]
 # [animal;1]
-```
-
----
-
-個数の順に並んだ結果が必要な場合、`SORT`関数または`SORTR`関数によって並べ替えることができます。
-
-```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
-# [apple;2]
-# [banana;2]
-# [cherry;1]
-```
-
----
-
-キーが文字列化可能な場合、`TO_OBJECT`関数によって簡単にオブジェクトにまとめることができます。
-
-```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> TO_OBJECT'
-# {apple:2;cherry:1;banana:2}
 ```
 
 ## `CHUNK`ストリームを一定サイズの配列に分割

@@ -809,7 +809,7 @@ Entries are in the order in which that key first appeared.
 Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
 
 ```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY'
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
 # [apple;2]
 # [cherry;1]
 # [banana;2]
@@ -822,26 +822,6 @@ $ xa '
 '
 # [fruit;2]
 # [animal;1]
-```
-
----
-
-If a result ordered by count is required, they can be reordered by the `SORT` function or the `SORTR` function.
-
-```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> SORTR[by: _ -> _.1]'
-# [apple;2]
-# [banana;2]
-# [cherry;1]
-```
-
----
-
-If the keys can be stringified, they can be easily grouped into objects by the `TO_OBJECT` function.
-
-```shell
-$ xa '"apple", "cherry","banana", "banana", "apple" >> TALLY >> TO_OBJECT'
-# {apple:2;cherry:1;banana:2}
 ```
 
 ## `CHUNK` Split Stream into Fixed-Size Arrays
