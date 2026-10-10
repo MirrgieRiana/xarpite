@@ -260,6 +260,12 @@ $ xa -q '
 
 ## APIバージョン
 
+APIバージョンは以下の優先順位に基づいて決定されます。
+
+1. `-A`オプション
+2. `XARPITE_API_VERSION`環境変数
+3. Xarpite自身のメジャーバージョン
+
 ### `-A`: APIバージョンの指定
 
 `-A <apiversion>`
@@ -279,14 +285,6 @@ $ xa -A 4 'API_VERSION'
 $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 # 4
 ```
-
----
-
-APIバージョンは以下の優先順位に基づいて決定されます。
-
-1. `-A`オプション
-2. `XARPITE_API_VERSION`環境変数
-3. Xarpite自身のメジャーバージョン
 
 ---
 

@@ -260,6 +260,8 @@ Therefore, statements such as variable declaration statements can be written in 
 
 ## API Version
 
+The API version is determined based on the following priority:
+
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -279,10 +281,6 @@ The `XARPITE_API_VERSION` environment variable specifies the API version of the 
 $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 # 4
 ```
-
----
-
-The API version is determined based on the following priority:
 
 1. The `-A` option
 2. The `XARPITE_API_VERSION` environment variable

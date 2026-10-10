@@ -21,6 +21,8 @@ class Options(val src: String, val arguments: List<String>, val quiet: Boolean, 
 object ShowUsage : Throwable()
 object ShowVersion : Throwable()
 
+class ShowMessage(override val message: String) : Throwable()
+
 suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Options {
     val list = args.toMutableList()
     val arguments = mutableListOf<String>()
@@ -110,7 +112,7 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     if (apiVersion == null) {
         val envApiVersion = ioContext.getEnv()["XARPITE_API_VERSION"]?.notBlankOrNull
         if (envApiVersion != null) {
-            apiVersion = envApiVersion.toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowUsage
+            apiVersion = envApiVersion.toIntOrNull()?.takeIf { it >= 0 } ?: throw ShowMessage("XARPITE_API_VERSION must be a non-negative integer: $envApiVersion")
         }
     }
 
@@ -147,6 +149,10 @@ suspend fun parseArguments(args: Iterable<String>, ioContext: IoContext): Option
     }
 
     return Options(script ?: throw ShowUsage, arguments, quiet, verbose, apiVersion, scriptFile, embedded)
+}
+
+fun showMessage(message: String) {
+    println(message)
 }
 
 fun showUsage(ioContext: IoContext) {
