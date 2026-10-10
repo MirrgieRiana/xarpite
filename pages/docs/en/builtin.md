@@ -887,6 +887,24 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 5
 ```
 
+## `FILTERV` / `GREPV` Exclude Stream by Condition
+
+`FILTERV(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+
+Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is false.
+
+`GREPV` is an alias of `FILTERV` and has the same behavior.
+
+```shell
+$ xa '1 .. 5 >> FILTERV [ x => x % 2 == 1 ]'
+# 2
+# 4
+
+$ xa '1 .. 5 >> FILTERV[by: x -> x % 2 == 1]'
+# 2
+# 4
+```
+
 ## `REDUCE` Accumulate Stream Elements
 
 `REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE`

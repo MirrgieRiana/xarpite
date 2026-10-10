@@ -75,6 +75,20 @@ class StreamMountsTest {
         assertEquals("2,4", eval("1 .. 5 >> GREP [ by: x -> x %% 2 ]").stream()) // GREPでもby指定できる
     }
 
+    @Test
+    fun filterv() = runTest {
+        assertEquals("1,3,5", eval("1 .. 5 >> FILTERV [ x => x %% 2 ]").stream()) // FILTERV で条件を満たさない要素のみを抽出する
+        assertEquals("1,3,5", eval("1 .. 5 >> FILTERV [ by: x -> x %% 2 ]").stream()) // by指定でも同じ結果が得られる
+        assertEquals("1", eval("1 >> FILTERV [ x => x %% 2 ]").stream()) // ストリームでない値も条件を満たさなければ残る
+        assertEquals("", eval("2 >> FILTERV [ x => x %% 2 ]").stream()) // ストリームでない値も条件を満たせば除かれる
+    }
+
+    @Test
+    fun grepv() = runTest {
+        assertEquals("1,3,5", eval("1 .. 5 >> GREPV [ x => x %% 2 ]").stream()) // GREPV は FILTERV のエイリアス
+        assertEquals("1,3,5", eval("1 .. 5 >> GREPV [ by: x -> x %% 2 ]").stream()) // GREPVでもby指定できる
+    }
+
 
     @Test
     fun sum() = runTest {
