@@ -12,6 +12,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.Options
+import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.addDefaultIncPaths
@@ -2157,7 +2158,16 @@ class CliTest {
     fun apiVersionEnvVarRejectsNonInteger() = runTest {
         // XARPITE_API_VERSION 環境変数に整数でない値を指定するとエラー
         val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "abc"))
-        assertFailsWith<ShowUsage> {
+        assertFailsWith<ShowMessage> {
+            parseArguments(listOf("-e", "1"), context)
+        }
+    }
+
+    @Test
+    fun apiVersionEnvVarRejectsNegativeInteger() = runTest {
+        // XARPITE_API_VERSION 環境変数に負の整数を指定するとエラー
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "-1"))
+        assertFailsWith<ShowMessage> {
             parseArguments(listOf("-e", "1"), context)
         }
     }

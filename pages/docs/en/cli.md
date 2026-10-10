@@ -262,6 +262,10 @@ Therefore, statements such as variable declaration statements can be written in 
 
 The API version is determined based on the following priority:
 
+1. The `-A` option
+2. The `XARPITE_API_VERSION` environment variable
+3. Xarpite's own major version
+
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -282,9 +286,13 @@ $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 # 4
 ```
 
-1. The `-A` option
-2. The `XARPITE_API_VERSION` environment variable
-3. Xarpite's own major version
+---
+
+A value consisting only of whitespace is treated as unspecified.
+
+---
+
+If the specified value cannot be interpreted as a non-negative integer, an error occurs.
 
 ---
 

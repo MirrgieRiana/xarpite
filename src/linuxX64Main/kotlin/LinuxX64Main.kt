@@ -56,7 +56,7 @@ fun main(args: Array<String>) {
             showVersion(ioContext)
             return@runBlocking
         } catch (e: ShowMessage) {
-            showMessage(e.message)
+            showMessage(ioContext, e.message)
             return@runBlocking
         }
         val exitCode = cliEval(ioContext, options)
