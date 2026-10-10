@@ -3,11 +3,13 @@ import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.runBlocking
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.cli.ShowHelp
 import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showHelp
 import mirrg.xarpite.cli.showMessage
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
@@ -49,6 +51,9 @@ fun main(args: Array<String>) {
         }
         val options = try {
             parseArguments(args.asIterable(), ioContext)
+        } catch (_: ShowHelp) {
+            showHelp(ioContext)
+            return@runBlocking
         } catch (_: ShowUsage) {
             showUsage(ioContext)
             return@runBlocking

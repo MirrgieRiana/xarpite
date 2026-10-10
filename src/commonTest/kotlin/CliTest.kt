@@ -12,6 +12,7 @@ import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.Options
+import mirrg.xarpite.cli.ShowHelp
 import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
@@ -19,6 +20,9 @@ import mirrg.xarpite.cli.addDefaultIncPaths
 import mirrg.xarpite.cli.createCliMounts
 import mirrg.xarpite.cli.createModuleMounts
 import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showHelp
+import mirrg.xarpite.cli.showMessage
+import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.compilers.objects.FluoriteBlob
 import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteStream
@@ -2036,6 +2040,49 @@ class CliTest {
 
     // Note: XARPITE_SHORT_COMMAND environment variable tests are handled by integration tests
     // because Kotlin multiplatform doesn't provide a standard way to mock environment variables
+
+    @Test
+    fun helpOptionThrowsShowHelp() = runTest {
+        // -h オプションで ShowHelp がスローされる
+        assertFailsWith<ShowHelp> {
+            parseArguments(listOf("-h"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun helpLongOptionThrowsShowHelp() = runTest {
+        // --help オプションで ShowHelp がスローされる
+        assertFailsWith<ShowHelp> {
+            parseArguments(listOf("--help"), TestIoContext())
+        }
+    }
+
+    @Test
+    fun showHelpWritesToStdout() = runTest {
+        // ヘルプは標準出力へ出る
+        val context = TestIoContext()
+        showHelp(context)
+        assertTrue(context.stdoutBytes.toUtf8String().contains("Usage:"))
+        assertEquals("", context.stderrBytes.toUtf8String())
+    }
+
+    @Test
+    fun showUsageWritesToStderr() = runTest {
+        // 引数の誤りを伝える Usage は標準エラー出力へ出る
+        val context = TestIoContext()
+        showUsage(context)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("Usage:"))
+    }
+
+    @Test
+    fun showMessageWritesToStderr() = runTest {
+        // エラーメッセージは標準エラー出力へ出る
+        val context = TestIoContext()
+        showMessage(context, "test message")
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertEquals("test message\n", context.stderrBytes.toUtf8String())
+    }
 
     @Test
     fun versionOptionThrowsShowVersion() = runTest {
