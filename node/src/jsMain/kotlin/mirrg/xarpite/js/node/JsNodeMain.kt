@@ -13,10 +13,14 @@ import mirrg.xarpite.IoContext
 import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import mirrg.xarpite.cli.ShowHelp
+import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
 import mirrg.xarpite.cli.ShowVersion
 import mirrg.xarpite.cli.cliEval
 import mirrg.xarpite.cli.parseArguments
+import mirrg.xarpite.cli.showHelp
+import mirrg.xarpite.cli.showMessage
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
 import mirrg.xarpite.compilers.objects.FluoriteValue
@@ -110,11 +114,17 @@ suspend fun main() {
         }
         val options = try {
             parseArguments(process.argv.drop(2), ioContext)
+        } catch (_: ShowHelp) {
+            showHelp(ioContext)
+            return@coroutineScope
         } catch (_: ShowUsage) {
             showUsage(ioContext)
             return@coroutineScope
         } catch (_: ShowVersion) {
             showVersion(ioContext)
+            return@coroutineScope
+        } catch (e: ShowMessage) {
+            showMessage(ioContext, e.message)
             return@coroutineScope
         }
         val exitCode = cliEval(ioContext, options) {
