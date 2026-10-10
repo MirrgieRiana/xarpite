@@ -270,6 +270,10 @@ The API version is determined based on the following priority:
 
 If the specified value cannot be interpreted as a non-negative integer, an error occurs.
 
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
+
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -293,10 +297,6 @@ $ XARPITE_API_VERSION=4 xa 'API_VERSION'
 ---
 
 A value consisting only of whitespace is treated as unspecified.
-
----
-
-If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
 
 ## Script Specification
 
