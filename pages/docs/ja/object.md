@@ -263,7 +263,58 @@ $ xa '
 # {b:banana}
 ```
 
-# 組み込み関数`PARENT`
+# 組み込み関数
+
+## `::NEW`: インスタンスの生成
+
+`<T> T::NEW(argument: VALUE; ...): T`
+
+レシーバーを親オブジェクトとする新しいオブジェクトを作り、そのオブジェクトの`init`メソッドを`argument`以降の引数で呼び出し、作ったオブジェクトを返す拡張関数です。
+
+```shell
+$ xa '
+  Animal := {
+    init: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+インスタンスの生成をレシーバーに委ねるため、継承したクラスから呼び出した場合も、そのクラスを親オブジェクトとするインスタンスが返ります。
+
+これにより、`init`から親クラスの`init`を名前で呼び出す形で、コンストラクタの連鎖を組むことができます。
+
+```shell
+$ xa '
+  Animal := {
+    init: this, age -> :
+      this.age = age
+  }
+  Human := Animal {
+    init: this, age, name -> :
+      Animal.init(this; age)
+      this.name = name
+  }
+  Human::NEW(22; "Herirmina")
+'
+# {age:22;name:Herirmina}
+```
+
+---
+
+`init`がストリームを返した場合、そのストリームは解決されます。
+
+---
+
+`init`が見つからない場合、メソッドが見つからないことを伝える値がスローされます。
+
+---
+
+この拡張関数は`OBJECT`クラスに属するため、オブジェクト以外の値に対しては利用できません。
 
 ## `PARENT`: 親オブジェクトの取得
 

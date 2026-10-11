@@ -263,7 +263,58 @@ $ xa '
 # {b:banana}
 ```
 
-# Built-in Function `PARENT`
+# Built-in Functions
+
+## `::NEW`: Creating an Instance
+
+`<T> T::NEW(argument: VALUE; ...): T`
+
+An extension function that creates a new object whose parent object is the receiver, calls the `init` method of that object with `argument` and the following arguments, and returns the created object.
+
+```shell
+$ xa '
+  Animal := {
+    init: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+Because the creation of the instance is delegated to the receiver, calling it on a derived class also returns an instance whose parent object is that class.
+
+This allows a chain of constructors to be built by calling the `init` of the parent class by name from `init`.
+
+```shell
+$ xa '
+  Animal := {
+    init: this, age -> :
+      this.age = age
+  }
+  Human := Animal {
+    init: this, age, name -> :
+      Animal.init(this; age)
+      this.name = name
+  }
+  Human::NEW(22; "Herirmina")
+'
+# {age:22;name:Herirmina}
+```
+
+---
+
+If `init` returns a stream, that stream is resolved.
+
+---
+
+If `init` is not found, a value reporting that the method was not found is thrown.
+
+---
+
+Because this extension function belongs to the `OBJECT` class, it is not available for values other than objects.
 
 ## `PARENT`: Getting the Parent Object
 
