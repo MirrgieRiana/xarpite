@@ -41,6 +41,36 @@ class NumberTest {
     }
 
     @Test
+    fun bigArithmetic() = runTest {
+        val a = """ BIG.of("123456789012345678901234567890") """
+
+        // BIG同士の加減乗除ができる
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" $a + $a """).big)
+        assertEquals("0".toBigInteger(), eval(""" $a - $a """).big)
+        assertEquals("15241578753238836750495351562536198787501905199875019052100".toBigInteger(), eval(""" $a * $a """).big)
+        assertEquals(1.0, eval(""" $a / $a """).double)
+
+        // BIGとINTを混ぜると、精度を失わずBIGになる
+        assertEquals("123456789012345678901234567891".toBigInteger(), eval(""" $a + 1 """).big)
+        assertEquals("123456789012345678901234567891".toBigInteger(), eval(""" 1 + $a """).big)
+        assertEquals("123456789012345678901234567889".toBigInteger(), eval(""" $a - 1 """).big)
+        assertEquals("-123456789012345678901234567889".toBigInteger(), eval(""" 1 - $a """).big)
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" $a * 2 """).big)
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" 2 * $a """).big)
+
+        // BIGとDOUBLEを混ぜると、INT同士の除算と同じくDOUBLEになる
+        assertEquals(1.2345678901234568e29, eval(""" $a + 0.5 """).double)
+        assertEquals(1.2345678901234568e29, eval(""" 0.5 + $a """).double)
+        assertEquals(6.172839450617284e28, eval(""" $a * 0.5 """).double)
+        assertEquals(6.172839450617284e28, eval(""" 0.5 * $a """).double)
+
+        // 除算は常にDOUBLEになる
+        assertEquals(1.2345678901234568e29, eval(""" $a / 1 """).double)
+        assertEquals(8.1000000729e-30, eval(""" 1 / $a """).double)
+        assertEquals(2.4691357802469136e29, eval(""" $a / 0.5 """).double)
+    }
+
+    @Test
     fun bigOf() = runTest {
         // 文字列からBIGを生成できる
         assertEquals("123456789012345678901234567890".toBigInteger(), eval(""" BIG.of("123456789012345678901234567890") """).big)

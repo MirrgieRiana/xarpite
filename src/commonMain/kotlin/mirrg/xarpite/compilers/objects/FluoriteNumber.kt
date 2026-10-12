@@ -36,6 +36,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value + right.value)
+                            is FluoriteBig -> FluoriteBig(left.value.toBigInteger() + right.value)
                             is FluoriteDouble -> FluoriteDouble(left.value + right.value)
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -44,6 +45,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteInt(left.value - right.value)
+                            is FluoriteBig -> FluoriteBig(left.value.toBigInteger() - right.value)
                             is FluoriteDouble -> FluoriteDouble(left.value - right.value)
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -88,6 +90,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value + right.value)
+                            is FluoriteBig -> FluoriteDouble(left.value + right.value.doubleValue(false))
                             is FluoriteDouble -> FluoriteDouble(left.value + right.value)
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -96,6 +99,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> FluoriteDouble(left.value - right.value)
+                            is FluoriteBig -> FluoriteDouble(left.value - right.value.doubleValue(false))
                             is FluoriteDouble -> FluoriteDouble(left.value - right.value)
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -144,6 +148,24 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                                 FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
                             }
                             else -> usage("BIG.of(value: STRING | NUMBER): BIG")
+                        }
+                    },
+                    OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
+                        val left = arguments[0] as FluoriteBig
+                        when (val right = arguments[1]) {
+                            is FluoriteInt -> FluoriteBig(left.value + right.value.toBigInteger())
+                            is FluoriteBig -> FluoriteBig(left.value + right.value)
+                            is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) + right.value)
+                            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+                        }
+                    },
+                    OperatorMethod.MINUS.methodName to FluoriteFunction.immediate { arguments ->
+                        val left = arguments[0] as FluoriteBig
+                        when (val right = arguments[1]) {
+                            is FluoriteInt -> FluoriteBig(left.value - right.value.toBigInteger())
+                            is FluoriteBig -> FluoriteBig(left.value - right.value)
+                            is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) - right.value)
+                            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
                 )

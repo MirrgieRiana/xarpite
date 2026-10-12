@@ -1,5 +1,6 @@
 package mirrg.xarpite.operations
 
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Environment
 import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
@@ -7,6 +8,7 @@ import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteBoolean
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
@@ -428,12 +430,21 @@ class TimesGetter(private val leftGetter: Getter, private val rightGetter: Gette
         return when (left) {
             is FluoriteInt -> when (right) {
                 is FluoriteInt -> FluoriteInt(left.value * right.value)
+                is FluoriteBig -> FluoriteBig(left.value.toBigInteger() * right.value)
                 is FluoriteDouble -> FluoriteDouble(left.value * right.value)
+                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+            }
+
+            is FluoriteBig -> when (right) {
+                is FluoriteInt -> FluoriteBig(left.value * right.value.toBigInteger())
+                is FluoriteBig -> FluoriteBig(left.value * right.value)
+                is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) * right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
             is FluoriteDouble -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value * right.value)
+                is FluoriteBig -> FluoriteDouble(left.value * right.value.doubleValue(false))
                 is FluoriteDouble -> FluoriteDouble(left.value * right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
@@ -463,12 +474,21 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
         return when (left) {
             is FluoriteInt -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value.toDouble() / right.value.toDouble())
+                is FluoriteBig -> FluoriteDouble(left.value.toDouble() / right.value.doubleValue(false))
                 is FluoriteDouble -> FluoriteDouble(left.value.toDouble() / right.value)
+                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+            }
+
+            is FluoriteBig -> when (right) {
+                is FluoriteInt -> FluoriteDouble(left.value.doubleValue(false) / right.value.toDouble())
+                is FluoriteBig -> FluoriteDouble(left.value.doubleValue(false) / right.value.doubleValue(false))
+                is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
             is FluoriteDouble -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value / right.value.toDouble())
+                is FluoriteBig -> FluoriteDouble(left.value / right.value.doubleValue(false))
                 is FluoriteDouble -> FluoriteDouble(left.value / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
