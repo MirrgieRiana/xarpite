@@ -126,6 +126,37 @@ class ObjectTest {
     }
 
     @Test
+    fun functionNew() = runTest {
+        // NEW は第 1 引数をレシーバーとして受け取る
+        """
+            Animal := {
+                init: this -> :
+                    this.legs = 4
+            }
+            NEW(Animal)
+        """.let { assertEquals("{legs:4}", eval(it).obj) }
+
+        // 第 2 引数以降が init へ渡る
+        """
+            Animal := {
+                init: this, age -> :
+                    this.age = age
+            }
+            NEW(Animal; 3)
+        """.let { assertEquals("{age:3}", eval(it).obj) }
+
+        // レシーバーが NEW メソッドを持っていても、こちらは関数だから影響を受けない
+        """
+            Animal := {
+                NEW: this -> "NEW!"
+                init: this -> :
+                    this.legs = 4
+            }
+            NEW(Animal)
+        """.let { assertEquals("{legs:4}", eval(it).obj) }
+    }
+
+    @Test
     fun invert() = runTest {
         // 基本的な反転
         assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)

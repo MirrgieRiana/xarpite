@@ -265,11 +265,15 @@ $ xa '
 
 # Built-in Functions
 
-## `::NEW`: Creating an Instance
+## `::NEW` / `NEW`: Creating an Instance
 
 `<T> T::NEW(argument: VALUE; ...): T`
 
+`<T> NEW(clazz: T; argument: VALUE; ...): T`
+
 An extension function that creates a new object whose parent object is the receiver, calls the `init` method of that object with `argument` and the following arguments, and returns the created object.
+
+`NEW` is an alias for `::NEW` that takes the receiver as its first argument `clazz`.
 
 ```shell
 $ xa '
