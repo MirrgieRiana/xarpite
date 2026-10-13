@@ -8,9 +8,16 @@ import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+
+/** 浮動小数点の計算結果を、期待値の絶対値に対する比で比較する */
+private fun assertEqualsRelatively(expected: Double, actual: Double, relativeTolerance: Double = 1e-12) {
+    assertTrue(abs(actual - expected) <= abs(expected) * relativeTolerance, "expected:<$expected> but was:<$actual>")
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NumberTest {
@@ -59,15 +66,16 @@ class NumberTest {
         assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" 2 * $a """).big)
 
         // BIGとDOUBLEを混ぜると、INT同士の除算と同じくDOUBLEになる
-        assertEquals(1.2345678901234568e29, eval(""" $a + 0.5 """).double)
-        assertEquals(1.2345678901234568e29, eval(""" 0.5 + $a """).double)
-        assertEquals(6.172839450617284e28, eval(""" $a * 0.5 """).double)
-        assertEquals(6.172839450617284e28, eval(""" 0.5 * $a """).double)
+        // 浮動小数点の末尾の桁は計算の経路で変わるから、絶対値に対する比で許容する
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" $a + 0.5 """).double)
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" 0.5 + $a """).double)
+        assertEqualsRelatively(6.172839450617284e28, eval(""" $a * 0.5 """).double)
+        assertEqualsRelatively(6.172839450617284e28, eval(""" 0.5 * $a """).double)
 
         // 除算は常にDOUBLEになる
-        assertEquals(1.2345678901234568e29, eval(""" $a / 1 """).double)
-        assertEquals(8.1000000729e-30, eval(""" 1 / $a """).double)
-        assertEquals(2.4691357802469136e29, eval(""" $a / 0.5 """).double)
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" $a / 1 """).double)
+        assertEqualsRelatively(8.1000000729e-30, eval(""" 1 / $a """).double)
+        assertEqualsRelatively(2.4691357802469136e29, eval(""" $a / 0.5 """).double)
     }
 
     @Test
