@@ -265,20 +265,18 @@ $ xa '
 
 # Built-in Functions
 
-## `::NEW` / `NEW`: Creating an Instance
+## `NEW` / `::NEW`: Creating an Instance
 
-`<T> T::NEW(argument: VALUE; ...): T`
+`<T, A...> NEW(class: T^; arguments: A): T`
 
-`<T> NEW(clazz: T; argument: VALUE; ...): T`
+`<T, A...> T^::NEW(arguments: A): T`
 
-An extension function that creates a new object whose parent object is the receiver, calls the `init` method of that object with `argument` and the following arguments, and returns the created object.
-
-`NEW` is an alias for `::NEW` that takes the receiver as its first argument `clazz`.
+An extension function that creates a new object whose parent object is the receiver, calls the `<>` method of that object with `arguments`, and returns the created object.
 
 ```shell
 $ xa '
   Animal := {
-    init: this, age -> :
+    `<>`: this, age -> :
       this.age = age
   }
   Animal::NEW(3)
@@ -290,17 +288,17 @@ $ xa '
 
 Because the creation of the instance is delegated to the receiver, calling it on a derived class also returns an instance whose parent object is that class.
 
-This allows a chain of constructors to be built by calling the `init` of the parent class by name from `init`.
+This allows a chain of constructors to be built by calling the `<>` of the parent class by name from `<>`.
 
 ```shell
 $ xa '
   Animal := {
-    init: this, age -> :
+    `<>`: this, age -> :
       this.age = age
   }
   Human := Animal {
-    init: this, age, name -> :
-      Animal.init(this; age)
+    `<>`: this, age, name -> :
+      Animal.`<>`(this; age)
       this.name = name
   }
   Human::NEW(22; "Herirmina")
@@ -310,11 +308,28 @@ $ xa '
 
 ---
 
-If `init` returns a stream, that stream is resolved.
+If `<>` returns a stream, that stream is resolved.
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
 
 ---
 
-If `init` is not found, a value reporting that the method was not found is thrown.
+If `<>` is not found, a value reporting that the method was not found is thrown.
+
+```shell
+$ xa '{}::NEW() !? ( e => e )'
+# Method not found: {}::<>
+```
 
 ---
 

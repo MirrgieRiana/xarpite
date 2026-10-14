@@ -62,33 +62,33 @@ class ObjectTest {
 
     @Test
     fun extensionNew() = runTest {
-        // ::NEW はレシーバーを親とするインスタンスを作って、その init を呼ぶ
+        // ::NEW はレシーバーを親とするインスタンスを作って、その `<>` を呼ぶ
         """
             Animal := {
-                init: this -> :
+                `<>`: this -> :
                     this.legs = 4
             }
             Animal::NEW()
         """.let { assertEquals("{legs:4}", eval(it).obj) }
 
-        // 第 2 引数以降が init へ渡る
+        // 第 2 引数以降が `<>` へ渡る
         """
             Animal := {
-                init: this, age -> :
+                `<>`: this, age -> :
                     this.age = age
             }
             Animal::NEW(3)
         """.let { assertEquals("{age:3}", eval(it).obj) }
 
-        // 継承したクラスから呼ぶと、そのクラスのインスタンスが返り、init から親の init を名前で呼べる
+        // 継承したクラスから呼ぶと、そのクラスのインスタンスが返り、`<>` から親の `<>` を名前で呼べる
         """
             Animal := {
-                init: this, age -> :
+                `<>`: this, age -> :
                     this.age = age
             }
             Human := Animal {
-                init: this, age, name -> :
-                    Animal.init(this; age)
+                `<>`: this, age, name -> :
+                    Animal.`<>`(this; age)
                     this.name = name
             }
             Human::NEW(22; "Herirmina")
@@ -96,16 +96,16 @@ class ObjectTest {
 
         // 返るインスタンスの親はレシーバー
         """
-            Animal := {init: this -> NULL}
-            Human := Animal {init: this -> NULL}
+            Animal := {`<>`: this -> NULL}
+            Human := Animal {`<>`: this -> NULL}
             PARENT(Human::NEW()) == Human
         """.let { assertEquals(true, eval(it).boolean) }
 
-        // init がストリームを返しても、その副作用は起こる
+        // `<>` がストリームを返しても、その副作用は起こる
         """
             result := NULL
             Counter := {
-                init: this -> 1 .. 3 | _ => result = _
+                `<>`: this -> 1 .. 3 | _ => result = _
             }
             Counter::NEW()
             result
@@ -120,9 +120,9 @@ class ObjectTest {
             animal::NEW()
         """.let { assertEquals("NEW!", eval(it).toString()) }
 
-        // init を持たないクラスに対しては失敗する
+        // `<>` を持たないクラスに対しては失敗する
         val exception = assertFailsWith<FluoriteException> { eval("{}::NEW()") }
-        assertTrue(exception.message!!.contains("init")) // 見つからなかったメソッドが init であることが分かる
+        assertTrue(exception.message!!.contains("<>")) // 見つからなかったメソッドが `<>` であることが分かる
     }
 
     @Test
@@ -130,16 +130,16 @@ class ObjectTest {
         // NEW は第 1 引数をレシーバーとして受け取る
         """
             Animal := {
-                init: this -> :
+                `<>`: this -> :
                     this.legs = 4
             }
             NEW(Animal)
         """.let { assertEquals("{legs:4}", eval(it).obj) }
 
-        // 第 2 引数以降が init へ渡る
+        // 第 2 引数以降が `<>` へ渡る
         """
             Animal := {
-                init: this, age -> :
+                `<>`: this, age -> :
                     this.age = age
             }
             NEW(Animal; 3)
@@ -149,7 +149,7 @@ class ObjectTest {
         """
             Animal := {
                 NEW: this -> "NEW!"
-                init: this -> :
+                `<>`: this -> :
                     this.legs = 4
             }
             NEW(Animal)

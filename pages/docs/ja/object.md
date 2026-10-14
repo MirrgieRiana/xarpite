@@ -265,20 +265,18 @@ $ xa '
 
 # 組み込み関数
 
-## `::NEW` / `NEW`: インスタンスの生成
+## `NEW` / `::NEW`: インスタンスの生成
 
-`<T> T::NEW(argument: VALUE; ...): T`
+`<T, A...> NEW(class: T^; arguments: A): T`
 
-`<T> NEW(clazz: T; argument: VALUE; ...): T`
+`<T, A...> T^::NEW(arguments: A): T`
 
-レシーバーを親オブジェクトとする新しいオブジェクトを作り、そのオブジェクトの`init`メソッドを`argument`以降の引数で呼び出し、作ったオブジェクトを返す拡張関数です。
-
-`NEW`は`::NEW`の別名で、レシーバーを第1引数`clazz`として受け取ります。
+レシーバーを親オブジェクトとする新しいオブジェクトを作り、そのオブジェクトの`<>`メソッドを`arguments`とともに呼び出し、作ったオブジェクトを返す拡張関数です。
 
 ```shell
 $ xa '
   Animal := {
-    init: this, age -> :
+    `<>`: this, age -> :
       this.age = age
   }
   Animal::NEW(3)
@@ -288,19 +286,19 @@ $ xa '
 
 ---
 
-インスタンスの生成をレシーバーに委ねるため、継承したクラスから呼び出した場合も、そのクラスを親オブジェクトとするインスタンスが返ります。
+インスタンスの生成をレシーバーに委ねるため、継承したクラスから呼び出した場合も、そのクラスを親オブジェクトとするインスタンスが返されます。
 
-これにより、`init`から親クラスの`init`を名前で呼び出す形で、コンストラクタの連鎖を組むことができます。
+これにより、`<>`から親クラスの`<>`を名前で呼び出す形で、コンストラクタの連鎖を組むことができます。
 
 ```shell
 $ xa '
   Animal := {
-    init: this, age -> :
+    `<>`: this, age -> :
       this.age = age
   }
   Human := Animal {
-    init: this, age, name -> :
-      Animal.init(this; age)
+    `<>`: this, age, name -> :
+      Animal.`<>`(this; age)
       this.name = name
   }
   Human::NEW(22; "Herirmina")
@@ -310,11 +308,28 @@ $ xa '
 
 ---
 
-`init`がストリームを返した場合、そのストリームは解決されます。
+`<>`がストリームを返した場合、そのストリームは解決されます。
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
 
 ---
 
-`init`が見つからない場合、メソッドが見つからないことを伝える値がスローされます。
+`<>`が見つからない場合、メソッドが見つからないことを伝える値がスローされます。
+
+```shell
+$ xa '{}::NEW() !? ( e => e )'
+# Method not found: {}::<>
+```
 
 ---
 

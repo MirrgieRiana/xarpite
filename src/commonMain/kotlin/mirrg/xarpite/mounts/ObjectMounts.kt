@@ -25,12 +25,12 @@ fun createObjectMounts(): List<Map<String, Mount>> {
                     if (arguments.isEmpty()) usage(signature)
                     val clazz = arguments[0]() as FluoriteObject
                     val instance = FluoriteObject(clazz, mutableMapOf())
-                    instance.callMethod(null, "init", arguments.sliceArray(1 until arguments.size)).consume()
+                    instance.callMethod(null, "<>", arguments.sliceArray(1 until arguments.size)).consume()
                     instance
                 }
             }
             arrayOf(
-                "NEW" define create("NEW(clazz: OBJECT; arguments: VALUE...): OBJECT"),
+                "NEW" define create("NEW(class: OBJECT; arguments: VALUE...): OBJECT"),
                 "::NEW" define fluoriteArrayOf(
                     FluoriteObject.fluoriteClass colon create("OBJECT::NEW(arguments: VALUE...): OBJECT"),
                 ),
