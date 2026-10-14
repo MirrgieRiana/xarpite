@@ -279,15 +279,15 @@ $ xa '
 
 # Comparison Functions
 
-## `CONTAINS`: Function for Containment
+## `CONTAINS` / `::CONTAINS`: Function for Containment
 
 `CONTAINS(container: VALUE; content: VALUE): BOOLEAN`
 
 `VALUE::CONTAINS(content: VALUE): BOOLEAN`
 
-The `CONTAINS` function is syntactic sugar for calling the containment operator `@` in function form.
+The `CONTAINS` function and the `::CONTAINS` extension function are syntactic sugar for calling the containment operator `@` in function form and extension function form.
 
-`CONTAINS(container; content)`, `container::CONTAINS(content)`, and the infix call `container CONTAINS content` are equivalent to `content @ container`.
+`CONTAINS(container; content)`, `container::CONTAINS(content)`, and the infix function call `container CONTAINS content` are equivalent to `content @ container`.
 
 ```shell
 $ xa ' CONTAINS("abcde"; "bcd") '
