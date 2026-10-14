@@ -8,9 +8,16 @@ import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+
+/** 浮動小数点の計算結果を、期待値の絶対値に対する比で比較する */
+private fun assertEqualsRelatively(expected: Double, actual: Double, relativeTolerance: Double = 1e-12) {
+    assertTrue(abs(actual - expected) <= abs(expected) * relativeTolerance, "expected:<$expected> but was:<$actual>")
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NumberTest {
@@ -38,6 +45,37 @@ class NumberTest {
         // 論理値化するとINTと同じ基準で判定される
         assertEquals(true, eval(""" ?BIG.of("9999999999999999999") """).boolean)
         assertEquals(false, eval(""" ?BIG.of(0) """).boolean)
+    }
+
+    @Test
+    fun bigArithmetic() = runTest {
+        val a = """ BIG.of("123456789012345678901234567890") """
+
+        // BIG同士の加減乗除ができる
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" $a + $a """).big)
+        assertEquals("0".toBigInteger(), eval(""" $a - $a """).big)
+        assertEquals("15241578753238836750495351562536198787501905199875019052100".toBigInteger(), eval(""" $a * $a """).big)
+        assertEquals(1.0, eval(""" $a / $a """).double)
+
+        // BIGとINTを混ぜると、精度を失わずBIGになる
+        assertEquals("123456789012345678901234567891".toBigInteger(), eval(""" $a + 1 """).big)
+        assertEquals("123456789012345678901234567891".toBigInteger(), eval(""" 1 + $a """).big)
+        assertEquals("123456789012345678901234567889".toBigInteger(), eval(""" $a - 1 """).big)
+        assertEquals("-123456789012345678901234567889".toBigInteger(), eval(""" 1 - $a """).big)
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" $a * 2 """).big)
+        assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" 2 * $a """).big)
+
+        // BIGとDOUBLEを混ぜると、INT同士の除算と同じくDOUBLEになる
+        // 浮動小数点の末尾の桁は計算の経路で変わるから、絶対値に対する比で許容する
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" $a + 0.5 """).double)
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" 0.5 + $a """).double)
+        assertEqualsRelatively(6.172839450617284e28, eval(""" $a * 0.5 """).double)
+        assertEqualsRelatively(6.172839450617284e28, eval(""" 0.5 * $a """).double)
+
+        // 除算は常にDOUBLEになる
+        assertEqualsRelatively(1.2345678901234568e29, eval(""" $a / 1 """).double)
+        assertEqualsRelatively(8.1000000729e-30, eval(""" 1 / $a """).double)
+        assertEqualsRelatively(2.4691357802469136e29, eval(""" $a / 0.5 """).double)
     }
 
     @Test
