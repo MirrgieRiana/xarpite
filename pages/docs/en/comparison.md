@@ -313,3 +313,16 @@ The `::CONTAINS` extension function is syntactic sugar for calling the containme
 $ xa ' "abcde"::CONTAINS("bcd") '
 # TRUE
 ```
+
+## `::IS`: Extension Function for instanceOf
+
+`VALUE::IS(class: VALUE): BOOLEAN`
+
+The `::IS` extension function is syntactic sugar for calling the instanceOf operator `?=` in extension function form.
+
+`value::IS(class)` is equivalent to `value ?= class`.
+
+```shell
+$ xa ' 1::IS(INT) '
+# TRUE
+```
