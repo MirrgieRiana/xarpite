@@ -271,7 +271,9 @@ $ xa '
 
 `<T, A...> T^::NEW(arguments: A): T`
 
-An extension function that creates a new object whose parent object is the receiver, calls the `<>` method of that object with `arguments`, and returns the created object.
+A function that creates a new object whose parent object is `class`, calls the `<>` method of that object with `arguments`, and returns the created object.
+
+`::NEW` is a synonym for `NEW` that passes the receiver as `class`.
 
 ```shell
 $ xa '
