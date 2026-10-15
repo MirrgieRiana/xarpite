@@ -1,8 +1,6 @@
 package mirrg.xarpite.operations
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.decimal.DecimalMode
-import com.ionspin.kotlin.bignum.decimal.RoundingMode
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Environment
 import mirrg.xarpite.Label
@@ -469,12 +467,61 @@ class TimesGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "TimesGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-private val DIVISION_DECIMAL_MODE = DecimalMode(20, RoundingMode.ROUND_HALF_AWAY_FROM_ZERO)
+// Doubleの仮数は暗黙の最上位ビットを含めて53ビットで、ビット列へ格納されるのはその下位52ビットなのだ。
+private const val DOUBLE_SIGNIFICAND_BITS = 53
+private const val DOUBLE_MANTISSA_BITS = 52
 
-// 先にDOUBLEへ変換すると、Doubleの範囲を超える値が無限大へ潰れて、同じ値同士の除算すらNaNになるのだ～🌱
-private fun divideAsDouble(left: BigDecimal, right: BigDecimal): FluoriteDouble {
-    if (right.isZero()) return FluoriteDouble(left.signum() * Double.POSITIVE_INFINITY) // BigDecimalは0除算で例外を投げるから、Doubleの規則に合わせて無限大やNaNを返すのだ～🌱
-    return FluoriteDouble(left.divide(right, DIVISION_DECIMAL_MODE).doubleValue(false))
+// 仮数を53ビットの整数として扱うから、指数部のバイアスは通常の1023ではなく、そこへ52を足した値になるのだ。
+private const val DOUBLE_EXPONENT_FIELD_BIAS = 1075
+private const val DOUBLE_INFINITY_EXPONENT_FIELD = 2047
+
+// subnormalでは指数部が0に固定されるから、2^-1074より細かい刻みは表せないのだ。
+private const val DOUBLE_MIN_SUBNORMAL_EXPONENT = -1074
+
+private const val DOUBLE_MANTISSA_MASK = (1L shl DOUBLE_MANTISSA_BITS) - 1
+private const val DOUBLE_SIGN_BIT = 1L shl 63
+
+// 整数どうしの商を、最も近いDoubleへ、中点では偶数側へ送る規則で丸めるのだ。
+// 先にDOUBLEへ変換すると、Doubleの範囲を超える値が無限大へ潰れて、同じ値同士の除算すらNaNになるのだ。
+// 10進の固定桁数を経由すると、10進への丸めとDoubleへの丸めが重なって、最も近いDoubleから外れる値があるのだ。
+private fun divideAsDouble(numerator: BigInteger, denominator: BigInteger): FluoriteDouble {
+    if (denominator.isZero()) {
+        if (numerator.isZero()) return FluoriteDouble(Double.NaN)
+        return FluoriteDouble(if (numerator.signum() < 0) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY)
+    }
+    if (numerator.isZero()) return FluoriteDouble(if (denominator.signum() < 0) -0.0 else 0.0) // BigIntegerは符号付きのゼロを持たないから、分母の符号から決めるのだ。
+    val negative = numerator.signum() != denominator.signum()
+    val absoluteNumerator = numerator.abs()
+    val absoluteDenominator = denominator.abs()
+
+    // 商の2進の桁数は、両辺のビット長の差か、その1個上のどちらかなのだ。
+    val bitLengthDifference = absoluteNumerator.bitLength() - absoluteDenominator.bitLength()
+    val scaledNumerator = if (bitLengthDifference >= 0) absoluteNumerator else absoluteNumerator shl -bitLengthDifference
+    val scaledDenominator = if (bitLengthDifference >= 0) absoluteDenominator shl bitLengthDifference else absoluteDenominator
+    val quotientBitLength = bitLengthDifference + if (scaledNumerator.compare(scaledDenominator) >= 0) 1 else 0
+    val exponent = (quotientBitLength - DOUBLE_SIGNIFICAND_BITS).coerceAtLeast(DOUBLE_MIN_SUBNORMAL_EXPONENT)
+
+    val divisor = if (exponent >= 0) absoluteDenominator shl exponent else absoluteDenominator
+    val dividend = if (exponent >= 0) absoluteNumerator else absoluteNumerator shl -exponent
+    val (quotient, remainder) = dividend.divideAndRemainder(divisor)
+
+    // 余りの2倍を除数と比べると、商が刻みの半分より上か下か、ちょうど中点かが分かるのだ。
+    // 中点のときに最下位ビットで分けるのが、偶数側へ送る規則なのだ。
+    val comparison = (remainder shl 1).compare(divisor)
+    val rounded = if (comparison > 0 || (comparison == 0 && quotient.bitAt(0))) quotient.inc() else quotient
+    // 丸め上げで桁が増えるのは2の冪へ到達した場合だけだから、1ビット落としても情報は失われないのだ。
+    val carried = rounded.bitLength() > DOUBLE_SIGNIFICAND_BITS
+    val significand = if (carried) rounded shr 1 else rounded
+    val exponentField = (if (carried) exponent + 1 else exponent) + DOUBLE_EXPONENT_FIELD_BIAS
+
+    if (exponentField >= DOUBLE_INFINITY_EXPONENT_FIELD) return FluoriteDouble(if (negative) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY)
+    // 仮数が53ビットに届かないのは、指数が下限で止まった場合だけで、それがsubnormalなのだ。
+    val magnitudeBits = if (significand.bitLength() < DOUBLE_SIGNIFICAND_BITS) {
+        significand.longValue(false) // subnormalでは暗黙の最上位ビットが無いから、仮数がそのまま2^-1074の個数になるのだ。
+    } else {
+        (exponentField.toLong() shl DOUBLE_MANTISSA_BITS) or (significand.longValue(false) and DOUBLE_MANTISSA_MASK)
+    }
+    return FluoriteDouble(Double.fromBits(if (negative) magnitudeBits or DOUBLE_SIGN_BIT else magnitudeBits))
 }
 
 // TODO to method
@@ -485,14 +532,14 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
         return when (left) {
             is FluoriteInt -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value.toDouble() / right.value.toDouble())
-                is FluoriteBig -> divideAsDouble(BigDecimal.fromInt(left.value), BigDecimal.fromBigInteger(right.value))
+                is FluoriteBig -> divideAsDouble(left.value.toBigInteger(), right.value)
                 is FluoriteDouble -> FluoriteDouble(left.value.toDouble() / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
             is FluoriteBig -> when (right) {
-                is FluoriteInt -> divideAsDouble(BigDecimal.fromBigInteger(left.value), BigDecimal.fromInt(right.value))
-                is FluoriteBig -> divideAsDouble(BigDecimal.fromBigInteger(left.value), BigDecimal.fromBigInteger(right.value))
+                is FluoriteInt -> divideAsDouble(left.value, right.value.toBigInteger())
+                is FluoriteBig -> divideAsDouble(left.value, right.value)
                 is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }

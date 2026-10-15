@@ -9,6 +9,7 @@ import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
 import mirrg.xarpite.test.string
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -104,6 +105,28 @@ class NumberTest {
         // 0で割ると、INT同士の除算と同じく無限大やNaNになる
         assertEquals(Double.POSITIVE_INFINITY, eval(""" $a / 0 """).double)
         assertEquals(true, eval(""" BIG.of(0) / 0 """).double.isNaN())
+
+        // 10進の中間丸めを挟むと二重丸めで最も近いDoubleから外れるから、整数の商と余りから直接丸める
+        // 2^53 + 11 を 2^53 で割った商は、1と1 + 2^-52の刻みのちょうど中点にあたる
+        assertEquals(1.0000000000000013, eval(""" BIG.of("9007199254741003") / BIG.of("9007199254740992") """).double)
+
+        // 中点では、刻みの偶数側へ送る
+        // 2^70の近くのDoubleの刻みは2^18だから、2^70 + 2^17は中点にあたり、偶数側の2^70へ送られる
+        val two = 2.toBigInteger()
+        assertEquals(2.0.pow(70), eval(""" BIG.of("${two.pow(70) + two.pow(17)}") / 1 """).double)
+
+        // subnormalの刻みは最小の2^-1074そのもので、その領域でも中点では偶数側へ送る
+        assertEquals(Double.MIN_VALUE, eval(""" 1 / BIG.of("${two.pow(1074)}") """).double)
+        assertEquals(0.0, eval(""" 1 / BIG.of("${two.pow(1075)}") """).double)
+        assertEquals(Double.MIN_VALUE * 2, eval(""" 3 / BIG.of("${two.pow(1075)}") """).double)
+        assertEquals(Double.MIN_VALUE * 4, eval(""" 7 / BIG.of("${two.pow(1075)}") """).double)
+
+        // 分子が0のときは、分母の符号が符号付きのゼロへ引き継がれる
+        // 符号を見分けるために、そのゼロを分母にして無限大の符号へ写す
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (BIG.of(0) / -1) """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (0 / BIG.of(-1)) """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (BIG.of(0) / BIG.of(-1)) """).double)
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" 1 / (BIG.of(0) / 1) """).double)
     }
 
     @Test
