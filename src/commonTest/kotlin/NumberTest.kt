@@ -67,7 +67,7 @@ class NumberTest {
         assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" 2 * $a """).big)
 
         // BIGとDOUBLEを混ぜると、INT同士の除算と同じくDOUBLEになる
-        // 右辺が丸め落とされない小さいBIGを使うのは、巨大な値だと右辺を無視する実装を見逃すからなのだ～🌱
+        // 右辺が丸め落とされない小さいBIGを使うのは、巨大な値だと右辺を無視する実装を見逃すからなのだ。
         val b = """ BIG.of(2) """
         assertEquals(2.5, eval(""" $b + 0.5 """).double)
         assertEquals(2.5, eval(""" 0.5 + $b """).double)
