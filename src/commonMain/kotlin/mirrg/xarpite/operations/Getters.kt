@@ -484,39 +484,50 @@ private fun scaleByPowerOfTwo(value: Double, exponent: Int): Double {
 // 先にDOUBLEへ変換すると、Doubleの範囲を超える値が無限大へ潰れて、同じ値同士の除算すらNaNになる
 // 10進の固定桁数を経由すると、10進への丸めとDoubleへの丸めが重なって、最も近いDoubleから外れる値がある
 private fun divideAsDouble(numerator: BigInteger, denominator: BigInteger): FluoriteDouble {
-    if (denominator.isZero()) {
-        if (numerator.isZero()) return FluoriteDouble(Double.NaN)
-        return FluoriteDouble(if (numerator.signum() < 0) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY)
-    }
-    if (numerator.isZero()) return FluoriteDouble(if (denominator.signum() < 0) -0.0 else 0.0) // BigIntegerは符号付きのゼロを持たないため、分母の符号から決める
-    val negative = numerator.signum() != denominator.signum()
-    val absoluteNumerator = numerator.abs()
-    val absoluteDenominator = denominator.abs()
+    if (denominator.isZero() || numerator.isZero()) return divideDegenerateAsDouble(numerator, denominator)
+    val magnitude = divideMagnitudeAsDouble(numerator.abs(), denominator.abs())
+    return FluoriteDouble(if (numerator.signum() != denominator.signum()) -magnitude else magnitude)
+}
 
-    // 商の2進の桁数は、両辺のビット長の差か、その1個上のどちらか
-    val bitLengthDifference = absoluteNumerator.bitLength() - absoluteDenominator.bitLength()
-    val scaledNumerator = if (bitLengthDifference >= 0) absoluteNumerator else absoluteNumerator shl -bitLengthDifference
-    val scaledDenominator = if (bitLengthDifference >= 0) absoluteDenominator shl bitLengthDifference else absoluteDenominator
-    val quotientBitLength = bitLengthDifference + if (scaledNumerator.compare(scaledDenominator) >= 0) 1 else 0
-    val exponent = (quotientBitLength - DOUBLE_SIGNIFICAND_BITS).coerceAtLeast(DOUBLE_MIN_EXPONENT)
+// 分母か分子がゼロのときの商
+// BigIntegerは符号付きのゼロを持たないため、分子だけがゼロのときの符号は分母から決める
+private fun divideDegenerateAsDouble(numerator: BigInteger, denominator: BigInteger): FluoriteDouble {
+    if (!denominator.isZero()) return FluoriteDouble(if (denominator.signum() < 0) -0.0 else 0.0)
+    if (numerator.isZero()) return FluoriteDouble(Double.NaN)
+    return FluoriteDouble(if (numerator.signum() < 0) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY)
+}
 
-    val divisor = if (exponent >= 0) absoluteDenominator shl exponent else absoluteDenominator
-    val dividend = if (exponent >= 0) absoluteNumerator else absoluteNumerator shl -exponent
-    val (quotient, remainder) = dividend.divideAndRemainder(divisor)
-
-    // 余りの2倍を除数と比べると、商が刻みの半分より上か下か、ちょうど中点かが分かる
-    // 中点のときに最下位ビットで分けるのが、偶数側へ送る規則
-    val comparison = (remainder shl 1).compare(divisor)
-    val rounded = if (comparison > 0 || (comparison == 0 && quotient.bitAt(0))) quotient.inc() else quotient
+// 正の整数どうしの商の絶対値
+private fun divideMagnitudeAsDouble(numerator: BigInteger, denominator: BigInteger): Double {
+    val exponent = (getQuotientBitLength(numerator, denominator) - DOUBLE_SIGNIFICAND_BITS).coerceAtLeast(DOUBLE_MIN_EXPONENT)
+    val rounded = divideAndRound(numerator, denominator, exponent)
     // 丸め上げで桁が増えるのは2の冪へ到達した場合だけのため、1ビット落としても情報は失われない
-    val carried = rounded.bitLength() > DOUBLE_SIGNIFICAND_BITS
-    val significand = if (carried) rounded shr 1 else rounded
-    val scale = if (carried) exponent + 1 else exponent
+    val carried = if (rounded.bitLength() > DOUBLE_SIGNIFICAND_BITS) 1 else 0
+    return composeDouble(if (carried == 1) rounded shr 1 else rounded, exponent + carried)
+}
 
-    if (scale >= DOUBLE_OVERFLOW_EXPONENT) return FluoriteDouble(if (negative) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY)
+// 商の2進の桁数は、両辺のビット長の差か、その1個上のどちらか
+private fun getQuotientBitLength(numerator: BigInteger, denominator: BigInteger): Int {
+    val difference = numerator.bitLength() - denominator.bitLength()
+    val scaledNumerator = if (difference >= 0) numerator else numerator shl -difference
+    val scaledDenominator = if (difference >= 0) denominator shl difference else denominator
+    return difference + if (scaledNumerator.compare(scaledDenominator) >= 0) 1 else 0
+}
+
+// 2の冪を刻みとする商を、中点では偶数側へ送る規則で丸める
+private fun divideAndRound(numerator: BigInteger, denominator: BigInteger, exponent: Int): BigInteger {
+    val divisor = if (exponent >= 0) denominator shl exponent else denominator
+    val (quotient, remainder) = (if (exponent >= 0) numerator else numerator shl -exponent).divideAndRemainder(divisor)
+    // 余りの2倍を除数と比べると、商が刻みの半分より上か下か、ちょうど中点かが分かる
+    val comparison = (remainder shl 1).compare(divisor)
+    return if (comparison > 0 || (comparison == 0 && quotient.bitAt(0))) quotient.inc() else quotient
+}
+
+// 仮数と2の冪からDoubleを構成する
+private fun composeDouble(significand: BigInteger, exponent: Int): Double {
+    if (exponent >= DOUBLE_OVERFLOW_EXPONENT) return Double.POSITIVE_INFINITY
     // 仮数は53ビット以内のため、Doubleへ正確に移せる
-    val magnitude = scaleByPowerOfTwo(significand.doubleValue(false), scale)
-    return FluoriteDouble(if (negative) -magnitude else magnitude)
+    return scaleByPowerOfTwo(significand.doubleValue(false), exponent)
 }
 
 // TODO to method
