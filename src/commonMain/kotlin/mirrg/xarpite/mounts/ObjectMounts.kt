@@ -30,9 +30,9 @@ fun createObjectMounts(): List<Map<String, Mount>> {
                 }
             }
             arrayOf(
-                "NEW" define create("NEW(class: OBJECT; arguments: VALUE...): OBJECT"),
+                "NEW" define create("<T, A...> NEW(class: T^; arguments: A): T"),
                 "::NEW" define fluoriteArrayOf(
-                    FluoriteObject.fluoriteClass colon create("OBJECT::NEW(arguments: VALUE...): OBJECT"),
+                    FluoriteObject.fluoriteClass colon create("<T, A...> T^::NEW(arguments: A): T"),
                 ),
             )
         },
