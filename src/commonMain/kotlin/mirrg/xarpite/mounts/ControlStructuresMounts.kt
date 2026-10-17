@@ -41,7 +41,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
         "TRY" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 1) usage("<T> TRY(block: () -> T): PROMISE<T>")
             val block = arguments[0]
-            val promise = FluoritePromise()
+            val promise = FluoritePromise(FluoritePromise.getFluoriteClass(context.apiVersion))
             val value = try {
                 block.invoke(null, emptyArray()).cache()
             } catch (e: Returner) {
@@ -58,7 +58,7 @@ fun createControlStructuresMounts(): List<Map<String, Mount>> {
         "TRY2" define FluoriteFunction.create { arguments ->
             if (arguments.size != 1) usage("<T> TRY2(block(): T): PROMISE<T>")
             val block = arguments[0]
-            val promise = FluoritePromise()
+            val promise = FluoritePromise(FluoritePromise.getFluoriteClass(context.apiVersion))
             val value = try {
                 block().cache()
             } catch (e: Returner) {
