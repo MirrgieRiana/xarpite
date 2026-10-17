@@ -263,7 +263,79 @@ $ xa '
 # {b:banana}
 ```
 
-# 組み込み関数`PARENT`
+# 組み込み関数
+
+## `NEW` / `::NEW`: インスタンスの生成
+
+`<T, A...> NEW(class: T^; arguments: A): T`
+
+`<T, A...> T^::NEW(arguments: A): T`
+
+`class`を親オブジェクトとする新しいオブジェクトを作り、そのオブジェクトの`<>`メソッドを`arguments`とともに呼び出し、作ったオブジェクトを返す関数です。
+
+`::NEW`は`NEW`のシノニムで、レシーバーを`class`として渡します。
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+インスタンスの生成をレシーバーに委ねるため、継承したクラスから呼び出した場合も、そのクラスを親オブジェクトとするインスタンスが返されます。
+
+これにより、`<>`から親クラスの`<>`を名前で呼び出す形で、コンストラクタの連鎖を組むことができます。
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Human := Animal {
+    `<>`: this, age, name -> :
+      Animal.`<>`(this; age)
+      this.name = name
+  }
+  Human::NEW(22; "Herirmina")
+'
+# {age:22;name:Herirmina}
+```
+
+---
+
+`<>`がストリームを返した場合、そのストリームは解決されます。
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
+
+---
+
+`<>`が見つからない場合、メソッドが見つからないことを伝える値がスローされます。
+
+```shell
+$ xa '{}::NEW() !? ( e => e )'
+# Method not found: {}::<>
+```
+
+---
+
+この拡張関数は`OBJECT`クラスに属するため、オブジェクト以外の値に対しては利用できません。
 
 ## `PARENT`: 親オブジェクトの取得
 

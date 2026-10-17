@@ -61,6 +61,102 @@ class ObjectTest {
     }
 
     @Test
+    fun extensionNew() = runTest {
+        // ::NEW はレシーバーを親とするインスタンスを作って、その `<>` を呼ぶ
+        """
+            Animal := {
+                `<>`: this -> :
+                    this.legs = 4
+            }
+            Animal::NEW()
+        """.let { assertEquals("{legs:4}", eval(it).obj) }
+
+        // 第 2 引数以降が `<>` へ渡る
+        """
+            Animal := {
+                `<>`: this, age -> :
+                    this.age = age
+            }
+            Animal::NEW(3)
+        """.let { assertEquals("{age:3}", eval(it).obj) }
+
+        // 継承したクラスから呼ぶと、そのクラスのインスタンスが返り、`<>` から親の `<>` を名前で呼べる
+        """
+            Animal := {
+                `<>`: this, age -> :
+                    this.age = age
+            }
+            Human := Animal {
+                `<>`: this, age, name -> :
+                    Animal.`<>`(this; age)
+                    this.name = name
+            }
+            Human::NEW(22; "Herirmina")
+        """.let { assertEquals("{age:22;name:Herirmina}", eval(it).obj) }
+
+        // 返るインスタンスの親はレシーバー
+        """
+            Animal := {`<>`: this -> NULL}
+            Human := Animal {`<>`: this -> NULL}
+            PARENT(Human::NEW()) == Human
+        """.let { assertEquals(true, eval(it).boolean) }
+
+        // `<>` がストリームを返しても、その副作用は起こる
+        """
+            result := NULL
+            Counter := {
+                `<>`: this -> 1 .. 3 | _ => result = _
+            }
+            Counter::NEW()
+            result
+        """.let { assertEquals(3, eval(it).int) }
+
+        // 親のクラスが NEW メソッドを持つ場合は、そちらが優先される
+        """
+            Animal := {
+                NEW: this -> "NEW!"
+            }
+            animal := Animal{}
+            animal::NEW()
+        """.let { assertEquals("NEW!", eval(it).toString()) }
+
+        // `<>` を持たないクラスに対しては失敗する
+        val exception = assertFailsWith<FluoriteException> { eval("{}::NEW()") }
+        assertTrue(exception.message!!.contains("<>")) // 見つからなかったメソッドが `<>` であることが分かる
+    }
+
+    @Test
+    fun functionNew() = runTest {
+        // NEW は第 1 引数をレシーバーとして受け取る
+        """
+            Animal := {
+                `<>`: this -> :
+                    this.legs = 4
+            }
+            NEW(Animal)
+        """.let { assertEquals("{legs:4}", eval(it).obj) }
+
+        // 第 2 引数以降が `<>` へ渡る
+        """
+            Animal := {
+                `<>`: this, age -> :
+                    this.age = age
+            }
+            NEW(Animal; 3)
+        """.let { assertEquals("{age:3}", eval(it).obj) }
+
+        // レシーバーが NEW メソッドを持っていても、こちらは関数だから影響を受けない
+        """
+            Animal := {
+                NEW: this -> "NEW!"
+                `<>`: this -> :
+                    this.legs = 4
+            }
+            NEW(Animal)
+        """.let { assertEquals("{legs:4}", eval(it).obj) }
+    }
+
+    @Test
     fun invert() = runTest {
         // 基本的な反転
         assertEquals("{apple:a;banana:b;cherry:c}", eval("INVERT({a: \"apple\"; b: \"banana\"; c: \"cherry\"})").obj)

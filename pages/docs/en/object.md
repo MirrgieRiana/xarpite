@@ -263,7 +263,79 @@ $ xa '
 # {b:banana}
 ```
 
-# Built-in Function `PARENT`
+# Built-in Functions
+
+## `NEW` / `::NEW`: Creating an Instance
+
+`<T, A...> NEW(class: T^; arguments: A): T`
+
+`<T, A...> T^::NEW(arguments: A): T`
+
+A function that creates a new object whose parent object is `class`, calls the `<>` method of that object with `arguments`, and returns the created object.
+
+`::NEW` is a synonym for `NEW` that passes the receiver as `class`.
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+Because the creation of the instance is delegated to the receiver, calling it on a derived class also returns an instance whose parent object is that class.
+
+This allows a chain of constructors to be built by calling the `<>` of the parent class by name from `<>`.
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Human := Animal {
+    `<>`: this, age, name -> :
+      Animal.`<>`(this; age)
+      this.name = name
+  }
+  Human::NEW(22; "Herirmina")
+'
+# {age:22;name:Herirmina}
+```
+
+---
+
+If `<>` returns a stream, that stream is resolved.
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
+
+---
+
+If `<>` is not found, a value reporting that the method was not found is thrown.
+
+```shell
+$ xa '{}::NEW() !? ( e => e )'
+# Method not found: {}::<>
+```
+
+---
+
+Because this extension function belongs to the `OBJECT` class, it is not available for values other than objects.
 
 ## `PARENT`: Getting the Parent Object
 
