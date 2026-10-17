@@ -66,16 +66,56 @@ class NumberTest {
         assertEquals("246913578024691357802469135780".toBigInteger(), eval(""" 2 * $a """).big)
 
         // BIGとDOUBLEを混ぜると、INT同士の除算と同じくDOUBLEになる
+        // 右辺が丸め落とされない小さいBIGを使うのは、巨大な値だと右辺を無視する実装を見逃すからなのだ。
+        val b = """ BIG.of(2) """
+        assertEquals(2.5, eval(""" $b + 0.5 """).double)
+        assertEquals(2.5, eval(""" 0.5 + $b """).double)
+        assertEquals(1.5, eval(""" $b - 0.5 """).double)
+        assertEquals(-1.5, eval(""" 0.5 - $b """).double)
+        assertEquals(1.0, eval(""" $b * 0.5 """).double)
+        assertEquals(1.0, eval(""" 0.5 * $b """).double)
+        assertEquals(4.0, eval(""" $b / 0.5 """).double)
+        assertEquals(0.25, eval(""" 0.5 / $b """).double)
+
+        // 巨大なBIGでも、DOUBLEと混ぜるとDOUBLEになる
         // 浮動小数点の末尾の桁は計算の経路で変わるから、絶対値に対する比で許容する
         assertEqualsRelatively(1.2345678901234568e29, eval(""" $a + 0.5 """).double)
-        assertEqualsRelatively(1.2345678901234568e29, eval(""" 0.5 + $a """).double)
         assertEqualsRelatively(6.172839450617284e28, eval(""" $a * 0.5 """).double)
-        assertEqualsRelatively(6.172839450617284e28, eval(""" 0.5 * $a """).double)
 
         // 除算は常にDOUBLEになる
         assertEqualsRelatively(1.2345678901234568e29, eval(""" $a / 1 """).double)
         assertEqualsRelatively(8.1000000729e-30, eval(""" 1 / $a """).double)
         assertEqualsRelatively(2.4691357802469136e29, eval(""" $a / 0.5 """).double)
+
+        // Doubleの範囲を超える大きさでも、商が保たれる
+        val huge = "1" + "0".repeat(400)
+        val hugeTwice = "2" + "0".repeat(400)
+        val large = "1" + "0".repeat(100)
+        assertEquals(1.0, eval(""" BIG.of("$huge") / BIG.of("$huge") """).double)
+        assertEquals(2.0, eval(""" BIG.of("$hugeTwice") / BIG.of("$huge") """).double)
+        assertEquals(0.5, eval(""" BIG.of("$huge") / BIG.of("$hugeTwice") """).double)
+        assertEqualsRelatively(1e300, eval(""" BIG.of("$huge") / BIG.of("$large") """).double)
+        assertEqualsRelatively(1e-300, eval(""" BIG.of("$large") / BIG.of("$huge") """).double)
+
+        // 商がDoubleの範囲を外れると、無限大や0になる
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" BIG.of("$huge") / 2 """).double)
+        assertEquals(0.0, eval(""" 2 / BIG.of("$huge") """).double)
+
+        // 0で割ると、INT同士の除算と同じく無限大やNaNになる
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" $a / 0 """).double)
+        assertEquals(true, eval(""" BIG.of(0) / 0 """).double.isNaN())
+
+        // subnormalの領域の商も、10進の20桁を経由してDoubleへ収まる
+        // 末尾の刻みの誤差は妥協する範囲だから、刻みの境界にある値は固めない
+        val two = 2.toBigInteger()
+        assertEquals(Double.MIN_VALUE, eval(""" 1 / BIG.of("${two.pow(1074)}") """).double)
+
+        // 分子が0のときは、分母の符号が符号付きのゼロへ引き継がれる
+        // 符号を見分けるために、そのゼロを分母にして無限大の符号へ写す
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (BIG.of(0) / -1) """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (0 / BIG.of(-1)) """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (BIG.of(0) / BIG.of(-1)) """).double)
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" 1 / (BIG.of(0) / 1) """).double)
     }
 
     @Test
