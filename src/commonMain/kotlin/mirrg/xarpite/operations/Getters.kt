@@ -1,5 +1,8 @@
 package mirrg.xarpite.operations
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.DecimalMode
+import com.ionspin.kotlin.bignum.decimal.RoundingMode
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Environment
@@ -467,19 +470,14 @@ class TimesGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "TimesGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-// 整数どうしの商を、最も近いDoubleへ、中点では偶数側へ送る規則で丸める
+private val DIVISION_DECIMAL_MODE = DecimalMode(20, RoundingMode.ROUND_HALF_AWAY_FROM_ZERO)
+
 // 先にDoubleへ変換すると、Doubleの範囲を超える値が無限大へ潰れて、同じ値同士の除算すらNaNになる
-// 10進の固定桁数を経由すると、subnormalの刻みの中点が10進で表せないため、丸めの向きが変わる値がある
 private fun divideAsDouble(numerator: BigInteger, denominator: BigInteger): FluoriteDouble {
     if (denominator.isZero()) return FluoriteDouble(numerator.signum() * Double.POSITIVE_INFINITY)
-    // 商の2進の桁数は両辺のビット長の差かその1個上で、そこから仮数の53ビットを引いた2の冪が刻みになり、下限はsubnormalの2^-1074
-    val exponent = (numerator.abs().bitLength() - denominator.abs().bitLength()).let { difference -> difference + (if ((numerator.abs() shl -difference.coerceAtMost(0)).compare(denominator.abs() shl difference.coerceAtLeast(0)) >= 0) 1 else 0) - 53 }.coerceAtLeast(-1074)
-    val divisor = denominator.abs() shl exponent.coerceAtLeast(0)
-    val (quotient, remainder) = (numerator.abs() shl -exponent.coerceAtMost(0)).divideAndRemainder(divisor)
-    // 符号は、BigIntegerが符号付きのゼロを持たないため、分子だけがゼロのときは分母から決める
-    // 丸めは、余りの2倍を除数と比べて、刻みの半分より上か下か、ちょうど中点かで分ける
-    // 2の冪は、1回で掛けると指数の広いところで中間結果が無限大や0へ潰れるため、3回に分ける
-    return FluoriteDouble(denominator.signum() * (if (numerator.isZero()) 1 else numerator.signum()) * (remainder shl 1).compare(divisor).let { if (it > 0 || (it == 0 && quotient.bitAt(0))) quotient.inc() else quotient }.doubleValue(false) * (exponent / 3).let { 2.0.pow(it) * 2.0.pow(it) * 2.0.pow(exponent - it * 2) })
+    // 符号は、BigDecimalが符号付きのゼロを持たないため、分子だけがゼロのときは分母から決める
+    if (numerator.isZero()) return FluoriteDouble(denominator.signum() * 0.0)
+    return FluoriteDouble(BigDecimal.fromBigInteger(numerator).divide(BigDecimal.fromBigInteger(denominator), DIVISION_DECIMAL_MODE).doubleValue(false))
 }
 
 // TODO to method
