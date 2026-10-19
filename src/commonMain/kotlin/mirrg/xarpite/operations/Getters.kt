@@ -1,5 +1,9 @@
 package mirrg.xarpite.operations
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.DecimalMode
+import com.ionspin.kotlin.bignum.decimal.RoundingMode
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Environment
 import mirrg.xarpite.Label
@@ -466,6 +470,16 @@ class TimesGetter(private val leftGetter: Getter, private val rightGetter: Gette
     override val code get() = "TimesGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
+private val DIVISION_DECIMAL_MODE = DecimalMode(20, RoundingMode.ROUND_HALF_AWAY_FROM_ZERO)
+
+// 先にDoubleへ変換すると、Doubleの範囲を超える値が無限大へ潰れて、同じ値同士の除算すらNaNになる
+private fun divideAsDouble(numerator: BigInteger, denominator: BigInteger): FluoriteDouble {
+    if (denominator.isZero()) return FluoriteDouble(numerator.signum() * Double.POSITIVE_INFINITY)
+    // 符号は、BigDecimalが符号付きのゼロを持たないため、分子だけがゼロのときは分母から決める
+    if (numerator.isZero()) return FluoriteDouble(denominator.signum() * 0.0)
+    return FluoriteDouble(BigDecimal.fromBigInteger(numerator).divide(BigDecimal.fromBigInteger(denominator), DIVISION_DECIMAL_MODE).doubleValue(false))
+}
+
 // TODO to method
 class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
@@ -474,14 +488,14 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
         return when (left) {
             is FluoriteInt -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value.toDouble() / right.value.toDouble())
-                is FluoriteBig -> FluoriteDouble(left.value.toDouble() / right.value.doubleValue(false))
+                is FluoriteBig -> divideAsDouble(left.value.toBigInteger(), right.value)
                 is FluoriteDouble -> FluoriteDouble(left.value.toDouble() / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
 
             is FluoriteBig -> when (right) {
-                is FluoriteInt -> FluoriteDouble(left.value.doubleValue(false) / right.value.toDouble())
-                is FluoriteBig -> FluoriteDouble(left.value.doubleValue(false) / right.value.doubleValue(false))
+                is FluoriteInt -> divideAsDouble(left.value, right.value.toBigInteger())
+                is FluoriteBig -> divideAsDouble(left.value, right.value)
                 is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false) / right.value)
                 else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
             }
