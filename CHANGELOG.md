@@ -2,6 +2,38 @@
 
 <!-- INSERTION POINT -->
 
+## 4.108.0
+
+**Improvements:**
+
+- Added ARRAY methods `take`, `taker`, `drop`, and `dropr` (with the synonyms `takeFirst`, `takeLast`, `dropFirst`, and `dropLast`) for taking and dropping elements from the ends of an array.
+- Added ARRAY methods `first` and `last` that return the first or last element of an array, or `NULL` if the array is empty.
+- Added ARRAY method `single` that returns the only element of an array, or throws an error if the array is empty or has multiple elements.
+- Added STRING method `single` that returns the only character of a string, or throws an error if the string is empty or has multiple characters.
+- Added `BASE64B` function that converts a BLOB into a Base64 string without going through UTF-8 conversion.
+- Added `BASE64BD` function that converts a Base64 string into a BLOB without going through conversion from UTF-8.
+- Added `ERRL` function as an alias for `ERR`.
+- Added `EXISTS` function that returns whether a file or directory exists at the given path.
+- Added `FILTERV` function, and its alias `GREPV`, that returns only the elements of a stream where the predicate is false.
+- Added `IS_DIRECTORY` function, and its alias `IS_DIR`, that returns whether the given path is a directory.
+- Added stream support to the `LINES` function, which splits each element into lines separately.
+- Added `NEW` function, and its synonym `::NEW`, that creates an instance of the given class and initializes it by calling its `<>` method.
+- Added the `\0` escape sequence to template string literals, which represents the NUL character.
+- Added path resolution to the `/` operator for strings, which behaves the same as the `RESOLVE` function.
+- Added `TALLY` function, and its alias `HISTOGRAM`, that counts the elements of a stream by key and returns entries of the key and the count.
+- Added `YAML` function that converts a value into a YAML string.
+- Added `YAMLD` function that converts a YAML string into the corresponding value.
+- Added support for the BIG type to the `+`, `-`, `*`, and `/` operators.
+- Added `CONTAINS` function as sugar for the `@` containment operator.
+- Added the `!?=` operator that returns whether the left value is not an instance of the right value.
+- Added STRING methods `trim`, `trimStart`, and `trimEnd` that remove whitespace from the ends of a string.
+- Added the `XARPITE_API_VERSION` environment variable to set the API version when the `-A` option is not specified.
+
+**Fixes:**
+
+- Fixed the `%` operator so that the remainder is either 0 or has the same sign as the right operand even when the right operand is negative.
+- Fixed the CLI usage message being written to standard output instead of standard error.
+
 ## 4.107.0
 
 **Improvements:**
