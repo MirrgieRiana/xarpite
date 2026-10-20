@@ -203,6 +203,18 @@ $ xa 'BIG.of("123456789012345678901234567890")'
 # 123456789012345678901234567890
 ```
 
+### Arithmetic on BIG
+
+`BIG` values can be computed with the addition `+`, subtraction `-`, multiplication `*`, and division `/` operators.
+
+Addition, subtraction, and multiplication that mix `BIG` and `INT` produce a `BIG` value without losing precision.
+When a `DOUBLE` is mixed in, and for division, the result is a `DOUBLE` value.
+
+```shell
+$ xa 'BIG.of("123456789012345678901234567890") + 1'
+# 123456789012345678901234567891
+```
+
 ## Addition/Subtraction Operators
 
 Addition/subtraction operators consist of operators that perform addition/subtraction-like operations.
@@ -326,6 +338,33 @@ The modulo operator divides two values and returns the remainder.
 ```shell
 $ xa '7 % 4'
 # 3
+```
+
+---
+
+The remainder is either 0 or has the same sign as the right operand.
+
+```shell
+$ xa '-7 % 3'
+# 2
+
+$ xa '7 % -3'
+# -2
+
+$ xa '-7 % -3'
+# -1
+```
+
+---
+
+When the division is exact, the result is 0 regardless of the signs of the operands.
+
+```shell
+$ xa '-6 % 3'
+# 0
+
+$ xa '6 % -3'
+# 0
 ```
 
 ---

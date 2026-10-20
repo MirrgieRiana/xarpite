@@ -260,6 +260,20 @@ Therefore, statements such as variable declaration statements can be written in 
 
 ## API Version
 
+The API version is determined based on the following priority:
+
+1. The `-A` option
+2. The `XARPITE_API_VERSION` environment variable
+3. Xarpite's own major version
+
+---
+
+If the specified value cannot be interpreted as a non-negative integer, an error occurs.
+
+---
+
+If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
+
 ### `-A`: Set the API Version
 
 `-A <apiversion>`
@@ -271,13 +285,18 @@ $ xa -A 4 'API_VERSION'
 # 4
 ```
 
+### `XARPITE_API_VERSION`: Environment Variable to Specify the API Version
+
+The `XARPITE_API_VERSION` environment variable specifies the API version of the runtime.
+
+```shell
+$ XARPITE_API_VERSION=4 xa 'API_VERSION'
+# 4
+```
+
 ---
 
-When the `-A` option is not specified, the API version becomes the same value as Xarpite's own major version.
-
----
-
-If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
+A value consisting only of whitespace is treated as unspecified.
 
 ## Script Specification
 
@@ -718,11 +737,13 @@ $ xa '65, 66, 67, 10 >> OUTB'
 # NULL
 ```
 
-### `ERR`: Output to Standard Error
+### `ERR`, `ERRL`: Output to Standard Error
 
 `ERR(value: VALUE): NULL`
 
 Outputs to standard error output.
+
+`ERRL` is an alias for `ERR`.
 
 This function operates similarly to the CLI version `OUT` function, but writes to standard error output instead of standard output.
 
@@ -742,6 +763,49 @@ This function operates similarly to the `OUTB` function, but writes to standard 
 ```shell
 $ xa -q '65, 66, 67, 10 >> ERRB' > /dev/null
 # ABC
+```
+
+### `EXISTS`: Check Whether a File Exists
+
+`EXISTS(file: STRING): BOOLEAN`
+
+Returns `TRUE` if a file exists at the path specified by `file`, and `FALSE` otherwise.
+
+It also returns `TRUE` when the path points to a directory.
+
+```shell
+$ {
+  touch tmp.txt
+  xa 'EXISTS("tmp.txt")'
+  xa 'EXISTS("no_such_file.txt")'
+  rm tmp.txt
+}
+# TRUE
+# FALSE
+```
+
+### `IS_DIRECTORY` / `IS_DIR`: Check Whether a Path Is a Directory
+
+`IS_DIRECTORY(file: STRING): BOOLEAN`
+
+Returns `TRUE` if the path specified by `file` is a directory, and `FALSE` otherwise.
+
+`IS_DIR` is an alias for `IS_DIRECTORY` and has the same behavior.
+
+It also returns `FALSE` when nothing exists at the path.
+
+```shell
+$ {
+  mkdir tmp
+  touch tmp.txt
+  xa 'IS_DIRECTORY("tmp")'
+  xa 'IS_DIRECTORY("tmp.txt")'
+  xa 'IS_DIR("no_such_file.txt")'
+  rm -r tmp tmp.txt
+}
+# TRUE
+# FALSE
+# FALSE
 ```
 
 ### `FILES` / `FILE_NAMES`: Get List of Files in Directory

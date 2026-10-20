@@ -263,7 +263,67 @@ $ xa '
 # {b:banana}
 ```
 
-# Built-in Function `PARENT`
+# Built-in Functions
+
+## `NEW` / `::NEW`: Creating an Instance
+
+`<T, A...> NEW(class: T^; arguments: A): T`
+
+`<T, A...> T^::NEW(arguments: A): T`
+
+A function that creates a new object whose parent object is `class` and initializes it with its `<>` method.
+
+Each argument of the `arguments` variadic parameter is passed to the `<>` method as an individual argument.
+
+`::NEW` is a synonym for `NEW` that passes the receiver as `class`.
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+Because the instantiation uses the class specified by the caller rather than one fixed inside the factory function, an instance of the actual class is passed to the `<>` method.
+
+This allows a method overridden in a derived class to be called from within the `<>` method.
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this -> :
+      this.species = this::getSpecies()
+    getSpecies: this -> "Animal"
+  }
+  Human := Animal {
+    getSpecies: this -> "Human"
+  }
+  Human::NEW()
+'
+# {species:Human}
+```
+
+---
+
+If `<>` returns a stream, that stream is resolved.
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
 
 ## `PARENT`: Getting the Parent Object
 

@@ -401,12 +401,12 @@ The `unshift` `shift` `push` `pop` methods add/remove elements at the beginning/
 
 These methods perform destructive operations.
 
-| Method    | Target | Operation      | Return Value      |
-|-----------|--------|----------------|-------------------|
-| `unshift` | Start  | Add element    | `NULL`            |
-| `shift`   | Start  | Remove element | Removed element   |
-| `push`    | End    | Add element    | `NULL`            |
-| `pop`     | End    | Remove element | Removed element   |
+| Method    | Target | Operation      | Return Value    |
+|-----------|--------|----------------|-----------------|
+| `unshift` | Start  | Add element    | `NULL`          |
+| `shift`   | Start  | Remove element | Removed element |
+| `push`    | End    | Add element    | `NULL`          |
+| `pop`     | End    | Remove element | Removed element |
 
 ```shell
 $ xa -q '
@@ -491,6 +491,100 @@ $ xa -q '
 # [apple;banana;cherry;banana]
 # [apple;cherry;banana]
 # [cherry]
+```
+
+## `take` `taker` `drop` `dropr`: Taking and Dropping Subarrays from the Ends
+
+`<T> ARRAY<T>::take(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::taker(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::drop(count: INT): ARRAY<T>`
+
+`<T> ARRAY<T>::dropr(count: INT): ARRAY<T>`
+
+Creates and returns a new array obtained by taking or dropping the first or last `count` elements of the array.
+
+The original array is left unchanged.
+
+`count` is converted to a number and rounded.
+
+Each method has an alias with identical behavior.
+
+| Method  | Alias       | Target | Operation | Behavior when `count` exceeds the array length |
+|---------|-------------|--------|-----------|------------------------------------------------|
+| `take`  | `takeFirst` | First  | Take      | The entire array                               |
+| `taker` | `takeLast`  | Last   | Take      | The entire array                               |
+| `drop`  | `dropFirst` | First  | Drop      | An empty array                                 |
+| `dropr` | `dropLast`  | Last   | Drop      | An empty array                                 |
+
+```shell
+$ xa '["zero", "one", "two", "three", "four"]::take(2)'
+# [zero;one]
+
+$ xa '["zero", "one", "two", "three", "four"]::taker(2)'
+# [three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::take(0)'
+# []
+
+$ xa '["zero", "one", "two", "three", "four"]::take(10)'
+# [zero;one;two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(2)'
+# [two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::dropr(2)'
+# [zero;one;two]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(0)'
+# [zero;one;two;three;four]
+
+$ xa '["zero", "one", "two", "three", "four"]::drop(10)'
+# []
+```
+
+## `first` `last`: Taking Elements from the Ends
+
+`<T> ARRAY<T>::first(): T | NULL`
+
+`<T> ARRAY<T>::last(): T | NULL`
+
+The `first` and `last` methods get the first or last single element.
+
+If the array is empty, `NULL` is returned.
+
+```shell
+$ xa '["zero", "one", "two"]::first()'
+# zero
+
+$ xa '["zero", "one", "two"]::last()'
+# two
+
+$ xa '[]::first()'
+# NULL
+
+$ xa '[]::last()'
+# NULL
+```
+
+## `single`: Taking the Single Element
+
+`<T> ARRAY<T>::single(): T`
+
+The `single` method gets the single element of the array.
+
+If the array is empty or has multiple elements, an error is thrown.
+
+```shell
+$ xa '["zero"]::single()'
+# zero
+
+$ xa '["zero", "one"]::single() !? "Error"'
+# Error
+
+$ xa '[]::single() !? "Error"'
+# Error
 ```
 
 # Array Functions

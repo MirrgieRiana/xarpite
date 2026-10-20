@@ -40,10 +40,10 @@ function ByteString_init_$Create$(data, startIndex, endIndex) {
 }
 function Companion() {
   Companion_instance = this;
-  this.m2j_1 = new ByteString(new Int8Array(0), null);
-  this.n2j_1 = toCharArray('0123456789abcdef');
+  this.k3p_1 = new ByteString(new Int8Array(0), null);
+  this.l3p_1 = toCharArray('0123456789abcdef');
 }
-protoOf(Companion).o2j = function (byteArray) {
+protoOf(Companion).m3p = function (byteArray) {
   return new ByteString(byteArray, null);
 };
 var Companion_instance;
@@ -54,11 +54,11 @@ function Companion_getInstance() {
 }
 function ByteString(data, dummy) {
   Companion_getInstance();
-  this.p2j_1 = data;
-  this.q2j_1 = 0;
+  this.n3p_1 = data;
+  this.o3p_1 = 0;
 }
-protoOf(ByteString).l1 = function () {
-  return this.p2j_1.length;
+protoOf(ByteString).u1 = function () {
+  return this.n3p_1.length;
 };
 protoOf(ByteString).equals = function (other) {
   if (this === other)
@@ -67,47 +67,47 @@ protoOf(ByteString).equals = function (other) {
     return false;
   if (!(other instanceof ByteString))
     THROW_CCE();
-  if (!(other.p2j_1.length === this.p2j_1.length))
+  if (!(other.n3p_1.length === this.n3p_1.length))
     return false;
-  if (!(other.q2j_1 === 0) && !(this.q2j_1 === 0) && !(other.q2j_1 === this.q2j_1))
+  if (!(other.o3p_1 === 0) && !(this.o3p_1 === 0) && !(other.o3p_1 === this.o3p_1))
     return false;
-  return contentEquals(this.p2j_1, other.p2j_1);
+  return contentEquals(this.n3p_1, other.n3p_1);
 };
 protoOf(ByteString).hashCode = function () {
-  var hc = this.q2j_1;
+  var hc = this.o3p_1;
   if (hc === 0) {
-    hc = contentHashCode(this.p2j_1);
-    this.q2j_1 = hc;
+    hc = contentHashCode(this.n3p_1);
+    this.o3p_1 = hc;
   }
   return hc;
 };
-protoOf(ByteString).m1 = function (index) {
-  if (index < 0 || index >= this.l1())
-    throw IndexOutOfBoundsException_init_$Create$('index (' + index + ') is out of byte string bounds: [0..' + this.l1() + ')');
-  return this.p2j_1[index];
+protoOf(ByteString).v1 = function (index) {
+  if (index < 0 || index >= this.u1())
+    throw IndexOutOfBoundsException_init_$Create$('index (' + index + ') is out of byte string bounds: [0..' + this.u1() + ')');
+  return this.n3p_1[index];
 };
-protoOf(ByteString).mc = function (startIndex, endIndex) {
+protoOf(ByteString).ce = function (startIndex, endIndex) {
   var tmp;
   if (startIndex === endIndex) {
-    tmp = Companion_getInstance().m2j_1;
+    tmp = Companion_getInstance().k3p_1;
   } else {
-    tmp = ByteString_init_$Create$(this.p2j_1, startIndex, endIndex);
+    tmp = ByteString_init_$Create$(this.n3p_1, startIndex, endIndex);
   }
   return tmp;
 };
-protoOf(ByteString).r2j = function (startIndex, endIndex, $super) {
-  endIndex = endIndex === VOID ? this.l1() : endIndex;
-  return $super === VOID ? this.mc(startIndex, endIndex) : $super.mc.call(this, startIndex, endIndex);
+protoOf(ByteString).p3p = function (startIndex, endIndex, $super) {
+  endIndex = endIndex === VOID ? this.u1() : endIndex;
+  return $super === VOID ? this.ce(startIndex, endIndex) : $super.ce.call(this, startIndex, endIndex);
 };
-protoOf(ByteString).s2j = function (other) {
+protoOf(ByteString).q3p = function (other) {
   if (other === this)
     return 0;
-  var localData = this.p2j_1;
-  var otherData = other.p2j_1;
+  var localData = this.n3p_1;
+  var otherData = other.n3p_1;
   var inductionVariable = 0;
-  var tmp0 = this.l1();
+  var tmp0 = this.u1();
   // Inline function 'kotlin.math.min' call
-  var b = other.l1();
+  var b = other.u1();
   var last = Math.min(tmp0, b);
   if (inductionVariable < last)
     do {
@@ -129,59 +129,59 @@ protoOf(ByteString).s2j = function (other) {
         return cmp;
     }
      while (inductionVariable < last);
-  return compareTo(this.l1(), other.l1());
+  return compareTo(this.u1(), other.u1());
 };
 protoOf(ByteString).d = function (other) {
-  return this.s2j(other instanceof ByteString ? other : THROW_CCE());
+  return this.q3p(other instanceof ByteString ? other : THROW_CCE());
 };
 protoOf(ByteString).toString = function () {
   if (isEmpty(this)) {
     return 'ByteString(size=0)';
   }
-  var sizeStr = this.l1().toString();
-  var len = (22 + sizeStr.length | 0) + imul(this.l1(), 2) | 0;
+  var sizeStr = this.u1().toString();
+  var len = (22 + sizeStr.length | 0) + imul(this.u1(), 2) | 0;
   // Inline function 'kotlin.with' call
   var $this$with = StringBuilder_init_$Create$(len);
-  $this$with.q('ByteString(size=');
-  $this$with.q(sizeStr);
-  $this$with.q(' hex=');
-  var localData = this.p2j_1;
+  $this$with.s('ByteString(size=');
+  $this$with.s(sizeStr);
+  $this$with.s(' hex=');
+  var localData = this.n3p_1;
   var inductionVariable = 0;
-  var last = this.l1();
+  var last = this.u1();
   if (inductionVariable < last)
     do {
       var i = inductionVariable;
       inductionVariable = inductionVariable + 1 | 0;
       var b = localData[i];
-      $this$with.s(Companion_getInstance().n2j_1[(b >>> 4 | 0) & 15]);
-      $this$with.s(Companion_getInstance().n2j_1[b & 15]);
+      $this$with.u(Companion_getInstance().l3p_1[(b >>> 4 | 0) & 15]);
+      $this$with.u(Companion_getInstance().l3p_1[b & 15]);
     }
      while (inductionVariable < last);
-  return $this$with.s(_Char___init__impl__6a9atx(41)).toString();
+  return $this$with.u(_Char___init__impl__6a9atx(41)).toString();
 };
-protoOf(ByteString).t2j = function () {
-  return this.p2j_1;
+protoOf(ByteString).r3p = function () {
+  return this.n3p_1;
 };
 function ByteString_0(bytes) {
   var tmp;
   // Inline function 'kotlin.collections.isEmpty' call
   if (bytes.length === 0) {
-    tmp = Companion_getInstance().m2j_1;
+    tmp = Companion_getInstance().k3p_1;
   } else {
-    tmp = Companion_getInstance().o2j(bytes);
+    tmp = Companion_getInstance().m3p(bytes);
   }
   return tmp;
 }
 function decodeToString_0(_this__u8e3s4) {
-  return decodeToString(_this__u8e3s4.t2j());
+  return decodeToString(_this__u8e3s4.r3p());
 }
 function isEmpty(_this__u8e3s4) {
-  return _this__u8e3s4.l1() === 0;
+  return _this__u8e3s4.u1() === 0;
 }
 function UnsafeByteStringOperations() {
 }
-protoOf(UnsafeByteStringOperations).u2j = function (array) {
-  return Companion_getInstance().o2j(array);
+protoOf(UnsafeByteStringOperations).s3p = function (array) {
+  return Companion_getInstance().m3p(array);
 };
 var UnsafeByteStringOperations_instance;
 function UnsafeByteStringOperations_getInstance() {

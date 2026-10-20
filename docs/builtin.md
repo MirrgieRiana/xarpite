@@ -191,7 +191,7 @@ $ xa '"10|20|30" >> SPLIT["|"] | +_ / 10'
 
 ## `LINES` Split String by Lines
 
-`LINES(string: STRING): STREAM<STRING>`
+`LINES(string: STREAM<STRING>): STREAM<STRING>`
 
 Splits `string` by line breaks and returns each line as a stream.
 
@@ -232,6 +232,15 @@ $ xa 'LINES("A\rB\nC\r\nD")'
 # B
 # C
 # D
+```
+
+---
+
+When `string` is a stream, returns a flattened stream that yields lines from each element in sequence.
+
+```shell
+$ xa '"A\nB", "C\nD" >> LINES >> TO_ARRAY >> JSONS'
+# ["A","B","C","D"]
 ```
 
 ## `LINESD` Concatenate Line Stream into String
@@ -621,6 +630,8 @@ $ xa 'SINGLE(,) !? "Error"'
 
 Sorts a stream in ascending order.
 
+The sort is stable, and the order of elements that compare as equal is preserved from the original stream.
+
 `SORT` has 3 ways of calling.
 
 ### Sort by Natural Ordering
@@ -785,6 +796,36 @@ $ xa '
 # banana
 ```
 
+## `TALLY` / `HISTOGRAM` Count Stream Elements by Key
+
+`<T, K> TALLY([keyGetter: [by: ]T -> K; ]stream: STREAM<T>): STREAM<[K; INT]>`
+
+Applies `keyGetter` to each element of `stream`, collects the number of elements that share the same key into entries, and returns them as a stream.
+
+`HISTOGRAM` is an alias of `TALLY` and has the same behavior.
+
+If `keyGetter` is omitted, counts using the elements themselves as keys.
+
+Entries are in the order in which that key first appeared.
+
+Unlike the `GROUP` function, the value of an entry is the number of elements rather than an array of elements.
+
+```shell
+$ xa '"apple", "cherry", "banana", "banana", "apple" >> TALLY'
+# [apple;2]
+# [cherry;1]
+# [banana;2]
+
+$ xa '
+  {category: "fruit" ; value: "apple" },
+  {category: "fruit" ; value: "banana"},
+  {category: "animal"; value: "cat"   },
+  >> TALLY[by: x -> x.category]
+'
+# [fruit;2]
+# [animal;1]
+```
+
 ## `CHUNK` Split Stream into Fixed-Size Arrays
 
 `CHUNK(size: NUMBER; stream: STREAM<VALUE>): STREAM<ARRAY<VALUE>>`
@@ -876,6 +917,24 @@ $ xa '1 .. 5 >> FILTER[by: x -> x % 2 == 1]'
 # 1
 # 3
 # 5
+```
+
+## `FILTERV` / `GREPV` Exclude Stream by Condition
+
+`FILTERV(predicate: [by: ]VALUE -> BOOLEAN; stream: STREAM<VALUE>): STREAM<VALUE>`
+
+Applies `predicate` to each element of `stream` and returns a stream containing only elements where the result is false.
+
+`GREPV` is an alias of `FILTERV` and has the same behavior.
+
+```shell
+$ xa '1 .. 5 >> FILTERV [ x => x % 2 == 1 ]'
+# 2
+# 4
+
+$ xa '1 .. 5 >> FILTERV[by: x -> x % 2 == 1]'
+# 2
+# 4
 ```
 
 ## `REDUCE` Accumulate Stream Elements

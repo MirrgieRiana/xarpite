@@ -31,7 +31,7 @@ $ xa '3 <= 10 <= 5'
 
 The following operators follow this specification:
 
-- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=`
+- `>` `<` `>=` `<=` `==` `!=` `@` `!@` `?=` `!?=`
 
 # Comparison Operators
 
@@ -158,7 +158,9 @@ $ xa -q '
 # apple is in basket
 ```
 
-# InstanceOf Operator
+# InstanceOf Operators
+
+## InstanceOf Operator
 
 The instanceOf operator `left ?= right` returns whether `left` is an instance of `right`.
 
@@ -195,6 +197,26 @@ $ xa -q '
 # Human is Animal
 # Socrates is Human
 # Socrates is Animal
+```
+
+## Negative InstanceOf Operator
+
+The negative instanceOf operator `left !?= right` returns whether `left` is not an instance of `right`.
+
+It behaves equivalently to the expression `!(left ?= right)` using the instanceOf operator.
+
+```shell
+$ xa -q '
+  Animal := {}
+  Human := Animal {}
+  Dog := Animal {}
+  socrates := Human{}
+
+  socrates !?= Animal && (OUT << "Socrates is not Animal")
+  socrates !?= Human && (OUT << "Socrates is not Human")
+  socrates !?= Dog && (OUT << "Socrates is not Dog")
+'
+# Socrates is not Dog
 ```
 
 # Spaceship Operator
@@ -279,15 +301,23 @@ $ xa '
 
 # Comparison Functions
 
-## `::CONTAINS`: Extension Function for Containment
+## `CONTAINS` / `::CONTAINS`: Function for Containment
+
+`CONTAINS(container: VALUE; content: VALUE): BOOLEAN`
 
 `VALUE::CONTAINS(content: VALUE): BOOLEAN`
 
-The `::CONTAINS` extension function is syntactic sugar for calling the containment operator `@` in extension function form.
+The `CONTAINS` function and the `::CONTAINS` extension function are syntactic sugar for calling the containment operator `@` in function form and extension function form.
 
-`container::CONTAINS(content)` is equivalent to `content @ container`.
+`CONTAINS(container; content)`, `container::CONTAINS(content)`, and the infix function call `container CONTAINS content` are equivalent to `content @ container`.
 
 ```shell
+$ xa ' CONTAINS("abcde"; "bcd") '
+# TRUE
+
 $ xa ' "abcde"::CONTAINS("bcd") '
+# TRUE
+
+$ xa ' "abcde" CONTAINS "bcd" '
 # TRUE
 ```

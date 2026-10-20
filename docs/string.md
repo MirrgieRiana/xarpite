@@ -62,6 +62,7 @@ Template string literals are strings enclosed in `"` `"` that support features l
 | `\t`                                | Tab character                                   |
 | `\r`                                | CR                                              |
 | `\n`                                | LF                                              |
+| `\0`                                | NUL                                             |
 | `\xXX`                              | 1 character at code point U+0000~U+00FF         |
 | `\uXXXX`                            | 1 UTF-16 code unit                              |
 | Other sequences starting with `\`   | Syntax error                                    |
@@ -363,6 +364,37 @@ $ xa '"abc" & "def"'
 # abcdef
 ```
 
+# Path Resolution `string / string`
+
+To join paths, use the `/` operator.
+
+It resolves the path on the right, treating the left as a directory.
+
+```shell
+$ xa '"/home/apple" / "Apple.txt"'
+# /home/apple/Apple.txt
+```
+
+---
+
+The output path is automatically normalized.
+
+This behaves the same as the `RESOLVE` function.
+
+```shell
+$ xa '"/home/apple/" / "../cherry/./Cherry.txt"'
+# /home/cherry/Cherry.txt
+```
+
+---
+
+If the right operand is an absolute path, the left operand is ignored.
+
+```shell
+$ xa '"/home/apple" / "/etc/passwd"'
+# /etc/passwd
+```
+
 # Getting Substring
 
 `string[indices]` gets a substring.
@@ -421,6 +453,31 @@ $ xa '"[" & "abcde"::drop(10) & "]"'
 # []
 ```
 
+# Removing Whitespace from the Ends
+
+`STRING::trim(): STRING`
+
+`STRING::trimStart(): STRING`
+
+`STRING::trimEnd(): STRING`
+
+Returns the string with the whitespace removed from the beginning and end of the string.
+
+`trim` removes whitespace from both ends, `trimStart` from the beginning, and `trimEnd` from the end.
+
+The whitespace to be removed includes spaces, tabs, and newlines, as well as Unicode whitespace characters such as the ideographic space.
+
+```shell
+$ xa '"[$(  "  abc  "::trim()  )]"'
+# [abc]
+
+$ xa '"[$(  "  abc  "::trimStart()  )]"'
+# [abc  ]
+
+$ xa '"[$(  "  abc  "::trimEnd()  )]"'
+# [  abc]
+```
+
 # Taking Characters from the Ends
 
 `STRING::first(): STRING | NULL`
@@ -443,6 +500,25 @@ $ xa '""::first()'
 
 $ xa '""::last()'
 # NULL
+```
+
+# Taking the Single Character
+
+`STRING::single(): STRING`
+
+The `single` method gets the single character of the string.
+
+If the string is empty or has multiple characters, an error is thrown.
+
+```shell
+$ xa '"a"::single()'
+# a
+
+$ xa '"abcde"::single() !? "Error"'
+# Error
+
+$ xa '""::single() !? "Error"'
+# Error
 ```
 
 # String Replacement
