@@ -1,1 +1,1 @@
-Added `NEW` function, and its synonym `::NEW`, that creates an object whose parent is `class` and calls its `<>` method.
+Added `NEW` function, and its synonym `::NEW`, that creates an instance of the given class and initializes it by calling its `<>` method.

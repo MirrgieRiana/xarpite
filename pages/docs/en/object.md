@@ -271,7 +271,9 @@ $ xa '
 
 `<T, A...> T^::NEW(arguments: A): T`
 
-A function that creates a new object whose parent object is `class`, calls the `<>` method of that object with `arguments`, and returns the created object.
+A function that creates a new object whose parent object is `class` and initializes it with its `<>` method.
+
+Each argument of the `arguments` variadic parameter is passed to the `<>` method as an individual argument.
 
 `::NEW` is a synonym for `NEW` that passes the receiver as `class`.
 
@@ -288,24 +290,23 @@ $ xa '
 
 ---
 
-Because the creation of the instance is delegated to the receiver, calling it on a derived class also returns an instance whose parent object is that class.
+Because the instantiation uses the class specified by the caller rather than one fixed inside the factory function, an instance of the actual class is passed to the `<>` method.
 
-This allows a chain of constructors to be built by calling the `<>` of the parent class by name from `<>`.
+This allows a method overridden in a derived class to be called from within the `<>` method.
 
 ```shell
 $ xa '
   Animal := {
-    `<>`: this, age -> :
-      this.age = age
+    `<>`: this -> :
+      this.species = this::getSpecies()
+    getSpecies: this -> "Animal"
   }
   Human := Animal {
-    `<>`: this, age, name -> :
-      Animal.`<>`(this; age)
-      this.name = name
+    getSpecies: this -> "Human"
   }
-  Human::NEW(22; "Herirmina")
+  Human::NEW()
 '
-# {age:22;name:Herirmina}
+# {species:Human}
 ```
 
 ---
@@ -323,19 +324,6 @@ $ xa '
 '
 # 3
 ```
-
----
-
-If `<>` is not found, a value reporting that the method was not found is thrown.
-
-```shell
-$ xa '{}::NEW() !? ( e => e )'
-# Method not found: {}::<>
-```
-
----
-
-Because this extension function belongs to the `OBJECT` class, it is not available for values other than objects.
 
 ## `PARENT`: Getting the Parent Object
 

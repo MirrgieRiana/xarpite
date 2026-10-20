@@ -94,6 +94,19 @@ class ObjectTest {
             Human::NEW(22; "Herirmina")
         """.let { assertEquals("{age:22;name:Herirmina}", eval(it).obj) }
 
+        // `<>` から呼ぶメソッドは、子クラスでオーバーライドされたものが使われる
+        """
+            Animal := {
+                `<>`: this -> :
+                    this.species = this::getSpecies()
+                getSpecies: this -> "Animal"
+            }
+            Human := Animal {
+                getSpecies: this -> "Human"
+            }
+            Human::NEW()
+        """.let { assertEquals("{species:Human}", eval(it).obj) }
+
         // 返るインスタンスの親はレシーバー
         """
             Animal := {`<>`: this -> NULL}
