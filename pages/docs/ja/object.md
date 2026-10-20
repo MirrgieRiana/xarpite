@@ -263,7 +263,67 @@ $ xa '
 # {b:banana}
 ```
 
-# 組み込み関数`PARENT`
+# 組み込み関数
+
+## `NEW` / `::NEW`: インスタンスの生成
+
+`<T, A...> NEW(class: T^; arguments: A): T`
+
+`<T, A...> T^::NEW(arguments: A): T`
+
+`class`を親オブジェクトとする新しいオブジェクトを生成しつつ、`<>`メソッドによって初期化する関数です。
+
+`<>`メソッドには、`arguments`可変長引数の各引数が、個別の引数として渡されます。
+
+`::NEW`は`NEW`のシノニムで、レシーバーを`class`として渡します。
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this, age -> :
+      this.age = age
+  }
+  Animal::NEW(3)
+'
+# {age:3}
+```
+
+---
+
+インスタンス化をファクトリ関数内ではなく呼び出し側で指定したクラスで行うため、`<>`メソッドには、実際のクラスのインスタンスが渡ります。
+
+これにより、`<>`メソッド内から、子クラスでオーバーライドされたメソッドを呼び出すことができます。
+
+```shell
+$ xa '
+  Animal := {
+    `<>`: this -> :
+      this.species = this::getSpecies()
+    getSpecies: this -> "Animal"
+  }
+  Human := Animal {
+    getSpecies: this -> "Human"
+  }
+  Human::NEW()
+'
+# {species:Human}
+```
+
+---
+
+`<>`がストリームを返した場合、そのストリームは解決されます。
+
+```shell
+$ xa '
+  result := NULL
+  Counter := {
+    `<>`: this -> 1 .. 3 | _ => result = _
+  }
+  Counter::NEW()
+  result
+'
+# 3
+```
 
 ## `PARENT`: 親オブジェクトの取得
 
