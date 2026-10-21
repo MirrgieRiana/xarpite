@@ -21,7 +21,7 @@ class RuntimeContext(
     val io: IoContext,
 ) {
     companion object {
-        val SUPPORTED_API_VERSIONS = 4..5
+        val SUPPORTED_API_VERSIONS = 4..6
     }
 
     var apiVersion = SUPPORTED_API_VERSIONS.first

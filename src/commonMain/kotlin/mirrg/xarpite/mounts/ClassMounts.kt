@@ -35,7 +35,7 @@ fun createClassMounts(): List<Map<String, Mount>> {
         "FUNCTION" define FluoriteFunction.fluoriteClass,
         "BLOB" define FluoriteBlob.fluoriteClass,
         "STREAM" define FluoriteStream.fluoriteClass,
-        "PROMISE" define FluoritePromise.fluoriteClass,
+        "PROMISE" define FluoritePromise.getFluoriteClass(context.apiVersion),
         "ERROR" define FluoriteError.fluoriteClass,
     ).let { listOf(it) }
 }
