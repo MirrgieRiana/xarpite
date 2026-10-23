@@ -975,6 +975,77 @@ $ xa ', >> REDUCE[a, b -> a + b]'
 # NULL
 ```
 
+## `FOLD`: 初期値からストリームの各要素を集約する
+
+`<T, A> FOLD(initial: A; function: A, T -> A; stream: STREAM<T>): A`
+
+`initial`を初期値として、`stream`の各要素を先頭から末尾へ集約した値を返します。
+
+`function`は、現在の値と要素に基づいて、次の値を返す関数です。
+
+---
+
+例えば、要素が`x, y, z`の場合、結果は`function(function(function(initial; x); y); z)`になります。
+
+```shell
+$ xa '2, 3, 4 >> FOLD[1][ a, b => a + b ]'
+# 10
+```
+
+---
+
+集約値の型は、要素の型と異なっていてもかまいません。
+
+以下の例では、数値のストリームから文字列を生成します。
+
+```shell
+$ xa '1 .. 3 >> FOLD["s"][ a, x => "[$a,$x]" ]'
+# [[[s,1],2],3]
+```
+
+---
+
+`stream`が空の場合、`function`を呼び出さずに`initial`をそのまま返します。
+
+```shell
+$ xa 'E >> FOLD[10][ a, b => a + b ]'
+# 10
+```
+
+---
+
+`stream`がストリームでない場合、1要素のストリームとして処理します。
+
+`REDUCE`関数と異なり、1要素だけの場合も初期値とその要素に対して`function`を呼び出します。
+
+```shell
+$ xa '3 >> FOLD[10][ a, b => a + b ]'
+# 13
+```
+
+## `FOLDR`: 初期値からストリームの各要素を末尾から集約する
+
+`<T, A> FOLDR(initial: A; function: T, A -> A; stream: STREAM<T>): A`
+
+`FOLD`関数と概ね同様ですが、要素を末尾から先頭へ処理します。
+
+`function`には、要素、現在の値の順で渡されます。
+
+---
+
+例えば、要素が`x, y, z`の場合、結果は`function(x; function(y; function(z; initial)))`になります。
+
+```shell
+$ xa '1 .. 3 >> FOLDR["s"][ x, a => "[$x,$a]" ]'
+# [1,[2,[3,s]]]
+```
+
+---
+
+`stream`を先頭から末尾まで評価して全要素を保持した後に、`function`の呼び出しを開始します。
+
+このため、入力の要素数に比例する保持領域が必要であり、無限ストリームに対しては集約処理を開始できません。
+
 ## `TO_STRING`文字列化
 
 `TO_STRING(value: VALUE): STRING`

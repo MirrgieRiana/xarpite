@@ -148,6 +148,56 @@ class StreamMountsTest {
     }
 
     @Test
+    fun fold() = runTest {
+        assertEquals(20, eval("FOLD(10; a, x -> a + x; 1 .. 4)").int)
+        assertEquals(-6, eval("1, 2, 3 >> FOLD[0; a, x -> a - x]").int)
+        assertEquals("(((s1)2)3)", eval($$"""1 .. 3 >> FOLD["s"; a, x -> "($a$x)"]""").string)
+        assertEquals(7, eval("3 >> FOLD[10; a, x -> a - x]").int)
+        assertEquals(7, eval("3, >> FOLD[10; a, x -> a - x]").int)
+        assertEquals(10, eval(", >> FOLD[10; a, x -> !! x]").int)
+        assertEquals("[1;2]", eval(", >> FOLD[[1, 2]; a, x -> !! x]").array())
+        assertEquals(FluoriteNull, eval(", >> FOLD[NULL; a, x -> !! x]"))
+        assertEquals(3, eval("1, 2 >> FOLD[NULL; a, x -> (a ?: 0) + x]").int)
+        assertEquals(102, eval("1, 2 >> FOLD[0; a, x -> x == 1 ? NULL : (a ?: 100) + x]").int)
+        assertEquals(FluoriteNull, eval("1 >> FOLD[0; a, x -> NULL]"))
+        assertEquals("[6;[i1;f1;i2;f2;i3;f3]]", eval($$"""
+            trace := []
+            stream := 1 .. 3 | x => (trace::push("i$x"); x)
+            result := FOLD(0; a, x -> (trace::push("f$x"); a + x); stream)
+            [result; trace]
+        """).array())
+        assertFails { eval("1 >> FOLD[0; a, x -> !! x]") }
+        listOf("FOLD()", "FOLD(0)", "FOLD(0; a, x -> a)", "FOLD(0; a, x -> a; 1; 2)").forEach { code ->
+            assertFails { eval(code) }
+        }
+    }
+
+    @Test
+    fun foldr() = runTest {
+        assertEquals(20, eval("FOLDR(10; x, a -> x + a; 1 .. 4)").int)
+        assertEquals(2, eval("1, 2, 3 >> FOLDR[0; x, a -> x - a]").int)
+        assertEquals("(1(2(3s)))", eval($$"""1 .. 3 >> FOLDR["s"; x, a -> "($x$a)"]""").string)
+        assertEquals(-7, eval("3 >> FOLDR[10; x, a -> x - a]").int)
+        assertEquals(-7, eval("3, >> FOLDR[10; x, a -> x - a]").int)
+        assertEquals(10, eval(", >> FOLDR[10; x, a -> !! x]").int)
+        assertEquals("[1;2]", eval(", >> FOLDR[[1, 2]; x, a -> !! x]").array())
+        assertEquals(FluoriteNull, eval(", >> FOLDR[NULL; x, a -> !! x]"))
+        assertEquals(3, eval("1, 2 >> FOLDR[NULL; x, a -> x + (a ?: 0)]").int)
+        assertEquals(101, eval("1, 2 >> FOLDR[0; x, a -> x == 2 ? NULL : x + (a ?: 100)]").int)
+        assertEquals(FluoriteNull, eval("1 >> FOLDR[0; x, a -> NULL]"))
+        assertEquals("[6;[i1;i2;i3;f3;f2;f1]]", eval($$"""
+            trace := []
+            stream := 1 .. 3 | x => (trace::push("i$x"); x)
+            result := FOLDR(0; x, a -> (trace::push("f$x"); x + a); stream)
+            [result; trace]
+        """).array())
+        assertFails { eval("1 >> FOLDR[0; x, a -> !! x]") }
+        listOf("FOLDR()", "FOLDR(0)", "FOLDR(0; x, a -> a)", "FOLDR(0; x, a -> a; 1; 2)").forEach { code ->
+            assertFails { eval(code) }
+        }
+    }
+
+    @Test
     fun sort() = runTest {
         assertEquals("1,2,3", eval("3, 1, 2 >> SORT").stream()) // SORT でストリームをソートできる
         assertEquals("3,2,1", eval("3, 1, 2 >> SORTR").stream()) // SORTR で降順にソートする

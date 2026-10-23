@@ -593,6 +593,40 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 usage("REDUCE(function: VALUE, VALUE -> VALUE; stream: STREAM<VALUE>): VALUE")
             }
         },
+        "FOLD" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 3) {
+                var result = arguments[0]
+                val function = arguments[1]
+                val stream = arguments[2]
+                if (stream is FluoriteStream) {
+                    stream.collect { item ->
+                        result = function.invokeImmediate(null, arrayOf(result, item))
+                    }
+                    result
+                } else {
+                    function.invokeImmediate(null, arrayOf(result, stream))
+                }
+            } else {
+                usage("<T, A> FOLD(initial: A; function: A, T -> A; stream: STREAM<T>): A")
+            }
+        },
+        "FOLDR" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 3) {
+                var result = arguments[0]
+                val function = arguments[1]
+                val stream = arguments[2]
+                if (stream is FluoriteStream) {
+                    stream.toMutableList().asReversed().forEach { item ->
+                        result = function.invokeImmediate(null, arrayOf(item, result))
+                    }
+                    result
+                } else {
+                    function.invokeImmediate(null, arrayOf(stream, result))
+                }
+            } else {
+                usage("<T, A> FOLDR(initial: A; function: T, A -> A; stream: STREAM<T>): A")
+            }
+        },
         *run {
             fun create(name: String, isDescending: Boolean): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->

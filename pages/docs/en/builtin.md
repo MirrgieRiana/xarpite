@@ -975,6 +975,77 @@ $ xa ', >> REDUCE[a, b -> a + b]'
 # NULL
 ```
 
+## `FOLD`: Aggregate Stream Elements from an Initial Value
+
+`<T, A> FOLD(initial: A; function: A, T -> A; stream: STREAM<T>): A`
+
+Returns the result of aggregating each element of `stream` from first to last, starting with `initial`.
+
+`function` returns the next value based on the current value and the element.
+
+---
+
+For example, for elements `x, y, z`, the result is `function(function(function(initial; x); y); z)`.
+
+```shell
+$ xa '2, 3, 4 >> FOLD[1][ a, b => a + b ]'
+# 10
+```
+
+---
+
+The aggregate value may have a different type from the elements.
+
+The following example produces a string from a stream of numbers.
+
+```shell
+$ xa '1 .. 3 >> FOLD["s"][ a, x => "[$a,$x]" ]'
+# [[[s,1],2],3]
+```
+
+---
+
+If `stream` is empty, returns `initial` unchanged without calling `function`.
+
+```shell
+$ xa 'E >> FOLD[10][ a, b => a + b ]'
+# 10
+```
+
+---
+
+If `stream` is not a stream, treats it as a single-element stream.
+
+Unlike `REDUCE`, calls `function` with the initial value and the element even when there is only one element.
+
+```shell
+$ xa '3 >> FOLD[10][ a, b => a + b ]'
+# 13
+```
+
+## `FOLDR`: Aggregate Stream Elements from Last to First with an Initial Value
+
+`<T, A> FOLDR(initial: A; function: T, A -> A; stream: STREAM<T>): A`
+
+Works similarly to `FOLD`, but processes elements from last to first.
+
+Passes the element and the current value to `function` in that order.
+
+---
+
+For example, for elements `x, y, z`, the result is `function(x; function(y; function(z; initial)))`.
+
+```shell
+$ xa '1 .. 3 >> FOLDR["s"][ x, a => "[$x,$a]" ]'
+# [1,[2,[3,s]]]
+```
+
+---
+
+Evaluates `stream` from first to last and retains all elements before calling `function`.
+
+This requires storage proportional to the number of input elements, and aggregation cannot begin for an infinite stream.
+
 ## `TO_STRING` Stringification
 
 `TO_STRING(value: VALUE): STRING`
