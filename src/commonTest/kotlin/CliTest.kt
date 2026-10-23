@@ -2180,9 +2180,27 @@ class CliTest {
     @Test
     fun apiVersionOptionTakesPrecedenceOverEnvVar() = runTest {
         // -A の指定は XARPITE_API_VERSION 環境変数よりも優先される
-        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "5"))
-        val options = parseArguments(listOf("-A", "4", "-e", "1"), context)
-        assertEquals(4, options.apiVersion)
+        listOf("4", "5", "abc", "-1", "48", "2147483648").forEach { envApiVersion ->
+            listOf(4, 5).forEach { apiVersion ->
+                val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to envApiVersion))
+                val options = parseArguments(listOf("-A", "$apiVersion", "-q", "-e", "OUT << API_VERSION"), context)
+                assertEquals(apiVersion, options.apiVersion)
+                assertEquals(0, cliEvalImpl(context, options))
+                assertEquals("$apiVersion\n", context.stdoutBytes.toUtf8String())
+                assertEquals("", context.stderrBytes.toUtf8String())
+            }
+        }
+    }
+
+    @Test
+    fun apiVersionUnsupportedOptionIsNotReplacedByEnvVar() = runTest {
+        val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "4"))
+        val options = parseArguments(listOf("-A", "48", "-q", "-e", "OUT << \"executed\""), context)
+        assertEquals(48, options.apiVersion)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("ERROR:"))
+        assertTrue(context.stderrBytes.toUtf8String().contains("48"))
     }
 
     @Test

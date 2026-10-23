@@ -266,13 +266,20 @@ The API version is determined based on the following priority:
 2. The `XARPITE_API_VERSION` environment variable
 3. Xarpite's own major version
 
+When both the `-A` option and the environment variable are specified, the value of the `-A` option is used regardless of the environment variable's value.
+
+```shell
+$ XARPITE_API_VERSION=5 xa -A 4 'API_VERSION'
+# 4
+```
+
 ---
 
-If the specified value cannot be interpreted as a non-negative integer, an error occurs.
+If the selected value cannot be interpreted as a non-negative integer, an error occurs.
 
 ---
 
-If an API version that is not provided by the runtime is specified, an error occurs before the script is executed.
+If the selected API version is not provided by the runtime, an error occurs before the script is executed.
 
 ### `-A`: Set the API Version
 
