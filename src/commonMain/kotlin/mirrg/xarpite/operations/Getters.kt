@@ -37,6 +37,7 @@ import mirrg.xarpite.compilers.objects.instanceOf
 import mirrg.xarpite.compilers.objects.invoke
 import mirrg.xarpite.compilers.objects.match
 import mirrg.xarpite.compilers.objects.minus
+import mirrg.xarpite.compilers.objects.mod
 import mirrg.xarpite.compilers.objects.plus
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteArray
@@ -565,42 +566,12 @@ class NotDivisibleGetter(private val leftGetter: Getter, private val rightGetter
     override val code get() = "NotDivisibleGetter[${leftGetter.code};${rightGetter.code}]"
 }
 
-private fun mod(left: BigInteger, right: BigInteger): FluoriteBig {
-    // bignum 0.3.10のremainderは負の除数で余りの符号を誤るため、divideAndRemainderを使う
-    val remainder = left.divideAndRemainder(right).second
-    return FluoriteBig(if (!remainder.isZero() && remainder.signum() != right.signum()) remainder + right else remainder)
-}
-
 // TODO to method
 class ModGetter(private val leftGetter: Getter, private val rightGetter: Getter) : Getter {
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
-        return when (left) {
-            is FluoriteInt -> when (right) {
-                // % だと左辺の符号に結果が付いてくるから、右辺の符号に揃う mod を使うのだ。
-                is FluoriteInt -> FluoriteInt(left.value.mod(right.value))
-                is FluoriteBig -> mod(left.value.toBigInteger(), right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value.toDouble().mod(right.value))
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            is FluoriteBig -> when (right) {
-                is FluoriteInt -> mod(left.value, right.value.toBigInteger())
-                is FluoriteBig -> mod(left.value, right.value)
-                is FluoriteDouble -> FluoriteDouble(left.value.doubleValue(false).mod(right.value))
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            is FluoriteDouble -> when (right) {
-                is FluoriteInt -> FluoriteDouble(left.value.mod(right.value.toDouble()))
-                is FluoriteBig -> FluoriteDouble(left.value.mod(right.value.doubleValue(false)))
-                is FluoriteDouble -> FluoriteDouble(left.value.mod(right.value))
-                else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
-            }
-
-            else -> throw IllegalArgumentException("Can not convert to number: ${left::class}")
-        }
+        return left mod right
     }
 
     override val code get() = "ModGetter[${leftGetter.code};${rightGetter.code}]"
