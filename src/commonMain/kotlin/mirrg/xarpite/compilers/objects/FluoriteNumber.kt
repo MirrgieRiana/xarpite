@@ -182,6 +182,33 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
     override fun roundToInt() = value.intValue(true)
 }
 
+infix fun FluoriteValue.div(right: FluoriteValue): FluoriteNumber {
+    return when (this) {
+        is FluoriteInt -> when (right) {
+            is FluoriteInt -> FluoriteInt(this.value / right.value)
+            is FluoriteBig -> FluoriteBig(this.value.toBigInteger() / right.value)
+            is FluoriteDouble -> FluoriteDouble((this.value / right.value).let { it - it.rem(1.0) })
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteBig -> when (right) {
+            is FluoriteInt -> FluoriteBig(this.value / right.value.toBigInteger())
+            is FluoriteBig -> FluoriteBig(this.value / right.value)
+            is FluoriteDouble -> FluoriteDouble((this.value.doubleValue(false) / right.value).let { it - it.rem(1.0) })
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteDouble -> when (right) {
+            is FluoriteInt -> FluoriteDouble((this.value / right.value).let { it - it.rem(1.0) })
+            is FluoriteBig -> FluoriteDouble((this.value / right.value.doubleValue(false)).let { it - it.rem(1.0) })
+            is FluoriteDouble -> FluoriteDouble((this.value / right.value).let { it - it.rem(1.0) })
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        else -> throw IllegalArgumentException("Can not convert to number: ${this::class}")
+    }
+}
+
 infix fun FluoriteValue.mod(right: FluoriteValue): FluoriteNumber {
     return when (this) {
         is FluoriteInt -> when (right) {

@@ -1,14 +1,13 @@
 package mirrg.xarpite.mounts
 
-import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
-import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
+import mirrg.xarpite.compilers.objects.div
 import mirrg.xarpite.compilers.objects.mod
 import mirrg.xarpite.compilers.objects.rem
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
@@ -70,30 +69,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
-                when (left) {
-                    is FluoriteInt -> when (right) {
-                        is FluoriteInt -> FluoriteInt(left.value / right.value)
-                        is FluoriteBig -> FluoriteBig(left.value.toBigInteger() / right.value)
-                        is FluoriteDouble -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
-                        else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
-                    }
-
-                    is FluoriteBig -> when (right) {
-                        is FluoriteInt -> FluoriteBig(left.value / right.value.toBigInteger())
-                        is FluoriteBig -> FluoriteBig(left.value / right.value)
-                        is FluoriteDouble -> FluoriteDouble((left.value.doubleValue(false) / right.value).let { it - it.rem(1.0) })
-                        else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
-                    }
-
-                    is FluoriteDouble -> when (right) {
-                        is FluoriteInt -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
-                        is FluoriteBig -> FluoriteDouble((left.value / right.value.doubleValue(false)).let { it - it.rem(1.0) })
-                        is FluoriteDouble -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
-                        else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
-                    }
-
-                    else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
-                }
+                left div right
             } else {
                 usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
             }
