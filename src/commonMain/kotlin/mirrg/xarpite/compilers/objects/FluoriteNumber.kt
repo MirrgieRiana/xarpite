@@ -183,6 +183,10 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
     override fun roundToInt() = value.intValue(true)
 }
 
+fun FluoriteValue.checkNonZeroIntegerDivisor() {
+    if (this is FluoriteInt && this.value == 0 || this is FluoriteBig && this.value.isZero()) throw FluoriteException("Division by zero".toFluoriteString())
+}
+
 infix fun FluoriteValue.div(right: FluoriteValue): FluoriteNumber {
     return when (this) {
         is FluoriteInt -> when (right) {

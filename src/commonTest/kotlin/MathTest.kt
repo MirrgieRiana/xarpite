@@ -8,6 +8,7 @@ import mirrg.xarpite.test.big
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
+import mirrg.xarpite.test.string
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -196,7 +197,7 @@ class MathTest {
             assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV(NULL; $number)") }
             assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV($number; NULL)") }
         }
-        assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(1; 0)") }
+        assertFailsWith<FluoriteException> { eval("FLOOR_DIV(1; 0)", apiVersion = 6) }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); 0)") }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(1; BIG.of(0))") }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); BIG.of(0))") }
@@ -354,6 +355,90 @@ class MathTest {
             assertEquals(true, eval("$name(1.0; BIG.of(0))").double.isNaN())
             assertEquals(true, eval("$name(1.0; 0)").double.isNaN())
         }
+    }
+
+    @Test
+    fun integerZeroDivisorInApiVersion6() = runTest {
+        listOf("0", "1", "-1", "BIG.of(0)", "BIG.of(1)", "BIG.of(-1)", "0.0", "1.5", "-1.5", "+'Infinity'", "+'-Infinity'", "+'NaN'").forEach { left ->
+            listOf("0", "BIG.of(0)").forEach { right ->
+                listOf(
+                    "DIV(($left); $right)",
+                    "FLOOR_DIV(($left); $right)",
+                    "MOD(($left); $right)",
+                    "REM(($left); $right)",
+                    "($left) % $right",
+                    "($left) / $right",
+                ).forEach { code ->
+                    val exception = assertFailsWith<FluoriteException>(code) { eval(code, apiVersion = 6) }
+                    assertEquals("Division by zero", exception.message)
+                    assertEquals("Division by zero", eval("($code) !? (error => error)", apiVersion = 6).string)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun integerZeroDivisorBeforeApiVersion6() = runTest {
+        listOf(4, 5).forEach { apiVersion ->
+            listOf("0", "BIG.of(0)").forEach { right ->
+                listOf("DIV(1.0; $right)", "MOD(1.0; $right)", "REM(1.0; $right)", "1.0 % $right").forEach { code ->
+                    assertEquals(true, eval(code, apiVersion = apiVersion).double.isNaN())
+                }
+                assertEquals(Double.POSITIVE_INFINITY, eval("FLOOR_DIV(1.0; $right)", apiVersion = apiVersion).double)
+                assertEquals(Double.NEGATIVE_INFINITY, eval("FLOOR_DIV(-1.0; $right)", apiVersion = apiVersion).double)
+                assertEquals(true, eval("FLOOR_DIV(0.0; $right)", apiVersion = apiVersion).double.isNaN())
+                assertEquals(Double.POSITIVE_INFINITY, eval("1.0 / $right", apiVersion = apiVersion).double)
+                assertEquals(Double.NEGATIVE_INFINITY, eval("-1.0 / $right", apiVersion = apiVersion).double)
+                assertEquals(true, eval("0.0 / $right", apiVersion = apiVersion).double.isNaN())
+            }
+            assertEquals(Double.POSITIVE_INFINITY, eval("1 / 0", apiVersion = apiVersion).double)
+            assertEquals(Double.POSITIVE_INFINITY, eval("BIG.of(1) / BIG.of(0)", apiVersion = apiVersion).double)
+            listOf("DIV", "FLOOR_DIV", "MOD", "REM").forEach { name ->
+                assertFailsWith<ArithmeticException> { eval("$name(BIG.of(1); BIG.of(0))", apiVersion = apiVersion) }
+            }
+            assertFailsWith<ArithmeticException> { eval("BIG.of(1) % BIG.of(0)", apiVersion = apiVersion) }
+        }
+    }
+
+    @Test
+    fun doubleZeroDivisor() = runTest {
+        listOf(4, 5, 6).forEach { apiVersion ->
+            listOf("0", "1", "-1", "BIG.of(0)", "BIG.of(1)", "BIG.of(-1)", "0.0", "1.5", "-1.5", "+'Infinity'", "+'-Infinity'", "+'NaN'").forEach { left ->
+                val number = eval(left).toString().toDouble()
+                listOf("0.0", "-(0.0)").forEach { right ->
+                    listOf("DIV(($left); $right)", "MOD(($left); $right)", "REM(($left); $right)", "($left) % $right").forEach { code ->
+                        assertEquals(true, eval(code, apiVersion = apiVersion).double.isNaN())
+                    }
+                    val expected = number / if (right == "0.0") 0.0 else -0.0
+                    listOf("FLOOR_DIV(($left); $right)", "($left) / $right").forEach { code ->
+                        val actual = eval(code, apiVersion = apiVersion).double
+                        if (expected.isNaN()) {
+                            assertEquals(true, actual.isNaN())
+                        } else {
+                            assertEquals(expected, actual)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun nonZeroDivisorInApiVersion6() = runTest {
+        assertEquals(-2, eval("DIV(-7; 3)", apiVersion = 6).int)
+        assertEquals((-2).toBigInteger(), eval("DIV(BIG.of(-7); 3)", apiVersion = 6).big)
+        assertEquals(-2.0, eval("DIV(-7.0; 3)", apiVersion = 6).double)
+        assertEquals(-3, eval("FLOOR_DIV(-7; 3)", apiVersion = 6).int)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(BIG.of(-7); 3)", apiVersion = 6).big)
+        assertEquals(-3.0, eval("FLOOR_DIV(-7.0; 3)", apiVersion = 6).double)
+        assertEquals(9.0, eval("FLOOR_DIV(0.9; 0.1)", apiVersion = 6).double)
+        assertEquals(2, eval("MOD(-7; 3)", apiVersion = 6).int)
+        assertEquals((-1).toBigInteger(), eval("REM(BIG.of(-7); 3)", apiVersion = 6).big)
+        assertEquals(2.0, eval("-7.0 % 3", apiVersion = 6).double)
+        assertEquals(1.5, eval("3 / BIG.of(2)", apiVersion = 6).double)
+        assertEquals("dir/0", eval("'dir' / 0", apiVersion = 6).string)
+        assertEquals("dir/0", eval("'dir' / BIG.of(0)", apiVersion = 6).string)
+        assertEquals(0, eval("x := 0; y := 0; y == 0 ? 0 : DIV(x; y)", apiVersion = 6).int)
     }
 
     @Test

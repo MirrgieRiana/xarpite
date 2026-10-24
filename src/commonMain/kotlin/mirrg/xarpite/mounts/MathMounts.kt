@@ -7,6 +7,7 @@ import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
+import mirrg.xarpite.compilers.objects.checkNonZeroIntegerDivisor
 import mirrg.xarpite.compilers.objects.div
 import mirrg.xarpite.compilers.objects.floorDiv
 import mirrg.xarpite.compilers.objects.mod
@@ -70,6 +71,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
+                if (context.apiVersion >= 6) right.checkNonZeroIntegerDivisor()
                 left div right
             } else {
                 usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
@@ -79,6 +81,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
+                if (context.apiVersion >= 6) right.checkNonZeroIntegerDivisor()
                 left floorDiv right
             } else {
                 usage("FLOOR_DIV(x: NUMBER; y: NUMBER): NUMBER")
@@ -88,6 +91,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
+                if (context.apiVersion >= 6) right.checkNonZeroIntegerDivisor()
                 left mod right
             } else {
                 usage("MOD(x: NUMBER; y: NUMBER): NUMBER")
@@ -97,6 +101,7 @@ fun createMathMounts(): List<Map<String, Mount>> {
             if (arguments.size == 2) {
                 val left = arguments[0]
                 val right = arguments[1]
+                if (context.apiVersion >= 6) right.checkNonZeroIntegerDivisor()
                 left rem right
             } else {
                 usage("REM(x: NUMBER; y: NUMBER): NUMBER")

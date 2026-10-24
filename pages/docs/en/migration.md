@@ -8,6 +8,36 @@ title: "Migration Guide"
 
 This guide explains how to rewrite existing notations and idioms into equivalent new ones so that scripts follow a new API version.
 
+## API Version 6
+
+### Floating-Point Division and Remainder No Longer Accept Integer Zero Divisors
+
+Up to API version 5, dividing by an integer zero returned infinity or `NaN` when the numerator was a `DOUBLE`.
+
+In API version 6, an `INT` or `BIG` zero divisor raises an error even when the numerator is a `DOUBLE`.
+
+This applies to the `/` and `%` operators and the `DIV`, `FLOOR_DIV`, `MOD`, and `REM` functions.
+
+To preserve the previous behavior, convert the divisor's value to `DOUBLE`.
+
+```diff
+- 1.0 / y
++ 1.0 / (y * 1.0)
+```
+
+### Integer Division by Zero with `DIV` Now Raises an Error in JavaScript as Well
+
+Up to API version 5, `DIV` with `INT` arguments returned an integer zero in JavaScript when the divisor was 0.
+
+In API version 6, a zero divisor raises an error in JavaScript as well.
+
+To preserve the previous behavior, add a conditional expression that returns 0 when the divisor is 0.
+
+```diff
+- DIV(x; y)
++ y == 0 ? 0 : DIV(x; y)
+```
+
 ## API Version 5
 
 ### The Exit Code on Termination by a Non-Native Error Is Now 1

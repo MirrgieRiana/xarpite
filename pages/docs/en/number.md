@@ -332,6 +332,14 @@ $ xa '7 / 4'
 # 1.75
 ```
 
+---
+
+Up to API version 5, division by zero returns infinity or `NaN`.
+
+In API version 6 and later, division by an `INT` or `BIG` zero raises an error regardless of the numerator's numeric type.
+
+Division by a `DOUBLE` zero continues to return infinity or `NaN`.
+
 ### `number % number`: Modulo
 
 The modulo operator divides two values and returns the remainder.
@@ -389,6 +397,14 @@ $ xa 'BIG.of("5008005008005008005008005") % BIG.of("2003002003002003002003002")'
 ---
 
 When a `DOUBLE` is included, computes the result using `DOUBLE` values.
+
+---
+
+Up to API version 5, the behavior of division by an integer zero depends on the execution environment and the operand types.
+
+In API version 6 and later, an `INT` or `BIG` zero on the right raises an error regardless of the left operand's numeric type.
+
+Division by a `DOUBLE` zero returns `NaN`.
 
 ### `integer %% integer`: Divisibility
 
@@ -521,6 +537,19 @@ $ xa 'DIV(BIG.of("123456789012345678901234567890"); 10)'
 # 12345678901234567890123456789
 ```
 
+---
+
+Up to API version 5, the behavior of division by an integer zero depends on the execution environment and the argument types.
+
+In API version 6 and later, division by an `INT` or `BIG` zero raises an error regardless of the numerator's numeric type.
+
+Division by a `DOUBLE` zero returns `NaN`.
+
+```shell
+$ xa -A 6 'DIV(1.0; 0) !? (error => error)'
+# Division by zero
+```
+
 ### `FLOOR_DIV`: Floor Division
 
 `FLOOR_DIV(x: NUMBER; y: NUMBER): NUMBER`
@@ -530,6 +559,8 @@ Divides `x` by `y` and rounds the result down toward negative infinity.
 Dividing by zero raises an error when both arguments are integers.
 
 When a `DOUBLE` is included, dividing by zero returns `NaN`, positive infinity, or negative infinity.
+
+In API version 6 and later, division by an `INT` or `BIG` zero raises an error regardless of the numerator's numeric type.
 
 The remainder corresponding to the quotient returned by this function can be obtained with `MOD`.
 
@@ -571,7 +602,7 @@ $ xa 'BIG.of(7) MOD -3'
 
 ---
 
-The return type follows the same rules as `DIV`.
+The return type and handling of division by zero follow the same rules as `DIV`.
 
 ### `REM`: Remainder with the Sign of the Dividend
 
@@ -594,7 +625,7 @@ $ xa 'BIG.of(7) REM -3'
 
 ---
 
-The return type follows the same rules as `DIV`.
+The return type and handling of division by zero follow the same rules as `DIV`.
 
 ### `SQRT`: Get Square Root
 

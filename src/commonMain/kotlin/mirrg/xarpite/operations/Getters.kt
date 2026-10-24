@@ -28,6 +28,7 @@ import mirrg.xarpite.compilers.objects.bind
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.callAsMethod
 import mirrg.xarpite.compilers.objects.callMethodImmediate
+import mirrg.xarpite.compilers.objects.checkNonZeroIntegerDivisor
 import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
@@ -486,6 +487,7 @@ class DivGetter(private val leftGetter: Getter, private val rightGetter: Getter)
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
+        if (env.context.apiVersion >= 6 && left is FluoriteNumber) right.checkNonZeroIntegerDivisor()
         return when (left) {
             is FluoriteInt -> when (right) {
                 is FluoriteInt -> FluoriteDouble(left.value.toDouble() / right.value.toDouble())
@@ -571,6 +573,7 @@ class ModGetter(private val leftGetter: Getter, private val rightGetter: Getter)
     override suspend fun evaluate(env: Environment): FluoriteValue {
         val left = leftGetter.evaluate(env)
         val right = rightGetter.evaluate(env)
+        if (env.context.apiVersion >= 6) right.checkNonZeroIntegerDivisor()
         return left mod right
     }
 
