@@ -140,4 +140,56 @@ class NumberTest {
         assertFailsWith<FluoriteException> { eval(""" BIG.of(1.0 / 0.0) """) }
         assertFailsWith<FluoriteException> { eval(""" BIG.of(0.0 / 0.0) """) }
     }
+
+    @Test
+    fun doubleOf() = runTest {
+        assertEquals(123.0, eval(""" DOUBLE.of(123) """).double)
+        assertEquals(-123.0, eval(""" DOUBLE.of(-123) """).double)
+        assertEquals(1.25, eval(""" DOUBLE.of(1.25) """).double)
+        assertEquals(-1.25, eval(""" DOUBLE.of(-1.25) """).double)
+        assertEquals(123.0, eval(""" DOUBLE.of("123") """).double)
+        assertEquals(-1.25, eval(""" DOUBLE.of("-1.25") """).double)
+        assertEquals(123.0, eval(""" DOUBLE.of("1.23e2") """).double)
+        assertEquals(123.0, eval(""" DOUBLE.of(BIG.of(123)) """).double)
+        assertEquals(9007199254740992.0, eval(""" DOUBLE.of(BIG.of("9007199254740993")) """).double)
+        assertEquals(123.0, eval(""" DOUBLE.of(123) """, apiVersion = 5).double)
+
+        val huge = "1" + "0".repeat(400)
+        listOf("DOUBLE.of(\"$huge\")", "DOUBLE.of(BIG.of(\"$huge\"))").forEach { code ->
+            assertEquals(Double.POSITIVE_INFINITY, eval(code).double)
+        }
+        listOf("DOUBLE.of(\"-$huge\")", "DOUBLE.of(BIG.of(\"-$huge\"))").forEach { code ->
+            assertEquals(Double.NEGATIVE_INFINITY, eval(code).double)
+        }
+        assertEquals(Double.MIN_VALUE, eval(""" DOUBLE.of("5e-324") """).double)
+    }
+
+    @Test
+    fun doubleOfSpecialValues() = runTest {
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" DOUBLE.of("Infinity") """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" DOUBLE.of("-Infinity") """).double)
+        assertEquals(Double.POSITIVE_INFINITY, eval(""" DOUBLE.of(1.0 / 0.0) """).double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval(""" DOUBLE.of(-1.0 / 0.0) """).double)
+        assertEquals(true, eval(""" DOUBLE.of("NaN") """).double.isNaN())
+        assertEquals(true, eval(""" DOUBLE.of(0.0 / 0.0) """).double.isNaN())
+
+        listOf("0", "0.0", "BIG.of(0)", "\"0\"", "\"0.0\"").forEach { value ->
+            assertEquals(Double.POSITIVE_INFINITY, eval("1 / DOUBLE.of($value)").double)
+        }
+        listOf("-(0.0)", "\"-0\"", "\"-0.0\"").forEach { value ->
+            assertEquals(Double.NEGATIVE_INFINITY, eval("1 / DOUBLE.of($value)").double)
+        }
+    }
+
+    @Test
+    fun doubleOfErrors() = runTest {
+        assertFailsWith<FluoriteException> { eval(""" DOUBLE.of() """) }
+        assertFailsWith<FluoriteException> { eval(""" DOUBLE.of(1; 2) """) }
+        listOf("NULL", "TRUE", "[]", "{}").forEach { value ->
+            assertFailsWith<FluoriteException> { eval("DOUBLE.of($value)") }
+        }
+        listOf("", "abc", "1.2.3").forEach { value ->
+            assertFailsWith<NumberFormatException> { eval(""" DOUBLE.of("$value") """) }
+        }
+    }
 }

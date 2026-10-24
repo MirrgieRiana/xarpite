@@ -22,7 +22,7 @@ To preserve the previous behavior, convert the divisor's value to `DOUBLE`.
 
 ```diff
 - 1.0 / y
-+ 1.0 / (y * 1.0)
++ 1.0 / DOUBLE.of(y)
 ```
 
 ### Integer Division by Zero with `DIV` Now Raises an Error in JavaScript as Well

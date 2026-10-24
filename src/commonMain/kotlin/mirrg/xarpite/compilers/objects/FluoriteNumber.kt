@@ -81,6 +81,16 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 1) usage("DOUBLE.of(value: STRING | NUMBER): DOUBLE")
+                        when (val argument = arguments[0]) {
+                            is FluoriteString -> FluoriteDouble(argument.value.toDouble())
+                            is FluoriteDouble -> argument
+                            is FluoriteInt -> FluoriteDouble(argument.value.toDouble())
+                            is FluoriteBig -> FluoriteDouble(argument.value.doubleValue(false))
+                            else -> usage("DOUBLE.of(value: STRING | NUMBER): DOUBLE")
+                        }
+                    },
                     OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteDouble },
                     OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteDouble).value != 0.0).toFluoriteBoolean() },
                     OperatorMethod.GET_LENGTH.methodName to FluoriteFunction.immediate { arguments ->

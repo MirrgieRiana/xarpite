@@ -216,6 +216,49 @@ $ xa 'BIG.of("123456789012345678901234567890") + 1'
 # 123456789012345678901234567891
 ```
 
+## `DOUBLE`: Floating-Point Numbers
+
+The floating-point type `DOUBLE` represents 64-bit floating-point numbers.
+
+### `DOUBLE.of`: Creating a DOUBLE
+
+`DOUBLE.of(value: STRING | NUMBER): DOUBLE`
+
+Converts `value` to a `DOUBLE` value.
+
+```shell
+$ xa 'DOUBLE.of(123)'
+# 123.0
+
+$ xa 'DOUBLE.of("1.23e2")'
+# 123.0
+
+$ xa 'DOUBLE.of(BIG.of(123))'
+# 123.0
+```
+
+---
+
+Numbers that cannot be represented exactly by `DOUBLE` are rounded to its precision.
+
+Values with an absolute value that is too large become positive or negative infinity.
+
+Strings representing `Infinity`, `-Infinity`, and `NaN` can also be converted.
+
+Signed zeros retain their sign when converted.
+
+```shell
+$ xa 'DOUBLE.of("1e400")'
+# Infinity
+
+$ xa '1 / DOUBLE.of("-0")'
+# -Infinity
+```
+
+---
+
+An error occurs when a string cannot be parsed as a number, or when the value is neither a string nor a number.
+
 ## Addition/Subtraction Operators
 
 Addition/subtraction operators consist of operators that perform addition/subtraction-like operations.
