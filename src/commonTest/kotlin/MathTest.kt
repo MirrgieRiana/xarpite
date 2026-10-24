@@ -1,6 +1,7 @@
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.RuntimeContext
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.operations.FluoriteException
@@ -197,7 +198,9 @@ class MathTest {
             assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV(NULL; $number)") }
             assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV($number; NULL)") }
         }
-        assertFailsWith<FluoriteException> { eval("FLOOR_DIV(1; 0)", apiVersion = 6) }
+        if (6 in RuntimeContext.SUPPORTED_API_VERSIONS) {
+            assertFailsWith<FluoriteException> { eval("FLOOR_DIV(1; 0)", apiVersion = 6) }
+        }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); 0)") }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(1; BIG.of(0))") }
         assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); BIG.of(0))") }
@@ -359,6 +362,7 @@ class MathTest {
 
     @Test
     fun integerZeroDivisorInApiVersion6() = runTest {
+        if (6 !in RuntimeContext.SUPPORTED_API_VERSIONS) return@runTest
         listOf("0", "1", "-1", "BIG.of(0)", "BIG.of(1)", "BIG.of(-1)", "0.0", "1.5", "-1.5", "+'Infinity'", "+'-Infinity'", "+'NaN'").forEach { left ->
             listOf("0", "BIG.of(0)").forEach { right ->
                 listOf(
@@ -402,7 +406,7 @@ class MathTest {
 
     @Test
     fun doubleZeroDivisor() = runTest {
-        listOf(4, 5, 6).forEach { apiVersion ->
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf("0", "1", "-1", "BIG.of(0)", "BIG.of(1)", "BIG.of(-1)", "0.0", "1.5", "-1.5", "+'Infinity'", "+'-Infinity'", "+'NaN'").forEach { left ->
                 val number = eval(left).toString().toDouble()
                 listOf("0.0", "-(0.0)").forEach { right ->
@@ -425,6 +429,7 @@ class MathTest {
 
     @Test
     fun nonZeroDivisorInApiVersion6() = runTest {
+        if (6 !in RuntimeContext.SUPPORTED_API_VERSIONS) return@runTest
         assertEquals(-2, eval("DIV(-7; 3)", apiVersion = 6).int)
         assertEquals((-2).toBigInteger(), eval("DIV(BIG.of(-7); 3)", apiVersion = 6).big)
         assertEquals(-2.0, eval("DIV(-7.0; 3)", apiVersion = 6).double)
