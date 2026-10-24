@@ -215,21 +215,21 @@ infix fun FluoriteValue.floorDiv(right: FluoriteValue): FluoriteNumber {
         is FluoriteInt -> when (right) {
             is FluoriteInt -> FluoriteInt(this.value.floorDiv(right.value))
             is FluoriteBig -> floorDiv(this.value.toBigInteger(), right.value)
-            is FluoriteDouble -> FluoriteDouble(floor(this.value / right.value))
+            is FluoriteDouble -> floorDiv(this.value.toDouble(), right.value)
             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
         }
 
         is FluoriteBig -> when (right) {
             is FluoriteInt -> floorDiv(this.value, right.value.toBigInteger())
             is FluoriteBig -> floorDiv(this.value, right.value)
-            is FluoriteDouble -> FluoriteDouble(floor(this.value.doubleValue(false) / right.value))
+            is FluoriteDouble -> floorDiv(this.value.doubleValue(false), right.value)
             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
         }
 
         is FluoriteDouble -> when (right) {
-            is FluoriteInt -> FluoriteDouble(floor(this.value / right.value))
-            is FluoriteBig -> FluoriteDouble(floor(this.value / right.value.doubleValue(false)))
-            is FluoriteDouble -> FluoriteDouble(floor(this.value / right.value))
+            is FluoriteInt -> floorDiv(this.value, right.value.toDouble())
+            is FluoriteBig -> floorDiv(this.value, right.value.doubleValue(false))
+            is FluoriteDouble -> floorDiv(this.value, right.value)
             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
         }
 
@@ -240,6 +240,19 @@ infix fun FluoriteValue.floorDiv(right: FluoriteValue): FluoriteNumber {
 private fun floorDiv(left: BigInteger, right: BigInteger): FluoriteBig {
     val (quotient, remainder) = left.divideAndRemainder(right)
     return FluoriteBig(if (!remainder.isZero() && remainder.signum() != right.signum()) quotient - 1.toBigInteger() else quotient)
+}
+
+private fun floorDiv(left: Double, right: Double): FluoriteDouble {
+    if (!left.isFinite() || !right.isFinite() || right == 0.0) return FluoriteDouble(floor(left / right))
+
+    val remainder = left.rem(right)
+    var quotient = (left - remainder) / right
+    if (remainder != 0.0 && (remainder < 0.0) != (right < 0.0)) quotient -= 1.0
+    if (quotient == 0.0) return FluoriteDouble(floor(left / right))
+
+    // 余りを除いた商にも丸め誤差が残るため、最も近い整数へ補正する
+    val rounded = floor(quotient)
+    return FluoriteDouble(if (quotient - rounded > 0.5) rounded + 1.0 else rounded)
 }
 
 infix fun FluoriteValue.mod(right: FluoriteValue): FluoriteNumber {
