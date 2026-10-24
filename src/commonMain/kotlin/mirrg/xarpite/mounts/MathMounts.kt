@@ -1,7 +1,9 @@
 package mirrg.xarpite.mounts
 
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
@@ -69,12 +71,21 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 when (left) {
                     is FluoriteInt -> when (right) {
                         is FluoriteInt -> FluoriteInt(left.value / right.value)
+                        is FluoriteBig -> FluoriteBig(left.value.toBigInteger() / right.value)
                         is FluoriteDouble -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
+                        else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
+                    }
+
+                    is FluoriteBig -> when (right) {
+                        is FluoriteInt -> FluoriteBig(left.value / right.value.toBigInteger())
+                        is FluoriteBig -> FluoriteBig(left.value / right.value)
+                        is FluoriteDouble -> FluoriteDouble((left.value.doubleValue(false) / right.value).let { it - it.rem(1.0) })
                         else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
                     }
 
                     is FluoriteDouble -> when (right) {
                         is FluoriteInt -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
+                        is FluoriteBig -> FluoriteDouble((left.value / right.value.doubleValue(false)).let { it - it.rem(1.0) })
                         is FluoriteDouble -> FluoriteDouble((left.value / right.value).let { it - it.rem(1.0) })
                         else -> usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
                     }

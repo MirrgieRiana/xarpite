@@ -1,8 +1,10 @@
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.test.big
 import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.int
@@ -68,6 +70,84 @@ class MathTest {
         assertEquals(-3.0, eval("DIV(-10; 3.0)").double)
         assertEquals(-3.0, eval("DIV(-10.0; 3)").double)
         assertEquals(-3.0, eval("DIV(-10.0; 3.0)").double)
+    }
+
+    @Test
+    fun divBig() = runTest {
+        assertEquals(3.toBigInteger(), eval("DIV(BIG.of(10); BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(BIG.of(-10); BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(BIG.of(10); BIG.of(-3))").big)
+        assertEquals(3.toBigInteger(), eval("DIV(BIG.of(-10); BIG.of(-3))").big)
+
+        assertEquals(3.toBigInteger(), eval("DIV(BIG.of(10); 3)").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(BIG.of(-10); 3)").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(BIG.of(10); -3)").big)
+        assertEquals(3.toBigInteger(), eval("DIV(BIG.of(-10); -3)").big)
+        assertEquals(3.toBigInteger(), eval("DIV(10; BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(-10; BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("DIV(10; BIG.of(-3))").big)
+        assertEquals(3.toBigInteger(), eval("DIV(-10; BIG.of(-3))").big)
+
+        assertEquals(0.toBigInteger(), eval("DIV(BIG.of(0); -3)").big)
+        assertEquals(0.toBigInteger(), eval("DIV(0; BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("DIV(BIG.of(-1); BIG.of(3))").big)
+        assertEquals(2147483648L.toBigInteger(), eval("DIV(-2147483648; BIG.of(-1))").big)
+        assertEquals(-2.0, eval("DIV(BIG.of(-7); 2.5)").double)
+        assertEquals(-2.0, eval("DIV(-7.5; BIG.of(3))").double)
+
+        val huge = "1" + "0".repeat(400)
+        assertEquals("3".repeat(400).toBigInteger(), eval("""DIV(BIG.of("$huge"); 3)""").big)
+        assertEquals("3".repeat(400).toBigInteger(), eval("""DIV(BIG.of("$huge"); BIG.of(3))""").big)
+        assertEquals(1.toBigInteger(), eval("""DIV(BIG.of("$huge"); BIG.of("$huge"))""").big)
+    }
+
+    @Test
+    fun modBig() = runTest {
+        assertEquals(1.toBigInteger(), eval("BIG.of(7) % BIG.of(3)").big)
+        assertEquals(2.toBigInteger(), eval("BIG.of(-7) % BIG.of(3)").big)
+        assertEquals((-2).toBigInteger(), eval("BIG.of(7) % BIG.of(-3)").big)
+        assertEquals((-1).toBigInteger(), eval("BIG.of(-7) % BIG.of(-3)").big)
+        assertEquals(0.toBigInteger(), eval("BIG.of(-6) % BIG.of(3)").big)
+        assertEquals(0.toBigInteger(), eval("BIG.of(6) % BIG.of(-3)").big)
+        assertEquals(0.toBigInteger(), eval("BIG.of(0) % BIG.of(-3)").big)
+
+        assertEquals(1.toBigInteger(), eval("BIG.of(7) % 3").big)
+        assertEquals(2.toBigInteger(), eval("BIG.of(-7) % 3").big)
+        assertEquals((-2).toBigInteger(), eval("BIG.of(7) % -3").big)
+        assertEquals((-1).toBigInteger(), eval("BIG.of(-7) % -3").big)
+        assertEquals(1.toBigInteger(), eval("7 % BIG.of(3)").big)
+        assertEquals(2.toBigInteger(), eval("-7 % BIG.of(3)").big)
+        assertEquals((-2).toBigInteger(), eval("7 % BIG.of(-3)").big)
+        assertEquals((-1).toBigInteger(), eval("-7 % BIG.of(-3)").big)
+
+        assertEquals(1.0, eval("BIG.of(7) % 3.0").double)
+        assertEquals(1.0, eval("7.0 % BIG.of(3)").double)
+        assertEquals(-1.5, eval("7.5 % BIG.of(-3)").double)
+        assertEquals(0.5, eval("BIG.of(-7) % 2.5").double)
+        assertEquals(0.0, eval("BIG.of(-6) % 3.0").double, 0.0)
+        assertEquals(0.0, eval("6.0 % BIG.of(-3)").double, 0.0)
+
+        val huge = "1" + "0".repeat(400)
+        assertEquals(1.toBigInteger(), eval("""BIG.of("$huge") % 3""").big)
+        assertEquals((-2).toBigInteger(), eval("""BIG.of("$huge") % BIG.of(-3)""").big)
+        assertEquals((-1).toBigInteger(), eval("""BIG.of("-$huge") % BIG.of(-3)""").big)
+        assertEquals(0.toBigInteger(), eval("""BIG.of("$huge") % BIG.of("$huge")""").big)
+        assertEquals(("-" + "9".repeat(400)).toBigInteger(), eval("""1 % BIG.of("-$huge")""").big)
+        assertEquals(1.toBigInteger(), eval("""BIG.of("9007199254740993") % 2""").big)
+    }
+
+    @Test
+    fun bigDivisionAndRemainderErrors() = runTest {
+        assertFailsWith<ArithmeticException> { eval("DIV(BIG.of(1); 0)") }
+        assertFailsWith<ArithmeticException> { eval("DIV(1; BIG.of(0))") }
+        assertFailsWith<ArithmeticException> { eval("DIV(BIG.of(1); BIG.of(0))") }
+        assertFailsWith<ArithmeticException> { eval("BIG.of(1) % 0") }
+        assertFailsWith<ArithmeticException> { eval("1 % BIG.of(0)") }
+        assertFailsWith<ArithmeticException> { eval("BIG.of(1) % BIG.of(0)") }
+        assertEquals(true, eval("DIV(BIG.of(1); 0.0)").double.isNaN())
+        assertEquals(true, eval("DIV(1.0; BIG.of(0))").double.isNaN())
+        assertEquals(true, eval("BIG.of(1) % 0.0").double.isNaN())
+        assertEquals(true, eval("1.0 % BIG.of(0)").double.isNaN())
     }
 
     @Test

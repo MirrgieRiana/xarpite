@@ -203,11 +203,12 @@ $ xa 'BIG.of("123456789012345678901234567890")'
 # 123456789012345678901234567890
 ```
 
-### Arithmetic on BIG
+### Arithmetic and Remainders on BIG
 
-`BIG` values can be computed with the addition `+`, subtraction `-`, multiplication `*`, and division `/` operators.
+`BIG` values can be computed with the addition `+`, subtraction `-`, multiplication `*`, division `/`, and modulo `%` operators.
 
-Addition, subtraction, and multiplication that mix `BIG` and `INT` produce a `BIG` value without losing precision.
+Addition, subtraction, multiplication, and modulo operations that mix `BIG` and `INT` produce a `BIG` value without losing precision.
+
 When a `DOUBLE` is mixed in, and for division, the result is a `DOUBLE` value.
 
 ```shell
@@ -376,6 +377,19 @@ $ xa '1.75 % 0.5'
 # 0.25
 ```
 
+---
+
+When both operands are integers and at least one is `BIG`, returns a `BIG` remainder without losing precision.
+
+```shell
+$ xa 'BIG.of("5008005008005008005008005") % BIG.of("2003002003002003002003002")'
+# 1002001002001002001002001
+```
+
+---
+
+When a `DOUBLE` is included, computes the result using `DOUBLE` values.
+
 ### `integer %% integer`: Divisibility
 
 Returns whether the left value is divisible by the right value.
@@ -486,8 +500,19 @@ $ xa 'FLOOR(1.5)'
 Divides `x` by `y` and returns the integer part of the result.
 
 ```shell
-$ xa 'DIV(10; 3)'
+$ xa '10 DIV 3'
 # 3
+```
+
+---
+
+Returns an `INT` when both arguments are `INT`, or a `BIG` without losing precision when both arguments are integers and at least one is `BIG`.
+
+When a `DOUBLE` is included, computes the result using `DOUBLE` arguments and returns a `DOUBLE`.
+
+```shell
+$ xa 'DIV(BIG.of("123456789012345678901234567890"); 10)'
+# 12345678901234567890123456789
 ```
 
 ### `SQRT`: Get Square Root
