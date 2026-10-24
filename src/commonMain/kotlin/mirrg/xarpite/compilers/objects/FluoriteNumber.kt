@@ -215,6 +215,39 @@ private fun mod(left: BigInteger, right: BigInteger): FluoriteBig {
     return FluoriteBig(if (!remainder.isZero() && remainder.signum() != right.signum()) remainder + right else remainder)
 }
 
+infix fun FluoriteValue.rem(right: FluoriteValue): FluoriteNumber {
+    return when (this) {
+        is FluoriteInt -> when (right) {
+            is FluoriteInt -> FluoriteInt(this.value.rem(right.value))
+            is FluoriteBig -> rem(this.value.toBigInteger(), right.value)
+            is FluoriteDouble -> FluoriteDouble(this.value.toDouble().rem(right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteBig -> when (right) {
+            is FluoriteInt -> rem(this.value, right.value.toBigInteger())
+            is FluoriteBig -> rem(this.value, right.value)
+            is FluoriteDouble -> FluoriteDouble(this.value.doubleValue(false).rem(right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteDouble -> when (right) {
+            is FluoriteInt -> FluoriteDouble(this.value.rem(right.value.toDouble()))
+            is FluoriteBig -> FluoriteDouble(this.value.rem(right.value.doubleValue(false)))
+            is FluoriteDouble -> FluoriteDouble(this.value.rem(right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        else -> throw IllegalArgumentException("Can not convert to number: ${this::class}")
+    }
+}
+
+private fun rem(left: BigInteger, right: BigInteger): FluoriteBig {
+    // bignum 0.3.10のremainderは負の除数で余りの符号を誤るため、divideAndRemainderを使う
+    val remainder = left.divideAndRemainder(right).second
+    return FluoriteBig(remainder)
+}
+
 private val INTEGER_PATTERN = Regex("""[+-]?[0-9]+""")
 
 fun String.toFluoriteNumber(): FluoriteNumber {

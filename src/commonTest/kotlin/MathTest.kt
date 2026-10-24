@@ -151,6 +151,111 @@ class MathTest {
     }
 
     @Test
+    fun mod() = runTest {
+        assertEquals(1, eval("MOD(7; 3)").int)
+        assertEquals(2, eval("MOD(-7; 3)").int)
+        assertEquals(-2, eval("MOD(7; -3)").int)
+        assertEquals(-1, eval("MOD(-7; -3)").int)
+        assertEquals(0, eval("MOD(-6; 3)").int)
+        assertEquals(0, eval("MOD(6; -3)").int)
+
+        assertEquals(1.toBigInteger(), eval("MOD(BIG.of(7); BIG.of(3))").big)
+        assertEquals(2.toBigInteger(), eval("MOD(BIG.of(-7); BIG.of(3))").big)
+        assertEquals((-2).toBigInteger(), eval("MOD(BIG.of(7); BIG.of(-3))").big)
+        assertEquals((-1).toBigInteger(), eval("MOD(BIG.of(-7); BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("MOD(BIG.of(-6); BIG.of(3))").big)
+        assertEquals(0.toBigInteger(), eval("MOD(BIG.of(6); BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("MOD(BIG.of(0); BIG.of(-3))").big)
+
+        assertEquals(1.toBigInteger(), eval("MOD(BIG.of(7); 3)").big)
+        assertEquals(1.toBigInteger(), eval("MOD(7; BIG.of(3))").big)
+        assertEquals(2.toBigInteger(), eval("MOD(BIG.of(-7); 3)").big)
+        assertEquals(2.toBigInteger(), eval("MOD(-7; BIG.of(3))").big)
+        assertEquals((-2).toBigInteger(), eval("MOD(BIG.of(7); -3)").big)
+        assertEquals((-2).toBigInteger(), eval("MOD(7; BIG.of(-3))").big)
+
+        assertEquals(1.0, eval("MOD(7.0; 3)").double)
+        assertEquals(1.0, eval("MOD(7; 3.0)").double)
+        assertEquals(1.0, eval("MOD(7.0; 3.0)").double)
+        assertEquals(1.0, eval("MOD(BIG.of(7); 3.0)").double)
+        assertEquals(1.0, eval("MOD(7.0; BIG.of(3))").double)
+        assertEquals(2.0, eval("MOD(-7.0; 3.0)").double)
+        assertEquals(-2.0, eval("MOD(7.0; -3.0)").double)
+        assertEquals(-1.0, eval("MOD(-7.0; -3.0)").double)
+        assertEquals(0.0, eval("MOD(-6.0; 3.0)").double, 0.0)
+        assertEquals(0.25, eval("MOD(1.75; 0.5)").double)
+        assertEquals(-1.5, eval("MOD(7.5; BIG.of(-3))").double)
+        assertEquals(0.5, eval("MOD(BIG.of(-7); 2.5)").double)
+    }
+
+    @Test
+    fun rem() = runTest {
+        assertEquals(1, eval("REM(7; 3)").int)
+        assertEquals(-1, eval("REM(-7; 3)").int)
+        assertEquals(1, eval("REM(7; -3)").int)
+        assertEquals(-1, eval("REM(-7; -3)").int)
+        assertEquals(0, eval("REM(-6; 3)").int)
+        assertEquals(0, eval("REM(6; -3)").int)
+
+        assertEquals(1.toBigInteger(), eval("REM(BIG.of(7); BIG.of(3))").big)
+        assertEquals((-1).toBigInteger(), eval("REM(BIG.of(-7); BIG.of(3))").big)
+        assertEquals(1.toBigInteger(), eval("REM(BIG.of(7); BIG.of(-3))").big)
+        assertEquals((-1).toBigInteger(), eval("REM(BIG.of(-7); BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("REM(BIG.of(-6); BIG.of(3))").big)
+        assertEquals(0.toBigInteger(), eval("REM(BIG.of(6); BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("REM(BIG.of(0); BIG.of(-3))").big)
+
+        assertEquals(1.toBigInteger(), eval("REM(BIG.of(7); 3)").big)
+        assertEquals(1.toBigInteger(), eval("REM(7; BIG.of(3))").big)
+        assertEquals((-1).toBigInteger(), eval("REM(BIG.of(-7); 3)").big)
+        assertEquals((-1).toBigInteger(), eval("REM(-7; BIG.of(3))").big)
+        assertEquals(1.toBigInteger(), eval("REM(BIG.of(7); -3)").big)
+        assertEquals(1.toBigInteger(), eval("REM(7; BIG.of(-3))").big)
+
+        assertEquals(1.0, eval("REM(7.0; 3)").double)
+        assertEquals(1.0, eval("REM(7; 3.0)").double)
+        assertEquals(1.0, eval("REM(7.0; 3.0)").double)
+        assertEquals(1.0, eval("REM(BIG.of(7); 3.0)").double)
+        assertEquals(1.0, eval("REM(7.0; BIG.of(3))").double)
+        assertEquals(-1.0, eval("REM(-7.0; 3.0)").double)
+        assertEquals(1.0, eval("REM(7.0; -3.0)").double)
+        assertEquals(-1.0, eval("REM(-7.0; -3.0)").double)
+        assertEquals(0.0, eval("REM(-6.0; 3.0)").double, 0.0)
+        assertEquals(-0.25, eval("REM(-1.75; 0.5)").double)
+        assertEquals(1.5, eval("REM(7.5; BIG.of(-3))").double)
+        assertEquals(-2.0, eval("REM(BIG.of(-7); 2.5)").double)
+    }
+
+    @Test
+    fun bigRemainderPrecision() = runTest {
+        val huge = "1" + "0".repeat(400)
+        assertEquals(1.toBigInteger(), eval("""MOD(BIG.of("$huge"); 3)""").big)
+        assertEquals(1.toBigInteger(), eval("""REM(BIG.of("$huge"); 3)""").big)
+        assertEquals((-2).toBigInteger(), eval("""MOD(BIG.of("$huge"); BIG.of(-3))""").big)
+        assertEquals(1.toBigInteger(), eval("""REM(BIG.of("$huge"); BIG.of(-3))""").big)
+        assertEquals((-1).toBigInteger(), eval("""REM(BIG.of("-$huge"); BIG.of(-3))""").big)
+        assertEquals(1.toBigInteger(), eval("""MOD(BIG.of("9007199254740993"); 2)""").big)
+        assertEquals(1.toBigInteger(), eval("""REM(BIG.of("9007199254740993"); 2)""").big)
+    }
+
+    @Test
+    fun modAndRemErrors() = runTest {
+        listOf("MOD", "REM").forEach { name ->
+            assertFailsWith<FluoriteException> { eval("$name()") }
+            assertFailsWith<FluoriteException> { eval("$name(1)") }
+            assertFailsWith<FluoriteException> { eval("$name(1; 2; 3)") }
+            assertFailsWith<IllegalArgumentException> { eval("$name(NULL; 1)") }
+            assertFailsWith<IllegalArgumentException> { eval("$name(1; NULL)") }
+            assertFailsWith<ArithmeticException> { eval("$name(BIG.of(1); 0)") }
+            assertFailsWith<ArithmeticException> { eval("$name(1; BIG.of(0))") }
+            assertFailsWith<ArithmeticException> { eval("$name(BIG.of(1); BIG.of(0))") }
+            assertEquals(true, eval("$name(BIG.of(1); 0.0)").double.isNaN())
+            assertEquals(true, eval("$name(1.0; BIG.of(0))").double.isNaN())
+            assertEquals(true, eval("$name(1.0; 0)").double.isNaN())
+        }
+    }
+
+    @Test
     fun math() = runTest {
         assertEquals(3.141592653589793, eval("MATH.PI").double, 0.001)
         assertEquals(2.718281828459045, eval("MATH.E").double, 0.001)

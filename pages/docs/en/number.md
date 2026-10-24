@@ -500,8 +500,8 @@ $ xa 'FLOOR(1.5)'
 Divides `x` by `y` and returns the integer part of the result.
 
 ```shell
-$ xa '10 DIV 3'
-# 3
+$ xa '7 DIV 3'
+# 2
 ```
 
 ---
@@ -514,6 +514,54 @@ When a `DOUBLE` is included, computes the result using `DOUBLE` arguments and re
 $ xa 'DIV(BIG.of("123456789012345678901234567890"); 10)'
 # 12345678901234567890123456789
 ```
+
+### `MOD`: Remainder with the Sign of the Divisor
+
+`MOD(x: NUMBER; y: NUMBER): NUMBER`
+
+Returns the remainder of dividing `x` by `y`.
+
+Has the same behavior as the `%` operator.
+
+The remainder is either 0 or has the same sign as `y`.
+
+```shell
+$ xa '7 MOD 3'
+# 1
+
+$ xa '-7 MOD 3'
+# 2
+
+$ xa 'BIG.of(7) MOD -3'
+# -2
+```
+
+---
+
+The return type follows the same rules as `DIV`.
+
+### `REM`: Remainder with the Sign of the Dividend
+
+`REM(x: NUMBER; y: NUMBER): NUMBER`
+
+Returns the remainder of dividing `x` by `y`.
+
+The remainder is either 0 or has the same sign as `x`.
+
+```shell
+$ xa '7 REM 3'
+# 1
+
+$ xa '-7 REM 3'
+# -1
+
+$ xa 'BIG.of(7) REM -3'
+# 1
+```
+
+---
+
+The return type follows the same rules as `DIV`.
 
 ### `SQRT`: Get Square Root
 
