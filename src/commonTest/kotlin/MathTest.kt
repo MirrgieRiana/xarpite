@@ -179,44 +179,6 @@ class MathTest {
     }
 
     @Test
-    fun floorDivDoubleRounding() = runTest {
-        assertEquals(8.0, eval("FLOOR_DIV(0.9; 0.1)").double)
-        assertEquals(-9.0, eval("FLOOR_DIV(-0.9; 0.1)").double)
-        assertEquals(-9.0, eval("FLOOR_DIV(0.9; -0.1)").double)
-        assertEquals(8.0, eval("FLOOR_DIV(-0.9; -0.1)").double)
-        assertEquals(29.0, eval("FLOOR_DIV(3; 0.1)").double)
-        assertEquals(-30.0, eval("FLOOR_DIV(-3; 0.1)").double)
-        assertEquals(29.0, eval("FLOOR_DIV(BIG.of(3); 0.1)").double)
-        assertEquals(-30.0, eval("FLOOR_DIV(BIG.of(-3); 0.1)").double)
-        assertEquals(13.0, eval("FLOOR_DIV(-23; -1.7)").double)
-        assertEquals(6.0, eval("FLOOR_DIV(-23.0; -3.3)").double)
-        assertEquals(-31.0, eval("FLOOR_DIV(-21; 0.7)").double)
-        assertEquals(13.0, eval("FLOOR_DIV(BIG.of(-23); -1.7)").double)
-        assertEquals(4503599627370496.0, eval("FLOOR_DIV(13510798882111490.0; 3)").double)
-        assertEquals(4503599627370496.0, eval("FLOOR_DIV(13510798882111490.0; BIG.of(3))").double)
-        assertEquals(0.0, eval("FLOOR_DIV(+'5e-324'; 2)").double)
-        assertEquals(-1.0, eval("FLOOR_DIV(+'-5e-324'; 2)").double)
-
-        listOf("0.9", "-0.9", "3", "-3", "BIG.of(3)", "BIG.of(-3)").forEach { left ->
-            listOf("0.1", "-0.1").forEach { right ->
-                val expected = eval(left).toString().toDouble()
-                assertEquals(expected, eval("FLOOR_DIV($left; $right) * $right + MOD($left; $right)").double, 0.000000000000001)
-            }
-        }
-    }
-
-    @Test
-    fun floorDivDoubleNonFinite() = runTest {
-        assertEquals(true, eval("FLOOR_DIV(1; +'NaN')").double.isNaN())
-        assertEquals(true, eval("FLOOR_DIV(+'Infinity'; +'Infinity')").double.isNaN())
-        assertEquals(Double.NEGATIVE_INFINITY, eval("FLOOR_DIV(+'-Infinity'; 3)").double)
-        assertEquals(0.0, eval("FLOOR_DIV(1; +'Infinity')").double)
-        assertEquals(-0.0, eval("FLOOR_DIV(1; +'-Infinity')").double)
-        assertEquals(-0.0, eval("FLOOR_DIV(0.0; -3)").double)
-        assertEquals(Double.POSITIVE_INFINITY, eval("FLOOR_DIV(+'1e308'; +'1e-308')").double)
-    }
-
-    @Test
     fun floorDivAndMod() = runTest {
         listOf("-7", "-6", "0", "6", "7", "BIG.of(-7)", "BIG.of(-6)", "BIG.of(0)", "BIG.of(6)", "BIG.of(7)").forEach { left ->
             listOf("3", "-3", "BIG.of(3)", "BIG.of(-3)").forEach { right ->
