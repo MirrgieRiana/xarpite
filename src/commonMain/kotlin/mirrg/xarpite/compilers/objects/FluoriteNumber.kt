@@ -136,8 +136,6 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
         val fluoriteClass by lazy {
             FluoriteObject(
                 FluoriteValue.fluoriteClass, mutableMapOf(
-                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
-                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
                     "of" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 1) usage("BIG.of(value: STRING | NUMBER): BIG")
                         when (val argument = arguments[0]) {
@@ -151,6 +149,8 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                             else -> usage("BIG.of(value: STRING | NUMBER): BIG")
                         }
                     },
+                    OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { it[0] as FluoriteBig },
+                    OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { ((it[0] as FluoriteBig).value != BigInteger.ZERO).toFluoriteBoolean() },
                     OperatorMethod.PLUS.methodName to FluoriteFunction.immediate { arguments ->
                         val left = arguments[0] as FluoriteBig
                         when (val right = arguments[1]) {
