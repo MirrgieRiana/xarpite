@@ -8,6 +8,7 @@ import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 interface FluoriteNumber : FluoriteValue {
@@ -207,6 +208,38 @@ infix fun FluoriteValue.div(right: FluoriteValue): FluoriteNumber {
 
         else -> throw IllegalArgumentException("Can not convert to number: ${this::class}")
     }
+}
+
+infix fun FluoriteValue.floorDiv(right: FluoriteValue): FluoriteNumber {
+    return when (this) {
+        is FluoriteInt -> when (right) {
+            is FluoriteInt -> FluoriteInt(this.value.floorDiv(right.value))
+            is FluoriteBig -> floorDiv(this.value.toBigInteger(), right.value)
+            is FluoriteDouble -> FluoriteDouble(floor(this.value / right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteBig -> when (right) {
+            is FluoriteInt -> floorDiv(this.value, right.value.toBigInteger())
+            is FluoriteBig -> floorDiv(this.value, right.value)
+            is FluoriteDouble -> FluoriteDouble(floor(this.value.doubleValue(false) / right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        is FluoriteDouble -> when (right) {
+            is FluoriteInt -> FluoriteDouble(floor(this.value / right.value))
+            is FluoriteBig -> FluoriteDouble(floor(this.value / right.value.doubleValue(false)))
+            is FluoriteDouble -> FluoriteDouble(floor(this.value / right.value))
+            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+        }
+
+        else -> throw IllegalArgumentException("Can not convert to number: ${this::class}")
+    }
+}
+
+private fun floorDiv(left: BigInteger, right: BigInteger): FluoriteBig {
+    val (quotient, remainder) = left.divideAndRemainder(right)
+    return FluoriteBig(if (!remainder.isZero() && remainder.signum() != right.signum()) quotient - 1.toBigInteger() else quotient)
 }
 
 infix fun FluoriteValue.mod(right: FluoriteValue): FluoriteNumber {

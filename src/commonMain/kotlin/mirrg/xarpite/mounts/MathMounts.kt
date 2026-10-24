@@ -8,6 +8,7 @@ import mirrg.xarpite.compilers.objects.FluoriteInt
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.div
+import mirrg.xarpite.compilers.objects.floorDiv
 import mirrg.xarpite.compilers.objects.mod
 import mirrg.xarpite.compilers.objects.rem
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
@@ -72,6 +73,15 @@ fun createMathMounts(): List<Map<String, Mount>> {
                 left div right
             } else {
                 usage("DIV(x: NUMBER; y: NUMBER): NUMBER")
+            }
+        },
+        "FLOOR_DIV" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size == 2) {
+                val left = arguments[0]
+                val right = arguments[1]
+                left floorDiv right
+            } else {
+                usage("FLOOR_DIV(x: NUMBER; y: NUMBER): NUMBER")
             }
         },
         "MOD" define FluoriteFunction.immediate { arguments ->

@@ -102,6 +102,107 @@ class MathTest {
     }
 
     @Test
+    fun floorDiv() = runTest {
+        assertEquals(2, eval("FLOOR_DIV(7; 3)").int)
+        assertEquals(-3, eval("FLOOR_DIV(-7; 3)").int)
+        assertEquals(-3, eval("FLOOR_DIV(7; -3)").int)
+        assertEquals(2, eval("FLOOR_DIV(-7; -3)").int)
+        assertEquals(-2, eval("FLOOR_DIV(-6; 3)").int)
+        assertEquals(-2, eval("FLOOR_DIV(6; -3)").int)
+        assertEquals(0, eval("FLOOR_DIV(0; -3)").int)
+        assertEquals(-1, eval("FLOOR_DIV(-1; 3)").int)
+        assertEquals(-715827883, eval("FLOOR_DIV(-2147483648; 3)").int)
+        assertEquals(-715827883, eval("FLOOR_DIV(2147483647; -3)").int)
+        assertEquals(-3, eval("-7 FLOOR_DIV 3").int)
+    }
+
+    @Test
+    fun floorDivBig() = runTest {
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(BIG.of(7); BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(BIG.of(-7); BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(BIG.of(7); BIG.of(-3))").big)
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(BIG.of(-7); BIG.of(-3))").big)
+
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(BIG.of(7); 3)").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(BIG.of(-7); 3)").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(BIG.of(7); -3)").big)
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(BIG.of(-7); -3)").big)
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(7; BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(-7; BIG.of(3))").big)
+        assertEquals((-3).toBigInteger(), eval("FLOOR_DIV(7; BIG.of(-3))").big)
+        assertEquals(2.toBigInteger(), eval("FLOOR_DIV(-7; BIG.of(-3))").big)
+
+        assertEquals((-2).toBigInteger(), eval("FLOOR_DIV(BIG.of(-6); BIG.of(3))").big)
+        assertEquals((-2).toBigInteger(), eval("FLOOR_DIV(BIG.of(6); BIG.of(-3))").big)
+        assertEquals(0.toBigInteger(), eval("FLOOR_DIV(BIG.of(0); -3)").big)
+        assertEquals(0.toBigInteger(), eval("FLOOR_DIV(0; BIG.of(-3))").big)
+        assertEquals((-1).toBigInteger(), eval("FLOOR_DIV(BIG.of(-1); BIG.of(3))").big)
+        assertEquals(2147483648L.toBigInteger(), eval("FLOOR_DIV(-2147483648; BIG.of(-1))").big)
+        assertEquals((-3).toBigInteger(), eval("BIG.of(7) FLOOR_DIV -3").big)
+
+        val huge = "1" + "0".repeat(400)
+        val quotient = "3".repeat(400).toBigInteger()
+        assertEquals(quotient, eval("""FLOOR_DIV(BIG.of("$huge"); 3)""").big)
+        assertEquals(quotient, eval("""FLOOR_DIV(BIG.of("-$huge"); BIG.of(-3))""").big)
+        assertEquals(-quotient - 1.toBigInteger(), eval("""FLOOR_DIV(BIG.of("-$huge"); 3)""").big)
+        assertEquals(-quotient - 1.toBigInteger(), eval("""FLOOR_DIV(BIG.of("$huge"); BIG.of(-3))""").big)
+        assertEquals(1.toBigInteger(), eval("""FLOOR_DIV(BIG.of("$huge"); BIG.of("$huge"))""").big)
+        assertEquals((-1).toBigInteger(), eval("""FLOOR_DIV(1; BIG.of("-$huge"))""").big)
+        assertEquals("4503599627370497".toBigInteger(), eval("""FLOOR_DIV(BIG.of("9007199254740995"); 2)""").big)
+        assertEquals("-100000000000000000000001".toBigInteger(), eval("""FLOOR_DIV(BIG.of("-1000000000000000000000001"); 10)""").big)
+    }
+
+    @Test
+    fun floorDivDouble() = runTest {
+        assertEquals(2.0, eval("FLOOR_DIV(7.0; 3)").double)
+        assertEquals(2.0, eval("FLOOR_DIV(7; 3.0)").double)
+        assertEquals(2.0, eval("FLOOR_DIV(7.0; 3.0)").double)
+        assertEquals(2.0, eval("FLOOR_DIV(BIG.of(7); 3.0)").double)
+        assertEquals(2.0, eval("FLOOR_DIV(7.0; BIG.of(3))").double)
+        assertEquals(-3.0, eval("FLOOR_DIV(-7.0; 3.0)").double)
+        assertEquals(-3.0, eval("FLOOR_DIV(7.0; -3.0)").double)
+        assertEquals(2.0, eval("FLOOR_DIV(-7.0; -3.0)").double)
+        assertEquals(-2.0, eval("FLOOR_DIV(-6.0; 3.0)").double)
+        assertEquals(3.0, eval("FLOOR_DIV(1.75; 0.5)").double)
+        assertEquals(-4.0, eval("FLOOR_DIV(-1.75; 0.5)").double)
+        assertEquals(-3.0, eval("FLOOR_DIV(BIG.of(-7); 2.5)").double)
+        assertEquals(-3.0, eval("FLOOR_DIV(-7.5; BIG.of(3))").double)
+        assertEquals(-1.0, eval("FLOOR_DIV(-0.5; 3)").double)
+        assertEquals(2147483648.0, eval("FLOOR_DIV(4294967296.0; 2)").double)
+        assertEquals(Double.POSITIVE_INFINITY, eval("FLOOR_DIV(1.0; 0)").double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval("FLOOR_DIV(-1; 0.0)").double)
+        assertEquals(Double.POSITIVE_INFINITY, eval("FLOOR_DIV(BIG.of(1); 0.0)").double)
+        assertEquals(Double.NEGATIVE_INFINITY, eval("FLOOR_DIV(-1.0; BIG.of(0))").double)
+        assertEquals(true, eval("FLOOR_DIV(0.0; 0)").double.isNaN())
+        assertEquals(true, eval("FLOOR_DIV(+'NaN'; 3)").double.isNaN())
+        assertEquals(Double.POSITIVE_INFINITY, eval("FLOOR_DIV(+'Infinity'; 3)").double)
+    }
+
+    @Test
+    fun floorDivAndMod() = runTest {
+        listOf("-7", "-6", "0", "6", "7", "BIG.of(-7)", "BIG.of(-6)", "BIG.of(0)", "BIG.of(6)", "BIG.of(7)").forEach { left ->
+            listOf("3", "-3", "BIG.of(3)", "BIG.of(-3)").forEach { right ->
+                assertEquals(eval(left).toString(), eval("FLOOR_DIV($left; $right) * $right + MOD($left; $right)").toString())
+            }
+        }
+    }
+
+    @Test
+    fun floorDivErrors() = runTest {
+        assertFailsWith<FluoriteException> { eval("FLOOR_DIV()") }
+        assertFailsWith<FluoriteException> { eval("FLOOR_DIV(1)") }
+        assertFailsWith<FluoriteException> { eval("FLOOR_DIV(1; 2; 3)") }
+        listOf("1", "BIG.of(1)", "1.0").forEach { number ->
+            assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV(NULL; $number)") }
+            assertFailsWith<IllegalArgumentException> { eval("FLOOR_DIV($number; NULL)") }
+        }
+        assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(1; 0)") }
+        assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); 0)") }
+        assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(1; BIG.of(0))") }
+        assertFailsWith<ArithmeticException> { eval("FLOOR_DIV(BIG.of(1); BIG.of(0))") }
+    }
+
+    @Test
     fun modBig() = runTest {
         assertEquals(1.toBigInteger(), eval("BIG.of(7) % BIG.of(3)").big)
         assertEquals(2.toBigInteger(), eval("BIG.of(-7) % BIG.of(3)").big)

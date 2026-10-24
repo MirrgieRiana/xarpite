@@ -502,6 +502,12 @@ Divides `x` by `y` and returns the integer part of the result.
 ```shell
 $ xa '7 DIV 3'
 # 2
+
+$ xa '-7 DIV 3'
+# -2
+
+$ xa 'BIG.of(7) DIV -3'
+# -2
 ```
 
 ---
@@ -514,6 +520,33 @@ When a `DOUBLE` is included, computes the result using `DOUBLE` arguments and re
 $ xa 'DIV(BIG.of("123456789012345678901234567890"); 10)'
 # 12345678901234567890123456789
 ```
+
+### `FLOOR_DIV`: Floor Division
+
+`FLOOR_DIV(x: NUMBER; y: NUMBER): NUMBER`
+
+Divides `x` by `y` and rounds the result down toward negative infinity.
+
+Dividing by zero raises an error when both arguments are integers.
+
+When a `DOUBLE` is included, dividing by zero returns `NaN`, positive infinity, or negative infinity.
+
+The remainder corresponding to the quotient returned by this function can be obtained with `MOD`.
+
+```shell
+$ xa '7 FLOOR_DIV 3'
+# 2
+
+$ xa '-7 FLOOR_DIV 3'
+# -3
+
+$ xa 'BIG.of(7) FLOOR_DIV -3'
+# -3
+```
+
+---
+
+The return type follows the same rules as `DIV`.
 
 ### `MOD`: Remainder with the Sign of the Divisor
 
