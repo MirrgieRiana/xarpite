@@ -2,6 +2,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.test.array
 import mirrg.xarpite.test.big
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.double
@@ -116,6 +117,119 @@ class NumberTest {
         assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (0 / BIG.of(-1)) """).double)
         assertEquals(Double.NEGATIVE_INFINITY, eval(""" 1 / (BIG.of(0) / BIG.of(-1)) """).double)
         assertEquals(Double.POSITIVE_INFINITY, eval(""" 1 / (BIG.of(0) / 1) """).double)
+    }
+
+    @Test
+    fun bigCompare() = runTest {
+        listOf(
+            Triple("BIG.of(0)", "BIG.of(0)", 0),
+            Triple("BIG.of(-1)", "BIG.of(0)", -1),
+            Triple("BIG.of(1)", "BIG.of(0)", 1),
+            Triple("BIG.of(1)", "1", 0),
+            Triple("BIG.of(-1)", "0", -1),
+            Triple("BIG.of(1)", "0", 1),
+            Triple("BIG.of(\"2147483648\")", "2147483647", 1),
+            Triple("BIG.of(\"-2147483648\")", "-2147483647", -1),
+            Triple("BIG.of(\"-2147483648\")", "(-2147483647 - 1)", 0),
+            Triple("BIG.of(\"123456789012345678901234567890\")", "BIG.of(\"123456789012345678901234567891\")", -1),
+            Triple("BIG.of(\"-123456789012345678901234567890\")", "BIG.of(\"-123456789012345678901234567891\")", 1),
+        ).forEach { (left, right, expected) ->
+            assertEquals(expected, eval("$left <=> $right").int)
+            assertEquals(-expected, eval("$right <=> $left").int)
+        }
+    }
+
+    @Test
+    fun bigCompareDouble() = runTest {
+        listOf(
+            Triple("BIG.of(1)", "1.0", 0),
+            Triple("BIG.of(1)", "1.5", -1),
+            Triple("BIG.of(2)", "1.5", 1),
+            Triple("BIG.of(-1)", "-1.5", 1),
+            Triple("BIG.of(-2)", "-1.5", -1),
+            Triple("BIG.of(0)", "0.5", -1),
+            Triple("BIG.of(0)", "-0.5", 1),
+            Triple("BIG.of(\"9007199254740993\")", "9007199254740992.0", 1),
+            Triple("BIG.of(\"9007199254740991\")", "9007199254740992.0", -1),
+            Triple("BIG.of(\"-9007199254740993\")", "-9007199254740992.0", -1),
+            Triple("BIG.of(\"99999999999999991611392\")", "DOUBLE.of(\"1e23\")", 0),
+            Triple("BIG.of(\"100000000000000000000000\")", "DOUBLE.of(\"1e23\")", 1),
+            Triple("BIG.of(\"-100000000000000000000000\")", "DOUBLE.of(\"-1e23\")", -1),
+        ).forEach { (left, right, expected) ->
+            assertEquals(expected, eval("$left <=> $right").int)
+            assertEquals(-expected, eval("$right <=> $left").int)
+        }
+    }
+
+    @Test
+    fun bigCompareDoubleSpecialValues() = runTest {
+        val huge = "1" + "0".repeat(400)
+        val maximum = 2.toBigInteger().pow(1024) - 2.toBigInteger().pow(971)
+        listOf(
+            Triple("BIG.of(0)", "0.0", 0),
+            Triple("BIG.of(0)", "DOUBLE.of(\"-0.0\")", 1),
+            Triple("BIG.of(1)", "DOUBLE.of(\"-0.0\")", 1),
+            Triple("BIG.of(-1)", "0.0", -1),
+            Triple("BIG.of(0)", "DOUBLE.of(\"5e-324\")", -1),
+            Triple("BIG.of(0)", "DOUBLE.of(\"-5e-324\")", 1),
+            Triple("BIG.of(1)", "DOUBLE.of(\"5e-324\")", 1),
+            Triple("BIG.of(-1)", "DOUBLE.of(\"-5e-324\")", -1),
+            Triple("BIG.of(\"$maximum\")", "DOUBLE.of(\"${Double.MAX_VALUE}\")", 0),
+            Triple("BIG.of(\"${maximum - 1}\")", "DOUBLE.of(\"${Double.MAX_VALUE}\")", -1),
+            Triple("BIG.of(\"${maximum + 1}\")", "DOUBLE.of(\"${Double.MAX_VALUE}\")", 1),
+            Triple("BIG.of(\"$huge\")", "DOUBLE.of(\"${Double.MAX_VALUE}\")", 1),
+            Triple("BIG.of(\"-$huge\")", "DOUBLE.of(\"-${Double.MAX_VALUE}\")", -1),
+            Triple("BIG.of(\"$huge\")", "DOUBLE.of(\"Infinity\")", -1),
+            Triple("BIG.of(\"-$huge\")", "DOUBLE.of(\"-Infinity\")", 1),
+            Triple("BIG.of(\"$huge\")", "DOUBLE.of(\"NaN\")", -1),
+            Triple("BIG.of(\"-$huge\")", "DOUBLE.of(\"NaN\")", -1),
+        ).forEach { (left, right, expected) ->
+            assertEquals(expected, eval("$left <=> $right").int)
+            assertEquals(-expected, eval("$right <=> $left").int)
+        }
+    }
+
+    @Test
+    fun bigCompareOperators() = runTest {
+        listOf(
+            Triple("BIG.of(1)", "BIG.of(2)", -1),
+            Triple("BIG.of(2)", "BIG.of(2)", 0),
+            Triple("BIG.of(3)", "BIG.of(2)", 1),
+            Triple("BIG.of(1)", "2", -1),
+            Triple("1", "BIG.of(2)", -1),
+            Triple("BIG.of(1)", "1.0", 0),
+            Triple("1.0", "BIG.of(1)", 0),
+            Triple("BIG.of(2)", "1.5", 1),
+            Triple("1.5", "BIG.of(2)", -1),
+        ).forEach { (left, right, expected) ->
+            assertEquals(expected < 0, eval("$left < $right").boolean)
+            assertEquals(expected > 0, eval("$left > $right").boolean)
+            assertEquals(expected <= 0, eval("$left <= $right").boolean)
+            assertEquals(expected >= 0, eval("$left >= $right").boolean)
+        }
+        assertEquals(true, eval("0 < BIG.of(1) <= 1.0 < BIG.of(2)").boolean)
+        assertEquals(false, eval("0 < BIG.of(1) < 1.0").boolean)
+        assertEquals("[0;9007199254740992;9007199254740993]", eval(""" BIG.of("9007199254740993"), 0, BIG.of("9007199254740992") >> SORT >> TO_ARRAY """).array())
+    }
+
+    @Test
+    fun bigEquality() = runTest {
+        assertEquals(true, eval("BIG.of(1) == BIG.of(1)").boolean)
+        assertEquals(false, eval("BIG.of(1) == BIG.of(2)").boolean)
+        assertEquals(false, eval("BIG.of(1) == 1").boolean)
+        assertEquals(false, eval("1 == BIG.of(1)").boolean)
+        assertEquals(false, eval("BIG.of(1) == 1.0").boolean)
+        assertEquals(false, eval("1.0 == BIG.of(1)").boolean)
+        assertEquals(false, eval("BIG.of(1) != BIG.of(1)").boolean)
+        assertEquals(true, eval("BIG.of(1) != 1").boolean)
+        assertEquals(true, eval("BIG.of(1) != 1.0").boolean)
+    }
+
+    @Test
+    fun bigCompareErrors() = runTest {
+        listOf("NULL", "TRUE", "\"1\"", "[]", "{}").forEach { value ->
+            assertFailsWith<IllegalArgumentException> { eval("BIG.of(1) <=> $value") }
+        }
     }
 
     @Test

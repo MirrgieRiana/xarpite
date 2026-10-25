@@ -55,6 +55,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                         val left = arguments[0] as FluoriteInt
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteBig -> left.value.toBigInteger().compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -119,6 +120,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                         val left = arguments[0] as FluoriteDouble
                         when (val right = arguments[1]) {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteBig -> (-compare(right.value, left.value)).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
@@ -179,6 +181,15 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
+                    OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
+                        val left = arguments[0] as FluoriteBig
+                        when (val right = arguments[1]) {
+                            is FluoriteInt -> left.value.compareTo(right.value.toBigInteger()).toFluoriteIntAsCompared()
+                            is FluoriteBig -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteDouble -> compare(left.value, right.value).toFluoriteIntAsCompared()
+                            else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
+                        }
+                    },
                 )
             )
         }
@@ -191,6 +202,26 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
     override fun toDouble() = value.doubleValue(false)
     override fun negate() = FluoriteBig(value.negate())
     override fun roundToInt() = value.intValue(true)
+}
+
+private fun compare(left: BigInteger, right: Double): Int {
+    // 無限大・NaN・符号付きゼロとの大小関係はleftの符号だけで決まり、Double.compareToの順序に従う
+    if (!right.isFinite() || right == 0.0) return left.signum().toDouble().compareTo(right)
+    // bignumのDoubleからの整数変換は10進文字列を経由するため、2進表現から正確に比較する
+    // IEEE 754の符号1ビット・指数部11ビット・小数部52ビットを、そのままLongとして取得する
+    val bits = right.toBits()
+    // 下位52ビットの小数部を除き、上位の符号ビットをマスクして、バイアス1023付きの指数部を取り出す
+    val exponent = ((bits ushr 52) and 0x7ffL).toInt()
+    // 小数部に正規化数の暗黙の先頭1を補い、仮数を整数として取り出す（非正規化数では補わない）
+    val significand = (bits and 0x000fffffffffffffL) or if (exponent == 0) 0L else 0x0010000000000000L
+    // 仮数に元の値の符号を付け、以降のビットシフトで桁あふれしないよう任意精度整数にする
+    val integer = (if (right < 0.0) -significand else significand).toBigInteger()
+    // 仮数を整数化した分の52ビットを指数から引くと、正規化数はexponent - 1023 - 52になる
+    // 非正規化数の指数は1 - 1023で固定されるため、同じく52を引いて-1074になる
+    val shift = if (exponent == 0) -1074 else exponent - 1075
+    // right = integer × 2^shiftなので、指数が非負なら右辺を、負なら両辺に2^-shiftを掛けて左辺をシフトする
+    // どちらも整数同士の比較となり、丸め誤差を生じさせずに元の大小関係を得られる
+    return if (shift >= 0) left.compareTo(integer shl shift) else (left shl -shift).compareTo(integer)
 }
 
 fun FluoriteValue.checkNonZeroIntegerDivisor() {

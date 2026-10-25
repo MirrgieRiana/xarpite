@@ -77,6 +77,15 @@ $ xa '[1 == 2, 2 == 2, 3 == 2]'
 
 Currently, it is only defined for some types such as numbers and strings.
 
+---
+
+Numbers of different types are considered unequal even when they represent the same numeric value.
+
+```shell
+$ xa '[BIG.of(1) == BIG.of(1), BIG.of(1) == 1, BIG.of(1) == 1.0]'
+# [TRUE;FALSE;FALSE]
+```
+
 ## Inequality Operator
 
 The inequality operator `left != right` returns whether the values on both sides are not equal.
