@@ -253,6 +253,23 @@ $ xa '3 <=> 2'
 
 ---
 
+数値同士の大小比較では、`NaN`は正の無限大を含む`NaN`以外のすべての数値より大きいものとして比較されます。
+
+`NaN`同士を宇宙船演算子で比較した場合、0を返します。
+
+```shell
+$ xa 'DOUBLE.of("NaN") <=> DOUBLE.of("Infinity")'
+# 1
+
+$ xa 'DOUBLE.of("NaN") <=> DOUBLE.of("NaN")'
+# 0
+
+$ xa 'DOUBLE.of("NaN") > BIG.of(0)'
+# TRUE
+```
+
+---
+
 文字列同士を比較した場合は、辞書順で判定されます。
 
 ```shell

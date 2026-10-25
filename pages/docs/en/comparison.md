@@ -253,6 +253,23 @@ $ xa '3 <=> 2'
 
 ---
 
+In numeric ordering comparisons, `NaN` compares greater than every other number, including positive infinity.
+
+The spaceship operator returns 0 when comparing two `NaN` values.
+
+```shell
+$ xa 'DOUBLE.of("NaN") <=> DOUBLE.of("Infinity")'
+# 1
+
+$ xa 'DOUBLE.of("NaN") <=> DOUBLE.of("NaN")'
+# 0
+
+$ xa 'DOUBLE.of("NaN") > BIG.of(0)'
+# TRUE
+```
+
+---
+
 When comparing strings, they are determined in lexicographic order.
 
 ```shell
