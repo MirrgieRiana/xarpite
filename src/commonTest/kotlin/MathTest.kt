@@ -19,6 +19,20 @@ import kotlin.test.assertTrue
 class MathTest {
 
     @Test
+    fun specialValueConstants() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            assertEquals(Double.POSITIVE_INFINITY, eval("INFINITY", apiVersion = apiVersion).double)
+            assertEquals(Double.NEGATIVE_INFINITY, eval("NEGATIVE_INFINITY", apiVersion = apiVersion).double)
+            assertTrue(eval("NAN", apiVersion = apiVersion).double.isNaN())
+        }
+        assertEquals(Double.NEGATIVE_INFINITY, eval("-INFINITY").double)
+        assertEquals(Double.POSITIVE_INFINITY, eval("-NEGATIVE_INFINITY").double)
+        assertEquals("Infinity", eval("&INFINITY").string)
+        assertEquals("-Infinity", eval("&NEGATIVE_INFINITY").string)
+        assertEquals("NaN", eval("&NAN").string)
+    }
+
+    @Test
     fun floor() = runTest {
         assertEquals(10, eval("FLOOR(10.1)").int) // FLOOR関数は小数点以下を切り捨てて内部的な型をINTにする
         assertEquals(10, eval("FLOOR(10)").int) // 整数はそのまま

@@ -523,10 +523,30 @@ $ xa '$#-10'
 
 Numeric built-in constants.
 
-| Constant | Meaning         |
-|----------|-----------------|
-| `MATH.PI` | Pi (π)          |
-| `MATH.E`  | Euler's number (e) |
+| Constant            | Type     | Meaning           |
+|---------------------|----------|-------------------|
+| `MATH.PI`           | `DOUBLE` | Pi (π)            |
+| `MATH.E`            | `DOUBLE` | Euler's number (e) |
+| `INFINITY`          | `DOUBLE` | Positive infinity |
+| `NEGATIVE_INFINITY` | `DOUBLE` | Negative infinity |
+| `NAN`               | `DOUBLE` | Not-a-number      |
+
+```shell
+$ xa 'MATH.PI'
+# 3.141592653589793
+
+$ xa 'MATH.E'
+# 2.718281828459045
+
+$ xa 'INFINITY'
+# Infinity
+
+$ xa 'NEGATIVE_INFINITY'
+# -Infinity
+
+$ xa 'NAN'
+# NaN
+```
 
 ## Built-in Functions
 

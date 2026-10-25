@@ -523,10 +523,30 @@ $ xa '$#-10'
 
 数値系の組み込み定数です。
 
-| 定数        | 意味    |
-|-----------|-------|
-| `MATH.PI` | 円周率   |
-| `MATH.E`  | ネイピア数 |
+| 定数                  | 型        | 意味    |
+|---------------------|----------|-------|
+| `MATH.PI`           | `DOUBLE` | 円周率   |
+| `MATH.E`            | `DOUBLE` | ネイピア数 |
+| `INFINITY`          | `DOUBLE` | 正の無限大 |
+| `NEGATIVE_INFINITY` | `DOUBLE` | 負の無限大 |
+| `NAN`               | `DOUBLE` | 非数    |
+
+```shell
+$ xa 'MATH.PI'
+# 3.141592653589793
+
+$ xa 'MATH.E'
+# 2.718281828459045
+
+$ xa 'INFINITY'
+# Infinity
+
+$ xa 'NEGATIVE_INFINITY'
+# -Infinity
+
+$ xa 'NAN'
+# NaN
+```
 
 ## 組み込み関数
 

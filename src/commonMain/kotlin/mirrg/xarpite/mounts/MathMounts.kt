@@ -40,6 +40,9 @@ fun createMathMounts(): List<Map<String, Mount>> {
             )
         ),
         "PI" define FluoriteDouble(3.141592653589793), // TODO kotlinアップデート時に定数に置換し直す
+        "INFINITY" define FluoriteDouble(Double.POSITIVE_INFINITY),
+        "NEGATIVE_INFINITY" define FluoriteDouble(Double.NEGATIVE_INFINITY),
+        "NAN" define FluoriteDouble(Double.NaN),
         "ABS" define FluoriteFunction.immediate { arguments ->
             when (arguments.size) {
                 1 -> when (val number = arguments[0].toFluoriteNumber(null)) {
