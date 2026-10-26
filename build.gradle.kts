@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     kotlin("multiplatform") version "2.3.0"
@@ -48,6 +49,13 @@ kotlin {
     linuxX64 {
         binaries {
             executable("xarpite")
+            if (HostManager.hostIsMingw) {
+                all {
+                    // 静的ライブラリより前にグループ開始を置き、再検索によりOpenSSLの後方参照が未解決になるのを防ぐ
+                    freeCompilerArgs += "-Xoverride-konan-properties=linkerHostSpecificFlags.mingw_x64-linux_x64=--start-group"
+                    linkerOpts("--end-group")
+                }
+            }
         }
     }
     // mingwX64だけ同じテストが成功したり失敗したりする怪現象のため廃止
