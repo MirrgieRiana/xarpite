@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
+import mirrg.xarpite.AbstractIoContext
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -13,16 +14,33 @@ import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.cache
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.get
 import mirrg.xarpite.withEvaluator
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * JVMプラットフォーム専用：Ktorサーバーを使用したHTTP/HTTPS URL形式INCのテスト
  */
 class IncUrlKtorTest {
+
+    @Test
+    fun abstractIoContextFetch() = runTest {
+        withKtorServer { server ->
+            server.addRoute("/content", "Shared IoContext")
+            withEvaluator(createTestIoContext()) { context, _ ->
+                val content = context.io.fetch(context, "${server.baseUrl}/content").getOrThrow()
+                assertEquals("Shared IoContext", content.decodeToString())
+
+                val error = context.io.fetch(context, "${server.baseUrl}/missing").exceptionOrNull()
+                assertTrue(error is FluoriteException)
+                assertEquals("HTTP 404", error.message)
+            }
+        }
+    }
 
     @Test
     fun useModuleFromHttpUrl() = runTest {
@@ -266,9 +284,9 @@ class IncUrlKtorTest {
 
     // テスト用のIoContextを作成するヘルパー関数
     private fun createTestIoContext(
-        fetchHandler: suspend (RuntimeContext, String) -> Result<ByteArray>
+        fetchHandler: (suspend (RuntimeContext, String) -> Result<ByteArray>)? = null
     ): IoContext {
-        return object : IoContext {
+        val ioContext = object : AbstractIoContext() {
             override fun getEnv(): Map<String, String> = emptyMap()
             override fun getPlatformPwd(): String = "/test"
             override suspend fun out(value: FluoriteValue) {}
@@ -280,11 +298,13 @@ class IncUrlKtorTest {
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray {
                 throw UnsupportedOperationException("executeProcess is not supported in test")
             }
-            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
-                return fetchHandler(context, url)
-            }
             override fun exit(code: Int): Nothing {
                 throw RuntimeException("exit($code)")
+            }
+        }
+        return if (fetchHandler == null) ioContext else object : IoContext by ioContext {
+            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+                return fetchHandler(context, url)
             }
         }
     }

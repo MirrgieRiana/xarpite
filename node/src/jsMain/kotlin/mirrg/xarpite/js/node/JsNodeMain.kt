@@ -1,16 +1,12 @@
 package mirrg.xarpite.js.node
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.readRawBytes
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.await
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
-import mirrg.xarpite.IoContext
-import mirrg.xarpite.RuntimeContext
+import mirrg.xarpite.AbstractIoContext
 import mirrg.xarpite.WorkInProgressError
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowHelp
@@ -30,7 +26,6 @@ import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
 import mirrg.xarpite.js.createJsMounts
 import mirrg.xarpite.js.scope
-import mirrg.xarpite.operations.FluoriteException
 import okio.NodeJsFileSystem
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -84,7 +79,7 @@ suspend fun main() {
     }
 
     coroutineScope {
-        val ioContext = object : IoContext {
+        val ioContext = object : AbstractIoContext() {
             override fun getEnv(): Map<String, String> = envGetter()
             override fun getPlatformPwd(): String = process.cwd()
             override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
@@ -94,21 +89,6 @@ suspend fun main() {
             override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)
             override suspend fun writeBytesToStderr(bytes: ByteArray) = writeBytesToStderrImpl(bytes)
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>) = throw WorkInProgressError("EXEC is an experimental feature and is currently only available on JVM and Native platforms")
-
-            override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
-                return try {
-                    val response = context.httpClient.get(url)
-                    if (response.status.value in 200..299) {
-                        Result.success(response.readRawBytes())
-                    } else {
-                        Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
-                }
-            }
 
             override fun exit(code: Int): Nothing = process.exit(code)
         }

@@ -1,6 +1,8 @@
 package mirrg.xarpite
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
@@ -13,7 +15,10 @@ import mirrg.kotlin.helium.atMost
 import mirrg.xarpite.cli.getPwd
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.toFluoriteString
+import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
+import kotlin.coroutines.cancellation.CancellationException
 
 class RuntimeContext(
     val coroutineScope: CoroutineScope,
@@ -117,6 +122,23 @@ interface IoContext {
     suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray
     suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray>
     fun exit(code: Int): Nothing
+}
+
+abstract class AbstractIoContext : IoContext {
+    final override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
+        return try {
+            val response = context.httpClient.get(url)
+            if (response.status.value in 200..299) {
+                Result.success(response.readRawBytes())
+            } else {
+                Result.failure(FluoriteException("HTTP ${response.status.value}".toFluoriteString()))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(FluoriteException((e.message ?: "$e").toFluoriteString()))
+        }
+    }
 }
 
 open class UnsupportedIoContext : IoContext {
