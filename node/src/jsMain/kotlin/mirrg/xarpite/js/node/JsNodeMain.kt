@@ -6,8 +6,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.suspendCancellableCoroutine
-import mirrg.xarpite.AbstractIoContext
 import mirrg.xarpite.WorkInProgressError
+import mirrg.xarpite.cli.CliIoContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.cli.ShowHelp
 import mirrg.xarpite.cli.ShowMessage
@@ -19,8 +19,6 @@ import mirrg.xarpite.cli.showHelp
 import mirrg.xarpite.cli.showMessage
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
-import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.fileSystemGetter
 import mirrg.xarpite.isWindowsImpl
 import mirrg.xarpite.js.Object_keys
@@ -79,11 +77,9 @@ suspend fun main() {
     }
 
     coroutineScope {
-        val ioContext = object : AbstractIoContext() {
+        val ioContext = object : CliIoContext() {
             override fun getEnv(): Map<String, String> = envGetter()
             override fun getPlatformPwd(): String = process.cwd()
-            override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
-            override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = readLineFromStdinImpl()
             override suspend fun readBytesFromStdin() = readBytesFromStdinImpl()
             override suspend fun writeBytesToStdout(bytes: ByteArray) = writeBytesToStdoutImpl(bytes)

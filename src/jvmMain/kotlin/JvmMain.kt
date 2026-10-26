@@ -1,5 +1,5 @@
 import kotlinx.coroutines.runBlocking
-import mirrg.xarpite.AbstractIoContext
+import mirrg.xarpite.cli.CliIoContext
 import mirrg.xarpite.cli.ShowHelp
 import mirrg.xarpite.cli.ShowMessage
 import mirrg.xarpite.cli.ShowUsage
@@ -10,17 +10,13 @@ import mirrg.xarpite.cli.showHelp
 import mirrg.xarpite.cli.showMessage
 import mirrg.xarpite.cli.showUsage
 import mirrg.xarpite.cli.showVersion
-import mirrg.xarpite.compilers.objects.FluoriteValue
-import mirrg.xarpite.compilers.objects.toFluoriteString
 import java.nio.file.Path
 
 fun main(args: Array<String>) {
     runBlocking {
-        val ioContext = object : AbstractIoContext() {
+        val ioContext = object : CliIoContext() {
             override fun getEnv(): Map<String, String> = mirrg.xarpite.getEnv()
             override fun getPlatformPwd(): String = Path.of("").toAbsolutePath().normalize().toString()
-            override suspend fun out(value: FluoriteValue) = println(value.toFluoriteString(null).value)
-            override suspend fun err(value: FluoriteValue) = writeBytesToStderr("${value.toFluoriteString(null).value}\n".encodeToByteArray())
             override suspend fun readLineFromStdin() = mirrg.xarpite.readLineFromStdin()
             override suspend fun readBytesFromStdin() = mirrg.xarpite.readBytesFromStdin()
             override suspend fun writeBytesToStdout(bytes: ByteArray) = mirrg.xarpite.writeBytesToStdout(bytes)
