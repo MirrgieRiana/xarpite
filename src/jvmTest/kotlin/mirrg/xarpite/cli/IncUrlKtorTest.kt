@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import mirrg.xarpite.AbstractIoContext
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
@@ -21,6 +22,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 /**
  * JVMプラットフォーム専用：Ktorサーバーを使用したHTTP/HTTPS URL形式INCのテスト
@@ -289,6 +291,8 @@ class IncUrlKtorTest {
         val ioContext = object : AbstractIoContext() {
             override fun getEnv(): Map<String, String> = emptyMap()
             override fun getPlatformPwd(): String = "/test"
+            override fun getCurrentInstant(): Instant = throw UnsupportedOperationException()
+            override fun getSystemTimeZone(): TimeZone = throw UnsupportedOperationException()
             override suspend fun out(value: FluoriteValue) {}
             override suspend fun err(value: FluoriteValue) {}
             override suspend fun readLineFromStdin(): String? = null

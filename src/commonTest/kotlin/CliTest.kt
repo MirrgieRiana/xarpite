@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import mirrg.xarpite.IoContext
 import mirrg.xarpite.Mount
 import mirrg.xarpite.RuntimeContext
@@ -46,6 +47,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Clock
 import mirrg.xarpite.cli.cliEval as cliEvalImpl
 
 val baseDir = "build/test".toPath()
@@ -3554,6 +3556,10 @@ internal class TestIoContext(
     override fun getEnv(): Map<String, String> = env
 
     override fun getPlatformPwd(): String = currentLocation
+
+    override fun getCurrentInstant() = Clock.System.now()
+
+    override fun getSystemTimeZone() = TimeZone.currentSystemDefault()
 
     override fun exit(code: Int): Nothing {
         exitCode = code

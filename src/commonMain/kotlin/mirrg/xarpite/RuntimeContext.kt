@@ -9,6 +9,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.TimeZone
 import mirrg.kotlin.helium.Single
 import mirrg.kotlin.helium.atLeast
 import mirrg.kotlin.helium.atMost
@@ -19,6 +20,8 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path.Companion.toPath
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class RuntimeContext(
     val coroutineScope: CoroutineScope,
@@ -113,6 +116,8 @@ class RuntimeContext(
 interface IoContext {
     fun getEnv(): Map<String, String>
     fun getPlatformPwd(): String
+    fun getCurrentInstant(): Instant
+    fun getSystemTimeZone(): TimeZone
     suspend fun out(value: FluoriteValue)
     suspend fun err(value: FluoriteValue)
     suspend fun readLineFromStdin(): String?
@@ -125,6 +130,9 @@ interface IoContext {
 }
 
 abstract class AbstractIoContext : IoContext {
+    override fun getCurrentInstant() = Clock.System.now()
+    override fun getSystemTimeZone() = TimeZone.currentSystemDefault()
+
     final override suspend fun fetch(context: RuntimeContext, url: String): Result<ByteArray> {
         return try {
             val response = context.httpClient.get(url)
@@ -144,6 +152,8 @@ abstract class AbstractIoContext : IoContext {
 open class UnsupportedIoContext : IoContext {
     override fun getEnv(): Map<String, String> = throw UnsupportedOperationException()
     override fun getPlatformPwd(): String = throw UnsupportedOperationException()
+    override fun getCurrentInstant(): Instant = throw UnsupportedOperationException()
+    override fun getSystemTimeZone(): TimeZone = throw UnsupportedOperationException()
     override suspend fun out(value: FluoriteValue): Unit = throw UnsupportedOperationException()
     override suspend fun err(value: FluoriteValue): Unit = throw UnsupportedOperationException()
     override suspend fun readLineFromStdin(): String? = throw UnsupportedOperationException()
