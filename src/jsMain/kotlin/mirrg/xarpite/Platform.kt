@@ -1,6 +1,8 @@
 package mirrg.xarpite
 
+import okio.FileMetadata
 import okio.FileSystem
+import okio.Path
 
 actual fun getProgramName(): String? = null
 
@@ -15,6 +17,8 @@ actual fun getFileSystem(): Result<FileSystem> {
         Result.failure(IllegalStateException("Does not support file system operations on JS Browser platform"))
     }
 }
+
+actual fun FileSystem.metadataOrNullIfValid(path: Path): FileMetadata? = this.metadataOrNull(path)
 
 var isWindowsImpl: (() -> Boolean)? = null
 actual fun isWindows(): Boolean = isWindowsImpl!!()

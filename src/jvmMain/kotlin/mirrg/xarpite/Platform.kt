@@ -7,13 +7,25 @@ import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
+import okio.FileMetadata
 import okio.FileSystem
+import okio.Path
 import java.io.BufferedReader
+import java.nio.file.InvalidPathException
 
 actual fun getProgramName(): String? = null
 fun getEnv(): Map<String, String> = System.getenv()
 actual fun hasFreeze() = false
 actual fun getFileSystem() = Result.success(FileSystem.SYSTEM)
+
+actual fun FileSystem.metadataOrNullIfValid(path: Path): FileMetadata? {
+    return try {
+        this.metadataOrNull(path)
+    } catch (_: InvalidPathException) {
+        // Windowsファイルシステムに変な記号を入れた場合に踏む
+        null
+    }
+}
 
 actual fun isWindows(): Boolean {
     val os = System.getProperty("os.name")

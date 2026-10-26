@@ -1065,6 +1065,23 @@ class CliTest {
     }
 
     @Test
+    fun useIncRelativePathWithColonSearchesUrl() = runTest {
+        val urls = mutableListOf<String>()
+        val context = TestIoContext(fetchHandler = { _, url ->
+            urls += url
+            Result.success("123".encodeToByteArray())
+        })
+
+        val result = cliEval(context, """
+            INC::push("https://example.com/modules")
+            USE("group:artifact")
+        """.trimIndent()).toFluoriteString(null).value
+
+        assertEquals("123", result)
+        assertEquals(listOf("https://example.com/modules/group:artifact"), urls)
+    }
+
+    @Test
     fun useIncRelativePathNotFoundThrowsError() = runTest {
         val context = TestIoContext()
 

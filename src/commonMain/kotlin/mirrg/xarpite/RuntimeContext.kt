@@ -67,7 +67,7 @@ class RuntimeContext(
                 Single(io.fetch(this, location).getOrNull()?.decodeToString())
             } else {
                 val fileSystem = getFileSystem().getOrThrow()
-                if (fileSystem.metadataOrNull(location.toPath())?.isRegularFile ?: false) {
+                if (fileSystem.metadataOrNullIfValid(location.toPath())?.isRegularFile ?: false) {
                     Single(fileSystem.read(location.toPath()) { readUtf8() })
                 } else {
                     Single(null)

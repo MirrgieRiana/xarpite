@@ -11,6 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import mirrg.xarpite.cli.INB_MAX_BUFFER_SIZE
+import okio.FileMetadata
+import okio.FileSystem
+import okio.Path
 import platform.posix.__environ
 import platform.posix.clearerr
 import platform.posix.errno
@@ -47,6 +50,8 @@ fun getEnv(): Map<String, String> {
 }
 
 actual fun hasFreeze() = true
+
+actual fun FileSystem.metadataOrNullIfValid(path: Path): FileMetadata? = this.metadataOrNull(path)
 
 suspend fun readLineFromStdin(): String? = withContext(Dispatchers.IO) { readlnOrNull() }
 
