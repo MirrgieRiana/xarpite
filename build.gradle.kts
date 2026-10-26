@@ -100,6 +100,11 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
             }
         }
+        jsTest {
+            dependencies {
+                implementation("com.squareup.okio:okio-nodefilesystem:3.16.0")
+            }
+        }
         jvmTest {
             dependencies {
                 implementation("io.ktor:ktor-server-core:3.0.3")

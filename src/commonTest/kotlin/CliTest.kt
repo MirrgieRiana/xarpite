@@ -41,6 +41,7 @@ import mirrg.xarpite.test.getEmbedded
 import mirrg.xarpite.test.stream
 import mirrg.xarpite.withEvaluator
 import okio.Path.Companion.toPath
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -54,6 +55,12 @@ val baseDir = "build/test".toPath()
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalUnsignedTypes::class)
 class CliTest {
+
+    @BeforeTest
+    fun setUp() {
+        initializeTestFileSystem()
+        getFileSystem().getOrThrow().createDirectories(baseDir)
+    }
 
     @Test
     fun args() = runTest {
@@ -255,7 +262,6 @@ class CliTest {
     @Test
     fun read() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("read.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         getFileSystem().getOrThrow().write(file) {
@@ -268,7 +274,6 @@ class CliTest {
     @Test
     fun readReturnsSingleStringOnApiVersion5() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         getFileSystem().getOrThrow().createDirectory(baseDir.resolve("read_api5.test_file.tmp"))
         val fileWithTrailingNewline = baseDir.resolve("read_api5.test_file.tmp/with_newline.txt")
         getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
@@ -288,7 +293,6 @@ class CliTest {
     @Test
     fun readl() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         getFileSystem().getOrThrow().createDirectory(baseDir.resolve("readl.test_file.tmp"))
         val fileWithTrailingNewline = baseDir.resolve("readl.test_file.tmp/with_newline.txt")
         getFileSystem().getOrThrow().write(fileWithTrailingNewline) {
@@ -308,7 +312,6 @@ class CliTest {
     @Test
     fun readb() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_file.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         getFileSystem().getOrThrow().write(file) {
@@ -322,7 +325,6 @@ class CliTest {
     @Test
     fun readbSplitsByBufferSize() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_file_large.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         val data = ByteArray(INB_MAX_BUFFER_SIZE + 1) { (it % 256).toByte() }
@@ -340,7 +342,6 @@ class CliTest {
     @Test
     fun readbEmptyFile() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_empty.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         getFileSystem().getOrThrow().write(file) {
@@ -353,7 +354,6 @@ class CliTest {
     @Test
     fun readbExactlyBufferSize() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_exact.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         val data = ByteArray(INB_MAX_BUFFER_SIZE) { (it % 256).toByte() }
@@ -369,7 +369,6 @@ class CliTest {
     @Test
     fun readbWithNullBytes() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_null.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         getFileSystem().getOrThrow().write(file) {
@@ -383,7 +382,6 @@ class CliTest {
     @Test
     fun readbMultipleBuffers() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("readb.test_multi.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
         val data = ByteArray(INB_MAX_BUFFER_SIZE * 2 + 100) { (it % 256).toByte() }
@@ -400,7 +398,6 @@ class CliTest {
     @Test
     fun write() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("write.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
@@ -428,7 +425,6 @@ class CliTest {
     @Test
     fun writel() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("writel.test_file.tmp.txt")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
@@ -456,7 +452,6 @@ class CliTest {
     @Test
     fun writeb() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("writeb.test_file.tmp.bin")
         getFileSystem().getOrThrow().createDirectory(file.parent!!)
 
@@ -490,7 +485,6 @@ class CliTest {
     @Test
     fun exists() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("exists.test_dir.tmp")
@@ -514,7 +508,6 @@ class CliTest {
     @Test
     fun isDirectory() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("is_directory.test_dir.tmp")
@@ -543,7 +536,6 @@ class CliTest {
     @Test
     fun files() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("files.test_dir.tmp")
@@ -577,7 +569,6 @@ class CliTest {
     @Test
     fun tree() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val dir = baseDir.resolve("tree.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
 
@@ -602,7 +593,6 @@ class CliTest {
     @Test
     fun fileTree() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val dir = baseDir.resolve("file_tree.test_dir.tmp")
         val fileSystem = getFileSystem().getOrThrow()
 
@@ -627,7 +617,6 @@ class CliTest {
     @Test
     fun treeDepthFirstOrder() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val dir = baseDir.resolve("tree.depth_first.tmp")
         val fileSystem = getFileSystem().getOrThrow()
 
@@ -653,7 +642,6 @@ class CliTest {
     @Test
     fun useEvaluatesFile() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.evaluate.tmp")
@@ -667,7 +655,6 @@ class CliTest {
     @Test
     fun useResolvesFromCurrentDirectory() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.relative.tmp")
@@ -683,7 +670,6 @@ class CliTest {
     @Test
     fun useResolvesXa1WhenExtensionOmitted() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.extension.tmp")
@@ -697,7 +683,6 @@ class CliTest {
     @Test
     fun useResolvesMainXa1WhenExtensionOmitted() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         val dir = baseDir.resolve("use.main.tmp")
         val moduleDir = dir.resolve("banana")
@@ -711,7 +696,6 @@ class CliTest {
     @Test
     fun useCachesByPath() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.cache.tmp.xa1")
@@ -742,7 +726,6 @@ class CliTest {
     @Test
     fun useCachesByPathAcrossDifferentFiles() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.cache.across.files.tmp")
@@ -806,7 +789,6 @@ class CliTest {
     @Test
     fun useSupportsAbsolutePath() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.absolute.tmp.xa1")
@@ -820,7 +802,6 @@ class CliTest {
     @Test
     fun useSupportsAbsolutePathWithoutExtension() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.absolute.noext.tmp.xa1")
@@ -836,7 +817,6 @@ class CliTest {
     @Test
     fun useAbsolutePathCachesByPath() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("use.absolute.cache.tmp.xa1")
@@ -870,7 +850,6 @@ class CliTest {
     @Test
     fun useSupportsMavenCoordinateWithVersion() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/example/utils/1.0.0".toPath()
@@ -884,7 +863,6 @@ class CliTest {
     @Test
     fun useMavenCoordinateConvertsDotsInGroup() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/org/jetbrains/kotlin/lib/2.0.0".toPath()
@@ -898,7 +876,6 @@ class CliTest {
     @Test
     fun useMavenCoordinateCachesByPath() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
         val xarpiteDir = ".xarpite/maven/com/test/module/1.0.0".toPath()
@@ -931,7 +908,6 @@ class CliTest {
     @Test
     fun useRejectsInvalidMavenCoordinate() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         // Reject Maven coordinates with wrong number of parts
         assertFailsWith<FluoriteException> {
             cliEval(context, """USE("group:artifact")""")
@@ -968,7 +944,6 @@ class CliTest {
     @Test
     fun useIncRelativePath() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // INCディレクトリにモジュールを配置
@@ -992,7 +967,6 @@ class CliTest {
     @Test
     fun useIncRelativePathWithExtension() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // INCディレクトリにモジュールを配置
@@ -1016,7 +990,6 @@ class CliTest {
     @Test
     fun useIncRelativePathWithSubdirectory() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // INCディレクトリにサブディレクトリを含むモジュールを配置
@@ -1041,7 +1014,6 @@ class CliTest {
     @Test
     fun useIncRelativePathResolvesMainXa1() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // INCディレクトリにディレクトリ形式のモジュールを配置
@@ -1066,7 +1038,6 @@ class CliTest {
     @Test
     fun useIncRelativePathSearchesMultipleIncPaths() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // 複数のINCディレクトリを作成
@@ -1096,7 +1067,6 @@ class CliTest {
     @Test
     fun useIncRelativePathNotFoundThrowsError() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
 
         // 存在しないINC相対パスはエラー
         assertFailsWith<FluoriteException> {
@@ -1110,7 +1080,6 @@ class CliTest {
     @Test
     fun useIncRelativePathPriority() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // 複数のINCディレクトリに同名のモジュールを配置
@@ -1141,7 +1110,6 @@ class CliTest {
     @Test
     fun useDotRelativePathResolvedFromCaller() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // . で始まるパスは呼び出し元からの相対パスとして解決される
@@ -1163,7 +1131,6 @@ class CliTest {
     @Test
     fun useDotDotRelativePathResolvedFromCaller() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // .. で始まるパスは呼び出し元からの相対パスとして解決される
@@ -1313,7 +1280,6 @@ class CliTest {
     @Test
     fun xaInnerUseResolvesFromCallerDirectory() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // reference 省略時、スクリプト内の相対 USE は呼び出し側ディレクトリを起点に解決される
@@ -1363,7 +1329,6 @@ class CliTest {
     @Test
     fun useLoadsModuleFromXarpiteLib() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.deleteRecursively(".xarpite".toPath(), mustExist = false)
 
@@ -1415,7 +1380,6 @@ class CliTest {
     @Test
     fun incUrlFormatPrioritizesLocalPaths() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
 
         // ローカルパスにモジュールを配置
@@ -1458,7 +1422,6 @@ class CliTest {
     @Test
     fun useMavenCoordinateSearchesInInc() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.deleteRecursively("build/test/custom-inc".toPath(), mustExist = false)
 
@@ -1484,7 +1447,6 @@ class CliTest {
     @Test
     fun useTopLevelErrorShowsModuleStackTrace() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.top.level.error.tmp")
@@ -1528,7 +1490,6 @@ class CliTest {
     @Test
     fun useModuleMethodErrorShowsModuleStackTrace() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.method.error.tmp")
@@ -1574,7 +1535,6 @@ class CliTest {
     @Test
     fun useNestedErrorShowsCorrectStackTrace() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.nested.error.tmp")
@@ -1613,7 +1573,6 @@ class CliTest {
     @Test
     fun useModuleReturningStreamWithErrorShowsCorrectStackTrace() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.stream.error.tmp")
@@ -1652,7 +1611,6 @@ class CliTest {
     @Test
     fun useModuleFunctionErrorShowsModuleStackTrace() = runTest {
         val context = TestIoContext()
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val dir = baseDir.resolve("use.function.error.tmp")
@@ -1737,7 +1695,6 @@ class CliTest {
 
     @Test
     fun fileOption() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption.test_script.tmp.xa1")
@@ -1765,7 +1722,6 @@ class CliTest {
 
     @Test
     fun fileOptionWithQuiet() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_quiet.test_script.tmp.xa1")
@@ -1789,7 +1745,6 @@ class CliTest {
 
     @Test
     fun fileOptionWithDoubleDash() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_doubledash.test_script.tmp.xa1")
@@ -1813,7 +1768,6 @@ class CliTest {
 
     @Test
     fun fileOptionWithDoubleDashAndArguments() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("fileoption_doubledash_args.test_script.tmp.xa1")
@@ -1837,7 +1791,6 @@ class CliTest {
 
     @Test
     fun fileOptionDuplicateThrowsError() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file1 = baseDir.resolve("fileoption_dup1.test_script.tmp.xa1")
@@ -1859,7 +1812,6 @@ class CliTest {
 
     @Test
     fun fileOptionNonExistentFileThrowsError() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val file = baseDir.resolve("nonexistent.xa1")
 
         // 存在しないファイルを指定するとエラー
@@ -1882,7 +1834,6 @@ class CliTest {
 
     @Test
     fun eOptionAndFileOptionAreMutuallyExclusive() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("e_and_f.test_script.tmp.xa1")
@@ -1932,7 +1883,6 @@ class CliTest {
 
     @Test
     fun embeddedOptionDoesNotAffectModules() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val context = TestIoContext()
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
@@ -3074,7 +3024,6 @@ class CliTest {
 
     @Test
     fun locationConstantsWithFileExecution() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
         val file = baseDir.resolve("location_test.tmp.xa1")
@@ -3098,7 +3047,6 @@ class CliTest {
 
     @Test
     fun locationReturnsAbsolutePath() = runTest {
-        if (getFileSystem().isFailure) return@runTest
         val fileSystem = getFileSystem().getOrThrow()
         fileSystem.createDirectories(baseDir)
 
