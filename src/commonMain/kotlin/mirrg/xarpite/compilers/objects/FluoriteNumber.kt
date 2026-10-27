@@ -158,6 +158,7 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                                 if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
                                 FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
                             }
+
                             else -> usage("BIG.of(value: STRING | NUMBER): BIG")
                         }
                     },

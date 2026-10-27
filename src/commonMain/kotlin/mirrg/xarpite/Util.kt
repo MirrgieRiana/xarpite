@@ -123,6 +123,7 @@ fun String.toFluoriteValueAsSingleJson(): FluoriteValue {
             else -> this.content.toFluoriteNumber()
         }
     }
+
     val jsonElement = try {
         Json.decodeFromString<JsonElement>(this)
     } catch (e: SerializationException) {
