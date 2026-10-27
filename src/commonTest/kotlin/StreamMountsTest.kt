@@ -160,12 +160,16 @@ class StreamMountsTest {
         assertEquals(3, eval("1, 2 >> FOLD[NULL; a, x -> (a ?: 0) + x]").int)
         assertEquals(102, eval("1, 2 >> FOLD[0; a, x -> x == 1 ? NULL : (a ?: 100) + x]").int)
         assertEquals(FluoriteNull, eval("1 >> FOLD[0; a, x -> NULL]"))
-        assertEquals("[6;[i1;f1;i2;f2;i3;f3]]", eval($$"""
+        assertEquals(
+            "[6;[i1;f1;i2;f2;i3;f3]]", eval(
+                $$"""
             trace := []
             stream := 1 .. 3 | x => (trace::push("i$x"); x)
             result := FOLD(0; a, x -> (trace::push("f$x"); a + x); stream)
             [result; trace]
-        """).array())
+        """
+            ).array()
+        )
         assertFails { eval("1 >> FOLD[0; a, x -> !! x]") }
         listOf("FOLD()", "FOLD(0)", "FOLD(0; a, x -> a)", "FOLD(0; a, x -> a; 1; 2)").forEach { code ->
             assertFails { eval(code) }
@@ -185,12 +189,16 @@ class StreamMountsTest {
         assertEquals(3, eval("1, 2 >> FOLDR[NULL; x, a -> x + (a ?: 0)]").int)
         assertEquals(101, eval("1, 2 >> FOLDR[0; x, a -> x == 2 ? NULL : x + (a ?: 100)]").int)
         assertEquals(FluoriteNull, eval("1 >> FOLDR[0; x, a -> NULL]"))
-        assertEquals("[6;[i1;i2;i3;f3;f2;f1]]", eval($$"""
+        assertEquals(
+            "[6;[i1;i2;i3;f3;f2;f1]]", eval(
+                $$"""
             trace := []
             stream := 1 .. 3 | x => (trace::push("i$x"); x)
             result := FOLDR(0; x, a -> (trace::push("f$x"); x + a); stream)
             [result; trace]
-        """).array())
+        """
+            ).array()
+        )
         assertFails { eval("1 >> FOLDR[0; x, a -> !! x]") }
         listOf("FOLDR()", "FOLDR(0)", "FOLDR(0; x, a -> a)", "FOLDR(0; x, a -> a; 1; 2)").forEach { code ->
             assertFails { eval(code) }
@@ -246,29 +254,43 @@ class StreamMountsTest {
         assertEquals(20, eval("10, 20, 30, 40, 50 >> GET[1]").int) // インデックスが第1引数なので部分適用できる
         assertEquals("20,30,40", eval("10, 20, 30, 40, 50 >> GET[1 .. 3]").stream()) // インデックスストリームでも部分適用できるのだ
 
-        assertEquals("[1;2;3]", eval("""
+        assertEquals(
+            "[1;2;3]", eval(
+                """
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
             GET(2; stream)
             array
-        """).array()) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
-        assertEquals("[1;2;3]", eval("""
+        """
+            ).array()
+        ) // 必要なインデックスまでしか元ストリームを読まず、先読みもしない
+        assertEquals(
+            "[1;2;3]", eval(
+                """
             array := []
             stream := 1 .. 100 | ( array::push << _ ; _ )
             (GET(0, 2; stream)) >> VOID
             array
-        """).array()) // インデックスがストリームの場合も最大のインデックスまでしか読まないのだ
+        """
+            ).array()
+        ) // インデックスがストリームの場合も最大のインデックスまでしか読まないのだ
 
-        assertEquals(2, eval("""
+        assertEquals(
+            2, eval(
+                """
             nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
             GET(2; nat)
-        """).int) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
+        """
+            ).int
+        ) // 無限の値ストリームでも必要な位置まで読めば打ち切れる
 
         assertFails {
-            eval("""
+            eval(
+                """
                 nat := GENERATE(yield -> ( i := 0 ; WHILE [ => TRUE ] ( => yield << i ; i = i + 1 ) ))
                 GET(-1; nat)
-            """)
+            """
+            )
         } // 負のインデックスは元ストリームを一切読まないので、無限ストリームでもハングせずエラーになる
     }
 
@@ -372,15 +394,21 @@ class StreamMountsTest {
     @Test
     fun pipe() = runTest {
         // 複数回の読み取りで位置を記憶
-        assertEquals(5, eval("""
+        assertEquals(
+            5, eval(
+                """
             pipe := PIPE(1 .. 10)
             FIRST(pipe)
             TAKE(3; pipe)
             FIRST(pipe)
-        """).int)
+        """
+            ).int
+        )
 
         // 副作用は1度だけ発生
-        assertEquals("[1;2;3]", eval("""
+        assertEquals(
+            "[1;2;3]", eval(
+                """
             array := []
             pipe := PIPE(1 .. 3 | (
                 array::push << _
@@ -389,35 +417,51 @@ class StreamMountsTest {
             pipe
             pipe
             array
-        """).array())
+        """
+            ).array()
+        )
 
         // 未消費時は副作用なし
-        assertEquals("[]", eval("""
+        assertEquals(
+            "[]", eval(
+                """
             array := []
             pipe := PIPE(1 .. 3 | (
                 array::push << _
                 _
             ))
             array
-        """).array())
+        """
+            ).array()
+        )
 
         // 空ストリーム
-        assertEquals("", eval("""
+        assertEquals(
+            "", eval(
+                """
             pipe := PIPE(,)
             pipe
-        """).stream())
+        """
+            ).stream()
+        )
 
         // 非ストリーム
-        assertEquals(42, eval("""
+        assertEquals(
+            42, eval(
+                """
             pipe := PIPE(42)
             FIRST(pipe)
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun void() = runTest {
         // VOIDの呼び出しごとにstreamは1回イテレートされる
-        assertEquals("[1;2;3;1;2;3]", eval("""
+        assertEquals(
+            "[1;2;3;1;2;3]", eval(
+                """
             array := []
             stream := 1 .. 3 | (
                 array::push << _
@@ -426,13 +470,19 @@ class StreamMountsTest {
             VOID(stream)
             VOID(stream)
             array
-        """).array())
+        """
+            ).array()
+        )
 
         // VOIDの戻り値はNULLで、元のストリームとは無関係
-        assertEquals(FluoriteNull, eval("""
+        assertEquals(
+            FluoriteNull, eval(
+                """
             null := VOID(1 .. 3)
             null
-        """))
+        """
+            )
+        )
 
         // 非ストリームでも動作する
         assertEquals(FluoriteNull, eval("VOID(42)"))
@@ -445,7 +495,9 @@ class StreamMountsTest {
     @Test
     fun cache() = runTest {
         // CACHEの呼び出しごとにstreamは1回イテレートされる
-        assertEquals("[1;2;3;1;2;3]", eval("""
+        assertEquals(
+            "[1;2;3;1;2;3]", eval(
+                """
             array := []
             stream := 1 .. 3 | (
                 array::push << _
@@ -454,10 +506,14 @@ class StreamMountsTest {
             CACHE(stream)
             CACHE(stream)
             array
-        """).array())
+        """
+            ).array()
+        )
 
         // CACHEの戻り値のストリームは何度評価しても副作用が発生しない
-        assertEquals("[1;2;3]", eval("""
+        assertEquals(
+            "[1;2;3]", eval(
+                """
             array := []
             cached := CACHE(1 .. 3 | (
                 array::push << _
@@ -466,7 +522,9 @@ class StreamMountsTest {
             cached
             cached
             array
-        """).array())
+        """
+            ).array()
+        )
 
         // 非ストリームでもそのまま返す
         assertEquals(42, eval("CACHE(42)").int)

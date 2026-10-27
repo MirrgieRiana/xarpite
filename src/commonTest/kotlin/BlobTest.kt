@@ -46,67 +46,95 @@ class BlobTest {
     @Test
     fun ofFromStream() = runTest {
         // ストリームから生成：複数の配列を結合
-        assertEquals("1,0,255,0,1,1,2", (eval("""
+        assertEquals(
+            "1,0,255,0,1,1,2", (eval(
+                """
             BLOB.of(
                 [1, 0, -1],
                 [256, 257],
                 [1.4, 1.6],
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：BLOBと配列の混在
-        assertEquals("1,2,3,4,5", (eval("""
+        assertEquals(
+            "1,2,3,4,5", (eval(
+                """
             BLOB.of(
                 BLOB.of([1, 2]),
                 [3, 4, 5],
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：空の要素を含む
-        assertEquals("1,2", (eval("""
+        assertEquals(
+            "1,2", (eval(
+                """
             BLOB.of(
                 [1],
                 [],
                 [2],
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：全て空
-        assertEquals("", (eval("""
+        assertEquals(
+            "", (eval(
+                """
             BLOB.of(
                 [],
                 [],
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：数値、配列、BLOBの混在
-        assertEquals("10,20,30,40,50,60", (eval("""
+        assertEquals(
+            "10,20,30,40,50,60", (eval(
+                """
             BLOB.of(
                 10,
                 [20, 30],
                 BLOB.of([40, 50]),
                 60,
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：数値のみ
-        assertEquals("1,2,3", (eval("""
+        assertEquals(
+            "1,2,3", (eval(
+                """
             BLOB.of(
                 1,
                 2,
                 3,
             )
-        """).blob))
+        """
+            ).blob)
+        )
 
         // ストリームから生成：数値と小数の混在（四捨五入確認）
-        assertEquals("1,2,2,4", (eval("""
+        assertEquals(
+            "1,2,2,4", (eval(
+                """
             BLOB.of(
                 1.4,
                 1.6,
                 2.4,
                 3.5,
             )
-        """).blob))
+        """
+            ).blob)
+        )
     }
 
     @Test

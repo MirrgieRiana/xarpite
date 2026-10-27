@@ -59,10 +59,12 @@ class IncUrlKtorTest {
             }
 
             // URL形式のINCパスを追加してモジュールをロード
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/modules")
                 USE("mymodule.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Hello from HTTP Server!", result)
         }
@@ -81,10 +83,12 @@ class IncUrlKtorTest {
                 }
             }
 
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/base")
                 USE("utils/helper.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Helper Module", result)
         }
@@ -103,10 +107,12 @@ class IncUrlKtorTest {
                 }
             }
 
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/maven")
                 USE("com.example:mylib:1.0.0")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Maven Module", result)
         }
@@ -124,9 +130,11 @@ class IncUrlKtorTest {
         }
 
         // INCへの追加なしで、デフォルトのMaven Centralから座標を解決
-        val result = cliEval(io, """
+        val result = cliEval(
+            io, """
             USE("com.example:mylib:1.0.0")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Module from Maven Central", result)
     }
@@ -144,10 +152,12 @@ class IncUrlKtorTest {
                 }
             }
 
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/api/modules/")
                 USE("test.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Normalized Path", result)
         }
@@ -166,10 +176,12 @@ class IncUrlKtorTest {
                 }
             }
 
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("HTTP://${server.baseUrl.removePrefix("http://")}/modules")
                 USE("test.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Case Insensitive", result)
         }
@@ -195,11 +207,13 @@ class IncUrlKtorTest {
             }
 
             // 末尾優先のため後から追加したURLが先に試行され、見つからず、もう一方のURLにフォールバック
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/modules2")
                 INC::push("http://localhost:1/nonexistent")
                 USE("mymodule.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Fallback Module", result)
         }
@@ -224,11 +238,13 @@ class IncUrlKtorTest {
                 }
             }
 
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 INC::push("${server.baseUrl}/maven2")
                 INC::push("http://localhost:1/nonexistent")
                 USE("com.example:mylib:1.0.0")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Maven Fallback", result)
         }
@@ -248,9 +264,11 @@ class IncUrlKtorTest {
             }
 
             // referenceとして直接URLを指定
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 USE("${server.baseUrl}/direct/module.xa1")
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Direct URL Module", result)
         }
@@ -272,11 +290,13 @@ class IncUrlKtorTest {
             }
 
             // 同一URLを2回USEしても結果が再利用される
-            val result = cliEval(io, """
+            val result = cliEval(
+                io, """
                 a := USE("${server.baseUrl}/reuse/module.xa1")
                 b := USE("${server.baseUrl}/reuse/module.xa1")
                 a & "," & b
-            """.trimIndent()).toFluoriteString(null).value
+            """.trimIndent()
+            ).toFluoriteString(null).value
 
             assertEquals("Reuse Module,Reuse Module", result)
             // モジュール結果が再利用されるため、fetchは1回のみ
@@ -302,6 +322,7 @@ class IncUrlKtorTest {
             override suspend fun executeProcess(process: String, args: List<String>, env: Map<String, String?>): ByteArray {
                 throw UnsupportedOperationException("executeProcess is not supported in test")
             }
+
             override fun exit(code: Int): Nothing {
                 throw RuntimeException("exit($code)")
             }

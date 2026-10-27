@@ -39,7 +39,9 @@ class CompoundAssignmentTest {
     @Test
     fun mutableCounterPlusAssignmentTest() = runTest {
         // MutableCounter: オブジェクト自体を改変する演算代入
-        assertEquals(10, eval("""
+        assertEquals(
+            10, eval(
+                """
             MutableCounter := {
                 new := value -> MutableCounter{value: value}
                 `_+=_`: this, amount, accessor -> (
@@ -50,10 +52,14 @@ class CompoundAssignmentTest {
             new := old
             new += 10
             old.value
-        """).int)
+        """
+            ).int
+        )
 
         // 同じオブジェクトを参照しているため、oldもnewも同じ値
-        assertEquals(10, eval("""
+        assertEquals(
+            10, eval(
+                """
             MutableCounter := {
                 new := value -> MutableCounter{value: value}
                 `_+=_`: this, amount, accessor -> (
@@ -64,13 +70,17 @@ class CompoundAssignmentTest {
             new := old
             new += 10
             new.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun immutableCounterPlusAssignmentTest() = runTest {
         // ImmutableCounter: オブジェクトは不変で、新しいオブジェクトを代入
-        assertEquals(0, eval("""
+        assertEquals(
+            0, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_+=_`: this, amount, accessor -> (
@@ -81,10 +91,14 @@ class CompoundAssignmentTest {
             new := old
             new += 10
             old.value
-        """).int)
+        """
+            ).int
+        )
 
         // 新しいオブジェクトが代入されるため、oldとnewは異なる値
-        assertEquals(10, eval("""
+        assertEquals(
+            10, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_+=_`: this, amount, accessor -> (
@@ -95,13 +109,17 @@ class CompoundAssignmentTest {
             new := old
             new += 10
             new.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun mutableCounterMinusAssignmentTest() = runTest {
         // MutableCounter: -= でも同様に動作
-        assertEquals(40, eval("""
+        assertEquals(
+            40, eval(
+                """
             MutableCounter := {
                 new := value -> MutableCounter{value: value}
                 `_-=_`: this, amount, accessor -> (
@@ -112,13 +130,17 @@ class CompoundAssignmentTest {
             new := old
             new -= 60
             old.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun immutableCounterMinusAssignmentTest() = runTest {
         // ImmutableCounter: -= でも同様に動作
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_-=_`: this, amount, accessor -> (
@@ -129,9 +151,13 @@ class CompoundAssignmentTest {
             new := old
             new -= 60
             old.value
-        """).int)
+        """
+            ).int
+        )
 
-        assertEquals(40, eval("""
+        assertEquals(
+            40, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_-=_`: this, amount, accessor -> (
@@ -142,13 +168,17 @@ class CompoundAssignmentTest {
             new := old
             new -= 60
             new.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun overridePlusAssignmentWithAccessorTest() = runTest {
         // アクセサを使用して値を取得・設定できる
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_+=_`: this, amount, accessor -> (
                     oldObj := accessor()
@@ -159,10 +189,14 @@ class CompoundAssignmentTest {
             }
             obj := Object{value: 100}
             obj += 50
-        """).int)
+        """
+            ).int
+        )
 
         // 変数が更新されている
-        assertEquals(200, eval("""
+        assertEquals(
+            200, eval(
+                """
             Object := {
                 `_+=_`: this, amount, accessor -> (
                     oldObj := accessor()
@@ -174,13 +208,17 @@ class CompoundAssignmentTest {
             obj := Object{value: 100}
             obj += 50
             obj.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun overrideMinusAssignmentWithAccessorTest() = runTest {
         // -= でもアクセサを使用できる
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_-=_`: this, amount, accessor -> (
                     oldObj := accessor()
@@ -191,10 +229,14 @@ class CompoundAssignmentTest {
             }
             obj := Object{value: 100}
             obj -= 40
-        """).int)
+        """
+            ).int
+        )
 
         // 変数が更新されている
-        assertEquals(50, eval("""
+        assertEquals(
+            50, eval(
+                """
             Object := {
                 `_-=_`: this, amount, accessor -> (
                     oldObj := accessor()
@@ -206,7 +248,9 @@ class CompoundAssignmentTest {
             obj := Object{value: 100}
             obj -= 40
             obj.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
@@ -255,7 +299,9 @@ class CompoundAssignmentTest {
     fun plusAssignmentOnNonAssignableExpressionTest() = runTest {
         // 代入不可能な式でもオーバーライドメソッドがあれば動作する
         // ミュータブルな値の改変操作として定義される
-        assertEquals(123, eval("""
+        assertEquals(
+            123, eval(
+                """
             MutableCounter := {
                 `_+=_`: this, amount, accessor -> (
                     this.value += amount
@@ -263,13 +309,17 @@ class CompoundAssignmentTest {
                 )
             }
             MutableCounter{value: 100} += 23
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun minusAssignmentOnNonAssignableExpressionTest() = runTest {
         // -= でも同様に動作する
-        assertEquals(77, eval("""
+        assertEquals(
+            77, eval(
+                """
             MutableCounter := {
                 `_-=_`: this, amount, accessor -> (
                     this.value -= amount
@@ -277,34 +327,42 @@ class CompoundAssignmentTest {
                 )
             }
             MutableCounter{value: 100} -= 23
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun accessorWithoutSetterCanOnlyGetTest() = runTest {
         // setter無しの場合、アクセサは取得のみ可能
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_+=_`: this, amount, accessor -> (
                     accessor().value
                 )
             }
             Object{value: 100} += 23
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun accessorWithoutSetterCannotSetTest() = runTest {
         // setter無しの場合、アクセサは代入不可
         assertFailsWith<Exception> {
-            eval("""
+            eval(
+                """
                 Object := {
                     `_+=_`: this, amount, accessor -> (
                         accessor({value: 200})
                     )
                 }
                 Object{value: 100} += 23
-            """)
+            """
+            )
         }
     }
 

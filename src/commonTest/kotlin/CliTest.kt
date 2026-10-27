@@ -953,10 +953,12 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"Banana\"") }
 
         // INCにカスタムパスを追加してINC相対パスでモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.relative.tmp")
             USE("banana")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Banana", result)
 
@@ -976,10 +978,12 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"Cherry\"") }
 
         // .xa1拡張子を省略せずに指定
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.relative.ext.tmp")
             USE("cherry.xa1")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Cherry", result)
 
@@ -1000,10 +1004,12 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"Grape\"") }
 
         // サブディレクトリを含むINC相対パスでモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.relative.sub.tmp")
             USE("fruit/grape")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Grape", result)
 
@@ -1024,10 +1030,12 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"Lemon\"") }
 
         // ディレクトリ名でモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.main.tmp")
             USE("lemon")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Lemon", result)
 
@@ -1051,11 +1059,13 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"Orange\"") }
 
         // 複数のINCパスを追加し、2つ目のパスからモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.multiple.1.tmp")
             INC::push("build/test/use.inc.multiple.2.tmp")
             USE("orange")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Orange", result)
 
@@ -1072,10 +1082,12 @@ class CliTest {
             Result.success("123".encodeToByteArray())
         })
 
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("https://example.com/modules")
             USE("group:artifact")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("123", result)
         assertEquals(listOf("https://example.com/modules/group:artifact"), urls)
@@ -1087,10 +1099,12 @@ class CliTest {
 
         // 存在しないINC相対パスはエラー
         assertFailsWith<FluoriteException> {
-            cliEval(context, """
+            cliEval(
+                context, """
                 INC::push("build/test/nonexistent")
                 USE("nonexistent_module")
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 
@@ -1111,11 +1125,13 @@ class CliTest {
         fileSystem.write(moduleFile2) { writeUtf8("\"Second\"") }
 
         // INC配列内で末尾に近いパスが優先される
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/use.inc.priority.1.tmp")
             INC::push("build/test/use.inc.priority.2.tmp")
             USE("same")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("Second", result)
 
@@ -1135,9 +1151,11 @@ class CliTest {
         val moduleFile = dir.resolve("module.xa1")
         fileSystem.write(moduleFile) { writeUtf8("\"DotRelative\"") }
 
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             USE("./build/test/use.dot.relative.tmp/module")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("DotRelative", result)
 
@@ -1161,9 +1179,11 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"DotDotRelative\"") }
         fileSystem.write(callerFile) { writeUtf8("""USE("../module")""") }
 
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             USE("./build/test/use.dotdot.tmp/subdir/caller")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("DotDotRelative", result)
 
@@ -1356,9 +1376,11 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"LibModule\"") }
 
         // ./.xarpite/lib からモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             USE("mymodule")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("LibModule", result)
 
@@ -1370,10 +1392,12 @@ class CliTest {
     fun incCanBeModified() = runTest {
         val context = TestIoContext()
         // INC に値を追加できる
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("/custom/path")
             INC
-        """.trimIndent())
+        """.trimIndent()
+        )
         val arrayStr = result.array()
         assertTrue("/custom/path" in arrayStr)
     }
@@ -1382,12 +1406,14 @@ class CliTest {
     fun incSupportsUrlFormatDetection() = runTest {
         val context = TestIoContext()
         // INC に URL 形式のパスを追加できる
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("http://example.com/modules")
             INC::push("https://example.com/secure")
             INC::push("HTTP://UPPERCASE.COM/test")
             INC
-        """.trimIndent())
+        """.trimIndent()
+        )
         val arrayStr = result.array()
         assertTrue("http://example.com/modules" in arrayStr)
         assertTrue("https://example.com/secure" in arrayStr)
@@ -1407,11 +1433,13 @@ class CliTest {
 
         // ローカルパスを先に追加し、URL形式のINCを後に追加
         // 末尾優先の軸ではURLが上位だが、ローカルパスがURLよりも優先されることを確認
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/inc.url.priority.tmp")
             INC::push("http://example.com/modules")
             USE("testmodule")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("LocalModule", result)
 
@@ -1424,11 +1452,13 @@ class CliTest {
         val context = TestIoContext()
 
         // URLの末尾スラッシュがあっても正しくINCに追加できることを確認
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("http://example.com/modules/")
             INC::push("https://test.org/libs/")
             INC
-        """.trimIndent())
+        """.trimIndent()
+        )
         val arrayStr = result.array()
 
         // URL形式がINCに追加されていることを確認
@@ -1450,10 +1480,12 @@ class CliTest {
         fileSystem.write(moduleFile) { writeUtf8("\"CustomModule\"") }
 
         // INCにカスタムパスを追加してモジュールをロード
-        val result = cliEval(context, """
+        val result = cliEval(
+            context, """
             INC::push("build/test/custom-inc")
             USE("com.example.custom:mylib:1.0.0")
-        """.trimIndent()).toFluoriteString(null).value
+        """.trimIndent()
+        ).toFluoriteString(null).value
 
         assertEquals("CustomModule", result)
 
@@ -1603,9 +1635,11 @@ class CliTest {
 
         // USEでモジュールを読み込んで例外を確認
         val exception = assertFailsWith<FluoriteException> {
-            cliEval(context, """
+            cliEval(
+                context, """
                 USE("./build/test/use.stream.error.tmp/stream_module.xa1")
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         // スタックトレースを確認
@@ -1636,19 +1670,23 @@ class CliTest {
         // 関数を定義し、その関数内でエラーを発生させるモジュールを作成
         val moduleFile = dir.resolve("function_module.xa1")
         fileSystem.write(moduleFile) {
-            writeUtf8("""
+            writeUtf8(
+                """
                 {
                     errorFunc: () -> [].+
                 }
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         // USEでモジュールを読み込み、関数を呼び出して例外を確認
         val exception = assertFailsWith<FluoriteException> {
-            cliEval(context, """
+            cliEval(
+                context, """
                 module := USE("./build/test/use.function.error.tmp/function_module.xa1")
                 module.errorFunc()
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
 
         // スタックトレースを確認
