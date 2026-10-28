@@ -241,9 +241,11 @@ class NumberTest {
         assertEquals("123".toBigInteger(), eval(""" BIG.of(123) """).big)
         assertEquals("100".toBigInteger(), eval(""" BIG.of(100.0) """).big)
 
-        // 小数部のあるDOUBLEは切り捨てられる
+        // DOUBLEの小数点以下は0に近づく方向に切り捨てられる
         assertEquals("2".toBigInteger(), eval(""" BIG.of(2.5) """).big)
-        assertEquals("-3".toBigInteger(), eval(""" BIG.of(-2.5) """).big)
+        assertEquals("-2".toBigInteger(), eval(""" BIG.of(-2.5) """).big)
+        assertEquals("0".toBigInteger(), eval(""" BIG.of(0.5) """).big)
+        assertEquals("0".toBigInteger(), eval(""" BIG.of(-0.5) """).big)
 
         // BIGを渡すとそのまま返る
         assertEquals("123456789012345678901234567890".toBigInteger(), eval(""" BIG.of(BIG.of("123456789012345678901234567890")) """).big)
@@ -265,7 +267,7 @@ class NumberTest {
             Pair("1e23", "99999999999999991611392"),
             Pair("-1e23", "-99999999999999991611392"),
             Pair("5e-324", "0"),
-            Pair("-5e-324", "-1"),
+            Pair("-5e-324", "0"),
         ).forEach { (value, expected) ->
             assertEquals(expected.toBigInteger(), eval(""" BIG.of(DOUBLE.of("$value")) """).big)
         }
