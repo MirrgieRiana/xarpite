@@ -18,8 +18,8 @@ enum class OperatorMethod(val methodName: String) {
     MATCH("_=~_"),
     PLUS_ASSIGN("_+=_"),
     MINUS_ASSIGN("_-=_"),
-    SUFFIX_INCREMENT("_++"),
+    POSTFIX_INCREMENT("_++"),
     PREFIX_INCREMENT("++_"),
-    SUFFIX_DECREMENT("_--"),
+    POSTFIX_DECREMENT("_--"),
     PREFIX_DECREMENT("--_"),
 }

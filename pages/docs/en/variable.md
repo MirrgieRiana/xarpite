@@ -386,7 +386,7 @@ Due to this property, prefix and postfix versions are defined as independent ope
 ```shell
 $ xa -q '
   Object := {
-    `_++`: this, accessor -> "suffix"
+    `_++`: this, accessor -> "postfix"
     `++_`: this, accessor -> "prefix"
   }
 
@@ -395,7 +395,7 @@ $ xa -q '
   OUT << object++
   OUT << ++object
 '
-# suffix
+# postfix
 # prefix
 ```
 

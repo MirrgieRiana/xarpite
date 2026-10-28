@@ -166,10 +166,10 @@ class IncrementDecrementTest {
     fun prefixPostfixIndependenceTest() = runTest {
         // 前置版と後置版は独立しており、片方がもう片方にフォールバックしない
         assertEquals(
-            "suffix", eval(
+            "postfix", eval(
                 """
             Object := {
-                `_++`: this, accessor -> "suffix"
+                `_++`: this, accessor -> "postfix"
                 `++_`: this, accessor -> "prefix"
             }
             obj := Object{value: 0}
@@ -182,7 +182,7 @@ class IncrementDecrementTest {
             "prefix", eval(
                 """
             Object := {
-                `_++`: this, accessor -> "suffix"
+                `_++`: this, accessor -> "postfix"
                 `++_`: this, accessor -> "prefix"
             }
             obj := Object{value: 0}
