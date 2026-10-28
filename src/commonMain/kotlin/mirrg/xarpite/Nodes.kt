@@ -1,7 +1,12 @@
 package mirrg.xarpite
 
-sealed class Node
-object EmptyNode : Node()
+class NodeId
+
+sealed class Node {
+    val id = NodeId()
+}
+
+class EmptyNode : Node()
 class IdentifierNode(val string: String) : Node()
 sealed class NumberNode(val string: String) : Node()
 class IntegerNode(string: String) : NumberNode(string)
