@@ -22,6 +22,51 @@ TIME stores a UTC offset in addition to an INSTANT, representing a clock reading
 
 LOCAL_TIME stores the elapsed time since `1970-01-01T00:00:00` at a particular location on Earth as integer seconds and integer nanoseconds.
 
+### Creating Instances from a Fixed Time
+
+`INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT`
+
+`TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME`
+
+`LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME`
+
+Creates an INSTANT by interpreting `epochSeconds` and `nanosecondsOfSecond` together as Unix seconds.
+
+If `epochSeconds` has a fractional part, it is incorporated into `nanosecondsOfSecond`.
+
+If `nanosecondsOfSecond` or `offsetSeconds` has a fractional part, it is rounded to an integer.
+
+If `nanosecondsOfSecond` is outside the range 0–999_999_999, `epochSeconds` is adjusted accordingly.
+
+```shell
+$ xa 'INSTANT.of(981173106)'
+# 981173106
+
+$ xa 'INSTANT.of(981173106.125)'
+# 981173106.125
+
+$ xa 'INSTANT.of(981173106; 125_000_000)'
+# 981173106.125
+
+$ xa 'TIME.of(981173106; 0)'
+# 2001-02-03T04:05:06Z
+
+$ xa 'TIME.of(981173106.125; 3600)'
+# 2001-02-03T05:05:06.125+01:00
+
+$ xa 'TIME.of(981173106; 125_000_000; -3600 * 5)'
+# 2001-02-02T23:05:06.125-05:00
+
+$ xa 'LOCAL_TIME.of(981173106)'
+# 2001-02-03T04:05:06
+
+$ xa 'LOCAL_TIME.of(981173106.125)'
+# 2001-02-03T04:05:06.125
+
+$ xa 'LOCAL_TIME.of(981173106; 125_000_000)'
+# 2001-02-03T04:05:06.125
+```
+
 ### Creating Instances from Time Representations
 
 `INSTANT.parse(text: STRING): INSTANT`

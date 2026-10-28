@@ -22,6 +22,51 @@ TIMEは、INSTANTに加えて、UTCからの時差を保持することで、地
 
 LOCAL_TIMEは、地球上の特定の場所における`1970-01-01T00:00:00`からの経過時間を、整数である秒数および、整数であるナノ秒によって保持します。
 
+### 固定の時刻によるインスタンスの生成
+
+`INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT`
+
+`TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME`
+
+`LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME`
+
+`epochSeconds`および`nanosecondsOfSecond`をUNIX秒と解釈することによりINSTANTを生成します。
+
+`epochSeconds`が小数である場合、小数部は`nanosecondsOfSecond`に分配されます。
+
+`nanosecondsOfSecond`および`offsetSeconds`が小数である場合、整数に丸められます。
+
+`nanosecondsOfSecond`が0～999_999_999の範囲外の値である場合、`epochSeconds`に繰り上げ・繰り下げが発生します。
+
+```shell
+$ xa 'INSTANT.of(981173106)'
+# 981173106
+
+$ xa 'INSTANT.of(981173106.125)'
+# 981173106.125
+
+$ xa 'INSTANT.of(981173106; 125_000_000)'
+# 981173106.125
+
+$ xa 'TIME.of(981173106; 0)'
+# 2001-02-03T04:05:06Z
+
+$ xa 'TIME.of(981173106.125; 3600)'
+# 2001-02-03T05:05:06.125+01:00
+
+$ xa 'TIME.of(981173106; 125_000_000; -3600 * 5)'
+# 2001-02-02T23:05:06.125-05:00
+
+$ xa 'LOCAL_TIME.of(981173106)'
+# 2001-02-03T04:05:06
+
+$ xa 'LOCAL_TIME.of(981173106.125)'
+# 2001-02-03T04:05:06.125
+
+$ xa 'LOCAL_TIME.of(981173106; 125_000_000)'
+# 2001-02-03T04:05:06.125
+```
+
 ### 時刻表記によるインスタンスの生成
 
 `INSTANT.parse(text: STRING): INSTANT`
