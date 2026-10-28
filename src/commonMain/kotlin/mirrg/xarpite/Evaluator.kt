@@ -17,6 +17,7 @@ import mirrg.xarpite.operations.Returner
 
 class Evaluator(private val context: RuntimeContext) {
 
+    private var nextNodeId = 0
     private var currentFrame: Frame? = null
     private var currentEnv: Environment? = null
 
@@ -34,13 +35,15 @@ class Evaluator(private val context: RuntimeContext) {
     }
 
     suspend fun get(location: String, src: String, embedded: Boolean): FluoriteValue {
+        val parseContext = XarpiteParseContext(src, nextNodeId)
         val parseResult = XarpiteGrammar(location, context.apiVersion)
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
-            .parseAll(src) { XarpiteParseContext(it) }
-            .getOrThrow()
+            .parseAll(src) { parseContext }
+        nextNodeId = parseContext.nextNodeId
+        val node = parseResult.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
-        val getter = frame.compileToGetter(parseResult)
+        val getter = frame.compileToGetter(node)
         val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         return withStackTrace(Position(location, 0)) {
@@ -55,13 +58,15 @@ class Evaluator(private val context: RuntimeContext) {
     }
 
     suspend fun run(location: String, src: String, embedded: Boolean) {
+        val parseContext = XarpiteParseContext(src, nextNodeId)
         val parseResult = XarpiteGrammar(location, context.apiVersion)
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
-            .parseAll(src) { XarpiteParseContext(it) }
-            .getOrThrow()
+            .parseAll(src) { parseContext }
+        nextNodeId = parseContext.nextNodeId
+        val node = parseResult.getOrThrow()
         val frame = Frame(currentFrame)
         currentFrame = frame
-        val runners = frame.compileToRunner(parseResult)
+        val runners = frame.compileToRunner(node)
         val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
         currentEnv = env
         withStackTrace(Position(location, 0)) {

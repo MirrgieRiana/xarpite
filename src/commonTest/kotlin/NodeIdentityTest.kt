@@ -44,6 +44,21 @@ class NodeIdentityTest {
     }
 
     @Test
+    fun successiveParseContextsContinueNodeIds() {
+        val grammar = XarpiteGrammar("test", 5)
+        val source = "1 + 1"
+        val firstContext = XarpiteParseContext(source)
+        val firstNode = grammar.rootParser.parseAll(source) { firstContext }.getOrThrow() as InfixPlusNode
+        val nextNodeId = firstContext.nextNodeId
+        val secondContext = XarpiteParseContext(source, nextNodeId)
+        val secondNode = grammar.rootParser.parseAll(source) { secondContext }.getOrThrow() as InfixPlusNode
+        assertDistinctIds(listOf(firstNode, firstNode.left, firstNode.right, secondNode, secondNode.left, secondNode.right))
+        assertTrue(listOf(firstNode, firstNode.left, firstNode.right).all { it.id < nextNodeId })
+        assertTrue(listOf(secondNode, secondNode.left, secondNode.right).all { it.id >= nextNodeId })
+        assertTrue(secondContext.nextNodeId > nextNodeId)
+    }
+
+    @Test
     fun equalOccurrencesHaveDistinctIds() {
         val grammar = XarpiteGrammar("test", 5)
         listOf("value + value", "1 + 1").forEach { source ->
