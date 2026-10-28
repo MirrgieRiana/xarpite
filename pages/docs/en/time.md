@@ -22,18 +22,6 @@ TIME stores a UTC offset in addition to an INSTANT, representing a clock reading
 
 LOCAL_TIME stores the elapsed time since `1970-01-01T00:00:00` at a particular location on Earth as integer seconds and integer nanoseconds.
 
-### Creating Instances from the Current Time
-
-`INSTANT.now(): INSTANT`
-
-`TIME.now(): TIME`
-
-`LOCAL_TIME.now(): LOCAL_TIME`
-
-The `now` functions create instances based on the current system time.
-
-The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
-
 ### Creating Instances from Time Representations
 
 `INSTANT.parse(text: STRING): INSTANT`
@@ -95,6 +83,18 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007")'
 $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 # 2001-02-03T04:05:06.007008009
 ```
+
+### Creating Instances from the Current Time
+
+`INSTANT.now(): INSTANT`
+
+`TIME.now(): TIME`
+
+`LOCAL_TIME.now(): LOCAL_TIME`
+
+The `now` functions create instances based on the current system time.
+
+The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
 
 ## Other Built-in Members
 
