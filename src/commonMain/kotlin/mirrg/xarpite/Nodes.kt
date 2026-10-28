@@ -1,9 +1,15 @@
 package mirrg.xarpite
 
-class NodeId
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 sealed class Node {
-    val id = NodeId()
+    companion object {
+        private val nextId = AtomicLong(0)
+    }
+
+    val id: Long = nextId.fetchAndAdd(1)
 }
 
 class EmptyNode : Node()

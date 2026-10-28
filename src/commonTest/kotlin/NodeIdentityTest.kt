@@ -22,7 +22,8 @@ class NodeIdentityTest {
     }
 
     private fun assertDistinctIds(nodes: List<Node>) {
-        assertEquals(nodes.size, nodes.map { it.id }.toSet().size)
+        val ids: List<Long> = nodes.map { it.id }
+        assertEquals(nodes.size, ids.toSet().size)
     }
 
     private fun assertDistinctEmptyNodes(nodes: List<Node>) {
@@ -38,6 +39,13 @@ class NodeIdentityTest {
             val second = parse(grammar, source) as InfixPlusNode
             assertDistinctIds(listOf(first, first.left, first.right, second, second.left, second.right))
         }
+    }
+
+    @Test
+    fun separateGrammarsHaveDistinctIds() {
+        val first = parse(XarpiteGrammar("test", 5), "1 + 1") as InfixPlusNode
+        val second = parse(XarpiteGrammar("test", 5), "1 + 1") as InfixPlusNode
+        assertDistinctIds(listOf(first, first.left, first.right, second, second.left, second.right))
     }
 
     @Test
