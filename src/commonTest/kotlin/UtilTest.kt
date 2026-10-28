@@ -1,8 +1,54 @@
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.removeExponent
+import mirrg.xarpite.toBigIntegerExact
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class UtilTest {
+    @Test
+    fun toBigIntegerExact() {
+        val two = 2.toBigInteger()
+        listOf(
+            Pair(0.0, 0.toBigInteger()),
+            Pair(-0.0, 0.toBigInteger()),
+            Pair(1.0, 1.toBigInteger()),
+            Pair(3.0, 3.toBigInteger()),
+            Pair(4503599627370495.0, two.pow(52) - 1),
+            Pair(4503599627370496.0, two.pow(52)),
+            Pair(9007199254740991.0, two.pow(53) - 1),
+            Pair(9007199254740992.0, two.pow(53)),
+            Pair(9007199254740994.0, two.pow(53) + 2),
+            Pair(9223372036854775808.0, two.pow(63)),
+            Pair(1e23, "99999999999999991611392".toBigInteger()),
+            Pair(Double.MAX_VALUE, two.pow(1024) - two.pow(971)),
+        ).forEach { (value, expected) ->
+            assertEquals(expected, value.toBigIntegerExact())
+            assertEquals(-expected, (-value).toBigIntegerExact())
+        }
+    }
+
+    @Test
+    fun toBigIntegerExactErrors() {
+        listOf(
+            0.5,
+            -0.5,
+            2.5,
+            -2.5,
+            Double.MIN_VALUE,
+            -Double.MIN_VALUE,
+            Double.fromBits(0x000fffffffffffffL),
+            Double.fromBits(0x0010000000000000L),
+            Double.fromBits(0x3ff0000000000001L),
+            Double.fromBits(0x432fffffffffffffL),
+            Double.POSITIVE_INFINITY,
+            Double.NEGATIVE_INFINITY,
+            Double.NaN,
+        ).forEach { value ->
+            assertFailsWith<IllegalArgumentException> { value.toBigIntegerExact() }
+        }
+    }
+
     @Test
     fun toDecimalStringTest() {
 

@@ -87,7 +87,9 @@ class IncrementDecrementTest {
     @Test
     fun mutableCounterIncrementTest() = runTest {
         // MutableCounter: オブジェクト自体を改変するインクリメント
-        assertEquals(1, eval("""
+        assertEquals(
+            1, eval(
+                """
             MutableCounter := {
                 new := value -> MutableCounter{value: value}
                 `_++`: this, accessor -> (
@@ -98,10 +100,14 @@ class IncrementDecrementTest {
             new := old
             new++
             old.value
-        """).int)
+        """
+            ).int
+        )
 
         // 同じオブジェクトを参照しているため、oldもnewも同じ値
-        assertEquals(1, eval("""
+        assertEquals(
+            1, eval(
+                """
             MutableCounter := {
                 new := value -> MutableCounter{value: value}
                 `_++`: this, accessor -> (
@@ -112,13 +118,17 @@ class IncrementDecrementTest {
             new := old
             new++
             new.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun immutableCounterIncrementTest() = runTest {
         // ImmutableCounter: オブジェクトは不変で、新しいオブジェクトを代入
-        assertEquals(0, eval("""
+        assertEquals(
+            0, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_++`: this, accessor -> (
@@ -129,10 +139,14 @@ class IncrementDecrementTest {
             new := old
             new++
             old.value
-        """).int)
+        """
+            ).int
+        )
 
         // 新しいオブジェクトが代入されるため、oldとnewは異なる値
-        assertEquals(1, eval("""
+        assertEquals(
+            1, eval(
+                """
             ImmutableCounter := {
                 new := value -> ImmutableCounter{value: value}
                 `_++`: this, accessor -> (
@@ -143,35 +157,47 @@ class IncrementDecrementTest {
             new := old
             new++
             new.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun prefixPostfixIndependenceTest() = runTest {
         // 前置版と後置版は独立しており、片方がもう片方にフォールバックしない
-        assertEquals("suffix", eval("""
+        assertEquals(
+            "postfix", eval(
+                """
             Object := {
-                `_++`: this, accessor -> "suffix"
+                `_++`: this, accessor -> "postfix"
                 `++_`: this, accessor -> "prefix"
             }
             obj := Object{value: 0}
             obj++
-        """).toString())
+        """
+            ).toString()
+        )
 
-        assertEquals("prefix", eval("""
+        assertEquals(
+            "prefix", eval(
+                """
             Object := {
-                `_++`: this, accessor -> "suffix"
+                `_++`: this, accessor -> "postfix"
                 `++_`: this, accessor -> "prefix"
             }
             obj := Object{value: 0}
             ++obj
-        """).toString())
+        """
+            ).toString()
+        )
     }
 
     @Test
     fun overrideIncrementWithAccessorTest() = runTest {
         // アクセサを使用して値を取得・設定できる
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_++`: this, accessor -> (
                     oldObj := accessor()
@@ -182,10 +208,14 @@ class IncrementDecrementTest {
             }
             obj := Object{value: 100}
             obj++
-        """).int)
+        """
+            ).int
+        )
 
         // 変数が更新されている
-        assertEquals(200, eval("""
+        assertEquals(
+            200, eval(
+                """
             Object := {
                 `_++`: this, accessor -> (
                     oldObj := accessor()
@@ -197,13 +227,17 @@ class IncrementDecrementTest {
             obj := Object{value: 100}
             obj++
             obj.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun overrideDecrementWithAccessorTest() = runTest {
         // デクリメントでもアクセサを使用できる
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_--`: this, accessor -> (
                     oldObj := accessor()
@@ -214,10 +248,14 @@ class IncrementDecrementTest {
             }
             obj := Object{value: 100}
             obj--
-        """).int)
+        """
+            ).int
+        )
 
         // 変数が更新されている
-        assertEquals(50, eval("""
+        assertEquals(
+            50, eval(
+                """
             Object := {
                 `_--`: this, accessor -> (
                     oldObj := accessor()
@@ -229,7 +267,9 @@ class IncrementDecrementTest {
             obj := Object{value: 100}
             obj--
             obj.value
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
@@ -295,7 +335,9 @@ class IncrementDecrementTest {
     fun incrementOnNonAssignableExpressionTest() = runTest {
         // 代入不可能な式でもオーバーライドメソッドがあれば動作する
         // ミュータブルな値の改変操作として定義される
-        assertEquals(101, eval("""
+        assertEquals(
+            101, eval(
+                """
             MutableCounter := {
                 `_++`: this, accessor -> (
                     this.value++
@@ -303,34 +345,42 @@ class IncrementDecrementTest {
                 )
             }
             MutableCounter{value: 100}++
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun accessorWithoutSetterCanOnlyGetTest() = runTest {
         // setter無しの場合、アクセサは取得のみ可能
-        assertEquals(100, eval("""
+        assertEquals(
+            100, eval(
+                """
             Object := {
                 `_++`: this, accessor -> (
                     accessor().value
                 )
             }
             Object{value: 100}++
-        """).int)
+        """
+            ).int
+        )
     }
 
     @Test
     fun accessorWithoutSetterCannotSetTest() = runTest {
         // setter無しの場合、アクセサは代入不可
         assertFailsWith<Exception> {
-            eval("""
+            eval(
+                """
                 Object := {
                     `_++`: this, accessor -> (
                         accessor({value: 200})
                     )
                 }
                 Object{value: 100}++
-            """)
+            """
+            )
         }
     }
 }

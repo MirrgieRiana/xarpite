@@ -225,11 +225,15 @@ class IndentBlockTest {
             evaluator.defineMounts(context.run { createCommonMounts() })
             evaluator.run("register := listener -> listener(23)")
 
-            assertEquals(123, evaluator.get("""
+            assertEquals(
+                123, evaluator.get(
+                    """
                 register ( event =>
                     100 + event
                 )
-            """).int)
+            """
+                ).int
+            )
         }
     }
 

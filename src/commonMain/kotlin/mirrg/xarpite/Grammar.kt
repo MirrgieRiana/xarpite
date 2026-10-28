@@ -217,8 +217,8 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -s * (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode, it.a.position) } },
         -s * (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode, it.a.position) } },
 
-        -s * (-"++").result map { { main -> SuffixPlusPlusNode(main, it.position) } },
-        -s * (-"--").result map { { main -> SuffixMinusMinusNode(main, it.position) } },
+        -s * (-"++").result map { { main -> PostfixPlusPlusNode(main, it.position) } },
+        -s * (-"--").result map { { main -> PostfixMinusMinusNode(main, it.position) } },
 
         -b * (-'.').result * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it.b, it.a.position) } },
         -b * (-"?.").result * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it.b, it.a.position) } },

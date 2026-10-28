@@ -129,6 +129,7 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     }
                 }
             }
+
             fun createString(name: String): FluoriteFunction {
                 return FluoriteFunction.immediate { arguments ->
                     if (arguments.size != 1) usage("$name(file: STRING): STRING")
@@ -301,9 +302,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                     transform(output)
                 }
             }
+
             fun toString(output: ByteArray): FluoriteString {
                 return output.decodeToString().toFluoriteString()
             }
+
             fun toLineStream(output: ByteArray): FluoriteStream {
                 val lines = output.decodeToString().lines()
                 val nonEmptyLines = if (lines.isNotEmpty() && lines.last().isEmpty()) {
@@ -313,9 +316,11 @@ fun createCliMounts(args: List<String>): List<Map<String, Mount>> {
                 }
                 return nonEmptyLines.map { it.toFluoriteString() }.toFluoriteStream()
             }
+
             fun toBlobStream(output: ByteArray): FluoriteStream {
                 return listOf(output.asFluoriteBlob()).toFluoriteStream()
             }
+
             arrayOf(
                 "EXEC" define if (context.apiVersion >= 5) create("EXEC", "STRING", ::toString) else create("EXEC", "STREAM<STRING>", ::toLineStream),
                 "EXECL" define create("EXECL", "STREAM<STRING>", ::toLineStream),

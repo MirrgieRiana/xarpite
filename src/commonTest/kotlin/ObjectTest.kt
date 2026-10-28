@@ -178,7 +178,9 @@ class ObjectTest {
         assertEquals("{1:a;2:b;3:c}", eval("INVERT({a: 1; b: 2; c: 3})").obj)
 
         // カスタムオブジェクトの文字列化
-        assertEquals("{Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}", eval("""
+        assertEquals(
+            "{Fruit[apple]:a;Fruit[banana]:b;Fruit[cherry]:c}", eval(
+                """
             Fruit := {
                 new: value -> Fruit{value: value}
                 `&_`: this -> "Fruit[${'$'}(this.value)]"
@@ -188,23 +190,29 @@ class ObjectTest {
                 b: Fruit.new("banana")
                 c: Fruit.new("cherry")
             })
-        """).obj)
+        """
+            ).obj
+        )
 
         // 値が重複している場合はいずれかのキーがマッピングされる
-        val invertedKey = eval("""
+        val invertedKey = eval(
+            """
             object   := {a: "apple"; b: "banana"; c: "apple"}
             inverted := INVERT(object)
             inverted.apple
-        """).toString()
+        """
+        ).toString()
         // inverted.appleの結果は "a" または "c" のいずれか
         assertTrue(invertedKey == "a" || invertedKey == "c")
 
         // そのキーをobjectで引くと元の値"apple"が返る
-        val finalResult = eval("""
+        val finalResult = eval(
+            """
             object   := {a: "apple"; b: "banana"; c: "apple"}
             inverted := INVERT(object)
             inverted.apple >> object
-        """).toString()
+        """
+        ).toString()
         assertEquals("apple", finalResult)
     }
 

@@ -63,30 +63,36 @@ class ToFunctionsTest {
         assertEquals(false, eval(""" EMPTY >> OR """).boolean)
 
         // イテレーションのスキップ確認
-        val result1 = eval("""
+        val result1 = eval(
+            """
             list := []
             1, "a", TRUE, 0, "b" | (
                 list += _
                 _
             ) >> OR
             list
-        """)
+        """
+        )
         assertEquals("[1]", result1.toString()) // [1] だけが評価される
 
         // 短絡評価 - 第1引数がTRUEの場合、第2引数は評価されない
-        val result2 = eval("""
+        val result2 = eval(
+            """
             list := []
             (list += "left"; TRUE) OR (list += "right"; FALSE)
             list
-        """)
+        """
+        )
         assertEquals("[left]", result2.toString()) // 第1引数がTRUEなので第2引数は評価されない
 
         // 短絡評価 - 第1引数がFALSEの場合、第2引数は評価される
-        val result3 = eval("""
+        val result3 = eval(
+            """
             list := []
             (list += "left"; FALSE) OR (list += "right"; TRUE)
             list
-        """)
+        """
+        )
         assertEquals("[left;right]", result3.toString()) // 第1引数がFALSEなので第2引数も評価される
     }
 
@@ -130,30 +136,36 @@ class ToFunctionsTest {
         assertEquals(true, eval(""" EMPTY >> AND """).boolean)
 
         // イテレーションのスキップ確認
-        val result2 = eval("""
+        val result2 = eval(
+            """
             list := []
             5 .. -5 | (
                 list += _
                 _
             ) >> AND
             list
-        """)
+        """
+        )
         assertEquals("[5;4;3;2;1;0]", result2.toString()) // 0 が見つかるまで評価される
 
         // 短絡評価 - 第1引数がFALSEの場合、第2引数は評価されない
-        val result3 = eval("""
+        val result3 = eval(
+            """
             list := []
             (list += "left"; FALSE) AND (list += "right"; TRUE)
             list
-        """)
+        """
+        )
         assertEquals("[left]", result3.toString()) // 第1引数がFALSEなので第2引数は評価されない
 
         // 短絡評価 - 第1引数がTRUEの場合、第2引数は評価される
-        val result4 = eval("""
+        val result4 = eval(
+            """
             list := []
             (list += "left"; TRUE) AND (list += "right"; FALSE)
             list
-        """)
+        """
+        )
         assertEquals("[left;right]", result4.toString()) // 第1引数がTRUEなので第2引数も評価される
     }
 

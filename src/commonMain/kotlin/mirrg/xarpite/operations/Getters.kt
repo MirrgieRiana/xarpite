@@ -54,9 +54,9 @@ import mirrg.xarpite.hasFreeze
 import mirrg.xarpite.toFluoriteValueAsSingleJson
 import mirrg.xarpite.toSingleJsonFluoriteValue
 import mirrg.xarpite.withStackTrace
+import okio.Path.Companion.toPath
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.pow
-import okio.Path.Companion.toPath
 
 object NullGetter : Getter {
     override suspend fun evaluate(env: Environment) = FluoriteNull
