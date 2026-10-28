@@ -68,12 +68,12 @@ import mirrg.xarpite.LiteralStringContent
 import mirrg.xarpite.Node
 import mirrg.xarpite.NodeStringContent
 import mirrg.xarpite.Position
+import mirrg.xarpite.PostfixMinusMinusNode
+import mirrg.xarpite.PostfixPlusPlusNode
 import mirrg.xarpite.RawStringNode
 import mirrg.xarpite.RegexNode
 import mirrg.xarpite.ReturnNode
 import mirrg.xarpite.SemicolonsNode
-import mirrg.xarpite.SuffixMinusMinusNode
-import mirrg.xarpite.SuffixPlusPlusNode
 import mirrg.xarpite.TemplateStringNode
 import mirrg.xarpite.ThrowNode
 import mirrg.xarpite.UnaryAmpersandNode
@@ -266,10 +266,10 @@ fun Frame.compileToGetter(node: Node): Getter {
             FunctionGetter(newFrame.frameIndex, argumentsVariableIndex, listOf(variableIndex), listOf(false), getter)
         }
 
-        is SuffixPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isSuffix = true, node.position)
-        is SuffixMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isSuffix = true, node.position)
-        is UnaryPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isSuffix = false, node.position)
-        is UnaryMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isSuffix = false, node.position)
+        is PostfixPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isPostfix = true, node.position)
+        is PostfixMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isPostfix = true, node.position)
+        is UnaryPlusPlusNode -> compileIncrementToGetter(node.main, isIncrement = true, isPostfix = false, node.position)
+        is UnaryMinusMinusNode -> compileIncrementToGetter(node.main, isIncrement = false, isPostfix = false, node.position)
 
         is ThrowNode -> ThrowGetter(compileToGetter(node.right), node.position)
 
@@ -349,10 +349,10 @@ private fun Frame.compileUnaryMinusToGetter(main: Node, position: Position): Get
     }
 }
 
-private fun Frame.compileIncrementToGetter(node: Node, isIncrement: Boolean, isSuffix: Boolean, position: Position): Getter {
+private fun Frame.compileIncrementToGetter(node: Node, isIncrement: Boolean, isPostfix: Boolean, position: Position): Getter {
     val setter = compileToSetter(node).getOrNull()
     val getter = compileToGetter(node)
-    return IncrementGetter(getter, setter, isIncrement, isSuffix, position)
+    return IncrementGetter(getter, setter, isIncrement, isPostfix, position)
 }
 
 private fun Frame.createArrowedArgumentGetters(node: BracketsRightArrowedNode): List<Getter> {
