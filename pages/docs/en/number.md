@@ -203,6 +203,24 @@ $ xa 'BIG.of("123456789012345678901234567890")'
 # 123456789012345678901234567890
 ```
 
+---
+
+`DOUBLE` values with a fractional part are rounded down toward negative infinity.
+
+Integer-valued `DOUBLE` values are converted exactly.
+
+```shell
+$ xa 'BIG.of(-2.5)'
+# -3
+
+$ xa 'BIG.of(DOUBLE.of("1e23"))'
+# 99999999999999991611392
+```
+
+---
+
+Passing an infinity or `NaN` results in an error.
+
 ### Arithmetic and Remainders on BIG
 
 `BIG` values can be computed with the addition `+`, subtraction `-`, multiplication `*`, division `/`, and modulo `%` operators.

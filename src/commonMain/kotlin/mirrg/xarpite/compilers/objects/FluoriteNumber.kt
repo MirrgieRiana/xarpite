@@ -6,6 +6,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.mounts.usage
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.toBigIntegerExact
 import mirrg.xarpite.toFluoriteIntAsCompared
 import kotlin.math.abs
 import kotlin.math.floor
@@ -156,7 +157,7 @@ data class FluoriteBig(val value: BigInteger) : FluoriteNumber {
                             is FluoriteInt -> FluoriteBig(argument.value.toBigInteger())
                             is FluoriteDouble -> {
                                 if (!argument.value.isFinite()) throw FluoriteException("Cannot convert to BIG: ${argument.value}".toFluoriteString())
-                                FluoriteBig(BigInteger.tryFromDouble(argument.value, false))
+                                FluoriteBig(floor(argument.value).toBigIntegerExact())
                             }
 
                             else -> usage("BIG.of(value: STRING | NUMBER): BIG")
