@@ -13,6 +13,7 @@ import mirrg.xarpite.XarpiteGrammar
 import mirrg.xarpite.XarpiteParseContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class NodeIdentityTest {
@@ -22,7 +23,7 @@ class NodeIdentityTest {
     }
 
     private fun assertDistinctIds(nodes: List<Node>) {
-        val ids: List<Long> = nodes.map { it.id }
+        val ids: List<Int> = nodes.map { it.id }
         assertEquals(nodes.size, ids.toSet().size)
     }
 
@@ -32,81 +33,98 @@ class NodeIdentityTest {
     }
 
     @Test
+    fun nodeIdsAreAllocatedPerParseContext() {
+        val firstContext = XarpiteParseContext("")
+        val secondContext = XarpiteParseContext("")
+        assertEquals(0, firstContext.allocateNodeId())
+        assertEquals(1, firstContext.allocateNodeId())
+        assertEquals(0, secondContext.allocateNodeId())
+        assertEquals(2, firstContext.allocateNodeId())
+        assertEquals(1, secondContext.allocateNodeId())
+    }
+
+    @Test
     fun equalOccurrencesHaveDistinctIds() {
         val grammar = XarpiteGrammar("test", 5)
         listOf("value + value", "1 + 1").forEach { source ->
             val first = parse(grammar, source) as InfixPlusNode
             val second = parse(grammar, source) as InfixPlusNode
-            assertDistinctIds(listOf(first, first.left, first.right, second, second.left, second.right))
+            val firstNodes = listOf(first, first.left, first.right)
+            val secondNodes = listOf(second, second.left, second.right)
+            assertDistinctIds(firstNodes)
+            assertDistinctIds(secondNodes)
+            assertEquals(firstNodes.map { it.id }, secondNodes.map { it.id })
         }
-    }
-
-    @Test
-    fun separateGrammarsHaveDistinctIds() {
-        val first = parse(XarpiteGrammar("test", 5), "1 + 1") as InfixPlusNode
-        val second = parse(XarpiteGrammar("test", 5), "1 + 1") as InfixPlusNode
-        assertDistinctIds(listOf(first, first.left, first.right, second, second.left, second.right))
     }
 
     @Test
     fun emptyBracketBodiesHaveDistinctIds() {
         val grammar = XarpiteGrammar("test", 5)
         val source = "(); (); []; []; {}; {}; f(); f[]; f{}"
-        val nodes = List(2) { parse(grammar, source) as SemicolonsNode }
-            .flatMap { it.nodes }
-            .map { (it as BracketsNode).body }
-        assertEquals(18, nodes.size)
-        assertDistinctEmptyNodes(nodes)
+        repeat(2) {
+            val semicolonsNode = parse(grammar, source) as SemicolonsNode
+            val nodes = semicolonsNode.nodes.map { (it as BracketsNode).body }
+            assertEquals(9, nodes.size)
+            assertDistinctEmptyNodes(nodes)
+            assertDistinctIds(listOf(semicolonsNode) + semicolonsNode.nodes + nodes)
+        }
     }
 
     @Test
     fun emptyArrowArgumentsAndBodiesHaveDistinctIds() {
         val grammar = XarpiteGrammar("test", 5)
         val source = "(=>); [=>]; {=>}; f(=>); f[=>]; f{=>}"
-        val nodes = List(2) { parse(grammar, source) as SemicolonsNode }
-            .flatMap { it.nodes }
-            .flatMap {
+        repeat(2) {
+            val semicolonsNode = parse(grammar, source) as SemicolonsNode
+            val nodes = semicolonsNode.nodes.flatMap {
                 when (it) {
                     is BracketsLiteralArrowedNode -> listOf(it.arguments, it.body)
                     is BracketsRightArrowedNode -> listOf(it.arguments, it.body)
                     else -> error("Unexpected node: $it")
                 }
             }
-        assertEquals(24, nodes.size)
-        assertDistinctEmptyNodes(nodes)
+            assertEquals(12, nodes.size)
+            assertDistinctEmptyNodes(nodes)
+            assertDistinctIds(listOf(semicolonsNode) + semicolonsNode.nodes + nodes)
+        }
     }
 
     @Test
     fun omittedStreamAndStatementPartsHaveDistinctIds() {
         val grammar = XarpiteGrammar("test", 5)
         listOf("," to 2, ",," to 3, ";" to 2, ";;" to 3).forEach { (source, expectedCount) ->
-            val nodes = List(2) { parse(grammar, source) }.flatMap {
-                when (it) {
-                    is CommasNode -> it.nodes
-                    is SemicolonsNode -> it.nodes
-                    else -> error("Unexpected node: $it")
+            repeat(2) {
+                val node = parse(grammar, source)
+                val nodes = when (node) {
+                    is CommasNode -> node.nodes
+                    is SemicolonsNode -> node.nodes
+                    else -> error("Unexpected node: $node")
                 }
+                assertEquals(expectedCount, nodes.size, source)
+                assertDistinctEmptyNodes(nodes)
+                assertDistinctIds(listOf(node) + nodes)
             }
-            assertEquals(expectedCount * 2, nodes.size, source)
-            assertDistinctEmptyNodes(nodes)
         }
     }
 
     @Test
-    fun emptyRootsBlocksAndJumpValuesHaveDistinctIds() {
+    fun emptyRootsBlocksAndJumpValuesUseParseContextIds() {
         val grammar = XarpiteGrammar("test", 5)
-        val nodes = listOf("", ":", "!!", "label!!").flatMap { source ->
-            List(2) {
-                when (val node = parse(grammar, source)) {
-                    is EmptyNode -> node
-                    is BracketsNode -> node.body
-                    is ThrowNode -> node.right
-                    is ReturnNode -> node.right
-                    else -> error("Unexpected node: $node")
-                }
+        listOf("", ":", "!!", "label!!").forEach { source ->
+            val context = XarpiteParseContext(source)
+            val reservedId = context.allocateNodeId()
+            val node = grammar.rootParser.parseAll(source) { context }.getOrThrow()
+            val emptyNode = when (node) {
+                is EmptyNode -> node
+                is BracketsNode -> node.body
+                is ThrowNode -> node.right
+                is ReturnNode -> node.right
+                else -> error("Unexpected node: $node")
             }
+            assertTrue(emptyNode is EmptyNode)
+            assertNotEquals(reservedId, emptyNode.id)
+            assertNotEquals(reservedId, node.id)
+            if (node !is EmptyNode) assertDistinctIds(listOf(node, emptyNode))
         }
-        assertEquals(8, nodes.size)
-        assertDistinctEmptyNodes(nodes)
     }
 }

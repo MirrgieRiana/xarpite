@@ -84,7 +84,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
 
     // 通常文字　および　\r\n\t以外の制御文字、DEL、すべての2バイト文字、サロゲートペアの片方
-    val identifier: Parser<IdentifierNode> = +Regex("""(?:[a-zA-Z_]|[^\r\n\t -~])(?:[a-zA-Z_0-9]|[^\r\n\t -~])*""") map { IdentifierNode(it.value) }
+    val identifier: Parser<IdentifierNode> = +Regex("""(?:[a-zA-Z_]|[^\r\n\t -~])(?:[a-zA-Z_0-9]|[^\r\n\t -~])*""") mapWithNodeId { it, id -> IdentifierNode(it.value, id()) }
 
     val quotedIdentifierContent: Parser<String> = or(
         +Regex("""[^`\\]+""") map { it.value.normalize() }, // ' \ 以外の文字
@@ -93,20 +93,20 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         +Regex("""\\[^\r\n]""") map { it.value[1].toString() }, // エスケープされた改行以外の文字
         +Regex("""\\(?:\n|\r\n?)""") map { "\n" }, // エスケープされた改行
     )
-    val quotedIdentifier: Parser<IdentifierNode> = -'`' * quotedIdentifierContent.zeroOrMore * -'`' map { IdentifierNode(it.join("")) }
+    val quotedIdentifier: Parser<IdentifierNode> = -'`' * quotedIdentifierContent.zeroOrMore * -'`' mapWithNodeId { it, id -> IdentifierNode(it.join(""), id()) }
 
-    val float: Parser<Node> = +Regex("""[0-9][0-9_]*\.[0-9][0-9_]*""") map { FloatNode(it.value) }
+    val float: Parser<Node> = +Regex("""[0-9][0-9_]*\.[0-9][0-9_]*""") mapWithNodeId { it, id -> FloatNode(it.value, id()) }
 
-    val integer: Parser<Node> = +Regex("[0-9][0-9_]*") map { IntegerNode(it.value) }
+    val integer: Parser<Node> = +Regex("[0-9][0-9_]*") mapWithNodeId { it, id -> IntegerNode(it.value, id()) }
 
-    val hexadecimal: Parser<Node> = +Regex("H#[0-9a-fA-F][0-9a-fA-F_]*") map { HexadecimalNode(it.value.drop(2)) }
+    val hexadecimal: Parser<Node> = +Regex("H#[0-9a-fA-F][0-9a-fA-F_]*") mapWithNodeId { it, id -> HexadecimalNode(it.value.drop(2), id()) }
 
     val rawStringCharacter: Parser<String> = or(
         +Regex("""[^']+""") map { it.value.normalize() }, // ' 以外の文字
         -"''" map { "'" } // '
     )
     val rawStringContent: Parser<LiteralStringContent> = rawStringCharacter.zeroOrMore map { LiteralStringContent(it.join("")) }
-    val rawString: Parser<Node> = -'\'' * rawStringContent * -'\'' map { RawStringNode(it) }
+    val rawString: Parser<Node> = -'\'' * rawStringContent * -'\'' mapWithNodeId { it, id -> RawStringNode(it, id()) }
 
     val templateStringCharacter: Parser<String> = or(
         +Regex("""[^"$\\]+""") map { it.value.normalize() }, // 通常文字
@@ -143,7 +143,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         (-'$').result * ref { factor } map { NodeStringContent(it.b, it.a.position) },
         formatter.result * ref { brackets } map { FormattedStringContent(it.a.value, it.b, it.a.position) },
     )
-    val templateString: Parser<Node> = -'"' * templateStringContent.zeroOrMore * -'"' map { TemplateStringNode(it) }
+    val templateString: Parser<Node> = -'"' * templateStringContent.zeroOrMore * -'"' mapWithNodeId { it, id -> TemplateStringNode(it, id()) }
 
     val embeddedStringCharacter: Parser<String> = or(
         +Regex("""[^<]+""") map { it.value.normalize() }, // < 以外の通常文字
@@ -157,7 +157,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         (-"<%=").result * -b * ref { stream } * -b * -"%>" map { listOf(NodeStringContent(it.b, it.a.position)) },
         -"<%#" * -Regex("""[^%]*(?:%(?!>)[^%]*)*""") * -"%>" map { emptyList() }, // <%# ... %> コメント
     )
-    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' map { EmbeddedStringNode(it.flatten()) } // %>string<% ( <%=, <%# を除く)
+    val embeddedString: Parser<Node> = -"%>" * embeddedStringContent.zeroOrMore * -"<%" * !'%' * !'=' * !'#' mapWithNodeId { it, id -> EmbeddedStringNode(it.flatten(), id()) } // %>string<% ( <%=, <%# を除く)
 
     val regexCharacter: Parser<String> = or(
         +Regex("""[^/\\]+""") map { it.value.normalize() }, // 通常文字
@@ -166,104 +166,104 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         +Regex("""\\(?:\n|\r\n?)""") map { "\n" }, // エスケープされた改行
     )
     val regexContent: Parser<LiteralStringContent> = regexCharacter.oneOrMore map { LiteralStringContent(it.join("")) }
-    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional map { RegexNode(it.a, it.b) }
+    val regex: Parser<Node> = -'/' * regexContent * -'/' * identifier.optional mapWithNodeId { it, id -> RegexNode(it.a, it.b, id()) }
 
-    val arrowRound: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' map { BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) }
-    val arrowSquare: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' map { BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) }
-    val arrowCurly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' map { BracketsLiteralArrowedCurlyNode(it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) }
-    val round: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' map { BracketsLiteralSimpleRoundNode(it.b ?: EmptyNode(), it.a.position) }
-    val square: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' map { BracketsLiteralSimpleSquareNode(it.b ?: EmptyNode(), it.a.position) }
-    val curly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' map { BracketsLiteralSimpleCurlyNode(it.b ?: EmptyNode(), it.a.position) }
+    val arrowRound: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' mapWithNodeId { it, id -> BracketsLiteralArrowedRoundNode(it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) }
+    val arrowSquare: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' mapWithNodeId { it, id -> BracketsLiteralArrowedSquareNode(it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) }
+    val arrowCurly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' mapWithNodeId { it, id -> BracketsLiteralArrowedCurlyNode(it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) }
+    val round: Parser<Node> = (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' mapWithNodeId { it, id -> BracketsLiteralSimpleRoundNode(it.b ?: EmptyNode(id()), it.a.position, id()) }
+    val square: Parser<Node> = (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' mapWithNodeId { it, id -> BracketsLiteralSimpleSquareNode(it.b ?: EmptyNode(id()), it.a.position, id()) }
+    val curly: Parser<Node> = (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' mapWithNodeId { it, id -> BracketsLiteralSimpleCurlyNode(it.b ?: EmptyNode(id()), it.a.position, id()) }
     val brackets: Parser<Node> = arrowRound + arrowSquare + arrowCurly + round + square + curly
 
     val indentBlockBody: Parser<Node> = -(s * br).oneOrMore * withIndent(true, -s * ref { semicolons })
     val indentBlockEnd: Parser<Tuple0> = -s * -(br.lookAhead + endOfInput)
     val indentBlock: Parser<Node> = or(
-        (-':' * indentBlockBody * indentBlockEnd).result map { IndentBlockNode(it.value, it.position) },
-        (-':' * indentBlockEnd).result map { IndentBlockNode(EmptyNode(), it.position) },
+        (-':' * indentBlockBody * indentBlockEnd).result mapWithNodeId { it, id -> IndentBlockNode(it.value, it.position, id()) },
+        (-':' * indentBlockEnd).result mapWithNodeId { it, id -> IndentBlockNode(EmptyNode(id()), it.position, id()) },
     )
     val prefixColon: Parser<Node> = -':' * !':' * -s * ref { condition }
 
     val jump: Parser<Node> = or(
-        (-"!!").result * -s * ref { commas } map { ThrowNode(it.b, it.a.position) },
-        (-"!!").result map { ThrowNode(EmptyNode(), it.position) },
-        identifier * -s * -"!!" * -s * ref { commas } map { ReturnNode(it.a, it.b) },
-        identifier * -s * -"!!" map { ReturnNode(it, EmptyNode()) },
+        (-"!!").result * -s * ref { commas } mapWithNodeId { it, id -> ThrowNode(it.b, it.a.position, id()) },
+        (-"!!").result mapWithNodeId { it, id -> ThrowNode(EmptyNode(id()), it.position, id()) },
+        identifier * -s * -"!!" * -s * ref { commas } mapWithNodeId { it, id -> ReturnNode(it.a, it.b, id()) },
+        identifier * -s * -"!!" mapWithNodeId { it, id -> ReturnNode(it, EmptyNode(id()), id()) },
     )
 
     val nonFloatFactor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + integer + rawString + templateString + embeddedString + regex + brackets
     val factor: Parser<Node> = indentBlock + prefixColon + jump + hexadecimal + identifier + quotedIdentifier + float + integer + rawString + templateString + embeddedString + regex + brackets
 
     val unaryOperator: Parser<(Node, Side, Position) -> Node> = or(
-        -"++" map { ::UnaryPlusPlusNode },
-        -"--" map { ::UnaryMinusMinusNode },
-        -'+' map { ::UnaryPlusNode },
-        -'-' map { ::UnaryMinusNode },
-        -'?' map { ::UnaryQuestionNode },
-        -'!' * !'!' * !'?' map { ::UnaryExclamationNode },
-        -'&' map { ::UnaryAmpersandNode },
-        -'*' map { ::UnaryAsteriskNode },
-        -"$#" map { ::UnaryDollarSharpNode },
-        -"$&" map { ::UnaryDollarAmpersandNode },
-        -"$*" map { ::UnaryDollarAsteriskNode },
-        -'@' map { ::UnaryAtNode },
-        -'\\' map { ::UnaryBackslashNode },
+        -"++" mapWithNodeId { _, id -> (::UnaryPlusPlusNode).withNodeId(id) },
+        -"--" mapWithNodeId { _, id -> (::UnaryMinusMinusNode).withNodeId(id) },
+        -'+' mapWithNodeId { _, id -> (::UnaryPlusNode).withNodeId(id) },
+        -'-' mapWithNodeId { _, id -> (::UnaryMinusNode).withNodeId(id) },
+        -'?' mapWithNodeId { _, id -> (::UnaryQuestionNode).withNodeId(id) },
+        -'!' * !'!' * !'?' mapWithNodeId { _, id -> (::UnaryExclamationNode).withNodeId(id) },
+        -'&' mapWithNodeId { _, id -> (::UnaryAmpersandNode).withNodeId(id) },
+        -'*' mapWithNodeId { _, id -> (::UnaryAsteriskNode).withNodeId(id) },
+        -"$#" mapWithNodeId { _, id -> (::UnaryDollarSharpNode).withNodeId(id) },
+        -"$&" mapWithNodeId { _, id -> (::UnaryDollarAmpersandNode).withNodeId(id) },
+        -"$*" mapWithNodeId { _, id -> (::UnaryDollarAsteriskNode).withNodeId(id) },
+        -'@' mapWithNodeId { _, id -> (::UnaryAtNode).withNodeId(id) },
+        -'\\' mapWithNodeId { _, id -> (::UnaryBackslashNode).withNodeId(id) },
     )
     val rightOperator: Parser<(Node) -> Node> = or(
-        -s * (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' map { { main -> BracketsRightArrowedRoundNode(main, it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) } },
-        -s * (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' map { { main -> BracketsRightArrowedSquareNode(main, it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) } },
-        -s * (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' map { { main -> BracketsRightArrowedCurlyNode(main, it.b ?: EmptyNode(), it.c ?: EmptyNode(), it.a.position) } },
-        -s * (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' map { { main -> BracketsRightSimpleRoundNode(main, it.b ?: EmptyNode(), it.a.position) } },
-        -s * (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' map { { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode(), it.a.position) } },
-        -s * (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' map { { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode(), it.a.position) } },
+        -s * (-'(').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -')' mapWithNodeId { it, id -> { main -> BracketsRightArrowedRoundNode(main, it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) } },
+        -s * (-'[').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -']' mapWithNodeId { it, id -> { main -> BracketsRightArrowedSquareNode(main, it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) } },
+        -s * (-'{').result * withIndent(false, -b * (ref { commas } * -b).optional * -"=>" * -b * (ref { expression } * -b).optional) * -'}' mapWithNodeId { it, id -> { main -> BracketsRightArrowedCurlyNode(main, it.b ?: EmptyNode(id()), it.c ?: EmptyNode(id()), it.a.position, id()) } },
+        -s * (-'(').result * withIndent(false, -b * (ref { expression } * -b).optional) * -')' mapWithNodeId { it, id -> { main -> BracketsRightSimpleRoundNode(main, it.b ?: EmptyNode(id()), it.a.position, id()) } },
+        -s * (-'[').result * withIndent(false, -b * (ref { expression } * -b).optional) * -']' mapWithNodeId { it, id -> { main -> BracketsRightSimpleSquareNode(main, it.b ?: EmptyNode(id()), it.a.position, id()) } },
+        -s * (-'{').result * withIndent(false, -b * (ref { expression } * -b).optional) * -'}' mapWithNodeId { it, id -> { main -> BracketsRightSimpleCurlyNode(main, it.b ?: EmptyNode(id()), it.a.position, id()) } },
 
-        -s * (-"++").result map { { main -> PostfixPlusPlusNode(main, it.position) } },
-        -s * (-"--").result map { { main -> PostfixMinusMinusNode(main, it.position) } },
+        -s * (-"++").result mapWithNodeId { it, id -> { main -> PostfixPlusPlusNode(main, it.position, id()) } },
+        -s * (-"--").result mapWithNodeId { it, id -> { main -> PostfixMinusMinusNode(main, it.position, id()) } },
 
-        -b * (-'.').result * -b * nonFloatFactor map { { main -> InfixPeriodNode(main, it.b, it.a.position) } },
-        -b * (-"?.").result * -b * nonFloatFactor map { { main -> InfixQuestionPeriodNode(main, it.b, it.a.position) } },
-        -b * (-"::").result * -b * nonFloatFactor map { { main -> InfixColonColonNode(main, it.b, it.a.position) } },
-        -b * (-"?::").result * -b * nonFloatFactor map { { main -> InfixQuestionColonColonNode(main, it.b, it.a.position) } },
+        -b * (-'.').result * -b * nonFloatFactor mapWithNodeId { it, id -> { main -> InfixPeriodNode(main, it.b, it.a.position, id()) } },
+        -b * (-"?.").result * -b * nonFloatFactor mapWithNodeId { it, id -> { main -> InfixQuestionPeriodNode(main, it.b, it.a.position, id()) } },
+        -b * (-"::").result * -b * nonFloatFactor mapWithNodeId { it, id -> { main -> InfixColonColonNode(main, it.b, it.a.position, id()) } },
+        -b * (-"?::").result * -b * nonFloatFactor mapWithNodeId { it, id -> { main -> InfixQuestionColonColonNode(main, it.b, it.a.position, id()) } },
 
         -b * -'.' * unaryOperator.result map { { main -> it.value(main, Side.RIGHT, it.position) } },
     )
     val right: Parser<Node> = factor * rightOperator.zeroOrMore map { it.b.fold(it.a) { node, f -> f(node) } }
-    val pow: Parser<Node> = right * (-s * (-'^').result * -b * ref { left }).optional map {
+    val pow: Parser<Node> = right * (-s * (-'^').result * -b * ref { left }).optional mapWithNodeId { it, id ->
         val right = it.b
-        if (right != null) InfixCircumflexNode(it.a, right.b, right.a.position) else it.a
+        if (right != null) InfixCircumflexNode(it.a, right.b, right.a.position, id()) else it.a
     }
     val left: Parser<Node> = (unaryOperator.result * -b).zeroOrMore * pow map { it.a.foldRight(it.b) { f, node -> f.value(node, Side.LEFT, f.position) } }
 
     val mulOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -'*' map { ::InfixAsteriskNode },
-        -'/' map { ::InfixSlashNode },
-        -"!%%" map { ::InfixExclamationPercentPercentNode },
-        -"%%" map { ::InfixPercentPercentNode },
-        -'%' map { ::InfixPercentNode },
+        -'*' mapWithNodeId { _, id -> (::InfixAsteriskNode).withNodeId(id) },
+        -'/' mapWithNodeId { _, id -> (::InfixSlashNode).withNodeId(id) },
+        -"!%%" mapWithNodeId { _, id -> (::InfixExclamationPercentPercentNode).withNodeId(id) },
+        -"%%" mapWithNodeId { _, id -> (::InfixPercentPercentNode).withNodeId(id) },
+        -'%' mapWithNodeId { _, id -> (::InfixPercentNode).withNodeId(id) },
     )
     val mul: Parser<Node> = leftAssociative(left, -s * mulOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val addOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -'+' map { ::InfixPlusNode },
-        -'-' * !'>' map { ::InfixMinusNode },
-        -'&' * !'&' map { ::InfixAmpersandNode },
+        -'+' mapWithNodeId { _, id -> (::InfixPlusNode).withNodeId(id) },
+        -'-' * !'>' mapWithNodeId { _, id -> (::InfixMinusNode).withNodeId(id) },
+        -'&' * !'&' mapWithNodeId { _, id -> (::InfixAmpersandNode).withNodeId(id) },
     )
     val add: Parser<Node> = leftAssociative(mul, -s * addOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val rangeOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -".." map { ::InfixPeriodPeriodNode },
-        -'~' map { ::InfixTildeNode },
+        -".." mapWithNodeId { _, id -> (::InfixPeriodPeriodNode).withNodeId(id) },
+        -'~' mapWithNodeId { _, id -> (::InfixTildeNode).withNodeId(id) },
     )
     val range: Parser<Node> = leftAssociative(add, -s * rangeOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val infixIdentifierOperator: Parser<(Node, Node) -> Node> = or(
-        (identifier + quotedIdentifier).result map { { left, right -> InfixIdentifierNode(left, it.value, right, it.position) } },
-        (-'!').result * (identifier + quotedIdentifier) map { { left, right -> InfixExclamationIdentifierNode(left, it.b, right, it.a.position) } },
+        (identifier + quotedIdentifier).result mapWithNodeId { it, id -> { left, right -> InfixIdentifierNode(left, it.value, right, it.position, id()) } },
+        (-'!').result * (identifier + quotedIdentifier) mapWithNodeId { it, id -> { left, right -> InfixExclamationIdentifierNode(left, it.b, right, it.a.position, id()) } },
     )
     val infixIdentifier: Parser<Node> = leftAssociative(range, -s * infixIdentifierOperator * -b) { left, operator, right -> operator(left, right) }
     val matchOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -"=~" map { ::InfixEqualTildeNode },
-        -"!~" map { ::InfixExclamationTildeNode },
+        -"=~" mapWithNodeId { _, id -> (::InfixEqualTildeNode).withNodeId(id) },
+        -"!~" mapWithNodeId { _, id -> (::InfixExclamationTildeNode).withNodeId(id) },
     )
     val match: Parser<Node> = leftAssociative(infixIdentifier, -s * matchOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
-    val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" map { ::InfixLessEqualGreaterNode }
+    val spaceshipOperator: Parser<(Node, Node, Position) -> InfixNode> = -"<=>" mapWithNodeId { _, id -> (::InfixLessEqualGreaterNode).withNodeId(id) }
     val spaceship: Parser<Node> = leftAssociative(match, -s * spaceshipOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val comparisonOperator: Parser<ComparisonOperatorType> = or(
         -"==" map { ComparisonOperatorType.EQUAL_EQUAL }, // ==
@@ -277,49 +277,49 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -"!@" map { ComparisonOperatorType.EXCLAMATION_AT }, // !@
         -'@' map { ComparisonOperatorType.AT }, // @
     )
-    val comparison: Parser<Node> = spaceship * (-s * comparisonOperator.result * -b * spaceship).zeroOrMore map {
+    val comparison: Parser<Node> = spaceship * (-s * comparisonOperator.result * -b * spaceship).zeroOrMore mapWithNodeId { it, id ->
         if (it.b.isNotEmpty()) {
-            ComparisonsNode(listOf(it.a, *it.b.map { t -> t.b }.toTypedArray()), it.b.map { t -> Pair(t.a.value, t.a.position) })
+            ComparisonsNode(listOf(it.a, *it.b.map { t -> t.b }.toTypedArray()), it.b.map { t -> Pair(t.a.value, t.a.position) }, id())
         } else {
             it.a
         }
     }
-    val andOperator: Parser<(Node, Node, Position) -> InfixNode> = -"&&" map { ::InfixAmpersandAmpersandNode }
+    val andOperator: Parser<(Node, Node, Position) -> InfixNode> = -"&&" mapWithNodeId { _, id -> (::InfixAmpersandAmpersandNode).withNodeId(id) }
     val and: Parser<Node> = leftAssociative(comparison, -s * andOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
-    val orOperator: Parser<(Node, Node, Position) -> InfixNode> = -"||" map { ::InfixPipePipeNode }
+    val orOperator: Parser<(Node, Node, Position) -> InfixNode> = -"||" mapWithNodeId { _, id -> (::InfixPipePipeNode).withNodeId(id) }
     val or: Parser<Node> = leftAssociative(and, -s * orOperator.result * -b) { left, operator, right -> operator.value(left, right, operator.position) }
     val condition: Parser<Node> = or(
-        or * -b * (-'?' * !':').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition } map { it -> ConditionNode(it.a, it.c, it.d, it.b.position) },
-        or * -b * (-"?:").result * -b * ref { condition } map { InfixQuestionColonNode(it.a, it.c, it.b.position) },
-        or * -b * (-"!?").result * -b * ref { condition } map { InfixExclamationQuestionNode(it.a, it.c, it.b.position) },
+        or * -b * (-'?' * !':').result * -b * ref { condition } * -b * -':' * !':' * -b * ref { condition } mapWithNodeId { it, id -> ConditionNode(it.a, it.c, it.d, it.b.position, id()) },
+        or * -b * (-"?:").result * -b * ref { condition } mapWithNodeId { it, id -> InfixQuestionColonNode(it.a, it.c, it.b.position, id()) },
+        or * -b * (-"!?").result * -b * ref { condition } mapWithNodeId { it, id -> InfixExclamationQuestionNode(it.a, it.c, it.b.position, id()) },
         or,
     )
 
     val commasPart: Parser<List<Node>> = or(
-        (condition * -b + fixed(Unit).map { EmptyNode() }) * -',' * (-b * ref { commasPart } + fixed(Unit).map { listOf(EmptyNode()) }) map { listOf(it.a) + it.b },
+        (condition * -b + fixed(Unit).mapWithNodeId { _, id -> EmptyNode(id()) }) * -',' * (-b * ref { commasPart } + fixed(Unit).mapWithNodeId { _, id -> listOf(EmptyNode(id())) }) map { listOf(it.a) + it.b },
         condition map { listOf(it) },
     )
-    val commas: Parser<Node> = commasPart map { if (it.size == 1) it.single() else CommasNode(it) }
+    val commas: Parser<Node> = commasPart mapWithNodeId { it, id -> if (it.size == 1) it.single() else CommasNode(it, id()) }
 
     val pipeOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -'|' map { ::InfixPipeNode }, // |
+        -'|' mapWithNodeId { _, id -> (::InfixPipeNode).withNodeId(id) }, // |
     )
     val argumentsOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -"=>" map { ::InfixEqualGreaterNode }, // =>
+        -"=>" mapWithNodeId { _, id -> (::InfixEqualGreaterNode).withNodeId(id) }, // =>
     )
     val executionOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -">>" map { ::InfixGreaterGreaterNode }, // >>
-        -"!:" map { ::InfixExclamationColonNode }, // !:
+        -">>" mapWithNodeId { _, id -> (::InfixGreaterGreaterNode).withNodeId(id) }, // >>
+        -"!:" mapWithNodeId { _, id -> (::InfixExclamationColonNode).withNodeId(id) }, // !:
     )
     val assignmentOperator: Parser<(Node, Node, Position) -> InfixNode> = or(
-        -'=' * !'>' * !':' map { ::InfixEqualNode }, // =
-        -"=:" map { ::InfixEqualColonNode }, // =:
-        -':' * !'=' * !':' map { ::InfixColonNode }, // :
-        -":=" map { ::InfixColonEqualNode }, // :=
-        -"<<" map { ::InfixLessLessNode }, // <<
-        -"->" map { ::InfixMinusGreaterNode }, // ->
-        -"+=" map { ::InfixPlusEqualNode }, // +=
-        -"-=" map { ::InfixMinusEqualNode }, // -=
+        -'=' * !'>' * !':' mapWithNodeId { _, id -> (::InfixEqualNode).withNodeId(id) }, // =
+        -"=:" mapWithNodeId { _, id -> (::InfixEqualColonNode).withNodeId(id) }, // =:
+        -':' * !'=' * !':' mapWithNodeId { _, id -> (::InfixColonNode).withNodeId(id) }, // :
+        -":=" mapWithNodeId { _, id -> (::InfixColonEqualNode).withNodeId(id) }, // :=
+        -"<<" mapWithNodeId { _, id -> (::InfixLessLessNode).withNodeId(id) }, // <<
+        -"->" mapWithNodeId { _, id -> (::InfixMinusGreaterNode).withNodeId(id) }, // ->
+        -"+=" mapWithNodeId { _, id -> (::InfixPlusEqualNode).withNodeId(id) }, // +=
+        -"-=" mapWithNodeId { _, id -> (::InfixMinusEqualNode).withNodeId(id) }, // -=
     )
 
     val pipeOperatorPart: Parser<ParseResult<(Node, Node, Position) -> InfixNode>> = -b * pipeOperator.result * -b + -s * argumentsOperator.result * -b
@@ -346,16 +346,26 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
 
     val semicolonsPart: Parser<List<Node>> = or(
         stream * -(s * br).oneOrMore * -indent * -s * ref { semicolonsPart } map { listOf(it.a) + it.b },
-        (stream * -s + fixed(Unit).map { EmptyNode() }) * -';' * (-b * ref { semicolonsPart } + fixed(Unit).map { listOf(EmptyNode()) }) map { listOf(it.a) + it.b },
+        (stream * -s + fixed(Unit).mapWithNodeId { _, id -> EmptyNode(id()) }) * -';' * (-b * ref { semicolonsPart } + fixed(Unit).mapWithNodeId { _, id -> listOf(EmptyNode(id())) }) map { listOf(it.a) + it.b },
         stream map { listOf(it) },
     )
-    val semicolons: Parser<Node> = semicolonsPart map { if (it.size == 1) it.single() else SemicolonsNode(it) }
+    val semicolons: Parser<Node> = semicolonsPart mapWithNodeId { it, id -> if (it.size == 1) it.single() else SemicolonsNode(it, id()) }
     val expression: Parser<Node> = semicolons
 
-    val rootParser: Parser<Node> = -b * (expression * -b).optional map { it.a ?: EmptyNode() }
+    val rootParser: Parser<Node> = -b * (expression * -b).optional mapWithNodeId { it, id -> it.a ?: EmptyNode(id()) }
 
     val shebang: Parser<Tuple0> = -Regex("""#![^\r\n]*(?:\n|\r\n?)?""") // 最外部の先頭限定のシバン行（末尾の改行ごと消費）
-    val rootEmbeddedParser: Parser<Node> = -shebang.optional * embeddedStringContent.zeroOrMore map { EmbeddedStringNode(it.flatten()) } // 最外部を埋め込み文字列の本体として解釈する
+    val rootEmbeddedParser: Parser<Node> = -shebang.optional * embeddedStringContent.zeroOrMore mapWithNodeId { it, id -> EmbeddedStringNode(it.flatten(), id()) } // 最外部を埋め込み文字列の本体として解釈する
+
+    private infix fun <T : Any, R : Any> Parser<T>.mapWithNodeId(transform: (T, () -> Int) -> R): Parser<R> {
+        return mapEx { context, result ->
+            transform(result.value, (context as XarpiteParseContext)::allocateNodeId)
+        }
+    }
+
+    private fun <A, B, C, R : Node> ((A, B, C, Int) -> R).withNodeId(id: () -> Int): (A, B, C) -> R {
+        return { first, second, third -> this(first, second, third, id()) }
+    }
 
     private val <T : Any> Parser<T>.result get() = this.mapEx { _, result -> result }
     private val ParseResult<*>.position get() = Position(location, start)
