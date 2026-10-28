@@ -1,5 +1,7 @@
 package mirrg.xarpite
 
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import it.krzeminski.snakeyaml.engine.kmp.api.ConstructNode
 import it.krzeminski.snakeyaml.engine.kmp.api.Dump
 import it.krzeminski.snakeyaml.engine.kmp.api.DumpSettings
@@ -43,6 +45,29 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.operations.FluoriteException
 import okio.Path
 import okio.Path.Companion.toPath
+import kotlin.math.floor
+
+/**
+ * 有限の整数値を、10進文字列を経由せずに正確に変換します。
+ */
+fun Double.toBigIntegerExact(): BigInteger {
+    // BigIntegerでは小数・無限大・NaNを表せないため、値を変更せず変換できる有限の整数に限定する
+    require(this.isFinite() && this == floor(this)) { "Cannot convert to BigInteger exactly: $this" }
+    // BigIntegerに符号付きゼロはなく、ゼロには後述の正規化数の仮数復元も適用できない
+    if (this == 0.0) return BigInteger.ZERO
+    // ゼロ以外の整数は絶対値が1以上なので、ここに到達する値はすべてIEEE 754の正規化数になる
+    val bits = this.toBits()
+    // 符号ビットを除いて指数部を取り出し、指数のバイアス1023と仮数を整数化する分の52を引く
+    val shift = ((bits ushr 52) and 0x7ffL).toInt() - 1075
+    // 小数部52ビットに正規化数の暗黙の先頭1を補い、53ビットの正の整数として仮数を復元する
+    // シフト後はLongの範囲を超え得るため、仮数の段階でBigIntegerに変換する
+    val significand = ((bits and 0x000fffffffffffffL) or 0x0010000000000000L).toBigInteger()
+    // 絶対値はsignificand × 2^shiftになる
+    // 整数と検証済みなので、右シフトで除かれる下位ビットはすべて0であり、値は失われない
+    val magnitude = if (shift >= 0) significand shl shift else significand shr -shift
+    // 仮数の復元では除いていた符号を、元のDoubleに従って最後に付ける
+    return if (this < 0.0) magnitude.negate() else magnitude
+}
 
 fun String.escapeJsonString() = this
     .replace("\\", "\\\\")
