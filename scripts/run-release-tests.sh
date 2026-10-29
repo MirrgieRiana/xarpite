@@ -57,6 +57,22 @@ actual=$(XARPITE_ENGINE=node xa '123')
 [ "$actual" = "$expected" ] || fail "$expected" "$actual"
 
 
+# テスト時のAPIバージョン上限の解除
+for engine in native jvm node; do
+  expected='ERROR: This runtime does not support API version 2147483647'
+  actual=$(XARPITE_ENGINE=$engine XARPITE_TEST=0 xa -A 2147483647 'API_VERSION' 2>&1)
+  [ "$actual" = "$expected" ] || fail "$expected ($engine)" "$actual"
+
+  expected=2147483647
+  actual=$(XARPITE_ENGINE=$engine XARPITE_TEST=1 xa -A 2147483647 'API_VERSION')
+  [ "$actual" = "$expected" ] || fail "$expected ($engine)" "$actual"
+
+  expected='Division by zero'
+  actual=$(XARPITE_ENGINE=$engine XARPITE_TEST=1 xa -A 6 'DIV(1.0; 0) !? (error => error)')
+  [ "$actual" = "$expected" ] || fail "$expected ($engine)" "$actual"
+done
+
+
 # PWD tests
 # Test that PWD returns a non-empty absolute path
 actual=$(xa 'PWD')

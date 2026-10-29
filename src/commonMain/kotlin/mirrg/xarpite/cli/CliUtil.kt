@@ -204,8 +204,9 @@ fun RuntimeContext.addDefaultIncPaths() {
 
 suspend fun CoroutineScope.cliEval(ioContext: IoContext, options: Options, createExtraMounts: RuntimeContext.() -> List<Map<String, Mount>> = { emptyList() }): Int {
     return withEvaluator(ioContext) { context, evaluator ->
+        context.allowFutureApiVersions = ioContext.getEnv()["XARPITE_TEST"] == "1"
         if (options.apiVersion != null) {
-            if (options.apiVersion !in RuntimeContext.SUPPORTED_API_VERSIONS) {
+            if (!context.supportsApiVersion(options.apiVersion)) {
                 context.io.err("ERROR: This runtime does not support API version ${options.apiVersion}".toFluoriteString())
                 return@withEvaluator 0
             }

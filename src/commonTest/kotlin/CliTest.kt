@@ -2177,6 +2177,42 @@ class CliTest {
     }
 
     @Test
+    fun testModeAllowsFutureApiVersionFromOptionAndEnv() = runTest {
+        val version = RuntimeContext.SUPPORTED_API_VERSIONS.last + 1
+        listOf(false, true).forEach { useEnv ->
+            val env = mapOf("XARPITE_TEST" to "1") + if (useEnv) mapOf("XARPITE_API_VERSION" to "$version") else emptyMap()
+            val context = TestIoContext(env = env)
+            val arguments = (if (useEnv) emptyList() else listOf("-A", "$version")) + listOf("-e", "API_VERSION")
+            val options = parseArguments(arguments, context)
+            assertEquals(0, cliEvalImpl(context, options))
+            assertEquals("$version\n", context.stdoutBytes.toUtf8String())
+            assertEquals("", context.stderrBytes.toUtf8String())
+        }
+    }
+
+    @Test
+    fun testModeFlagRequiresOne() = runTest {
+        val version = RuntimeContext.SUPPORTED_API_VERSIONS.last + 1
+        listOf("", "0", "true").forEach { flag ->
+            val context = TestIoContext(env = mapOf("XARPITE_TEST" to flag))
+            val options = parseArguments(listOf("-A", "$version", "-e", "API_VERSION"), context)
+            cliEvalImpl(context, options)
+            assertEquals("", context.stdoutBytes.toUtf8String())
+            assertTrue(context.stderrBytes.toUtf8String().contains("This runtime does not support API version $version"))
+        }
+    }
+
+    @Test
+    fun testModeKeepsApiVersionLowerBound() = runTest {
+        val version = RuntimeContext.SUPPORTED_API_VERSIONS.first - 1
+        val context = TestIoContext(env = mapOf("XARPITE_TEST" to "1"))
+        val options = parseArguments(listOf("-A", "$version", "-e", "API_VERSION"), context)
+        cliEvalImpl(context, options)
+        assertEquals("", context.stdoutBytes.toUtf8String())
+        assertTrue(context.stderrBytes.toUtf8String().contains("This runtime does not support API version $version"))
+    }
+
+    @Test
     fun apiVersionEnvVarIsUsedWhenOptionAbsent() = runTest {
         // -A が無指定のとき XARPITE_API_VERSION 環境変数が採用される
         val context = TestIoContext(env = mapOf("XARPITE_API_VERSION" to "5"))

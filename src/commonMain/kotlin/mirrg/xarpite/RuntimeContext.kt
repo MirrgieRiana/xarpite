@@ -32,9 +32,15 @@ class RuntimeContext(
         val SUPPORTED_API_VERSIONS = 4..5 // TODO -> 6
     }
 
+    internal var allowFutureApiVersions = false
+
+    internal fun supportsApiVersion(version: Int): Boolean {
+        return version >= SUPPORTED_API_VERSIONS.first && (allowFutureApiVersions || version <= SUPPORTED_API_VERSIONS.last)
+    }
+
     var apiVersion = SUPPORTED_API_VERSIONS.first
         set(value) {
-            check(value in SUPPORTED_API_VERSIONS) { "This environment does not support API version $value" }
+            check(supportsApiVersion(value)) { "This environment does not support API version $value" }
             field = value
         }
 
