@@ -2182,7 +2182,7 @@ class CliTest {
         listOf(false, true).forEach { useEnv ->
             val env = mapOf("XARPITE_TEST" to "1") + if (useEnv) mapOf("XARPITE_API_VERSION" to "$version") else emptyMap()
             val context = TestIoContext(env = env)
-            val arguments = (if (useEnv) emptyList() else listOf("-A", "$version")) + listOf("-e", "API_VERSION")
+            val arguments = (if (useEnv) emptyList() else listOf("-A", "$version")) + listOf("-q", "-e", "OUT << API_VERSION")
             val options = parseArguments(arguments, context)
             assertEquals(0, cliEvalImpl(context, options))
             assertEquals("$version\n", context.stdoutBytes.toUtf8String())
