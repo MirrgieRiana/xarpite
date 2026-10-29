@@ -84,7 +84,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     new(instant)
                 },
                 OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                    (arguments[0] as FluoriteObject).toInstant().formatInstant().toFluoriteString()
+                    (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
                 },
             )
         },

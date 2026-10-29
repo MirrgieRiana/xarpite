@@ -40,13 +40,13 @@ If `nanosecondsOfSecond` is outside the range 0–999_999_999, `epochSeconds` is
 
 ```shell
 $ xa 'INSTANT.of(981173106)'
-# 981173106
+# 2001-02-03T04:05:06Z
 
 $ xa 'INSTANT.of(981173106.125)'
-# 981173106.125
+# 2001-02-03T04:05:06.125Z
 
 $ xa 'INSTANT.of(981173106; 125_000_000)'
-# 981173106.125
+# 2001-02-03T04:05:06.125Z
 
 $ xa 'TIME.of(981173106; 0)'
 # 2001-02-03T04:05:06Z
@@ -93,16 +93,16 @@ Specifying an offset for `INSTANT` or `LOCAL_TIME` results in an error.
 
 ```shell
 $ xa 'INSTANT.parse("2001-02-03")'
-# 981158400
+# 2001-02-03T00:00:00Z
 
 $ xa 'INSTANT.parse("2001-02-03T04:05:06")'
-# 981173106
+# 2001-02-03T04:05:06Z
 
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007")'
-# 981173106.007
+# 2001-02-03T04:05:06.007Z
 
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009")'
-# 981173106.007008009
+# 2001-02-03T04:05:06.007008009Z
 
 $ xa 'TIME.parse("2001-02-03Z")'
 # 2001-02-03T00:00:00Z
@@ -140,6 +140,28 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 The `now` functions create instances based on the current system time.
 
 The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
+
+### String Conversion of `INSTANT`
+
+Converting an `INSTANT` to a string produces an ISO date and time in UTC with a trailing `Z`.
+
+Seconds are always included, and fractional seconds use 3, 6, or 9 digits as needed.
+
+If the fractional seconds are zero, the fractional part is omitted.
+
+```shell
+$ xa 'INSTANT.of(0)'
+# 1970-01-01T00:00:00Z
+
+$ xa 'INSTANT.of(0; 125_000_000)'
+# 1970-01-01T00:00:00.125Z
+
+$ xa 'INSTANT.of(0; 123_456_000)'
+# 1970-01-01T00:00:00.123456Z
+
+$ xa 'INSTANT.of(0; 123_456_789)'
+# 1970-01-01T00:00:00.123456789Z
+```
 
 ## Other Built-in Members
 

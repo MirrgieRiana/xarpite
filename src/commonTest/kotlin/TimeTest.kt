@@ -61,7 +61,7 @@ class TimeTest {
             }
 
             assertEquals("946652400", eval("NOW()", ioContext = ioContext, apiVersion = apiVersion).toString())
-            assertEquals("946652400.123456789", eval("INSTANT.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
+            assertEquals("1999-12-31T15:00:00.123456789Z", eval("INSTANT.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
             assertEquals(2, instantReads)
             assertEquals(0, timeZoneReads)
             assertEquals("2000-01-01T00:00:00.123456789+09:00", eval("TIME.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
@@ -165,10 +165,10 @@ class TimeTest {
     fun timeParse() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
-                Triple("INSTANT", "2001-02-03", "981158400"),
-                Triple("INSTANT", "2001-02-03T04:05:06", "981173106"),
-                Triple("INSTANT", "2001-02-03T04:05:06.007", "981173106.007"),
-                Triple("INSTANT", "2001-02-03T04:05:06.007008009", "981173106.007008009"),
+                Triple("INSTANT", "2001-02-03", "2001-02-03T00:00:00Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06", "2001-02-03T04:05:06Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.007", "2001-02-03T04:05:06.007Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.007008009", "2001-02-03T04:05:06.007008009Z"),
                 Triple("TIME", "2001-02-03Z", "2001-02-03T00:00:00Z"),
                 Triple("TIME", "2001-02-03T04:05:06+10:00", "2001-02-03T04:05:06+10:00"),
                 Triple("TIME", "2001-02-03T04:05:06.007-10:11", "2001-02-03T04:05:06.007-10:11"),
@@ -177,8 +177,8 @@ class TimeTest {
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06", "2001-02-03T04:05:06"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.007", "2001-02-03T04:05:06.007"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.007008009", "2001-02-03T04:05:06.007008009"),
-                Triple("INSTANT", "1969-12-31T23:59:59.999999999", "-0.000000001"),
-                Triple("INSTANT", "2001-02-03T04:05:06.1200", "981173106.12"),
+                Triple("INSTANT", "1969-12-31T23:59:59.999999999", "1969-12-31T23:59:59.999999999Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.1200", "2001-02-03T04:05:06.120Z"),
                 Triple("TIME", "2001-02-03T04:05:06.000000000+00:00", "2001-02-03T04:05:06Z"),
                 Triple("TIME", "2001-02-03-00:00", "2001-02-03T00:00:00Z"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.1200", "2001-02-03T04:05:06.120"),
@@ -306,9 +306,9 @@ class TimeTest {
     fun timeOf() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
-                Pair("INSTANT.of(981173106)", "981173106"),
-                Pair("INSTANT.of(981173106.125)", "981173106.125"),
-                Pair("INSTANT.of(981173106; 125_000_000)", "981173106.125"),
+                Pair("INSTANT.of(981173106)", "2001-02-03T04:05:06Z"),
+                Pair("INSTANT.of(981173106.125)", "2001-02-03T04:05:06.125Z"),
+                Pair("INSTANT.of(981173106; 125_000_000)", "2001-02-03T04:05:06.125Z"),
                 Pair("TIME.of(981173106; 0)", "2001-02-03T04:05:06Z"),
                 Pair("TIME.of(981173106.125; 3600)", "2001-02-03T05:05:06.125+01:00"),
                 Pair("TIME.of(981173106; 125_000_000; -3600 * 5)", "2001-02-02T23:05:06.125-05:00"),
@@ -390,8 +390,9 @@ class TimeTest {
                 assertEquals(expected, value.toInstant())
             }
         }
-        listOf(Pair("9007199254740993", "9007199254740993.000000001"), Pair("-9007199254740993", "-9007199254740992.999999999")).forEach { (seconds, expected) ->
-            assertEquals(expected, eval("INSTANT.of(BIG.of(\"$seconds\"); 1).&").string)
+        listOf("9007199254740993", "-9007199254740993").forEach { seconds ->
+            val instant = eval("INSTANT.of(BIG.of(\"$seconds\"); 1)") as FluoriteObject
+            assertEquals(Instant.fromEpochSeconds(seconds.toLong(), 1), instant.toInstant())
         }
     }
 
@@ -455,21 +456,24 @@ class TimeTest {
     @Test
     fun instantString() = runTest {
         listOf(
-            Pair(Instant.fromEpochSeconds(0), "0"),
-            Pair(Instant.fromEpochSeconds(946652400), "946652400"),
-            Pair(Instant.fromEpochSeconds(946652400, 123456789), "946652400.123456789"),
-            Pair(Instant.fromEpochSeconds(0, 1), "0.000000001"),
-            Pair(Instant.fromEpochSeconds(0, 1_000_000), "0.001"),
-            Pair(Instant.fromEpochSeconds(-1), "-1"),
-            Pair(Instant.fromEpochSeconds(-1, 500_000_000), "-0.5"),
-            Pair(Instant.fromEpochSeconds(-2, 500_000_000), "-1.5"),
-            Pair(Instant.fromEpochSeconds(-1, 1), "-0.999999999"),
-            Pair(Instant.fromEpochSeconds(-1, 999_999_999), "-0.000000001"),
+            Pair(Instant.fromEpochSeconds(0), "1970-01-01T00:00:00Z"),
+            Pair(Instant.fromEpochSeconds(946652400), "1999-12-31T15:00:00Z"),
+            Pair(Instant.fromEpochSeconds(946652400, 123456789), "1999-12-31T15:00:00.123456789Z"),
+            Pair(Instant.fromEpochSeconds(0, 1), "1970-01-01T00:00:00.000000001Z"),
+            Pair(Instant.fromEpochSeconds(0, 1_000_000), "1970-01-01T00:00:00.001Z"),
+            Pair(Instant.fromEpochSeconds(0, 120_000_000), "1970-01-01T00:00:00.120Z"),
+            Pair(Instant.fromEpochSeconds(0, 123_456_000), "1970-01-01T00:00:00.123456Z"),
+            Pair(Instant.fromEpochSeconds(-1), "1969-12-31T23:59:59Z"),
+            Pair(Instant.fromEpochSeconds(-1, 500_000_000), "1969-12-31T23:59:59.500Z"),
+            Pair(Instant.fromEpochSeconds(-2, 500_000_000), "1969-12-31T23:59:58.500Z"),
+            Pair(Instant.fromEpochSeconds(-1, 1), "1969-12-31T23:59:59.000000001Z"),
+            Pair(Instant.fromEpochSeconds(-1, 999_999_999), "1969-12-31T23:59:59.999999999Z"),
         ).forEach { (instant, expected) ->
             val value = eval("INSTANT{_epochSeconds: BIG.of(\"${instant.epochSeconds}\"); _nanosecondsOfSecond: ${instant.nanosecondsOfSecond}}", ioContext = ioContext)
             assertEquals(expected, value.toFluoriteString(null).value)
         }
-        assertEquals("946652400.123456789", eval("INSTANT.now().&", ioContext = ioContext).string)
+        assertEquals("1999-12-31T15:00:00.123456789Z", eval("INSTANT.now().&", ioContext = ioContext).string)
+        assertTrue(eval("x := INSTANT.now(); &x == x.&", ioContext = ioContext).boolean)
     }
 
     @Test
@@ -508,7 +512,7 @@ class TimeTest {
             assertTrue(eval("$name.now()._nanosecondsOfSecond ?= INT", ioContext = ioContext).boolean)
         }
         assertTrue(eval("TIME.now()._offsetSeconds ?= INT", ioContext = ioContext).boolean)
-        assertEquals("0.5", eval("x := INSTANT.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x.&", ioContext = ioContext).string)
+        assertEquals("1970-01-01T00:00:00.500Z", eval("x := INSTANT.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x.&", ioContext = ioContext).string)
         assertEquals("1970-01-01T09:00:00.500+09:00", eval("x := TIME.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x._offsetSeconds = 32400; x.&", ioContext = ioContext).string)
         assertEquals("1970-01-01T00:00:00.500", eval("x := LOCAL_TIME.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x.&", ioContext = ioContext).string)
     }
