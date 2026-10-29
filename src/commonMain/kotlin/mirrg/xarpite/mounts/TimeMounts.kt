@@ -73,7 +73,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     fun usage(): Nothing = usage("INSTANT.parse(text: STRING): INSTANT")
                     if (arguments.size != 1) usage()
                     val text = arguments[0] as? FluoriteString ?: usage()
-                    val (localDateTime, offset) = text.value.parseTime()
+                    val (localDateTime, offset) = text.value.removeSuffix("Z").parseTime()
                     require(offset == null) { "UTC offset is not allowed for INSTANT" }
                     val instant = localDateTime.toInstant(TimeZone.UTC)
                     new(instant)

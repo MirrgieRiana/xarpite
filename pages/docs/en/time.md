@@ -87,9 +87,13 @@ If the time of day is omitted, the nanosecond part must also be omitted.
 
 Any number of trailing zeros in the nanosecond part may be omitted.
 
-The UTC offset, represented by `Z` or `[+-][0-9]{2}:[0-9]{2}`, is required only for `TIME`.
+The requirements for the time zone designator `Z` and the UTC offset notation `[+-][0-9]{2}:[0-9]{2}` depend on the time class as follows.
 
-Specifying an offset for `INSTANT` or `LOCAL_TIME` results in an error.
+| Class        | Time zone notation        |
+|--------------|---------------------------|
+| `INSTANT`    | Optional `Z`              |
+| `TIME`       | `Z` or a UTC offset       |
+| `LOCAL_TIME` | Must be omitted           |
 
 ```shell
 $ xa 'INSTANT.parse("2001-02-03")'
@@ -101,7 +105,7 @@ $ xa 'INSTANT.parse("2001-02-03T04:05:06")'
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007")'
 # 2001-02-03T04:05:06.007Z
 
-$ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009")'
+$ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009Z")'
 # 2001-02-03T04:05:06.007008009Z
 
 $ xa 'TIME.parse("2001-02-03Z")'
