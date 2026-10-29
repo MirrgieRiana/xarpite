@@ -304,6 +304,7 @@ val generateDocShellTests = tasks.register("generateDocShellTests") {
 val runDocShellTests = tasks.register<Exec>("runDocShellTests") {
     group = "verification"
     dependsOn(generateDocShellTests, bundleXarpiteBinAll)
+    environment("XARPITE_TEST", "1")
     workingDir = project.layout.buildDirectory.file("docShellTests").get().asFile
     commandLine(
         "bash",

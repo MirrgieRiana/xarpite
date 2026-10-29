@@ -32,9 +32,13 @@ class RuntimeContext(
         val SUPPORTED_API_VERSIONS = 4..5 // TODO -> 6
     }
 
+    fun supportsApiVersion(version: Int): Boolean {
+        return version >= SUPPORTED_API_VERSIONS.first && (version <= SUPPORTED_API_VERSIONS.last || io.getEnv()["XARPITE_TEST"] == "1")
+    }
+
     var apiVersion = SUPPORTED_API_VERSIONS.first
         set(value) {
-            check(value in SUPPORTED_API_VERSIONS) { "This environment does not support API version $value" }
+            check(supportsApiVersion(value)) { "This environment does not support API version $value" }
             field = value
         }
 
