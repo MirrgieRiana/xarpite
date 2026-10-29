@@ -33,18 +33,20 @@ fun parse(src: String, apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.f
     return getter.code
 }
 
-suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = UnsupportedIoContext(), apiVersion: Int? = null): FluoriteValue {
+private fun createTestIoContext(): IoContext = object : UnsupportedIoContext() {
+    override fun getEnv() = mapOf("XARPITE_TEST" to "1")
+}
+
+suspend fun CoroutineScope.eval(src: String, ioContext: IoContext = createTestIoContext(), apiVersion: Int? = null): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
-        context.allowFutureApiVersions = true
         if (apiVersion != null) context.apiVersion = apiVersion
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.get(src).cache()
     }
 }
 
-suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = UnsupportedIoContext()): FluoriteValue {
+suspend fun CoroutineScope.evalEmbedded(src: String, ioContext: IoContext = createTestIoContext()): FluoriteValue {
     return withEvaluator(ioContext) { context, evaluator ->
-        context.allowFutureApiVersions = true
         evaluator.defineMounts(context.run { createCommonMounts() })
         evaluator.getEmbedded(src).cache()
     }

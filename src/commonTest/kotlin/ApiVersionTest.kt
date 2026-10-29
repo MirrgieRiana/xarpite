@@ -10,7 +10,10 @@ class ApiVersionTest {
 
     @Test
     fun normalRuntimeRejectsUnsupportedVersions() = runTest {
-        withEvaluator(UnsupportedIoContext()) { context, _ ->
+        val ioContext = object : UnsupportedIoContext() {
+            override fun getEnv() = emptyMap<String, String>()
+        }
+        withEvaluator(ioContext) { context, _ ->
             val versions = RuntimeContext.SUPPORTED_API_VERSIONS
             listOf(versions.first - 1, versions.last + 1).forEach { version ->
                 assertFailsWith<IllegalStateException> { context.apiVersion = version }
@@ -21,9 +24,11 @@ class ApiVersionTest {
 
     @Test
     fun testRuntimeAllowsOnlyTheUpperBoundToBeExceeded() = runTest {
-        withEvaluator(UnsupportedIoContext()) { context, _ ->
+        val ioContext = object : UnsupportedIoContext() {
+            override fun getEnv() = mapOf("XARPITE_TEST" to "1")
+        }
+        withEvaluator(ioContext) { context, _ ->
             val versions = RuntimeContext.SUPPORTED_API_VERSIONS
-            context.allowFutureApiVersions = true
             assertEquals(versions.first, context.apiVersion)
             context.apiVersion = versions.last + 1
             assertEquals(versions.last + 1, context.apiVersion)
