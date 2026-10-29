@@ -147,23 +147,23 @@ class StringMountsTest {
     @Test
     fun resolveBySlash() = runTest {
         // 文字列同士の / は、RESOLVE と同じパスの解決になる
-        assertEquals("/home/apple/Apple.txt", eval("'/home/apple' / 'Apple.txt'").string)
+        assertEquals("/home/apple/Apple.txt", eval("'/home/apple' / 'Apple.txt'").string.replace('\\', '/'))
 
         // ルートディレクトリとの結合
-        assertEquals("/Banana.txt", eval("'/' / 'Banana.txt'").string)
+        assertEquals("/Banana.txt", eval("'/' / 'Banana.txt'").string.replace('\\', '/'))
 
         // .. と . を含むパスの正規化
-        assertEquals("/home/cherry/Cherry.txt", eval("'/home/apple/' / '../cherry/./Cherry.txt'").string)
+        assertEquals("/home/cherry/Cherry.txt", eval("'/home/apple/' / '../cherry/./Cherry.txt'").string.replace('\\', '/'))
 
         // 相対パス同士の結合
-        assertEquals("a/b/c.txt", eval("'a/b' / 'c.txt'").string)
+        assertEquals("a/b/c.txt", eval("'a/b' / 'c.txt'").string.replace('\\', '/'))
 
         // RESOLVE と同じ結果になる
-        assertEquals(eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string, eval("'/home/user/dir' / '../../../file.txt'").string)
+        assertEquals(eval("RESOLVE('/home/user/dir'; '../../../file.txt')").string.replace('\\', '/'), eval("'/home/user/dir' / '../../../file.txt'").string.replace('\\', '/'))
 
         // 右辺は文字列化される
-        assertEquals("/home/apple/123", eval("'/home/apple' / 123").string)
-        assertEquals("/home/apple/4.5", eval("'/home/apple' / 4.5").string)
+        assertEquals("/home/apple/123", eval("'/home/apple' / 123").string.replace('\\', '/'))
+        assertEquals("/home/apple/4.5", eval("'/home/apple' / 4.5").string.replace('\\', '/'))
     }
 
     @Test

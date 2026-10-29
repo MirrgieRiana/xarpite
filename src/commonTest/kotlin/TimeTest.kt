@@ -166,9 +166,14 @@ class TimeTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
                 Triple("INSTANT", "2001-02-03", "2001-02-03T00:00:00Z"),
+                Triple("INSTANT", "2001-02-03Z", "2001-02-03T00:00:00Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06", "2001-02-03T04:05:06Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06Z", "2001-02-03T04:05:06Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06.007", "2001-02-03T04:05:06.007Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.007Z", "2001-02-03T04:05:06.007Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.0078", "2001-02-03T04:05:06.007800Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06.007008009", "2001-02-03T04:05:06.007008009Z"),
+                Triple("INSTANT", "2001-02-03T04:05:06.007008009Z", "2001-02-03T04:05:06.007008009Z"),
                 Triple("TIME", "2001-02-03Z", "2001-02-03T00:00:00Z"),
                 Triple("TIME", "2001-02-03T04:05:06+10:00", "2001-02-03T04:05:06+10:00"),
                 Triple("TIME", "2001-02-03T04:05:06.007-10:11", "2001-02-03T04:05:06.007-10:11"),
@@ -206,8 +211,12 @@ class TimeTest {
             Pair("000000001", 1),
             Pair("000000000", 0),
         ).forEach { (fraction, nanoseconds) ->
-            listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-                val offset = if (name == "TIME") "Z" else ""
+            listOf(
+                Pair("INSTANT", ""),
+                Pair("INSTANT", "Z"),
+                Pair("TIME", "Z"),
+                Pair("LOCAL_TIME", ""),
+            ).forEach { (name, offset) ->
                 val value = eval("""$name.parse("1970-01-01T00:00:00.$fraction$offset")""") as FluoriteObject
                 assertEquals(Instant.fromEpochSeconds(0, nanoseconds), value.toInstant())
             }
@@ -284,10 +293,11 @@ class TimeTest {
     @Test
     fun timeParseOffsetErrors() = runTest {
         listOf("INSTANT", "LOCAL_TIME").forEach { name ->
-            listOf("Z", "+00:00", "+09:00", "-10:11").forEach { offset ->
+            listOf("+00:00", "-00:00", "+09:00", "-10:11", "z", "ZZ", "+00:00Z", "Z+00:00").forEach { offset ->
                 assertFailsWith<IllegalArgumentException> { eval("""$name.parse("2001-02-03T04:05:06$offset")""") }
             }
         }
+        assertFailsWith<IllegalArgumentException> { eval("""LOCAL_TIME.parse("2001-02-03T04:05:06Z")""") }
         listOf("", "z", "+09", "+0900", "+09:00:30", "+19:00", "+18:01", "+09:60", "Z+09:00").forEach { offset ->
             assertFailsWith<IllegalArgumentException> { eval("""TIME.parse("2001-02-03T04:05:06$offset")""") }
         }
@@ -481,12 +491,20 @@ class TimeTest {
         listOf(
             Pair(0, ""),
             Pair(1_000_000, ".001"),
+            Pair(100_000_000, ".100"),
             Pair(120_000_000, ".120"),
             Pair(123_000_000, ".123"),
-            Pair(123_456_000, ".123456000"),
+            Pair(1_000, ".000001"),
+            Pair(123_400_000, ".123400"),
+            Pair(123_450_000, ".123450"),
+            Pair(123_456_000, ".123456"),
+            Pair(123_456_700, ".123456700"),
+            Pair(123_456_780, ".123456780"),
             Pair(123_456_789, ".123456789"),
             Pair(1, ".000000001"),
         ).forEach { (nanoseconds, fraction) ->
+            val instant = eval("INSTANT{_epochSeconds: BIG.of(946684800); _nanosecondsOfSecond: $nanoseconds}", ioContext = ioContext)
+            assertEquals("2000-01-01T00:00:00${fraction}Z", instant.toFluoriteString(null).value)
             val time = eval("TIME{_epochSeconds: BIG.of(946652400); _nanosecondsOfSecond: $nanoseconds; _offsetSeconds: 32400}", ioContext = ioContext)
             assertEquals("2000-01-01T00:00:00${fraction}+09:00", time.toFluoriteString(null).value)
             val localTime = eval("LOCAL_TIME{_epochSeconds: BIG.of(946684800); _nanosecondsOfSecond: $nanoseconds}", ioContext = ioContext)
