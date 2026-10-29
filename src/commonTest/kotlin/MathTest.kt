@@ -451,8 +451,8 @@ class MathTest {
         assertEquals((-1).toBigInteger(), eval("REM(BIG.of(-7); 3)", apiVersion = 6).big)
         assertEquals(2.0, eval("-7.0 % 3", apiVersion = 6).double)
         assertEquals(1.5, eval("3 / BIG.of(2)", apiVersion = 6).double)
-        assertEquals("dir/0", eval("'dir' / 0", apiVersion = 6).string)
-        assertEquals("dir/0", eval("'dir' / BIG.of(0)", apiVersion = 6).string)
+        assertEquals("dir/0", eval("'dir' / 0", apiVersion = 6).string.replace('\\', '/'))
+        assertEquals("dir/0", eval("'dir' / BIG.of(0)", apiVersion = 6).string.replace('\\', '/'))
         assertEquals(0, eval("x := 0; y := 0; y == 0 ? 0 : DIV(x; y)", apiVersion = 6).int)
     }
 
