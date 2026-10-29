@@ -19,6 +19,16 @@ class NotEqualComparator(private val position: Position) : Comparator {
     override val code get() = "NotEqualComparator"
 }
 
+class StrictEqualComparator(private val position: Position) : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a.strictEquals(b) }
+    override val code get() = "StrictEqualComparator"
+}
+
+class StrictNotEqualComparator(private val position: Position) : Comparator {
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> !a.strictEquals(b) }
+    override val code get() = "StrictNotEqualComparator"
+}
+
 class GreaterComparator(private val position: Position) : Comparator {
     override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a.compareTo(position, b).value > 0 }
     override val code get() = "GreaterComparator"

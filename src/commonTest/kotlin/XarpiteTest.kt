@@ -702,6 +702,7 @@ class XarpiteTest {
         assertEquals("", eval("4 ~ 1").stream()) // 右辺が左辺より小さい場合は空ストリームになる
     }
 
+
     @Test
     fun compareTest() = runTest {
         fun String.f() = this.replace(" ", "")
@@ -1327,6 +1328,125 @@ class XarpiteTest {
                 z <=> aaa,
             ]
         """.let { assertEquals("[0;-1]", eval(it).array()) }
+    }
+
+    @Test
+    fun strictEquality() = runTest {
+        // 同じ型かつ同じ内容なら一致、異なる内容なら不一致
+        assertEquals("[TRUE;FALSE;TRUE]", eval("[1 === 1, 1 === 2, 'abc' === 'abc']").array())
+        assertEquals("[FALSE;TRUE;FALSE]", eval("[1 !== 1, 1 !== 2, 'abc' !== 'abc']").array())
+
+        // 型が異なる場合は常に不一致
+        assertEquals(false, eval("1 === 1.0").boolean) // INTとDOUBLE
+        assertEquals(false, eval("1 === '1'").boolean) // INTとSTRING
+        assertEquals(true, eval("1 !== 1.0").boolean)
+
+        // 不変系の型は、別経路で作っても内容が同じなら一致
+        assertEquals(true, eval("('ab' & 'c') === 'abc'").boolean) // 別経路で組み立てた文字列
+        assertEquals(true, eval("BIG.of('5') === BIG.of('5')").boolean) // 別インスタンスのBIG
+        assertEquals(false, eval("5 === BIG.of('5')").boolean) // INTとBIGは別の型
+        assertEquals(true, eval("1.5 === 1.5").boolean) // DOUBLE
+        assertEquals(true, eval("TRUE === TRUE").boolean) // BOOLEAN
+        assertEquals(true, eval("NULL === NULL").boolean) // NULL
+        assertEquals("[TRUE;FALSE]", eval("[/abc/ === /abc/, /abc/ === /abd/]").array()) // REGEXは別経路でも内容
+
+        // 可変系の型は、同じインスタンスの場合のみ一致
+        assertEquals("[TRUE;FALSE]", eval("a := [1, 2]\n[a === a, [1, 2] === [1, 2]]").array()) // 配列
+        assertEquals("[TRUE;FALSE]", eval("a := {x: 1}\n[a === a, {x: 1} === {x: 1}]").array()) // オブジェクト
+        assertEquals("[TRUE;FALSE]", eval("f := (a -> a)\n[f === f, (a -> a) === (a -> a)]").array()) // 関数
+
+        // ストリームはインスタンスで比較する
+        assertEquals(true, eval("a := LOOP\na === a").boolean)
+    }
+
+    @Test
+    fun strictEqualityValues() = runTest {
+        listOf(
+            Triple("FALSE", "FALSE", true),
+            Triple("TRUE", "FALSE", false),
+            Triple("1.25", "1.5", false),
+            Triple("BIG.of('100000000000000000001')", "BIG.of('100000000000000000001')", true),
+            Triple("BIG.of('100000000000000000001')", "BIG.of('100000000000000000002')", false),
+            Triple("'abc'", "'abd'", false),
+            Triple("/abc/", "REGEX.new('abc')", true),
+            Triple("/abc/i", "REGEX.new('abc'; 'i')", true),
+            Triple("/abc/", "/abc/i", false),
+            Triple("/abc/im", "/abc/mi", false),
+            Triple("/abc/", "REGEX.new('abc'; '')", false),
+            Triple("1.0", "BIG.of(1)", false),
+            Triple("TRUE", "1", false),
+            Triple("FALSE", "0", false),
+            Triple("NULL", "FALSE", false),
+            Triple("NULL", "0", false),
+        ).forEach { (left, right, expected) ->
+            assertEquals(expected, eval("($left) === ($right)").boolean, "$left === $right")
+            assertEquals(expected, eval("($right) === ($left)").boolean, "$right === $left")
+            assertEquals(!expected, eval("($left) !== ($right)").boolean, "$left !== $right")
+            assertEquals(!expected, eval("($right) !== ($left)").boolean, "$right !== $left")
+        }
+    }
+
+    @Test
+    fun strictEqualityInstances() = runTest {
+        listOf(
+            "[1, 2]",
+            "{value: 1}",
+            "BLOB.of([1, 2])",
+            "(() -> 1)",
+            "(1, 2)",
+            "PROMISE.new()",
+            "(ERROR.throwNativeError('error') !? (error => error))",
+            "INSTANT.of(0)",
+            "TIME.of(0; 0)",
+            "LOCAL_TIME.of(0)",
+        ).forEach { expression ->
+            val actual = eval("a := $expression; b := $expression; [a === a, a === b, b === a, a !== a, a !== b, b !== a]").array()
+            assertEquals("[TRUE;FALSE;FALSE;FALSE;TRUE;TRUE]", actual, expression)
+        }
+    }
+
+    @Test
+    fun strictEqualityCannotBeOverridden() = runTest {
+        """
+            Class := {
+                `_===_`: this, other -> !! "Not called"
+                `_!==_`: this, other -> !! "Not called"
+                `_<=>_`: this, other -> !! "Not called"
+            }
+            a := Class{value: 1}
+            b := Class{value: 1}
+            [a === a, a === b, a !== a, a !== b]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE]", eval(it).array()) }
+    }
+
+    @Test
+    fun strictEqualitySpecialNumbers() = runTest {
+        assertEquals(true, eval("NAN === DOUBLE.of('NaN')").boolean)
+        assertEquals(false, eval("NAN !== DOUBLE.of('NaN')").boolean)
+        assertEquals(true, eval("INFINITY === DOUBLE.of('Infinity')").boolean)
+        assertEquals(true, eval("NEGATIVE_INFINITY === DOUBLE.of('-Infinity')").boolean)
+        assertEquals(false, eval("INFINITY === NEGATIVE_INFINITY").boolean)
+        assertEquals(false, eval("NAN === INFINITY").boolean)
+        assertEquals(false, eval("0.0 === -(0.0)").boolean)
+        assertEquals(true, eval("0.0 !== -(0.0)").boolean)
+        assertEquals(true, eval("-(0.0) === DOUBLE.of('-0.0')").boolean)
+    }
+
+    @Test
+    fun strictEqualityChain() = runTest {
+        assertEquals(true, eval("1===1").boolean)
+        assertEquals(false, eval("1!==1").boolean)
+        assertEquals(true, eval("1 === 1 === 1").boolean)
+        assertEquals(false, eval("1 === 1 === 2").boolean)
+        assertEquals(true, eval("1 !== 2 !== 1").boolean)
+        assertEquals(false, eval("1 !== 2 !== 2").boolean)
+        assertEquals(true, eval("0 < 1 === 1 <= 2").boolean)
+        assertEquals(true, eval("1 === 1 == 1 !== 2 != 3").boolean)
+        assertEquals(true, eval("1 === 1 && 2 !== 3").boolean)
+        assertEquals(true, eval("1 === 2 || 2 !== 3").boolean)
+        assertEquals(1, eval("count := 0; 1 === (++count) === 1; count").int)
+        assertEquals(false, eval("1 === 2 === (!! 'Not evaluated')").boolean)
+        assertEquals(false, eval("1 !== 1 !== (!! 'Not evaluated')").boolean)
     }
 
     @Test
