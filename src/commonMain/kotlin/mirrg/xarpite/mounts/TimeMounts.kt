@@ -198,10 +198,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
     ).let { listOf(it) }
 }
 
-private val Int.p2 get() = this.toString().padStart(2, '0')
-private val Int.p3 get() = this.toString().padStart(3, '0')
-private val Int.p9 get() = this.toString().padStart(9, '0')
-
 private fun String.parseTime(): Pair<LocalDateTime, UtcOffset?> {
     val matchResult = TIME_PATTERN.matchEntire(this) ?: throw IllegalArgumentException("Invalid time representation: $this")
     val localDateTime = LocalDateTime.parse("${matchResult.groupValues[1]}T${matchResult.groupValues[2].ifEmpty { "00:00:00" }}${matchResult.groupValues[3]}")
@@ -249,24 +245,6 @@ private fun FluoriteObject.toInstant(): Instant {
     return Instant.fromEpochSeconds(epochSeconds, nanosecondsOfSecond)
 }
 
-private fun Instant.formatInstant(): String {
-    val seconds = this.epochSeconds
-    val nanoseconds = this.nanosecondsOfSecond
-    return if (nanoseconds == 0) {
-        seconds.toString()
-    } else if (seconds < 0) {
-        // 負の秒数は切り下げられているため、小数表記では絶対値の整数部と小数部に変換する。
-        "-${-(seconds + 1)}.${(1_000_000_000 - nanoseconds).p9.trimEnd('0')}"
-    } else {
-        "$seconds.${nanoseconds.p9.trimEnd('0')}"
-    }
-}
-
 private fun LocalDateTime.formatTime(): String {
-    val fraction = when {
-        this.nanosecond == 0 -> ""
-        this.nanosecond % 1_000_000 == 0 -> ".${(this.nanosecond / 1_000_000).p3}"
-        else -> ".${this.nanosecond.p9}"
-    }
-    return "${this.date}T${this.hour.p2}:${this.minute.p2}:${this.second.p2}$fraction"
+    return if (this.second == 0 && this.nanosecond == 0) "${this}:00" else this.toString()
 }

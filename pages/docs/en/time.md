@@ -145,26 +145,41 @@ The `now` functions create instances based on the current system time.
 
 The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
 
-### String Conversion of `INSTANT`
+### String Conversion
 
-Converting an `INSTANT` to a string produces an ISO date and time in UTC with a trailing `Z`.
+Time instances are converted to strings using an ISO-based representation.
 
-Seconds are always included, and fractional seconds use 3, 6, or 9 digits as needed.
+The time zone notation depends on the class.
 
-If the fractional seconds are zero, the fractional part is omitted.
+| Class        | Time zone notation        |
+|--------------|---------------------------|
+| `INSTANT`    | Always `Z`                |
+| `TIME`       | `Z` or a UTC offset       |
+| `LOCAL_TIME` | None                      |
+
+Seconds are always included, while fractional seconds are omitted or written with 3, 6, or 9 digits as needed.
 
 ```shell
-$ xa 'INSTANT.of(0)'
-# 1970-01-01T00:00:00Z
+$ xa 'INSTANT.parse("2001-02-03")'
+# 2001-02-03T00:00:00Z
 
-$ xa 'INSTANT.of(0; 125_000_000)'
-# 1970-01-01T00:00:00.125Z
+$ xa 'INSTANT.parse("2001-02-03T04:05:06")'
+# 2001-02-03T04:05:06Z
 
-$ xa 'INSTANT.of(0; 123_456_000)'
-# 1970-01-01T00:00:00.123456Z
+$ xa 'INSTANT.parse("2001-02-03T04:05:06.007")'
+# 2001-02-03T04:05:06.007Z
 
-$ xa 'INSTANT.of(0; 123_456_789)'
-# 1970-01-01T00:00:00.123456789Z
+$ xa 'INSTANT.parse("2001-02-03T04:05:06.0078")'
+# 2001-02-03T04:05:06.007800Z
+
+$ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009")'
+# 2001-02-03T04:05:06.007008009Z
+
+$ xa 'TIME.parse("2001-02-03T04:05:06.007008009+03:00")'
+# 2001-02-03T04:05:06.007008009+03:00
+
+$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
+# 2001-02-03T04:05:06.007008009
 ```
 
 ## Other Built-in Members
