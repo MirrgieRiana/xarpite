@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
+import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 
 plugins {
     kotlin("multiplatform") version "2.3.0"
@@ -61,5 +63,14 @@ kotlin {
     }
 }
 
-// 異なる経路で同じディレクトリの成果物に依存するKotlin Multiplatformの構造的問題のための苦肉の対策のために書かされている
-tasks.named("jsNodeProductionLibraryDistribution") { dependsOn("jsProductionExecutableCompileSync") }
+val npmProject = kotlin.targets.getByName<KotlinJsIrTarget>("js").compilations.getByName("main").npmProject
+
+tasks.named<Copy>("jsNodeProductionLibraryDistribution") {
+    // 異なる経路で同じディレクトリの成果物に依存するKotlin Multiplatformの構造的問題のための苦肉の対策のために書かされている
+    dependsOn("jsProductionExecutableCompileSync")
+    dependsOn(npmProject.nodeJsRoot.npmInstallTaskProvider)
+    from(npmProject.nodeModulesDir) {
+        include("@js-joda/core/**", "ws/**")
+        into("node_modules")
+    }
+}
