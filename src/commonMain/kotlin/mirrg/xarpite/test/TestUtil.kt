@@ -28,7 +28,7 @@ import mirrg.xarpite.withEvaluator
 
 fun parse(src: String, apiVersion: Int = RuntimeContext.SUPPORTED_API_VERSIONS.first): String {
     val parseResult = XarpiteGrammar("test", apiVersion).rootParser.parseAll(src) { XarpiteParseContext(it) }.getOrThrow()
-    val frame = Frame()
+    val frame = Frame(isRoot = true)
     val getter = frame.compileToGetter(parseResult)
     return getter.code
 }

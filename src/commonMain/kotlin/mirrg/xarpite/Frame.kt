@@ -10,7 +10,7 @@ import mirrg.xarpite.operations.BuiltinMountRunner
 import mirrg.xarpite.operations.Runner
 
 
-class Frame(val parent: Frame? = null) {
+class Frame(val parent: Frame? = null, val isRoot: Boolean = false) {
     val frameIndex: Int = parent?.let { it.frameIndex + 1 } ?: 0
     val variableIndexTable = mutableMapOf<String, Int>()
     var nextVariableIndex = 0
@@ -85,6 +85,14 @@ class Label(val name: String) : Variable {
     override suspend fun set(value: FluoriteValue) = throw UnsupportedOperationException()
 }
 
+
+fun Frame.getRootFrame(): Frame {
+    var frame = this
+    while (!frame.isRoot) {
+        frame = frame.parent ?: throw IllegalStateException("No root frame")
+    }
+    return frame
+}
 
 fun Frame.defineVariable(name: String): Int {
     val variableIndex = nextVariableIndex

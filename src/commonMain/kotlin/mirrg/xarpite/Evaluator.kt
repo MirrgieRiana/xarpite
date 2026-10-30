@@ -38,7 +38,7 @@ class Evaluator(private val context: RuntimeContext) {
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
             .parseAll(src) { XarpiteParseContext(it) }
             .getOrThrow()
-        val frame = Frame(currentFrame)
+        val frame = Frame(currentFrame, isRoot = true)
         currentFrame = frame
         val getter = frame.compileToGetter(parseResult)
         val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
@@ -59,7 +59,7 @@ class Evaluator(private val context: RuntimeContext) {
             .let { if (embedded) it.rootEmbeddedParser else it.rootParser }
             .parseAll(src) { XarpiteParseContext(it) }
             .getOrThrow()
-        val frame = Frame(currentFrame)
+        val frame = Frame(currentFrame, isRoot = true)
         currentFrame = frame
         val runners = frame.compileToRunner(parseResult)
         val env = Environment(context, currentEnv, frame.nextVariableIndex, frame.mountCount)
