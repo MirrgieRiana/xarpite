@@ -66,6 +66,8 @@ When the spaceship operator is overridden, the behavior of the various compariso
 
 # Equality Operators
 
+Whether equality checks performed by various features use the semantics of `===` or `==` is implementation-dependent.
+
 ## Equality Operator
 
 The equality operator `left == right` returns whether the values on both sides are equal.
