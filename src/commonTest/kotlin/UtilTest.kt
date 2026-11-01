@@ -1,11 +1,40 @@
 import com.ionspin.kotlin.bignum.integer.toBigInteger
+import mirrg.xarpite.noInline
 import mirrg.xarpite.removeExponent
 import mirrg.xarpite.toBigIntegerExact
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 
 class UtilTest {
+    @Test
+    fun noInline() {
+        val value = Any()
+        var executions = 0
+        assertSame(value, noInline {
+            executions++
+            value
+        })
+        assertEquals(1, executions)
+        assertNull(noInline { null })
+        assertEquals(Unit, noInline {})
+    }
+
+    @Test
+    fun noInlineException() {
+        val exception = IllegalStateException("Expected exception")
+        var executions = 0
+        assertSame(exception, assertFailsWith<IllegalStateException> {
+            noInline {
+                executions++
+                throw exception
+            }
+        })
+        assertEquals(1, executions)
+    }
+
     @Test
     fun toBigIntegerExact() {
         val two = 2.toBigInteger()

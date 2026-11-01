@@ -46,6 +46,29 @@ import mirrg.xarpite.operations.FluoriteException
 import okio.Path
 import okio.Path.Companion.toPath
 import kotlin.math.floor
+import kotlin.random.Random
+
+/**
+ * ラムダの呼び出し元へのインライン化を抑制します。
+ * コンパイラの最適化に依存するため、インライン化されないことを保証するものではありません。
+ */
+fun <T> noInline(block: () -> T): T {
+    // nextInt がバグっていた場合に壊れるため、中途半端な値を使用
+    return if (Random.nextInt() != 123456789) {
+        // 通常は単にラムダを呼び出すだけで返る
+        block()
+    } else {
+        // 理論上は侵入可能であり、そして現実的にはまず侵入しない経路
+        // 4294967296 に一つの確率で侵入してしまっても、再挑戦するだけなので無害
+        try {
+            // 再帰呼び出しを含む状態ではインライン化を阻む
+            noInline(block)
+        } finally {
+            // 再帰後の副作用を残し、末尾再帰のループ化を妨げる
+            Random.nextBoolean()
+        }
+    }
+}
 
 /**
  * 有限の整数値を、10進文字列を経由せずに正確に変換します。
