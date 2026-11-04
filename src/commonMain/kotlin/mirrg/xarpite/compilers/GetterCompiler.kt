@@ -82,6 +82,7 @@ import mirrg.xarpite.UnaryAtNode
 import mirrg.xarpite.UnaryBackslashNode
 import mirrg.xarpite.UnaryDollarAmpersandNode
 import mirrg.xarpite.UnaryDollarAsteriskNode
+import mirrg.xarpite.UnaryDollarEqualNode
 import mirrg.xarpite.UnaryDollarSharpNode
 import mirrg.xarpite.UnaryExclamationNode
 import mirrg.xarpite.UnaryMinusMinusNode
