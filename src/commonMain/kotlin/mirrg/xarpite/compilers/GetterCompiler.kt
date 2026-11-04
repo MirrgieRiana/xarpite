@@ -251,6 +251,7 @@ fun Frame.compileToGetter(node: Node): Getter {
         is UnaryDollarSharpNode -> GetLengthGetter(compileToGetter(node.main), node.position)
         is UnaryDollarAmpersandNode -> ToJsonGetter(compileToGetter(node.main), node.position)
         is UnaryDollarAsteriskNode -> FromJsonGetter(compileToGetter(node.main), node.position)
+        is UnaryDollarEqualNode -> throw IllegalArgumentException("Unknown operator: $node")
         is UnaryAtNode -> throw IllegalArgumentException("Unknown operator: $node")
         is UnaryAsteriskNode -> {
             val variable = getVariable("_") ?: throw IllegalArgumentException("Unary asterisk operator requires variable _: not found")

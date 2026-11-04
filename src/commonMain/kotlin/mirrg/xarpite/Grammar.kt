@@ -206,6 +206,7 @@ class XarpiteGrammar(val location: String, val apiVersion: Int) {
         -"$#" map { ::UnaryDollarSharpNode },
         -"$&" map { ::UnaryDollarAmpersandNode },
         -"$*" map { ::UnaryDollarAsteriskNode },
+        -"$=" map { ::UnaryDollarEqualNode },
         -'@' map { ::UnaryAtNode },
         -'\\' map { ::UnaryBackslashNode },
     )

@@ -46,6 +46,7 @@ class UnaryAmpersandNode(main: Node, side: Side, position: Position) : UnaryNode
 class UnaryDollarSharpNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryDollarAmpersandNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryDollarAsteriskNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
+class UnaryDollarEqualNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryAtNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryAsteriskNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)
 class UnaryBackslashNode(main: Node, side: Side, position: Position) : UnaryNode(main, side, position)

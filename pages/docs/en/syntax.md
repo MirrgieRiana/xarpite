@@ -34,6 +34,7 @@ The following pairs all function identically:
 $#A  A.$#
 $&A  A.$&
 $*A  A.$*
+$=A  A.$=
  \A  A.\
 ```
 
