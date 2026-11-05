@@ -95,6 +95,7 @@ import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.toFluoriteNumber
 import mirrg.xarpite.defineVariable
 import mirrg.xarpite.getMountCounts
+import mirrg.xarpite.getRootFrame
 import mirrg.xarpite.getVariable
 import mirrg.xarpite.operations.AndGetter
 import mirrg.xarpite.operations.ArrayCreationGetter
@@ -154,6 +155,7 @@ import mirrg.xarpite.operations.PowerGetter
 import mirrg.xarpite.operations.RangeGetter
 import mirrg.xarpite.operations.ReturnGetter
 import mirrg.xarpite.operations.SpaceshipGetter
+import mirrg.xarpite.operations.StaticGetter
 import mirrg.xarpite.operations.StreamConcatenationGetter
 import mirrg.xarpite.operations.StrictEqualComparator
 import mirrg.xarpite.operations.StrictNotEqualComparator
@@ -252,7 +254,14 @@ fun Frame.compileToGetter(node: Node): Getter {
         is UnaryDollarSharpNode -> GetLengthGetter(compileToGetter(node.main), node.position)
         is UnaryDollarAmpersandNode -> ToJsonGetter(compileToGetter(node.main), node.position)
         is UnaryDollarAsteriskNode -> FromJsonGetter(compileToGetter(node.main), node.position)
-        is UnaryDollarEqualNode -> throw IllegalArgumentException("Unknown operator: $node")
+
+        is UnaryDollarEqualNode -> {
+            val rootFrame = getRootFrame()
+            val variableIndex = rootFrame.nextVariableIndex
+            rootFrame.nextVariableIndex++
+            StaticGetter(rootFrame.frameIndex, variableIndex, compileToGetter(node.main))
+        }
+
         is UnaryAtNode -> throw IllegalArgumentException("Unknown operator: $node")
         is UnaryAsteriskNode -> {
             val variable = getVariable("_") ?: throw IllegalArgumentException("Unary asterisk operator requires variable _: not found")

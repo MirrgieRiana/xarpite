@@ -36,6 +36,140 @@ Xarpiteには多くのプログラミング言語に登場する「if文」や�
 
 詳細はジャンプを参照してください。
 
+### 静的化演算子`$=expression`
+
+静的化演算子`$=expression`は、`expression`に対して遅延メモ化を行います。
+
+メモ化のためのスペースは、ソースコードのトップレベルの匿名変数として確保されます。
+
+そのため、同一コンパイル単位内での同一性と、異なるコンパイル単位間での分離性が保証されます。
+
+`expression`の評価は初めてそこに到達したときまで遅延され、そのときのスコープによって評価されます。
+
+2度目以降に評価をすると、初回評価時の値が再利用されます。
+
+---
+
+この演算子は、コンテキストに依存しない式の再評価を抑えて、リソースを節約するのに便利です。
+
+```shell
+$ xa '$=(1 + 2)'
+# 3
+
+$ xa ' ("abc123def" =~ REGEX.new(%>^[a-z]+([0-9]+)[a-z]+$<%).$=).1 '
+# 123
+
+$ xa '
+  time := 0
+
+  getCachedTime := () -> time.$=
+
+  time = 100
+  cachedTime1 := getCachedTime()
+
+  time = 200
+  cachedTime2 := getCachedTime()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;100]
+```
+
+---
+
+同一の内容であっても、ソースコード上での出現位置が異なるものは、独立した領域に保持されます。
+
+```shell
+$ xa '
+  time := 0
+
+  getCachedTime1 := () -> time.$=
+  getCachedTime2 := () -> time.$=
+
+  time = 100
+  cachedTime1 := getCachedTime1()
+
+  time = 200
+  cachedTime2 := getCachedTime2()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;200]
+```
+
+---
+
+同一内容のソースコードの同一の位置であっても、スクリプトそのものを再評価した場合は、互いに独立した保持領域が確保されます。
+
+```shell
+$ xa '
+  getCachedTimeFactory := timeGetter -> XA(%>
+    timeGetter -> () -> timeGetter().$=
+  <%)(timeGetter)
+
+  time := 0
+
+  getCachedTime1 := getCachedTimeFactory(() -> time)
+  getCachedTime2 := getCachedTimeFactory(() -> time)
+
+  time = 100
+  cachedTime1 := getCachedTime1()
+
+  time = 200
+  cachedTime2 := getCachedTime2()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;200]
+```
+
+---
+
+ミュータブルなオブジェクトのインスタンスの同一性も、同様に保証されます。
+
+```shell
+$ xa '
+  getAndIncrement := () -> (
+    counter := { value: 0 }.$=
+    counter.value++
+  )
+
+  [getAndIncrement(), getAndIncrement(), getAndIncrement()]
+'
+# [0;1;2]
+```
+
+これは、おおよそ次のように変換が行われたものとして解釈できます。
+
+```shell
+$ xa '
+  _tmp1 := NULL
+
+  getAndIncrement := () -> (
+    counter := (
+      _tmp1 == NULL && (_tmp1 = { value: 0 })
+      _tmp1
+    )
+    counter.value++
+  )
+
+  [getAndIncrement(), getAndIncrement(), getAndIncrement()]
+'
+# [0;1;2]
+```
+
+---
+
+評価結果がストリームである場合、そのストリームは解決されます。
+
+---
+
+初回の評価中に別のコルーチンが同じ記述位置へ到達した場合は、初回の評価が完了するまで待機します。
+
+---
+
+評価が例外等で中断された場合は、結果を保持せず、次に到達したときに再評価します。
+
 ## 制御関数
 
 ### `WHILE`: 条件ループ

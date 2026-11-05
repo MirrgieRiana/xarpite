@@ -10,6 +10,7 @@ import mirrg.xarpite.Label
 import mirrg.xarpite.LocalVariable
 import mirrg.xarpite.OperatorMethod
 import mirrg.xarpite.Position
+import mirrg.xarpite.StaticVariable
 import mirrg.xarpite.compilers.objects.Callable
 import mirrg.xarpite.compilers.objects.FluoriteArray
 import mirrg.xarpite.compilers.objects.FluoriteBig
@@ -66,6 +67,23 @@ object NullGetter : Getter {
 class LiteralGetter(private val value: FluoriteValue) : Getter {
     override suspend fun evaluate(env: Environment) = value
     override val code get() = "LiteralGetter[$value]"
+}
+
+class StaticGetter(private val frameIndex: Int, private val variableIndex: Int, private val getter: Getter) : Getter {
+    override suspend fun evaluate(env: Environment): FluoriteValue {
+        val variableTable = env.variableTable[frameIndex]
+        val old = variableTable[variableIndex]
+        if (old != null) {
+            check(old is StaticVariable) { "Unexpected non-static variable at StaticGetter: $frameIndex;$variableIndex" }
+            return old.getOrInitialize { getter.evaluate(env).cache() }
+        } else {
+            val new = StaticVariable()
+            variableTable[variableIndex] = new
+            return new.getOrInitialize { getter.evaluate(env).cache() }
+        }
+    }
+
+    override val code get() = "StaticGetter[$frameIndex;$variableIndex;${getter.code}]"
 }
 
 class VariableGetter(private val frameIndex: Int, private val variableIndex: Int) : Getter {

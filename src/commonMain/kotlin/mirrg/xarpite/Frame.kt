@@ -73,6 +73,26 @@ class LocalVariable(var value: FluoriteValue) : Variable {
     }
 }
 
+class StaticVariable : Variable {
+    private var value: FluoriteValue? = null
+    private val mutex = Mutex()
+    suspend fun getOrInitialize(initializer: suspend () -> FluoriteValue): FluoriteValue {
+        return mutex.withLock {
+            val old = value
+            if (old != null) {
+                old
+            } else {
+                val new = initializer()
+                value = new
+                new
+            }
+        }
+    }
+
+    override suspend fun get() = throw UnsupportedOperationException()
+    override suspend fun set(value: FluoriteValue) = throw UnsupportedOperationException()
+}
+
 class DelegatedVariable(val function: FluoriteValue, val position: Position) : Variable {
     override suspend fun get() = function.invoke(position, emptyArray())
     override suspend fun set(value: FluoriteValue) {

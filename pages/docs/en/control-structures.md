@@ -36,6 +36,140 @@ Throw and catch operators allow you to throw and catch values.
 
 See Jump for details.
 
+### Staticization Operator `$=expression`
+
+The staticization operator `$=expression` performs lazy memoization of `expression`.
+
+Storage for memoization is allocated as an anonymous variable at the top level of the source code.
+
+This guarantees identity within the same compilation unit and isolation between different compilation units.
+
+Evaluation of `expression` is deferred until execution first reaches it and uses the scope at that time.
+
+Subsequent evaluations reuse the value from the first evaluation.
+
+---
+
+This operator helps save resources by avoiding repeated evaluation of expressions that do not depend on context.
+
+```shell
+$ xa '$=(1 + 2)'
+# 3
+
+$ xa ' ("abc123def" =~ REGEX.new(%>^[a-z]+([0-9]+)[a-z]+$<%).$=).1 '
+# 123
+
+$ xa '
+  time := 0
+
+  getCachedTime := () -> time.$=
+
+  time = 100
+  cachedTime1 := getCachedTime()
+
+  time = 200
+  cachedTime2 := getCachedTime()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;100]
+```
+
+---
+
+Occurrences at different positions in the source code have independent storage, even if their contents are identical.
+
+```shell
+$ xa '
+  time := 0
+
+  getCachedTime1 := () -> time.$=
+  getCachedTime2 := () -> time.$=
+
+  time = 100
+  cachedTime1 := getCachedTime1()
+
+  time = 200
+  cachedTime2 := getCachedTime2()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;200]
+```
+
+---
+
+Evaluating the script itself again allocates independent storage, even for the same position in identical source code.
+
+```shell
+$ xa '
+  getCachedTimeFactory := timeGetter -> XA(%>
+    timeGetter -> () -> timeGetter().$=
+  <%)(timeGetter)
+
+  time := 0
+
+  getCachedTime1 := getCachedTimeFactory(() -> time)
+  getCachedTime2 := getCachedTimeFactory(() -> time)
+
+  time = 100
+  cachedTime1 := getCachedTime1()
+
+  time = 200
+  cachedTime2 := getCachedTime2()
+
+  [cachedTime1, cachedTime2]
+'
+# [100;200]
+```
+
+---
+
+The same instance identity guarantee also applies to mutable objects.
+
+```shell
+$ xa '
+  getAndIncrement := () -> (
+    counter := { value: 0 }.$=
+    counter.value++
+  )
+
+  [getAndIncrement(), getAndIncrement(), getAndIncrement()]
+'
+# [0;1;2]
+```
+
+This can be understood as approximately the following transformation.
+
+```shell
+$ xa '
+  _tmp1 := NULL
+
+  getAndIncrement := () -> (
+    counter := (
+      _tmp1 == NULL && (_tmp1 = { value: 0 })
+      _tmp1
+    )
+    counter.value++
+  )
+
+  [getAndIncrement(), getAndIncrement(), getAndIncrement()]
+'
+# [0;1;2]
+```
+
+---
+
+If the result is a stream, that stream is resolved.
+
+---
+
+If another coroutine reaches the same occurrence during the first evaluation, it waits for that evaluation to finish.
+
+---
+
+If evaluation is interrupted by an exception or similar event, no result is stored, and the next access retries evaluation.
+
 ## Control Functions
 
 ### `WHILE`: Conditional Loop

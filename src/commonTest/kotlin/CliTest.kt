@@ -1229,6 +1229,28 @@ class CliTest {
     }
 
     @Test
+    fun xaSeparatesStaticizationStorage() = runTest {
+        val context = TestIoContext()
+        val result = cliEval(
+            context,
+            """
+            getCachedTimeFactory := timeGetter -> XA(%>
+                timeGetter -> () -> timeGetter().$=
+            <%)(timeGetter)
+            time := 0
+            getCachedTime1 := getCachedTimeFactory(() -> time)
+            getCachedTime2 := getCachedTimeFactory(() -> time)
+            time = 100
+            cachedTime1 := getCachedTime1()
+            time = 200
+            cachedTime2 := getCachedTime2()
+            [cachedTime1; cachedTime2; getCachedTime1(); getCachedTime2()]
+            """.trimIndent()
+        ).array()
+        assertEquals("[100;200;100;200]", result)
+    }
+
+    @Test
     fun xaDefaultLocationIsDash() = runTest {
         val context = TestIoContext()
         // reference を省略した場合、呼び出し側ロケーション直下の "-" がロケーションになる
