@@ -23,9 +23,11 @@ BLOB composition is the rule for generating a single BLOB from `BLOB_LIKE`.
 - If `BLOB_LIKE` is an array, each element is recursively treated as `BLOB_LIKE`.
 - If `BLOB_LIKE` is a stream, each element is recursively treated as `BLOB_LIKE`.
 
-## `BLOB.of` Generating BLOB from Array
+## `BLOB.of` / `BLOB` Generating BLOB from Array
 
 `BLOB.of(blobLike: BLOB_LIKE): BLOB`
+
+`BLOB(blobLike: BLOB_LIKE): BLOB`
 
 Composes a new BLOB from `blobLike`.
 
@@ -53,4 +55,15 @@ A BLOB can be directly converted to an array with `blob::toArray()`.
 ```shell
 $ xa 'BLOB.of([1, 2, 3])::toArray()'
 # [1;2;3]
+```
+
+## Converting to Stream
+
+Calling a BLOB with no arguments returns a stream that iterates over each byte in order.
+
+```shell
+$ xa 'BLOB([1, 2, 3])()'
+# 1
+# 2
+# 3
 ```
