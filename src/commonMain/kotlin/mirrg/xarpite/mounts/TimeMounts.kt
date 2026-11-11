@@ -47,9 +47,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 val name: String,
             ) {
 
-                protected fun MutableMap<String, FluoriteValue>.new() = FluoriteObject(parentObject, this)
-
-
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
                         is FluoriteInt -> Pair(this.value.toBigInteger(), 0.0)
@@ -116,17 +113,17 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 fun createMap(): Map<String, FluoriteValue> {
                     return mapOf(
                         "of" to FluoriteFunction.immediate { arguments ->
-                            of(arguments).new()
+                            FluoriteObject(parentObject, of(arguments))
                         },
                         "parse" to FluoriteFunction.immediate { arguments ->
                             fun usage(): Nothing = usage("$name.parse(text: STRING): $name")
                             if (arguments.size != 1) usage()
                             val text = arguments[0] as? FluoriteString ?: usage()
-                            parse(text.value).new()
+                            FluoriteObject(parentObject, parse(text.value))
                         },
                         "now" to FluoriteFunction.immediate { arguments ->
                             if (arguments.size != 0) usage("$name.now(): $name")
-                            now().new()
+                            FluoriteObject(parentObject, now())
                         },
                         OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                             val obj = arguments[0] as FluoriteObject
