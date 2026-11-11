@@ -114,24 +114,23 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
 
                 fun createMap(parentObject: FluoriteObject?): Map<String, FluoriteValue> {
-                    val implementation = this
                     return mapOf(
                         "of" to FluoriteFunction.immediate { arguments ->
-                            implementation.of(arguments)
+                            of(arguments)
                         },
                         "parse" to FluoriteFunction.immediate { arguments ->
-                            fun usage(): Nothing = usage("${implementation.name}.parse(text: STRING): ${implementation.name}")
+                            fun usage(): Nothing = usage("$name.parse(text: STRING): $name")
                             if (arguments.size != 1) usage()
                             val text = arguments[0] as? FluoriteString ?: usage()
-                            implementation.parse(text.value)
+                            parse(text.value)
                         },
                         "now" to FluoriteFunction.immediate { arguments ->
-                            if (arguments.size != 0) usage("${implementation.name}.now(): ${implementation.name}")
-                            implementation.now()
+                            if (arguments.size != 0) usage("$name.now(): $name")
+                            now()
                         },
                         OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                             val obj = arguments[0] as FluoriteObject
-                            implementation.toString(obj).toFluoriteString()
+                            toString(obj).toFluoriteString()
                         },
                     )
                 }
