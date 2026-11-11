@@ -41,7 +41,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         run {
-            fun create() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+            fun createInstant() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant) = createFluoriteObject(clazz) {
                     mapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
@@ -89,10 +89,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "INSTANT" define create()
+            "INSTANT" define createInstant()
         },
         run {
-            fun create() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+            fun createTime() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                     mapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
@@ -149,10 +149,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "TIME" define create()
+            "TIME" define createTime()
         },
         run {
-            fun create() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+            fun createLocalTime() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                     // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                     mapOf(
@@ -202,7 +202,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "LOCAL_TIME" define create()
+            "LOCAL_TIME" define createLocalTime()
         },
     ).let { listOf(it) }
 }
