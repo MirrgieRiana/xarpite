@@ -46,6 +46,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun parse(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun now(arguments: Array<FluoriteValue>): FluoriteValue
+                abstract fun toString(arguments: Array<FluoriteValue>): FluoriteValue
             }
 
             fun createInstant(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
@@ -61,7 +62,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.now(arguments)
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
+                        implementation.toString(arguments)
                     },
                 )
             }
@@ -79,10 +80,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.now(arguments)
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        val obj = arguments[0] as FluoriteObject
-                        val instant = obj.toInstant()
-                        val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
-                        ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset").toFluoriteString()
+                        implementation.toString(arguments)
                     },
                 )
             }
@@ -100,7 +98,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.now(arguments)
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
+                        implementation.toString(arguments)
                     },
                 )
             }
@@ -149,6 +147,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             if (arguments.size != 0) usage("INSTANT.now(): INSTANT")
                             val instant = context.io.getCurrentInstant()
                             return new(instant)
+                        }
+
+                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
+                            return (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
                         }
                     }
                 },
@@ -203,6 +205,13 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
                         }
+
+                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
+                            val obj = arguments[0] as FluoriteObject
+                            val instant = obj.toInstant()
+                            val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
+                            return ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset").toFluoriteString()
+                        }
                     }
                 },
                 "LOCAL_TIME" define createLocalTime { clazz ->
@@ -251,6 +260,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             val instant = context.io.getCurrentInstant()
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
+                        }
+
+                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
+                            return (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
                         }
                     }
                 },
