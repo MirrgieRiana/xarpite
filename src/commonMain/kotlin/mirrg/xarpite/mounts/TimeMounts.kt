@@ -42,7 +42,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         *run {
-            abstract class TimeImplementation(val name: String) {
+            abstract class TimeFactory(val name: String) {
 
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
@@ -134,7 +134,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             }
 
             arrayOf(
-                "INSTANT" define object : TimeImplementation("INSTANT") {
+                "INSTANT" define object : TimeFactory("INSTANT") {
                     private fun createMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                         NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -177,7 +177,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         return obj.toInstant().toString()
                     }
                 }.create(),
-                "TIME" define object : TimeImplementation("TIME") {
+                "TIME" define object : TimeFactory("TIME") {
                     private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                         NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -228,7 +228,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         return ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset")
                     }
                 }.create(),
-                "LOCAL_TIME" define object : TimeImplementation("LOCAL_TIME") {
+                "LOCAL_TIME" define object : TimeFactory("LOCAL_TIME") {
                     // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                     private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
