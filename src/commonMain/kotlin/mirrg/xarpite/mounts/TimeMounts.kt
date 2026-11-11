@@ -44,7 +44,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
         *run {
             abstract class TimeImplementation(val name: String) {
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
-                abstract fun parse(arguments: Array<FluoriteValue>): FluoriteValue
+                abstract fun parse(text: String): FluoriteValue
                 abstract fun now(): FluoriteValue
                 abstract fun toString(obj: FluoriteObject): String
             }
@@ -56,7 +56,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.of(arguments)
                     },
                     "parse" to FluoriteFunction.immediate { arguments ->
-                        implementation.parse(arguments)
+                        fun usage(): Nothing = usage("${implementation.name}.parse(text: STRING): ${implementation.name}")
+                        if (arguments.size != 1) usage()
+                        val text = arguments[0] as? FluoriteString ?: usage()
+                        implementation.parse(text.value)
                     },
                     "now" to FluoriteFunction.immediate { arguments ->
                         if (arguments.size != 0) usage("${implementation.name}.now(): ${implementation.name}")
@@ -100,11 +103,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant)
                         }
 
-                        override fun parse(arguments: Array<FluoriteValue>): FluoriteValue {
-                            fun usage(): Nothing = usage("INSTANT.parse(text: STRING): INSTANT")
-                            if (arguments.size != 1) usage()
-                            val text = arguments[0] as? FluoriteString ?: usage()
-                            val (localDateTime, offset) = text.value.removeSuffix("Z").parseTime()
+                        override fun parse(text: String): FluoriteValue {
+                            val (localDateTime, offset) = text.removeSuffix("Z").parseTime()
                             require(offset == null) { "UTC offset is not allowed for INSTANT" }
                             val instant = localDateTime.toInstant(TimeZone.UTC)
                             return new(instant)
@@ -155,11 +155,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, offset)
                         }
 
-                        override fun parse(arguments: Array<FluoriteValue>): FluoriteValue {
-                            fun usage(): Nothing = usage("TIME.parse(text: STRING): TIME")
-                            if (arguments.size != 1) usage()
-                            val text = arguments[0] as? FluoriteString ?: usage()
-                            val (localDateTime, parsedOffset) = text.value.parseTime()
+                        override fun parse(text: String): FluoriteValue {
+                            val (localDateTime, parsedOffset) = text.parseTime()
                             val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for TIME")
                             val instant = localDateTime.toInstant(FixedOffsetTimeZone(offset))
                             return new(instant, offset)
@@ -209,11 +206,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, UtcOffset.ZERO)
                         }
 
-                        override fun parse(arguments: Array<FluoriteValue>): FluoriteValue {
-                            fun usage(): Nothing = usage("LOCAL_TIME.parse(text: STRING): LOCAL_TIME")
-                            if (arguments.size != 1) usage()
-                            val text = arguments[0] as? FluoriteString ?: usage()
-                            val (localDateTime, offset) = text.value.parseTime()
+                        override fun parse(text: String): FluoriteValue {
+                            val (localDateTime, offset) = text.parseTime()
                             require(offset == null) { "UTC offset is not allowed for LOCAL_TIME" }
                             val instant = localDateTime.toInstant(TimeZone.UTC)
                             return new(instant, UtcOffset.ZERO)
