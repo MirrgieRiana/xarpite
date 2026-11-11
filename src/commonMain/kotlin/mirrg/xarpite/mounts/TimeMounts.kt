@@ -40,160 +40,166 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             if (arguments.size != 0) usage("NOW(): BIG")
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
-        "INSTANT" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-            fun new(instant: Instant) = createFluoriteObject(clazz) {
+        run {
+            "INSTANT" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+                fun new(instant: Instant) = createFluoriteObject(clazz) {
+                    mapOf(
+                        EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                        NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                    )
+                }
+
                 mapOf(
-                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT")
+                        val epochSeconds: FluoriteNumber
+                        val nanosecondsOfSecond: FluoriteNumber
+                        when (arguments.size) {
+                            1 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = FluoriteInt.ZERO
+                            }
+
+                            2 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
+                            }
+
+                            else -> usage()
+                        }
+                        val instant = epochSeconds.toInstant(nanosecondsOfSecond)
+                        new(instant)
+                    },
+                    "parse" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("INSTANT.parse(text: STRING): INSTANT")
+                        if (arguments.size != 1) usage()
+                        val text = arguments[0] as? FluoriteString ?: usage()
+                        val (localDateTime, offset) = text.value.removeSuffix("Z").parseTime()
+                        require(offset == null) { "UTC offset is not allowed for INSTANT" }
+                        val instant = localDateTime.toInstant(TimeZone.UTC)
+                        new(instant)
+                    },
+                    "now" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 0) usage("INSTANT.now(): INSTANT")
+                        val instant = context.io.getCurrentInstant()
+                        new(instant)
+                    },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
+                        (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
+                    },
                 )
             }
-
-            mapOf(
-                "of" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT")
-                    val epochSeconds: FluoriteNumber
-                    val nanosecondsOfSecond: FluoriteNumber
-                    when (arguments.size) {
-                        1 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = FluoriteInt.ZERO
-                        }
-
-                        2 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
-                        }
-
-                        else -> usage()
-                    }
-                    val instant = epochSeconds.toInstant(nanosecondsOfSecond)
-                    new(instant)
-                },
-                "parse" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("INSTANT.parse(text: STRING): INSTANT")
-                    if (arguments.size != 1) usage()
-                    val text = arguments[0] as? FluoriteString ?: usage()
-                    val (localDateTime, offset) = text.value.removeSuffix("Z").parseTime()
-                    require(offset == null) { "UTC offset is not allowed for INSTANT" }
-                    val instant = localDateTime.toInstant(TimeZone.UTC)
-                    new(instant)
-                },
-                "now" to FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 0) usage("INSTANT.now(): INSTANT")
-                    val instant = context.io.getCurrentInstant()
-                    new(instant)
-                },
-                OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                    (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
-                },
-            )
         },
-        "TIME" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-            fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
+        run {
+            "TIME" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+                fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
+                    mapOf(
+                        EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                        NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                        OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
+                    )
+                }
+
                 mapOf(
-                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                    OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME")
+                        val epochSeconds: FluoriteNumber
+                        val nanosecondsOfSecond: FluoriteNumber
+                        val offsetSeconds: FluoriteNumber
+                        when (arguments.size) {
+                            2 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = FluoriteInt.ZERO
+                                offsetSeconds = arguments[1] as? FluoriteNumber ?: usage()
+                            }
+
+                            3 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
+                                offsetSeconds = arguments[2] as? FluoriteNumber ?: usage()
+                            }
+
+                            else -> usage()
+                        }
+                        val instant = epochSeconds.toInstant(nanosecondsOfSecond)
+                        val offset = UtcOffset(seconds = offsetSeconds.roundToInt())
+                        new(instant, offset)
+                    },
+                    "parse" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("TIME.parse(text: STRING): TIME")
+                        if (arguments.size != 1) usage()
+                        val text = arguments[0] as? FluoriteString ?: usage()
+                        val (localDateTime, parsedOffset) = text.value.parseTime()
+                        val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for TIME")
+                        val instant = localDateTime.toInstant(FixedOffsetTimeZone(offset))
+                        new(instant, offset)
+                    },
+                    "now" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 0) usage("TIME.now(): TIME")
+                        val instant = context.io.getCurrentInstant()
+                        val offset = context.io.getSystemTimeZone().offsetAt(instant)
+                        new(instant, offset)
+                    },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
+                        val obj = arguments[0] as FluoriteObject
+                        val instant = obj.toInstant()
+                        val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
+                        ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset").toFluoriteString()
+                    },
                 )
             }
-
-            mapOf(
-                "of" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME")
-                    val epochSeconds: FluoriteNumber
-                    val nanosecondsOfSecond: FluoriteNumber
-                    val offsetSeconds: FluoriteNumber
-                    when (arguments.size) {
-                        2 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = FluoriteInt.ZERO
-                            offsetSeconds = arguments[1] as? FluoriteNumber ?: usage()
-                        }
-
-                        3 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
-                            offsetSeconds = arguments[2] as? FluoriteNumber ?: usage()
-                        }
-
-                        else -> usage()
-                    }
-                    val instant = epochSeconds.toInstant(nanosecondsOfSecond)
-                    val offset = UtcOffset(seconds = offsetSeconds.roundToInt())
-                    new(instant, offset)
-                },
-                "parse" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("TIME.parse(text: STRING): TIME")
-                    if (arguments.size != 1) usage()
-                    val text = arguments[0] as? FluoriteString ?: usage()
-                    val (localDateTime, parsedOffset) = text.value.parseTime()
-                    val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for TIME")
-                    val instant = localDateTime.toInstant(FixedOffsetTimeZone(offset))
-                    new(instant, offset)
-                },
-                "now" to FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 0) usage("TIME.now(): TIME")
-                    val instant = context.io.getCurrentInstant()
-                    val offset = context.io.getSystemTimeZone().offsetAt(instant)
-                    new(instant, offset)
-                },
-                OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                    val obj = arguments[0] as FluoriteObject
-                    val instant = obj.toInstant()
-                    val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
-                    ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset").toFluoriteString()
-                },
-            )
         },
-        "LOCAL_TIME" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-            fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
-                // オフセット不明の年月日時分秒をUTCと仮定して符号化する
+        run {
+            "LOCAL_TIME" define createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+                fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
+                    // オフセット不明の年月日時分秒をUTCと仮定して符号化する
+                    mapOf(
+                        EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
+                        NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                    )
+                }
+
                 mapOf(
-                    EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                    "of" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME")
+                        val epochSeconds: FluoriteNumber
+                        val nanosecondsOfSecond: FluoriteNumber
+                        when (arguments.size) {
+                            1 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = FluoriteInt.ZERO
+                            }
+
+                            2 -> {
+                                epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
+                                nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
+                            }
+
+                            else -> usage()
+                        }
+                        val instant = epochSeconds.toInstant(nanosecondsOfSecond)
+                        new(instant, UtcOffset.ZERO)
+                    },
+                    "parse" to FluoriteFunction.immediate { arguments ->
+                        fun usage(): Nothing = usage("LOCAL_TIME.parse(text: STRING): LOCAL_TIME")
+                        if (arguments.size != 1) usage()
+                        val text = arguments[0] as? FluoriteString ?: usage()
+                        val (localDateTime, offset) = text.value.parseTime()
+                        require(offset == null) { "UTC offset is not allowed for LOCAL_TIME" }
+                        val instant = localDateTime.toInstant(TimeZone.UTC)
+                        new(instant, UtcOffset.ZERO)
+                    },
+                    "now" to FluoriteFunction.immediate { arguments ->
+                        if (arguments.size != 0) usage("LOCAL_TIME.now(): LOCAL_TIME")
+                        val instant = context.io.getCurrentInstant()
+                        val offset = context.io.getSystemTimeZone().offsetAt(instant)
+                        new(instant, offset)
+                    },
+                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
+                        (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
+                    },
                 )
             }
-
-            mapOf(
-                "of" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME")
-                    val epochSeconds: FluoriteNumber
-                    val nanosecondsOfSecond: FluoriteNumber
-                    when (arguments.size) {
-                        1 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = FluoriteInt.ZERO
-                        }
-
-                        2 -> {
-                            epochSeconds = arguments[0] as? FluoriteNumber ?: usage()
-                            nanosecondsOfSecond = arguments[1] as? FluoriteNumber ?: usage()
-                        }
-
-                        else -> usage()
-                    }
-                    val instant = epochSeconds.toInstant(nanosecondsOfSecond)
-                    new(instant, UtcOffset.ZERO)
-                },
-                "parse" to FluoriteFunction.immediate { arguments ->
-                    fun usage(): Nothing = usage("LOCAL_TIME.parse(text: STRING): LOCAL_TIME")
-                    if (arguments.size != 1) usage()
-                    val text = arguments[0] as? FluoriteString ?: usage()
-                    val (localDateTime, offset) = text.value.parseTime()
-                    require(offset == null) { "UTC offset is not allowed for LOCAL_TIME" }
-                    val instant = localDateTime.toInstant(TimeZone.UTC)
-                    new(instant, UtcOffset.ZERO)
-                },
-                "now" to FluoriteFunction.immediate { arguments ->
-                    if (arguments.size != 0) usage("LOCAL_TIME.now(): LOCAL_TIME")
-                    val instant = context.io.getCurrentInstant()
-                    val offset = context.io.getSystemTimeZone().offsetAt(instant)
-                    new(instant, offset)
-                },
-                OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                    (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
-                },
-            )
         },
     ).let { listOf(it) }
 }
