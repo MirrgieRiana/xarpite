@@ -113,7 +113,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 abstract fun toString(obj: FluoriteObject): String
 
 
-                fun createMap(parentObject: FluoriteObject?): Map<String, FluoriteValue> {
+                fun createMap(): Map<String, FluoriteValue> {
                     return mapOf(
                         "of" to FluoriteFunction.immediate { arguments ->
                             of(arguments)
@@ -139,7 +139,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
                 val implementation = implementationFactory(parentObject)
-                implementation.createMap(parentObject)
+                implementation.createMap()
             }
 
             arrayOf(
