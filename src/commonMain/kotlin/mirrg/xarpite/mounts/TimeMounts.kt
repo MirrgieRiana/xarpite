@@ -42,7 +42,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         *run {
-            abstract class TimeImplementation {
+            abstract class TimeImplementation(val name: String) {
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun parse(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun now(arguments: Array<FluoriteValue>): FluoriteValue
@@ -70,7 +70,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             arrayOf(
                 "INSTANT" define create { clazz ->
-                    object : TimeImplementation() {
+                    object : TimeImplementation("INSTANT") {
                         private fun new(instant: Instant) = createFluoriteObject(clazz) {
                             mapOf(
                                 EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
@@ -110,7 +110,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
 
                         override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("INSTANT.now(): INSTANT")
+                            if (arguments.size != 0) usage("$name.now(): $name")
                             val instant = context.io.getCurrentInstant()
                             return new(instant)
                         }
@@ -121,7 +121,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 },
                 "TIME" define create { clazz ->
-                    object : TimeImplementation() {
+                    object : TimeImplementation("TIME") {
                         private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                             mapOf(
                                 EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
@@ -166,7 +166,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
 
                         override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("TIME.now(): TIME")
+                            if (arguments.size != 0) usage("$name.now(): $name")
                             val instant = context.io.getCurrentInstant()
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
@@ -180,7 +180,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 },
                 "LOCAL_TIME" define create { clazz ->
-                    object : TimeImplementation() {
+                    object : TimeImplementation("LOCAL_TIME") {
                         private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                             // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                             mapOf(
@@ -221,7 +221,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
 
                         override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("LOCAL_TIME.now(): LOCAL_TIME")
+                            if (arguments.size != 0) usage("$name.now(): $name")
                             val instant = context.io.getCurrentInstant()
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
