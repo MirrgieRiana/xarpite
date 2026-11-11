@@ -40,7 +40,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             if (arguments.size != 0) usage("NOW(): BIG")
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
-        run {
+        *run {
             fun createInstant() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant) = createFluoriteObject(clazz) {
                     mapOf(
@@ -89,9 +89,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "INSTANT" define createInstant()
-        },
-        run {
+
             fun createTime() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                     mapOf(
@@ -149,9 +147,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "TIME" define createTime()
-        },
-        run {
+
             fun createLocalTime() = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                     // オフセット不明の年月日時分秒をUTCと仮定して符号化する
@@ -202,7 +198,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     },
                 )
             }
-            "LOCAL_TIME" define createLocalTime()
+            arrayOf(
+                "INSTANT" define createInstant(),
+                "TIME" define createTime(),
+                "LOCAL_TIME" define createLocalTime(),
+            )
         },
     ).let { listOf(it) }
 }
