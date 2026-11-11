@@ -42,7 +42,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         *run {
-            abstract class TimeFactory(val name: String) {
+            abstract class TimeFactory(private val name: String) {
 
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
@@ -78,7 +78,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     return instant
                 }
 
-                abstract fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue>
+                protected abstract fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue>
 
 
                 protected fun String.parseTime(): Pair<LocalDateTime, UtcOffset?> {
@@ -88,10 +88,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     return Pair(localDateTime, offset)
                 }
 
-                abstract fun parse(text: String): MutableMap<String, FluoriteValue>
+                protected abstract fun parse(text: String): MutableMap<String, FluoriteValue>
 
 
-                abstract fun now(): MutableMap<String, FluoriteValue>
+                protected abstract fun now(): MutableMap<String, FluoriteValue>
 
 
                 protected fun FluoriteObject.toInstant(): Instant {
@@ -104,7 +104,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     return if (this.second == 0 && this.nanosecond == 0) "${this}:00" else this.toString()
                 }
 
-                abstract fun toString(obj: FluoriteObject): String
+                protected abstract fun toString(obj: FluoriteObject): String
 
 
                 fun create(): FluoriteValue {
