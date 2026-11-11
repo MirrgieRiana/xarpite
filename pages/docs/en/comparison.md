@@ -77,7 +77,7 @@ $ xa '[1 == 2, 2 == 2, 3 == 2]'
 # [FALSE;TRUE;FALSE]
 ```
 
-Currently, it is only defined for some types such as numbers and strings.
+When not overridden, it uses the same comparison as the strict equality operator.
 
 ---
 
@@ -97,6 +97,26 @@ This is the negation of the equality operator.
 ```shell
 $ xa '[1 != 2, 2 != 2, 3 != 2]'
 # [TRUE;FALSE;TRUE]
+```
+
+## Overriding the Equality Operator
+
+When the left-hand value is an `OBJECT`, the equality operator calls its `_==_` method and returns the result converted to a boolean.
+
+Overriding the `_==_` method also changes the behavior of the inequality operator.
+
+```shell
+$ xa '
+  Person := {
+    `_==_`: this, other -> this.age == other.age
+  }
+
+  alice := Person{age: 30}
+  bob   := Person{age: 30}
+
+  [alice == bob, alice != bob, alice === bob]
+'
+# [TRUE;FALSE;FALSE]
 ```
 
 ## Strict Equality Operator

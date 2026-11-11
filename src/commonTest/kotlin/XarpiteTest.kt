@@ -1331,6 +1331,103 @@ class XarpiteTest {
     }
 
     @Test
+    fun equalityOverride() = runTest {
+        """
+            Person := {
+                `_==_`: this, other -> this.age == other.age
+            }
+            alice := Person{age: 30}
+            bob := Person{age: 30}
+            carol := Person{age: 20}
+            [alice == bob, alice != bob, alice == carol, alice != carol, alice === bob, alice !== bob]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE;FALSE;TRUE]", eval(it).array()) }
+
+        // メソッドがない場合は従来の比較へフォールバックする
+        assertEquals("[TRUE;FALSE;FALSE;TRUE]", eval("a := {}; [a == a, a != a, a == {}, a != {}]").array())
+
+        // 同じインスタンスでもオーバーライドを呼び、!=も_==_の結果から求める
+        """
+            count := 0
+            Obj := {
+                `_==_`: this, other -> (count++; FALSE)
+                `_!=_`: this, other -> !! "Not called"
+            }
+            a := Obj{}
+            [a == a, a != a, a === a, count]
+        """.let { assertEquals("[FALSE;TRUE;TRUE;2]", eval(it).array()) }
+    }
+
+    @Test
+    fun equalityOverrideReceiver() = runTest {
+        // 左辺のメソッドに右辺を渡し、右辺のメソッドは検索しない
+        """
+            Obj := {`_==_`: this, other -> this.value == other}
+            a := Obj{value: 123}
+            [a == 123, a != 123, 123 == a, 123 != a, {} == a]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE;FALSE]", eval(it).array()) }
+    }
+
+    @Test
+    fun equalityOverrideResult() = runTest {
+        // 戻り値は論理値化され、NULLを返しても未実装とは扱わない
+        """
+            Obj := {`_==_`: this, other -> this.result}
+            a := Obj{result: 1}
+            b := Obj{result: 0}
+            c := Obj{result: NULL}
+            [a == a, a != a, b == b, b != b, c == c, c != c]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE;FALSE;TRUE]", eval(it).array()) }
+
+        // オーバーライド内の例外はフォールバックせず伝播する
+        listOf("==", "!=").forEach { operator ->
+            assertEquals("Comparison failed", eval("""
+                Obj := {`_==_`: this, other -> !! "Comparison failed"}
+                a := Obj{}
+                (a $operator a) !? (error => error)
+            """).string)
+        }
+    }
+
+    @Test
+    fun equalityOverrideFallbackMethod() = runTest {
+        // _::_によるメソッド解決も利用できる
+        """
+            Obj := {
+                `_::_`: this, name -> name == "_==_" ? (other -> other == this.value) : NULL
+            }
+            a := Obj{value: 123}
+            [a == 123, a != 123, a == 456, a != 456]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE]", eval(it).array()) }
+
+        // _::_がNULLを返した場合も従来の比較へフォールバックする
+        """
+            Obj := {`_::_`: this, name -> NULL}
+            a := Obj{}
+            [a == a, a != a, a == Obj{}, a != Obj{}]
+        """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE]", eval(it).array()) }
+    }
+
+    @Test
+    fun equalityOverrideSuspends() = runTest {
+        // 比較メソッドの中断後に比較を完了でき、!=も1回だけ呼び出す
+        val before = testScheduler.currentTime
+        """
+            count := 0
+            Obj := {
+                `_==_`: this, other -> (
+                    count++
+                    SLEEP(1)
+                    this.value == other.value
+                )
+            }
+            a := Obj{value: 123}
+            b := Obj{value: 123}
+            [a == b, a != b, count]
+        """.let { assertEquals("[TRUE;FALSE;2]", eval(it, apiVersion = 5).array()) }
+        assertEquals(2000L, testScheduler.currentTime - before)
+    }
+
+    @Test
     fun strictEquality() = runTest {
         // 同じ型かつ同じ内容なら一致、異なる内容なら不一致
         assertEquals("[TRUE;FALSE;TRUE]", eval("[1 === 1, 1 === 2, 'abc' === 'abc']").array())

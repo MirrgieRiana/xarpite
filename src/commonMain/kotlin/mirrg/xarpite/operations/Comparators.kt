@@ -3,19 +3,37 @@ package mirrg.xarpite.operations
 import mirrg.xarpite.Environment
 import mirrg.xarpite.Position
 import mirrg.xarpite.compilers.objects.FluoriteValue
+import mirrg.xarpite.compilers.objects.SuspendingComparisonRequired
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.contains
 import mirrg.xarpite.compilers.objects.instanceOf
 
-// TODO
 class EqualComparator(private val position: Position) : Comparator {
-    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a == b }
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean {
+        return { a, b ->
+            try {
+                a.equalToNonSuspending(b)
+            } catch (_: SuspendingComparisonRequired) {
+                a.equalTo(position, b)
+            }
+        }
+    }
+
     override val code get() = "EqualComparator"
 }
 
-// TODO
 class NotEqualComparator(private val position: Position) : Comparator {
-    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean = { a, b -> a != b }
+    override suspend fun evaluate(env: Environment): suspend (FluoriteValue, FluoriteValue) -> Boolean {
+        return { a, b ->
+            val result = try {
+                a.equalToNonSuspending(b)
+            } catch (_: SuspendingComparisonRequired) {
+                a.equalTo(position, b)
+            }
+            !result
+        }
+    }
+
     override val code get() = "NotEqualComparator"
 }
 
