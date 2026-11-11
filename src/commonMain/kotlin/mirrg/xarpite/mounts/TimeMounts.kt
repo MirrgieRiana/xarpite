@@ -42,10 +42,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         *run {
-            abstract class TimeImplementation(
-                private val parentObject: FluoriteObject?,
-                val name: String,
-            ) {
+            abstract class TimeImplementation(val name: String) {
 
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
@@ -110,7 +107,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 abstract fun toString(obj: FluoriteObject): String
 
 
-                fun createMap(): Map<String, FluoriteValue> {
+                fun createMap(parentObject: FluoriteObject?): Map<String, FluoriteValue> {
                     return mapOf(
                         "of" to FluoriteFunction.immediate { arguments ->
                             FluoriteObject(parentObject, of(arguments))
@@ -134,14 +131,14 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             }
 
-            fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
-                val implementation = implementationFactory(parentObject)
-                implementation.createMap()
+            fun create(implementationFactory: () -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
+                val implementation = implementationFactory()
+                implementation.createMap(parentObject)
             }
 
             arrayOf(
-                "INSTANT" define create { parentObject ->
-                    object : TimeImplementation(parentObject, "INSTANT") {
+                "INSTANT" define create {
+                    object : TimeImplementation("INSTANT") {
                         private fun createMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
                             EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                             NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -185,8 +182,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "TIME" define create { parentObject ->
-                    object : TimeImplementation(parentObject, "TIME") {
+                "TIME" define create {
+                    object : TimeImplementation("TIME") {
                         private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                             EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                             NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -238,8 +235,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "LOCAL_TIME" define create { parentObject ->
-                    object : TimeImplementation(parentObject, "LOCAL_TIME") {
+                "LOCAL_TIME" define create {
+                    object : TimeImplementation("LOCAL_TIME") {
                         // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                         private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                             EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
