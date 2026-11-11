@@ -43,11 +43,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
         },
         *run {
             abstract class TimeImplementation(
-                val clazz: FluoriteObject?,
+                private val parentObject: FluoriteObject?,
                 val name: String,
             ) {
 
-                protected fun Map<String, FluoriteValue>.new() = FluoriteObject(clazz, this.toMutableMap())
+                protected fun Map<String, FluoriteValue>.new() = FluoriteObject(parentObject, this.toMutableMap())
 
 
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
@@ -114,8 +114,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             }
 
-            fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-                val implementation = implementationFactory(clazz)
+            fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
+                val implementation = implementationFactory(parentObject)
                 mapOf(
                     "of" to FluoriteFunction.immediate { arguments ->
                         implementation.of(arguments)
@@ -138,8 +138,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             }
 
             arrayOf(
-                "INSTANT" define create { clazz ->
-                    object : TimeImplementation(clazz, "INSTANT") {
+                "INSTANT" define create { parentObject ->
+                    object : TimeImplementation(parentObject, "INSTANT") {
                         private fun new(instant: Instant) = mapOf(
                             EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                             NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -183,8 +183,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "TIME" define create { clazz ->
-                    object : TimeImplementation(clazz, "TIME") {
+                "TIME" define create { parentObject ->
+                    object : TimeImplementation(parentObject, "TIME") {
                         private fun new(instant: Instant, offset: UtcOffset) = mapOf(
                             EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                             NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -236,8 +236,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "LOCAL_TIME" define create { clazz ->
-                    object : TimeImplementation(clazz, "LOCAL_TIME") {
+                "LOCAL_TIME" define create { parentObject ->
+                    object : TimeImplementation(parentObject, "LOCAL_TIME") {
                         // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                         private fun new(instant: Instant, offset: UtcOffset) = mapOf(
                             EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
