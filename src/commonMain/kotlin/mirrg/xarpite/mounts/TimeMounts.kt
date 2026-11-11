@@ -43,10 +43,22 @@ fun createTimeMounts(): List<Map<String, Mount>> {
         },
         *run {
             abstract class TimeImplementation(val name: String) {
+
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
+
+                protected fun String.parseTime(): Pair<LocalDateTime, UtcOffset?> {
+                    val matchResult = TIME_PATTERN.matchEntire(this) ?: throw IllegalArgumentException("Invalid time representation: $this")
+                    val localDateTime = LocalDateTime.parse("${matchResult.groupValues[1]}T${matchResult.groupValues[2].ifEmpty { "00:00:00" }}${matchResult.groupValues[3]}")
+                    val offset = matchResult.groups[4]?.value?.let { UtcOffset.parse(it) }
+                    return Pair(localDateTime, offset)
+                }
+
                 abstract fun parse(text: String): FluoriteValue
+
                 abstract fun now(): FluoriteValue
+
                 abstract fun toString(obj: FluoriteObject): String
+
             }
 
             fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
@@ -227,13 +239,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             )
         },
     ).let { listOf(it) }
-}
-
-private fun String.parseTime(): Pair<LocalDateTime, UtcOffset?> {
-    val matchResult = TIME_PATTERN.matchEntire(this) ?: throw IllegalArgumentException("Invalid time representation: $this")
-    val localDateTime = LocalDateTime.parse("${matchResult.groupValues[1]}T${matchResult.groupValues[2].ifEmpty { "00:00:00" }}${matchResult.groupValues[3]}")
-    val offset = matchResult.groups[4]?.value?.let { UtcOffset.parse(it) }
-    return Pair(localDateTime, offset)
 }
 
 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
