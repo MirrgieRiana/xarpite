@@ -100,6 +100,57 @@ $ xa '/apple/.flags'
 # NULL
 ```
 
+# 正規表現オブジェクトのフラグ操作
+
+正規表現オブジェクトから、フラグを付与または除去した新しい正規表現オブジェクトを得ることができます。
+
+`REGEX::withFlag(flag: STRING[; enable: BOOLEAN]): REGEX`
+
+`withFlag`は、`flag`に含まれる各フラグ文字を付与した正規表現オブジェクトを返します。
+
+`enable`を`FALSE`にした場合は、付与ではなく除去を行います。`enable`は省略時`TRUE`です。
+
+以下は、いずれも`withFlag`を用いた基本形の略記です。
+
+| 記法                       | 基本形                          |
+|--------------------------|------------------------------|
+| `regex::withoutFlag(flag)` | `regex::withFlag(flag; FALSE)` |
+| `regex + flag`           | `regex::withFlag(flag; TRUE)`  |
+| `regex - flag`           | `regex::withFlag(flag; FALSE)` |
+
+これらの操作は冪等です。既に付与されているフラグの付与や、付与されていないフラグの除去は、結果を変えません。
+
+`flag`には、`gi`のように複数のフラグ文字をまとめて記述できます。
+
+付与されるフラグは正規化されず、常に既存のフラグ列の末尾に追記されます。
+
+すべてのフラグが除去された場合、`flags`は`NULL`になります。
+
+`flag`に正規表現のフラグとして不正な文字が含まれる場合、エラーになります。
+
+```shell
+$ xa ' /apple/::withFlag("g") '
+# /apple/g
+
+$ xa ' /apple/g::withFlag("g"; FALSE) '
+# /apple/
+
+$ xa ' /apple/::withoutFlag("i") '
+# /apple/
+
+$ xa ' /apple/ + "i" '
+# /apple/i
+
+$ xa ' /apple/gi - "g" '
+# /apple/i
+
+$ xa ' /apple/i::withFlag("g") '
+# /apple/ig
+
+$ xa ' /apple/::withFlag("gi") '
+# /apple/gi
+```
+
 # 部分一致判定
 
 `regex @ string`演算子で、文字列に正規表現が部分一致するか否かを判定できます。
