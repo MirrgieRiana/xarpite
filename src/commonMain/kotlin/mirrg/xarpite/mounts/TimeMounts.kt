@@ -112,29 +112,35 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                 abstract fun toString(obj: FluoriteObject): String
 
+
+                fun createMap(parentObject: FluoriteObject?): Map<String, FluoriteValue> {
+                    val implementation = this
+                    return mapOf(
+                        "of" to FluoriteFunction.immediate { arguments ->
+                            implementation.of(arguments)
+                        },
+                        "parse" to FluoriteFunction.immediate { arguments ->
+                            fun usage(): Nothing = usage("${implementation.name}.parse(text: STRING): ${implementation.name}")
+                            if (arguments.size != 1) usage()
+                            val text = arguments[0] as? FluoriteString ?: usage()
+                            implementation.parse(text.value)
+                        },
+                        "now" to FluoriteFunction.immediate { arguments ->
+                            if (arguments.size != 0) usage("${implementation.name}.now(): ${implementation.name}")
+                            implementation.now()
+                        },
+                        OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
+                            val obj = arguments[0] as FluoriteObject
+                            implementation.toString(obj).toFluoriteString()
+                        },
+                    )
+                }
+
             }
 
             fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
                 val implementation = implementationFactory(parentObject)
-                mapOf(
-                    "of" to FluoriteFunction.immediate { arguments ->
-                        implementation.of(arguments)
-                    },
-                    "parse" to FluoriteFunction.immediate { arguments ->
-                        fun usage(): Nothing = usage("${implementation.name}.parse(text: STRING): ${implementation.name}")
-                        if (arguments.size != 1) usage()
-                        val text = arguments[0] as? FluoriteString ?: usage()
-                        implementation.parse(text.value)
-                    },
-                    "now" to FluoriteFunction.immediate { arguments ->
-                        if (arguments.size != 0) usage("${implementation.name}.now(): ${implementation.name}")
-                        implementation.now()
-                    },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        val obj = arguments[0] as FluoriteObject
-                        implementation.toString(obj).toFluoriteString()
-                    },
-                )
+                implementation.createMap(parentObject)
             }
 
             arrayOf(
