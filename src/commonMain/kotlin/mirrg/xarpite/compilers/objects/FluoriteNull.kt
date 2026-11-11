@@ -8,6 +8,12 @@ object FluoriteNull : FluoriteValue {
             FluoriteValue.fluoriteClass, mutableMapOf(
                 OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { FluoriteInt.ZERO },
                 OperatorMethod.TO_BOOLEAN.methodName to FluoriteFunction.immediate { FluoriteBoolean.FALSE },
+                OperatorMethod.COMPARE.methodName to FluoriteFunction.immediate { arguments ->
+                    when (arguments[1]) {
+                        is FluoriteNull -> FluoriteInt.ZERO
+                        else -> FluoriteInt.MINUS_ONE
+                    }
+                },
             )
         )
     }
