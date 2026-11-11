@@ -182,6 +182,30 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 # 2001-02-03T04:05:06.007008009
 ```
 
+### Equality Comparison
+
+The equality operator `==` returns true for time objects of the same class when both their stored seconds and nanoseconds match.
+
+For `TIME`, the UTC offsets must also match.
+
+```shell
+$ xa 'INSTANT.of(0) == INSTANT.parse("1970-01-01Z")'
+# TRUE
+
+$ xa 'TIME.of(0; 0) == TIME.of(0; 3600)'
+# FALSE
+
+$ xa 'INSTANT.of(0) == TIME.of(0; 0)'
+# FALSE
+
+$ xa '
+  a := LOCAL_TIME.of(0)
+  b := LOCAL_TIME.of(0)
+  [a == b, a === b]
+'
+# [TRUE;FALSE]
+```
+
 ## Other Built-in Members
 
 ### `NOW`: Get the Current Time

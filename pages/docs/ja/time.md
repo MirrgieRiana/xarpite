@@ -182,6 +182,30 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 # 2001-02-03T04:05:06.007008009
 ```
 
+### 等価比較
+
+等価演算子`==`は、同じクラスの時刻オブジェクト同士について、保持する秒数とナノ秒がともに一致する場合に真を返します。
+
+`TIME`では、UTCオフセットも一致する必要があります。
+
+```shell
+$ xa 'INSTANT.of(0) == INSTANT.parse("1970-01-01Z")'
+# TRUE
+
+$ xa 'TIME.of(0; 0) == TIME.of(0; 3600)'
+# FALSE
+
+$ xa 'INSTANT.of(0) == TIME.of(0; 0)'
+# FALSE
+
+$ xa '
+  a := LOCAL_TIME.of(0)
+  b := LOCAL_TIME.of(0)
+  [a == b, a === b]
+'
+# [TRUE;FALSE]
+```
+
 ## その他の組み込みメンバ
 
 ### `NOW`: 現在時刻の取得

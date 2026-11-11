@@ -21,6 +21,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteString
 import mirrg.xarpite.compilers.objects.FluoriteValue
 import mirrg.xarpite.compilers.objects.createFluoriteObject
+import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
 import mirrg.xarpite.toBigIntegerExact
@@ -107,6 +108,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 protected abstract fun toString(obj: FluoriteObject): String
 
 
+                protected abstract fun equalTo(left: FluoriteObject, right: FluoriteObject): Boolean
+
+
                 fun create(): FluoriteValue {
                     return createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
                         mapOf(
@@ -126,6 +130,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                                 val obj = arguments[0] as FluoriteObject
                                 toString(obj).toFluoriteString()
+                            },
+                            OperatorMethod.EQUALS.methodName to FluoriteFunction.immediate { arguments ->
+                                val left = arguments[0] as FluoriteObject
+                                val right = arguments[1]
+                                (right is FluoriteObject && left.parent === right.parent && equalTo(left, right)).toFluoriteBoolean()
                             },
                         )
                     }
@@ -175,6 +184,12 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                     override fun toString(obj: FluoriteObject): String {
                         return obj.toInstant().toString()
+                    }
+
+                    override fun equalTo(left: FluoriteObject, right: FluoriteObject): Boolean {
+                        if (left.map[EPOCH_SECONDS] != right.map[EPOCH_SECONDS]) return false
+                        if (left.map[NANOSECONDS_OF_SECOND] != right.map[NANOSECONDS_OF_SECOND]) return false
+                        return true
                     }
                 }.create(),
                 "TIME" define object : TimeFactory("TIME") {
@@ -227,6 +242,13 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
                         return "${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset"
                     }
+
+                    override fun equalTo(left: FluoriteObject, right: FluoriteObject): Boolean {
+                        if (left.map[EPOCH_SECONDS] != right.map[EPOCH_SECONDS]) return false
+                        if (left.map[NANOSECONDS_OF_SECOND] != right.map[NANOSECONDS_OF_SECOND]) return false
+                        if (left.map[OFFSET_SECONDS] != right.map[OFFSET_SECONDS]) return false
+                        return true
+                    }
                 }.create(),
                 "LOCAL_TIME" define object : TimeFactory("LOCAL_TIME") {
                     // オフセット不明の年月日時分秒をUTCと仮定して符号化する
@@ -271,6 +293,12 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                     override fun toString(obj: FluoriteObject): String {
                         return obj.toInstant().toLocalDateTime(TimeZone.UTC).formatTime()
+                    }
+
+                    override fun equalTo(left: FluoriteObject, right: FluoriteObject): Boolean {
+                        if (left.map[EPOCH_SECONDS] != right.map[EPOCH_SECONDS]) return false
+                        if (left.map[NANOSECONDS_OF_SECOND] != right.map[NANOSECONDS_OF_SECOND]) return false
+                        return true
                     }
                 }.create(),
             )

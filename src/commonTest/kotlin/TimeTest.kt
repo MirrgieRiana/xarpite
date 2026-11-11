@@ -13,6 +13,7 @@ import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
+import mirrg.xarpite.test.array
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.get
@@ -460,6 +461,97 @@ class TimeTest {
             assertEquals(false, left == right)
             assertEquals(false, left.strictEquals(right))
             assertEquals(true, left.strictEquals(left))
+        }
+    }
+
+    @Test
+    fun timeEquality() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+                val offset = if (name == "TIME") "; 0" else ""
+                """
+                    a := $name.of(0$offset)
+                    b := $name.of(0$offset)
+                    [a == b, a != b, a === b, a !== b, a == a]
+                """.let { assertEquals("[TRUE;FALSE;FALSE;TRUE;TRUE]", eval(it, apiVersion = apiVersion).array()) }
+
+                listOf(
+                    Triple("0.125", "0; 125000000", true),
+                    Triple("0; 1000000000", "1", true),
+                    Triple("0; -1", "-1; 999999999", true),
+                    Triple("0", "1", false),
+                    Triple("0; 1", "0; 2", false),
+                    Triple("BIG.of(\"9007199254740993\")", "BIG.of(\"9007199254740993\")", true),
+                    Triple("BIG.of(\"9007199254740992\")", "BIG.of(\"9007199254740993\")", false),
+                ).forEach { (left, right, expected) ->
+                    assertEquals(expected, eval("$name.of($left$offset) == $name.of($right$offset)", apiVersion = apiVersion).boolean)
+                    assertEquals(!expected, eval("$name.of($left$offset) != $name.of($right$offset)", apiVersion = apiVersion).boolean)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun timeEqualityClasses() = runTest {
+        val times = listOf("INSTANT.of(0)", "TIME.of(0; 0)", "LOCAL_TIME.of(0)")
+        times.forEachIndexed { index, left ->
+            times.forEachIndexed { otherIndex, right ->
+                assertEquals(index == otherIndex, eval("$left == $right").boolean)
+                assertEquals(index != otherIndex, eval("$left != $right").boolean)
+            }
+            listOf("NULL", "0", "\"1970-01-01T00:00:00Z\"", "{}", "INSTANT", "TIME", "LOCAL_TIME").forEach { right ->
+                assertEquals(false, eval("$left == $right").boolean)
+                assertEquals(false, eval("$right == $left").boolean)
+                assertEquals(true, eval("$left != $right").boolean)
+            }
+        }
+    }
+
+    @Test
+    fun timeEqualityOffset() = runTest {
+        assertEquals(false, eval("TIME.of(0; 0) == TIME.of(0; 3600)").boolean)
+        assertEquals(false, eval("TIME.of(0; 0) == TIME.of(-3600; 3600)").boolean)
+        assertEquals(true, eval("TIME.of(0; 0) != TIME.of(0; 3600)").boolean)
+    }
+
+    @Test
+    fun timeEqualityFactories() = runTest {
+        listOf(
+            Triple("INSTANT", "946652400; 123456789", "1999-12-31T15:00:00.123456789Z"),
+            Triple("TIME", "946652400; 123456789; 32400", "2000-01-01T00:00:00.123456789+09:00"),
+            Triple("LOCAL_TIME", "946684800; 123456789", "2000-01-01T00:00:00.123456789"),
+        ).forEach { (name, arguments, text) ->
+            """
+                a := $name.of($arguments)
+                b := $name.parse("$text")
+                c := $name.now()
+                [a == b, b == c, a == c]
+            """.let { assertEquals("[TRUE;TRUE;TRUE]", eval(it, ioContext = ioContext).array()) }
+        }
+    }
+
+    @Test
+    fun timeEqualityProperties() = runTest {
+        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "TIME") "; 0" else ""
+            val offsetProperty = if (name == "TIME") "; _offsetSeconds: 0" else ""
+            """
+                a := $name.of(0$offset)
+                b := $name.of(0$offset)
+                a.item = 123
+                b.item = 456
+                same := a == b
+                b._nanosecondsOfSecond = 1
+                [same, a == b, a != b]
+            """.let { assertEquals("[TRUE;FALSE;TRUE]", eval(it).array()) }
+
+            """
+                a := $name.of(0$offset)
+                Sub := $name{}
+                b := Sub{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0$offsetProperty}
+                c := Sub{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0$offsetProperty}
+                [a == b, b == a, b == c]
+            """.let { assertEquals("[FALSE;FALSE;TRUE]", eval(it).array()) }
         }
     }
 
