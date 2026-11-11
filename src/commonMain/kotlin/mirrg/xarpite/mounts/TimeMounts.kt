@@ -49,7 +49,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 abstract fun toString(arguments: Array<FluoriteValue>): FluoriteValue
             }
 
-            fun createInstant(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
+            fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
                 val implementation = implementationFactory(clazz)
                 mapOf(
                     "of" to FluoriteFunction.immediate { arguments ->
@@ -67,43 +67,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 )
             }
 
-            fun createTime(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-                val implementation = implementationFactory(clazz)
-                mapOf(
-                    "of" to FluoriteFunction.immediate { arguments ->
-                        implementation.of(arguments)
-                    },
-                    "parse" to FluoriteFunction.immediate { arguments ->
-                        implementation.parse(arguments)
-                    },
-                    "now" to FluoriteFunction.immediate { arguments ->
-                        implementation.now(arguments)
-                    },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        implementation.toString(arguments)
-                    },
-                )
-            }
-
-            fun createLocalTime(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
-                val implementation = implementationFactory(clazz)
-                mapOf(
-                    "of" to FluoriteFunction.immediate { arguments ->
-                        implementation.of(arguments)
-                    },
-                    "parse" to FluoriteFunction.immediate { arguments ->
-                        implementation.parse(arguments)
-                    },
-                    "now" to FluoriteFunction.immediate { arguments ->
-                        implementation.now(arguments)
-                    },
-                    OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        implementation.toString(arguments)
-                    },
-                )
-            }
             arrayOf(
-                "INSTANT" define createInstant { clazz ->
+                "INSTANT" define create { clazz ->
                     object : TimeImplementation() {
                         private fun new(instant: Instant) = createFluoriteObject(clazz) {
                             mapOf(
@@ -154,7 +119,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "TIME" define createTime { clazz ->
+                "TIME" define create { clazz ->
                     object : TimeImplementation() {
                         private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                             mapOf(
@@ -214,7 +179,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         }
                     }
                 },
-                "LOCAL_TIME" define createLocalTime { clazz ->
+                "LOCAL_TIME" define create { clazz ->
                     object : TimeImplementation() {
                         private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
                             // オフセット不明の年月日時分秒をUTCと仮定して符号化する
