@@ -225,7 +225,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     override fun toString(obj: FluoriteObject): String {
                         val instant = obj.toInstant()
                         val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
-                        return ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset")
+                        return "${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset"
                     }
                 }.create(),
                 "LOCAL_TIME" define object : TimeFactory("LOCAL_TIME") {
