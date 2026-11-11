@@ -45,7 +45,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             abstract class TimeImplementation(val name: String) {
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun parse(arguments: Array<FluoriteValue>): FluoriteValue
-                abstract fun now(arguments: Array<FluoriteValue>): FluoriteValue
+                abstract fun now(): FluoriteValue
                 abstract fun toString(obj: FluoriteObject): FluoriteValue
             }
 
@@ -59,7 +59,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.parse(arguments)
                     },
                     "now" to FluoriteFunction.immediate { arguments ->
-                        implementation.now(arguments)
+                        if (arguments.size != 0) usage("${implementation.name}.now(): ${implementation.name}")
+                        implementation.now()
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                         val obj = arguments[0] as FluoriteObject
@@ -109,8 +110,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant)
                         }
 
-                        override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("$name.now(): $name")
+                        override fun now(): FluoriteValue {
                             val instant = context.io.getCurrentInstant()
                             return new(instant)
                         }
@@ -165,8 +165,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, offset)
                         }
 
-                        override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("$name.now(): $name")
+                        override fun now(): FluoriteValue {
                             val instant = context.io.getCurrentInstant()
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
@@ -220,8 +219,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, UtcOffset.ZERO)
                         }
 
-                        override fun now(arguments: Array<FluoriteValue>): FluoriteValue {
-                            if (arguments.size != 0) usage("$name.now(): $name")
+                        override fun now(): FluoriteValue {
                             val instant = context.io.getCurrentInstant()
                             val offset = context.io.getSystemTimeZone().offsetAt(instant)
                             return new(instant, offset)
