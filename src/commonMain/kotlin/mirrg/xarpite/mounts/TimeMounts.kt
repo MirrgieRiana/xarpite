@@ -57,6 +57,16 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                 abstract fun now(): FluoriteValue
 
+                protected fun FluoriteObject.toInstant(): Instant {
+                    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value.longValue(true)
+                    val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
+                    return Instant.fromEpochSeconds(epochSeconds, nanosecondsOfSecond)
+                }
+
+                protected fun LocalDateTime.formatTime(): String {
+                    return if (this.second == 0 && this.nanosecond == 0) "${this}:00" else this.toString()
+                }
+
                 abstract fun toString(obj: FluoriteObject): String
 
             }
@@ -273,14 +283,4 @@ private fun FluoriteNumber.toInstant(nanosecondsOfSecond: FluoriteNumber): Insta
     require(a == b) { "Time is out of range" }
 
     return instant
-}
-
-private fun FluoriteObject.toInstant(): Instant {
-    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value.longValue(true)
-    val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
-    return Instant.fromEpochSeconds(epochSeconds, nanosecondsOfSecond)
-}
-
-private fun LocalDateTime.formatTime(): String {
-    return if (this.second == 0 && this.nanosecond == 0) "${this}:00" else this.toString()
 }
