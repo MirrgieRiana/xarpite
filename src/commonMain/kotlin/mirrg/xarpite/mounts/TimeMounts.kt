@@ -44,7 +44,42 @@ fun createTimeMounts(): List<Map<String, Mount>> {
         *run {
             abstract class TimeImplementation(val name: String) {
 
+                private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
+                    return when (this) {
+                        is FluoriteInt -> Pair(this.value.toBigInteger(), 0.0)
+                        is FluoriteBig -> Pair(this.value, 0.0)
+                        is FluoriteDouble -> {
+                            require(this.value.isFinite()) { "Time components must be finite" }
+                            val integer = floor(this.value)
+                            val bigInteger = integer.toBigIntegerExact()
+                            Pair(bigInteger, this.value - integer)
+                        }
+
+                        else -> throw IllegalArgumentException("Unsupported time component: ${this::class}")
+                    }
+                }
+
+                private val NANOSECONDS_PER_SECOND = 1_000_000_000.toBigInteger()
+
+                protected fun FluoriteNumber.toInstant(nanosecondsOfSecond: FluoriteNumber): Instant {
+                    val (seconds, secondsFraction) = this.splitTimeNumber()
+                    val (nanoseconds, nanosecondsFraction) = nanosecondsOfSecond.splitTimeNumber()
+
+                    val adjustment = nanoseconds + (1_000_000_000 * secondsFraction + nanosecondsFraction).roundToInt().toBigInteger()
+
+                    val epochSeconds = seconds + adjustment / NANOSECONDS_PER_SECOND
+                    val remainder = adjustment % NANOSECONDS_PER_SECOND
+
+                    val instant = Instant.fromEpochSeconds(epochSeconds.longValue(true), remainder.intValue(true))
+                    val a = instant.epochSeconds.toBigInteger() * NANOSECONDS_PER_SECOND + instant.nanosecondsOfSecond.toBigInteger()
+                    val b = seconds * NANOSECONDS_PER_SECOND + adjustment
+                    require(a == b) { "Time is out of range" }
+
+                    return instant
+                }
+
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
+
 
                 protected fun String.parseTime(): Pair<LocalDateTime, UtcOffset?> {
                     val matchResult = TIME_PATTERN.matchEntire(this) ?: throw IllegalArgumentException("Invalid time representation: $this")
@@ -55,7 +90,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                 abstract fun parse(text: String): FluoriteValue
 
+
                 abstract fun now(): FluoriteValue
+
 
                 protected fun FluoriteObject.toInstant(): Instant {
                     val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value.longValue(true)
@@ -249,38 +286,4 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             )
         },
     ).let { listOf(it) }
-}
-
-private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
-    return when (this) {
-        is FluoriteInt -> Pair(this.value.toBigInteger(), 0.0)
-        is FluoriteBig -> Pair(this.value, 0.0)
-        is FluoriteDouble -> {
-            require(this.value.isFinite()) { "Time components must be finite" }
-            val integer = floor(this.value)
-            val bigInteger = integer.toBigIntegerExact()
-            Pair(bigInteger, this.value - integer)
-        }
-
-        else -> throw IllegalArgumentException("Unsupported time component: ${this::class}")
-    }
-}
-
-private val NANOSECONDS_PER_SECOND = 1_000_000_000.toBigInteger()
-
-private fun FluoriteNumber.toInstant(nanosecondsOfSecond: FluoriteNumber): Instant {
-    val (seconds, secondsFraction) = this.splitTimeNumber()
-    val (nanoseconds, nanosecondsFraction) = nanosecondsOfSecond.splitTimeNumber()
-
-    val adjustment = nanoseconds + (1_000_000_000 * secondsFraction + nanosecondsFraction).roundToInt().toBigInteger()
-
-    val epochSeconds = seconds + adjustment / NANOSECONDS_PER_SECOND
-    val remainder = adjustment % NANOSECONDS_PER_SECOND
-
-    val instant = Instant.fromEpochSeconds(epochSeconds.longValue(true), remainder.intValue(true))
-    val a = instant.epochSeconds.toBigInteger() * NANOSECONDS_PER_SECOND + instant.nanosecondsOfSecond.toBigInteger()
-    val b = seconds * NANOSECONDS_PER_SECOND + adjustment
-    require(a == b) { "Time is out of range" }
-
-    return instant
 }
