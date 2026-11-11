@@ -1039,6 +1039,34 @@ $ xa -q '
 
 If an infinite stream is passed to `VOID`, the process may become unresponsive due to an infinite loop.
 
+## `ONCE`: Limit Stream Iteration to At Most Once
+
+`<T> ONCE(stream: STREAM<T>): STREAM<T>`
+
+Guarantees that `stream` is iterated at most once through the returned stream.
+
+If the returned stream is iterated two or more times, an error occurs.
+
+An iteration aborted midway, such as when look-ahead is cut short by `FIRST`, is also counted as one iteration.
+
+```shell
+$ xa -q '
+  stream := ONCE(1 .. 3 | OUT << _)
+  OUT << "First"
+  VOID(stream)
+  OUT << "Second"
+  VOID(stream) !? OUT << "Error"
+  OUT << "Done"
+'
+# First
+# 1
+# 2
+# 3
+# Second
+# Error
+# Done
+```
+
 ## `RANDOM`: Select a Random Element from a Stream
 
 `<T> RANDOM(stream: STREAM<T>): T | NULL`
