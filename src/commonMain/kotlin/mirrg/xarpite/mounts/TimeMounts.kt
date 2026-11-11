@@ -42,7 +42,13 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
         *run {
-            abstract class TimeImplementation(val name: String) {
+            abstract class TimeImplementation(
+                val clazz: FluoriteObject?,
+                val name: String,
+            ) {
+
+                protected fun Map<String, FluoriteValue>.new() = FluoriteObject(clazz, this.toMutableMap())
+
 
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
@@ -133,13 +139,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             arrayOf(
                 "INSTANT" define create { clazz ->
-                    object : TimeImplementation("INSTANT") {
-                        private fun new(instant: Instant) = createFluoriteObject(clazz) {
-                            mapOf(
-                                EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                                NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                            )
-                        }
+                    object : TimeImplementation(clazz, "INSTANT") {
+                        private fun new(instant: Instant) = mapOf(
+                            EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                            NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                        ).new()
 
                         override fun of(arguments: Array<FluoriteValue>): FluoriteValue {
                             fun usage(): Nothing = usage("INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT")
@@ -180,14 +184,12 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 },
                 "TIME" define create { clazz ->
-                    object : TimeImplementation("TIME") {
-                        private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
-                            mapOf(
-                                EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                                NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                                OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
-                            )
-                        }
+                    object : TimeImplementation(clazz, "TIME") {
+                        private fun new(instant: Instant, offset: UtcOffset) = mapOf(
+                            EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                            NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                            OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
+                        ).new()
 
                         override fun of(arguments: Array<FluoriteValue>): FluoriteValue {
                             fun usage(): Nothing = usage("TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME")
@@ -235,14 +237,12 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 },
                 "LOCAL_TIME" define create { clazz ->
-                    object : TimeImplementation("LOCAL_TIME") {
-                        private fun new(instant: Instant, offset: UtcOffset) = createFluoriteObject(clazz) {
-                            // オフセット不明の年月日時分秒をUTCと仮定して符号化する
-                            mapOf(
-                                EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
-                                NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                            )
-                        }
+                    object : TimeImplementation(clazz, "LOCAL_TIME") {
+                        // オフセット不明の年月日時分秒をUTCと仮定して符号化する
+                        private fun new(instant: Instant, offset: UtcOffset) = mapOf(
+                            EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
+                            NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                        ).new()
 
                         override fun of(arguments: Array<FluoriteValue>): FluoriteValue {
                             fun usage(): Nothing = usage("LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME")
