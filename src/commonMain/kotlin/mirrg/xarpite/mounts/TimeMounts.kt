@@ -46,7 +46,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 abstract fun of(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun parse(arguments: Array<FluoriteValue>): FluoriteValue
                 abstract fun now(arguments: Array<FluoriteValue>): FluoriteValue
-                abstract fun toString(arguments: Array<FluoriteValue>): FluoriteValue
+                abstract fun toString(obj: FluoriteObject): FluoriteValue
             }
 
             fun create(implementationFactory: (FluoriteObject?) -> TimeImplementation) = createFluoriteObject(FluoriteObject.fluoriteClass) { clazz ->
@@ -62,7 +62,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         implementation.now(arguments)
                     },
                     OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
-                        implementation.toString(arguments)
+                        val obj = arguments[0] as FluoriteObject
+                        implementation.toString(obj)
                     },
                 )
             }
@@ -114,8 +115,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant)
                         }
 
-                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
-                            return (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
+                        override fun toString(obj: FluoriteObject): FluoriteValue {
+                            return obj.toInstant().toString().toFluoriteString()
                         }
                     }
                 },
@@ -171,8 +172,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, offset)
                         }
 
-                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
-                            val obj = arguments[0] as FluoriteObject
+                        override fun toString(obj: FluoriteObject): FluoriteValue {
                             val instant = obj.toInstant()
                             val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
                             return ("${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset").toFluoriteString()
@@ -227,8 +227,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             return new(instant, offset)
                         }
 
-                        override fun toString(arguments: Array<FluoriteValue>): FluoriteValue {
-                            return (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
+                        override fun toString(obj: FluoriteObject): FluoriteValue {
+                            return obj.toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
                         }
                     }
                 },
