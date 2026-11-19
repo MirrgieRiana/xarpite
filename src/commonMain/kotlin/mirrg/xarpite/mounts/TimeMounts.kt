@@ -96,6 +96,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 protected abstract fun now(): MutableMap<String, FluoriteValue>
 
 
+                protected abstract fun getOffset(obj: FluoriteObject): UtcOffset
+
+
                 protected fun FluoriteObject.toInstant(): Instant {
                     val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value.longValue(true)
                     val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
@@ -195,6 +198,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         return createMap(instant)
                     }
 
+                    override fun getOffset(obj: FluoriteObject): UtcOffset {
+                        return UtcOffset.ZERO
+                    }
+
                     override fun toString(obj: FluoriteObject): String {
                         return obj.toInstant().toString()
                     }
@@ -250,6 +257,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         return createMap(instant, offset)
                     }
 
+                    override fun getOffset(obj: FluoriteObject): UtcOffset {
+                        return UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
+                    }
+
                     override fun toString(obj: FluoriteObject): String {
                         val instant = obj.toInstant()
                         val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
@@ -302,6 +313,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         val instant = context.io.getCurrentInstant()
                         val offset = context.io.getSystemTimeZone().offsetAt(instant)
                         return createMap(instant, offset)
+                    }
+
+                    override fun getOffset(obj: FluoriteObject): UtcOffset {
+                        return UtcOffset.ZERO
                     }
 
                     override fun toString(obj: FluoriteObject): String {
