@@ -23,6 +23,8 @@ import mirrg.xarpite.withEvaluator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -613,6 +615,59 @@ class TimeTest {
         assertEquals("2000-01-01T00:00:00.123456789", eval("LOCAL_TIME.now().&", ioContext = ioContext).string)
         assertTrue(eval("x := TIME.now(); &x == x.&", ioContext = ioContext).boolean)
         assertTrue(eval("x := LOCAL_TIME.now(); &x == x.&", ioContext = ioContext).boolean)
+    }
+
+    @Test
+    fun timeHour() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            listOf(
+                Pair("INSTANT.parse(\"2001-02-03T04:05:06\")", 4),
+                Pair("TIME.parse(\"2001-02-03T04:05:06+09:00\")", 4),
+                Pair("LOCAL_TIME.parse(\"2001-02-03T04:05:06\")", 4),
+                Pair("INSTANT.now()", 15),
+                Pair("TIME.now()", 0),
+                Pair("LOCAL_TIME.now()", 0),
+                Pair("INSTANT.of(0)", 0),
+                Pair("INSTANT.of(-1)", 23),
+                Pair("TIME.of(0; 3600)", 1),
+                Pair("TIME.of(0; -3600)", 23),
+                Pair("TIME.of(-1; 1)", 0),
+                Pair("TIME.of(86399; 1)", 0),
+                Pair("LOCAL_TIME.of(0)", 0),
+                Pair("LOCAL_TIME.of(-1)", 23),
+            ).forEach { (src, expected) ->
+                assertEquals(expected, eval("$src.hour", ioContext = ioContext, apiVersion = apiVersion).int)
+            }
+        }
+    }
+
+    @Test
+    fun timeHourCache() = runTest {
+        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "TIME") "; 0" else ""
+            withEvaluator(UnsupportedIoContext()) { context, evaluator ->
+                evaluator.defineMounts(context.run { createCommonMounts() })
+                val time = evaluator.get("time := $name.of(0$offset); time") as FluoriteObject
+                assertFalse(time.map.containsKey("hour"))
+                val hour = evaluator.get("time.hour")
+                assertEquals(0, hour.int)
+                assertSame(hour, time.map["hour"])
+                evaluator.get("time._epochSeconds = BIG.of(3600)")
+                assertSame(hour, evaluator.get("time.hour"))
+                assertEquals(1, evaluator.get("time -= \"hour\"; time.hour").int)
+            }
+        }
+    }
+
+    @Test
+    fun timeHourExistingEntries() = runTest {
+        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+            assertEquals(99, eval("$name{hour: 99}.hour").int)
+            assertTrue(eval("$name{hour: NULL}.hour == NULL").boolean)
+            assertEquals(12, eval("time := $name{}; time.hour = 12; time.hour").int)
+            assertTrue(eval("$name{}.unknown == NULL").boolean)
+            assertEquals(7, eval("$name{item: 7}.item").int)
+        }
     }
 
     @Test

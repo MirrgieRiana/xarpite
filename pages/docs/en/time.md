@@ -145,6 +145,29 @@ The `now` functions create instances based on the current system time.
 
 The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
 
+### Getting the Hour Component
+
+`INSTANT.hour: INT`
+
+`TIME.hour: INT`
+
+`LOCAL_TIME.hour: INT`
+
+The `hour` property returns the hour as an integer from 0 to 23.
+
+It is calculated in UTC for `INSTANT`, using the stored UTC offset for `TIME`, and using the stored local date and time for `LOCAL_TIME`.
+
+```shell
+$ xa 'INSTANT.parse("2001-02-03T04:05:06").hour'
+# 4
+
+$ xa 'TIME.parse("2001-02-03T04:05:06+07:00").hour'
+# 4
+
+$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06").hour'
+# 4
+```
+
 ### String Conversion
 
 Time instances are converted to strings using an ISO-based representation.
