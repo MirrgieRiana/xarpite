@@ -1,6 +1,9 @@
 package mirrg.xarpite.compilers.objects
 
 import mirrg.xarpite.OperatorMethod
+import mirrg.xarpite.Position
+import mirrg.xarpite.noInline
+import mirrg.xarpite.withStackTrace
 
 class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<String, FluoriteValue>) : FluoriteValue {
     companion object {
@@ -130,6 +133,18 @@ class FluoriteObject(override val parent: FluoriteObject?, val map: MutableMap<S
 
     override fun toString() = "{${map.entries.joinToString(";") { "${it.key}:${it.value}" }}}"
     override fun strictEquals(other: FluoriteValue) = this === other
+
+    override fun equalToNonSuspending(value: FluoriteValue): Boolean = noInline { throw SuspendingComparisonRequired }
+
+    override suspend fun equalTo(position: Position?, value: FluoriteValue): Boolean {
+        val method = this.getSolvedMethod(position, OperatorMethod.EQUALS.methodName)
+        if (method != null) {
+            return withStackTrace(position) {
+                method.callImmediate(arrayOf(value)).toBoolean(position)
+            }
+        }
+        return super.equalTo(position, value)
+    }
 }
 
 fun createFluoriteObject(parent: FluoriteObject?, entriesCreator: (FluoriteObject) -> Map<String, FluoriteValue>): FluoriteObject {

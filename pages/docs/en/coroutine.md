@@ -238,8 +238,8 @@ If `milliseconds` is 0 or omitted, the function suspends once and returns immedi
 In the following sample code, `Hello, World!` is output after 1 second from execution.
 
 ```shell
-$ xa '
-  SLEEP(1000)
+$ xa -A 5 '
+  SLEEP(1)
   "Hello, World!"
 '
 # Hello, World!

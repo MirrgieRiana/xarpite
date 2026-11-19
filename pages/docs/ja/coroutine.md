@@ -238,8 +238,8 @@ APIバージョン5からは、引数はミリ秒ではなく秒として解釈�
 以下のサンプルコードでは、実行後1秒おいてから`Hello, World!`が出力されます。
 
 ```shell
-$ xa '
-  SLEEP(1000)
+$ xa -A 5 '
+  SLEEP(1)
   "Hello, World!"
 '
 # Hello, World!

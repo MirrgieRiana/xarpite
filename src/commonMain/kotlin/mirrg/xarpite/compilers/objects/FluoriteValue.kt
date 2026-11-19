@@ -31,6 +31,14 @@ interface FluoriteValue {
      * クラスが異なる場合は常に不一致とし、そうでない場合、不変系の型は内容で、可変系の型はインスタンスで比較するのだ。
      */
     fun strictEquals(other: FluoriteValue): Boolean
+
+    /**
+     * サスペンドせずに決定可能であれば比較結果を返し、そうでなければ [SuspendingComparisonRequired] をスローするのだ。
+     * その場合は [equalTo] にフォールバックするのだ。
+     */
+    fun equalToNonSuspending(value: FluoriteValue) = this == value
+
+    suspend fun equalTo(position: Position?, value: FluoriteValue) = this == value
 }
 
 fun FluoriteValue.instanceOf(clazz: FluoriteValue): Boolean {
@@ -108,4 +116,5 @@ suspend fun FluoriteValue.match(position: Position?, value: FluoriteValue) = thi
 suspend fun FluoriteValue.plus(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.PLUS.methodName, arrayOf(value))
 suspend fun FluoriteValue.minus(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.MINUS.methodName, arrayOf(value))
 suspend fun FluoriteValue.compareTo(position: Position?, value: FluoriteValue) = this.callMethodImmediate(position, OperatorMethod.COMPARE.methodName, arrayOf(value)) as FluoriteInt
-suspend fun FluoriteValue.fluoriteEquals(value: FluoriteValue) = this == value
+
+object SuspendingComparisonRequired : Throwable()

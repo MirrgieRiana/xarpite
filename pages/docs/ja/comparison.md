@@ -77,7 +77,7 @@ $ xa '[1 == 2, 2 == 2, 3 == 2]'
 # [FALSE;TRUE;FALSE]
 ```
 
-現在、数値や文字列などの一部の型においてのみ定義されています。
+オーバーライドされていない場合は、厳密等価演算子と同じ判定を行います。
 
 ---
 
@@ -97,6 +97,26 @@ $ xa '[BIG.of(1) == BIG.of(1), BIG.of(1) == 1, BIG.of(1) == 1.0]'
 ```shell
 $ xa '[1 != 2, 2 != 2, 3 != 2]'
 # [TRUE;FALSE;TRUE]
+```
+
+## 等価演算子のオーバーライド
+
+左辺が`OBJECT`の場合、等価演算子は左辺の値の`_==_`メソッドを呼び出し、論理値化したものを返します。
+
+`_==_`メソッドをオーバーライドすると、不等価演算子の動作も変わります。
+
+```shell
+$ xa '
+  Person := {
+    `_==_`: this, other -> this.age == other.age
+  }
+
+  alice := Person{age: 30}
+  bob   := Person{age: 30}
+
+  [alice == bob, alice != bob, alice === bob]
+'
+# [TRUE;FALSE;FALSE]
 ```
 
 ## 厳密等価演算子
