@@ -137,9 +137,10 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                 when (key) {
                                     "hour" -> obj.map.getOrPut(key) {
                                         val instant = obj.toInstant()
-                                        val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt?)?.value ?: 0)
+                                        val offset = getOffset(obj)
                                         FluoriteInt(instant.toLocalDateTime(FixedOffsetTimeZone(offset)).hour)
                                     }
+
                                     else -> obj.map[key] ?: FluoriteNull
                                 }
                             },
@@ -263,7 +264,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                     override fun toString(obj: FluoriteObject): String {
                         val instant = obj.toInstant()
-                        val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
+                        val offset = getOffset(obj)
                         return "${instant.toLocalDateTime(FixedOffsetTimeZone(offset)).formatTime()}$offset"
                     }
 
