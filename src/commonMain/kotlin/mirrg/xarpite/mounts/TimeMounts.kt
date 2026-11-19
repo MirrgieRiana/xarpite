@@ -16,6 +16,7 @@ import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
+import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -35,6 +36,21 @@ private val TIME_PATTERN = Regex("""([0-9]{4}-[0-9]{2}-[0-9]{2})(?:T([0-9]{2}:[0
 
 context(context: RuntimeContext)
 fun createTimeMounts(): List<Map<String, Mount>> {
+    val propertyFunction = FluoriteFunction.immediate { arguments ->
+        val obj = arguments[0] as FluoriteObject
+        val key = arguments[1].toFluoriteString(null).value
+        obj.map[key] ?: when (key) {
+            "hour" -> {
+                val instant = obj.toInstant()
+                val offset = UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt?)?.value ?: 0)
+                FluoriteInt(instant.toLocalDateTime(FixedOffsetTimeZone(offset)).hour).also {
+                    obj.map[key] = it
+                }
+            }
+
+            else -> FluoriteNull
+        }
+    }
     return mapOf(
         "NOW" define FluoriteFunction.immediate { arguments ->
             if (arguments.size != 0) usage("NOW(): BIG")
@@ -83,6 +99,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val instant = context.io.getCurrentInstant()
                     new(instant)
                 },
+                OperatorMethod.PROPERTY.methodName to propertyFunction,
                 OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                     (arguments[0] as FluoriteObject).toInstant().toString().toFluoriteString()
                 },
@@ -137,6 +154,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offset = context.io.getSystemTimeZone().offsetAt(instant)
                     new(instant, offset)
                 },
+                OperatorMethod.PROPERTY.methodName to propertyFunction,
                 OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                     val obj = arguments[0] as FluoriteObject
                     val instant = obj.toInstant()
@@ -190,6 +208,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offset = context.io.getSystemTimeZone().offsetAt(instant)
                     new(instant, offset)
                 },
+                OperatorMethod.PROPERTY.methodName to propertyFunction,
                 OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                     (arguments[0] as FluoriteObject).toInstant().toLocalDateTime(TimeZone.UTC).formatTime().toFluoriteString()
                 },

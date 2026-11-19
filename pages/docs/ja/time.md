@@ -145,6 +145,29 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
 
+### 時の値の取得
+
+`INSTANT.hour: INT`
+
+`TIME.hour: INT`
+
+`LOCAL_TIME.hour: INT`
+
+`hour`プロパティにより、0～23の整数で時の値を取得できます。
+
+`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算します。
+
+```shell
+$ xa 'INSTANT.parse("2001-02-03T04:05:06").hour'
+# 4
+
+$ xa 'TIME.parse("2001-02-03T04:05:06+07:00").hour'
+# 4
+
+$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06").hour'
+# 4
+```
+
 ### 文字列化
 
 時刻のクラスを文字列化すると、ISO形式をベースとした文字列表記に変換されます。
