@@ -59,6 +59,7 @@ data class FluoriteInt(val value: Int) : FluoriteNumber {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteBig -> left.value.toBigInteger().compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteNull -> FluoriteInt.ONE
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
@@ -124,6 +125,7 @@ data class FluoriteDouble(val value: Double) : FluoriteNumber {
                             is FluoriteInt -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
                             is FluoriteBig -> (-compare(right.value, left.value)).toFluoriteIntAsCompared()
                             is FluoriteDouble -> left.value.compareTo(right.value).toFluoriteIntAsCompared()
+                            is FluoriteNull -> FluoriteInt.ONE
                             else -> throw IllegalArgumentException("Can not convert to number: ${right::class}")
                         }
                     },
