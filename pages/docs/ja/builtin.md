@@ -112,6 +112,49 @@ $ xa '13, 21, 24, 33, 31, 34 >> DISTINCT[by: x -> x % 10]'
 # 24
 ```
 
+## `INTERSPERSE`ストリームの要素間に区切りを挿入
+
+`<T> INTERSPERSE(separator: STREAM<T>; stream: STREAM<T>): STREAM<T>`
+
+第2引数のストリームの各要素の間に第1引数のセパレータを挿入したストリームを返します。セパレータは要素と要素の間だけに挿入され、先頭や末尾には付きません。
+
+```shell
+$ xa 'INTERSPERSE("-"; "a", "b", "c")'
+# a
+# -
+# b
+# -
+# c
+```
+
+---
+
+セパレータは複数要素のストリームでもよく、その場合は各要素の間にまとめて挿入されます。
+
+```shell
+$ xa 'INTERSPERSE("-", "-"; "a", "b", "c")'
+# a
+# -
+# -
+# b
+# -
+# -
+# c
+```
+
+---
+
+部分適用とともに用いることで、パイプチェーンに組み込みやすくなります。
+
+```shell
+$ xa '1 .. 3 | _ * 10 >> INTERSPERSE[0]'
+# 10
+# 0
+# 20
+# 0
+# 30
+```
+
 ## `JOIN`ストリームを文字列に連結
 
 `JOIN([separator: STRING; ]stream: STREAM<STRING>): STRING`
