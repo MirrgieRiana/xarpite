@@ -630,28 +630,29 @@ class TimeTest {
     fun timeComponents() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
-                Pair("INSTANT.parse(\"2001-02-03T04:05:06.987654321\")", listOf(2001, 2, 3, 6, 4, 5, 6)),
-                Pair("TIME.parse(\"2001-02-03T04:05:06+07:00\")", listOf(2001, 2, 3, 6, 4, 5, 6)),
-                Pair("LOCAL_TIME.parse(\"2001-02-03T04:05:06\")", listOf(2001, 2, 3, 6, 4, 5, 6)),
-                Pair("LOCAL_TIME.parse(\"2001-02-04T04:05:06\")", listOf(2001, 2, 4, 7, 4, 5, 6)),
-                Pair("LOCAL_TIME.parse(\"2001-02-05T04:05:06\")", listOf(2001, 2, 5, 1, 4, 5, 6)),
-                Pair("LOCAL_TIME.parse(\"2024-02-29T04:05:06\")", listOf(2024, 2, 29, 4, 4, 5, 6)),
-                Pair("INSTANT.now()", listOf(1999, 12, 31, 5, 15, 0, 0)),
-                Pair("TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0)),
-                Pair("LOCAL_TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0)),
-                Pair("INSTANT.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0)),
-                Pair("INSTANT.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59)),
-                Pair("TIME.of(0; 3600)", listOf(1970, 1, 1, 4, 1, 0, 0)),
-                Pair("TIME.of(0; -3600)", listOf(1969, 12, 31, 3, 23, 0, 0)),
-                Pair("TIME.of(0; 3661)", listOf(1970, 1, 1, 4, 1, 1, 1)),
-                Pair("TIME.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59)),
-                Pair("TIME.of(-1; 1)", listOf(1970, 1, 1, 4, 0, 0, 0)),
-                Pair("TIME.of(86399; 1)", listOf(1970, 1, 2, 5, 0, 0, 0)),
-                Pair("LOCAL_TIME.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0)),
-                Pair("LOCAL_TIME.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59)),
+                Pair("INSTANT.parse(\"2001-02-03T04:05:06.987654321\")", listOf(2001, 2, 3, 6, 4, 5, 6, 987_654_321)),
+                Pair("TIME.parse(\"2001-02-03T04:05:06.007008009+07:00\")", listOf(2001, 2, 3, 6, 4, 5, 6, 7_008_009)),
+                Pair("LOCAL_TIME.parse(\"2001-02-03T04:05:06.999999999\")", listOf(2001, 2, 3, 6, 4, 5, 6, 999_999_999)),
+                Pair("LOCAL_TIME.parse(\"2001-02-04T04:05:06\")", listOf(2001, 2, 4, 7, 4, 5, 6, 0)),
+                Pair("LOCAL_TIME.parse(\"2001-02-05T04:05:06\")", listOf(2001, 2, 5, 1, 4, 5, 6, 0)),
+                Pair("LOCAL_TIME.parse(\"2024-02-29T04:05:06\")", listOf(2024, 2, 29, 4, 4, 5, 6, 0)),
+                Pair("INSTANT.now()", listOf(1999, 12, 31, 5, 15, 0, 0, 123_456_789)),
+                Pair("TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0, 123_456_789)),
+                Pair("LOCAL_TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0, 123_456_789)),
+                Pair("INSTANT.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
+                Pair("INSTANT.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
+                Pair("INSTANT.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59, 999_999_999)),
+                Pair("TIME.of(0; 3600)", listOf(1970, 1, 1, 4, 1, 0, 0, 0)),
+                Pair("TIME.of(0; -3600)", listOf(1969, 12, 31, 3, 23, 0, 0, 0)),
+                Pair("TIME.of(0; 3661)", listOf(1970, 1, 1, 4, 1, 1, 1, 0)),
+                Pair("TIME.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
+                Pair("TIME.of(-1; 1)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
+                Pair("TIME.of(86399; 1)", listOf(1970, 1, 2, 5, 0, 0, 0, 0)),
+                Pair("LOCAL_TIME.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
+                Pair("LOCAL_TIME.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
             ).forEach { (src, expected) ->
                 val components = eval(
-                    "time := $src; [time.year; time.month; time.day; time.dayOfWeek; time.hour; time.minute; time.second]",
+                    "time := $src; [time.year; time.month; time.day; time.dayOfWeek; time.hour; time.minute; time.second; time.nanosecond]",
                     ioContext = ioContext,
                     apiVersion = apiVersion,
                 ) as FluoriteArray
@@ -666,7 +667,7 @@ class TimeTest {
             val offset = if (name == "TIME") "; 0" else ""
             withEvaluator(UnsupportedIoContext()) { context, evaluator ->
                 evaluator.defineMounts(context.run { createCommonMounts() })
-                val time = evaluator.get("time := $name.of(3723$offset); time") as FluoriteObject
+                val time = evaluator.get("time := $name.of(3723; 7_008_009$offset); time") as FluoriteObject
                 listOf(
                     "year" to 1970,
                     "month" to 1,
@@ -675,6 +676,7 @@ class TimeTest {
                     "hour" to 1,
                     "minute" to 2,
                     "second" to 3,
+                    "nanosecond" to 7_008_009,
                 ).forEach { (key, expected) ->
                     assertFalse(time.map.containsKey(key))
                     val component = evaluator.get("time.$key")
@@ -695,7 +697,7 @@ class TimeTest {
     @Test
     fun timeComponentExistingEntries() = runTest {
         listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            listOf("year", "month", "day", "dayOfWeek", "hour", "minute", "second").forEach { key ->
+            listOf("year", "month", "day", "dayOfWeek", "hour", "minute", "second", "nanosecond").forEach { key ->
                 assertEquals(99, eval("$name{$key: 99}.$key").int)
                 assertTrue(eval("$name{$key: NULL}.$key == NULL").boolean)
                 assertEquals(12, eval("time := $name{}; time.$key = 12; time.$key").int)

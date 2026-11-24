@@ -149,19 +149,22 @@ The contents of INSTANT are independent of the system time zone, while those of 
 
 The following properties are available on `INSTANT`, `TIME`, and `LOCAL_TIME`.
 
-| Property    | Type  | Value       | Minimum | Maximum |
-|-------------|-------|-------------|---------|---------|
-| `year`      | `INT` | Year        | -       | -       |
-| `month`     | `INT` | Month       | 1       | 12      |
-| `day`       | `INT` | Day         | 1       | 31      |
-| `dayOfWeek` | `INT` | Day of week | 1       | 7       |
-| `hour`      | `INT` | Hour        | 0       | 23      |
-| `minute`    | `INT` | Minute      | 0       | 59      |
-| `second`    | `INT` | Second      | 0       | 59      |
+| Property     | Type  | Value       | Minimum | Maximum     |
+|--------------|-------|-------------|---------|-------------|
+| `year`       | `INT` | Year        | -       | -           |
+| `month`      | `INT` | Month       | 1       | 12          |
+| `day`        | `INT` | Day         | 1       | 31          |
+| `dayOfWeek`  | `INT` | Day of week | 1       | 7           |
+| `hour`       | `INT` | Hour        | 0       | 23          |
+| `minute`     | `INT` | Minute      | 0       | 59          |
+| `second`     | `INT` | Second      | 0       | 59          |
+| `nanosecond` | `INT` | Nanosecond  | 0       | 999_999_999 |
 
 Each value is calculated in UTC for `INSTANT`, using the stored UTC offset for `TIME`, and using the stored local date and time for `LOCAL_TIME`.
 
 For `dayOfWeek`, Monday is 1 and Sunday is 7.
+
+The `nanosecond` property returns the entire fractional part of the second as an integer number of nanoseconds.
 
 ```shell
 $ xa -q '
@@ -174,7 +177,7 @@ $ xa -q '
 # 4
 
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06+07:00")
+  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.year
   OUT << time.month
   OUT << time.day
@@ -182,6 +185,7 @@ $ xa -q '
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
+  OUT << time.nanosecond
 '
 # 2001
 # 2
@@ -190,6 +194,7 @@ $ xa -q '
 # 4
 # 5
 # 6
+# 7008009
 ```
 
 ### String Conversion

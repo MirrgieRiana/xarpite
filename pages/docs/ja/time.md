@@ -149,19 +149,22 @@ INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよ
 
 `INSTANT`、`TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
 
-| プロパティ  | 型    | 値       | 最小値 | 最大値 |
-|-------------|-------|----------|--------|--------|
-| `year`      | `INT` | 年の値   | -      | -      |
-| `month`     | `INT` | 月の値   | 1      | 12     |
-| `day`       | `INT` | 日の値   | 1      | 31     |
-| `dayOfWeek` | `INT` | 曜日の値 | 1      | 7      |
-| `hour`      | `INT` | 時の値   | 0      | 23     |
-| `minute`    | `INT` | 分の値   | 0      | 59     |
-| `second`    | `INT` | 秒の値   | 0      | 59     |
+| プロパティ   | 型    | 値         | 最小値 | 最大値      |
+|--------------|-------|------------|--------|-------------|
+| `year`       | `INT` | 年の値     | -      | -           |
+| `month`      | `INT` | 月の値     | 1      | 12          |
+| `day`        | `INT` | 日の値     | 1      | 31          |
+| `dayOfWeek`  | `INT` | 曜日の値   | 1      | 7           |
+| `hour`       | `INT` | 時の値     | 0      | 23          |
+| `minute`     | `INT` | 分の値     | 0      | 59          |
+| `second`     | `INT` | 秒の値     | 0      | 59          |
+| `nanosecond` | `INT` | ナノ秒の値 | 0      | 999_999_999 |
 
 各値は、`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算されます。
 
 `dayOfWeek`の値は、月曜日が1、日曜日が7に対応します。
+
+`nanosecond`は、秒の小数部全体をナノ秒単位の整数で返します。
 
 ```shell
 $ xa -q '
@@ -174,7 +177,7 @@ $ xa -q '
 # 4
 
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06+07:00")
+  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.year
   OUT << time.month
   OUT << time.day
@@ -182,6 +185,7 @@ $ xa -q '
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
+  OUT << time.nanosecond
 '
 # 2001
 # 2
@@ -190,6 +194,7 @@ $ xa -q '
 # 4
 # 5
 # 6
+# 7008009
 ```
 
 ### 文字列化

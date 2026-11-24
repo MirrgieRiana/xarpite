@@ -155,6 +155,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                         "hour" -> localDateTime.hour
                                         "minute" -> localDateTime.minute
                                         "second" -> localDateTime.second
+                                        "nanosecond" -> localDateTime.nanosecond
                                         else -> throw FluoriteException("No such property: $key".toFluoriteString())
                                     }
                                     FluoriteInt(value)
