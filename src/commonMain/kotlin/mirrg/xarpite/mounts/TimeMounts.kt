@@ -55,6 +55,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
         *run {
             abstract class TimeFactory(private val name: String) {
 
+                protected abstract val hasUnixTime: Boolean
+
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
                         is FluoriteInt -> Pair(this.value.toBigInteger(), 0.0)
@@ -144,6 +146,27 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                 val obj = arguments[0] as FluoriteObject
                                 val key = arguments[1].toFluoriteString(null).value
                                 obj.map.getOrPut(key) {
+                                    if (hasUnixTime) {
+                                        when (key) {
+                                            "epochSeconds" -> {
+                                                return@getOrPut obj.map[EPOCH_SECONDS] as FluoriteBig
+                                            }
+
+                                            "epochMilliseconds" -> {
+                                                val epochSeconds = (obj.map[EPOCH_SECONDS] as FluoriteBig).value
+                                                val nanosecondsOfSecond = (obj.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
+                                                val value = epochSeconds * 1_000.toBigInteger() + (nanosecondsOfSecond / 1_000_000).toBigInteger()
+                                                return@getOrPut FluoriteBig(value)
+                                            }
+
+                                            "epochNanoseconds" -> {
+                                                val epochSeconds = (obj.map[EPOCH_SECONDS] as FluoriteBig).value
+                                                val nanosecondsOfSecond = (obj.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
+                                                val value = epochSeconds * NANOSECONDS_PER_SECOND + nanosecondsOfSecond.toBigInteger()
+                                                return@getOrPut FluoriteBig(value)
+                                            }
+                                        }
+                                    }
                                     val instant = obj.toInstant()
                                     val offset = getOffset(obj)
                                     val localDateTime = instant.toLocalDateTime(FixedOffsetTimeZone(offset))
@@ -178,6 +201,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             arrayOf(
                 "INSTANT" define object : TimeFactory("INSTANT") {
+                    override val hasUnixTime = true
+
                     private fun createMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                         NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -231,6 +256,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 }.create(),
                 "TIME" define object : TimeFactory("TIME") {
+                    override val hasUnixTime = true
+
                     private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                         NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
@@ -293,6 +320,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                 }.create(),
                 "LOCAL_TIME" define object : TimeFactory("LOCAL_TIME") {
+                    override val hasUnixTime = false
+
                     // オフセット不明の年月日時分秒をUTCと仮定して符号化する
                     private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                         EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),

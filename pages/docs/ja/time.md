@@ -197,6 +197,34 @@ $ xa -q '
 # 7008009
 ```
 
+### UNIX時間の取得
+
+`INSTANT`および`TIME`では、次のプロパティが利用できます。
+
+| プロパティ          | 型    | 値         |
+|---------------------|-------|------------|
+| `epochSeconds`      | `BIG` | UNIX秒     |
+| `epochMilliseconds` | `BIG` | UNIXミリ秒 |
+| `epochNanoseconds`  | `BIG` | UNIXナノ秒 |
+
+各値は、`1970-01-01T00:00:00Z`からの経過時間を表します。
+
+`epochSeconds`および`epochMilliseconds`では、単位未満の端数は負の無限大に向かって丸められます。
+
+同じ瞬間を表す`INSTANT`および`TIME`では、各値は一致します。
+
+```shell
+$ xa -q '
+  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  OUT << time.epochSeconds
+  OUT << time.epochMilliseconds
+  OUT << time.epochNanoseconds
+'
+# 981147906
+# 981147906007
+# 981147906007008009
+```
+
 ### 文字列化
 
 時刻のクラスを文字列化すると、ISO形式をベースとした文字列表記に変換されます。

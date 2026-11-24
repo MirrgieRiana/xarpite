@@ -197,6 +197,34 @@ $ xa -q '
 # 7008009
 ```
 
+### Getting Unix Time
+
+The following properties are available on `INSTANT` and `TIME`.
+
+| Property            | Type  | Value             |
+|---------------------|-------|-------------------|
+| `epochSeconds`      | `BIG` | Unix seconds      |
+| `epochMilliseconds` | `BIG` | Unix milliseconds |
+| `epochNanoseconds`  | `BIG` | Unix nanoseconds  |
+
+Each value represents the elapsed time since `1970-01-01T00:00:00Z`.
+
+For `epochSeconds` and `epochMilliseconds`, fractions of the unit are rounded toward negative infinity.
+
+`INSTANT` and `TIME` values representing the same instant return the same values for these properties.
+
+```shell
+$ xa -q '
+  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  OUT << time.epochSeconds
+  OUT << time.epochMilliseconds
+  OUT << time.epochNanoseconds
+'
+# 981147906
+# 981147906007
+# 981147906007008009
+```
+
 ### String Conversion
 
 Time instances are converted to strings using an ISO-based representation.

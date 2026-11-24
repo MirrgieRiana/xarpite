@@ -15,6 +15,7 @@ import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.mounts.createCommonMounts
 import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
+import mirrg.xarpite.test.big
 import mirrg.xarpite.test.boolean
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.get
@@ -657,6 +658,31 @@ class TimeTest {
                     apiVersion = apiVersion,
                 ) as FluoriteArray
                 assertEquals(expected, components.values.map { it.int })
+            }
+        }
+    }
+
+    @Test
+    fun timeEpochProperties() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            listOf(
+                Pair("INSTANT.of(0)", listOf("0", "0", "0")),
+                Pair("INSTANT.of(0; -1)", listOf("-1", "-1", "-1")),
+                Pair("INSTANT.of(-1; 123_456_789)", listOf("-1", "-877", "-876543211")),
+                Pair("TIME.of(-1; 123_456_789; 3600)", listOf("-1", "-877", "-876543211")),
+                Pair("INSTANT.parse(\"2038-01-19T03:14:08.007008009Z\")", listOf("2147483648", "2147483648007", "2147483648007008009")),
+                Pair("TIME.parse(\"2038-01-18T22:14:08.007008009-05:00\")", listOf("2147483648", "2147483648007", "2147483648007008009")),
+                Pair("INSTANT.parse(\"3000-01-01T00:00:00Z\")", listOf("32503680000", "32503680000000", "32503680000000000000")),
+            ).forEach { (src, expected) ->
+                val components = eval(
+                    "time := $src; [time.epochSeconds; time.epochMilliseconds; time.epochNanoseconds]",
+                    apiVersion = apiVersion,
+                ) as FluoriteArray
+                assertEquals(expected, components.values.map { it.big.toString() })
+            }
+
+            listOf("epochSeconds", "epochMilliseconds", "epochNanoseconds").forEach { key ->
+                assertFailsWith<FluoriteException> { eval("LOCAL_TIME.of(0).$key", apiVersion = apiVersion) }
             }
         }
     }
