@@ -6,6 +6,7 @@ import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.number
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -139,6 +140,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                     val offset = getOffset(obj)
                                     val localDateTime = instant.toLocalDateTime(FixedOffsetTimeZone(offset))
                                     val value = when (key) {
+                                        "year" -> localDateTime.year
+                                        "month" -> localDateTime.month.number
+                                        "day" -> localDateTime.day
                                         "hour" -> localDateTime.hour
                                         "minute" -> localDateTime.minute
                                         "second" -> localDateTime.second

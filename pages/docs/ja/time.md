@@ -145,12 +145,15 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
 
-### 時間の値の取得
+### 日時の値の取得
 
 `INSTANT`、`TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
 
 | プロパティ | 型    | 値     | 最小値 | 最大値 |
 |------------|-------|--------|--------|--------|
+| `year`     | `INT` | 年の値 | -      | -      |
+| `month`    | `INT` | 月の値 | 1      | 12     |
+| `day`      | `INT` | 日の値 | 1      | 31     |
 | `hour`     | `INT` | 時の値 | 0      | 23     |
 | `minute`   | `INT` | 分の値 | 0      | 59     |
 | `second`   | `INT` | 秒の値 | 0      | 59     |
@@ -169,10 +172,16 @@ $ xa -q '
 
 $ xa -q '
   time := TIME.parse("2001-02-03T04:05:06+07:00")
+  OUT << time.year
+  OUT << time.month
+  OUT << time.day
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
 '
+# 2001
+# 2
+# 3
 # 4
 # 5
 # 6

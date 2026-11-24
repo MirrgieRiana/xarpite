@@ -145,12 +145,15 @@ The `now` functions create instances based on the current system time.
 
 The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
 
-### Getting Time Components
+### Getting Date and Time Components
 
 The following properties are available on `INSTANT`, `TIME`, and `LOCAL_TIME`.
 
 | Property | Type  | Value  | Minimum | Maximum |
 |----------|-------|--------|---------|---------|
+| `year`   | `INT` | Year   | -       | -       |
+| `month`  | `INT` | Month  | 1       | 12      |
+| `day`    | `INT` | Day    | 1       | 31      |
 | `hour`   | `INT` | Hour   | 0       | 23      |
 | `minute` | `INT` | Minute | 0       | 59      |
 | `second` | `INT` | Second | 0       | 59      |
@@ -169,10 +172,16 @@ $ xa -q '
 
 $ xa -q '
   time := TIME.parse("2001-02-03T04:05:06+07:00")
+  OUT << time.year
+  OUT << time.month
+  OUT << time.day
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
 '
+# 2001
+# 2
+# 3
 # 4
 # 5
 # 6
