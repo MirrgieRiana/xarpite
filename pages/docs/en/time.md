@@ -149,16 +149,19 @@ The contents of INSTANT are independent of the system time zone, while those of 
 
 The following properties are available on `INSTANT`, `TIME`, and `LOCAL_TIME`.
 
-| Property | Type  | Value  | Minimum | Maximum |
-|----------|-------|--------|---------|---------|
-| `year`   | `INT` | Year   | -       | -       |
-| `month`  | `INT` | Month  | 1       | 12      |
-| `day`    | `INT` | Day    | 1       | 31      |
-| `hour`   | `INT` | Hour   | 0       | 23      |
-| `minute` | `INT` | Minute | 0       | 59      |
-| `second` | `INT` | Second | 0       | 59      |
+| Property    | Type  | Value       | Minimum | Maximum |
+|-------------|-------|-------------|---------|---------|
+| `year`      | `INT` | Year        | -       | -       |
+| `month`     | `INT` | Month       | 1       | 12      |
+| `day`       | `INT` | Day         | 1       | 31      |
+| `dayOfWeek` | `INT` | Day of week | 1       | 7       |
+| `hour`      | `INT` | Hour        | 0       | 23      |
+| `minute`    | `INT` | Minute      | 0       | 59      |
+| `second`    | `INT` | Second      | 0       | 59      |
 
 Each value is calculated in UTC for `INSTANT`, using the stored UTC offset for `TIME`, and using the stored local date and time for `LOCAL_TIME`.
+
+For `dayOfWeek`, Monday is 1 and Sunday is 7.
 
 ```shell
 $ xa -q '
@@ -175,6 +178,7 @@ $ xa -q '
   OUT << time.year
   OUT << time.month
   OUT << time.day
+  OUT << time.dayOfWeek
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
@@ -182,6 +186,7 @@ $ xa -q '
 # 2001
 # 2
 # 3
+# 6
 # 4
 # 5
 # 6
@@ -246,6 +251,25 @@ $ xa '
   [a == b, a === b]
 '
 # [TRUE;FALSE]
+```
+
+## Weekday Constants
+
+The following built-in constants correspond to the weekday numbers returned by the `dayOfWeek` property on the time classes.
+
+| Constant    | Day       | Value |
+|-------------|-----------|-------|
+| `MONDAY`    | Monday    | 1     |
+| `TUESDAY`   | Tuesday   | 2     |
+| `WEDNESDAY` | Wednesday | 3     |
+| `THURSDAY`  | Thursday  | 4     |
+| `FRIDAY`    | Friday    | 5     |
+| `SATURDAY`  | Saturday  | 6     |
+| `SUNDAY`    | Sunday    | 7     |
+
+```shell
+$ xa 'TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
+# TRUE
 ```
 
 ## Other Built-in Members

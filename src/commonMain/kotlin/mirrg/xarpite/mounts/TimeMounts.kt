@@ -6,6 +6,7 @@ import kotlinx.datetime.FixedOffsetTimeZone
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.number
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toInstant
@@ -44,6 +45,13 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             if (arguments.size != 0) usage("NOW(): BIG")
             FluoriteBig(context.io.getCurrentInstant().epochSeconds.toBigInteger())
         },
+        "MONDAY" define FluoriteInt(1),
+        "TUESDAY" define FluoriteInt(2),
+        "WEDNESDAY" define FluoriteInt(3),
+        "THURSDAY" define FluoriteInt(4),
+        "FRIDAY" define FluoriteInt(5),
+        "SATURDAY" define FluoriteInt(6),
+        "SUNDAY" define FluoriteInt(7),
         *run {
             abstract class TimeFactory(private val name: String) {
 
@@ -143,6 +151,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                         "year" -> localDateTime.year
                                         "month" -> localDateTime.month.number
                                         "day" -> localDateTime.day
+                                        "dayOfWeek" -> localDateTime.dayOfWeek.isoDayNumber
                                         "hour" -> localDateTime.hour
                                         "minute" -> localDateTime.minute
                                         "second" -> localDateTime.second

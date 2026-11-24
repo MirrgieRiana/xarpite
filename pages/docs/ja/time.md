@@ -149,16 +149,19 @@ INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよ
 
 `INSTANT`、`TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
 
-| プロパティ | 型    | 値     | 最小値 | 最大値 |
-|------------|-------|--------|--------|--------|
-| `year`     | `INT` | 年の値 | -      | -      |
-| `month`    | `INT` | 月の値 | 1      | 12     |
-| `day`      | `INT` | 日の値 | 1      | 31     |
-| `hour`     | `INT` | 時の値 | 0      | 23     |
-| `minute`   | `INT` | 分の値 | 0      | 59     |
-| `second`   | `INT` | 秒の値 | 0      | 59     |
+| プロパティ  | 型    | 値       | 最小値 | 最大値 |
+|-------------|-------|----------|--------|--------|
+| `year`      | `INT` | 年の値   | -      | -      |
+| `month`     | `INT` | 月の値   | 1      | 12     |
+| `day`       | `INT` | 日の値   | 1      | 31     |
+| `dayOfWeek` | `INT` | 曜日の値 | 1      | 7      |
+| `hour`      | `INT` | 時の値   | 0      | 23     |
+| `minute`    | `INT` | 分の値   | 0      | 59     |
+| `second`    | `INT` | 秒の値   | 0      | 59     |
 
 各値は、`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算されます。
+
+`dayOfWeek`の値は、月曜日が1、日曜日が7に対応します。
 
 ```shell
 $ xa -q '
@@ -175,6 +178,7 @@ $ xa -q '
   OUT << time.year
   OUT << time.month
   OUT << time.day
+  OUT << time.dayOfWeek
   OUT << time.hour
   OUT << time.minute
   OUT << time.second
@@ -182,6 +186,7 @@ $ xa -q '
 # 2001
 # 2
 # 3
+# 6
 # 4
 # 5
 # 6
@@ -246,6 +251,25 @@ $ xa '
   [a == b, a === b]
 '
 # [TRUE;FALSE]
+```
+
+## 曜日の定数
+
+次の組み込み定数は、各種時刻クラスの`dayOfWeek`が返す曜日番号に対応します。
+
+| 定数        | 曜日   | 値 |
+|-------------|--------|----|
+| `MONDAY`    | 月曜日 | 1  |
+| `TUESDAY`   | 火曜日 | 2  |
+| `WEDNESDAY` | 水曜日 | 3  |
+| `THURSDAY`  | 木曜日 | 4  |
+| `FRIDAY`    | 金曜日 | 5  |
+| `SATURDAY`  | 土曜日 | 6  |
+| `SUNDAY`    | 日曜日 | 7  |
+
+```shell
+$ xa 'TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
+# TRUE
 ```
 
 ## その他の組み込みメンバ
