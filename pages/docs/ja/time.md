@@ -145,27 +145,37 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
 
-### 時の値の取得
+### 時間の値の取得
 
-`INSTANT.hour: INT`
+`INSTANT`、`TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
 
-`TIME.hour: INT`
+| プロパティ | 型    | 値     | 最小値 | 最大値 |
+|------------|-------|--------|--------|--------|
+| `hour`     | `INT` | 時の値 | 0      | 23     |
+| `minute`   | `INT` | 分の値 | 0      | 59     |
+| `second`   | `INT` | 秒の値 | 0      | 59     |
 
-`LOCAL_TIME.hour: INT`
-
-`hour`プロパティにより、0～23の整数で時の値を取得できます。
-
-`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算します。
+各値は、`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算されます。
 
 ```shell
-$ xa 'INSTANT.parse("2001-02-03T04:05:06").hour'
+$ xa -q '
+  OUT << INSTANT.parse("2001-02-03T04:05:06").hour
+  OUT << TIME.parse("2001-02-03T04:05:06+07:00").hour
+  OUT << LOCAL_TIME.parse("2001-02-03T04:05:06").hour
+'
+# 4
+# 4
 # 4
 
-$ xa 'TIME.parse("2001-02-03T04:05:06+07:00").hour'
+$ xa -q '
+  time := TIME.parse("2001-02-03T04:05:06+07:00")
+  OUT << time.hour
+  OUT << time.minute
+  OUT << time.second
+'
 # 4
-
-$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06").hour'
-# 4
+# 5
+# 6
 ```
 
 ### 文字列化

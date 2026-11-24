@@ -16,7 +16,6 @@ import mirrg.xarpite.compilers.objects.FluoriteBig
 import mirrg.xarpite.compilers.objects.FluoriteDouble
 import mirrg.xarpite.compilers.objects.FluoriteFunction
 import mirrg.xarpite.compilers.objects.FluoriteInt
-import mirrg.xarpite.compilers.objects.FluoriteNull
 import mirrg.xarpite.compilers.objects.FluoriteNumber
 import mirrg.xarpite.compilers.objects.FluoriteObject
 import mirrg.xarpite.compilers.objects.FluoriteString
@@ -25,6 +24,7 @@ import mirrg.xarpite.compilers.objects.createFluoriteObject
 import mirrg.xarpite.compilers.objects.toFluoriteBoolean
 import mirrg.xarpite.compilers.objects.toFluoriteString
 import mirrg.xarpite.define
+import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.toBigIntegerExact
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -134,14 +134,17 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                             OperatorMethod.PROPERTY.methodName to FluoriteFunction.immediate { arguments ->
                                 val obj = arguments[0] as FluoriteObject
                                 val key = arguments[1].toFluoriteString(null).value
-                                when (key) {
-                                    "hour" -> obj.map.getOrPut(key) {
-                                        val instant = obj.toInstant()
-                                        val offset = getOffset(obj)
-                                        FluoriteInt(instant.toLocalDateTime(FixedOffsetTimeZone(offset)).hour)
+                                obj.map.getOrPut(key) {
+                                    val instant = obj.toInstant()
+                                    val offset = getOffset(obj)
+                                    val localDateTime = instant.toLocalDateTime(FixedOffsetTimeZone(offset))
+                                    val value = when (key) {
+                                        "hour" -> localDateTime.hour
+                                        "minute" -> localDateTime.minute
+                                        "second" -> localDateTime.second
+                                        else -> throw FluoriteException("No such property: $key".toFluoriteString())
                                     }
-
-                                    else -> obj.map[key] ?: FluoriteNull
+                                    FluoriteInt(value)
                                 }
                             },
                             OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
