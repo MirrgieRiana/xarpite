@@ -111,9 +111,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
 
                 protected fun FluoriteObject.toInstant(): Instant {
-                    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value.longValue(true)
+                    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value
                     val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
-                    return Instant.fromEpochSeconds(epochSeconds, nanosecondsOfSecond)
+                    return Instant.fromEpochSeconds(epochSeconds.longValue(true), nanosecondsOfSecond)
                 }
 
                 protected fun LocalDateTime.formatTime(): String {
