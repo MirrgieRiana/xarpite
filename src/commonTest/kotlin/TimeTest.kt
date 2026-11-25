@@ -70,7 +70,7 @@ class TimeTest {
             assertEquals("1999-12-31T15:00:00.123456789Z", eval("INSTANT.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
             assertEquals(2, instantReads)
             assertEquals(0, timeZoneReads)
-            assertEquals("2000-01-01T00:00:00.123456789+09:00", eval("TIME.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
+            assertEquals("2000-01-01T00:00:00.123456789+09:00", eval("OFFSET_TIME.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
             assertEquals("2000-01-01T00:00:00.123456789", eval("LOCAL_TIME.now().&", ioContext = ioContext, apiVersion = apiVersion).string)
             assertEquals(4, instantReads)
             assertEquals(2, timeZoneReads)
@@ -114,12 +114,12 @@ class TimeTest {
     }
 
     @Test
-    fun timeNow() = runTest {
+    fun offsetTimeNow() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
-            val time = eval("TIME.now()", ioContext = ioContext, apiVersion = apiVersion)
-            assertTrue(time is FluoriteObject)
-            assertEquals(fixedInstant, time.toInstant())
-            assertEquals(32400, time.map["_offsetSeconds"]!!.int)
+            val offsetTime = eval("OFFSET_TIME.now()", ioContext = ioContext, apiVersion = apiVersion)
+            assertTrue(offsetTime is FluoriteObject)
+            assertEquals(fixedInstant, offsetTime.toInstant())
+            assertEquals(32400, offsetTime.map["_offsetSeconds"]!!.int)
         }
     }
 
@@ -149,11 +149,11 @@ class TimeTest {
             ).forEach { (instant, timeZone) ->
                 currentInstant = instant
                 currentTimeZone = timeZone
-                listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+                listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
                     val value = evaluator.get("$name.now()") as FluoriteObject
                     val expected = if (name == "LOCAL_TIME") instant.toLocalDateTime(timeZone).toInstant(TimeZone.UTC) else instant
                     assertEquals(expected, value.toInstant())
-                    if (name == "TIME") assertEquals(timeZone.offsetAt(instant).totalSeconds, value.map["_offsetSeconds"]!!.int)
+                    if (name == "OFFSET_TIME") assertEquals(timeZone.offsetAt(instant).totalSeconds, value.map["_offsetSeconds"]!!.int)
                 }
             }
         }
@@ -161,7 +161,7 @@ class TimeTest {
 
     @Test
     fun timeNowErrors() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
             assertFailsWith<FluoriteException> { eval("$name.now(0)", ioContext = ioContext) }
             assertFailsWith<FluoriteException> { eval("$name.now(0; 1)", ioContext = ioContext) }
         }
@@ -180,18 +180,18 @@ class TimeTest {
                 Triple("INSTANT", "2001-02-03T04:05:06.0078", "2001-02-03T04:05:06.007800Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06.007008009", "2001-02-03T04:05:06.007008009Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06.007008009Z", "2001-02-03T04:05:06.007008009Z"),
-                Triple("TIME", "2001-02-03Z", "2001-02-03T00:00:00Z"),
-                Triple("TIME", "2001-02-03T04:05:06+10:00", "2001-02-03T04:05:06+10:00"),
-                Triple("TIME", "2001-02-03T04:05:06.007-10:11", "2001-02-03T04:05:06.007-10:11"),
-                Triple("TIME", "2001-02-03T04:05:06.007008009+10:11", "2001-02-03T04:05:06.007008009+10:11"),
+                Triple("OFFSET_TIME", "2001-02-03Z", "2001-02-03T00:00:00Z"),
+                Triple("OFFSET_TIME", "2001-02-03T04:05:06+10:00", "2001-02-03T04:05:06+10:00"),
+                Triple("OFFSET_TIME", "2001-02-03T04:05:06.007-10:11", "2001-02-03T04:05:06.007-10:11"),
+                Triple("OFFSET_TIME", "2001-02-03T04:05:06.007008009+10:11", "2001-02-03T04:05:06.007008009+10:11"),
                 Triple("LOCAL_TIME", "2001-02-03", "2001-02-03T00:00:00"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06", "2001-02-03T04:05:06"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.007", "2001-02-03T04:05:06.007"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.007008009", "2001-02-03T04:05:06.007008009"),
                 Triple("INSTANT", "1969-12-31T23:59:59.999999999", "1969-12-31T23:59:59.999999999Z"),
                 Triple("INSTANT", "2001-02-03T04:05:06.1200", "2001-02-03T04:05:06.120Z"),
-                Triple("TIME", "2001-02-03T04:05:06.000000000+00:00", "2001-02-03T04:05:06Z"),
-                Triple("TIME", "2001-02-03-00:00", "2001-02-03T00:00:00Z"),
+                Triple("OFFSET_TIME", "2001-02-03T04:05:06.000000000+00:00", "2001-02-03T04:05:06Z"),
+                Triple("OFFSET_TIME", "2001-02-03-00:00", "2001-02-03T00:00:00Z"),
                 Triple("LOCAL_TIME", "2001-02-03T04:05:06.1200", "2001-02-03T04:05:06.120"),
                 Triple("LOCAL_TIME", "0000-01-01", "0000-01-01T00:00:00"),
                 Triple("LOCAL_TIME", "9999-12-31", "9999-12-31T00:00:00"),
@@ -220,7 +220,7 @@ class TimeTest {
             listOf(
                 Pair("INSTANT", ""),
                 Pair("INSTANT", "Z"),
-                Pair("TIME", "Z"),
+                Pair("OFFSET_TIME", "Z"),
                 Pair("LOCAL_TIME", ""),
             ).forEach { (name, offset) ->
                 val value = eval("""$name.parse("1970-01-01T00:00:00.$fraction$offset")""") as FluoriteObject
@@ -238,9 +238,9 @@ class TimeTest {
             Triple("1970-01-01T00:00:00+18:00", -64800L, 64800),
             Triple("1970-01-01T00:00:00-18:00", 64800L, -64800),
         ).forEach { (text, epochSeconds, offsetSeconds) ->
-            val time = eval("""TIME.parse("$text")""") as FluoriteObject
-            assertEquals(Instant.fromEpochSeconds(epochSeconds), time.toInstant())
-            assertEquals(offsetSeconds, time.map["_offsetSeconds"]!!.int)
+            val offsetTime = eval("""OFFSET_TIME.parse("$text")""") as FluoriteObject
+            assertEquals(Instant.fromEpochSeconds(epochSeconds), offsetTime.toInstant())
+            assertEquals(offsetSeconds, offsetTime.map["_offsetSeconds"]!!.int)
         }
         listOf("INSTANT", "LOCAL_TIME").forEach { name ->
             val value = eval("""$name.parse("2038-01-19T03:14:08")""") as FluoriteObject
@@ -251,8 +251,8 @@ class TimeTest {
 
     @Test
     fun timeParseObjects() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "Z" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "Z" else ""
             assertTrue(eval("""PARENT($name.parse("2001-02-03$offset")) == $name""").boolean)
             assertTrue(eval("""$name.parse("2001-02-03$offset") ?= OBJECT""").boolean)
         }
@@ -289,8 +289,8 @@ class TimeTest {
             " 2001-02-03",
             "2001-02-03 ",
         ).forEach { text ->
-            listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-                val offset = if (name == "TIME") "Z" else ""
+            listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+                val offset = if (name == "OFFSET_TIME") "Z" else ""
                 assertFailsWith<IllegalArgumentException>("$name.parse: $text$offset") { eval("""$name.parse("$text$offset")""") }
             }
         }
@@ -305,13 +305,13 @@ class TimeTest {
         }
         assertFailsWith<IllegalArgumentException> { eval("""LOCAL_TIME.parse("2001-02-03T04:05:06Z")""") }
         listOf("", "z", "+09", "+0900", "+09:00:30", "+19:00", "+18:01", "+09:60", "Z+09:00").forEach { offset ->
-            assertFailsWith<IllegalArgumentException> { eval("""TIME.parse("2001-02-03T04:05:06$offset")""") }
+            assertFailsWith<IllegalArgumentException> { eval("""OFFSET_TIME.parse("2001-02-03T04:05:06$offset")""") }
         }
     }
 
     @Test
     fun timeParseUsage() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
             listOf("", "0", "NULL", "[]", "\"2001-02-03\"; \"2001-02-03\"").forEach { arguments ->
                 assertFailsWith<FluoriteException> { eval("$name.parse($arguments)") }
             }
@@ -325,9 +325,9 @@ class TimeTest {
                 Pair("INSTANT.of(981173106)", "2001-02-03T04:05:06Z"),
                 Pair("INSTANT.of(981173106.125)", "2001-02-03T04:05:06.125Z"),
                 Pair("INSTANT.of(981173106; 125_000_000)", "2001-02-03T04:05:06.125Z"),
-                Pair("TIME.of(981173106; 0)", "2001-02-03T04:05:06Z"),
-                Pair("TIME.of(981173106.125; 3600)", "2001-02-03T05:05:06.125+01:00"),
-                Pair("TIME.of(981173106; 125_000_000; -3600 * 5)", "2001-02-02T23:05:06.125-05:00"),
+                Pair("OFFSET_TIME.of(981173106; 0)", "2001-02-03T04:05:06Z"),
+                Pair("OFFSET_TIME.of(981173106.125; 3600)", "2001-02-03T05:05:06.125+01:00"),
+                Pair("OFFSET_TIME.of(981173106; 125_000_000; -3600 * 5)", "2001-02-02T23:05:06.125-05:00"),
                 Pair("LOCAL_TIME.of(981173106)", "2001-02-03T04:05:06"),
                 Pair("LOCAL_TIME.of(981173106.125)", "2001-02-03T04:05:06.125"),
                 Pair("LOCAL_TIME.of(981173106; 125_000_000)", "2001-02-03T04:05:06.125"),
@@ -339,8 +339,8 @@ class TimeTest {
 
     @Test
     fun timeOfValues() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 3600" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 3600" else ""
             listOf(
                 "981173106; 125000000",
                 "981173106.125; 0",
@@ -351,7 +351,7 @@ class TimeTest {
                 val value = eval("$name.of($arguments$offset)", ioContext = UnsupportedIoContext()) as FluoriteObject
                 val nanoseconds = if (arguments == "981173106.125; 125000000") 250000000 else 125000000
                 assertEquals(Instant.fromEpochSeconds(981173106, nanoseconds), value.toInstant())
-                if (name == "TIME") assertEquals(3600, value.map["_offsetSeconds"]!!.int)
+                if (name == "OFFSET_TIME") assertEquals(3600, value.map["_offsetSeconds"]!!.int)
                 assertTrue(eval("PARENT($name.of($arguments$offset)) == $name").boolean)
             }
         }
@@ -359,8 +359,8 @@ class TimeTest {
 
     @Test
     fun timeOfRounding() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 0" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
             listOf(
                 Pair("0.1", Instant.fromEpochSeconds(0, 100000000)),
                 Pair("-0.1", Instant.fromEpochSeconds(-1, 900000000)),
@@ -378,15 +378,15 @@ class TimeTest {
             }
         }
         listOf(Pair("1.4", 1), Pair("1.5", 2), Pair("-1.4", -1), Pair("-1.5", -1), Pair("BIG.of(3600)", 3600)).forEach { (offset, expected) ->
-            val time = eval("TIME.of(0; $offset)") as FluoriteObject
-            assertEquals(expected, time.map["_offsetSeconds"]!!.int)
+            val offsetTime = eval("OFFSET_TIME.of(0; $offset)") as FluoriteObject
+            assertEquals(expected, offsetTime.map["_offsetSeconds"]!!.int)
         }
     }
 
     @Test
     fun timeOfCarry() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 0" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
             listOf(
                 Pair("0; 1000000000", Instant.fromEpochSeconds(1)),
                 Pair("0; -1", Instant.fromEpochSeconds(-1, 999999999)),
@@ -420,14 +420,14 @@ class TimeTest {
             }
         }
         listOf("", "0", "0; 0; 0; 0", "\"0\"; 0", "NULL; 0", "[]; 0", "0; \"0\"", "0; NULL", "0; []", "0; NULL; 0", "0; 0; NULL").forEach { arguments ->
-            assertFailsWith<FluoriteException> { eval("TIME.of($arguments)") }
+            assertFailsWith<FluoriteException> { eval("OFFSET_TIME.of($arguments)") }
         }
     }
 
     @Test
     fun timeOfRange() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 0" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
             listOf("NAN", "INFINITY", "NEGATIVE_INFINITY").forEach { number ->
                 assertFailsWith<IllegalArgumentException> { eval("$name.of($number$offset)") }
                 assertFailsWith<IllegalArgumentException> { eval("$name.of(0; $number$offset)") }
@@ -435,17 +435,17 @@ class TimeTest {
             assertFailsWith<IllegalArgumentException> { eval("$name.of(40000000000000000.0$offset)") }
         }
         listOf("64801", "-64801", "INFINITY", "NEGATIVE_INFINITY").forEach { offset ->
-            assertFailsWith<IllegalArgumentException> { eval("TIME.of(0; $offset)") }
+            assertFailsWith<IllegalArgumentException> { eval("OFFSET_TIME.of(0; $offset)") }
         }
-        assertFailsWith<FluoriteException> { eval("TIME.of(0; NAN)") }
-        assertEquals(64800, (eval("TIME.of(0; 64800)") as FluoriteObject).map["_offsetSeconds"]!!.int)
-        assertEquals(-64800, (eval("TIME.of(0; -64800)") as FluoriteObject).map["_offsetSeconds"]!!.int)
+        assertFailsWith<FluoriteException> { eval("OFFSET_TIME.of(0; NAN)") }
+        assertEquals(64800, (eval("OFFSET_TIME.of(0; 64800)") as FluoriteObject).map["_offsetSeconds"]!!.int)
+        assertEquals(-64800, (eval("OFFSET_TIME.of(0; -64800)") as FluoriteObject).map["_offsetSeconds"]!!.int)
     }
 
     @Test
     fun timeObjects() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
-            listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+            listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
                 assertTrue(eval("$name.now() ?= $name", ioContext = ioContext, apiVersion = apiVersion).boolean)
                 assertTrue(eval("$name.now() ?= OBJECT", ioContext = ioContext, apiVersion = apiVersion).boolean)
                 assertTrue(eval("PARENT($name.now()) == $name", ioContext = ioContext, apiVersion = apiVersion).boolean)
@@ -460,7 +460,7 @@ class TimeTest {
 
     @Test
     fun timeObjectEquality() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
             val left = eval("$name{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0}", ioContext = ioContext) as FluoriteObject
             val right = FluoriteObject(left.parent, left.map.toMutableMap())
             assertEquals(false, left == right)
@@ -472,8 +472,8 @@ class TimeTest {
     @Test
     fun timeEquality() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
-            listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-                val offset = if (name == "TIME") "; 0" else ""
+            listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+                val offset = if (name == "OFFSET_TIME") "; 0" else ""
                 """
                     a := $name.of(0$offset)
                     b := $name.of(0$offset)
@@ -498,13 +498,13 @@ class TimeTest {
 
     @Test
     fun timeEqualityClasses() = runTest {
-        val times = listOf("INSTANT.of(0)", "TIME.of(0; 0)", "LOCAL_TIME.of(0)")
+        val times = listOf("INSTANT.of(0)", "OFFSET_TIME.of(0; 0)", "LOCAL_TIME.of(0)")
         times.forEachIndexed { index, left ->
             times.forEachIndexed { otherIndex, right ->
                 assertEquals(index == otherIndex, eval("$left == $right").boolean)
                 assertEquals(index != otherIndex, eval("$left != $right").boolean)
             }
-            listOf("NULL", "0", "\"1970-01-01T00:00:00Z\"", "{}", "INSTANT", "TIME", "LOCAL_TIME").forEach { right ->
+            listOf("NULL", "0", "\"1970-01-01T00:00:00Z\"", "{}", "INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { right ->
                 assertEquals(false, eval("$left == $right").boolean)
                 assertEquals(false, eval("$right == $left").boolean)
                 assertEquals(true, eval("$left != $right").boolean)
@@ -514,16 +514,16 @@ class TimeTest {
 
     @Test
     fun timeEqualityOffset() = runTest {
-        assertEquals(false, eval("TIME.of(0; 0) == TIME.of(0; 3600)").boolean)
-        assertEquals(false, eval("TIME.of(0; 0) == TIME.of(-3600; 3600)").boolean)
-        assertEquals(true, eval("TIME.of(0; 0) != TIME.of(0; 3600)").boolean)
+        assertEquals(false, eval("OFFSET_TIME.of(0; 0) == OFFSET_TIME.of(0; 3600)").boolean)
+        assertEquals(false, eval("OFFSET_TIME.of(0; 0) == OFFSET_TIME.of(-3600; 3600)").boolean)
+        assertEquals(true, eval("OFFSET_TIME.of(0; 0) != OFFSET_TIME.of(0; 3600)").boolean)
     }
 
     @Test
     fun timeEqualityFactories() = runTest {
         listOf(
             Triple("INSTANT", "946652400; 123456789", "1999-12-31T15:00:00.123456789Z"),
-            Triple("TIME", "946652400; 123456789; 32400", "2000-01-01T00:00:00.123456789+09:00"),
+            Triple("OFFSET_TIME", "946652400; 123456789; 32400", "2000-01-01T00:00:00.123456789+09:00"),
             Triple("LOCAL_TIME", "946684800; 123456789", "2000-01-01T00:00:00.123456789"),
         ).forEach { (name, arguments, text) ->
             """
@@ -537,9 +537,9 @@ class TimeTest {
 
     @Test
     fun timeEqualityProperties() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 0" else ""
-            val offsetProperty = if (name == "TIME") "; _offsetSeconds: 0" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
+            val offsetProperty = if (name == "OFFSET_TIME") "; _offsetSeconds: 0" else ""
             """
                 a := $name.of(0$offset)
                 b := $name.of(0$offset)
@@ -602,21 +602,21 @@ class TimeTest {
         ).forEach { (nanoseconds, fraction) ->
             val instant = eval("INSTANT{_epochSeconds: BIG.of(946684800); _nanosecondsOfSecond: $nanoseconds}", ioContext = ioContext)
             assertEquals("2000-01-01T00:00:00${fraction}Z", instant.toFluoriteString(null).value)
-            val time = eval("TIME{_epochSeconds: BIG.of(946652400); _nanosecondsOfSecond: $nanoseconds; _offsetSeconds: 32400}", ioContext = ioContext)
-            assertEquals("2000-01-01T00:00:00${fraction}+09:00", time.toFluoriteString(null).value)
+            val offsetTime = eval("OFFSET_TIME{_epochSeconds: BIG.of(946652400); _nanosecondsOfSecond: $nanoseconds; _offsetSeconds: 32400}", ioContext = ioContext)
+            assertEquals("2000-01-01T00:00:00${fraction}+09:00", offsetTime.toFluoriteString(null).value)
             val localTime = eval("LOCAL_TIME{_epochSeconds: BIG.of(946684800); _nanosecondsOfSecond: $nanoseconds}", ioContext = ioContext)
             assertEquals("2000-01-01T00:00:00$fraction", localTime.toFluoriteString(null).value)
         }
 
-        assertEquals("1970-01-01T00:00:00Z", eval("TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 0}.&", ioContext = ioContext).string)
-        assertEquals("1969-12-31T20:30:00-03:30", eval("TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: -12600}.&", ioContext = ioContext).string)
-        assertEquals("1970-01-01T05:45:00+05:45", eval("TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 20700}.&", ioContext = ioContext).string)
-        assertEquals("1970-01-01T00:00:30+00:00:30", eval("TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 30}.&", ioContext = ioContext).string)
+        assertEquals("1970-01-01T00:00:00Z", eval("OFFSET_TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 0}.&", ioContext = ioContext).string)
+        assertEquals("1969-12-31T20:30:00-03:30", eval("OFFSET_TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: -12600}.&", ioContext = ioContext).string)
+        assertEquals("1970-01-01T05:45:00+05:45", eval("OFFSET_TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 20700}.&", ioContext = ioContext).string)
+        assertEquals("1970-01-01T00:00:30+00:00:30", eval("OFFSET_TIME{_epochSeconds: BIG.of(0); _nanosecondsOfSecond: 0; _offsetSeconds: 30}.&", ioContext = ioContext).string)
         assertEquals("2000-02-29T12:34:56.000000001", eval("LOCAL_TIME{_epochSeconds: BIG.of(951827696); _nanosecondsOfSecond: 1}.&", ioContext = ioContext).string)
 
-        assertEquals("2000-01-01T00:00:00.123456789+09:00", eval("TIME.now().&", ioContext = ioContext).string)
+        assertEquals("2000-01-01T00:00:00.123456789+09:00", eval("OFFSET_TIME.now().&", ioContext = ioContext).string)
         assertEquals("2000-01-01T00:00:00.123456789", eval("LOCAL_TIME.now().&", ioContext = ioContext).string)
-        assertTrue(eval("x := TIME.now(); &x == x.&", ioContext = ioContext).boolean)
+        assertTrue(eval("x := OFFSET_TIME.now(); &x == x.&", ioContext = ioContext).boolean)
         assertTrue(eval("x := LOCAL_TIME.now(); &x == x.&", ioContext = ioContext).boolean)
     }
 
@@ -633,23 +633,23 @@ class TimeTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
                 Pair("INSTANT.parse(\"2001-02-03T04:05:06.987654321\")", listOf(2001, 2, 3, 6, 4, 5, 6, 987_654_321)),
-                Pair("TIME.parse(\"2001-02-03T04:05:06.007008009+07:00\")", listOf(2001, 2, 3, 6, 4, 5, 6, 7_008_009)),
+                Pair("OFFSET_TIME.parse(\"2001-02-03T04:05:06.007008009+07:00\")", listOf(2001, 2, 3, 6, 4, 5, 6, 7_008_009)),
                 Pair("LOCAL_TIME.parse(\"2001-02-03T04:05:06.999999999\")", listOf(2001, 2, 3, 6, 4, 5, 6, 999_999_999)),
                 Pair("LOCAL_TIME.parse(\"2001-02-04T04:05:06\")", listOf(2001, 2, 4, 7, 4, 5, 6, 0)),
                 Pair("LOCAL_TIME.parse(\"2001-02-05T04:05:06\")", listOf(2001, 2, 5, 1, 4, 5, 6, 0)),
                 Pair("LOCAL_TIME.parse(\"2024-02-29T04:05:06\")", listOf(2024, 2, 29, 4, 4, 5, 6, 0)),
                 Pair("INSTANT.now()", listOf(1999, 12, 31, 5, 15, 0, 0, 123_456_789)),
-                Pair("TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0, 123_456_789)),
+                Pair("OFFSET_TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0, 123_456_789)),
                 Pair("LOCAL_TIME.now()", listOf(2000, 1, 1, 6, 0, 0, 0, 123_456_789)),
                 Pair("INSTANT.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
                 Pair("INSTANT.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
                 Pair("INSTANT.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59, 999_999_999)),
-                Pair("TIME.of(0; 3600)", listOf(1970, 1, 1, 4, 1, 0, 0, 0)),
-                Pair("TIME.of(0; -3600)", listOf(1969, 12, 31, 3, 23, 0, 0, 0)),
-                Pair("TIME.of(0; 3661)", listOf(1970, 1, 1, 4, 1, 1, 1, 0)),
-                Pair("TIME.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
-                Pair("TIME.of(-1; 1)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
-                Pair("TIME.of(86399; 1)", listOf(1970, 1, 2, 5, 0, 0, 0, 0)),
+                Pair("OFFSET_TIME.of(0; 3600)", listOf(1970, 1, 1, 4, 1, 0, 0, 0)),
+                Pair("OFFSET_TIME.of(0; -3600)", listOf(1969, 12, 31, 3, 23, 0, 0, 0)),
+                Pair("OFFSET_TIME.of(0; 3661)", listOf(1970, 1, 1, 4, 1, 1, 1, 0)),
+                Pair("OFFSET_TIME.of(0; -1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
+                Pair("OFFSET_TIME.of(-1; 1)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
+                Pair("OFFSET_TIME.of(86399; 1)", listOf(1970, 1, 2, 5, 0, 0, 0, 0)),
                 Pair("LOCAL_TIME.of(0)", listOf(1970, 1, 1, 4, 0, 0, 0, 0)),
                 Pair("LOCAL_TIME.of(-1)", listOf(1969, 12, 31, 3, 23, 59, 59, 0)),
             ).forEach { (src, expected) ->
@@ -670,9 +670,9 @@ class TimeTest {
                 Pair("INSTANT.of(0)", listOf("0", "0", "0")),
                 Pair("INSTANT.of(0; -1)", listOf("-1", "-1", "-1")),
                 Pair("INSTANT.of(-1; 123_456_789)", listOf("-1", "-877", "-876543211")),
-                Pair("TIME.of(-1; 123_456_789; 3600)", listOf("-1", "-877", "-876543211")),
+                Pair("OFFSET_TIME.of(-1; 123_456_789; 3600)", listOf("-1", "-877", "-876543211")),
                 Pair("INSTANT.parse(\"2038-01-19T03:14:08.007008009Z\")", listOf("2147483648", "2147483648007", "2147483648007008009")),
-                Pair("TIME.parse(\"2038-01-18T22:14:08.007008009-05:00\")", listOf("2147483648", "2147483648007", "2147483648007008009")),
+                Pair("OFFSET_TIME.parse(\"2038-01-18T22:14:08.007008009-05:00\")", listOf("2147483648", "2147483648007", "2147483648007008009")),
                 Pair("INSTANT.parse(\"3000-01-01T00:00:00Z\")", listOf("32503680000", "32503680000000", "32503680000000000000")),
             ).forEach { (src, expected) ->
                 val components = eval(
@@ -694,8 +694,8 @@ class TimeTest {
             listOf(
                 Pair("+INSTANT.of(0)", 0.0),
                 Pair("+INSTANT.of(10; 125_000_000)", 10.125),
-                Pair("+TIME.of(10; 125_000_000; 3600)", 10.125),
-                Pair("+TIME.parse(\"1970-01-01T01:00:10.125+01:00\")", 10.125),
+                Pair("+OFFSET_TIME.of(10; 125_000_000; 3600)", 10.125),
+                Pair("+OFFSET_TIME.parse(\"1970-01-01T01:00:10.125+01:00\")", 10.125),
                 Pair("+LOCAL_TIME.parse(\"1970-01-01T00:00:10.125\")", 10.125),
                 Pair("TO_NUMBER(LOCAL_TIME.of(10.125))", 10.125),
                 Pair("+INSTANT.of(0; -1)", -1.0e-9),
@@ -708,8 +708,8 @@ class TimeTest {
 
     @Test
     fun timeComponentCache() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
-            val offset = if (name == "TIME") "; 0" else ""
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
             withEvaluator(UnsupportedIoContext()) { context, evaluator ->
                 evaluator.defineMounts(context.run { createCommonMounts() })
                 val time = evaluator.get("time := $name.of(3723; 7_008_009$offset); time") as FluoriteObject
@@ -741,13 +741,13 @@ class TimeTest {
 
     @Test
     fun timeComponentExistingEntries() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
             listOf("year", "month", "day", "dayOfWeek", "hour", "minute", "second", "nanosecond").forEach { key ->
                 assertEquals(99, eval("$name{$key: 99}.$key").int)
                 assertTrue(eval("$name{$key: NULL}.$key == NULL").boolean)
                 assertEquals(12, eval("time := $name{}; time.$key = 12; time.$key").int)
             }
-            val offset = if (name == "TIME") "; 0" else ""
+            val offset = if (name == "OFFSET_TIME") "; 0" else ""
             assertFailsWith<FluoriteException> { eval("$name.of(0$offset).unknown") }
             assertEquals(7, eval("$name{item: 7}.item").int)
         }
@@ -755,13 +755,13 @@ class TimeTest {
 
     @Test
     fun timeProperties() = runTest {
-        listOf("INSTANT", "TIME", "LOCAL_TIME").forEach { name ->
+        listOf("INSTANT", "OFFSET_TIME", "LOCAL_TIME").forEach { name ->
             assertTrue(eval("$name.now()._epochSeconds ?= BIG", ioContext = ioContext).boolean)
             assertTrue(eval("$name.now()._nanosecondsOfSecond ?= INT", ioContext = ioContext).boolean)
         }
-        assertTrue(eval("TIME.now()._offsetSeconds ?= INT", ioContext = ioContext).boolean)
+        assertTrue(eval("OFFSET_TIME.now()._offsetSeconds ?= INT", ioContext = ioContext).boolean)
         assertEquals("1970-01-01T00:00:00.500Z", eval("x := INSTANT.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x.&", ioContext = ioContext).string)
-        assertEquals("1970-01-01T09:00:00.500+09:00", eval("x := TIME.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x._offsetSeconds = 32400; x.&", ioContext = ioContext).string)
+        assertEquals("1970-01-01T09:00:00.500+09:00", eval("x := OFFSET_TIME.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x._offsetSeconds = 32400; x.&", ioContext = ioContext).string)
         assertEquals("1970-01-01T00:00:00.500", eval("x := LOCAL_TIME.now(); x.&; x._epochSeconds = BIG.of(0); x._nanosecondsOfSecond = 500000000; x.&", ioContext = ioContext).string)
     }
 

@@ -1494,7 +1494,7 @@ class XarpiteTest {
             "PROMISE.new()",
             "(ERROR.throwNativeError('error') !? (error => error))",
             "INSTANT.of(0)",
-            "TIME.of(0; 0)",
+            "OFFSET_TIME.of(0; 0)",
             "LOCAL_TIME.of(0)",
         ).forEach { expression ->
             val actual = eval("a := $expression; b := $expression; [a === a, a === b, b === a, a !== a, a !== b, b !== a]").array()

@@ -10,15 +10,15 @@ title: "Time"
 
 The following classes represent times.
 
-| Type         | Meaning                                   |
-|--------------|-------------------------------------------|
-| `INSTANT`    | A point in time independent of time zones |
-| `TIME`       | A time with a UTC offset                  |
-| `LOCAL_TIME` | A time in an unknown time zone            |
+| Type          | Meaning                                   |
+|---------------|-------------------------------------------|
+| `INSTANT`     | A point in time independent of time zones |
+| `OFFSET_TIME` | A time with a UTC offset                  |
+| `LOCAL_TIME`  | A time in an unknown time zone            |
 
 INSTANT stores Unix time (the elapsed time since `1970-01-01T00:00:00Z`) as integer seconds and integer nanoseconds.
 
-TIME stores a UTC offset in addition to an INSTANT, representing a clock reading at a particular location on Earth.
+OFFSET_TIME stores a UTC offset in addition to an INSTANT, representing a clock reading at a particular location on Earth.
 
 LOCAL_TIME stores the elapsed time since `1970-01-01T00:00:00` at a particular location on Earth as integer seconds and integer nanoseconds.
 
@@ -26,7 +26,7 @@ LOCAL_TIME stores the elapsed time since `1970-01-01T00:00:00` at a particular l
 
 `INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT`
 
-`TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME`
+`OFFSET_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): OFFSET_TIME`
 
 `LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME`
 
@@ -48,13 +48,13 @@ $ xa 'INSTANT.of(981173106.125)'
 $ xa 'INSTANT.of(981173106; 125_000_000)'
 # 2001-02-03T04:05:06.125Z
 
-$ xa 'TIME.of(981173106; 0)'
+$ xa 'OFFSET_TIME.of(981173106; 0)'
 # 2001-02-03T04:05:06Z
 
-$ xa 'TIME.of(981173106.125; 3600)'
+$ xa 'OFFSET_TIME.of(981173106.125; 3600)'
 # 2001-02-03T05:05:06.125+01:00
 
-$ xa 'TIME.of(981173106; 125_000_000; -3600 * 5)'
+$ xa 'OFFSET_TIME.of(981173106; 125_000_000; -3600 * 5)'
 # 2001-02-02T23:05:06.125-05:00
 
 $ xa 'LOCAL_TIME.of(981173106)'
@@ -71,7 +71,7 @@ $ xa 'LOCAL_TIME.of(981173106; 125_000_000)'
 
 `INSTANT.parse(text: STRING): INSTANT`
 
-`TIME.parse(text: STRING): TIME`
+`OFFSET_TIME.parse(text: STRING): OFFSET_TIME`
 
 `LOCAL_TIME.parse(text: STRING): LOCAL_TIME`
 
@@ -89,11 +89,11 @@ Any number of trailing zeros in the nanosecond part may be omitted.
 
 The requirements for the time zone designator `Z` and the UTC offset notation `[+-][0-9]{2}:[0-9]{2}` depend on the time class as follows.
 
-| Class        | Time zone notation        |
-|--------------|---------------------------|
-| `INSTANT`    | Optional `Z`              |
-| `TIME`       | `Z` or a UTC offset       |
-| `LOCAL_TIME` | Must be omitted           |
+| Class         | Time zone notation        |
+|---------------|---------------------------|
+| `INSTANT`     | Optional `Z`              |
+| `OFFSET_TIME` | `Z` or a UTC offset       |
+| `LOCAL_TIME`  | Must be omitted           |
 
 ```shell
 $ xa 'INSTANT.parse("2001-02-03")'
@@ -108,16 +108,16 @@ $ xa 'INSTANT.parse("2001-02-03T04:05:06.007")'
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009Z")'
 # 2001-02-03T04:05:06.007008009Z
 
-$ xa 'TIME.parse("2001-02-03Z")'
+$ xa 'OFFSET_TIME.parse("2001-02-03Z")'
 # 2001-02-03T00:00:00Z
 
-$ xa 'TIME.parse("2001-02-03T04:05:06+10:00")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06+10:00")'
 # 2001-02-03T04:05:06+10:00
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007-10:11")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007-10:11")'
 # 2001-02-03T04:05:06.007-10:11
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007008009+10:11")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+10:11")'
 # 2001-02-03T04:05:06.007008009+10:11
 
 $ xa 'LOCAL_TIME.parse("2001-02-03")'
@@ -137,17 +137,17 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 `INSTANT.now(): INSTANT`
 
-`TIME.now(): TIME`
+`OFFSET_TIME.now(): OFFSET_TIME`
 
 `LOCAL_TIME.now(): LOCAL_TIME`
 
 The `now` functions create instances based on the current system time.
 
-The contents of INSTANT are independent of the system time zone, while those of TIME and LOCAL_TIME depend on it.
+The contents of INSTANT are independent of the system time zone, while those of OFFSET_TIME and LOCAL_TIME depend on it.
 
 ### Getting Date and Time Components
 
-The following properties are available on `INSTANT`, `TIME`, and `LOCAL_TIME`.
+The following properties are available on `INSTANT`, `OFFSET_TIME`, and `LOCAL_TIME`.
 
 | Property     | Type  | Value       | Minimum | Maximum     |
 |--------------|-------|-------------|---------|-------------|
@@ -160,7 +160,7 @@ The following properties are available on `INSTANT`, `TIME`, and `LOCAL_TIME`.
 | `second`     | `INT` | Second      | 0       | 59          |
 | `nanosecond` | `INT` | Nanosecond  | 0       | 999_999_999 |
 
-Each value is calculated in UTC for `INSTANT`, using the stored UTC offset for `TIME`, and using the stored local date and time for `LOCAL_TIME`.
+Each value is calculated in UTC for `INSTANT`, using the stored UTC offset for `OFFSET_TIME`, and using the stored local date and time for `LOCAL_TIME`.
 
 For `dayOfWeek`, Monday is 1 and Sunday is 7.
 
@@ -169,7 +169,7 @@ The `nanosecond` property returns the entire fractional part of the second as an
 ```shell
 $ xa -q '
   OUT << INSTANT.parse("2001-02-03T04:05:06").hour
-  OUT << TIME.parse("2001-02-03T04:05:06+07:00").hour
+  OUT << OFFSET_TIME.parse("2001-02-03T04:05:06+07:00").hour
   OUT << LOCAL_TIME.parse("2001-02-03T04:05:06").hour
 '
 # 4
@@ -177,7 +177,7 @@ $ xa -q '
 # 4
 
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  time := OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.year
   OUT << time.month
   OUT << time.day
@@ -199,7 +199,7 @@ $ xa -q '
 
 ### Getting Unix Time
 
-The following properties are available on `INSTANT` and `TIME`.
+The following properties are available on `INSTANT` and `OFFSET_TIME`.
 
 | Property            | Type  | Value             |
 |---------------------|-------|-------------------|
@@ -211,11 +211,11 @@ Each value represents the elapsed time since `1970-01-01T00:00:00Z`.
 
 For `epochSeconds` and `epochMilliseconds`, fractions of the unit are rounded toward negative infinity.
 
-`INSTANT` and `TIME` values representing the same instant return the same values for these properties.
+`INSTANT` and `OFFSET_TIME` values representing the same instant return the same values for these properties.
 
 ```shell
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  time := OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.epochSeconds
   OUT << time.epochMilliseconds
   OUT << time.epochNanoseconds
@@ -237,7 +237,7 @@ Rounding to `DOUBLE` can change the least significant digits of the nanosecond f
 $ xa '+INSTANT.of(10.125)'
 # 10.125
 
-$ xa '+TIME.of(10; 125_000_000; 3600)'
+$ xa '+OFFSET_TIME.of(10; 125_000_000; 3600)'
 # 10.125
 
 $ xa '+LOCAL_TIME.parse("1970-01-01T00:00:10.125")'
@@ -250,11 +250,11 @@ Time instances are converted to strings using an ISO-based representation.
 
 The time zone notation depends on the class.
 
-| Class        | Time zone notation        |
-|--------------|---------------------------|
-| `INSTANT`    | Always `Z`                |
-| `TIME`       | `Z` or a UTC offset       |
-| `LOCAL_TIME` | None                      |
+| Class         | Time zone notation        |
+|---------------|---------------------------|
+| `INSTANT`     | Always `Z`                |
+| `OFFSET_TIME` | `Z` or a UTC offset       |
+| `LOCAL_TIME`  | None                      |
 
 Seconds are always included, while fractional seconds are omitted or written with 3, 6, or 9 digits as needed.
 
@@ -274,7 +274,7 @@ $ xa 'INSTANT.parse("2001-02-03T04:05:06.0078")'
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009")'
 # 2001-02-03T04:05:06.007008009Z
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007008009+03:00")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+03:00")'
 # 2001-02-03T04:05:06.007008009+03:00
 
 $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
@@ -285,16 +285,16 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 The equality operator `==` returns true for time objects of the same class when both their stored seconds and nanoseconds match.
 
-For `TIME`, the UTC offsets must also match.
+For `OFFSET_TIME`, the UTC offsets must also match.
 
 ```shell
 $ xa 'INSTANT.of(0) == INSTANT.parse("1970-01-01Z")'
 # TRUE
 
-$ xa 'TIME.of(0; 0) == TIME.of(0; 3600)'
+$ xa 'OFFSET_TIME.of(0; 0) == OFFSET_TIME.of(0; 3600)'
 # FALSE
 
-$ xa 'INSTANT.of(0) == TIME.of(0; 0)'
+$ xa 'INSTANT.of(0) == OFFSET_TIME.of(0; 0)'
 # FALSE
 
 $ xa '
@@ -320,7 +320,7 @@ The following built-in constants correspond to the weekday numbers returned by t
 | `SUNDAY`    | Sunday    | 7     |
 
 ```shell
-$ xa 'TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
+$ xa 'OFFSET_TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
 # TRUE
 ```
 

@@ -10,15 +10,15 @@ title: "時刻"
 
 時刻を表現するための以下のクラスがあります。
 
-| 型           | 意味                         |
-|--------------|------------------------------|
-| `INSTANT`    | タイムゾーンに依存しない瞬間 |
-| `TIME`       | UTCオフセットが付いた時刻    |
-| `LOCAL_TIME` | タイムゾーンが不明な時刻     |
+| 型            | 意味                         |
+|---------------|------------------------------|
+| `INSTANT`     | タイムゾーンに依存しない瞬間 |
+| `OFFSET_TIME` | UTCオフセットが付いた時刻    |
+| `LOCAL_TIME`  | タイムゾーンが不明な時刻     |
 
 INSTANTは、UNIX時間（`1970-01-01T00:00:00Z`からの経過時間）を、整数である秒数および、整数であるナノ秒によって保持します。
 
-TIMEは、INSTANTに加えて、UTCからの時差を保持することで、地球上の特定の場所における時計の値を表します。
+OFFSET_TIMEは、INSTANTに加えて、UTCからの時差を保持することで、地球上の特定の場所における時計の値を表します。
 
 LOCAL_TIMEは、地球上の特定の場所における`1970-01-01T00:00:00`からの経過時間を、整数である秒数および、整数であるナノ秒によって保持します。
 
@@ -26,7 +26,7 @@ LOCAL_TIMEは、地球上の特定の場所における`1970-01-01T00:00:00`か�
 
 `INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT`
 
-`TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME`
+`OFFSET_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): OFFSET_TIME`
 
 `LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME`
 
@@ -48,13 +48,13 @@ $ xa 'INSTANT.of(981173106.125)'
 $ xa 'INSTANT.of(981173106; 125_000_000)'
 # 2001-02-03T04:05:06.125Z
 
-$ xa 'TIME.of(981173106; 0)'
+$ xa 'OFFSET_TIME.of(981173106; 0)'
 # 2001-02-03T04:05:06Z
 
-$ xa 'TIME.of(981173106.125; 3600)'
+$ xa 'OFFSET_TIME.of(981173106.125; 3600)'
 # 2001-02-03T05:05:06.125+01:00
 
-$ xa 'TIME.of(981173106; 125_000_000; -3600 * 5)'
+$ xa 'OFFSET_TIME.of(981173106; 125_000_000; -3600 * 5)'
 # 2001-02-02T23:05:06.125-05:00
 
 $ xa 'LOCAL_TIME.of(981173106)'
@@ -71,7 +71,7 @@ $ xa 'LOCAL_TIME.of(981173106; 125_000_000)'
 
 `INSTANT.parse(text: STRING): INSTANT`
 
-`TIME.parse(text: STRING): TIME`
+`OFFSET_TIME.parse(text: STRING): OFFSET_TIME`
 
 `LOCAL_TIME.parse(text: STRING): LOCAL_TIME`
 
@@ -89,11 +89,11 @@ $ xa 'LOCAL_TIME.of(981173106; 125_000_000)'
 
 タイムゾーンを表す`Z`およびUTCオフセット表記`[+-][0-9]{2}:[0-9]{2}`の必要性は、時刻クラスごとに次のようになります。
 
-| クラス       | タイムゾーン表記           |
-|--------------|----------------------------|
-| `INSTANT`    | 省略可能な`Z`              |
-| `TIME`       | `Z`またはUTCオフセット表記 |
-| `LOCAL_TIME` | 常に省略                   |
+| クラス        | タイムゾーン表記           |
+|---------------|----------------------------|
+| `INSTANT`     | 省略可能な`Z`              |
+| `OFFSET_TIME` | `Z`またはUTCオフセット表記 |
+| `LOCAL_TIME`  | 常に省略                   |
 
 ```shell
 $ xa 'INSTANT.parse("2001-02-03")'
@@ -108,16 +108,16 @@ $ xa 'INSTANT.parse("2001-02-03T04:05:06.007")'
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009Z")'
 # 2001-02-03T04:05:06.007008009Z
 
-$ xa 'TIME.parse("2001-02-03Z")'
+$ xa 'OFFSET_TIME.parse("2001-02-03Z")'
 # 2001-02-03T00:00:00Z
 
-$ xa 'TIME.parse("2001-02-03T04:05:06+10:00")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06+10:00")'
 # 2001-02-03T04:05:06+10:00
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007-10:11")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007-10:11")'
 # 2001-02-03T04:05:06.007-10:11
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007008009+10:11")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+10:11")'
 # 2001-02-03T04:05:06.007008009+10:11
 
 $ xa 'LOCAL_TIME.parse("2001-02-03")'
@@ -137,17 +137,17 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 `INSTANT.now(): INSTANT`
 
-`TIME.now(): TIME`
+`OFFSET_TIME.now(): OFFSET_TIME`
 
 `LOCAL_TIME.now(): LOCAL_TIME`
 
 各種 `now` 関数により、システムの現在時刻に基づいたインスタンスを生成できます。
 
-INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
+INSTANTの内容はシステムのタイムゾーンに依存せず、OFFSET_TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
 
 ### 日時の値の取得
 
-`INSTANT`、`TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
+`INSTANT`、`OFFSET_TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。
 
 | プロパティ   | 型    | 値         | 最小値 | 最大値      |
 |--------------|-------|------------|--------|-------------|
@@ -160,7 +160,7 @@ INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよ
 | `second`     | `INT` | 秒の値     | 0      | 59          |
 | `nanosecond` | `INT` | ナノ秒の値 | 0      | 999_999_999 |
 
-各値は、`INSTANT`ではUTC、`TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算されます。
+各値は、`INSTANT`ではUTC、`OFFSET_TIME`では保持しているUTCオフセット、`LOCAL_TIME`では保持しているローカル日時に基づいて計算されます。
 
 `dayOfWeek`の値は、月曜日が1、日曜日が7に対応します。
 
@@ -169,7 +169,7 @@ INSTANTの内容はシステムのタイムゾーンに依存せず、TIMEおよ
 ```shell
 $ xa -q '
   OUT << INSTANT.parse("2001-02-03T04:05:06").hour
-  OUT << TIME.parse("2001-02-03T04:05:06+07:00").hour
+  OUT << OFFSET_TIME.parse("2001-02-03T04:05:06+07:00").hour
   OUT << LOCAL_TIME.parse("2001-02-03T04:05:06").hour
 '
 # 4
@@ -177,7 +177,7 @@ $ xa -q '
 # 4
 
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  time := OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.year
   OUT << time.month
   OUT << time.day
@@ -199,7 +199,7 @@ $ xa -q '
 
 ### UNIX時間の取得
 
-`INSTANT`および`TIME`では、次のプロパティが利用できます。
+`INSTANT`および`OFFSET_TIME`では、次のプロパティが利用できます。
 
 | プロパティ          | 型    | 値         |
 |---------------------|-------|------------|
@@ -211,11 +211,11 @@ $ xa -q '
 
 `epochSeconds`および`epochMilliseconds`では、単位未満の端数は負の無限大に向かって丸められます。
 
-同じ瞬間を表す`INSTANT`および`TIME`では、各値は一致します。
+同じ瞬間を表す`INSTANT`および`OFFSET_TIME`では、各値は一致します。
 
 ```shell
 $ xa -q '
-  time := TIME.parse("2001-02-03T04:05:06.007008009+07:00")
+  time := OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+07:00")
   OUT << time.epochSeconds
   OUT << time.epochMilliseconds
   OUT << time.epochNanoseconds
@@ -237,7 +237,7 @@ $ xa -q '
 $ xa '+INSTANT.of(10.125)'
 # 10.125
 
-$ xa '+TIME.of(10; 125_000_000; 3600)'
+$ xa '+OFFSET_TIME.of(10; 125_000_000; 3600)'
 # 10.125
 
 $ xa '+LOCAL_TIME.parse("1970-01-01T00:00:10.125")'
@@ -250,11 +250,11 @@ $ xa '+LOCAL_TIME.parse("1970-01-01T00:00:10.125")'
 
 タイムゾーン表記は、クラスによって異なります。
 
-| クラス       | タイムゾーン表記           |
-|--------------|----------------------------|
-| `INSTANT`    | 常に`Z`                    |
-| `TIME`       | `Z`またはUTCオフセット表記 |
-| `LOCAL_TIME` | なし                       |
+| クラス        | タイムゾーン表記           |
+|---------------|----------------------------|
+| `INSTANT`     | 常に`Z`                    |
+| `OFFSET_TIME` | `Z`またはUTCオフセット表記 |
+| `LOCAL_TIME`  | なし                       |
 
 秒までは常に表記されますが、秒未満は必要に応じて無表記・3桁・6桁・9桁で表します。
 
@@ -274,7 +274,7 @@ $ xa 'INSTANT.parse("2001-02-03T04:05:06.0078")'
 $ xa 'INSTANT.parse("2001-02-03T04:05:06.007008009")'
 # 2001-02-03T04:05:06.007008009Z
 
-$ xa 'TIME.parse("2001-02-03T04:05:06.007008009+03:00")'
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06.007008009+03:00")'
 # 2001-02-03T04:05:06.007008009+03:00
 
 $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
@@ -285,16 +285,16 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 等価演算子`==`は、同じクラスの時刻オブジェクト同士について、保持する秒数とナノ秒がともに一致する場合に真を返します。
 
-`TIME`では、UTCオフセットも一致する必要があります。
+`OFFSET_TIME`では、UTCオフセットも一致する必要があります。
 
 ```shell
 $ xa 'INSTANT.of(0) == INSTANT.parse("1970-01-01Z")'
 # TRUE
 
-$ xa 'TIME.of(0; 0) == TIME.of(0; 3600)'
+$ xa 'OFFSET_TIME.of(0; 0) == OFFSET_TIME.of(0; 3600)'
 # FALSE
 
-$ xa 'INSTANT.of(0) == TIME.of(0; 0)'
+$ xa 'INSTANT.of(0) == OFFSET_TIME.of(0; 0)'
 # FALSE
 
 $ xa '
@@ -320,7 +320,7 @@ $ xa '
 | `SUNDAY`    | 日曜日 | 7  |
 
 ```shell
-$ xa 'TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
+$ xa 'OFFSET_TIME.parse("2001-02-04T04:05:06+07:00").dayOfWeek == SUNDAY'
 # TRUE
 ```
 

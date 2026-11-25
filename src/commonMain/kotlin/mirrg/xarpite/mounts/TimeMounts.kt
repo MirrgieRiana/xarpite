@@ -260,7 +260,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         return true
                     }
                 }.create(),
-                "TIME" define object : TimeFactory("TIME") {
+                "OFFSET_TIME" define object : TimeFactory("OFFSET_TIME") {
                     override val hasUnixTime = true
 
                     private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
@@ -270,7 +270,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     )
 
                     override fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue> {
-                        fun usage(): Nothing = usage("TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): TIME")
+                        fun usage(): Nothing = usage("OFFSET_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): OFFSET_TIME")
                         val epochSeconds: FluoriteNumber
                         val nanosecondsOfSecond: FluoriteNumber
                         val offsetSeconds: FluoriteNumber
@@ -296,7 +296,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                     override fun parse(text: String): MutableMap<String, FluoriteValue> {
                         val (localDateTime, parsedOffset) = text.parseTime()
-                        val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for TIME")
+                        val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for OFFSET_TIME")
                         val instant = localDateTime.toInstant(FixedOffsetTimeZone(offset))
                         return createMap(instant, offset)
                     }
