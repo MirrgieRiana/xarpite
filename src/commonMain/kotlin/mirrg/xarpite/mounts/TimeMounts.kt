@@ -162,17 +162,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                 obj.map.getOrPut(key) {
                                     if (hasUnixTime) {
                                         when (key) {
-                                            "epochSeconds" -> {
-                                                return@getOrPut obj.map[EPOCH_SECONDS] as FluoriteBig
-                                            }
-
-                                            "epochMilliseconds" -> {
-                                                return@getOrPut FluoriteBig(obj.toEpochMilliseconds())
-                                            }
-
-                                            "epochNanoseconds" -> {
-                                                return@getOrPut FluoriteBig(obj.toEpochNanoseconds())
-                                            }
+                                            "epochSeconds" -> return@getOrPut obj.map[EPOCH_SECONDS] as FluoriteBig
+                                            "epochMilliseconds" -> return@getOrPut FluoriteBig(obj.toEpochMilliseconds())
+                                            "epochNanoseconds" -> return@getOrPut FluoriteBig(obj.toEpochNanoseconds())
                                         }
                                     }
                                     val instant = obj.toInstant()
