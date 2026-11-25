@@ -225,6 +225,25 @@ $ xa -q '
 # 981147906007008009
 ```
 
+### Numeric Conversion
+
+Numeric conversion of a time value returns Unix seconds with a fractional part as a `DOUBLE`.
+
+For `LOCAL_TIME`, the stored date and time are interpreted as UTC.
+
+Rounding to `DOUBLE` can change the least significant digits of the nanosecond fraction.
+
+```shell
+$ xa '+INSTANT.of(10.125)'
+# 10.125
+
+$ xa '+TIME.of(10; 125_000_000; 3600)'
+# 10.125
+
+$ xa '+LOCAL_TIME.parse("1970-01-01T00:00:10.125")'
+# 10.125
+```
+
 ### String Conversion
 
 Time instances are converted to strings using an ISO-based representation.

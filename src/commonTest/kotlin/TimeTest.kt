@@ -17,6 +17,7 @@ import mirrg.xarpite.operations.FluoriteException
 import mirrg.xarpite.test.array
 import mirrg.xarpite.test.big
 import mirrg.xarpite.test.boolean
+import mirrg.xarpite.test.double
 import mirrg.xarpite.test.eval
 import mirrg.xarpite.test.get
 import mirrg.xarpite.test.int
@@ -683,6 +684,24 @@ class TimeTest {
 
             listOf("epochSeconds", "epochMilliseconds", "epochNanoseconds").forEach { key ->
                 assertFailsWith<FluoriteException> { eval("LOCAL_TIME.of(0).$key", apiVersion = apiVersion) }
+            }
+        }
+    }
+
+    @Test
+    fun timeNumericConversion() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            listOf(
+                Pair("+INSTANT.of(0)", 0.0),
+                Pair("+INSTANT.of(10; 125_000_000)", 10.125),
+                Pair("+TIME.of(10; 125_000_000; 3600)", 10.125),
+                Pair("+TIME.parse(\"1970-01-01T01:00:10.125+01:00\")", 10.125),
+                Pair("+LOCAL_TIME.parse(\"1970-01-01T00:00:10.125\")", 10.125),
+                Pair("TO_NUMBER(LOCAL_TIME.of(10.125))", 10.125),
+                Pair("+INSTANT.of(0; -1)", -1.0e-9),
+                Pair("+INSTANT.of(1_700_000_000; 100)", 1_700_000_000.0),
+            ).forEach { (src, expected) ->
+                assertEquals(expected, eval(src, apiVersion = apiVersion).double)
             }
         }
     }

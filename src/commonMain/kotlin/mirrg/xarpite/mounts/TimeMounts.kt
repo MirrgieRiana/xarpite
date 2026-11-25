@@ -1,5 +1,6 @@
 package mirrg.xarpite.mounts
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import kotlinx.datetime.FixedOffsetTimeZone
@@ -190,6 +191,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                     }
                                     FluoriteInt(value)
                                 }
+                            },
+                            OperatorMethod.TO_NUMBER.methodName to FluoriteFunction.immediate { arguments ->
+                                val obj = arguments[0] as FluoriteObject
+                                val epochSeconds = BigDecimal.fromBigInteger(obj.toEpochNanoseconds()).moveDecimalPoint(-9)
+                                FluoriteDouble(epochSeconds.doubleValue(false))
                             },
                             OperatorMethod.TO_STRING.methodName to FluoriteFunction.immediate { arguments ->
                                 val obj = arguments[0] as FluoriteObject
