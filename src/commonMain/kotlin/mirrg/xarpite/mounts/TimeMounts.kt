@@ -38,6 +38,7 @@ private const val OFFSET_SECONDS = "_offsetSeconds"
 
 private val TIME_PATTERN = Regex("""([0-9]{4}-[0-9]{2}-[0-9]{2})(?:T([0-9]{2}:[0-9]{2}:[0-9]{2})(\.[0-9]{1,9})?)?(Z|[+-][0-9]{2}:[0-9]{2})?""")
 
+private val BIG_INTEGER_1_000 = 1_000.toBigInteger()
 private val BIG_INTEGER_1_000_000_000 = 1_000_000_000.toBigInteger()
 
 context(context: RuntimeContext)
@@ -116,6 +117,18 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     return Instant.fromEpochSeconds(epochSeconds.longValue(true), nanosecondsOfSecond)
                 }
 
+                private fun FluoriteObject.toEpochMilliseconds(): BigInteger {
+                    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value
+                    val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
+                    return epochSeconds * BIG_INTEGER_1_000 + (nanosecondsOfSecond / 1_000_000).toBigInteger()
+                }
+
+                private fun FluoriteObject.toEpochNanoseconds(): BigInteger {
+                    val epochSeconds = (this.map[EPOCH_SECONDS] as FluoriteBig).value
+                    val nanosecondsOfSecond = (this.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
+                    return epochSeconds * BIG_INTEGER_1_000_000_000 + nanosecondsOfSecond.toBigInteger()
+                }
+
                 protected fun LocalDateTime.formatTime(): String {
                     return if (this.second == 0 && this.nanosecond == 0) "${this}:00" else this.toString()
                 }
@@ -153,17 +166,11 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                             }
 
                                             "epochMilliseconds" -> {
-                                                val epochSeconds = (obj.map[EPOCH_SECONDS] as FluoriteBig).value
-                                                val nanosecondsOfSecond = (obj.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
-                                                val value = epochSeconds * 1_000.toBigInteger() + (nanosecondsOfSecond / 1_000_000).toBigInteger()
-                                                return@getOrPut FluoriteBig(value)
+                                                return@getOrPut FluoriteBig(obj.toEpochMilliseconds())
                                             }
 
                                             "epochNanoseconds" -> {
-                                                val epochSeconds = (obj.map[EPOCH_SECONDS] as FluoriteBig).value
-                                                val nanosecondsOfSecond = (obj.map[NANOSECONDS_OF_SECOND] as FluoriteInt).value
-                                                val value = epochSeconds * BIG_INTEGER_1_000_000_000 + nanosecondsOfSecond.toBigInteger()
-                                                return@getOrPut FluoriteBig(value)
+                                                return@getOrPut FluoriteBig(obj.toEpochNanoseconds())
                                             }
                                         }
                                     }
