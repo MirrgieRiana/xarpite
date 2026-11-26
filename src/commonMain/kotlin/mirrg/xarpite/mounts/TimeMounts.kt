@@ -211,7 +211,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             instantClass = object : TimeFactory("INSTANT") {
                 override val hasUnixTime = true
 
-                private fun createMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
+                private fun createInstantMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
                     EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                     NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
                 )
@@ -234,19 +234,19 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         else -> usage()
                     }
                     val instant = epochSeconds.toInstant(nanosecondsOfSecond)
-                    return createMap(instant)
+                    return createInstantMap(instant)
                 }
 
                 override fun parse(text: String): MutableMap<String, FluoriteValue> {
                     val (localDateTime, offset) = text.removeSuffix("Z").parseTime()
                     require(offset == null) { "UTC offset is not allowed for INSTANT" }
                     val instant = localDateTime.toInstant(TimeZone.UTC)
-                    return createMap(instant)
+                    return createInstantMap(instant)
                 }
 
                 override fun now(): MutableMap<String, FluoriteValue> {
                     val instant = context.io.getCurrentInstant()
-                    return createMap(instant)
+                    return createInstantMap(instant)
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -266,7 +266,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             offsetTimeClass = object : TimeFactory("OFFSET_TIME") {
                 override val hasUnixTime = true
 
-                private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
+                private fun createOffsetTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                     EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
                     NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
                     OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
@@ -294,20 +294,20 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     }
                     val instant = epochSeconds.toInstant(nanosecondsOfSecond)
                     val offset = UtcOffset(seconds = offsetSeconds.roundToInt())
-                    return createMap(instant, offset)
+                    return createOffsetTimeMap(instant, offset)
                 }
 
                 override fun parse(text: String): MutableMap<String, FluoriteValue> {
                     val (localDateTime, parsedOffset) = text.parseTime()
                     val offset = parsedOffset ?: throw IllegalArgumentException("UTC offset is required for OFFSET_TIME")
                     val instant = localDateTime.toInstant(FixedOffsetTimeZone(offset))
-                    return createMap(instant, offset)
+                    return createOffsetTimeMap(instant, offset)
                 }
 
                 override fun now(): MutableMap<String, FluoriteValue> {
                     val instant = context.io.getCurrentInstant()
                     val offset = context.io.getSystemTimeZone().offsetAt(instant)
-                    return createMap(instant, offset)
+                    return createOffsetTimeMap(instant, offset)
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -331,7 +331,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 override val hasUnixTime = false
 
                 // オフセット不明の年月日時分秒をUTCと仮定して符号化する
-                private fun createMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
+                private fun createLocalTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
                     EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
                     NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
                 )
@@ -354,20 +354,20 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                         else -> usage()
                     }
                     val instant = epochSeconds.toInstant(nanosecondsOfSecond)
-                    return createMap(instant, UtcOffset.ZERO)
+                    return createLocalTimeMap(instant, UtcOffset.ZERO)
                 }
 
                 override fun parse(text: String): MutableMap<String, FluoriteValue> {
                     val (localDateTime, offset) = text.parseTime()
                     require(offset == null) { "UTC offset is not allowed for LOCAL_TIME" }
                     val instant = localDateTime.toInstant(TimeZone.UTC)
-                    return createMap(instant, UtcOffset.ZERO)
+                    return createLocalTimeMap(instant, UtcOffset.ZERO)
                 }
 
                 override fun now(): MutableMap<String, FluoriteValue> {
                     val instant = context.io.getCurrentInstant()
                     val offset = context.io.getSystemTimeZone().offsetAt(instant)
-                    return createMap(instant, offset)
+                    return createLocalTimeMap(instant, offset)
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
