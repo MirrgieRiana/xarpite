@@ -276,6 +276,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 }
 
                 override fun toInstant(arguments: Array<FluoriteValue>): FluoriteObject {
+                    if (arguments.size != 1) usage("INSTANT::toInstant(): INSTANT")
+                    return arguments[0] as FluoriteObject
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -343,6 +345,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                    if (arguments.size != 1) usage("OFFSET_TIME::toOffsetTime(): OFFSET_TIME")
+                    return arguments[0] as FluoriteObject
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -409,6 +413,8 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                    if (arguments.size != 1) usage("LOCAL_TIME::toLocalTime(): LOCAL_TIME")
+                    return arguments[0] as FluoriteObject
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
