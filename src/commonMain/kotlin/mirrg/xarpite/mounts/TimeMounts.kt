@@ -140,7 +140,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 protected abstract fun equalTo(left: FluoriteObject, right: FluoriteObject): Boolean
 
 
-                fun create(): FluoriteValue {
+                fun create(): FluoriteObject {
                     return createFluoriteObject(FluoriteObject.fluoriteClass) { parentObject ->
                         mapOf(
                             "of" to FluoriteFunction.immediate { arguments ->
@@ -204,9 +204,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
             }
 
-            lateinit var instantClass: FluoriteValue
-            lateinit var offsetTimeClass: FluoriteValue
-            lateinit var localTimeClass: FluoriteValue
+            lateinit var instantClass: FluoriteObject
+            lateinit var offsetTimeClass: FluoriteObject
+            lateinit var localTimeClass: FluoriteObject
 
             instantClass = object : TimeFactory("INSTANT") {
                 override val hasUnixTime = true
