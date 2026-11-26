@@ -128,6 +128,13 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 protected abstract fun now(): MutableMap<String, FluoriteValue>
 
 
+                protected abstract fun toInstant(arguments: Array<FluoriteValue>): FluoriteObject
+
+                protected abstract fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject
+
+                protected abstract fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject
+
+
                 protected abstract fun getOffset(obj: FluoriteObject): UtcOffset
 
 
@@ -219,6 +226,9 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                                 val right = arguments[1]
                                 (right is FluoriteObject && left.parent === right.parent && equalTo(left, right)).toFluoriteBoolean()
                             },
+                            "toInstant" to FluoriteFunction.immediate { arguments -> toInstant(arguments) },
+                            "toOffsetTime" to FluoriteFunction.immediate { arguments -> toOffsetTime(arguments) },
+                            "toLocalTime" to FluoriteFunction.immediate { arguments -> toLocalTime(arguments) },
                         )
                     }
                 }
@@ -263,6 +273,15 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 override fun now(): MutableMap<String, FluoriteValue> {
                     val instant = context.io.getCurrentInstant()
                     return createInstantMap(instant)
+                }
+
+                override fun toInstant(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -320,6 +339,15 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     return createOffsetTimeMap(instant, offset)
                 }
 
+                override fun toInstant(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
                     return UtcOffset(seconds = (obj.map[OFFSET_SECONDS] as FluoriteInt).value)
                 }
@@ -372,6 +400,15 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val instant = context.io.getCurrentInstant()
                     val offset = context.io.getSystemTimeZone().offsetAt(instant)
                     return createLocalTimeMap(instant, offset)
+                }
+
+                override fun toInstant(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
+                }
+
+                override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
