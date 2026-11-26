@@ -294,6 +294,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
                     val offset = UtcOffset(seconds = offsetValue.roundToInt())
+                    val offsetSeconds = offset.totalSeconds
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -368,6 +369,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
                     val offset = UtcOffset(seconds = offsetValue.roundToInt())
+                    val offsetSeconds = offset.totalSeconds
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -430,6 +432,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
                     val offset = UtcOffset(seconds = offsetValue.roundToInt())
+                    val offsetSeconds = offset.totalSeconds
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -438,6 +441,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
                     val offset = UtcOffset(seconds = offsetValue.roundToInt())
+                    val offsetSeconds = offset.totalSeconds
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
