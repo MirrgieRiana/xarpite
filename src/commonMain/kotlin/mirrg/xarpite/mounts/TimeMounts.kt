@@ -140,21 +140,15 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                 protected val FluoriteObject.nanosecondsOfSecond get() = this.nanosecondsOfSecondValue.value
 
                 protected fun FluoriteObject.toInstant(): Instant {
-                    val epochSeconds = this.epochSeconds
-                    val nanosecondsOfSecond = this.nanosecondsOfSecond
-                    return Instant.fromEpochSeconds(epochSeconds.longValue(true), nanosecondsOfSecond)
+                    return Instant.fromEpochSeconds(this.epochSeconds.longValue(true), this.nanosecondsOfSecond)
                 }
 
                 private fun FluoriteObject.toEpochMilliseconds(): BigInteger {
-                    val epochSeconds = this.epochSeconds
-                    val nanosecondsOfSecond = this.nanosecondsOfSecond
-                    return epochSeconds * BIG_INTEGER_1_000 + (nanosecondsOfSecond / 1_000_000).toBigInteger()
+                    return this.epochSeconds * BIG_INTEGER_1_000 + (this.nanosecondsOfSecond / 1_000_000).toBigInteger()
                 }
 
                 private fun FluoriteObject.toEpochNanoseconds(): BigInteger {
-                    val epochSeconds = this.epochSeconds
-                    val nanosecondsOfSecond = this.nanosecondsOfSecond
-                    return epochSeconds * BIG_INTEGER_1_000_000_000 + nanosecondsOfSecond.toBigInteger()
+                    return this.epochSeconds * BIG_INTEGER_1_000_000_000 + this.nanosecondsOfSecond.toBigInteger()
                 }
 
                 protected fun LocalDateTime.formatTime(): String {
