@@ -25,6 +25,7 @@ import mirrg.xarpite.compilers.objects.collect
 import mirrg.xarpite.compilers.objects.colon
 import mirrg.xarpite.compilers.objects.compareTo
 import mirrg.xarpite.compilers.objects.consume
+import mirrg.xarpite.compilers.objects.consumeToMutableList
 import mirrg.xarpite.compilers.objects.invokeImmediate
 import mirrg.xarpite.compilers.objects.toBoolean
 import mirrg.xarpite.compilers.objects.toFlow
@@ -173,6 +174,29 @@ fun createStreamMounts(): List<Map<String, Mount>> {
                 "DISTINCT" define create("DISTINCT"),
                 "UNIQ" define create("UNIQ"),
             )
+        },
+        "INTERSPERSE" define FluoriteFunction.immediate { arguments ->
+            if (arguments.size != 2) usage("<T> INTERSPERSE(separator: STREAM<T>; stream: STREAM<T>): STREAM<T>")
+            val separator = arguments[0]
+            val stream = arguments[1]
+
+            if (stream is FluoriteStream) {
+                FluoriteStream {
+                    var separators: List<FluoriteValue>? = null
+                    var isFirst = true
+                    stream.collect { item ->
+                        if (isFirst) {
+                            isFirst = false
+                        } else {
+                            val separators2 = separators ?: separator.consumeToMutableList().also { separators = it }
+                            separators2.forEach { emit(it) }
+                        }
+                        emit(item)
+                    }
+                }
+            } else {
+                stream
+            }
         },
         "JOIN" define FluoriteFunction.immediate { arguments ->
             val separator: String
