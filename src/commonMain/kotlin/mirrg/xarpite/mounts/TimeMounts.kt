@@ -288,6 +288,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offset = UtcOffset(seconds = offsetValue.roundToInt())
                     val epochSeconds = obj.epochSeconds
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(offsetTimeClass, createOffsetTimeMap(instant, offset))
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -299,6 +300,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offsetSeconds = offset.totalSeconds
                     val epochSeconds = obj.epochSeconds + offsetSeconds.toBigInteger()
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(localTimeClass, createLocalTimeMap(instant, UtcOffset.ZERO))
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -362,6 +364,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val obj = arguments[0] as FluoriteObject
                     val epochSeconds = obj.epochSeconds
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(instantClass, createInstantMap(instant))
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -378,6 +381,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offsetSeconds = offset.totalSeconds
                     val epochSeconds = obj.epochSeconds + offsetSeconds.toBigInteger()
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(localTimeClass, createLocalTimeMap(instant, UtcOffset.ZERO))
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -443,6 +447,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offsetSeconds = offset.totalSeconds
                     val epochSeconds = obj.epochSeconds - offsetSeconds.toBigInteger()
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(instantClass, createInstantMap(instant))
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -454,6 +459,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     val offsetSeconds = offset.totalSeconds
                     val epochSeconds = obj.epochSeconds - offsetSeconds.toBigInteger()
                     val instant = FluoriteBig(epochSeconds).toInstant(obj.nanosecondsOfSecondValue)
+                    return FluoriteObject(offsetTimeClass, createOffsetTimeMap(instant, offset))
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
