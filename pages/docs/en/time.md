@@ -145,6 +145,73 @@ The `now` functions create instances based on the current system time.
 
 The contents of INSTANT are independent of the system time zone, while those of OFFSET_TIME and LOCAL_TIME depend on it.
 
+### Converting Between Time Classes
+
+INSTANT, OFFSET_TIME, and LOCAL_TIME each provide methods for converting to all three classes.
+
+```
+INSTANT::toInstant(): INSTANT
+OFFSET_TIME::toInstant(): INSTANT
+LOCAL_TIME::toInstant(offsetSeconds: NUMBER): INSTANT
+
+INSTANT::toOffsetTime(offsetSeconds: NUMBER): OFFSET_TIME
+OFFSET_TIME::toOffsetTime(): OFFSET_TIME
+LOCAL_TIME::toOffsetTime(offsetSeconds: NUMBER): OFFSET_TIME
+
+INSTANT::toLocalTime(offsetSeconds: NUMBER): LOCAL_TIME
+OFFSET_TIME::toLocalTime(offsetSeconds: NUMBER): LOCAL_TIME
+LOCAL_TIME::toLocalTime(): LOCAL_TIME
+```
+
+---
+
+| Source        | Target        | Argument | Return value                                                                    |
+|---------------|---------------|----------|---------------------------------------------------------------------------------|
+| `INSTANT`     | `INSTANT`     | -        | The source instance itself                                                      |
+| `OFFSET_TIME` | `INSTANT`     | -        | The same instant as the source                                                  |
+| `LOCAL_TIME`  | `INSTANT`     | Required | The instant represented by the source date and time at the specified UTC offset |
+| `INSTANT`     | `OFFSET_TIME` | Required | The same instant as the source, expressed at the specified UTC offset           |
+| `OFFSET_TIME` | `OFFSET_TIME` | -        | The source instance itself                                                      |
+| `LOCAL_TIME`  | `OFFSET_TIME` | Required | The source date and time with the specified UTC offset attached                 |
+| `INSTANT`     | `LOCAL_TIME`  | Required | The date and time of the source instant at the specified UTC offset             |
+| `OFFSET_TIME` | `LOCAL_TIME`  | Required | The date and time of the source instant at the specified UTC offset             |
+| `LOCAL_TIME`  | `LOCAL_TIME`  | -        | The source instance itself                                                      |
+
+The three identity conversions are provided for API symmetry.
+
+A UTC offset is required when converting between INSTANT or OFFSET_TIME, which represent a specific instant, and LOCAL_TIME, which represents a clock reading at a particular location.
+
+When converting between INSTANT and OFFSET_TIME, only `toOffsetTime` requires a UTC offset because it adds information.
+
+`offsetSeconds` specifies the offset from UTC in seconds.
+
+A fractional `offsetSeconds` is rounded to an integer, and the rounded value must be between -64_800 and 64_800.
+
+---
+
+```shell
+$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06")::toOffsetTime(7 * 3600)'
+# 2001-02-03T04:05:06+07:00
+
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06+07:00")::toLocalTime(7 * 3600)'
+# 2001-02-03T04:05:06
+
+$ xa 'INSTANT.of(981147906)'
+# 2001-02-02T21:05:06Z
+
+$ xa 'INSTANT.of(981147906)::toOffsetTime(7 * 3600)'
+# 2001-02-03T04:05:06+07:00
+
+$ xa 'INSTANT.of(981147906)::toOffsetTime(7 * 3600)::toInstant()'
+# 2001-02-02T21:05:06Z
+
+$ xa 'INSTANT.of(981147906)::toLocalTime(7 * 3600)'
+# 2001-02-03T04:05:06
+
+$ xa 'INSTANT.of(981147906)::toLocalTime(7 * 3600)::toInstant(-11 * 3600)'
+# 2001-02-03T15:05:06Z
+```
+
 ### Getting Date and Time Components
 
 The following properties are available on `INSTANT`, `OFFSET_TIME`, and `LOCAL_TIME`.

@@ -145,6 +145,73 @@ $ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06.007008009")'
 
 INSTANTの内容はシステムのタイムゾーンに依存せず、OFFSET_TIMEおよびLOCAL_TIMEの内容はシステムのタイムゾーンに依存します。
 
+### 時刻クラスの変換
+
+INSTANT、OFFSET_TIME、LOCAL_TIMEのそれぞれに、それぞれに変換するための関数が用意されています。
+
+```
+INSTANT::toInstant(): INSTANT
+OFFSET_TIME::toInstant(): INSTANT
+LOCAL_TIME::toInstant(offsetSeconds: NUMBER): INSTANT
+
+INSTANT::toOffsetTime(offsetSeconds: NUMBER): OFFSET_TIME
+OFFSET_TIME::toOffsetTime(): OFFSET_TIME
+LOCAL_TIME::toOffsetTime(offsetSeconds: NUMBER): OFFSET_TIME
+
+INSTANT::toLocalTime(offsetSeconds: NUMBER): LOCAL_TIME
+OFFSET_TIME::toLocalTime(offsetSeconds: NUMBER): LOCAL_TIME
+LOCAL_TIME::toLocalTime(): LOCAL_TIME
+```
+
+---
+
+| 変換元        | 変換先        | 引数 | 返す値                                                  |
+|---------------|---------------|------|---------------------------------------------------------|
+| `INSTANT`     | `INSTANT`     | -    | 変換元自体                                              |
+| `OFFSET_TIME` | `INSTANT`     | -    | 変換元と同じ瞬間                                        |
+| `LOCAL_TIME`  | `INSTANT`     | あり | 変換元に、指定したUTCオフセットを付けた時刻と同じ瞬間   |
+| `INSTANT`     | `OFFSET_TIME` | あり | 変換元と同じ瞬間を、指定したUTCオフセットで表現した時刻 |
+| `OFFSET_TIME` | `OFFSET_TIME` | -    | 変換元自体                                              |
+| `LOCAL_TIME`  | `OFFSET_TIME` | あり | 変換元に、指定したUTCオフセットを付けた時刻             |
+| `INSTANT`     | `LOCAL_TIME`  | あり | 変換元と同じ瞬間の、指定したUTCオフセットにおける日時   |
+| `OFFSET_TIME` | `LOCAL_TIME`  | あり | 変換元と同じ瞬間の、指定したUTCオフセットにおける日時   |
+| `LOCAL_TIME`  | `LOCAL_TIME`  | -    | 変換元自体                                              |
+
+恒等変換の3個は、APIの対称性のために提供されています。
+
+特定の瞬間を表すINSTANTおよびOFFSET_TIMEと、ある場所における時計の値を表すLOCAL_TIMEの間の変換には、UTCオフセットが必要となります。
+
+INSTANTとOFFSET_TIMEの間での変換には、情報量が増える`toOffsetTime`側にだけ、 UTCオフセットが必要となります。
+
+`offsetSeconds`は、UTCからの時差を秒単位で指定します。
+
+`offsetSeconds`の小数部は整数に丸められ、丸めた後の値は-64_800～64_800の範囲でなければなりません。
+
+---
+
+```shell
+$ xa 'LOCAL_TIME.parse("2001-02-03T04:05:06")::toOffsetTime(7 * 3600)'
+# 2001-02-03T04:05:06+07:00
+
+$ xa 'OFFSET_TIME.parse("2001-02-03T04:05:06+07:00")::toLocalTime(7 * 3600)'
+# 2001-02-03T04:05:06
+
+$ xa 'INSTANT.of(981147906)'
+# 2001-02-02T21:05:06Z
+
+$ xa 'INSTANT.of(981147906)::toOffsetTime(7 * 3600)'
+# 2001-02-03T04:05:06+07:00
+
+$ xa 'INSTANT.of(981147906)::toOffsetTime(7 * 3600)::toInstant()'
+# 2001-02-02T21:05:06Z
+
+$ xa 'INSTANT.of(981147906)::toLocalTime(7 * 3600)'
+# 2001-02-03T04:05:06
+
+$ xa 'INSTANT.of(981147906)::toLocalTime(7 * 3600)::toInstant(-11 * 3600)'
+# 2001-02-03T15:05:06Z
+```
+
 ### 日時の値の取得
 
 `INSTANT`、`OFFSET_TIME`、`LOCAL_TIME`では、次のプロパティが利用できます。

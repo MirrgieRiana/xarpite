@@ -629,6 +629,45 @@ class TimeTest {
     }
 
     @Test
+    fun timeConversions() = runTest {
+        RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
+            listOf(
+                Pair("INSTANT.of(0; 123_456_789)::toLocalTime(3600)", "LOCAL_TIME.of(3600; 123_456_789)"),
+                Pair("INSTANT.of(1_700_000_000; 1)::toOffsetTime(3600)", "OFFSET_TIME.of(1_700_000_000; 1; 3600)"),
+                Pair("LOCAL_TIME.of(0; 123_456_789)::toInstant(3600)", "INSTANT.of(-3600; 123_456_789)"),
+                Pair("LOCAL_TIME.of(0; 123_456_789)::toOffsetTime(3600)", "OFFSET_TIME.of(-3600; 123_456_789; 3600)"),
+                Pair("OFFSET_TIME.of(0; 123_456_789; 3600)::toInstant()", "INSTANT.of(0; 123_456_789)"),
+                Pair("OFFSET_TIME.of(0; 123_456_789; 3600)::toLocalTime(-12_600)", "LOCAL_TIME.of(-12_600; 123_456_789)"),
+                Pair("INSTANT.of(0)::toOffsetTime(3600.5)", "OFFSET_TIME.of(0; 3601)"),
+            ).forEach { (src, expected) ->
+                assertTrue(eval("$src == $expected", apiVersion = apiVersion).boolean, src)
+            }
+
+            listOf(
+                Pair("INSTANT.of(0)", "toInstant"),
+                Pair("LOCAL_TIME.of(0)", "toLocalTime"),
+                Pair("OFFSET_TIME.of(0; 3600)", "toOffsetTime"),
+            ).forEach { (src, method) ->
+                assertTrue(eval("time := $src; time === time::$method()", apiVersion = apiVersion).boolean, src)
+            }
+        }
+    }
+
+    @Test
+    fun timeConversionErrors() = runTest {
+        listOf(
+            "INSTANT.of(0)::toLocalTime()",
+            "INSTANT.of(0)::toInstant(0)",
+            """LOCAL_TIME.of(0)::toInstant("0")""",
+            "OFFSET_TIME.of(0; 3600)::toLocalTime()",
+            "OFFSET_TIME.of(0; 3600)::toInstant(0)",
+        ).forEach { src ->
+            assertFailsWith<FluoriteException> { eval(src) }
+        }
+        assertFailsWith<IllegalArgumentException> { eval("LOCAL_TIME.of(0)::toInstant(64801)") }
+    }
+
+    @Test
     fun timeComponents() = runTest {
         RuntimeContext.SUPPORTED_API_VERSIONS.forEach { apiVersion ->
             listOf(
