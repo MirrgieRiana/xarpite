@@ -61,6 +61,25 @@ fun createTimeMounts(): List<Map<String, Mount>> {
 
                 protected abstract val hasUnixTime: Boolean
 
+
+                protected fun createInstantMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
+                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                )
+
+                protected fun createOffsetTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
+                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
+                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                    OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
+                )
+
+                // オフセット不明の年月日時分秒をUTCと仮定して符号化する
+                protected fun createLocalTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
+                    EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
+                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
+                )
+
+
                 private fun FluoriteNumber.splitTimeNumber(): Pair<BigInteger, Double> {
                     return when (this) {
                         is FluoriteInt -> Pair(this.value.toBigInteger(), 0.0)
@@ -211,11 +230,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             instantClass = object : TimeFactory("INSTANT") {
                 override val hasUnixTime = true
 
-                private fun createInstantMap(instant: Instant): MutableMap<String, FluoriteValue> = mutableMapOf(
-                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                )
-
                 override fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue> {
                     fun usage(): Nothing = usage("INSTANT.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): INSTANT")
                     val epochSeconds: FluoriteNumber
@@ -265,12 +279,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             }.create()
             offsetTimeClass = object : TimeFactory("OFFSET_TIME") {
                 override val hasUnixTime = true
-
-                private fun createOffsetTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
-                    EPOCH_SECONDS to FluoriteBig(instant.epochSeconds.toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                    OFFSET_SECONDS to FluoriteInt(offset.totalSeconds),
-                )
 
                 override fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue> {
                     fun usage(): Nothing = usage("OFFSET_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]; offsetSeconds: NUMBER): OFFSET_TIME")
@@ -329,12 +337,6 @@ fun createTimeMounts(): List<Map<String, Mount>> {
             }.create()
             localTimeClass = object : TimeFactory("LOCAL_TIME") {
                 override val hasUnixTime = false
-
-                // オフセット不明の年月日時分秒をUTCと仮定して符号化する
-                private fun createLocalTimeMap(instant: Instant, offset: UtcOffset): MutableMap<String, FluoriteValue> = mutableMapOf(
-                    EPOCH_SECONDS to FluoriteBig((instant.epochSeconds + offset.totalSeconds).toBigInteger()),
-                    NANOSECONDS_OF_SECOND to FluoriteInt(instant.nanosecondsOfSecond),
-                )
 
                 override fun of(arguments: Array<FluoriteValue>): MutableMap<String, FluoriteValue> {
                     fun usage(): Nothing = usage("LOCAL_TIME.of(epochSeconds: NUMBER[; nanosecondsOfSecond: NUMBER]): LOCAL_TIME")
