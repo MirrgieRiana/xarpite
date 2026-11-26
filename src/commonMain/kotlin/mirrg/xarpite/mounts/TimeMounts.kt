@@ -285,6 +285,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 2) usage()
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
+                    val offset = UtcOffset(seconds = offsetValue.roundToInt())
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -292,6 +293,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 2) usage()
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
+                    val offset = UtcOffset(seconds = offsetValue.roundToInt())
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -365,6 +367,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 2) usage()
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
+                    val offset = UtcOffset(seconds = offsetValue.roundToInt())
                 }
 
                 override fun getOffset(obj: FluoriteObject): UtcOffset {
@@ -426,6 +429,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 2) usage()
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
+                    val offset = UtcOffset(seconds = offsetValue.roundToInt())
                 }
 
                 override fun toOffsetTime(arguments: Array<FluoriteValue>): FluoriteObject {
@@ -433,6 +437,7 @@ fun createTimeMounts(): List<Map<String, Mount>> {
                     if (arguments.size != 2) usage()
                     val obj = arguments[0] as FluoriteObject
                     val offsetValue = arguments[1] as? FluoriteNumber ?: usage()
+                    val offset = UtcOffset(seconds = offsetValue.roundToInt())
                 }
 
                 override fun toLocalTime(arguments: Array<FluoriteValue>): FluoriteObject {
